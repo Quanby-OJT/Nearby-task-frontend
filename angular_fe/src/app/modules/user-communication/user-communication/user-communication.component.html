@@ -1,0 +1,14 @@
+<p>user-communication works!</p>
+
+<ul>
+  <li *ngFor="let user of users">{{ user.first_name }}</li>
+</ul>
+
+<form action="" [formGroup]="userForm" (ngSubmit)="addUser()">
+  <input type="text" formControlName="first_name" placeholder="First Name" required />
+  <input type="text" formControlName="last_name" placeholder="Last Name" required />
+  <input type="email" formControlName="email" placeholder="Email" required />
+  <input type="password" formControlName="password" placeholder="Password" required />
+  <input type="file" (change)="onFileSelect($event)" />
+  <button type="submit">Add User</button>
+</form>

@@ -1,0 +1,66 @@
+<ng-container>
+  <td class="border-muted/20 border-b px-4 py-5 text-center text-[0.85rem]">
+    <input
+      [(ngModel)]="user.selected"
+      class="checkbox checkbox-sm"
+      data-datatable-row-check="true"
+      type="checkbox"
+      value="28" />
+  </td>
+  <td class="border-muted/20 border-b px-4 py-3 text-[0.85rem]">{{ user.user_id }}</td>
+  <td class="border-muted/20 border-b px-4 py-3 text-[0.85rem]">
+    <div class="flex items-center gap-2.5">
+      <img alt="user avatar" class="h-9 w-9 shrink-0 rounded-full" src="{{ user.image_link }}" />
+      <div class="flex flex-col">
+        <a class="text-foreground hover:text-primary text-sm font-semibold" href="#">
+          {{ user.first_name }} {{ user.middle_name }} {{ user.last_name }}
+        </a>
+        <a class="text-muted-foreground/70 hover:text-primary text-xs font-medium" href="#">
+          {{ user.email }}
+        </a>
+      </div>
+    </div>
+  </td>
+  <td class="border-muted/20 border-b px-4 py-3 text-[0.85rem]">{{ user.user_role }}</td>
+  <td class="border-muted/20 border-b px-4 py-3 text-[0.85rem]">
+    {{ user.email }}
+  </td>
+  <td class="border-muted/20 rounded-md border-b px-4 py-3 text-[0.85rem] font-semibold text-white">
+    <span
+      class="rounded-lg py-1 px-4"
+      [ngClass]="{
+        'bg-blue-500': user.acc_status === 'review',
+        'bg-green-500': user.acc_status === 'verified',
+        'bg-red-500': user.acc_status === 'blocked',
+        'bg-yellow-500': user.acc_status === 'rejected'
+      }"
+      [class.cursor-pointer]="user.acc_status === 'review'"
+      (click)="user.acc_status === 'review' ? navigateToReviewUser(user.user_id) : null">
+      {{ user.acc_status }}
+    </span>
+  </td>
+  <td class="border-muted/20 rounded-md border-b px-4 py-3 text-[0.85rem] font-semibold text-white">
+    <span
+      class="rounded-lg py-1 px-4"
+      [ngClass]="{
+        'bg-green-500': user.status == true,
+        'bg-red-500': user.status == false
+      }">
+      {{ user.status ? 'Online' : 'Offline' }}
+    </span>
+  </td>
+  <td class="border-muted/20 border-b px-4 py-3 text-[0.85rem]">
+    <div class="grid grid-cols-2 gap-5">
+      <button
+        class="text-muted-foreground hover:bg-card hover:text-foreground flex h-7 w-7 cursor-pointer items-center justify-center rounded-md"
+        (click)="updateUser(user.user_id)">
+        <svg-icon src="./assets/icons/heroicons/outline/edit-icon.svg" [svgClass]="'h-5 w-5'"> </svg-icon>
+      </button>
+      <button
+        class="text-muted-foreground hover:bg-card hover:text-foreground flex h-7 w-7 cursor-pointer items-center justify-center rounded-md"
+        (click)="deleteUser(user.user_id)">
+        <svg-icon src="./assets/icons/heroicons/outline/trash-icon.svg" [svgClass]="'h-5 w-5'"> </svg-icon>
+      </button>
+    </div>
+  </td>
+</ng-container>

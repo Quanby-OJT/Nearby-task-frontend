@@ -1,0 +1,25 @@
+<div class="bg-background flex-col rounded-lg px-8 py-8 shadow-md sm:flex-row">
+  <!-- Card Header -->
+  <div class="mb-2 flex items-center justify-between">
+    <div class="flex-col">
+      <div class="flex items-center space-x-1">
+        <span class="text-foreground text-4xl font-semibold">All Users</span>
+        <div class="flex items-center rounded-md bg-green-500/25 py-1 pr-2 pl-1 text-xs font-semibold text-green-500">
+          9.2%
+        </div>
+      </div>
+      <span class="text-muted-foreground text-sm">Etherium rate</span>
+    </div>
+  </div>
+
+  <!-- Pie Chart -->
+  <div id="chart" class="mt-4">
+    <apx-chart
+      [series]="chartOptions.series"
+      [chart]="chartOptions.chart"
+      [labels]="chartOptions.labels"
+      [responsive]="chartOptions.responsive"
+      [legend]="chartOptions.legend">
+    </apx-chart>
+  </div>
+</div>

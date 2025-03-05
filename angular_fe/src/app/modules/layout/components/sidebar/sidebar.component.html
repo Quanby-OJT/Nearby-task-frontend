@@ -1,0 +1,33 @@
+<nav
+  [ngClass]="menuService.showSideBar ? 'w-52 xl:w-64' : 'w-[70px]'"
+  class="scrollbar-thumb--sm scrollbar-track-rounded scrollbar-thin scrollbar-track-transparent scrollbar-thumb-card hidden h-full flex-col justify-between overflow-auto bg-blue-900 pt-3 shadow-md transition-all duration-300 lg:flex">
+  <div class="px-4">
+    <!-- Logo -->
+    <div class="relative h-10">
+      <div class="flex items-center" *ngIf="menuService.showSideBar">
+        <a
+          (click)="toggleSidebar()"
+          class="flex cursor-pointer items-center justify-center rounded-sm p-2 focus:outline-hidden focus:ring-1">
+          <img class="h-9 w-9 rounded-md" src="assets/icons/Nearbytask.svg" alt="" />
+        </a>
+        <b class="ml-1 pl-2 text-sm font-bold text-white">
+          {{ appJson.displayName }}
+        </b>
+      </div>
+      <button
+        (click)="toggleSidebar()"
+        class="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-sm text-white transition-all duration-200 hover:text-white focus:outline-hidden"
+        [ngClass]="{ 'rotate-180': !menuService.showSideBar }">
+        <svg-icon src="assets/icons/heroicons/solid/chevron-double-left.svg"> </svg-icon>
+      </button>
+    </div>
+
+    <!-- Separator -->
+    <div class="pt-3">
+      <hr class="border-muted border-dashed" />
+    </div>
+
+    <!-- Menu Items -->
+    <app-sidebar-menu></app-sidebar-menu>
+  </div>
+</nav>

@@ -1,0 +1,155 @@
+<div class="mb-4 flex justify-between">
+  <div class="inline-block">
+    <h3 class="text-foreground font-semibold">Review User</h3>
+    <div class="text-muted-foreground space-x-1 text-xs font-medium">
+      <a href="" class="hover:text-primary">Dashboards > User Management > Review User</a>
+    </div>
+  </div>
+  <!-- Submit Button -->
+  <div class="">
+    <app-button full impact="bold" shape="rounded" size="medium" (click)="navigateToUsermanagement()">Back</app-button>
+  </div>
+</div>
+
+<div class="border-muted/20 bg-background flex min-w-full flex-col rounded-xl border p-2">
+  <!-- Add User form -->
+  <div></div>
+  <form class="my-10 space-y-6" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="space-y-3 text-left">
+      <div class="grid grid-cols-3 gap-5 p-5">
+        <div class="mx-auto w-full max-w-xs">
+          <div class="overflow-hidden rounded-lg bg-white shadow-md">
+            <div class="mx-auto w-full max-w-xs">
+              <div class="overflow-hidden rounded-lg bg-white shadow-md">
+                <div class="flex h-full w-full items-center justify-center bg-gray-100">
+                  <img
+                    [src]="imageUrl ? imageUrl : profileImage || ''"
+                    alt="Uploaded Image"
+                    class="h-full w-full object-cover" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-span-2">
+          <div class="form__group mb-5">
+            <!-- First Name -->
+            <div class="relative">
+              <input
+                type="text"
+                id="firstName"
+                [ngClass]="{ 'is__invalid-input': submitted && f['firstName'].errors }"
+                class="peer block"
+                placeholder=" "
+                formControlName="firstName" />
+            </div>
+          </div>
+
+          <div class="form__group mb-5">
+            <!-- Middle Name -->
+            <div class="relative">
+              <input
+                type="text"
+                id="middleName"
+                [ngClass]="{ 'is__invalid-input': submitted && f['middleName'].errors }"
+                class="peer block"
+                placeholder=" "
+                formControlName="middleName" />
+            </div>
+          </div>
+          <div class="form__group mb-5">
+            <!-- Last Name  -->
+            <div class="relative">
+              <input
+                type="text"
+                id="lastName"
+                [ngClass]="{ 'is__invalid-input': submitted && f['lastName'].errors }"
+                class="peer block"
+                placeholder=" "
+                formControlName="lastName" />
+            </div>
+          </div>
+
+          <div class="form__group mb-5">
+            <!-- Last Name  -->
+            <div class="relative">
+              <input
+                type="date"
+                id="bday"
+                [ngClass]="{ 'is__invalid-input': submitted && f['bday'].errors }"
+                class="peer block"
+                placeholder=" "
+                formControlName="bday" />
+            </div>
+          </div>
+
+          <div class="form__group mb-5">
+            <!-- Last Name  -->
+            <div class="relative">
+              <input
+                type="email"
+                id="email"
+                [ngClass]="{ 'is__invalid-input': submitted && f['email'].errors }"
+                class="peer block"
+                placeholder=" "
+                formControlName="email" />
+            </div>
+          </div>
+
+          <div class="mb-5 grid grid-cols-2 gap-5">
+            <div class="form__group">
+              <div class="relative">
+                <select
+                  id="userRole"
+                  class="peer block w-full rounded border px-3 py-2"
+                  formControlName="userRole"
+                  [ngClass]="{ 'border-red-500': submitted && f['userRole'].errors }"
+                  required>
+                  <option value="" disabled selected>Select User Role</option>
+                  <option value="client">Client</option>
+                  <option value="moderator">Moderator</option>
+                  <option value="tasker">Tasker</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form__group">
+              <div class="relative">
+                <select
+                  id="status"
+                  class="peer block w-full rounded border px-3 py-2"
+                  formControlName="status"
+                  [ngClass]="{ 'border-red-500': submitted && f['status'].errors }"
+                  required>
+                  <option value="" disabled selected>Select User status</option>
+                  <option value="verified">Verified</option>
+                  <option value="review">Review</option>
+                  <option value="blocked">Blocked</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+              </div>
+              <div *ngIf="submitted && f['status'].errors" class="pt-1 text-xs text-red-500">
+                <div *ngIf="f['status'].errors['required']">Required field</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="">
+            <div class="mb-5">
+              <a href="" target="_blank">
+                <button
+                  class="bg-main-color block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                  type="button">
+                  Click To Review Document
+                </button></a
+              >
+            </div>
+            <app-button full impact="bold" shape="rounded" size="medium">Update User</app-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
