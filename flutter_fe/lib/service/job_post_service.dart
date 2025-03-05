@@ -50,7 +50,7 @@ class JobPostService {
 
       // Fetch liked jobs
       final likedJobsResponse = await http.get(Uri.parse(
-          'http://192.168.110.144:5000/connect/displayLikedJob/${userId}'));
+          'http://192.168.110.144:5000/connect/displayLikedJob/$userId'));
 
       if (response.statusCode == 200 && likedJobsResponse.statusCode == 200) {
         final Map<String, dynamic> jsonData = jsonDecode(response.body);
@@ -221,7 +221,7 @@ class JobPostService {
       }
 
       final url = Uri.parse(
-          "http://192.168.110.144:5000/connect/displayLikedJob/${userId}");
+          "http://192.168.110.144:5000/connect/displayLikedJob/$userId");
       debugPrint("Fetching liked jobs from: $url");
 
       final response = await http.get(url);

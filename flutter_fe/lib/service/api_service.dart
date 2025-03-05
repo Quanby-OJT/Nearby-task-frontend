@@ -12,7 +12,7 @@ class ApiService {
       "http://192.168.110.144:5000/connect"; // Adjust if needed
 
   static final http.Client _client = http.Client();
-  static Map<String, String> _cookies = {};
+  static final Map<String, String> _cookies = {};
 
   static void _updateCookies(http.Response response) {
     String? rawCookie = response.headers['set-cookie'];
@@ -79,7 +79,7 @@ class ApiService {
 
       if (response.statusCode == 200) {
         if (data.containsKey('user')) {
-          print("User Data: " + data['user'].toString());
+          print("User Data: ${data['user']}");
           return {"user": UserModel.fromJson(data['user'])};
         } else {
           return {"error": "User not found"};
