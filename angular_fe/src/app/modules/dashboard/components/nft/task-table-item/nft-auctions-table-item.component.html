@@ -1,0 +1,35 @@
+<td class="py-2 pr-2">
+  <div class="flex items-center">
+    <!-- <img [src]="auction.image" class="rounded-xs mr-2 h-10 w-10 flex-none" alt="" /> -->
+    <div class="flex flex-col justify-items-start">
+      <a href="#" class="text-foreground mb-1 text-sm font-semibold">{{ TaskTaken.id }}</a>
+    </div>
+  </div>
+</td>
+<!-- <td class="py-2 pl-2 text-right">
+  <span class="text-muted-foreground text-sm font-semibold">{{ TaskTaken.client }}</span>
+</td>
+<td class="py-2 pl-2 text-right">
+  <span class="text-muted-foreground text-sm font-semibold">{{ TaskTaken.tasker }}</span>
+</td> -->
+<td class="py-2 pl-2 text-right">
+  <!-- <div class="ml-4 flex items-center justify-start">
+    <img [src]="auction.avatar" class="mr-3 h-8 w-8 rounded-b-md" alt="" />
+  </div> -->
+  <span class="text-muted-foreground text-sm font-semibold">{{ TaskTaken.task_id }}</span>
+</td>
+<td class="py-2 pl-2 text-right">
+  <span class="text-muted-foreground text-sm font-semibold">{{ TaskTaken.ending_in }}</span>
+</td>
+<td class="py-2 pl-2 text-right">
+  <span class="text-muted-foreground text-sm font-semibold">{{ TaskTaken.status }}</span>
+</td>
+<td class="py-2 pl-2 text-right">
+  <div class="flex justify-end">
+    <button
+      href="#"
+      class="bg-card text-muted-foreground hover:bg-muted hover:text-foreground flex h-7 w-7 items-center justify-center rounded-md">
+      <svg-icon src="assets/icons/heroicons/outline/ellipsis-vertical.svg" [svgClass]="'h-5 w-5'"> </svg-icon>
+    </button>
+  </div>
+</td>

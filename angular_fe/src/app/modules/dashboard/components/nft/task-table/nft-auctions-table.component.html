@@ -1,0 +1,46 @@
+<div class="bg-background flex-col rounded-lg px-8 py-8 shadow-md sm:flex-row">
+  <div class="mb-4 flex items-center justify-between">
+    <div class="flex-col items-center">
+      <h3 class="text-md text-foreground font-bold">Task Overview</h3>
+    </div>
+    <!-- <button
+      class="bg-card text-muted-foreground hover:bg-muted hover:text-foreground flex-none rounded-md px-4 py-2.5 text-xs font-semibold">
+      History
+    </button> -->
+    <div>
+      <select
+        name=""
+        id=""
+        class="bg-card text-muted-foreground hover:bg-muted hover:text-foreground flex-none rounded-md px-4 pr-10 text-xs font-semibold">
+        <option value="Today" selected>Today</option>
+        <option value="Week">Week</option>
+        <option value="Month">Month</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="relative overflow-x-auto">
+    <table class="w-full table-auto">
+      <!--Table head-->
+      <thead class="text-muted-foreground text-xs uppercase">
+        <tr>
+          <th class="py-3 text-left">Trans ID</th>
+          <th class="py-3 text-right">Task ID</th>
+          <th class="py-3 text-right">Time Left</th>
+          <th class="py-3 text-right">Status</th>
+          <th class="py-3 text-right">View</th>
+        </tr>
+      </thead>
+      <!--end Table head-->
+      <!--Table body-->
+      <tbody>
+        <tr
+          *ngFor="let auction of TaskTaken"
+          [TaskTaken]="auction"
+          nft-auctions-table-item
+          class="border-border hover:bg-card border-b border-dashed"></tr>
+      </tbody>
+      <!--end::Table body-->
+    </table>
+  </div>
+</div>
