@@ -9,7 +9,7 @@ import '../model/tasker_model.dart';
 
 class ApiService {
   static const String apiUrl =
-      "http://192.168.110.144:5000/connect"; // Adjust if needed
+      "http://localhost:5000/connect"; // Adjust if needed
 
   static final http.Client _client = http.Client();
   static final Map<String, String> _cookies = {};
@@ -67,10 +67,6 @@ class ApiService {
     return response.statusCode == 201;
   }
 
-  // static Future<bool> createTasker(TaskerModel tasker){
-  //   var request = http.MultipartRequest("POST", Uri.parse("$apiUrl/"))
-  // }
-
   static Future<Map<String, dynamic>> fetchAuthenticatedUser(
       String userId) async {
     try {
@@ -107,7 +103,7 @@ class ApiService {
         }),
       );
 
-      _updateCookies(response); // 🔥 Store session cookies here
+      _updateCookies(response);
 
       var data = json.decode(response.body);
 
@@ -196,6 +192,48 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> logout(int userId) async {
+    // try {
+    //   debugPrint('Attempting logout for user ID: $userId');
+
+    //   if (userId <= 0) {
+    //     return {"error": "Invalid user ID"};
+    //   }
+
+    //   final requestBody = {
+    //     "user_id": userId, // Send as integer, not string
+    //     "status": 0 ,
+    //     "session":  _cookies.get()// Use numeric status for database compatibility
+    //   };
+
+    //   debugPrint('Request Body: ${json.encode(requestBody)}');
+
+    // final response = await _client.post(
+    //   Uri.parse("$apiUrl/flutter/logout"),
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //     "Accept": "application/json"
+    //   },
+    //   body: json.encode(requestBody),
+    // );
+
+    // debugPrint('Logout Status Code: ${response.statusCode}');
+    // debugPrint('Logout Response Body: ${response.body}');
+
+    // if (response.statusCode == 200) {
+    //   _cookies.clear();
+    //   return {"message": "Logged out successfully"};
+    // } else {
+    //   var data = json.decode(response.body);
+    //   return {"error": data['message'] ?? "Failed to logout"};
+    // }
+
+    //   _cookies.clear();
+    //   return {"message": "Logged out successfully"};
+    // } catch (e) {
+    //   debugPrint('Logout Error: $e');
+    //   return {"error": "Connection error during logout"};
+    // }
+
     try {
       debugPrint('Attempting logout for user ID: $userId');
 
@@ -203,15 +241,23 @@ class ApiService {
         return {"error": "Invalid user ID"};
       }
 
+      // Get session cookie if exists
+      String? sessionCookie = _cookies["session"];
+
+      if (sessionCookie == null) {
+        debugPrint("No session cookie found.");
+        return {"error": "Session not found"};
+      }
+
       final requestBody = {
-        "user_id": userId, // Send as integer, not string
-        "status": 0 // Use numeric status for database compatibility
+        "user_id": userId,
+        "session": sessionCookie // Pass session to database
       };
 
       debugPrint('Request Body: ${json.encode(requestBody)}');
 
       final response = await _client.post(
-        Uri.parse("$apiUrl/logout"),
+        Uri.parse("$apiUrl/flutter/logout"),
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json"
@@ -223,7 +269,7 @@ class ApiService {
       debugPrint('Logout Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
-        _cookies.clear();
+        _cookies.remove("session"); // Remove only the session cookie
         return {"message": "Logged out successfully"};
       } else {
         var data = json.decode(response.body);

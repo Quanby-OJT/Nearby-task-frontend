@@ -21,6 +21,8 @@ class AuthenticationController {
       userId = response['user_id'];
       // Store user ID temporarily until OTP verification
       storage.write('temp_user_id', userId.toString());
+      debugPrint("User ID stored at: ${storage.read('temp_user_id')}");
+
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -65,6 +67,7 @@ class AuthenticationController {
       userId = response['user_id'];
       // After successful OTP verification, store the permanent user ID
       await storage.write('user_id', userId.toString());
+      // await storage.write('session', session.toString());
       // Remove temporary ID
       await storage.remove('temp_user_id');
 
@@ -90,7 +93,7 @@ class AuthenticationController {
 
   Future<void> logout(BuildContext context) async {
     try {
-      await _handleLogoutNavigation(context);
+      // await _handleLogoutNavigation(context);
       final storedUserId = storage.read('user_id');
       debugPrint("Stored user ID for logout: $storedUserId");
 
