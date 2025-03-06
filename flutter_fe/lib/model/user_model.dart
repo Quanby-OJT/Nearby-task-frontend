@@ -3,11 +3,13 @@ class UserModel {
   final String middleName;
   final String lastName;
   final String email;
-  final String password;
+  final String? birthdate;
+  final String? password;
   final dynamic
-      image; // Can be either a String (URL) or Uint8List (binary data)
+  image; // Can be either a String (URL) or Uint8List (binary data)
   final String? imageName; // Store image filename if available
   final String role;
+  final String accStatus;
 
 
 //This is what the controller used
@@ -16,28 +18,30 @@ class UserModel {
     required this.middleName,
     required this.lastName,
     required this.email,
-    required this.password,
+    this.password,
     this.image,
     this.imageName,
-    required this.role
+    required this.role,
+    this.birthdate,
+    required this.accStatus
   });
 
   // Factory constructor to handle image as either URL or binary data, this is for the display record part
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      firstName: json['first_name'],
-      middleName: json['middle_name'],
-      lastName: json['last_name'],
-      email: json['email'],
-      password: json['hashed_password'],
-      // Check if the image is a URL (String) or binary data (Uint8List)
-      image: json['image_link'] is String
-          ? json['image_link']
-          : null, // Assuming image is a URL (String)
-      imageName: json['image_name'],
-      role: json['user_role']
+      firstName: json['first_name'] ?? '', // Default to empty string
+      middleName: json['middle_name'] ?? '',
+      lastName: json['last_name'] ?? '',
+      birthdate: json['birthdate'] as String?, // Allow null values
+      email: json['email'] ?? '',
+      password: json['hashed_password'] as String?, // Allow null values
+      image: json['image_link'] ?? '', // Ensure it's not null
+      imageName: json['image_name'] as String?, // Allow null values
+      role: json['user_role'] ?? '',
+      accStatus: json['acc_status'] ?? '',
     );
   }
+
 
 // Returns whith these datas
   Map<String, dynamic> toJson() {

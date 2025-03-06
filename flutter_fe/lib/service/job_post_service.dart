@@ -1,34 +1,57 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/model/specialization.dart';
+import 'package:flutter_fe/service/auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:get_storage/get_storage.dart';
 
 class JobPostService {
-  final storage = GetStorage();
+  static final String apiUrl = "http://10.0.2.2:5000/connect";
+  static final storage = GetStorage();
 
-  Future<Map<String, dynamic>> postJob(TaskModel task) async {
-    final url = Uri.parse("http://192.168.110.144:5000/connect/addTask");
+  Future<Map<String, dynamic>> postJob(TaskModel task, int userId) async {
+    final url = Uri.parse("$apiUrl/addTask");
+    final String token = await AuthService.getSessionToken();
 
     try {
       final response = await http.post(
         url,
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(task.toJson()),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+          "Access-Control-Allow-Credentials": "true"
+        },
+        body: jsonEncode({
+          ...task.toJson(),  // Spreads existing task properties
+          "user_id": userId   // Adds userId to the payload
+        }),
       );
 
       var responseBody = jsonDecode(response.body);
+      debugPrint(responseBody.toString());
       if (response.statusCode == 201) {
         return {
           'success': true,
           'message':
-              responseBody['message'] ?? 'Unable  to Read Backend Response'
+              responseBody['message'] ?? 'Task Posted Successfully.'
         };
-      } else {
+      } else if (response.statusCode == 400) {
+        List<dynamic> validationErrors = responseBody['errors'];
+
+        // Extracting only the error messages
+        List errorMessages = validationErrors.map((error) => error['msg']).toList();
+
+        return {
+          'success': false,
+          'errors': errorMessages.join('\n') // Join messages into a single string
+        };
+      }
+      else {
         return {
           'success': false,
           'message':
-              responseBody['message'] ?? 'Unable  to Read Backend Response'
+              responseBody['error'] ?? 'Error while posting job. Please Try Again.'
         };
       }
     } catch (e) {
@@ -36,55 +59,102 @@ class JobPostService {
     }
   }
 
+  Future<List<SpecializationModel>> getSpecializations() async {
+    final String token = await AuthService.getSessionToken();
+    try {
+      final response = await http.get(
+        Uri.parse('$apiUrl/get-specializations'),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+          "Access-Control-Allow-Credentials": "true"
+        },
+      );
+
+      print(response.body);
+
+      if (response.statusCode == 200) {
+        var decodedData = jsonDecode(response.body);
+
+        if (decodedData.containsKey('specializations')) {
+          List<dynamic> specializationList = decodedData['specializations'];
+
+          return specializationList
+              .map((item) => SpecializationModel.fromJson(item))
+              .toList();
+        }
+      }
+      throw Exception("Failed to retrieve specializations");
+    } catch (e) {
+      throw Exception("An Error Occurred while Retrieving Specializations: $e");
+    }
+  }
+
   Future<List<TaskModel>> fetchAllJobs() async {
     try {
       final userId = await getUserId();
+      final String token = await AuthService.getSessionToken();
+
       if (userId == null) {
-        debugPrint("User not authenticated, cannot fetch jobs");
+        debugPrint("You must be logged in first.");
         return [];
       }
 
       // Fetch all jobs
-      final response = await http
-          .get(Uri.parse('http://192.168.110.144:5000/connect/displayTask'));
+      final response = await http.get(
+        Uri.parse('$apiUrl/displayTask'),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+      );
+
+      debugPrint(response.body);
 
       // Fetch liked jobs
-      final likedJobsResponse = await http.get(Uri.parse(
-          'http://192.168.110.144:5000/connect/displayLikedJob/$userId'));
+      final likedJobsResponse = await http.get(
+        Uri.parse('$apiUrl/displayLikedJob/$userId'),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+      );
 
-      if (response.statusCode == 200 && likedJobsResponse.statusCode == 200) {
+      debugPrint(likedJobsResponse.body);
+
+      if (response.statusCode == 200) {
         final Map<String, dynamic> jsonData = jsonDecode(response.body);
-        final Map<String, dynamic> likedJobsData =
-            jsonDecode(likedJobsResponse.body);
+        final List<dynamic> taskList = jsonData.containsKey('tasks') ? jsonData['tasks'] : [];
 
-        if (jsonData.containsKey('tasks') &&
-            likedJobsData.containsKey('tasks')) {
-          final List<dynamic> taskList = jsonData['tasks'];
-          final List<dynamic> likedJobs = likedJobsData['tasks'];
+        // Handle empty liked jobs safely
+        Set<int> likedJobIds = {};
+        if (likedJobsResponse.statusCode == 200) {
+          final Map<String, dynamic> likedJobsData = jsonDecode(likedJobsResponse.body);
+          final List<dynamic> likedJobs = likedJobsData.containsKey('liked_tasks') ? likedJobsData['liked_tasks'] : [];
 
-          // Extract liked job IDs
-          final Set<int> likedJobIds =
-              likedJobs.map<int>((job) => job['job_post_id'] as int).toSet();
-
-          // Filter out liked jobs from all jobs
-          final List<TaskModel> filteredTasks = taskList
-              .map((task) => TaskModel.fromJson(task))
-              .where((task) => !likedJobIds.contains(task.id))
-              .toList();
-
-          return filteredTasks;
+          // Convert liked job IDs to a set
+          likedJobIds = likedJobs.map<int>((job) => job['job_post_id'] as int).toSet();
         }
+
+        // Convert tasks to TaskModel and ensure all tasks are displayed
+        final List<TaskModel> allTasks = taskList.map((task) => TaskModel.fromJson(task)).toList();
+
+        return allTasks;
       }
-    } catch (e) {
-      print("Error fetching jobs: $e");
+    } catch (e, stackTrace) {
+      debugPrint("Error fetching jobs: $e");
+      debugPrint(stackTrace.toString());
     }
+
     return [];
   }
 
+
   Future<Map<String, dynamic>> saveLikedJob(int jobId) async {
     try {
-      final url = Uri.parse('http://192.168.110.144:5000/connect/likeJob');
+      final url = Uri.parse('$apiUrl/likeJob');
       String? userId = await getUserId();
+      final String token = await AuthService.getSessionToken();
 
       if (userId == null || userId.isEmpty) {
         debugPrint("User not logged in, cannot like job");
@@ -113,6 +183,7 @@ class JobPostService {
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
+          "Authorization": "Bearer $token"
         },
         body: jsonEncode(requestBody),
       );
@@ -150,7 +221,7 @@ class JobPostService {
         };
       }
 
-      final url = Uri.parse('http://192.168.110.144:5000/connect/unlikeJob');
+      final url = Uri.parse('$apiUrl/unlikeJob');
       debugPrint("Sending unlike request for jobId: $jobId");
 
       final requestBody = {
@@ -188,6 +259,31 @@ class JobPostService {
     }
   }
 
+  Future<Map<String, dynamic>> fetchJobsforClient(int clientId) async {
+    var response = await http.get(
+        Uri.parse("$apiUrl/displayTask/$clientId"),
+        headers: {
+          "Authorization": "Bearer ${await AuthService.getSessionToken()}",
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        }
+    );
+
+    debugPrint("Response Body: ${response.body}");
+
+    try {
+      final Map<String, dynamic> taskData = jsonDecode(response.body); // Decode JSON properly
+
+      if (response.statusCode == 200) {
+        return {"client_task": taskData['tasks'] ?? []}; // Ensure 'data' exists, fallback to an empty list
+      } else {
+        return {"error": taskData['error'] ?? "Unknown error"}; // Handle missing error key
+      }
+    } catch (e) {
+      return {"error": "Failed to parse JSON: ${e.toString()}"}; // Handle JSON decoding errors
+    }
+  }
+
   // Get user ID from GetStorage
   Future<String?> getUserId() async {
     final userId = storage.read('user_id');
@@ -215,16 +311,21 @@ class JobPostService {
   Future<List<TaskModel>> fetchUserLikedJobs() async {
     try {
       String? userId = await getUserId();
+      String? token = await storage.read('session');
       if (userId == null || userId.isEmpty) {
         debugPrint("Cannot fetch liked jobs: User not logged in");
         return [];
       }
 
-      final url = Uri.parse(
-          "http://192.168.110.144:5000/connect/displayLikedJob/$userId");
+      final url = Uri.parse("$apiUrl/displayLikedJob/${userId}");
       debugPrint("Fetching liked jobs from: $url");
 
-      final response = await http.get(url);
+      final response = await http.get(
+          url,
+        headers: {
+            "Authorization": "Bearer $token"
+        }
+      );
       debugPrint("Response status: ${response.statusCode}");
       debugPrint("Raw response body: ${response.body}");
 
