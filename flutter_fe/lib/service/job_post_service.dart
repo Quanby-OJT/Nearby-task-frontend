@@ -10,6 +10,7 @@ class JobPostService {
   Future<Map<String, dynamic>> postJob(TaskModel task) async {
     final url = Uri.parse("http://192.168.110.147:5000/connect/addTask");
 
+
     try {
       final response = await http.post(
         url,
@@ -52,6 +53,7 @@ class JobPostService {
       final likedJobsResponse = await http.get(Uri.parse(
           'http://192.168.110.147:5000/connect/displayLikedJob/${userId}'));
 
+
       if (response.statusCode == 200 && likedJobsResponse.statusCode == 200) {
         final Map<String, dynamic> jsonData = jsonDecode(response.body);
         final Map<String, dynamic> likedJobsData =
@@ -83,7 +85,9 @@ class JobPostService {
 
   Future<Map<String, dynamic>> saveLikedJob(int jobId) async {
     try {
+
       final url = Uri.parse('http://192.168.110.147:5000/connect/likeJob');
+
       String? userId = await getUserId();
 
       if (userId == null || userId.isEmpty) {
@@ -150,7 +154,9 @@ class JobPostService {
         };
       }
 
+
       final url = Uri.parse('http://192.168.110.147:5000/connect/unlikeJob');
+
       debugPrint("Sending unlike request for jobId: $jobId");
 
       final requestBody = {
@@ -220,8 +226,10 @@ class JobPostService {
         return [];
       }
 
+
       final url = Uri.parse(
           "http://192.168.110.147:5000/connect/displayLikedJob/${userId}");
+
       debugPrint("Fetching liked jobs from: $url");
 
       final response = await http.get(url);

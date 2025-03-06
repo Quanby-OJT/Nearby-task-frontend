@@ -1,9 +1,5 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/service/api_service.dart';
-import 'package:flutter_fe/view/business_acc/business_acc_main_page.dart';
-import 'package:flutter_fe/view/fill_up/fill_up_tasker.dart';
 import 'package:flutter_fe/view/sign_in/otp_screen.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
@@ -25,6 +21,8 @@ class AuthenticationController {
       userId = response['user_id'];
       // Store user ID temporarily until OTP verification
       storage.write('temp_user_id', userId.toString());
+      debugPrint("User ID stored at: ${storage.read('temp_user_id')}");
+
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -71,6 +69,7 @@ class AuthenticationController {
 
       // After successful OTP verification, store the permanent user ID
       await storage.write('user_id', userId.toString());
+      // await storage.write('session', session.toString());
       // Remove temporary ID
       await storage.remove('temp_user_id');
 
@@ -108,7 +107,7 @@ class AuthenticationController {
 
   Future<void> logout(BuildContext context) async {
     try {
-      await _handleLogoutNavigation(context);
+      // await _handleLogoutNavigation(context);
       final storedUserId = storage.read('user_id');
       debugPrint("Stored user ID for logout: $storedUserId");
 
