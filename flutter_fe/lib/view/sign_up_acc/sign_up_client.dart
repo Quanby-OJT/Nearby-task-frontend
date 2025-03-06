@@ -17,7 +17,7 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
   final ProfileController _controller = ProfileController();
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     _controller.roleController.text = widget.role;
   }
@@ -55,7 +55,8 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                     fontWeight: FontWeight.bold),
               ),
               Padding(
-                padding: const EdgeInsets.only(top: 10, bottom: 10, left: 20, right: 20),
+                padding: const EdgeInsets.only(
+                    top: 10, bottom: 10, left: 20, right: 20),
                 child: Text(
                   textAlign: TextAlign.center,
                   "With ONE SWIPE, You can Find a New Tasker in a MATTER OF SECONDS.",
@@ -67,176 +68,190 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                   child: Theme(
                     data: Theme.of(context).copyWith(
                       colorScheme:
-                      ColorScheme.light(primary: Color(0xFF0272B1)),
+                          ColorScheme.light(primary: Color(0xFF0272B1)),
                     ),
-                    child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 10, left: 20, right: 20),
-                            child: TextFormField(
-                              controller: _controller.firstNameController,
-                              cursorColor: Color(0xFF0272B1),
-                              validator: (value) =>
-                              value!.isEmpty ? "Please Input Your First Name" : null,
-                              decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: Color(0xFFF1F4FF),
-                                  hintText: 'First Name',
-                                  hintStyle: TextStyle(color: Colors.grey),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide:
-                                      BorderSide(color: Colors.transparent, width: 0),
-                                      borderRadius: BorderRadius.circular(10)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                      borderSide: BorderSide(
-                                          color: Color(0xFF0272B1), width: 2))),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 10, left: 20, right: 20),
-                            child: Row(
-                              children: [
-                                // Middle Name Field
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: _controller.middleNameController, // Make sure this controller exists
-                                    cursorColor: Color(0xFF0272B1),
-                                    validator: (value) =>
-                                    value!.isEmpty ? "Please Input Your Middle Name" : null,
-                                    decoration: InputDecoration(
-                                      filled: true,
-                                      fillColor: Color(0xFFF1F4FF),
-                                      hintText: 'Middle Name',
-                                      hintStyle: TextStyle(color: Colors.grey),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.transparent, width: 0),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                        borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: 10), // Spacing between the fields
-                                // Last Name Field
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: _controller.lastNameController,
-                                    cursorColor: Color(0xFF0272B1),
-                                    validator: (value) =>
-                                    value!.isEmpty ? "Please Input Your Last Name" : null,
-                                    decoration: InputDecoration(
-                                      filled: true,
-                                      fillColor: Color(0xFFF1F4FF),
-                                      hintText: 'Last Name',
-                                      hintStyle: TextStyle(color: Colors.grey),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.transparent, width: 0),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                        borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 10, left: 20, right: 20),
-                            child: TextFormField(
-                              controller: _controller.emailController,
-                              cursorColor: Color(0xFF0272B1),
-                              validator: (value) =>
-                              value!.isEmpty ? "Please Input Your Valid Email" : null,
-                              decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: Color(0xFFF1F4FF),
-                                  hintText: 'Your Valid Email',
-                                  hintStyle: TextStyle(color: Colors.grey),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide:
-                                      BorderSide(color: Colors.transparent, width: 0),
-                                      borderRadius: BorderRadius.circular(10)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                      borderSide: BorderSide(
-                                          color: Color(0xFF0272B1), width: 2))),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 10, left: 20, right: 20),
-                            child: TextFormField(
-                              obscureText: true,
-                              cursorColor: Color(0xFF0272B1),
-                              validator: (value) =>
-                              value!.isEmpty ? "Your Password Must had at least 6 characters long" : null,
-                              decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: Color(0xFFF1F4FF),
-                                  hintText: 'Your Password',
-                                  hintStyle: TextStyle(color: Colors.grey),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide:
-                                      BorderSide(color: Colors.transparent, width: 0),
-                                      borderRadius: BorderRadius.circular(10)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                      borderSide: BorderSide(
-                                          color: Color(0xFF0272B1), width: 2))),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 10, left: 20, right: 20),
-                            child: TextFormField(
-                              obscureText: true,
-                              cursorColor: Color(0xFF0272B1),
-                              validator: (value) =>
-                              value!.isEmpty ? "Passwords do not match" : null,
-                              decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: Color(0xFFF1F4FF),
-                                  hintText: 'Confirmed Password',
-                                  hintStyle: TextStyle(color: Colors.grey),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderSide:
-                                      BorderSide(color: Colors.transparent, width: 0),
-                                      borderRadius: BorderRadius.circular(10)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                      borderSide: BorderSide(
-                                          color: Color(0xFF0272B1), width: 2))),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 10, left: 20, right: 20),
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFF0272B1),
-                                shape: RoundedRectangleBorder(
+                    child: Column(children: [
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            bottom: 10, left: 20, right: 20),
+                        child: TextFormField(
+                          controller: _controller.firstNameController,
+                          cursorColor: Color(0xFF0272B1),
+                          validator: (value) => value!.isEmpty
+                              ? "Please Input Your First Name"
+                              : null,
+                          decoration: InputDecoration(
+                              filled: true,
+                              fillColor: Color(0xFFF1F4FF),
+                              hintText: 'First Name',
+                              hintStyle: TextStyle(color: Colors.grey),
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Colors.transparent, width: 0),
+                                  borderRadius: BorderRadius.circular(10)),
+                              focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                ),
-                                padding: EdgeInsets.symmetric(horizontal: 30),
-                              ),
-                              onPressed: () {
-                                _controller.registerUser(context);
-                              },
-                              child: Text(
-                                  'Create New Client Account',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.white
+                                  borderSide: BorderSide(
+                                      color: Color(0xFF0272B1), width: 2))),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            bottom: 10, left: 20, right: 20),
+                        child: Row(
+                          children: [
+                            // Middle Name Field
+                            Expanded(
+                              child: TextFormField(
+                                controller: _controller
+                                    .middleNameController, // Make sure this controller exists
+                                cursorColor: Color(0xFF0272B1),
+                                validator: (value) => value!.isEmpty
+                                    ? "Please Input Your Middle Name"
+                                    : null,
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  fillColor: Color(0xFFF1F4FF),
+                                  hintText: 'Middle Name',
+                                  hintStyle: TextStyle(color: Colors.grey),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Colors.transparent, width: 0),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: BorderSide(
+                                        color: Color(0xFF0272B1), width: 2),
+                                  ),
                                 ),
                               ),
                             ),
-                          )]),
-                  )
-              ),
+                            SizedBox(width: 10), // Spacing between the fields
+                            // Last Name Field
+                            Expanded(
+                              child: TextFormField(
+                                controller: _controller.lastNameController,
+                                cursorColor: Color(0xFF0272B1),
+                                validator: (value) => value!.isEmpty
+                                    ? "Please Input Your Last Name"
+                                    : null,
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  fillColor: Color(0xFFF1F4FF),
+                                  hintText: 'Last Name',
+                                  hintStyle: TextStyle(color: Colors.grey),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Colors.transparent, width: 0),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: BorderSide(
+                                        color: Color(0xFF0272B1), width: 2),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            bottom: 10, left: 20, right: 20),
+                        child: TextFormField(
+                          controller: _controller.emailController,
+                          cursorColor: Color(0xFF0272B1),
+                          validator: (value) => value!.isEmpty
+                              ? "Please Input Your Valid Email"
+                              : null,
+                          decoration: InputDecoration(
+                              filled: true,
+                              fillColor: Color(0xFFF1F4FF),
+                              hintText: 'Your Valid Email',
+                              hintStyle: TextStyle(color: Colors.grey),
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Colors.transparent, width: 0),
+                                  borderRadius: BorderRadius.circular(10)),
+                              focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                      color: Color(0xFF0272B1), width: 2))),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            bottom: 10, left: 20, right: 20),
+                        child: TextFormField(
+                          controller: _controller.passwordController,
+                          obscureText: true,
+                          cursorColor: Color(0xFF0272B1),
+                          validator: (value) => value!.isEmpty
+                              ? "Your Password Must had at least 6 characters long"
+                              : null,
+                          decoration: InputDecoration(
+                              filled: true,
+                              fillColor: Color(0xFFF1F4FF),
+                              hintText: 'Your Password',
+                              hintStyle: TextStyle(color: Colors.grey),
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Colors.transparent, width: 0),
+                                  borderRadius: BorderRadius.circular(10)),
+                              focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                      color: Color(0xFF0272B1), width: 2))),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            bottom: 10, left: 20, right: 20),
+                        child: TextFormField(
+                          controller: _controller.confirmPasswordController,
+                          obscureText: true,
+                          cursorColor: Color(0xFF0272B1),
+                          validator: (value) =>
+                              value!.isEmpty ? "Passwords do not match" : null,
+                          decoration: InputDecoration(
+                              filled: true,
+                              fillColor: Color(0xFFF1F4FF),
+                              hintText: 'Confirmed Password',
+                              hintStyle: TextStyle(color: Colors.grey),
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Colors.transparent, width: 0),
+                                  borderRadius: BorderRadius.circular(10)),
+                              focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                      color: Color(0xFF0272B1), width: 2))),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            bottom: 10, left: 20, right: 20),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFF0272B1),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: EdgeInsets.symmetric(horizontal: 30),
+                          ),
+                          onPressed: () {
+                            _controller.registerUser(context);
+                          },
+                          child: Text(
+                            'Create New Client Account',
+                            style: TextStyle(fontSize: 18, color: Colors.white),
+                          ),
+                        ),
+                      )
+                    ]),
+                  )),
               TextButton(
                   onPressed: () {
                     // Navigator.push(context,

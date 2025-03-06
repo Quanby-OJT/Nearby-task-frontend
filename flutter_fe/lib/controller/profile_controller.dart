@@ -34,32 +34,49 @@ class ProfileController {
   // }
   // Byte for the image end
   Future<void> registerUser(BuildContext context) async {
+    if (passwordController.text.isEmpty ||
+        firstNameController.text.isEmpty ||
+        lastNameController.text.isEmpty ||
+        emailController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Please fill in all required fields")),
+      );
+      return;
+    }
+
     if (passwordController.text != confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Passwords do not match!")),
       );
       return;
     }
-// Validation if password not matched end
 
-// Store the inputs Start
     UserModel user = UserModel(
-        firstName: firstNameController.text,
-        middleName: middleNameController.text,
-        lastName: lastNameController.text,
-        email: emailController.text,
-        password: passwordController.text,
-        role: roleController.text);
-    bool success = await ApiService.registerUser(user);
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+      firstName: firstNameController.text,
+      middleName: middleNameController.text,
+      lastName: lastNameController.text,
+      email: emailController.text,
+      password: passwordController.text,
+      role: roleController.text.isEmpty ? "Client" : roleController.text,
+    );
+
+    try {
+      bool success = await ApiService.registerUser(user);
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
             content: Text(
-                "Registration Successful! Please Check your Email to confirm your email.")),
-      );
-    } else {
+                "Registration Successful! Please check your email to confirm."),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Registration Failed! Please try again.")),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Registration Failed!")),
+        SnackBar(content: Text("Error: $e")),
       );
     }
   }
