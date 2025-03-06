@@ -1,27 +1,19 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/model/specialization.dart';
-import 'package:flutter_fe/service/auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:get_storage/get_storage.dart';
 
 class JobPostService {
-  static final String apiUrl = "http://10.0.2.2:5000/connect";
-  static final storage = GetStorage();
+  final storage = GetStorage();
 
-  Future<Map<String, dynamic>> postJob(TaskModel task, int userId) async {
-    final url = Uri.parse("$apiUrl/addTask");
-    final String token = await AuthService.getSessionToken();
+  Future<Map<String, dynamic>> postJob(TaskModel task) async {
+    final url = Uri.parse("http://192.168.110.144:5000/connect/addTask");
 
     try {
       final response = await http.post(
         url,
-        headers: {
-          "Content-Type": "application/json",
-          "Authentication": "Bearer $token",
-          "Access-Control-Allow-Credentials": "true"
-        },
+        headers: {"Content-Type": "application/json"},
         body: jsonEncode(task.toJson()),
       );
 
@@ -44,37 +36,6 @@ class JobPostService {
     }
   }
 
-  Future<List<SpecializationModel>> getSpecializations() async {
-    final String token = await AuthService.getSessionToken();
-    try {
-      final response = await http.get(
-        Uri.parse('$apiUrl/get-specializations'),
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token",
-          "Access-Control-Allow-Credentials": "true"
-        },
-      );
-
-      print(response.body);
-
-      if (response.statusCode == 200) {
-        var decodedData = jsonDecode(response.body);
-
-        if (decodedData.containsKey('specializations')) {
-          List<dynamic> specializationList = decodedData['specializations'];
-
-          return specializationList
-              .map((item) => SpecializationModel.fromJson(item))
-              .toList();
-        }
-      }
-      throw Exception("Failed to retrieve specializations");
-    } catch (e) {
-      throw Exception("An Error Occurred while Retrieving Specializations: $e");
-    }
-  }
-
   Future<List<TaskModel>> fetchAllJobs() async {
     try {
       final userId = await getUserId();
@@ -85,11 +46,11 @@ class JobPostService {
 
       // Fetch all jobs
       final response = await http
-          .get(Uri.parse('$apiUrl/displayTask'));
+          .get(Uri.parse('http://192.168.110.144:5000/connect/displayTask'));
 
       // Fetch liked jobs
       final likedJobsResponse = await http.get(Uri.parse(
-          '$apiUrl/displayLikedJob/${userId}'));
+          'http://192.168.110.144:5000/connect/displayLikedJob/$userId'));
 
       if (response.statusCode == 200 && likedJobsResponse.statusCode == 200) {
         final Map<String, dynamic> jsonData = jsonDecode(response.body);
@@ -122,9 +83,8 @@ class JobPostService {
 
   Future<Map<String, dynamic>> saveLikedJob(int jobId) async {
     try {
-      final url = Uri.parse('$apiUrl/likeJob');
+      final url = Uri.parse('http://192.168.110.144:5000/connect/likeJob');
       String? userId = await getUserId();
-      final String token = await AuthService.getSessionToken();
 
       if (userId == null || userId.isEmpty) {
         debugPrint("User not logged in, cannot like job");
@@ -153,7 +113,6 @@ class JobPostService {
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
-          "Authentication": "Bearer "
         },
         body: jsonEncode(requestBody),
       );
@@ -191,7 +150,7 @@ class JobPostService {
         };
       }
 
-      final url = Uri.parse('$apiUrl/unlikeJob');
+      final url = Uri.parse('http://192.168.110.144:5000/connect/unlikeJob');
       debugPrint("Sending unlike request for jobId: $jobId");
 
       final requestBody = {
@@ -262,7 +221,7 @@ class JobPostService {
       }
 
       final url = Uri.parse(
-          "$apiUrl/displayLikedJob/${userId}");
+          "http://192.168.110.144:5000/connect/displayLikedJob/$userId");
       debugPrint("Fetching liked jobs from: $url");
 
       final response = await http.get(url);
