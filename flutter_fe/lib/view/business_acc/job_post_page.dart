@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
+import 'package:flutter_fe/model/specialization.dart';
+import 'package:flutter_fe/service/job_post_service.dart';
 
 class JobPostPage extends StatefulWidget {
   const JobPostPage({super.key});
@@ -11,38 +13,86 @@ class JobPostPage extends StatefulWidget {
 
 class _JobPostPageState extends State<JobPostPage> {
   final TaskController controller = TaskController();
+  final JobPostService jobPostService = JobPostService();
   String? _message;
   bool _isSuccess = false;
 
   String? selectedValue; // Stores selected dropdown value
   String? selectedUrgency; // Stores selected dropdown value
   String? selectedSpecialization;
-  List<String> items = ['Day', 'Week', 'Month'];
+  List<String> items = ['Day/s', 'Week/s', 'Month/s', 'Year/s'];
   List<String> urgency = ['Non-Urgent', 'Urgent'];
-  List<String> specializtion = ['Tech Support', 'Cleaning', 'Plumbing'];
+  List<String> specialization = [];
+
+  @override
+  void initState(){
+    super.initState();
+    fetchSpecialization();
+  }
+
+  Future<void> fetchSpecialization() async{
+    try {
+      print("Fetching SPecializations...");
+      List<SpecializationModel> fetchedSpecializations =
+      await jobPostService.getSpecializations(); // Fetch from API
+      setState(() {
+        specialization = fetchedSpecializations.map((spec) => spec.specialization).toList(); // Update UI
+      });
+    } catch (error) {
+      print('Error fetching specializations: $error');
+    }
+  }
 
   Future<void> _submitJob() async {
     controller.jobTitleController.text = controller.jobTitleController.text;
     controller.jobSpecializationController.text = selectedSpecialization ?? "";
-    controller.jobDescriptionController.text =
-        controller.jobDescriptionController.text;
-    controller.jobLocationController.text =
-        controller.jobLocationController.text;
+    controller.jobDescriptionController.text = controller.jobDescriptionController.text;
+    controller.jobLocationController.text = controller.jobLocationController.text;
     controller.jobDurationController.text = selectedValue ?? "";
     controller.jobDaysController.text = controller.jobDaysController.text;
     controller.jobUrgencyController.text = selectedUrgency ?? "";
 
     final result = await controller.postJob();
+
     setState(() {
       _message = result['message'];
       _isSuccess = result['success'];
     });
 
-    controller.postJob();
+    if (!_isSuccess) {
+      if (_message is List) {
+        // If validation errors are a list, join them into a single string
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text((_message as List).join("\n")),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      } else {
+        // Otherwise, show the message normally
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_message ?? 'An error occurred.'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Job posted successfully!'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -64,7 +114,7 @@ class _JobPostPageState extends State<JobPostPage> {
                 cursorColor: Color(0xFF0272B1),
                 controller: controller.jobTitleController,
                 decoration: InputDecoration(
-                    label: Text('Job Title'),
+                    label: Text('What is the Task All About'),
                     labelStyle: TextStyle(color: Color(0xFF0272B1)),
                     filled: true,
                     fillColor: Color(0xFFF1F4FF),
@@ -81,36 +131,34 @@ class _JobPostPageState extends State<JobPostPage> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(left: 40, right: 40, top: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
               child: DropdownButtonFormField<String>(
                 value: selectedSpecialization,
                 decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Color(0xFFF1F4FF),
-                    //labelText: 'Select an option',
-                    hintText: 'Specialization...',
-                    hintStyle: TextStyle(color: Color(0xFF0272B1)),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Colors.transparent, width: 0),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide:
-                          BorderSide(color: Color(0xFF0272B1), width: 2),
-                    )),
-                items: specializtion.map((String item) {
+                  filled: true,
+                  fillColor: Color(0xFFF1F4FF),
+                  hintText: 'Select Specialization',
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.transparent),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
+                  ),
+                ),
+                items: specialization.map((String spec) {
                   return DropdownMenuItem<String>(
-                    value: item,
-                    child: Text(item),
+                    value: spec,
+                    child: Text(
+                      spec,
+                      overflow: TextOverflow.ellipsis, // Ensures text does not overflow
+                    ),
                   );
                 }).toList(),
-                onChanged: (String? newValue) {
+                onChanged: (newValue) {
                   setState(() {
                     selectedSpecialization = newValue;
-                    controller.jobSpecializationController.text =
-                        newValue ?? "";
                   });
                 },
               ),
@@ -122,7 +170,7 @@ class _JobPostPageState extends State<JobPostPage> {
                 cursorColor: Color(0xFF0272B1),
                 controller: controller.jobDescriptionController,
                 decoration: InputDecoration(
-                    label: Text('Job Description'),
+                    label: Text('Can you Elaborate About Your Task?'),
                     labelStyle: TextStyle(color: Color(0xFF0272B1)),
                     alignLabelWithHint: true,
                     filled: true,
@@ -173,7 +221,7 @@ class _JobPostPageState extends State<JobPostPage> {
                 cursorColor: Color(0xFF0272B1),
                 controller: controller.jobLocationController,
                 decoration: InputDecoration(
-                    label: Text('Location'),
+                    label: Text('Where Will the Task be Taken?'),
                     labelStyle: TextStyle(color: Color(0xFF0272B1)),
                     filled: true,
                     fillColor: Color(0xFFF1F4FF),
@@ -232,7 +280,7 @@ class _JobPostPageState extends State<JobPostPage> {
                   FilteringTextInputFormatter.digitsOnly
                 ], // Only numbers allowed
                 decoration: InputDecoration(
-                    label: Text('Number of days'),
+                    label: Text('How Long Will the Task Would Take?'),
                     labelStyle: TextStyle(color: Color(0xFF0272B1)),
                     filled: true,
                     fillColor: Color(0xFFF1F4FF),
@@ -270,7 +318,7 @@ class _JobPostPageState extends State<JobPostPage> {
                   }
                 },
                 decoration: InputDecoration(
-                  labelText: 'Task Begin Date',
+                  labelText: 'When will the task begin?',
                   labelStyle: TextStyle(color: Color(0xFF0272B1)),
                   filled: true,
                   fillColor: Color(0xFFF1F4FF),
@@ -298,7 +346,7 @@ class _JobPostPageState extends State<JobPostPage> {
                     filled: true,
                     fillColor: Color(0xFFF1F4FF),
                     //labelText: 'Select an option',
-                    hintText: 'Urgency...',
+                    hintText: 'Does your task need be done ASAP?',
                     hintStyle: TextStyle(color: Color(0xFF0272B1)),
                     enabledBorder: OutlineInputBorder(
                       borderSide:
@@ -366,6 +414,7 @@ class _JobPostPageState extends State<JobPostPage> {
               padding: EdgeInsets.symmetric(horizontal: 40),
               child: ElevatedButton(
                   onPressed: () {
+                    _message = "";
                     _submitJob();
                   },
                   style: ElevatedButton.styleFrom(

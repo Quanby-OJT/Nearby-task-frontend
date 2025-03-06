@@ -3,7 +3,7 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 
 class LikeScreen extends StatefulWidget {
-  const LikeScreen({super.key});
+  const LikeScreen({Key? key}) : super(key: key);
 
   @override
   State<LikeScreen> createState() => _LikeScreenState();
