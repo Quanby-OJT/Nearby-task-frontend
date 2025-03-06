@@ -1,1 +1,64 @@
-<p>logs works!</p>
+<div class="mb-4 flex justify-between w-full max-w-[1440px] mx-auto px-4">
+    <div>
+      <h3 class="text-foreground font-semibold">User Logs</h3>
+      <div class="text-muted-foreground text-xs font-medium">
+        <a href="#" class="hover:text-primary">Dashboards > User Logs</a>
+      </div>
+    </div>
+  </div>
+  
+  <div class="border-muted/20 bg-background flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
+    <!-- Action Section -->
+    <div class="flex flex-wrap items-center justify-between gap-2 py-3 px-5">
+      <div class="text-muted-foreground text-sm font-medium"></div>
+      <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+        <div class="flex-1 min-w-[200px] lg:min-w-[300px] xl:min-w-[400px]">
+          <label class="relative w-full">
+            <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" placeholder="Search users logs" type="text"/>
+          </label>
+        </div>
+        <select name="status" class="text-muted-foreground w-28! p-2">
+          <option value="">All Status</option>
+          <option value="active">Login</option>
+          <option value="disabled">Logout</option>
+        </select>
+      </div>
+    </div>
+  
+    <!-- Table -->
+    <div class="overflow-x-auto w-full">
+      <table class="w-full border-collapse border-0 text-left text-sm">
+        <thead class="border-b">
+          <tr class="bg-gray-100">
+            <th class="px-4 py-2 w-[80px] lg:w-[100px]">No</th>
+            <th class="px-4 py-2 text-center min-w-[200px] lg:min-w-[250px] xl:min-w-[300px]">User Name</th>
+            <th class="px-4 py-2 text-left min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">User Role</th>
+            <th class="px-4 py-2 text-left min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Status</th>
+            <th class="px-4 py-2 text-left min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Time Start</th>
+            <th class="px-4 py-2 text-lefts min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Time End</th>
+          </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let logs of displayuserLogs; let i = index" class="border-b">
+          <td class="px-4 py-3 text-center" >{{ i + 1 }}</td>
+          <td class="px-4 py-3 text-center">{{ logs.user.first_name }} {{ logs.user.middle_name }} {{ logs.user.last_name }}</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-2.5">
+              <div class="flex flex-col">
+                <span class="font-semibold text-right">{{ logs.user.user_role }}</span>
+              </div>
+            </div>
+          </td>
+          <td class="px-4 py-3" >{{ logs.user.status ? 'Login' : 'Logout'}}</td>
+          <td class="px-4 py-3">{{ logs.logged_in }}</td>
+          <td class="px-4 py-3">{{ logs.logged_out }}</td>
+          <td class="px-4 py-3">  
+            <div class="flex gap-2">
+              <button class="h-10 w-20 flex items-center justify-center text-2xl"></button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+      </table>
+    </div>
+  </div>

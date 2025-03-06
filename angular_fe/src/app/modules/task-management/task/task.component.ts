@@ -73,9 +73,9 @@ export class TaskComponent {
     this.paginationButtons = [];
   
     // Show "..." before the middle pages if we're past page 2
-    // if (startPage > 2) {
-    //   this.paginationButtons.push('...');
-    // }
+    if (startPage > 2) {
+      this.paginationButtons.push('...');
+    }
   
     // Add the 3 middle page numbers
     for (let i = startPage; i <= endPage; i++) {
@@ -83,9 +83,9 @@ export class TaskComponent {
     }
   
     // // Show "..." after the middle pages if there are more pages after
-    // if (endPage < this.totalPages - 1) {
-    //   this.paginationButtons.push('...');
-    // }
+    if (endPage < this.totalPages - 1) {
+      this.paginationButtons.push('...');
+    }
   }
   
 
