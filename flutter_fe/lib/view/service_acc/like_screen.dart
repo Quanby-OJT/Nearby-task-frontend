@@ -4,7 +4,7 @@ import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class LikeScreen extends StatefulWidget {
-  const LikeScreen({Key? key}) : super(key: key);
+  const LikeScreen({super.key});
 
   @override
   State<LikeScreen> createState() => _LikeScreenState();
