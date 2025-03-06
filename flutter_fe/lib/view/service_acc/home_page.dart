@@ -110,15 +110,15 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFF0272B1),
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Center(
-            child: Text(
-          'Job Posts',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        )),
-        backgroundColor: Colors.transparent,
-      ),
+      // appBar: AppBar(
+      //   automaticallyImplyLeading: false,
+      //   title: Center(
+      //       child: Text(
+      //     'Job Posts',
+      //     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      //   )),
+      //   backgroundColor: Colors.transparent,
+      // ),
       body: Stack(
         children: [
           Column(

@@ -97,7 +97,7 @@ class AuthenticationController {
 
   Future<void> logout(BuildContext context) async {
     try {
-      // await _handleLogoutNavigation(context);
+      await _handleLogoutNavigation(context);
       final storedUserId = storage.read('user_id');
       debugPrint("Stored user ID for logout: $storedUserId");
 
