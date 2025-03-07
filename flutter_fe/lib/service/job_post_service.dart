@@ -95,13 +95,24 @@ class JobPostService {
     final likedJobsResponse = await _getRequest("/displayLikedJob/$userId");
     final allJobsResponse = await _getRequest("/displayTask");
 
+    // Ensure likedJobIds is a valid Set<int>
     final likedJobIds = (likedJobsResponse["tasks"] ?? [])
+        .where((job) => job["job_post_id"] != null) // Ensure no null values
         .map<int>((job) => job["job_post_id"] as int)
         .toSet();
 
-    return (allJobsResponse["tasks"] ?? [])
-        .where((job) => likedJobIds.contains(job["job_post_id"]))
-        .map((job) => TaskModel.fromJson(job))
+    // Ensure `allJobsResponse["tasks"]` is a List before filtering
+    final allJobs = allJobsResponse["tasks"];
+    if (allJobs is! List) {
+      throw Exception("Unexpected API response: tasks is not a List");
+    }
+
+    return allJobs
+        .where((job) {
+      final jobId = job["job_post_id"];
+      return jobId != null && likedJobIds.contains(jobId);
+    })
+        .map<TaskModel>((job) => TaskModel.fromJson(job))
         .toList();
   }
 
