@@ -20,7 +20,7 @@ class _JobPostPageState extends State<JobPostPage> {
   String? _message;
   bool _isSuccess = false;
 
-  String? selectedValue;
+  String? selectedTimePeriod;
   String? selectedUrgency;
   String? selectedSpecialization;
   List<String> items = ['Day/s', 'Week/s', 'Month/s', 'Year/s'];
@@ -70,29 +70,66 @@ class _JobPostPageState extends State<JobPostPage> {
       if (controller.jobTitleController.text.trim().isEmpty) {
         _errors['task_title'] = 'Please Indicate Your Needed Task';
       }
+      if (selectedSpecialization == null) {
+        _errors['specialization'] = "Please Indicate the Needed Specialization";
+      }
       if (controller.jobDescriptionController.text.trim().isEmpty) {
         _errors['task_description'] = 'Please Elaborate Your Task.';
       }
-      if (controller.contactPriceController.text.trim().isEmpty) {
+
+      // Ensure contract price is a valid number
+      String contractPrice = controller.contactPriceController.text.trim();
+      if (contractPrice.isEmpty) {
         _errors['contact_price'] = 'Indicate the Contract Price';
+      } else if (double.tryParse(contractPrice) == null || double.parse(contractPrice) <= 0) {
+        _errors['contact_price'] = 'Contract Price must be a valid positive number';
       }
+
       if (controller.jobLocationController.text.trim().isEmpty) {
-        _errors['location'] = 'Indicate Your Location the Task will be held.';
+        _errors['location'] = 'Indicate Your Location where the Task will be held.';
       }
-      if (controller.jobDaysController.text.trim().isEmpty) {
+
+      // Ensure job time is a valid number
+      String jobTime = controller.jobTimeController.text.trim();
+      if (jobTime.isEmpty) {
         _errors['num_of_days'] = 'Indicate the Time Needed to Finish the Task';
+      } else if (int.tryParse(jobTime) == null || int.parse(jobTime) <= 0) {
+        _errors['num_of_days'] = 'Time Needed must be a valid positive number';
       }
-      if (controller.jobTaskBeginDateController.text.trim().isEmpty) {
+
+      // Validate date format and future date
+      String startDate = controller.jobTaskBeginDateController.text.trim();
+      if (startDate.isEmpty) {
         _errors['task_begin_date'] = 'Indicate When to Start Your Task';
+      } else {
+        try {
+          DateTime taskBeginDate = DateTime.parse(startDate);
+          if (taskBeginDate.isBefore(DateTime.now())) {
+            _errors['task_begin_date'] = 'Task start date must be in the future';
+          }
+        } catch (e) {
+          _errors['task_begin_date'] = 'Invalid date format';
+        }
       }
-      if(controller.jobUrgencyController.text.trim().isEmpty){
+
+      if (selectedUrgency == null) {
         _errors['urgency'] = 'Please Indicate if Your Task Needs to be finished ASAP.';
+      }
+      if (selectedTimePeriod == null) {
+        _errors['time_period'] = "Please Indicate the Time Period.";
       }
 
       debugPrint(_errors.toString());
 
-      // If there are no errors, proceed with form submission
-      if (_errors.isEmpty) {
+      // Show error messages in UI
+      if (_errors.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Please fix the errors before submitting'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } else {
         _submitJob();
       }
     });
@@ -274,12 +311,12 @@ class _JobPostPageState extends State<JobPostPage> {
                 Padding(
                   padding: const EdgeInsets.only(left: 40, right: 40, top: 20),
                   child: DropdownButtonFormField<String>(
-                    value: selectedValue,
+                    value: selectedTimePeriod,
                     decoration: InputDecoration(
                         filled: true,
                         fillColor: Color(0xFFF1F4FF),
                         //labelText: 'Select an option',
-                        hintText: 'Duration...',
+                        hintText: 'Indicate the Time Priod',
                         hintStyle: TextStyle(color: Color(0xFF0272B1)),
                         enabledBorder: OutlineInputBorder(
                           borderSide:
@@ -299,7 +336,7 @@ class _JobPostPageState extends State<JobPostPage> {
                     }).toList(),
                     onChanged: (newValue) {
                       setState(() {
-                        selectedValue = newValue;
+                        selectedTimePeriod = newValue;
                       });
                     },
                   ),
@@ -308,7 +345,7 @@ class _JobPostPageState extends State<JobPostPage> {
                   padding: const EdgeInsets.only(left: 40, right: 40, top: 20),
                   child: TextField(
                     cursorColor: Color(0xFF0272B1),
-                    controller: controller.jobDaysController,
+                    controller: controller.jobTimeController,
                     keyboardType: TextInputType.number, // Numeric keyboard
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly
@@ -467,29 +504,32 @@ class _JobPostPageState extends State<JobPostPage> {
                       )
                   ),
                 ),
+                SizedBox(height: 10),
                 Container(
                   height: 50,
                   width: double.infinity,
-                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 10),
+                  padding: EdgeInsets.symmetric(horizontal: 40), // Match padding
                   child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _message = "";
-                        _errors = {};
-                      },
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF0272B1),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10))),
-                      child: Text(
-                        'Show My Task List',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                        ),
-                      )
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _message = "";
+                      _errors = {};
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.pink,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      'Show My Task List',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                )
+                ),
               ],
             ),
           )
@@ -499,13 +539,14 @@ class _JobPostPageState extends State<JobPostPage> {
   }
 
   Future<void> _submitJob() async {
+    debugPrint("Submitting job...");
     setState(() {
       _message = "";
       _errors.clear(); // Clears previous errors
       _isSuccess = false;
     });
 
-    final result = await controller.postJob(selectedSpecialization, selectedUrgency, selectedValue);
+    final result = await controller.postJob(selectedSpecialization, selectedUrgency, selectedTimePeriod);
     debugPrint(result.toString());
 
     if (result['success']) {

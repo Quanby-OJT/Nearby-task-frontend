@@ -14,6 +14,7 @@ class ProfileController {
   final TextEditingController confirmPasswordController =
   TextEditingController();
   final TextEditingController roleController = TextEditingController();
+  final TextEditingController statusController = TextEditingController();
   final TextEditingController middleNameController = TextEditingController();
   final TextEditingController birthdateController = TextEditingController();
   // Fetched user inputs End
@@ -39,6 +40,16 @@ class ProfileController {
   // }
   // Byte for the image end
   Future<void> registerUser(BuildContext context) async {
+    if (passwordController.text.isEmpty ||
+        firstNameController.text.isEmpty ||
+        lastNameController.text.isEmpty ||
+        emailController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Please fill in all required fields")),
+      );
+      return;
+    }
+
     if (passwordController.text != confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Passwords do not match!")),

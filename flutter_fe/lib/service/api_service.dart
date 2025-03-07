@@ -29,7 +29,7 @@ class ApiService {
           _cookies[keyValue[0].trim()] = keyValue[1].trim();
         }
       }
-      print('Updated Cookies: $_cookies'); // Debugging
+      debugPrint('Updated Cookies: $_cookies'); // Debugging
     }
   }
 
@@ -57,12 +57,13 @@ class ApiService {
           "last_name": user.lastName,
           "email": user.email,
           "password": user.password,
-          "user_role": user.role
+          "user_role": user.role,
+          "acc_status": user.accStatus
         },
         "salt": salt
       };
 
-      print('Request Body: ${json.encode(requestBody)}'); // Debug log
+      debugPrint('Request Body: ${json.encode(requestBody)}'); // Debug log
 
       final response = await _client.post(
         Uri.parse("$apiUrl/create-new-user"),
@@ -73,15 +74,15 @@ class ApiService {
         body: json.encode(requestBody),
       );
 
-      print('Response Status: ${response.statusCode}');
-      print('Response Body: ${response.body}');
-      print('Request URL: ${apiUrl}/create-new-user');
-      print('Full Request Body: ${json.encode(requestBody)}');
+      debugPrint('Response Status: ${response.statusCode}');
+      debugPrint('Response Body: ${response.body}');
+      debugPrint('Request URL: ${apiUrl}/create-new-user');
+      debugPrint('Full Request Body: ${json.encode(requestBody)}');
 
 
       return response.statusCode == 201;
     } catch (e) {
-      print('Registration Error: $e');
+      debugPrint('Registration Error: $e');
       return false;
     }
   }
@@ -119,7 +120,8 @@ class ApiService {
         return {"error": data['error'] ?? "Failed to fetch user data"};
       }
     } catch (e) {
-      print(e.toString());
+      debugPrint(e.toString());
+      debugPrintStack();
       return {"error": "An error occurred: $e"};
     }
   }
@@ -149,7 +151,7 @@ class ApiService {
         return {"error": data['error'] ?? 'Authentication Failed'};
       }
     } catch (e) {
-      print('Error: $e');
+      debugPrint('Error: $e');
       return {"error": "An error occurred: $e"};
     }
   }
@@ -177,7 +179,7 @@ class ApiService {
         return {"error": data['error'] ?? "OTP Generation Failed"};
       }
     } catch (e) {
-      print('Error: $e');
+      debugPrint('Error: $e');
       return {"error": "An error occurred: $e"};
     }
   }
@@ -193,25 +195,25 @@ class ApiService {
         }),
       );
 
-      //print('Sent Headers: ${_getHeaders()}'); // Debugging
+      //debugPrint('Sent Headers: ${_getHeaders()}'); // Debugging
       _updateCookies(response); // 🔥 Store session cookies
 
       var data = json.decode(response.body);
-      print('Decoded Data Type: ${data.runtimeType}');
-      print('Response Data: $data'); // Debugging
+      debugPrint('Decoded Data Type: ${data.runtimeType}');
+      debugPrint('Response Data: $data'); // Debugging
 
       if (response.statusCode == 200) {
         return {"user_id": data['user_id'], "role": data['user_role'], "session": data['session_id']};
       } else if (response.statusCode == 400 && data.containsKey('errors')) {
         List<dynamic> errors = data['errors'];
         String validationMessage = errors.map((e) => e['msg']).join("\n");
-        print(validationMessage);
+        debugPrint(validationMessage);
         return {"validation_error": validationMessage};
       } else {
         return {"error": data['error'] ?? "OTP Authentication Failed"};
       }
     } catch (e) {
-      print('Error: $e');
+      debugPrint('Error: $e');
       return {"error": "An error occurred: $e"};
     }
   }
