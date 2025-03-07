@@ -11,7 +11,7 @@ class TaskController {
   final jobDescriptionController = TextEditingController();
   final jobLocationController = TextEditingController();
   final jobDurationController = TextEditingController();
-  final jobDaysController = TextEditingController();
+  final jobTimeController = TextEditingController();
   final jobUrgencyController = TextEditingController();
   final contactPriceController = TextEditingController();
   final jobRemarksController = TextEditingController();
@@ -29,7 +29,7 @@ class TaskController {
         specialization: specialization,
         description: jobDescriptionController.text.trim(),
         location: jobLocationController.text.trim(),
-        duration: int.tryParse(jobDaysController.text),
+        duration: int.tryParse(jobTimeController.text),
         period: period,
         urgency: urgency,
         contactPrice: int.tryParse(contactPriceController.text.trim()) ?? 0,
@@ -47,11 +47,12 @@ class TaskController {
   }
 
   Future<List<TaskModel>?> getJobsforClient(BuildContext context, int clientId) async {
-    final clientTask = await _jobPostService.fetchJobsforClient(clientId);
+    final clientTask = await _jobPostService.fetchJobsForClient(clientId);
+    debugPrint(clientTask.toString());
 
 
-    if (clientTask.containsKey('client_task')) {
-      List<dynamic> tasksList = clientTask['client_task']; // Extract the list from the map
+    if (clientTask.containsKey('tasks')) {
+      List<dynamic> tasksList = clientTask['tasks']; // Extract the list from the map
 
       List<TaskModel> tasks = tasksList.map((task) => TaskModel.fromJson(task)).toList(); // Convert list to TaskModel list
 
@@ -64,6 +65,10 @@ class TaskController {
     );
 
     return null;
+  }
+
+  Future<Map<String, dynamic>> assignTask(int userId, int taskId) async {
+    return await _jobPostService.assignTask(userId, taskId);
   }
 
 }
