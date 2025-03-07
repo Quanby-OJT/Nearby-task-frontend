@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TaskService } from 'src/app/services/task.service';
@@ -82,7 +82,7 @@ export class TaskComponent {
       this.paginationButtons.push(i);
     }
   
-    // Show "..." after the middle pages if there are more pages after
+    // // Show "..." after the middle pages if there are more pages after
     if (endPage < this.totalPages - 1) {
       this.paginationButtons.push('...');
     }
