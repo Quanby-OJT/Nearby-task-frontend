@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
-import 'package:flip_card/flip_card.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
-import 'package:flutter_fe/view/business_acc/job_post_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 
@@ -26,6 +24,7 @@ class _HomePageState extends State<HomePage> {
   ];
   List<String> selectedCategories = [];
   bool _isLoading = true;
+  @override
   void initState() {
     super.initState();
     _fetchTasks();
@@ -37,7 +36,7 @@ class _HomePageState extends State<HomePage> {
       JobPostService jobPostService = JobPostService();
       List<TaskModel> fetchedTasks = await jobPostService.fetchAllJobs();
 
-      print("Raw API Response: ${fetchedTasks}"); // Print entire response
+      print("Raw API Response: $fetchedTasks"); // Print entire response
       print(
           "Parsed tasks count: ${fetchedTasks.length}"); // Check if tasks are parsed
 

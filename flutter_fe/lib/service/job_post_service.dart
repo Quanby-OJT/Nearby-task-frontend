@@ -8,6 +8,7 @@ class JobPostService {
   final storage = GetStorage();
 
   Future<Map<String, dynamic>> postJob(TaskModel task) async {
+
     final url = Uri.parse("http://localhost:5000/connect/addTask");
 
     try {
@@ -45,6 +46,7 @@ class JobPostService {
       }
 
       // Fetch all jobs
+
       final response = await http
           .get(Uri.parse('http://localhost:5000/connect/displayTask'));
 
@@ -219,7 +221,6 @@ class JobPostService {
         debugPrint("Cannot fetch liked jobs: User not logged in");
         return [];
       }
-
       final url =
           Uri.parse("http://localhost:5000/connect/displayLikedJob/${userId}");
       debugPrint("Fetching liked jobs from: $url");
@@ -236,7 +237,6 @@ class JobPostService {
           final List<dynamic> likedJobs = jsonData['tasks'];
           debugPrint("Raw liked jobs: $likedJobs"); // Debug print
 
-          // Fetch full job details for each liked job
           final jobDetailsResponse = await http
               .get(Uri.parse('http://localhost:5000/connect/displayTask'));
 

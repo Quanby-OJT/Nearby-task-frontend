@@ -4,15 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../model/user_model.dart';
-import '../model/tasker_model.dart';
 
 class ApiService {
   static const String apiUrl =
-      "http://localhost:5000/connect"; // Adjust if needed
+      "http://localhost:5000/connect"; // Adjust if 
 
   static final http.Client _client = http.Client();
-  static Map<String, String> _cookies = {};
+  static final Map<String, String> _cookies = {};
 
   static void _updateCookies(http.Response response) {
     String? rawCookie = response.headers['set-cookie'];
@@ -41,30 +39,45 @@ class ApiService {
   }
 
   static Future<bool> registerUser(UserModel user) async {
-    //Tell Which Route the Backend we going to Use
-    var request =
-        http.MultipartRequest("POST", Uri.parse("$apiUrl/create-new-user"));
+    try {
+      // Create a salt using timestamp
+      String salt = DateTime.now().millisecondsSinceEpoch.toString();
 
-    // Add text fields
-    request.fields["first_name"] = user.firstName;
-    request.fields["middle_name"] = request.fields["last_name"] = user.lastName;
-    request.fields["email"] = user.email;
-    request.fields["password"] = user.password;
-    request.fields["user_role"] = user.role;
+      // Create the request payload
+      Map<String, dynamic> requestBody = {
+        "data": {
+          "first_name": user.firstName,
+          "middle_name": user.middleName,
+          "last_name": user.lastName,
+          "email": user.email,
+          "password": user.password,
+          "user_role": user.role,
+          "acc_status": user.status
+        },
+        "salt": salt
+      };
 
-    //Attach Image (if available)~
-    if (user.image != null && user.imageName != null) {
-      request.files.add(
-        http.MultipartFile.fromBytes(
-          'image_link',
-          user.image!,
-          filename: user.imageName!,
-        ),
+      print('Request Body: ${json.encode(requestBody)}'); // Debug log
+
+      final response = await _client.post(
+        Uri.parse("$apiUrl/create-new-user"),
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: json.encode(requestBody),
       );
-    }
 
-    var response = await request.send();
-    return response.statusCode == 201;
+      print('Response Status: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+      print('Request URL: ${apiUrl}/create-new-user');
+      print('Full Request Body: ${json.encode(requestBody)}');
+
+      return response.statusCode == 201;
+    } catch (e) {
+      print('Registration Error: $e');
+      return false;
+    }
   }
 
   static Future<Map<String, dynamic>> fetchAuthenticatedUser(
@@ -75,7 +88,7 @@ class ApiService {
 
       if (response.statusCode == 200) {
         if (data.containsKey('user')) {
-          print("User Data: " + data['user'].toString());
+          print("User Data: ${data['user']}");
           return {"user": UserModel.fromJson(data['user'])};
         } else {
           return {"error": "User not found"};
@@ -134,14 +147,6 @@ class ApiService {
 
       var data = json.decode(response.body);
 
-      // debugPrint("Request Fields: ${request.fields}");
-      // debugPrint(
-      //     "Request Files: ${request.files.map((file) => file.filename).toList()}");
-      // debugPrint("Request URL: ${request.url}");
-
-      // var response = await request.send();
-      // return response.statusCode == 201;
-
       if (response.statusCode == 200) {
         return {"message": data['message']};
       } else if (response.statusCode == 400 && data.containsKey('errors')) {
@@ -174,9 +179,13 @@ class ApiService {
 
       var data = json.decode(response.body);
       print('Decoded Data Type: ${data.runtimeType}');
+      print('Response Data: $data'); // Debugging
 
       if (response.statusCode == 200) {
-        return {"user_id": data['user_id'], "role": data['user_role']};
+        return {
+          "user_id": data['user_id'],
+          "user_role": data['user_role'] ?? "Unknown" // Ensure role is not null
+        };
       } else if (response.statusCode == 400 && data.containsKey('errors')) {
         List<dynamic> errors = data['errors'];
         String validationMessage = errors.map((e) => e['msg']).join("\n");

@@ -1,9 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/service/api_service.dart';
 import 'package:flutter_fe/view/business_acc/business_acc_main_page.dart';
-import 'package:flutter_fe/view/fill_up/fill_up_tasker.dart';
 import 'package:flutter_fe/view/sign_in/otp_screen.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
@@ -69,6 +66,8 @@ class AuthenticationController {
 
     if (response.containsKey('user_id')) {
       userId = response['user_id'];
+      String? userRole = response['user_role'];
+
       // After successful OTP verification, store the permanent user ID
       await storage.write('user_id', userId.toString());
       // await storage.write('session', session.toString());
@@ -77,10 +76,22 @@ class AuthenticationController {
 
       debugPrint(
           "User ID stored after OTP verification: ${storage.read('user_id')}");
+      debugPrint("User Role: $userRole");
 
-      Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return ServiceAccMain();
-      }));
+      // Navigate based on user role
+      if (userRole == "Client") {
+        Navigator.push(context, MaterialPageRoute(builder: (context) {
+          return BusinessAccMain(); // Replace with your actual client page widget
+        }));
+      } else if (userRole == "Tasker") {
+        Navigator.push(context, MaterialPageRoute(builder: (context) {
+          return ServiceAccMain(); // Replace with your actual service account main page widget
+        }));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Unknown user role: $userRole")),
+        );
+      }
     } else if (response.containsKey('validation_error')) {
       String error =
           response['validation_error'] ?? "OTP Authentication Failed.";
@@ -97,7 +108,7 @@ class AuthenticationController {
 
   Future<void> logout(BuildContext context) async {
     try {
-      await _handleLogoutNavigation(context);
+      // await _handleLogoutNavigation(context);
       final storedUserId = storage.read('user_id');
       debugPrint("Stored user ID for logout: $storedUserId");
 

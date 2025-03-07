@@ -1,14 +1,16 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { TaskComponent } from './task/task.component';
+import { TaskReportedListComponent } from './task/task-reported-list/task-reported-list.component';
+
 
 const routes: Routes = [
   {
     path: '',
-    component: TaskComponent,
     children: [
-      { path: 'task-management', redirectTo: 'task-management', pathMatch: 'full' },
-      { path: 'task-management', component: TaskComponent },
+      { path: '', redirectTo: '', pathMatch: 'full' },
+      { path: '', component: TaskComponent },
+      { path: 'task-disable/:id', component: TaskReportedListComponent },
       { path: '**', redirectTo: 'errors/404' },
     ],
   },
