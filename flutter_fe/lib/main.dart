@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
         getPages: [
           GetPage(name: '/welcome', page: () => WelcomePageViewMain()),
           GetPage(name: '/service-home', page: () => ServiceAccMain()),
-          GetPage(name: '/email-confirmation', page: () => EmailConfirmation())
+          GetPage(name: '/email-confirmation', page: () => EmailConfirmation()),
         ]);
   }
 }

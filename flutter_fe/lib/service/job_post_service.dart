@@ -8,7 +8,6 @@ class JobPostService {
   final storage = GetStorage();
 
   Future<Map<String, dynamic>> postJob(TaskModel task) async {
-
     final url = Uri.parse("http://localhost:5000/connect/addTask");
 
     try {

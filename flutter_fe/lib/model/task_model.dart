@@ -42,6 +42,7 @@ class TaskModel {
       "remarks": remarks,
       "task_begin_date": taskBeginDate,
       "id": id,
+      "status": status,
     };
   }
 
@@ -59,6 +60,7 @@ class TaskModel {
       contactPrice: json['contact_price'] as int?,
       remarks: json['remarks'] as String?,
       taskBeginDate: json['task_begin_date'] as String?,
+      status: json['status'] as String?,
     );
   }
 }

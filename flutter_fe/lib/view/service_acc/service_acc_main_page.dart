@@ -28,7 +28,7 @@ class _ServiceAccMainState extends State<ServiceAccMain> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: NavUserScreen(),
+      // appBar: NavUserScreen(),
       body: PageView(
         physics: NeverScrollableScrollPhysics(),
         controller: _pageController,
@@ -50,7 +50,7 @@ class _ServiceAccMainState extends State<ServiceAccMain> {
         child: GNav(
           selectedIndex: _currentIndex,
           onTabChange: _onItemTapped,
-          backgroundColor: Color(0xFF0272B1),
+          backgroundColor: const Color(0xFF03045E),
           color: Colors.white,
           activeColor: Colors.white,
           gap: 8,

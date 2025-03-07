@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/view/task/task_information.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class LikeScreen extends StatefulWidget {
@@ -134,68 +135,92 @@ class _LikeScreenState extends State<LikeScreen> {
     return Scaffold(
       body: Column(
         children: [
-          Padding(
-            padding: EdgeInsets.all(16.0), // Added padding
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                prefixIcon: Icon(Icons.search, color: Colors.grey),
-                suffixIcon: IconButton(
-                    onPressed: () {
-                      _openFilterModal();
-                    },
-                    icon: Icon(
-                      Icons.filter_list,
-                      color: Colors.grey,
-                    )),
-                filled: true,
-                fillColor: Color(0xFFF1F4FF),
-                hintText: 'Search jobs...',
-                hintStyle: GoogleFonts.montserrat(color: Colors.grey),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.transparent, width: 0),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide:
-                      BorderSide(color: Colors.blue, width: 2), // Fixed color
-                ),
-              ),
-            ),
-          ),
-          if (selectedFilters.isNotEmpty)
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10),
-              child: Wrap(
-                spacing: 8,
-                children: selectedFilters
-                    .map((filter) => Chip(
-                          label: Text(filter),
-                          deleteIcon: Icon(Icons.close),
-                          onDeleted: () {
-                            setState(() {
-                              selectedFilters.remove(filter);
-                            });
-                          },
-                        ))
-                    .toList(),
-              ),
-            ),
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 5),
+          Card(
+            elevation: 2,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(0)),
             child: Column(
               children: [
-                Text(
-                  "Saved Jobs: $savedJobsCount",
-                  style: GoogleFonts.montserrat(
-                      fontSize: 14, fontWeight: FontWeight.bold),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Text(
+                    'SAVED JOB'.toUpperCase(),
+                    style: GoogleFonts.montserrat(
+                      fontSize: 10,
+                      color: const Color(0xFF03045E),
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 3,
+                    ),
+                  ),
                 ),
+                Padding(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 16), // Added padding
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.search, color: Colors.grey),
+                      suffixIcon: IconButton(
+                          onPressed: () {
+                            _openFilterModal();
+                          },
+                          icon: Icon(
+                            Icons.filter_list,
+                            color: Colors.grey,
+                          )),
+                      filled: true,
+                      fillColor: Color(0xFFF1F4FF),
+                      hintText: 'Search jobs...',
+                      hintStyle: GoogleFonts.montserrat(color: Colors.grey),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: Colors.transparent, width: 0),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(
+                            color: Colors.blue, width: 2), // Fixed color
+                      ),
+                    ),
+                  ),
+                ),
+                if (selectedFilters.isNotEmpty)
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: Wrap(
+                      spacing: 8,
+                      children: selectedFilters
+                          .map((filter) => Chip(
+                                label: Text(filter),
+                                deleteIcon: Icon(Icons.close),
+                                onDeleted: () {
+                                  setState(() {
+                                    selectedFilters.remove(filter);
+                                  });
+                                },
+                              ))
+                          .toList(),
+                    ),
+                  ),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Available job: $savedJobsCount",
+                      style: GoogleFonts.montserrat(
+                        fontSize: 10,
+                        color: const Color(0xFF03045E),
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                )
               ],
             ),
           ),
           Expanded(
-            // Ensures _buildBody() takes remaining space
             child: _buildBody(),
           ),
         ],
@@ -377,7 +402,14 @@ class _LikeScreenState extends State<LikeScreen> {
                     children: [
                       TextButton(
                         onPressed: () {
-                          print(task.id);
+                          // print(task.id);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  TaskDetails(userID: task.id!),
+                            ),
+                          );
                         },
                         child: Row(
                           children: [

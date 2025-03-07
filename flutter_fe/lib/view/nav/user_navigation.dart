@@ -85,7 +85,7 @@ class NavUserScreen extends StatelessWidget implements PreferredSizeWidget {
           ))
         ],
       )),
-      backgroundColor: Colors.blue,
+      backgroundColor: const Color(0xFF03045E),
       centerTitle: true,
     );
   }
