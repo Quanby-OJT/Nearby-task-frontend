@@ -11,7 +11,15 @@ import { UserLogService } from 'src/app/services/log.service';
   styleUrl: './log.component.css',
 })
 export class LogComponent implements OnInit, OnDestroy {
-  displayuserLogs: any[] = [];
+  Math = Math;
+  logs: any[] = [];
+  filteredLogs: any[] = [];
+  displayLogs: any[] = [];
+  paginationButton: (number | string)[] = [];
+  logsPerPage: number = 10;
+  currentPage: number = 1;
+  totalPages: number = 1;
+
   private logsSubscription!: Subscription; 
 
   constructor(private userlogService: UserLogService) {}
@@ -19,7 +27,7 @@ export class LogComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.logsSubscription = this.userlogService.getUserLogs().subscribe(
       (logs) => {
-        this.displayuserLogs = logs;
+        this.displayLogs = logs;
       },
       (error) => {
         console.error("Error fetching logs:", error);
@@ -33,4 +41,21 @@ export class LogComponent implements OnInit, OnDestroy {
     }
   }
   
+    filterLogs(event: Event){
+      // Gets the value from html <select> //
+      const selectedValue = (event.target as HTMLSelectElement).value.toLowerCase();
+      // filteredLogs now have the html value selected, with ternary operation //
+      this.filteredLogs = selectedValue === "" ? this.logs : this.logs.filter(logs => logs.status?.toLowerCase() === selectedValue)
+    this.currentPage = 1;
+    this.updatePagination();
+    }
+
+    updatePagination(){
+      this.totalPages = this.Math.ceil(this.filteredLogs.length / this.logsPerPage);
+      this.displayLogs = this.filteredLogs.slice(
+        (this.currentPage - 1) * this.logsPerPage
+      );
+      // Late For Geenrate //
+    }
+
 }

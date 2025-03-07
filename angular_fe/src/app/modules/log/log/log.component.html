@@ -17,7 +17,7 @@
             <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" placeholder="Search users logs" type="text"/>
           </label>
         </div>
-        <select name="status" class="text-muted-foreground w-28! p-2">
+        <select name="status" class="text-muted-foreground w-28! p-2" (change)="filterLogs($event)">
           <option value="">All Status</option>
           <option value="active">Login</option>
           <option value="disabled">Logout</option>
@@ -40,7 +40,7 @@
           </tr>
         </thead>
         <tbody>
-        <tr *ngFor="let logs of displayuserLogs; let i = index" class="border-b">
+        <tr *ngFor="let logs of displayLogs; let i = index" class="border-b">
           <td class="px-4 py-3 text-center" >{{ i + 1 }}</td>
          <!-- <td class="px-10 py-3 pl-8 text-right" >{{ logs.log_id }}</td>  -->
           <td class="px-4 py-3 text-center">{{ logs.user.first_name }} {{ logs.user.middle_name }} {{ logs.user.last_name }}</td>     
