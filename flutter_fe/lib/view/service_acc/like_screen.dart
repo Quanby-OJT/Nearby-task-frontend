@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class LikeScreen extends StatefulWidget {
   const LikeScreen({super.key});
@@ -11,9 +12,12 @@ class LikeScreen extends StatefulWidget {
 
 class _LikeScreenState extends State<LikeScreen> {
   final JobPostService _jobService = JobPostService();
+  TextEditingController _searchController = TextEditingController();
   bool _isLoading = true;
   List<TaskModel> _likedJobs = [];
+  List<String> selectedFilters = [];
   String? _errorMessage;
+  int savedJobsCount = 0;
 
   @override
   void initState() {
@@ -52,20 +56,150 @@ class _LikeScreenState extends State<LikeScreen> {
     }
   }
 
+  void _openFilterModal() {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          // Allows UI update inside modal
+          builder: (context, setModalState) {
+            return Container(
+              padding: EdgeInsets.all(20),
+              height: 250,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Text(
+                      "Filter by Price",
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Wrap(
+                    spacing: 10,
+                    children: [
+                      _buildFilterChip("P100", setModalState),
+                      _buildFilterChip("P200", setModalState),
+                      _buildFilterChip("P300", setModalState),
+                      _buildFilterChip("P500+", setModalState),
+                    ],
+                  ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context); // Close modal
+                      setState(() {}); // Update UI
+                    },
+                    child: Text("Apply Filters"),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // Function to build a filter chip
+  Widget _buildFilterChip(String label, Function setModalState) {
+    bool isSelected = selectedFilters.contains(label);
+
+    return FilterChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (bool selected) {
+        setModalState(() {
+          if (selected) {
+            selectedFilters.add(label);
+          } else {
+            selectedFilters.remove(label);
+          }
+        });
+      },
+    );
+  }
+
+  // Function to simulate a saved job count update
+  void _updateSavedJobs() {
+    setState(() {
+      savedJobsCount++; // Increase saved jobs count (for testing)
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text('Liked Jobs'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadLikedJobs,
+      body: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.all(16.0), // Added padding
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                prefixIcon: Icon(Icons.search, color: Colors.grey),
+                suffixIcon: IconButton(
+                    onPressed: () {
+                      _openFilterModal();
+                    },
+                    icon: Icon(
+                      Icons.filter_list,
+                      color: Colors.grey,
+                    )),
+                filled: true,
+                fillColor: Color(0xFFF1F4FF),
+                hintText: 'Search jobs...',
+                hintStyle: GoogleFonts.montserrat(color: Colors.grey),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.transparent, width: 0),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide:
+                      BorderSide(color: Colors.blue, width: 2), // Fixed color
+                ),
+              ),
+            ),
+          ),
+          if (selectedFilters.isNotEmpty)
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 10),
+              child: Wrap(
+                spacing: 8,
+                children: selectedFilters
+                    .map((filter) => Chip(
+                          label: Text(filter),
+                          deleteIcon: Icon(Icons.close),
+                          onDeleted: () {
+                            setState(() {
+                              selectedFilters.remove(filter);
+                            });
+                          },
+                        ))
+                    .toList(),
+              ),
+            ),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 5),
+            child: Column(
+              children: [
+                Text(
+                  "Saved Jobs: $savedJobsCount",
+                  style: GoogleFonts.montserrat(
+                      fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            // Ensures _buildBody() takes remaining space
+            child: _buildBody(),
           ),
         ],
       ),
-      body: _buildBody(),
     );
   }
 
@@ -133,106 +267,190 @@ class _LikeScreenState extends State<LikeScreen> {
   }
 
   Widget _buildJobCard(TaskModel task) {
-    // Format date string if it exists
-    // String formattedDate = '';
-    // if (task.title != null) {
-    //   try {
-    //     final date = DateTime.parse(task.created_at!);
-    //     formattedDate = '${date.day}/${date.month}/${date.year}';
-    //   } catch (e) {
-    //     formattedDate = job.created_at ?? '';
-    //   }
-    // }
-
     return Card(
-      color: Color(0xFF0272B1),
+      color: Color.fromARGB(255, 239, 254, 255),
       elevation: 4,
       margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: Text(
-                    task.title ?? 'No Title',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                Padding(
+                  padding: EdgeInsets.all(10),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(25),
+                        child: Container(
+                          height: 40,
+                          width: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            image: const DecorationImage(
+                              image: AssetImage('assets/images/image1.jpg'),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Task',
+                              style: GoogleFonts.montserrat(
+                                color: const Color(0xFF03045E),
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                Text(
+                                  'Available tasks',
+                                  style: GoogleFonts.montserrat(
+                                    color: Color.fromARGB(255, 57, 209, 11),
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      )
+                    ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.favorite, color: Colors.red),
-                  onPressed: () {
-                    // Option to unlike job
-                    _unlikeJob(task);
-                  },
-                ),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.delete,
+                        color: Color.fromARGB(255, 228, 11, 11),
+                        size: 24,
+                      ),
+                      onPressed: () {
+                        // Option to unlike job
+                        _unlikeJob(task);
+                      },
+                    ),
+                  ],
+                )
               ],
             ),
-            const SizedBox(height: 8),
-            if (task.location != null && task.location!.isNotEmpty)
-              Row(
-                children: [
-                  Icon(
-                    Icons.location_city,
-                    color: Colors.white,
-                  ),
-                  Text(
-                    task.location!,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            const SizedBox(height: 8),
-            if (task.description != null && task.description!.isNotEmpty)
-              Text(
-                task.description!,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: Colors.white),
-              ),
-            const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                if (task.contactPrice != null)
-                  Chip(
-                    label: Text('\$${task.contactPrice}'),
-                    backgroundColor: Colors.green[50],
+                Padding(
+                  padding: EdgeInsets.only(left: 10, right: 10),
+                  child: Row(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '₱200.00',
+                            style: GoogleFonts.montserrat(
+                              color: const Color(0xFF03045E),
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
                   ),
-                // if (formattedDate.isNotEmpty)
-                //   Text(
-                //     'Posted: $formattedDate',
-                //     style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                //   ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextButton(
+                        onPressed: () {},
+                        child: Row(
+                          children: [
+                            Text(
+                              "View Details",
+                              style: TextStyle(
+                                color: Color(0xFF03045E),
+                                fontSize: 10,
+                              ),
+                            ),
+                            SizedBox(width: 5),
+                            Icon(Icons.arrow_forward, color: Color(0xFF03045E)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                )
               ],
             ),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: () {
-                // Navigate to job details page
-                _viewJobDetails(task);
-              },
-              style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 40),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10))),
-              child: const Text(
-                'View Details',
-                style: TextStyle(color: Colors.black),
-              ),
-            ),
+
+            // const SizedBox(height: 8),
+            // if (task.location != null && task.location!.isNotEmpty)
+            //   Row(
+            //     children: [
+            //       Icon(
+            //         Icons.location_city,
+            //         color: Colors.white,
+            //       ),
+            //       Text(
+            //         task.location!,
+            //         style: TextStyle(
+            //           color: Colors.white,
+            //           fontWeight: FontWeight.w500,
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // const SizedBox(height: 8),
+            // if (task.description != null && task.description!.isNotEmpty)
+            //   Text(
+            //     task.description!,
+            //     maxLines: 3,
+            //     overflow: TextOverflow.ellipsis,
+            //     style: TextStyle(color: Colors.white),
+            //   ),
+            // const SizedBox(height: 8),
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //   children: [
+            //     if (task.contactPrice != null)
+            //       Chip(
+            //         label: Text('\$${task.contactPrice}'),
+            //         backgroundColor: Colors.green[50],
+            //       ),
+            //     // if (formattedDate.isNotEmpty)
+            //     //   Text(
+            //     //     'Posted: $formattedDate',
+            //     //     style: TextStyle(color: Colors.grey[600], fontSize: 12),
+            //     //   ),
+            //   ],
+            // ),
+            //   const SizedBox(height: 8),
+            //   ElevatedButton(
+            //     onPressed: () {
+            //       // Navigate to job details page
+            //       _viewJobDetails(task);
+            //     },
+            //     style: ElevatedButton.styleFrom(
+            //         minimumSize: const Size(double.infinity, 40),
+            //         shape: RoundedRectangleBorder(
+            //             borderRadius: BorderRadius.circular(10))),
+            //     child: const Text(
+            //       'View Details',
+            //       style: TextStyle(color: Colors.black),
+            //     ),
+            //   ),
           ],
         ),
       ),
