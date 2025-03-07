@@ -1,48 +1,47 @@
 <div class="mb-4 flex justify-between w-full max-w-[1440px] mx-auto px-4">
-    <div>
-      <h3 class="text-foreground font-semibold">User Logs</h3>
-      <div class="text-muted-foreground text-xs font-medium">
-        <a href="#" class="hover:text-primary">Dashboards > User Logs</a>
-      </div>
+  <div>
+    <h3 class="text-foreground font-semibold">User Logs</h3>
+    <div class="text-muted-foreground text-xs font-medium">
+      <a href="#" class="hover:text-primary">Dashboards > User Logs</a>
     </div>
   </div>
-  
-  <div class="border-muted/20 bg-background flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
-    <!-- Action Section -->
-    <div class="flex flex-wrap items-center justify-between gap-2 py-3 px-5">
-      <div class="text-muted-foreground text-sm font-medium"></div>
-      <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-        <div class="flex-1 min-w-[200px] lg:min-w-[300px] xl:min-w-[400px]">
-          <label class="relative w-full">
-            <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" placeholder="Search users logs" type="text"/>
-          </label>
-        </div>
-        <select name="status" class="text-muted-foreground w-28! p-2" (change)="filterLogs($event)">
-          <option value="">All Status</option>
-          <option value="active">Login</option>
-          <option value="disabled">Logout</option>
-        </select>
+</div>
+
+<div class="border-muted/20 bg-background flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
+  <!-- Action Section -->
+  <div class="flex flex-wrap items-center justify-between gap-2 py-3 px-5">
+    <div class="text-muted-foreground text-sm font-medium"></div>
+    <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+      <div class="flex-1 min-w-[200px] lg:min-w-[300px] xl:min-w-[400px]">
+        <label class="relative w-full">
+          <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" 
+                 placeholder="Search users logs" type="text" (input)="searchLogs($event)"/>
+        </label>
       </div>
+      <select name="status" class="text-muted-foreground w-28! p-2" (change)="filterLogs($event)">
+        <option value="">All Status</option>
+        <option value="active">Login</option>
+        <option value="disabled">Logout</option>
+      </select>
     </div>
-  
-    <!-- Table -->
-    <div class="overflow-x-auto w-full">
-      <table class="w-full border-collapse border-0 text-left text-sm">
-        <thead class="border-b">
-          <tr class="bg-gray-100">
-            <th class="px-4 py-2 w-[80px] lg:w-[100px] ">No</th>
-            <!--<th class="px-4 py-2 text-center w-[80px] lg:w-[100px]">Log Id</th>-->
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">User Name</th>
-            <th class="px-4 py-2 text-center pl-11 min-w-[140px] lg:min-w-[300px] xl:min-w-[250px]">User Role</th>
-            <th class="px-4 py-2 text-center pl-11 min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Time Start</th>
-            <th class="px-4 py-2 text-center pl-11 min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Time End</th>
-            <th class="px-4 py-2 text-center pl-11 min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Status</th>
-          </tr>
-        </thead>
-        <tbody>
+  </div>
+
+  <!-- Table -->
+  <div class="overflow-x-auto w-full">
+    <table class="w-full border-collapse border-0 text-left text-sm">
+      <thead class="border-b">
+        <tr class="bg-gray-100">
+          <th class="px-4 py-2 w-[80px] lg:w-[100px]">No</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">User Name</th>
+          <th class="px-4 py-2 text-center pl-11 min-w-[140px] lg:min-w-[300px] xl:min-w-[250px]">User Role</th>
+          <th class="px-4 py-2 text-center pl-11 min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Time Start</th>
+          <th class="px-4 py-2 text-center pl-11 min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Time End</th>
+          <th class="px-4 py-2 text-center pl-11 min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Status</th>
+        </tr>
+      </thead>
+      <tbody>
         <tr *ngFor="let logs of displayLogs; let i = index" class="border-b">
-          <td class="px-4 py-3 text-center" >{{ i + 1 }}</td>
-         <!-- <td class="px-10 py-3 pl-8 text-right" >{{ logs.log_id }}</td>  -->
+          <td class="px-4 py-3 text-center">{{ i + 1 }}</td>
           <td class="px-4 py-3 text-center">{{ logs.user.first_name }} {{ logs.user.middle_name }} {{ logs.user.last_name }}</td>     
           <td class="px-4 py-3 text-center pl-10">{{ logs.user.user_role ? logs.user.user_role : 'Null'}}</td>    
           <td class="px-4 py-3 text-center pl-13">{{ logs.logged_in }}</td>
@@ -55,6 +54,56 @@
           </td>
         </tr>
       </tbody>
-      </table>
+    </table>
+  </div>
+
+  <!-- Pagination Controls -->
+  <div class="flex justify-between items-center bg-white w-100%">
+    <div class="text-muted-foreground flex items-center justify-between py-3 px-5 text-xs">
+      <div class="flex items-center gap-2">
+        Show
+        <select class="w-23 p-5 border rounded-md" (change)="changeLogsPerPage($event)">
+          <option value="10" selected>10</option>
+          <option value="20">20</option>
+          <option value="30">30</option>
+          <option value="50">50</option>
+        </select>
+        per page
+      </div>
+    </div>
+    
+    <div class="flex items-center justify-end gap-4 sticky bottom-0 left-0 right-0 bg-white p-2">
+      <span class="text-sm border w-32 text-center">
+        {{ (currentPage - 1) * logsPerPage + 1 }} - 
+        {{ Math.min(currentPage * logsPerPage, filteredLogs.length) }} of {{ filteredLogs.length }}
+      </span>
+
+      <!-- Pagination Component -->
+      <div class="inline-flex items-center gap-2">
+        <!-- Previous Button -->
+        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 disabled:opacity-50"
+          [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+          ◀
+        </button>
+
+        <!-- Dynamic Pagination Buttons -->
+        <ng-container *ngFor="let page of paginationButton">
+          <button *ngIf="page !== '...'"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-sm"
+            [ngClass]="{'bg-primary text-white': currentPage === page}"
+            (click)="goToPage(page)">
+            {{ page }}
+          </button>
+
+          <span *ngIf="page === '...'" class="text-gray-500">...</span>
+        </ng-container>
+
+        <!-- Next Button -->
+        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300"
+          [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+          ▶
+        </button>
+      </div>
     </div>
   </div>
+</div>
