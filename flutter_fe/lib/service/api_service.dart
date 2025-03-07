@@ -6,7 +6,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ApiService {
-  static const String apiUrl ="http://192.168.43.15:5000/connect"; // Adjust if needed
+  static const String apiUrl =
+      "http://192.168.110.147:5000/connect"; // Adjust if needed
+
 
   static final http.Client _client = http.Client();
   static final Map<String, String> _cookies = {};
@@ -50,7 +52,8 @@ class ApiService {
           "last_name": user.lastName,
           "email": user.email,
           "password": user.password,
-          "user_role": user.role
+          "user_role": user.role,
+          "acc_status": user.status
         },
         "salt": salt
       };
@@ -70,6 +73,7 @@ class ApiService {
       print('Response Body: ${response.body}');
       print('Request URL: ${apiUrl}/create-new-user');
       print('Full Request Body: ${json.encode(requestBody)}');
+
       return response.statusCode == 201;
     } catch (e) {
       print('Registration Error: $e');
