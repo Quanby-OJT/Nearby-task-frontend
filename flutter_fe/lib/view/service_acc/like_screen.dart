@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class LikeScreen extends StatefulWidget {
-  const LikeScreen({super.key});
+  const LikeScreen({Key? key}) : super(key: key);
 
   @override
   State<LikeScreen> createState() => _LikeScreenState();
@@ -244,7 +245,11 @@ class _LikeScreenState extends State<LikeScreen> {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                Navigator.pop(context); // Go back to job listings
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => ServiceAccMain()),
+                      (route) => false, // Removes all previous routes from the stack
+                );
               },
               child: const Text('Browse Jobs'),
             ),

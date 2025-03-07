@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/service/api_service.dart';
 import 'package:flutter_fe/view/business_acc/business_acc_main_page.dart';
+import 'package:flutter_fe/view/fill_up/fill_up_tasker.dart';
 import 'package:flutter_fe/view/sign_in/otp_screen.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
@@ -63,38 +64,23 @@ class AuthenticationController {
 
   Future<void> otpAuth(BuildContext context) async {
     var response = await ApiService.authOTP(userId, otpController.text);
+    debugPrint(response.toString());
 
-    if (response.containsKey('user_id')) {
-      userId = response['user_id'];
-      String? userRole = response['user_role'];
-
-      // After successful OTP verification, store the permanent user ID
-      await storage.write('user_id', userId.toString());
-      // await storage.write('session', session.toString());
-      // Remove temporary ID
-      await storage.remove('temp_user_id');
-
-      debugPrint(
-          "User ID stored after OTP verification: ${storage.read('user_id')}");
-      debugPrint("User Role: $userRole");
-
-      // Navigate based on user role
-      if (userRole == "Client") {
-        Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return BusinessAccMain(); // Replace with your actual client page widget
+    if(response.containsKey('user_id') && response.containsKey('role') && response.containsKey('session')){
+      await storage.write('user_id', response['user_id']);
+      await storage.write('role', response['role']); //If the user is logged in to the app, this will be the determinant if where they will be assigned.
+      await storage.write('session', response['session']);
+      if(response['role'] == "Client"){
+        Navigator.push(context, MaterialPageRoute(builder: (context){
+          return BusinessAccMain();
         }));
-      } else if (userRole == "Tasker") {
-        Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return ServiceAccMain(); // Replace with your actual service account main page widget
+      }else if(response['role'] == "Tasker"){
+        Navigator.push(context, MaterialPageRoute(builder: (context){
+          return ServiceAccMain();
         }));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Unknown user role: $userRole")),
-        );
       }
-    } else if (response.containsKey('validation_error')) {
-      String error =
-          response['validation_error'] ?? "OTP Authentication Failed.";
+    }else if(response.containsKey('validation_error')){
+      String error = response['validation_error'] ?? "OTP Authentication Failed.";
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(error)),
       );
@@ -107,56 +93,20 @@ class AuthenticationController {
   }
 
   Future<void> logout(BuildContext context) async {
-    try {
-      // await _handleLogoutNavigation(context);
-      final storedUserId = storage.read('user_id');
-      debugPrint("Stored user ID for logout: $storedUserId");
+    var response = await ApiService.logout(await storage.read('user_id'), storage.read('session'));
 
-      if (storedUserId == null || storedUserId.isEmpty) {
-        debugPrint("No user ID found in storage");
-        await _handleLogoutNavigation(context);
-        return;
-      }
-
-      try {
-        final userIdInt = int.parse(storedUserId);
-        if (userIdInt <= 0) {
-          throw FormatException('Invalid user ID value');
-        }
-
-        final response = await ApiService.logout(userIdInt);
-        debugPrint("Logout response: $response");
-
-        if (response.containsKey('message')) {
-          await _handleLogoutNavigation(context);
-        } else {
-          _showError(context, response['error'] ?? "Logout failed");
-        }
-      } catch (parseError) {
-        debugPrint("Error parsing user ID: $parseError");
-        await _handleLogoutNavigation(context);
-      }
-    } catch (e) {
-      debugPrint("Logout error: $e");
-      _showError(context, "An error occurred during logout");
+    if (response.containsKey('message')) {
+      await storage.remove('user_id');
+      await storage.remove('role');
+      await storage.remove('session');
+      Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
+          builder: (context) => WelcomePageViewMain()), (route) => false
+      );
+    }else{
+      String error = response['error'] ?? "Failed to Log Out the User.";
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error)),
+      );
     }
-  }
-
-  Future<void> _handleLogoutNavigation(BuildContext context) async {
-    await storage.erase();
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => WelcomePageViewMain()),
-      (route) => false,
-    );
-  }
-
-  void _showError(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
-    );
   }
 }
