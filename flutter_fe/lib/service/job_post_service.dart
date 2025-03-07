@@ -10,7 +10,6 @@ class JobPostService {
   Future<Map<String, dynamic>> postJob(TaskModel task) async {
     final url = Uri.parse("http://192.168.110.147:5000/connect/addTask");
 
-
     try {
       final response = await http.post(
         url,
@@ -53,7 +52,6 @@ class JobPostService {
       final likedJobsResponse = await http.get(Uri.parse(
           'http://192.168.110.147:5000/connect/displayLikedJob/${userId}'));
 
-
       if (response.statusCode == 200 && likedJobsResponse.statusCode == 200) {
         final Map<String, dynamic> jsonData = jsonDecode(response.body);
         final Map<String, dynamic> likedJobsData =
@@ -85,7 +83,6 @@ class JobPostService {
 
   Future<Map<String, dynamic>> saveLikedJob(int jobId) async {
     try {
-
       final url = Uri.parse('http://192.168.110.147:5000/connect/likeJob');
 
       String? userId = await getUserId();
@@ -153,7 +150,6 @@ class JobPostService {
           'message': 'Please log in to unlike jobs',
         };
       }
-
 
       final url = Uri.parse('http://192.168.110.147:5000/connect/unlikeJob');
 
@@ -225,7 +221,6 @@ class JobPostService {
         debugPrint("Cannot fetch liked jobs: User not logged in");
         return [];
       }
-
 
       final url = Uri.parse(
           "http://192.168.110.147:5000/connect/displayLikedJob/${userId}");

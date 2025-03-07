@@ -12,6 +12,7 @@ class ProfileController {
   final TextEditingController confirmPasswordController =
       TextEditingController();
   final TextEditingController roleController = TextEditingController();
+  final TextEditingController statusController = TextEditingController();
   final TextEditingController middleNameController = TextEditingController();
   // Fetched user inputs End
 
@@ -50,13 +51,14 @@ class ProfileController {
     }
 
     UserModel user = UserModel(
-      firstName: firstNameController.text,
-      middleName: middleNameController.text,
-      lastName: lastNameController.text,
-      email: emailController.text,
-      password: passwordController.text,
-      role: roleController.text.isEmpty ? "Client" : roleController.text,
-    );
+        firstName: firstNameController.text,
+        middleName: middleNameController.text,
+        lastName: lastNameController.text,
+        email: emailController.text,
+        password: passwordController.text,
+        role: roleController.text.isEmpty ? "Client" : roleController.text,
+        status:
+            statusController.text.isEmpty ? "Review" : statusController.text);
 
     try {
       bool success = await ApiService.registerUser(user);
