@@ -57,27 +57,27 @@ class _ServiceAccMainState extends State<ServiceAccMain> {
           iconSize: 20,
 
           padding: EdgeInsets.symmetric(horizontal: 20),
-          //type: BottomNavigationBarType.fixed,
+          // type: BottomNavigationBarType.fixed,
           tabs: const [
             GButton(
               icon: Icons.home,
-              // text: 'Home',
+              text: 'Home',
             ),
             GButton(
               icon: Icons.schedule,
-              // text: 'Schedule',
+              text: 'Schedule',
             ),
             GButton(
               icon: Icons.message,
-              // text: 'Chat',
+              text: 'Chat',
             ),
             GButton(
               icon: Icons.list,
-              // text: 'Request',
+              text: 'Request',
             ),
             GButton(
               icon: Icons.person,
-              // text: 'Profile',
+              text: 'Profile',
             )
           ],
         ),
