@@ -50,8 +50,9 @@ class UserModel {
       "middle_name": middleName,
       "last_name": lastName,
       "email": email,
-      "hashed_password": password,
-      "user_role": role
+      "password": password,
+      "user_role": role,
+      "acc_status": accStatus
     };
   }
 }

@@ -57,7 +57,8 @@ class ApiService {
           "last_name": user.lastName,
           "email": user.email,
           "password": user.password,
-          "user_role": user.role
+          "user_role": user.role,
+          "acc_status": user.accStatus
         },
         "salt": salt
       };
