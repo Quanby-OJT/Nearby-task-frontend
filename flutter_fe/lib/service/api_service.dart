@@ -4,12 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../model/user_model.dart';
-import '../model/tasker_model.dart';
 
 class ApiService {
   static const String apiUrl =
       "http://192.168.110.147:5000/connect"; // Adjust if needed
+
 
   static final http.Client _client = http.Client();
   static final Map<String, String> _cookies = {};
