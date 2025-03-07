@@ -7,8 +7,7 @@ import 'dart:convert';
 
 class ApiService {
   static const String apiUrl =
-      "http://192.168.110.147:5000/connect"; // Adjust if needed
-
+      "http://localhost:5000/connect"; // Adjust if 
 
   static final http.Client _client = http.Client();
   static final Map<String, String> _cookies = {};

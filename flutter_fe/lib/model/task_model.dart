@@ -7,6 +7,7 @@ class TaskModel {
   final String? duration;
   final int? numberOfDays;
   final String? urgency;
+  final String? status;
   final int? contactPrice;
   final String? remarks;
   final String? taskBeginDate;
@@ -20,6 +21,7 @@ class TaskModel {
     this.duration,
     this.numberOfDays,
     this.urgency,
+    this.status,
     this.contactPrice,
     this.remarks,
     this.taskBeginDate,

@@ -303,7 +303,7 @@ class _LikeScreenState extends State<LikeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Task',
+                              task.title!,
                               style: GoogleFonts.montserrat(
                                 color: const Color(0xFF03045E),
                                 fontSize: 14,
@@ -312,14 +312,15 @@ class _LikeScreenState extends State<LikeScreen> {
                             ),
                             Row(
                               children: [
-                                Text(
-                                  'Available tasks',
-                                  style: GoogleFonts.montserrat(
-                                    color: Color.fromARGB(255, 57, 209, 11),
-                                    fontSize: 8,
-                                    fontWeight: FontWeight.w500,
+                                if (task.status != null)
+                                  Text(
+                                    task.status!,
+                                    style: GoogleFonts.montserrat(
+                                      color: Color.fromARGB(255, 57, 209, 11),
+                                      fontSize: 8,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
-                                ),
                               ],
                             ),
                           ],
@@ -355,14 +356,15 @@ class _LikeScreenState extends State<LikeScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            '₱200.00',
-                            style: GoogleFonts.montserrat(
-                              color: const Color(0xFF03045E),
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                          if (task.contactPrice != null)
+                            Text(
+                              '\$${task.contactPrice}',
+                              style: GoogleFonts.montserrat(
+                                color: const Color(0xFF03045E),
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
                         ],
                       )
                     ],
@@ -374,7 +376,9 @@ class _LikeScreenState extends State<LikeScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          print(task.id);
+                        },
                         child: Row(
                           children: [
                             Text(
