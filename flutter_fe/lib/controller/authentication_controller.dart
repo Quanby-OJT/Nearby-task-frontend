@@ -23,6 +23,8 @@ class AuthenticationController {
       userId = response['user_id'];
       // Store user ID temporarily until OTP verification
       storage.write('temp_user_id', userId.toString());
+      debugPrint("User ID stored at: ${storage.read('temp_user_id')}");
+
       Navigator.push(
         context,
         MaterialPageRoute(

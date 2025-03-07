@@ -52,7 +52,6 @@ class UserModel {
       "email": email,
       "hashed_password": password,
       "user_role": role
-      // Store the image as a URL (String) or handle binary data (Uint8List) if needed
     };
   }
 }

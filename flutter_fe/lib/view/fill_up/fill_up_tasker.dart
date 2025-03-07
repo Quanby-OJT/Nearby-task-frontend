@@ -26,15 +26,6 @@ class _FillUpTaskerState extends State<FillUpTasker> {
       source:
           ImageSource.gallery, // Change to ImageSource.camera for camera input
     );
-
-    // if (pickedFile != null) {
-    //   setState(() {
-    //     _selectedImage = File(pickedFile.path); // Store the selected file
-    //     _imageName = pickedFile.name; // Store file name
-    //     _controller.setImage(
-    //         _selectedImage!, _imageName!); // Pass image to controller
-    //   });
-    // }
   }
 
   @override
