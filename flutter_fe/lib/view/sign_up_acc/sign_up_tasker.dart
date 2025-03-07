@@ -190,6 +190,7 @@ class _SignUpTaskerAccState extends State<SignUpTaskerAcc> {
                         padding: const EdgeInsets.only(
                             bottom: 10, left: 20, right: 20),
                         child: TextFormField(
+                          controller: _controller.passwordController,
                           obscureText: true,
                           cursorColor: Color(0xFF0272B1),
                           validator: (value) => value!.isEmpty
@@ -214,6 +215,7 @@ class _SignUpTaskerAccState extends State<SignUpTaskerAcc> {
                         padding: const EdgeInsets.only(
                             bottom: 10, left: 20, right: 20),
                         child: TextFormField(
+                          controller: _controller.confirmPasswordController,
                           obscureText: true,
                           cursorColor: Color(0xFF0272B1),
                           validator: (value) => value!.isEmpty
