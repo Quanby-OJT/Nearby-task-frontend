@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:flutter_fe/model/conversation.dart';
 
 class ChatScreen extends StatefulWidget {

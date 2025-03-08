@@ -1,12 +1,12 @@
 // service/api_service.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/model/conversation.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../model/user_model.dart';
 import '../model/tasker_model.dart';
 import '../model/client_model.dart';
 
@@ -246,6 +246,40 @@ class ApiService {
     } catch (e) {
       debugPrint('Logout Error: $e');
       return {"error": "Connection error during logout"};
+    }
+  }
+
+    ///
+  /// I will place the conversation features at this point to the backend.
+  /// -Ces
+  ///
+
+  static Future<Map<String, dynamic>> sendMessage(Conversation conversation) async {
+    try{
+      String token = await AuthService.getSessionToken();
+      final response = await http.post(
+        Uri.parse("$apiUrl/send-message"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Credentials": "true"
+        },
+        body: jsonEncode(
+          conversation.toJson()
+        )
+      );
+
+      var data = jsonDecode(response.body);
+
+      if(response.statusCode == 200){
+        return {"message": data["message"] ?? "Message Sent."};
+      }else {
+        return {"error": data["error"] ?? "An Error Occurred While Sending your Message."};
+      }
+    }catch(e){
+      debugPrint(e.toString());
+      debugPrintStack();
+      return {"error": "An Error Occurred while sending a Message. Please Try Again."};
     }
   }
 }
