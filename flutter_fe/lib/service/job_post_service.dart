@@ -8,7 +8,6 @@ class JobPostService {
   final storage = GetStorage();
 
   Future<Map<String, dynamic>> postJob(TaskModel task) async {
-
     final url = Uri.parse("http://localhost:5000/connect/addTask");
 
     try {
@@ -52,7 +51,7 @@ class JobPostService {
 
       // Fetch liked jobs
       final likedJobsResponse = await http.get(
-          Uri.parse('http://localhost:5000/connect/displayLikedJob/${userId}'));
+          Uri.parse('http://localhost:5000/connect/displayLikedJob/$userId'));
 
       if (response.statusCode == 200 && likedJobsResponse.statusCode == 200) {
         final Map<String, dynamic> jsonData = jsonDecode(response.body);
@@ -222,7 +221,7 @@ class JobPostService {
         return [];
       }
       final url =
-          Uri.parse("http://localhost:5000/connect/displayLikedJob/${userId}");
+          Uri.parse("http://localhost:5000/connect/displayLikedJob/$userId");
       debugPrint("Fetching liked jobs from: $url");
 
       final response = await http.get(url);

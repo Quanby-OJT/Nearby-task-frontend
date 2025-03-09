@@ -12,7 +12,7 @@ class LikeScreen extends StatefulWidget {
 
 class _LikeScreenState extends State<LikeScreen> {
   final JobPostService _jobService = JobPostService();
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   bool _isLoading = true;
   List<TaskModel> _likedJobs = [];
   List<String> selectedFilters = [];

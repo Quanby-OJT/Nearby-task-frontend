@@ -6,11 +6,13 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class UserLogService {
-private apiUrl = 'http://localhost:5000/connect/displayLogs';
+  // URL where the logs come from
+  private apiUrl = 'http://localhost:5000/connect/displayLogs';
 
-constructor(private http: HttpClient){}
+  constructor(private http: HttpClient) {}
 
-getUserLogs(): Observable<any>{
-    return this.http.get<any>(this.apiUrl)
-    }
+  // Get the logs from the backend server
+  getUserLogs(): Observable<any> {
+    return this.http.get<any>(this.apiUrl);
+  }
 }

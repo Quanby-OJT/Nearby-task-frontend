@@ -7,6 +7,7 @@ import { Nft } from '../../models/nft';
 import { UserChartCardComponent } from '../../components/nft/user-chart-card/user-chart-card.component';
 
 @Component({
+  standalone: true,
   selector: 'app-nft',
   templateUrl: './nft.component.html',
   imports: [

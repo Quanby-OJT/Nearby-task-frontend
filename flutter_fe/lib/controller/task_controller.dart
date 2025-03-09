@@ -19,9 +19,9 @@ class TaskController {
 
   Future<Map<String, dynamic>> postJob() async {
     try {
-      print('Submitting data:'); // Debug print
+      print('Submitting data:');
       final task = TaskModel(
-        id: 0, // Set to 0 for new posts
+        id: 0,
         title: jobTitleController.text.trim(),
         specialization: jobSpecializationController.text.trim(),
         description: jobDescriptionController.text.trim(),

@@ -78,20 +78,20 @@ class AuthenticationController {
           "User ID stored after OTP verification: ${storage.read('user_id')}");
       debugPrint("User Role: $userRole");
 
-      // // Navigate based on user role
-      // if (userRole == "Client") {
-      //   Navigator.push(context, MaterialPageRoute(builder: (context) {
-      //     return BusinessAccMain(); // Replace with your actual client page widget
-      //   }));
-      // } else if (userRole == "Tasker") {
-      //   Navigator.push(context, MaterialPageRoute(builder: (context) {
-      //     return ServiceAccMain(); // Replace with your actual service account main page widget
-      //   }));
-      // } else {
-      //   ScaffoldMessenger.of(context).showSnackBar(
-      //     SnackBar(content: Text("Unknown user role: $userRole")),
-      //   );
-      // }
+      // Navigate based on user role
+      if (userRole == "Client") {
+        Navigator.push(context, MaterialPageRoute(builder: (context) {
+          return BusinessAccMain(); // Replace with your actual client page widget
+        }));
+      } else if (userRole == "Tasker") {
+        Navigator.push(context, MaterialPageRoute(builder: (context) {
+          return ServiceAccMain(); // Replace with your actual service account main page widget
+        }));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Unknown user role: $userRole")),
+        );
+      }
     } else if (response.containsKey('validation_error')) {
       String error =
           response['validation_error'] ?? "OTP Authentication Failed.";
@@ -108,7 +108,7 @@ class AuthenticationController {
 
   Future<void> logout(BuildContext context) async {
     try {
-      // await _handleLogoutNavigation(context);
+      await _handleLogoutNavigation(context);
       final storedUserId = storage.read('user_id');
       debugPrint("Stored user ID for logout: $storedUserId");
 
