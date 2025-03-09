@@ -6,8 +6,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ApiService {
-  static const String apiUrl =
-      "http://localhost:5000/connect"; // Adjust if 
+  static const String apiUrl = "http://localhost:5000/connect"; // Adjust if
 
   static final http.Client _client = http.Client();
   static final Map<String, String> _cookies = {};
@@ -70,7 +69,7 @@ class ApiService {
 
       print('Response Status: ${response.statusCode}');
       print('Response Body: ${response.body}');
-      print('Request URL: ${apiUrl}/create-new-user');
+      print('Request URL: $apiUrl/create-new-user');
       print('Full Request Body: ${json.encode(requestBody)}');
 
       return response.statusCode == 201;

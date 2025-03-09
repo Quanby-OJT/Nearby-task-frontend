@@ -1,1 +1,61 @@
-<p>payment works!</p>
+<div class="container mx-auto max-w-6xl p-6">
+    <!-- Pagination Control -->
+    <div class="text-center mb-8">
+        <select class="border px-3 py-2 rounded">
+            <option>5 per page</option>
+            <option selected>10 per page</option>
+            <option>20 per page</option>
+        </select>
+    </div>
+
+    <!-- Card Container -->
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6 mb-8 justify-items-center">
+        <!-- Sample Record 1 -->
+        <div class="border border-gray-200 bg-white rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow space-y-4 w-full max-w-[300px]">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xl font-semibold text-gray-800">Review #1</h3>
+                <span class="px-3 py-1 rounded-full text-sm bg-green-100 text-green-600">Approved</span>
+            </div>
+            <div class="space-y-2">
+                <p class="text-gray-600">User: <span class="font-medium">John Doe</span></p>
+                <p class="text-gray-600">Amount: <span class="font-medium text-blue-600">$450</span></p>
+                <p class="text-gray-500">Date: 2023-10-15</p>
+            </div>
+        </div>
+
+        <!-- Sample Record 2 -->
+        <div class="border border-gray-200 bg-gray-50 rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow space-y-4 w-full max-w-[300px]">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xl font-semibold text-gray-800">Review #2</h3>
+                <span class="px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-600">Pending</span>
+            </div>
+            <div class="space-y-2">
+                <p class="text-gray-600">User: <span class="font-medium">Jane Smith</span></p>
+                <p class="text-gray-600">Amount: <span class="font-medium text-blue-600">$750</span></p>
+                <p class="text-gray-500">Date: 2023-10-14</p>
+            </div>
+        </div>
+
+        <!-- Sample Record 3 -->
+        <div class="border border-gray-200 bg-white rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow space-y-4 w-full max-w-[300px]">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xl font-semibold text-gray-800">Review #3</h3>
+                <span class="px-3 py-1 rounded-full text-sm bg-red-100 text-red-600">Rejected</span>
+            </div>
+            <div class="space-y-2">
+                <p class="text-gray-600">User: <span class="font-medium">Alex Brown</span></p>
+                <p class="text-gray-600">Amount: <span class="font-medium text-blue-600">$300</span></p>
+                <p class="text-gray-500">Date: 2023-10-13</p>
+            </div>
+        </div>
+
+        <!-- Add more sample records here following the same pattern -->
+    </div>
+
+    <!-- Pagination Navigation -->
+    <div class="flex justify-center items-center gap-4">
+        <button class="bg-blue-500 text-white px-4 py-2 rounded cursor-not-allowed opacity-50">Previous</button>
+        <span class="text-gray-700">Page 1 of 3</span>
+        <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">Next</button>
+    </div>
+</div>
