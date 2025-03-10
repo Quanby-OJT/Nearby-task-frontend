@@ -74,9 +74,12 @@ class AuthenticationController {
         Navigator.push(context, MaterialPageRoute(builder: (context){
           return BusinessAccMain();
         }));
-      }else if(response['role'] == "Tasker"){
-        Navigator.push(context, MaterialPageRoute(builder: (context){
-          return ServiceAccMain();
+
+      } else if (userRole == "Tasker") {
+        Navigator.push(context, MaterialPageRoute(builder: (context) {
+          // return FillUpTasker(); // Replace with your actual service account main page widget
+          return ServiceAccMain(); // Replace with your actual service account main page widget
+
         }));
       }
     }else if(response.containsKey('validation_error')){
@@ -93,7 +96,25 @@ class AuthenticationController {
   }
 
   Future<void> logout(BuildContext context) async {
-    var response = await ApiService.logout(await storage.read('user_id'), storage.read('session'));
+    try {
+      await _handleLogoutNavigation(context);
+      final storedUserId = storage.read('user_id');
+      debugPrint("Stored user ID for logout: $storedUserId");
+
+      if (storedUserId == null || storedUserId.isEmpty) {
+        debugPrint("No user ID found in storage");
+        await _handleLogoutNavigation(context);
+        return;
+      }
+
+      try {
+        final userIdInt = int.parse(storedUserId);
+        if (userIdInt <= 0) {
+          throw FormatException('Invalid user ID value');
+        }
+
+        final response = await ApiService.logout(userIdInt);
+        debugPrint("Logout response: $response");
 
     if (response.containsKey('message')) {
       await storage.remove('user_id');

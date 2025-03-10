@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
+import 'package:flutter_fe/view/service_acc/task_information.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class LikeScreen extends StatefulWidget {
@@ -13,10 +14,11 @@ class LikeScreen extends StatefulWidget {
 
 class _LikeScreenState extends State<LikeScreen> {
   final JobPostService _jobService = JobPostService();
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   bool _isLoading = true;
   List<TaskModel> _likedJobs = [];
-  List<String> selectedFilters = [];
+  List<TaskModel> _filteredJobs = [];
+  List<int> selectedFilters = [];
   String? _errorMessage;
   int savedJobsCount = 0;
 
@@ -24,6 +26,20 @@ class _LikeScreenState extends State<LikeScreen> {
   void initState() {
     super.initState();
     _loadLikedJobs();
+    _searchController.addListener(_filterTaskFunction);
+  }
+
+  void _filterTaskFunction() {
+    String query = _searchController.text.trim().toLowerCase();
+    setState(() {
+      _filteredJobs = _likedJobs.where((task) {
+        return task.title!.toLowerCase().contains(query) ||
+            task.description!.toLowerCase().contains(query);
+      }).toList();
+    });
+
+    _applyFilters();
+    _updateSavedJobs();
   }
 
   Future<void> _loadLikedJobs() async {
@@ -33,7 +49,6 @@ class _LikeScreenState extends State<LikeScreen> {
         _errorMessage = null;
       });
 
-      // Check if user is logged in first
       final userId = await _jobService.getUserId();
       if (userId == null || userId.isEmpty) {
         setState(() {
@@ -47,6 +62,8 @@ class _LikeScreenState extends State<LikeScreen> {
       final likedJobs = await _jobService.fetchUserLikedJobs();
       setState(() {
         _likedJobs = likedJobs;
+        _filteredJobs = List.from(_likedJobs);
+        savedJobsCount = _filteredJobs.length;
         _isLoading = false;
       });
     } catch (e) {
@@ -57,12 +74,30 @@ class _LikeScreenState extends State<LikeScreen> {
     }
   }
 
+  // Function to simulate a saved job count update
+  void _updateSavedJobs() {
+    setState(() {
+      savedJobsCount = _filteredJobs.length;
+    });
+  }
+
+  void _applyFilters() {
+    setState(() {
+      if (selectedFilters.isNotEmpty) {
+        _filteredJobs = _filteredJobs.where((task) {
+          int priceFilter = _getPriceFilter(task.contactPrice);
+          return selectedFilters.contains(priceFilter);
+        }).toList();
+      }
+      _updateSavedJobs();
+    });
+  }
+
   void _openFilterModal() {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
         return StatefulBuilder(
-          // Allows UI update inside modal
           builder: (context, setModalState) {
             return Container(
               padding: EdgeInsets.all(20),
@@ -81,17 +116,19 @@ class _LikeScreenState extends State<LikeScreen> {
                   Wrap(
                     spacing: 10,
                     children: [
-                      _buildFilterChip("P100", setModalState),
-                      _buildFilterChip("P200", setModalState),
-                      _buildFilterChip("P300", setModalState),
-                      _buildFilterChip("P500+", setModalState),
+                      _buildFilterChip(500, setModalState),
+                      _buildFilterChip(700, setModalState),
+                      _buildFilterChip(10000, setModalState),
+                      _buildFilterChip(20000, setModalState),
+                      _buildFilterChip(30000, setModalState),
+                      _buildFilterChip(50000, setModalState),
                     ],
                   ),
                   SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.pop(context); // Close modal
-                      setState(() {}); // Update UI
+                      Navigator.pop(context);
+                      _applyFilters();
                     },
                     child: Text("Apply Filters"),
                   ),
@@ -105,11 +142,11 @@ class _LikeScreenState extends State<LikeScreen> {
   }
 
   // Function to build a filter chip
-  Widget _buildFilterChip(String label, Function setModalState) {
+  Widget _buildFilterChip(int label, Function setModalState) {
     bool isSelected = selectedFilters.contains(label);
 
     return FilterChip(
-      label: Text(label),
+      label: Text('\$$label'),
       selected: isSelected,
       onSelected: (bool selected) {
         setModalState(() {
@@ -121,13 +158,6 @@ class _LikeScreenState extends State<LikeScreen> {
         });
       },
     );
-  }
-
-  // Function to simulate a saved job count update
-  void _updateSavedJobs() {
-    setState(() {
-      savedJobsCount++; // Increase saved jobs count (for testing)
-    });
   }
 
   @override
@@ -172,11 +202,12 @@ class _LikeScreenState extends State<LikeScreen> {
                 spacing: 8,
                 children: selectedFilters
                     .map((filter) => Chip(
-                          label: Text(filter),
+                          label: Text('\$$filter'),
                           deleteIcon: Icon(Icons.close),
                           onDeleted: () {
                             setState(() {
                               selectedFilters.remove(filter);
+                              _filterTaskFunction();
                             });
                           },
                         ))
@@ -186,11 +217,12 @@ class _LikeScreenState extends State<LikeScreen> {
           Padding(
             padding: EdgeInsets.symmetric(vertical: 5),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Saved Jobs: $savedJobsCount",
+                  "Task result: $savedJobsCount",
                   style: GoogleFonts.montserrat(
-                      fontSize: 14, fontWeight: FontWeight.bold),
+                      fontSize: 10, fontWeight: FontWeight.normal),
                 ),
               ],
             ),
@@ -215,13 +247,13 @@ class _LikeScreenState extends State<LikeScreen> {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               _errorMessage!,
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.red[700]),
             ),
-            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _loadLikedJobs,
               child: const Text('Try Again'),
@@ -231,7 +263,7 @@ class _LikeScreenState extends State<LikeScreen> {
       );
     }
 
-    if (_likedJobs.isEmpty) {
+    if (_filteredJobs.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -249,6 +281,7 @@ class _LikeScreenState extends State<LikeScreen> {
                   context,
                   MaterialPageRoute(builder: (context) => ServiceAccMain()),
                       (route) => false, // Removes all previous routes from the stack
+
                 );
               },
               child: const Text('Browse Jobs'),
@@ -262,13 +295,22 @@ class _LikeScreenState extends State<LikeScreen> {
       onRefresh: _loadLikedJobs,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: _likedJobs.length,
+        itemCount: _filteredJobs.length,
         itemBuilder: (context, index) {
-          final job = _likedJobs[index];
+          final job = _filteredJobs[index];
           return _buildJobCard(job);
         },
       ),
     );
+  }
+
+  int _getPriceFilter(int? price) {
+    if (price == null) return 0;
+    if (price <= 500) return 500;
+    if (price <= 700) return 700;
+    if (price <= 20000) return 20000;
+    if (price <= 300000) return 30000;
+    return 100000;
   }
 
   Widget _buildJobCard(TaskModel task) {
@@ -343,7 +385,6 @@ class _LikeScreenState extends State<LikeScreen> {
                         size: 24,
                       ),
                       onPressed: () {
-                        // Option to unlike job
                         _unlikeJob(task);
                       },
                     ),
@@ -382,13 +423,18 @@ class _LikeScreenState extends State<LikeScreen> {
                     children: [
                       TextButton(
                         onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      TaskInformation(taskID: task.id as int)));
                           print(task.id);
                         },
                         child: Row(
                           children: [
                             Text(
                               "View Details",
-                              style: TextStyle(
+                              style: GoogleFonts.montserrat(
                                 color: Color(0xFF03045E),
                                 fontSize: 10,
                               ),
@@ -403,63 +449,6 @@ class _LikeScreenState extends State<LikeScreen> {
                 )
               ],
             ),
-
-            // const SizedBox(height: 8),
-            // if (task.location != null && task.location!.isNotEmpty)
-            //   Row(
-            //     children: [
-            //       Icon(
-            //         Icons.location_city,
-            //         color: Colors.white,
-            //       ),
-            //       Text(
-            //         task.location!,
-            //         style: TextStyle(
-            //           color: Colors.white,
-            //           fontWeight: FontWeight.w500,
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // const SizedBox(height: 8),
-            // if (task.description != null && task.description!.isNotEmpty)
-            //   Text(
-            //     task.description!,
-            //     maxLines: 3,
-            //     overflow: TextOverflow.ellipsis,
-            //     style: TextStyle(color: Colors.white),
-            //   ),
-            // const SizedBox(height: 8),
-            // Row(
-            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //   children: [
-            //     if (task.contactPrice != null)
-            //       Chip(
-            //         label: Text('\$${task.contactPrice}'),
-            //         backgroundColor: Colors.green[50],
-            //       ),
-            //     // if (formattedDate.isNotEmpty)
-            //     //   Text(
-            //     //     'Posted: $formattedDate',
-            //     //     style: TextStyle(color: Colors.grey[600], fontSize: 12),
-            //     //   ),
-            //   ],
-            // ),
-            //   const SizedBox(height: 8),
-            //   ElevatedButton(
-            //     onPressed: () {
-            //       // Navigate to job details page
-            //       _viewJobDetails(task);
-            //     },
-            //     style: ElevatedButton.styleFrom(
-            //         minimumSize: const Size(double.infinity, 40),
-            //         shape: RoundedRectangleBorder(
-            //             borderRadius: BorderRadius.circular(10))),
-            //     child: const Text(
-            //       'View Details',
-            //       style: TextStyle(color: Colors.black),
-            //     ),
-            //   ),
           ],
         ),
       ),
@@ -472,18 +461,51 @@ class _LikeScreenState extends State<LikeScreen> {
       final bool? confirm = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Remove from Liked Jobs?'),
-          content:
-              const Text('This job will be removed from your liked jobs list.'),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          title: Center(
+            child: Text(
+              'Remove from Saved Jobs?',
+              style: GoogleFonts.montserrat(
+                  fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+          ),
+          content: SizedBox(
+            height: 50,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Center(
+                  child: Text(
+                    'This job will be removed from your liked jobs list.',
+                    style: GoogleFonts.montserrat(
+                        fontSize: 10, fontWeight: FontWeight.normal),
+                  ),
+                ),
+              ],
+            ),
+          ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Remove'),
-            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    icon: Icon(
+                      Icons.cancel,
+                      size: 24,
+                      color: Colors.green.shade400,
+                    )),
+                IconButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  icon: Icon(
+                    Icons.delete,
+                    size: 24,
+                    color: Colors.red,
+                  ),
+                )
+              ],
+            )
           ],
         ),
       );

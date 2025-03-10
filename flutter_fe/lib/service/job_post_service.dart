@@ -17,8 +17,6 @@ class JobPostService {
         body: {...task.toJson(), "user_id": userId},
       );
 
-      return {'success': true, 'message': response.toString()};
-
     }catch(e){
       debugPrint(e.toString());
       debugPrintStack();
@@ -36,9 +34,52 @@ class JobPostService {
     return [];
   }
 
+  Future<TaskModel?> fetchTaskInformation(int taskID) async {
+    try {
+      if (taskID <= 0) {
+        debugPrint('fetchTaskInformation: No task ID provided');
+        return null;
+      }
+
+      final response = await http.get(
+        Uri.parse('http://localhost:5000/connect/displayTask/$taskID'),
+      );
+
+      debugPrint('Response status code: ${response.statusCode}');
+      debugPrint('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonData = jsonDecode(response.body);
+        return TaskModel.fromJson(jsonData);
+      }
+
+      debugPrint('Error fetching task $taskID');
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching tasks: $e');
+      return null;
+    }
+  }
+
   Future<List<TaskModel>> fetchAllJobs() async {
-    final userId = await getUserId();
-    if (userId == null) return [];
+    try {
+      final userId = await getUserId();
+      if (userId == null) {
+        debugPrint("User not authenticated, cannot fetch jobs");
+        return [];
+      }
+
+      // Fetch all jobs
+      final response = await http
+          .get(Uri.parse('http://localhost:5000/connect/displayTask'));
+      // Fetch liked jobs
+      final likedJobsResponse = await http.get(
+          Uri.parse('http://localhost:5000/connect/displayLikedJob/${userId}'));
+
+      if (response.statusCode == 200 && likedJobsResponse.statusCode == 200) {
+        final Map<String, dynamic> jsonData = jsonDecode(response.body);
+        final Map<String, dynamic> likedJobsData =
+            jsonDecode(likedJobsResponse.body);
 
     final tasksResponse = await _getRequest("/displayTask");
     print("Tasks API Response: $tasksResponse"); // Debugging
@@ -46,6 +87,12 @@ class JobPostService {
     if (!tasksResponse.containsKey("tasks")) {
       throw Exception("Unexpected API response format: $tasksResponse");
     }
+    return [];
+  }
+
+  Future<Map<String, dynamic>> saveLikedJob(int jobId) async {
+    try {
+      final url = Uri.parse('http://localhost:5000/connect/likeJob');
 
     final likedJobsResponse = await _getRequest("/displayLikedJob/$userId");
 
@@ -78,8 +125,17 @@ class JobPostService {
   }
 
   Future<Map<String, dynamic>> unlikeJob(int jobId) async {
-    final userId = await getUserId();
-    if (userId == null) return {'success': false, 'message': 'Please log in to unlike jobs'};
+    try {
+      String? userId = await getUserId();
+      if (userId == null || userId.isEmpty) {
+        debugPrint("User not logged in, cannot unlike job");
+        return {
+          'success': false,
+          'message': 'Please log in to unlike jobs',
+        };
+      }
+
+      final url = Uri.parse('http://localhost:5000/connect/unlikeJob');
 
     return _deleteRequest("/unlikeJob", {"user_id": int.parse(userId), "job_post_id": jobId});
   }
@@ -150,12 +206,54 @@ class JobPostService {
   Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     try {
-      final response = await http.post(
-        Uri.parse('$apiUrl$endpoint'),
-        headers: {"Authorization": "Bearer $token", "Content-Type": "application/json"},
-        body: jsonEncode(body),
-      );
-      return _handleResponse(response);
+      String? userId = await getUserId();
+      if (userId == null || userId.isEmpty) {
+        debugPrint("Cannot fetch liked jobs: User not logged in");
+        return [];
+      }
+
+      final url =
+          Uri.parse("http://localhost:5000/connect/displayLikedJob/${userId}");
+
+      debugPrint("Fetching liked jobs from: $url");
+
+      final response = await http.get(url);
+      debugPrint("Response status: ${response.statusCode}");
+      debugPrint("Raw response body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonData = jsonDecode(response.body);
+        debugPrint("Decoded JSON data: $jsonData");
+
+        if (jsonData.containsKey('tasks')) {
+          final List<dynamic> likedJobs = jsonData['tasks'];
+          debugPrint("Raw liked jobs: $likedJobs"); // Debug print
+
+          // Fetch full job details for each liked job
+          final jobDetailsResponse = await http
+              .get(Uri.parse('http://localhost:5000/connect/displayTask'));
+
+          if (jobDetailsResponse.statusCode == 200) {
+            final Map<String, dynamic> allJobsData =
+                jsonDecode(jobDetailsResponse.body);
+            final List<dynamic> allJobs = allJobsData['tasks'];
+
+            // Get liked job IDs
+            final Set<int> likedJobIds =
+                likedJobs.map<int>((job) => job['job_post_id'] as int).toSet();
+
+            // Filter and map jobs
+            List<TaskModel> taskModels = allJobs
+                .where((job) => likedJobIds.contains(job['job_post_id']))
+                .map((job) => TaskModel.fromJson(job))
+                .toList();
+
+            debugPrint("Successfully parsed ${taskModels.length} tasks");
+            return taskModels;
+          }
+        }
+      }
+      return [];
     } catch (e) {
       return {"error": "Request failed: $e"};
     }
