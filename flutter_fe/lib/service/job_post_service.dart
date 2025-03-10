@@ -190,13 +190,15 @@ class JobPostService {
     final likedJobsResponse = await _getRequest("/displayLikedJob/$userId");
     final allJobsResponse = await _getRequest("/displayTask");
 
+    //print(likedJobsResponse);
+
     // Explicitly type the list and cast job IDs to int
     final likedJobIds = (likedJobsResponse["liked_tasks"] as List<dynamic>? ?? [])
         .map<int>((job) => (job["job_post_id"] as int))
         .toSet();
 
-    debugPrint(likedJobsResponse.toString());
-    debugPrint(likedJobIds.toString());
+    debugPrint("Liked Jobs Response ${likedJobsResponse.toString()}");
+    debugPrint("All Jobs: ${likedJobIds.toString()}");
 
     // Explicitly type the list and filter with a safe check
     return (allJobsResponse["tasks"] as List<dynamic>? ?? [])
