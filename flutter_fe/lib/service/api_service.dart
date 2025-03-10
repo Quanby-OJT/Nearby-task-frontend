@@ -12,7 +12,11 @@ import '../model/client_model.dart';
 
 class ApiService {
   static const String apiUrl =
+<<<<<<< HEAD
       "http://10.0.2.2:5000/connect"; // Adjust if needed
+=======
+      "http://localhost:5000/connect"; // Adjust if needed
+>>>>>>> 3e02cd3395fedaa4bf7a70a538cdc90ed3b2fdfb
   static final storage = GetStorage();
 
   static final http.Client _client = http.Client();

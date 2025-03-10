@@ -11,6 +11,7 @@ class TaskModel {
   final int? contactPrice;
   final String? remarks;
   final String? taskBeginDate;
+  final String? status;
 
    TaskModel({
     this.id,
@@ -25,6 +26,7 @@ class TaskModel {
     this.contactPrice,
     this.remarks,
     this.taskBeginDate,
+    this.status,
   });
 
   Map<String, dynamic> toJson() {
@@ -39,8 +41,9 @@ class TaskModel {
       "urgency": urgency,
       "contact_price": contactPrice,
       "remarks": remarks,
-      "task_begin_date": taskBeginDate,
+      "task_begin_date": taskBeginDate
       "id": id,
+      "status": status,
     };
   }
 
@@ -58,6 +61,7 @@ class TaskModel {
       contactPrice: json['contact_price'] as int?,
       remarks: json['remarks'] as String?,
       taskBeginDate: json['task_begin_date'] as String?,
+      status: json['status'] as String?,
     );
   }
 }
