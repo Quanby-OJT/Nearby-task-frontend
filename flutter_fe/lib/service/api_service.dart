@@ -4,14 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../model/user_model.dart';
+import '../model/tasker_model.dart';
 
 class ApiService {
   static const String apiUrl =
-      "http://192.168.110.147:5000/connect"; // Adjust if needed
-
+      "http://192.168.110.144:5000/connect"; // Adjust if needed
 
   static final http.Client _client = http.Client();
-  static final Map<String, String> _cookies = {};
+  static Map<String, String> _cookies = {};
 
   static void _updateCookies(http.Response response) {
     String? rawCookie = response.headers['set-cookie'];
@@ -40,46 +41,35 @@ class ApiService {
   }
 
   static Future<bool> registerUser(UserModel user) async {
-    try {
-      // Create a salt using timestamp
-      String salt = DateTime.now().millisecondsSinceEpoch.toString();
+    //Tell Which Route the Backend we going to Use
+    var request =
+        http.MultipartRequest("POST", Uri.parse("$apiUrl/create-new-user"));
 
-      // Create the request payload
-      Map<String, dynamic> requestBody = {
-        "data": {
-          "first_name": user.firstName,
-          "middle_name": user.middleName,
-          "last_name": user.lastName,
-          "email": user.email,
-          "password": user.password,
-          "user_role": user.role,
-          "acc_status": user.status
-        },
-        "salt": salt
-      };
+    // Add text fields
+    request.fields["first_name"] = user.firstName;
+    request.fields["middle_name"] = request.fields["last_name"] = user.lastName;
+    request.fields["email"] = user.email;
+    request.fields["password"] = user.password;
+    request.fields["user_role"] = user.role;
 
-      print('Request Body: ${json.encode(requestBody)}'); // Debug log
-
-      final response = await _client.post(
-        Uri.parse("$apiUrl/create-new-user"),
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-        body: json.encode(requestBody),
+    //Attach Image (if available)~
+    if (user.image != null && user.imageName != null) {
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'image_link',
+          user.image!,
+          filename: user.imageName!,
+        ),
       );
-
-      print('Response Status: ${response.statusCode}');
-      print('Response Body: ${response.body}');
-      print('Request URL: ${apiUrl}/create-new-user');
-      print('Full Request Body: ${json.encode(requestBody)}');
-
-      return response.statusCode == 201;
-    } catch (e) {
-      print('Registration Error: $e');
-      return false;
     }
+
+    var response = await request.send();
+    return response.statusCode == 201;
   }
+
+  // static Future<bool> createTasker(TaskerModel tasker){
+  //   var request = http.MultipartRequest("POST", Uri.parse("$apiUrl/"))
+  // }
 
   static Future<Map<String, dynamic>> fetchAuthenticatedUser(
       String userId) async {
@@ -89,7 +79,7 @@ class ApiService {
 
       if (response.statusCode == 200) {
         if (data.containsKey('user')) {
-          print("User Data: ${data['user']}");
+          print("User Data: " + data['user'].toString());
           return {"user": UserModel.fromJson(data['user'])};
         } else {
           return {"error": "User not found"};
@@ -117,7 +107,7 @@ class ApiService {
         }),
       );
 
-      _updateCookies(response);
+      _updateCookies(response); // 🔥 Store session cookies here
 
       var data = json.decode(response.body);
 
@@ -147,6 +137,14 @@ class ApiService {
       );
 
       var data = json.decode(response.body);
+
+      // debugPrint("Request Fields: ${request.fields}");
+      // debugPrint(
+      //     "Request Files: ${request.files.map((file) => file.filename).toList()}");
+      // debugPrint("Request URL: ${request.url}");
+
+      // var response = await request.send();
+      // return response.statusCode == 201;
 
       if (response.statusCode == 200) {
         return {"message": data['message']};
@@ -180,13 +178,9 @@ class ApiService {
 
       var data = json.decode(response.body);
       print('Decoded Data Type: ${data.runtimeType}');
-      print('Response Data: $data'); // Debugging
 
       if (response.statusCode == 200) {
-        return {
-          "user_id": data['user_id'],
-          "user_role": data['user_role'] ?? "Unknown" // Ensure role is not null
-        };
+        return {"user_id": data['user_id'], "role": data['user_role']};
       } else if (response.statusCode == 400 && data.containsKey('errors')) {
         List<dynamic> errors = data['errors'];
         String validationMessage = errors.map((e) => e['msg']).join("\n");
@@ -202,48 +196,6 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> logout(int userId) async {
-    // try {
-    //   debugPrint('Attempting logout for user ID: $userId');
-
-    //   if (userId <= 0) {
-    //     return {"error": "Invalid user ID"};
-    //   }
-
-    //   final requestBody = {
-    //     "user_id": userId, // Send as integer, not string
-    //     "status": 0 ,
-    //     "session":  _cookies.get()// Use numeric status for database compatibility
-    //   };
-
-    //   debugPrint('Request Body: ${json.encode(requestBody)}');
-
-    // final response = await _client.post(
-    //   Uri.parse("$apiUrl/flutter/logout"),
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //     "Accept": "application/json"
-    //   },
-    //   body: json.encode(requestBody),
-    // );
-
-    // debugPrint('Logout Status Code: ${response.statusCode}');
-    // debugPrint('Logout Response Body: ${response.body}');
-
-    // if (response.statusCode == 200) {
-    //   _cookies.clear();
-    //   return {"message": "Logged out successfully"};
-    // } else {
-    //   var data = json.decode(response.body);
-    //   return {"error": data['message'] ?? "Failed to logout"};
-    // }
-
-    //   _cookies.clear();
-    //   return {"message": "Logged out successfully"};
-    // } catch (e) {
-    //   debugPrint('Logout Error: $e');
-    //   return {"error": "Connection error during logout"};
-    // }
-
     try {
       debugPrint('Attempting logout for user ID: $userId');
 
@@ -251,23 +203,15 @@ class ApiService {
         return {"error": "Invalid user ID"};
       }
 
-      // Get session cookie if exists
-      String? sessionCookie = _cookies["session"];
-
-      if (sessionCookie == null) {
-        debugPrint("No session cookie found.");
-        return {"error": "Session not found"};
-      }
-
       final requestBody = {
-        "user_id": userId,
-        "session": sessionCookie // Pass session to database
+        "user_id": userId, // Send as integer, not string
+        "status": 0 // Use numeric status for database compatibility
       };
 
       debugPrint('Request Body: ${json.encode(requestBody)}');
 
       final response = await _client.post(
-        Uri.parse("$apiUrl/flutter/logout"),
+        Uri.parse("$apiUrl/logout"),
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json"
@@ -279,7 +223,7 @@ class ApiService {
       debugPrint('Logout Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
-        _cookies.remove("session"); // Remove only the session cookie
+        _cookies.clear();
         return {"message": "Logged out successfully"};
       } else {
         var data = json.decode(response.body);

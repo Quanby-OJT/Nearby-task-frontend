@@ -8,7 +8,7 @@ class JobPostService {
   final storage = GetStorage();
 
   Future<Map<String, dynamic>> postJob(TaskModel task) async {
-    final url = Uri.parse("http://192.168.110.147:5000/connect/addTask");
+    final url = Uri.parse("http://localhost:5000/connect/addTask");
 
     try {
       final response = await http.post(
@@ -45,10 +45,10 @@ class JobPostService {
       }
 
       // Fetch all jobs
-      final response = await http.get(Uri.parse('http://192.168.110.203:5000/connect/displayTask'));
+      final response = await http
+          .get(Uri.parse('http://192.168.110.203:5000/connect/displayTask'));
       // Fetch liked jobs
       final likedJobsResponse = await http.get(Uri.parse(
-
           'http://192.168.110.203:5000/connect/displayLikedJob/${userId}'));
 
       if (response.statusCode == 200 && likedJobsResponse.statusCode == 200) {
@@ -82,7 +82,7 @@ class JobPostService {
 
   Future<Map<String, dynamic>> saveLikedJob(int jobId) async {
     try {
-      final url = Uri.parse('http://192.168.110.147:5000/connect/likeJob');
+      final url = Uri.parse('http://localhost:5000/connect/likeJob');
 
       String? userId = await getUserId();
 
@@ -150,8 +150,7 @@ class JobPostService {
         };
       }
 
-
-      final url = Uri.parse('http://192.168.110.147:5000/connect/unlikeJob');
+      final url = Uri.parse('http://localhost:5000/connect/unlikeJob');
 
       debugPrint("Sending unlike request for jobId: $jobId");
 
@@ -222,8 +221,8 @@ class JobPostService {
         return [];
       }
 
-      final url = Uri.parse(
-          "http://192.168.110.147:5000/connect/displayLikedJob/${userId}");
+      final url =
+          Uri.parse("http://localhost:5000/connect/displayLikedJob/${userId}");
 
       debugPrint("Fetching liked jobs from: $url");
 
@@ -240,7 +239,8 @@ class JobPostService {
           debugPrint("Raw liked jobs: $likedJobs"); // Debug print
 
           // Fetch full job details for each liked job
-          final jobDetailsResponse = await http.get(Uri.parse('http://192.168.110.203:5000/connect/displayTask'));
+          final jobDetailsResponse = await http.get(
+              Uri.parse('http://192.168.110.203:5000/connect/displayTask'));
 
           if (jobDetailsResponse.statusCode == 200) {
             final Map<String, dynamic> allJobsData =

@@ -86,7 +86,9 @@ class AuthenticationController {
         }));
       } else if (userRole == "Tasker") {
         Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return FillUpTasker(); // Replace with your actual service account main page widget
+          return FillUpTasker(
+              userId:
+                  userId); // Replace with your actual service account main page widget
         }));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
