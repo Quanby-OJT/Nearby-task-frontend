@@ -9,7 +9,7 @@
     <!-- Buttons for task lists -->
     <div class="flex justify-end mb-4">
       <button class="flex items-center gap-2 px-4 py-2 rounded-md border bg-blue-900 text-sm active:bg-blue-950 text-white" (click)="taskList()">
-      <span class="text-sm">Back</span>
+        <span class="text-sm">Back</span>
       </button>
     </div>
    
@@ -24,7 +24,7 @@
           <div class="grid grid-cols-1 gap-4">
             <div>
               <label class="block text-sm font-medium">Client Id</label>
-              <input type="text" [value]="task?.job_post_id" readonly>
+              <input type="text" [value]="task?.client_id" readonly>
             </div>
             <div>
               <label class="block text-sm font-medium">Specialization Needed</label>
@@ -65,8 +65,7 @@
             </div>
           </div>
 
-
-         <!-- Disable Task Button (Below Status) -->
+          <!-- Disable Task Button (Below Status) -->
           <div class="mt-6">
             <button class="w-full px-4 py-2.5 rounded-md bg-blue-900 text-white text-sm active:bg-blue-950 shadow-md hover:bg-blue-800" (click)="disableTask()">
               Disable Task

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/model/conversation.dart';
+// import 'package:flutter_fe/model/conversation.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -10,7 +10,7 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   List<String> messages = [];
-  List<Conversation> conversations = [];
+  // List<Conversation> conversations = [];
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,7 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
-          // automaticallyImplyLeading: false,
+          automaticallyImplyLeading: false,
           title: Center(
               child: Text("NearByTask Conversation",
                   style: TextStyle(

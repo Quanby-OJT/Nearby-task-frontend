@@ -13,6 +13,7 @@ import '../model/client_model.dart';
 class ApiService {
   static const String apiUrl =
       "http://localhost:5000/connect"; // Adjust if needed
+
   static final storage = GetStorage();
 
   static final http.Client _client = http.Client();
@@ -36,7 +37,7 @@ class ApiService {
   // Function to add cookies to requests
   static Map<String, String> _getHeaders() {
     String cookieHeader =
-    _cookies.entries.map((e) => '${e.key}=${e.value}').join('; ');
+        _cookies.entries.map((e) => '${e.key}=${e.value}').join('; ');
     return {
       "Content-Type": "application/json",
       "Accept": "application/json",
@@ -76,9 +77,8 @@ class ApiService {
 
       debugPrint('Response Status: ${response.statusCode}');
       debugPrint('Response Body: ${response.body}');
-      debugPrint('Request URL: ${apiUrl}/create-new-user');
+      debugPrint('Request URL: $apiUrl/create-new-user');
       debugPrint('Full Request Body: ${json.encode(requestBody)}');
-
 
       return response.statusCode == 201;
     } catch (e) {
@@ -91,30 +91,31 @@ class ApiService {
   //   var request = http.MultipartRequest("POST", Uri.parse("$apiUrl/"))
   // }
 
-  static Future<Map<String, dynamic>> fetchAuthenticatedUser(String userId) async {
+  static Future<Map<String, dynamic>> fetchAuthenticatedUser(
+      String userId) async {
     try {
       final String token = await AuthService.getSessionToken();
-      final response = await http.get(
-          Uri.parse("$apiUrl/getUserData/$userId"),
+      final response = await http.get(Uri.parse("$apiUrl/getUserData/$userId"),
           headers: {
             "Authorization": "Bearer $token",
             "Content-Type": "application/json"
-          }
-      );
+          });
 
-      debugPrint("Retreived Data: " + response.body);
+      debugPrint("Retreived Data: ${response.body}");
       var data = json.decode(response.body);
 
       if (response.statusCode == 200) {
         UserModel user = UserModel.fromJson(data['user']);
-        if(data['user']['user_role'] == "Client"){
+        if (data['user']['user_role'] == "Client") {
           ClientModel client = ClientModel.fromJson(data['client']);
-          return{"user": user, "client": client};
-        }else if(data['user']['user_role'] == "Tasker"){
+          return {"user": user, "client": client};
+        } else if (data['user']['user_role'] == "Tasker") {
           TaskerModel tasker = TaskerModel.fromJson(data['tasker']);
-          return{"user": user, "tasker": tasker};
-        }else{
-          return{"error": data['error'] ?? "An Error Occured while retrieving data"};
+          return {"user": user, "tasker": tasker};
+        } else {
+          return {
+            "error": data['error'] ?? "An Error Occured while retrieving data"
+          };
         }
       } else {
         return {"error": data['error'] ?? "Failed to fetch user data"};
@@ -126,7 +127,8 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> authUser(String email, String password) async {
+  static Future<Map<String, dynamic>> authUser(
+      String email, String password) async {
     try {
       final response = await _client.post(
         Uri.parse("$apiUrl/login-auth"),
@@ -203,7 +205,11 @@ class ApiService {
       debugPrint('Response Data: $data'); // Debugging
 
       if (response.statusCode == 200) {
-        return {"user_id": data['user_id'], "role": data['user_role'], "session": data['session_id']};
+        return {
+          "user_id": data['user_id'],
+          "role": data['user_role'],
+          "session": data['session_id']
+        };
       } else if (response.statusCode == 400 && data.containsKey('errors')) {
         List<dynamic> errors = data['errors'];
         String validationMessage = errors.map((e) => e['msg']).join("\n");
@@ -219,7 +225,7 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> logout(int userId, String session) async {
-    try{
+    try {
       final response = await http.post(
         Uri.parse("$apiUrl/logout"),
         headers: {
@@ -227,10 +233,7 @@ class ApiService {
           "Authorization": "Bearer $session",
           "Access-Control-Allow-Credentials": "true"
         },
-        body: json.encode({
-          "user_id": userId,
-          "session": session
-        }),
+        body: json.encode({"user_id": userId, "session": session}),
       );
 
       debugPrint('Logout Status Code: ${response.statusCode}');

@@ -11,13 +11,14 @@ class JobPostService {
   static final storage = GetStorage();
 
   Future<Map<String, dynamic>> postJob(TaskModel task, int userId) async {
-    try{
+    try {
       Future<Map<String, dynamic>> response = _postRequest(
         endpoint: "/addTask",
         body: {...task.toJson(), "user_id": userId},
       );
 
-    }catch(e){
+      return {'success': true, 'message': response.toString()};
+    } catch (e) {
       debugPrint(e.toString());
       debugPrintStack();
       return {'success': false, "error": "Error: $e"};
@@ -107,21 +108,24 @@ class JobPostService {
     }
 
     // ✅ Convert tasks properly
-    List<TaskModel> taskList = tasks.map<TaskModel>((task) => TaskModel.fromJson(task)).toList();
+    List<TaskModel> taskList =
+        tasks.map<TaskModel>((task) => TaskModel.fromJson(task)).toList();
 
     return taskList; // Explicitly returning List<TaskModel>
   }
 
-
   Future<Map<String, dynamic>> saveLikedJob(int jobId) async {
     final userId = await getUserId();
     if (userId == null) {
-      return {'success': false, 'message': 'Please log in to like jobs', 'requiresLogin': true};
+      return {
+        'success': false,
+        'message': 'Please log in to like jobs',
+        'requiresLogin': true
+      };
     }
     return _postRequest(
-      endpoint: "/likeJob",
-      body: {"user_id": int.parse(userId), "job_post_id": jobId}
-    );
+        endpoint: "/likeJob",
+        body: {"user_id": int.parse(userId), "job_post_id": jobId});
   }
 
   Future<Map<String, dynamic>> unlikeJob(int jobId) async {
@@ -137,7 +141,8 @@ class JobPostService {
 
       final url = Uri.parse('http://localhost:5000/connect/unlikeJob');
 
-    return _deleteRequest("/unlikeJob", {"user_id": int.parse(userId), "job_post_id": jobId});
+    return _deleteRequest(
+        "/unlikeJob", {"user_id": int.parse(userId), "job_post_id": jobId});
   }
 
   Future<Map<String, dynamic>> fetchJobsForClient(int clientId) async {
@@ -171,16 +176,17 @@ class JobPostService {
   Future<Map<String, dynamic>> assignTask(int userId, int taskId) async {
     final userId = await getUserId();
     if (userId == null) {
-      return {'success': false, 'message': 'Please log in to like jobs', 'requiresLogin': true};
+      return {
+        'success': false,
+        'message': 'Please log in to like jobs',
+        'requiresLogin': true
+      };
     }
 
-    return _postRequest(
-        endpoint: "/$apiUrl/assign-task",
-        body: {
-          "user_id": userId,
-          "task_id": taskId,
-        }
-    );
+    return _postRequest(endpoint: "/$apiUrl/assign-task", body: {
+      "user_id": userId,
+      "task_id": taskId,
+    });
   }
 
   ///
@@ -194,7 +200,10 @@ class JobPostService {
     try {
       final response = await http.get(
         Uri.parse('$apiUrl/$endpoint'),
-        headers: {"Authorization": "Bearer $token", "Content-Type": "application/json"},
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
       );
       //print("API Response for $endpoint: ${response.body}");
       return _handleResponse(response);
@@ -203,7 +212,8 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _postRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     try {
       String? userId = await getUserId();
@@ -259,7 +269,8 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> _deleteRequest(
+      String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
       final request = http.Request("DELETE", Uri.parse('$apiUrl$endpoint'))

@@ -604,8 +604,8 @@ class _JobPostPageState extends State<JobPostPage> {
             ),
             subtitle: Text(
               "📍 ${task!.location} \n • "
-              "₱ ${NumberFormat("#,##0.00", "en_US").format(task!.contactPrice!.roundToDouble())} \n • "
-              "🛠 ${task!.specialization}",
+              "₱ ${NumberFormat("#,##0.00", "en_US").format(task.contactPrice!.roundToDouble())} \n • "
+              "🛠 ${task.specialization}",
               style: TextStyle(fontSize: 14), // Optional styling
             ),
 
