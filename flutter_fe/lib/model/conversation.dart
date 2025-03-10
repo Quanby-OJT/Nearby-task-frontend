@@ -20,8 +20,8 @@ class Conversation {
   factory Conversation.fromJson(Map<String, dynamic> json) {
     return Conversation(
         userId: json['user_id'],
+        taskTakenId: json['task_taken_id'],
         conversationMessage: json['conversation'],
-        taskTakenId: json['task_taken_id']
     );
   }
 }

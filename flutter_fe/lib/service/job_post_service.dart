@@ -11,6 +11,57 @@ class JobPostService {
   static final storage = GetStorage();
   static final token = storage.read('session');
 
+  Map<String, dynamic> _handleResponse(http.Response response) {
+    final responseBody = jsonDecode(response.body);
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return responseBody;
+    } else {
+      return {"error": responseBody["error"] ?? "Unknown error"};
+    }
+  }
+
+  Future<Map<String, dynamic>> _getRequest(String endpoint) async {
+    final token = await AuthService.getSessionToken();
+    try {
+      final response = await http.get(
+        Uri.parse('$apiUrl/$endpoint'),
+        headers: {"Authorization": "Bearer $token", "Content-Type": "application/json"},
+      );
+      //print("API Response for $endpoint: ${response.body}");
+      return _handleResponse(response);
+    } catch (e) {
+      return {"error": "Request failed: $e"};
+    }
+  }
+
+  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
+    final response = await http.post(
+        Uri.parse("$apiUrl$endpoint"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json"
+      },
+      body: jsonEncode(body)
+    );
+
+    return _handleResponse(response);
+  }
+
+  Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
+    final token = await AuthService.getSessionToken();
+    try {
+      final request = http.Request("DELETE", Uri.parse('$apiUrl$endpoint'))
+        ..headers["Authorization"] = "Bearer $token"
+        ..headers["Content-Type"] = "application/json"
+        ..body = jsonEncode(body);
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      return _handleResponse(response);
+    } catch (e) {
+      return {"error": "Request failed: $e"};
+    }
+  }
+
   Future<Map<String, dynamic>> postJob(TaskModel task, int userId) async {
     try{
       Future<Map<String, dynamic>> response = _postRequest(
@@ -18,8 +69,7 @@ class JobPostService {
         body: {...task.toJson(), "user_id": userId},
       );
 
-      return {'success': true, 'message': response.toString()};
-
+      return response;
     }catch(e){
       debugPrint(e.toString());
       debugPrintStack();
@@ -37,35 +87,59 @@ class JobPostService {
     return [];
   }
 
-  Future<List<TaskModel>> fetchAllJobs() async {
-    final userId = await getUserId();
-    if (userId == null) return [];
+  Future<TaskModel?> fetchTaskInformation(int taskID) async {
+    try {
+      if (taskID <= 0) {
+        debugPrint('fetchTaskInformation: No task ID provided');
+        return null;
+      }
 
-    final tasksResponse = await _getRequest("/displayTask");
-    print("Tasks API Response: $tasksResponse"); // Debugging
+      final response = await http.get(
+        Uri.parse('http://localhost:5000/connect/displayTask/$taskID'),
+      );
 
-    if (!tasksResponse.containsKey("tasks")) {
-      throw Exception("Unexpected API response format: $tasksResponse");
+      debugPrint('Response status code: ${response.statusCode}');
+      debugPrint('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonData = jsonDecode(response.body);
+        return TaskModel.fromJson(jsonData);
+      }
+
+      debugPrint('Error fetching task $taskID');
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching tasks: $e');
+      return null;
     }
-
-    final likedJobsResponse = await _getRequest("/displayLikedJob/$userId");
-
-    final likedJobIds = (likedJobsResponse["liked_tasks"] ?? [])
-        .map<int>((job) => job["job_post_id"] as int)
-        .toSet();
-
-    final tasks = tasksResponse["tasks"];
-
-    if (tasks is! List) {
-      throw Exception("tasks is not a List: $tasks");
-    }
-
-    // ✅ Convert tasks properly
-    List<TaskModel> taskList = tasks.map<TaskModel>((task) => TaskModel.fromJson(task)).toList();
-
-    return taskList; // Explicitly returning List<TaskModel>
   }
 
+  Future<List<TaskModel>> fetchAllJobs() async {
+    try {
+      final response = await _getRequest("/displayTask");
+
+      // Check if the response contains an error
+      if (response.containsKey("error")) {
+        debugPrint("Error fetching jobs: ${response['error']}");
+        return [];
+      }
+
+      // Ensure the 'tasks' key exists and is a List
+      if (response["tasks"] != null && response["tasks"] is List) {
+        return (response["tasks"] as List)
+            .map((task) => TaskModel.fromJson(task as Map<String, dynamic>))
+            .toList();
+      }
+
+      // If 'tasks' is missing or not a list, return an empty list
+      debugPrint("Unexpected response format: $response");
+      return [];
+    } catch (e) {
+      debugPrint("Exception in fetchAllJobs: $e");
+      debugPrintStack();
+      return [];
+    }
+  }
 
   Future<Map<String, dynamic>> saveLikedJob(int jobId) async {
     // debugPrint(jobId.toString());
@@ -85,10 +159,25 @@ class JobPostService {
   }
 
   Future<Map<String, dynamic>> unlikeJob(int jobId) async {
-    final userId = await getUserId();
-    if (userId == null) return {'success': false, 'message': 'Please log in to unlike jobs'};
+    try {
+      String? userId = await getUserId();
+      if (userId == null || userId.isEmpty) {
+        debugPrint("User not logged in, cannot unlike job");
+        return {
+          'success': false,
+          'message': 'Please log in to unlike jobs',
+        };
+      }
 
-    return _deleteRequest("/unlikeJob", {"user_id": int.parse(userId), "job_post_id": jobId});
+      final url = Uri.parse('http://localhost:5000/connect/unlikeJob');
+
+      return _deleteRequest(
+          "/unlikeJob", {"user_id": int.parse(userId), "job_post_id": jobId});
+    }catch(e){
+      debugPrint(e.toString());
+      debugPrintStack();
+      return {"error": "An Error Occured while getting all jobs."};
+    }
   }
 
   Future<Map<String, dynamic>> fetchJobsForClient(int clientId) async {
@@ -148,55 +237,5 @@ class JobPostService {
   /// -Ces
   ///
 
-  Future<Map<String, dynamic>> _getRequest(String endpoint) async {
-    final token = await AuthService.getSessionToken();
-    try {
-      final response = await http.get(
-        Uri.parse('$apiUrl/$endpoint'),
-        headers: {"Authorization": "Bearer $token", "Content-Type": "application/json"},
-      );
-      //print("API Response for $endpoint: ${response.body}");
-      return _handleResponse(response);
-    } catch (e) {
-      return {"error": "Request failed: $e"};
-    }
-  }
 
-  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
-    final token = await AuthService.getSessionToken();
-    try {
-      final response = await http.post(
-        Uri.parse('$apiUrl$endpoint'),
-        headers: {"Authorization": "Bearer $token", "Content-Type": "application/json"},
-        body: jsonEncode(body),
-      );
-      return _handleResponse(response);
-    } catch (e) {
-      return {"error": "Request failed: $e"};
-    }
-  }
-
-  Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
-    final token = await AuthService.getSessionToken();
-    try {
-      final request = http.Request("DELETE", Uri.parse('$apiUrl$endpoint'))
-        ..headers["Authorization"] = "Bearer $token"
-        ..headers["Content-Type"] = "application/json"
-        ..body = jsonEncode(body);
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
-      return _handleResponse(response);
-    } catch (e) {
-      return {"error": "Request failed: $e"};
-    }
-  }
-
-  Map<String, dynamic> _handleResponse(http.Response response) {
-    final responseBody = jsonDecode(response.body);
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return responseBody;
-    } else {
-      return {"error": responseBody["error"] ?? "Unknown error"};
-    }
-  }
 }
