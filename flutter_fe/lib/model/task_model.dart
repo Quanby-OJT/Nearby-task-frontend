@@ -27,7 +27,6 @@ class TaskModel {
     this.taskBeginDate,
   });
 
-  // Convert to JSON (para gamitin sa API)
   Map<String, dynamic> toJson() {
     return {
       "task_id": id,

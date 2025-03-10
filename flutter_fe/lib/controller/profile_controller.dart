@@ -13,6 +13,7 @@ class ProfileController {
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController birthdateController = TextEditingController();
   final TextEditingController confirmPasswordController =
   TextEditingController();
   final TextEditingController roleController = TextEditingController();
@@ -67,13 +68,16 @@ class ProfileController {
         lastName: lastNameController.text,
         email: emailController.text,
         password: passwordController.text,
-        role: roleController.text,
-        accStatus: 'Pending'
-    );
-    bool success = await ApiService.registerUser(user);
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        birthdate: birthdateController.text,
+        role: roleController.text.isEmpty ? "Client" : roleController.text,
+        status:
+            statusController.text.isEmpty ? "Review" : statusController.text);
+
+    try {
+      bool success = await ApiService.registerUser(user);
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
             content: Text(
                 "Registration Successful! Please Check your Email to confirm your email.")),
       );
@@ -109,7 +113,7 @@ class ProfileController {
           return AuthenticatedUser(user: user, client: client);
         } else if (result.containsKey("tasker")) {
           TaskerModel tasker = result["tasker"] as TaskerModel;
-          debugPrint("Retrieved Data: "+ tasker.toString());
+          debugPrint("Retrieved Data: $tasker");
           return AuthenticatedUser(user: user, tasker: tasker);
         }
       }

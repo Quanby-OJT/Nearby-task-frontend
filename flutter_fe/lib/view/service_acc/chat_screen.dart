@@ -12,7 +12,7 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   List<String> messages = [];
-  List<Conversation> conversations = [];
+  List conversations = [];
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +71,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       subtitle: Text(
                         "📍 ${message.userId} \n • 🛠 ${message.conversationMessage}",
+
                         style: TextStyle(fontSize: 14),
                       ),
                       trailing: Icon(Icons.arrow_forward_ios,
