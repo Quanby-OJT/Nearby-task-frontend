@@ -24,7 +24,6 @@ class _HomePageState extends State<HomePage> {
   ];
   List<String> selectedCategories = [];
   bool _isLoading = true;
-  @override
   void initState() {
     super.initState();
     _fetchTasks();
@@ -36,12 +35,13 @@ class _HomePageState extends State<HomePage> {
       JobPostService jobPostService = JobPostService();
       List<TaskModel> fetchedTasks = await jobPostService.fetchAllJobs();
 
-      print("Raw API Response: $fetchedTasks"); // Print entire response
+      print("Raw API Response: ${fetchedTasks}"); // Print entire response
       print(
           "Parsed tasks count: ${fetchedTasks.length}"); // Check if tasks are parsed
 
       setState(() {
         tasks = fetchedTasks;
+        print(tasks);
         _isLoading = false;
       });
     } catch (e) {
@@ -54,6 +54,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _saveLikedJob(TaskModel task) async {
     try {
+      debugPrint(task.toString());
       // Check if task ID is null
       if (task.id == null) {
         print("Cannot like job: Task ID is null for task: ${task.title}");
@@ -207,6 +208,11 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 )
+                ///
+              /// This code, if the backend data contains only one data, it must display the data and the card swipe must work regardless.
+              ///
+              /// -Ces
+              ///
               else if (tasks.isEmpty)
                 Expanded(
                   child: Center(

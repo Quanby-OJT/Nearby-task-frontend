@@ -280,8 +280,8 @@ class _LikeScreenState extends State<LikeScreen> {
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => ServiceAccMain()),
-                  (route) =>
-                      false, // Removes all previous routes from the stack
+                      (route) => false, // Removes all previous routes from the stack
+
                 );
               },
               child: const Text('Browse Jobs'),
@@ -428,6 +428,7 @@ class _LikeScreenState extends State<LikeScreen> {
                               MaterialPageRoute(
                                   builder: (context) =>
                                       TaskInformation(taskID: task.id as int)));
+                          print(task.id);
                         },
                         child: Row(
                           children: [
