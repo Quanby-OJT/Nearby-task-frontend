@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/controller/authentication_controller.dart';
-import 'package:flutter_fe/controller/profile_controller.dart';
-import 'package:flutter_fe/model/user_model.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_fe/model/auth_user.dart';
+import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_fe/controller/authentication_controller.dart';
+import 'package:flutter_fe/model/user_model.dart';
+import 'package:flutter_fe/controller/profile_controller.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -16,7 +18,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final ProfileController _userController = ProfileController();
   final AuthenticationController _authController = AuthenticationController();
   final GetStorage storage = GetStorage();
-  UserModel? _user;
+  AuthenticatedUser? _user;
   bool _isLoading = true;
 
   @override
@@ -27,10 +29,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _fetchUserData() async {
     try {
-      String userId = storage.read("user_id"); // Retrieve user_id from storage
-      print("Retrieved user_id from storage: $userId");
-      UserModel? user =
-          await _userController.getAuthenticatedUser(context, userId);
+      int userId = storage.read("user_id");
+      AuthenticatedUser? user = await _userController.getAuthenticatedUser(context, userId.toString());
+      debugPrint(user.toString());
       setState(() {
         _user = user;
         _isLoading = false;
@@ -40,6 +41,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _userController.lastNameController.text = user?.lastName ?? '';
         _userController.birthdateController.text = user?.birthdate ?? '';
         _userController.emailController.text = user?.email ?? '';
+        // Concatenate full name
+        String fullName = [
+          _user?.user.firstName ?? '',
+          _user?.user.middleName ?? '',
+          _user?.user.lastName ?? ''
+        ].where((name) => name.isNotEmpty).join(' ');
+
+        // Populate controllers
+        _userController.firstNameController.text = fullName;
+        _userController.emailController.text = _user?.user.email ?? '';
+        _userController.birthdateController.text = _user?.user.birthdate ?? '';
+        _userController.specializationController.text = _user?.tasker?.specialization ?? '';
+        _userController.taskerAddressController.text = _user?.tasker?.taskerAddress ?? '';
+        _userController.skillsController.text = _user?.tasker?.skills ?? '';
       });
     } catch (e) {
       print("Error fetching user data: $e");

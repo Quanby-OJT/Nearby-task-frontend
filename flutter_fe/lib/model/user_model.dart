@@ -6,10 +6,10 @@ class UserModel {
   final String birthdate;
   final String password;
   final dynamic
-      image; // Can be either a String (URL) or Uint8List (binary data)
+  image; // Can be either a String (URL) or Uint8List (binary data)
   final String? imageName; // Store image filename if available
-  final String role; // Ensure role is passed
-  final String status;
+  final String role;
+  final String accStatus;
 
   UserModel(
       {required this.firstName,
@@ -23,6 +23,7 @@ class UserModel {
       required this.role, // Ensure role is required
       required this.status});
 
+  // Factory constructor to handle image as either URL or binary data, this is for the display record part
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
         firstName: json['first_name'],
@@ -37,6 +38,8 @@ class UserModel {
         status: json["acc_status"]);
   }
 
+
+// Returns whith these datas
   Map<String, dynamic> toJson() {
     return {
       "first_name": firstName,
