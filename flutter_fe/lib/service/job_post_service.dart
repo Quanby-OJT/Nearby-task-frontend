@@ -37,6 +37,8 @@ class JobPostService {
       return {"error": "Request failed: $e"};
     }
   }
+//   Future<Map<String, dynamic>> postJob(TaskModel task) async {
+//     final url = Uri.parse("http://localhost:5000/connect/addTask");
 
   Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
     final response = await http.post(
@@ -126,8 +128,7 @@ class JobPostService {
       }
 
       // Fetch all jobs
-      final response = await http
-          .get(Uri.parse('http://localhost:5000/connect/displayTask'));
+      final response = await http.get(Uri.parse('http://localhost:5000/connect/displayTask'));
       // Fetch liked jobs
       final likedJobsResponse = await http.get(
           Uri.parse('http://localhost:5000/connect/displayLikedJob/${userId}'));
@@ -157,7 +158,10 @@ class JobPostService {
 
   Future<List<TaskModel>> fetchAllJobs() async {
     try {
+      final url = Uri.parse('http://localhost:5000/connect/likeJob');
+
       final response = await _getRequest("/displayTask");
+
 
       // Check if the response contains an error
       if (response.containsKey("error")) {
@@ -213,7 +217,6 @@ class JobPostService {
           'message': 'Please log in to unlike jobs',
         };
       }
-
       return _deleteRequest(
           "/unlikeJob", {"user_id": int.parse(userId), "job_post_id": jobId});
     }catch(e){
@@ -221,10 +224,6 @@ class JobPostService {
       debugPrintStack();
       return {"error": "An Error Occured while getting all jobs."};
     }
-  }
-
-  Future<Map<String, dynamic>> fetchJobsForClient(int clientId) async {
-    return _getRequest("/displayTask/$clientId");
   }
 
   Future<List<TaskModel>> fetchUserLikedJobs() async {
@@ -329,9 +328,8 @@ class JobPostService {
           final List<dynamic> likedJobs = jsonData['tasks'];
           debugPrint("Raw liked jobs: $likedJobs"); // Debug print
 
-          // Fetch full job details for each liked job
-          final jobDetailsResponse = await http
-              .get(Uri.parse('http://localhost:5000/connect/displayTask'));
+          final jobDetailsResponse = await http.get(Uri.parse('http://localhost:5000/connect/displayTask'));
+
 
           if (jobDetailsResponse.statusCode == 200) {
             final Map<String, dynamic> allJobsData =

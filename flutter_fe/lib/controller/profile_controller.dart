@@ -23,6 +23,12 @@ class ProfileController {
   // Fetched user inputs End
 
   //Tasker Text Controller
+  final TextEditingController genderController = TextEditingController();
+  final TextEditingController addressController = TextEditingController();
+  final TextEditingController birthDateController = TextEditingController();
+  final TextEditingController contactController = TextEditingController();
+  final TextEditingController profilePictureController =
+      TextEditingController();
   final TextEditingController bioController = TextEditingController();
   final TextEditingController specializationController = TextEditingController();
   final TextEditingController skillsController = TextEditingController();
@@ -64,7 +70,8 @@ class ProfileController {
 // Store the inputs Start
     UserModel user = UserModel(
         firstName: firstNameController.text,
-        middleName: middleNameController.text,
+        middleName:
+            middleNameController.text.isEmpty ? "" : middleNameController.text,
         lastName: lastNameController.text,
         email: emailController.text,
         password: passwordController.text,
@@ -89,15 +96,30 @@ class ProfileController {
   }
 
   Future<void> createTasker(BuildContext context) async {
+    double wagePerHour;
+    try {
+      wagePerHour = double.parse(wageController.text);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Invalid wage per hour value")),
+      );
+      return;
+    }
+
     TaskerModel tasker = TaskerModel(
+        gender: genderController.text,
+        contactNumber: contactController.text,
+        address: addressController.text,
+        birthDate: birthDateController.text,
+        profilePicture: profilePictureController.text,
         bio: bioController.text,
         specialization: specializationController.text,
         skills: skillsController.text,
-        taskerAddress: taskerAddressController.text,
-        taskerDocuments: tesdaController.text,
-        socialMediaLinks: socialMediaeController.text);
+        wage_per_hour: wagePerHour,
+        tesda_documents_link: tesdaController.text,
+        social_media_links: socialMediaeController.text);
 
-    //Code to create tasker information.
+    // Code to create tasker information.
   }
 
   Future<AuthenticatedUser?> getAuthenticatedUser(BuildContext context, String userId) async {

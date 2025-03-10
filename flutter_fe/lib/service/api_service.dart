@@ -7,16 +7,18 @@ import 'package:flutter_fe/service/auth_service.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../model/user_model.dart';
 import '../model/tasker_model.dart';
-import '../model/client_model.dart';
 
 class ApiService {
   static const String apiUrl =
-      "http://localhost:5000/connect"; // Adjust if needed
-  static final storage = GetStorage();
+      "http://192.168.110.144:5000/connect"; // Adjust if needed
+// Adjust if needed
+//   static final storage = GetStorage();
+
 
   static final http.Client _client = http.Client();
-  static final Map<String, String> _cookies = {};
+  static Map<String, String> _cookies = {};
 
   static void _updateCookies(http.Response response) {
     String? rawCookie = response.headers['set-cookie'];
@@ -45,6 +47,26 @@ class ApiService {
   }
 
   static Future<bool> registerUser(UserModel user) async {
+    //Tell Which Route the Backend we going to Use
+//     var request =
+//         http.MultipartRequest("POST", Uri.parse("$apiUrl/create-new-user"));
+
+//     // Add text fields
+//     request.fields["first_name"] = user.firstName;
+//     request.fields["middle_name"] = request.fields["last_name"] = user.lastName;
+//     request.fields["email"] = user.email;
+//     request.fields["password"] = user.password;
+//     request.fields["user_role"] = user.role;
+
+    //Attach Image (if available)~
+//     if (user.image != null && user.imageName != null) {
+//       request.files.add(
+//         http.MultipartFile.fromBytes(
+//           'image_link',
+//           user.image!,
+//           filename: user.imageName!,
+//         ),
+//       );
     try {
       // Create a salt using timestamp
       String salt = DateTime.now().millisecondsSinceEpoch.toString();
@@ -104,6 +126,10 @@ class ApiService {
       var data = json.decode(response.body);
 
       if (response.statusCode == 200) {
+//         if (data.containsKey('user')) {
+//           print("User Data: " + data['user'].toString());
+//           return {"user": UserModel.fromJson(data['user'])};
+
         UserModel user = UserModel.fromJson(data['user']);
         if (data['user']['user_role'] == "Client") {
           ClientModel client = ClientModel.fromJson(data['client']);
@@ -111,6 +137,7 @@ class ApiService {
         } else if (data['user']['user_role'] == "Tasker") {
           TaskerModel tasker = TaskerModel.fromJson(data['tasker']);
           return {"user": user, "tasker": tasker};
+
         } else {
           return {
             "error": data['error'] ?? "An Error Occured while retrieving data"
@@ -138,7 +165,7 @@ class ApiService {
         }),
       );
 
-      _updateCookies(response);
+      _updateCookies(response); // 🔥 Store session cookies here
 
       var data = json.decode(response.body);
 
@@ -168,6 +195,14 @@ class ApiService {
       );
 
       var data = json.decode(response.body);
+
+      // debugPrint("Request Fields: ${request.fields}");
+      // debugPrint(
+      //     "Request Files: ${request.files.map((file) => file.filename).toList()}");
+      // debugPrint("Request URL: ${request.url}");
+
+      // var response = await request.send();
+      // return response.statusCode == 201;
 
       if (response.statusCode == 200) {
         return {"message": data['message']};
@@ -200,6 +235,11 @@ class ApiService {
       _updateCookies(response); // 🔥 Store session cookies
 
       var data = json.decode(response.body);
+//       print('Decoded Data Type: ${data.runtimeType}');
+
+//       if (response.statusCode == 200) {
+//         return {"user_id": data['user_id'], "role": data['user_role']};
+
       debugPrint('Decoded Data Type: ${data.runtimeType}');
       debugPrint('Response Data: $data'); // Debugging
 
@@ -223,9 +263,22 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> logout(int userId, String session) async {
+  static Future<Map<String, dynamic>> logout(int userId) async {
     try {
-      final response = await http.post(
+      debugPrint('Attempting logout for user ID: $userId');
+
+      if (userId <= 0) {
+        return {"error": "Invalid user ID"};
+      }
+
+      final requestBody = {
+        "user_id": userId, // Send as integer, not string
+        "status": 0 // Use numeric status for database compatibility
+      };
+
+      debugPrint('Request Body: ${json.encode(requestBody)}');
+
+      final response = await _client.post(
         Uri.parse("$apiUrl/logout"),
         headers: {
           "Content-Type": "application/json",
@@ -239,7 +292,7 @@ class ApiService {
       debugPrint('Logout Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
-        _cookies.remove("session"); // Remove only the session cookie
+        _cookies.clear();
         return {"message": "Logged out successfully"};
       } else {
         var data = json.decode(response.body);
