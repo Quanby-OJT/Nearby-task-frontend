@@ -66,7 +66,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text(
-                        "📍 ${message!.userId} \n • 🛠 ${message.conversationMessage}",
+                        " ${message!.userId} \n • 🛠 ${message.conversationMessage}",
                         style: TextStyle(fontSize: 14),
                       ),
                       trailing: Icon(Icons.arrow_forward_ios,

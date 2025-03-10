@@ -3,6 +3,7 @@ class UserModel {
   final String middleName;
   final String lastName;
   final String email;
+  final String birthdate;
   final String password;
   final dynamic
       image; // Can be either a String (URL) or Uint8List (binary data)
@@ -16,6 +17,7 @@ class UserModel {
       required this.lastName,
       required this.email,
       required this.password,
+      required this.birthdate, // Ensure date is required
       this.image,
       this.imageName,
       required this.role, // Ensure role is required
@@ -31,6 +33,7 @@ class UserModel {
         image: json['image_link'] is String ? json['image_link'] : null,
         imageName: json['image_name'],
         role: json['user_role'], // Ensure role is parsed
+        birthdate: json["birthdate"],
         status: json["acc_status"]);
   }
 
@@ -42,7 +45,8 @@ class UserModel {
       "email": email,
       "password": password,
       "user_role": role,
-      "acc_status": status
+      "acc_status": status,
+      "birthdate": birthdate
     };
   }
 }

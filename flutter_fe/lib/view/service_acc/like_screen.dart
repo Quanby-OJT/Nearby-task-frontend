@@ -163,10 +163,24 @@ class _LikeScreenState extends State<LikeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: Column(
+          children: [
+            Text(
+              'Saved Jobs',
+              style: TextStyle(
+                color: const Color(0xFF03045E),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
       body: Column(
         children: [
           Padding(
-            padding: EdgeInsets.all(16.0), // Added padding
+            padding: EdgeInsets.symmetric(horizontal: 16.0), // Added padding
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
@@ -517,7 +531,7 @@ class _LikeScreenState extends State<LikeScreen> {
       if (result['success']) {
         // Remove from local list
         setState(() {
-          _likedJobs.removeWhere((item) => item.id == job.id);
+          _filteredJobs.removeWhere((item) => item.id == job.id);
         });
 
         if (mounted) {
@@ -552,8 +566,6 @@ class _LikeScreenState extends State<LikeScreen> {
   }
 
   void _viewJobDetails(TaskModel job) {
-    // Navigate to a detail page for this job
-    // TODO: Replace this with navigation to your detail page
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
