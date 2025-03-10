@@ -42,7 +42,7 @@ class _LikesScreenState extends State<LikesScreen> {
         automaticallyImplyLeading: false,
         title: Center(
             child: Text(
-          'Available Services',
+          'Taskers That You Liked',
           style:
               TextStyle(color: Color(0xFF0272B1), fontWeight: FontWeight.bold),
         )),

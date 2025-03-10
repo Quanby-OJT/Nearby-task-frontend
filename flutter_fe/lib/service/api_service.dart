@@ -1,7 +1,10 @@
 // service/api_service.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/model/conversation.dart';
 import 'package:flutter_fe/model/user_model.dart';
+import 'package:flutter_fe/service/auth_service.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../model/user_model.dart';
@@ -10,6 +13,9 @@ import '../model/tasker_model.dart';
 class ApiService {
   static const String apiUrl =
       "http://192.168.110.144:5000/connect"; // Adjust if needed
+// Adjust if needed
+//   static final storage = GetStorage();
+
 
   static final http.Client _client = http.Client();
   static Map<String, String> _cookies = {};
@@ -25,7 +31,7 @@ class ApiService {
           _cookies[keyValue[0].trim()] = keyValue[1].trim();
         }
       }
-      print('Updated Cookies: $_cookies'); // Debugging
+      debugPrint('Updated Cookies: $_cookies'); // Debugging
     }
   }
 
@@ -42,29 +48,64 @@ class ApiService {
 
   static Future<bool> registerUser(UserModel user) async {
     //Tell Which Route the Backend we going to Use
-    var request =
-        http.MultipartRequest("POST", Uri.parse("$apiUrl/create-new-user"));
+//     var request =
+//         http.MultipartRequest("POST", Uri.parse("$apiUrl/create-new-user"));
 
-    // Add text fields
-    request.fields["first_name"] = user.firstName;
-    request.fields["middle_name"] = request.fields["last_name"] = user.lastName;
-    request.fields["email"] = user.email;
-    request.fields["password"] = user.password;
-    request.fields["user_role"] = user.role;
+//     // Add text fields
+//     request.fields["first_name"] = user.firstName;
+//     request.fields["middle_name"] = request.fields["last_name"] = user.lastName;
+//     request.fields["email"] = user.email;
+//     request.fields["password"] = user.password;
+//     request.fields["user_role"] = user.role;
 
     //Attach Image (if available)~
-    if (user.image != null && user.imageName != null) {
-      request.files.add(
-        http.MultipartFile.fromBytes(
-          'image_link',
-          user.image!,
-          filename: user.imageName!,
-        ),
-      );
-    }
+//     if (user.image != null && user.imageName != null) {
+//       request.files.add(
+//         http.MultipartFile.fromBytes(
+//           'image_link',
+//           user.image!,
+//           filename: user.imageName!,
+//         ),
+//       );
+    try {
+      // Create a salt using timestamp
+      String salt = DateTime.now().millisecondsSinceEpoch.toString();
 
-    var response = await request.send();
-    return response.statusCode == 201;
+      // Create the request payload
+      Map<String, dynamic> requestBody = {
+        "data": {
+          "first_name": user.firstName,
+          "middle_name": user.middleName,
+          "last_name": user.lastName,
+          "email": user.email,
+          "password": user.password,
+          "user_role": user.role,
+          "acc_status": user.accStatus
+        },
+        "salt": salt
+      };
+
+      debugPrint('Request Body: ${json.encode(requestBody)}'); // Debug log
+
+      final response = await _client.post(
+        Uri.parse("$apiUrl/create-new-user"),
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: json.encode(requestBody),
+      );
+
+      debugPrint('Response Status: ${response.statusCode}');
+      debugPrint('Response Body: ${response.body}');
+      debugPrint('Request URL: $apiUrl/create-new-user');
+      debugPrint('Full Request Body: ${json.encode(requestBody)}');
+
+      return response.statusCode == 201;
+    } catch (e) {
+      debugPrint('Registration Error: $e');
+      return false;
+    }
   }
 
   // static Future<bool> createTasker(TaskerModel tasker){
@@ -74,24 +115,41 @@ class ApiService {
   static Future<Map<String, dynamic>> fetchAuthenticatedUser(
       String userId) async {
     try {
-      final response = await http.get(Uri.parse("$apiUrl/getUserData/$userId"));
+      final String token = await AuthService.getSessionToken();
+      final response = await http.get(Uri.parse("$apiUrl/getUserData/$userId"),
+          headers: {
+            "Authorization": "Bearer $token",
+            "Content-Type": "application/json"
+          });
+
+      debugPrint("Retreived Data: ${response.body}");
       var data = json.decode(response.body);
 
       if (response.statusCode == 200) {
-        if (data.containsKey('user')) {
-          print("User Data: " + data['user'].toString());
-          return {"user": UserModel.fromJson(data['user'])};
+//         if (data.containsKey('user')) {
+//           print("User Data: " + data['user'].toString());
+//           return {"user": UserModel.fromJson(data['user'])};
+
+        UserModel user = UserModel.fromJson(data['user']);
+        if (data['user']['user_role'] == "Client") {
+          ClientModel client = ClientModel.fromJson(data['client']);
+          return {"user": user, "client": client};
+        } else if (data['user']['user_role'] == "Tasker") {
+          TaskerModel tasker = TaskerModel.fromJson(data['tasker']);
+          return {"user": user, "tasker": tasker};
+
         } else {
-          return {"error": "User not found"};
+          return {
+            "error": data['error'] ?? "An Error Occured while retrieving data"
+          };
         }
-      } else if (response.statusCode == 401) {
-        return {"error": data['errors']};
       } else {
         return {"error": data['error'] ?? "Failed to fetch user data"};
       }
     } catch (e) {
-      print(e.toString());
-      return {"error": "An error occurred: $e"};
+      debugPrint(e.toString());
+      debugPrintStack();
+      return {"error": "An error occurred while retrieving your information. Please try again."};
     }
   }
 
@@ -121,7 +179,7 @@ class ApiService {
         return {"error": data['error'] ?? 'Authentication Failed'};
       }
     } catch (e) {
-      print('Error: $e');
+      debugPrint('Error: $e');
       return {"error": "An error occurred: $e"};
     }
   }
@@ -157,7 +215,7 @@ class ApiService {
         return {"error": data['error'] ?? "OTP Generation Failed"};
       }
     } catch (e) {
-      print('Error: $e');
+      debugPrint('Error: $e');
       return {"error": "An error occurred: $e"};
     }
   }
@@ -173,24 +231,34 @@ class ApiService {
         }),
       );
 
-      print('Sent Headers: ${_getHeaders()}'); // Debugging
+      //debugPrint('Sent Headers: ${_getHeaders()}'); // Debugging
       _updateCookies(response); // 🔥 Store session cookies
 
       var data = json.decode(response.body);
-      print('Decoded Data Type: ${data.runtimeType}');
+//       print('Decoded Data Type: ${data.runtimeType}');
+
+//       if (response.statusCode == 200) {
+//         return {"user_id": data['user_id'], "role": data['user_role']};
+
+      debugPrint('Decoded Data Type: ${data.runtimeType}');
+      debugPrint('Response Data: $data'); // Debugging
 
       if (response.statusCode == 200) {
-        return {"user_id": data['user_id'], "role": data['user_role']};
+        return {
+          "user_id": data['user_id'],
+          "role": data['user_role'],
+          "session": data['session_id']
+        };
       } else if (response.statusCode == 400 && data.containsKey('errors')) {
         List<dynamic> errors = data['errors'];
         String validationMessage = errors.map((e) => e['msg']).join("\n");
-        print(validationMessage);
+        debugPrint(validationMessage);
         return {"validation_error": validationMessage};
       } else {
         return {"error": data['error'] ?? "OTP Authentication Failed"};
       }
     } catch (e) {
-      print('Error: $e');
+      debugPrint('Error: $e');
       return {"error": "An error occurred: $e"};
     }
   }
@@ -214,9 +282,10 @@ class ApiService {
         Uri.parse("$apiUrl/logout"),
         headers: {
           "Content-Type": "application/json",
-          "Accept": "application/json"
+          "Authorization": "Bearer $session",
+          "Access-Control-Allow-Credentials": "true"
         },
-        body: json.encode(requestBody),
+        body: json.encode({"user_id": userId, "session": session}),
       );
 
       debugPrint('Logout Status Code: ${response.statusCode}');
@@ -234,4 +303,61 @@ class ApiService {
       return {"error": "Connection error during logout"};
     }
   }
-}
+  
+  static Future<Map<String, dynamic>> sendMessage(Conversation conversation) async {
+    try {
+      String token = await AuthService.getSessionToken();
+      final response = await http.post(
+        Uri.parse("$apiUrl/send-message"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+        body: {
+          conversation.toJson()
+        }
+      );
+
+      var data = jsonDecode(response.body);
+
+      if(response.statusCode == 200){
+        return {"message": data["message"] ?? "Successfully Sent the Message"};
+      }else if(response.statusCode == 400){
+        return{"error": data["errors"] ?? "Please Check Your inputs and try again"};
+      } else {
+        // Handle unexpected response statuses
+        return {"error": "Unexpected error occurred. Status code: ${response.statusCode}"};
+      }
+    }catch (e) {
+      debugPrintStack();
+      return {"error": "An Error Occured while Sending a Message. Please Try Again"};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getMessages(int taskTakenId) async {
+    try{
+      String token = await AuthService.getSessionToken();
+
+      final response = await http.get(
+        Uri.parse("$apiUrl/task/$taskTakenId"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Accept": "application/json"
+        }
+      );
+
+      var data = jsonDecode(response.body);
+
+      if(response.statusCode == 200){
+        Conversation messages = Conversation.fromJson(data['messages']);
+        return {"messages": messages};
+      }else{
+        return {"error": data['error']};
+      }
+    }catch(e, st){
+      debugPrint(e.toString());
+      debugPrint(st.toString());
+      return {"error": "An Error Occured while retrieving your conversation. Please Try Again."};
+    }
+  }
+} 

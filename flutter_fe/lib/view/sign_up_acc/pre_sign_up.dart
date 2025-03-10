@@ -55,8 +55,7 @@ class _PreSignUpState extends State<PreSignUp> {
                 height: screenHeight * 0.22,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) {
                       return SignUpTaskerAcc(role: "Tasker");
                     }));
                   },
@@ -97,8 +96,7 @@ class _PreSignUpState extends State<PreSignUp> {
                 height: screenHeight * 0.22,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) {
                       return SignUpClientAcc(role: "Client");
                     }));
                   },

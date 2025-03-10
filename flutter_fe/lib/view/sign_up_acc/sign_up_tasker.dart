@@ -18,24 +18,6 @@ class _SignUpTaskerAccState extends State<SignUpTaskerAcc> {
     super.initState();
     _controller.roleController.text = widget.role;
   }
-  // File? _selectedImage; // Store the selected image bytes
-  // String? _imageName; // Store the selected image name
-  //
-  // Future<void> _pickImage() async {
-  //   final ImagePicker picker = ImagePicker();
-  //   final XFile? pickedFile = await picker.pickImage(
-  //     source:
-  //         ImageSource.gallery, // Change to ImageSource.camera for camera input
-  //   );
-
-  // if (pickedFile != null) {
-  //   setState(() {
-  //     _selectedImage = File(pickedFile.path); // Store the selected file
-  //     _imageName = pickedFile.name; // Store file name
-  //     _controller.setImage(
-  //         _selectedImage!, _imageName!); // Pass image to controller
-  //   });
-  // }
 
   @override
   Widget build(BuildContext context) {

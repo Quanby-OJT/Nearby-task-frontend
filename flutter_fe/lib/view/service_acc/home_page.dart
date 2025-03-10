@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/view/nav/user_navigation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 
@@ -42,6 +43,7 @@ class _HomePageState extends State<HomePage> {
 
       setState(() {
         tasks = fetchedTasks;
+        print(tasks);
         _isLoading = false;
       });
     } catch (e) {
@@ -54,6 +56,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _saveLikedJob(TaskModel task) async {
     try {
+      debugPrint("Printing..." + task.toString());
       // Check if task ID is null
       if (task.id == null) {
         print("Cannot like job: Task ID is null for task: ${task.title}");
@@ -72,7 +75,7 @@ class _HomePageState extends State<HomePage> {
       // Call the service method to save the liked job - now passing an int
       final result = await jobPostService.saveLikedJob(task.id!);
 
-      if (result['success']) {
+      if (result.containsKey('message')) {
         // Show success indicator
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -85,14 +88,15 @@ class _HomePageState extends State<HomePage> {
         // Show error indicator
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result['message']),
+            content: Text(result['error']),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 2),
           ),
         );
       }
     } catch (e) {
-      print("Error saving liked job: $e");
+      debugPrint("$e");
+      debugPrintStack();
 
       // Show error indicator
       ScaffoldMessenger.of(context).showSnackBar(
@@ -118,6 +122,7 @@ class _HomePageState extends State<HomePage> {
       //   )),
       //   backgroundColor: Colors.transparent,
       // ),
+      appBar: NavUserScreen(),
       body: Stack(
         children: [
           Column(
@@ -207,6 +212,11 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 )
+                ///
+              /// This code, if the backend data contains only one data, it must display the data and the card swipe must work regardless.
+              ///
+              /// -Ces
+              ///
               else if (tasks.isEmpty)
                 Expanded(
                   child: Center(

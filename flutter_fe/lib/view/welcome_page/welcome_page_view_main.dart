@@ -41,8 +41,7 @@ class _WelcomePageViewMainState extends State<WelcomePageViewMain> {
                 children: [
                   GestureDetector(
                       onTap: () {
-                        Navigator.push(context,
-                            MaterialPageRoute(builder: (context) {
+                        Navigator.push(context, MaterialPageRoute(builder: (context){
                           return SignIn();
                         }));
                       },

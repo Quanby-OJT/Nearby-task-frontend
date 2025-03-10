@@ -247,8 +247,7 @@ class NumberPickerDialog extends StatefulWidget {
   final Widget title;
   final Widget message;
 
-  const NumberPickerDialog({
-    super.key,
+  const NumberPickerDialog({super.key, 
     required this.minValue,
     required this.maxValue,
     required this.title,
