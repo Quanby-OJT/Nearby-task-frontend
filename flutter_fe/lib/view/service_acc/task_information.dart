@@ -5,8 +5,8 @@ import 'package:flutter_fe/view/service_acc/chat_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class TaskInformation extends StatefulWidget {
-  final int taskID;
-  const TaskInformation({super.key, required this.taskID});
+  final int? taskID;
+  const TaskInformation({super.key, this.taskID});
 
   @override
   State<TaskInformation> createState() => _TaskInformationState();
@@ -26,7 +26,7 @@ class _TaskInformationState extends State<TaskInformation> {
   Future<void> _fetchTaskDetails() async {
     try {
       final response =
-          await _jobPostService.fetchTaskInformation(widget.taskID);
+          await _jobPostService.fetchTaskInformation(widget.taskID ?? 0);
       setState(() {
         _taskInformation = response;
         _isLoading = false;
@@ -81,7 +81,7 @@ class _TaskInformationState extends State<TaskInformation> {
                                   Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                          builder: (context) => ChatScreen()));
+                                          builder: (context) => ChatScreen(taskTakenId: widget.taskID)));
                                 },
                                 style: TextButton.styleFrom(
                                     padding: EdgeInsets.symmetric(vertical: 20),

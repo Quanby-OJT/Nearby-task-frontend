@@ -122,7 +122,7 @@ class ApiService {
     } catch (e) {
       debugPrint(e.toString());
       debugPrintStack();
-      return {"error": "An error occurred: $e"};
+      return {"error": "An error occurred while retrieving your information. Please try again."};
     }
   }
 

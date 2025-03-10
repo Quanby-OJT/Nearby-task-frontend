@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:flutter_fe/model/conversation.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  final int? taskTakenId;
+  const ChatScreen({super.key, this.taskTakenId});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -80,6 +81,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     );
                   },
                 ),
-              ));
+              )
+    );
   }
 }
