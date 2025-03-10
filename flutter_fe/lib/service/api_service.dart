@@ -1,22 +1,18 @@
 // service/api_service.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/model/conversation.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../model/user_model.dart';
 import '../model/tasker_model.dart';
 import '../model/client_model.dart';
 
 class ApiService {
   static const String apiUrl =
-<<<<<<< HEAD
-      "http://10.0.2.2:5000/connect"; // Adjust if needed
-=======
       "http://localhost:5000/connect"; // Adjust if needed
->>>>>>> 3e02cd3395fedaa4bf7a70a538cdc90ed3b2fdfb
   static final storage = GetStorage();
 
   static final http.Client _client = http.Client();
@@ -126,7 +122,7 @@ class ApiService {
     } catch (e) {
       debugPrint(e.toString());
       debugPrintStack();
-      return {"error": "An error occurred: $e"};
+      return {"error": "An error occurred while retrieving your information. Please try again."};
     }
   }
 
@@ -254,4 +250,61 @@ class ApiService {
       return {"error": "Connection error during logout"};
     }
   }
-}
+  
+  static Future<Map<String, dynamic>> sendMessage(Conversation conversation) async {
+    try {
+      String token = await AuthService.getSessionToken();
+      final response = await http.post(
+        Uri.parse("$apiUrl/send-message"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+        body: {
+          conversation.toJson()
+        }
+      );
+
+      var data = jsonDecode(response.body);
+
+      if(response.statusCode == 200){
+        return {"message": data["message"] ?? "Successfully Sent the Message"};
+      }else if(response.statusCode == 400){
+        return{"error": data["errors"] ?? "Please Check Your inputs and try again"};
+      } else {
+        // Handle unexpected response statuses
+        return {"error": "Unexpected error occurred. Status code: ${response.statusCode}"};
+      }
+    }catch (e) {
+      debugPrintStack();
+      return {"error": "An Error Occured while Sending a Message. Please Try Again"};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getMessages(int taskTakenId) async {
+    try{
+      String token = await AuthService.getSessionToken();
+
+      final response = await http.get(
+        Uri.parse("$apiUrl/task/$taskTakenId"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Accept": "application/json"
+        }
+      );
+
+      var data = jsonDecode(response.body);
+
+      if(response.statusCode == 200){
+        Conversation messages = Conversation.fromJson(data['messages']);
+        return {"messages": messages};
+      }else{
+        return {"error": data['error']};
+      }
+    }catch(e, st){
+      debugPrint(e.toString());
+      debugPrint(st.toString());
+      return {"error": "An Error Occured while retrieving your conversation. Please Try Again."};
+    }
+  }
+} 

@@ -1,13 +1,18 @@
 import 'package:flutter_fe/model/user_model.dart';
+import 'package:flutter_fe/service/auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class LikeService {
+  static final String apiUrl = "http://10.0.2.2/connect";
+
   static Future<void> addLike(int userId, bool like, String likedBy) async {
+    final String token = await AuthService.getSessionToken();
     final response = await http.post(
-      Uri.parse('https://yourapi.com/ '),
+      Uri.parse("$apiUrl/likeJob"),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
+        "Authentication": "Bearer $token"
       },
       body: jsonEncode(<String, dynamic>{
         'user_id': userId,
@@ -23,7 +28,7 @@ class LikeService {
 
   static Future<List<UserModel>> fetchLikedUsers(String likedBy) async {
     final response = await http.get(
-      Uri.parse('https://yourapi.com/likes?likedBy=$likedBy'),
+      Uri.parse('$apiUrl/likes?likedBy=$likedBy'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },

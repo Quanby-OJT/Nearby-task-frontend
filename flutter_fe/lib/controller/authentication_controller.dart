@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/service/api_service.dart';
+import 'package:flutter_fe/service/auth_service.dart';
 import 'package:flutter_fe/view/business_acc/business_acc_main_page.dart';
 import 'package:flutter_fe/view/sign_in/otp_screen.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
@@ -79,7 +80,7 @@ class AuthenticationController {
           return BusinessAccMain();
         }));
 
-      } else if (userRole == "Tasker") {
+      } else if (response['role'] == "Tasker") {
         Navigator.push(context, MaterialPageRoute(builder: (context) {
           // return FillUpTasker(); // Replace with your actual service account main page widget
           return ServiceAccMain(); // Replace with your actual service account main page widget
@@ -101,38 +102,39 @@ class AuthenticationController {
   }
 
   Future<void> logout(BuildContext context) async {
+
     try {
-      await _handleLogoutNavigation(context);
+      // await _handleLogoutNavigation(context);
       final storedUserId = storage.read('user_id');
       debugPrint("Stored user ID for logout: $storedUserId");
 
       if (storedUserId == null || storedUserId.isEmpty) {
         debugPrint("No user ID found in storage");
-        await _handleLogoutNavigation(context);
+        // await _handleLogoutNavigation(context);
         return;
       }
 
-      try {
-        final userIdInt = int.parse(storedUserId);
-        if (userIdInt <= 0) {
-          throw FormatException('Invalid user ID value');
-        }
+      final response = await ApiService.logout(storedUserId, await AuthService.getSessionToken());
+      debugPrint("Logout response: $response");
 
-        final response = await ApiService.logout(userIdInt);
-        debugPrint("Logout response: $response");
-
-    if (response.containsKey('message')) {
-      await storage.remove('user_id');
-      await storage.remove('role');
-      await storage.remove('session');
-      Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => WelcomePageViewMain()),
-          (route) => false);
-    } else {
-      String error = response['error'] ?? "Failed to Log Out the User.";
+      if (response.containsKey('message')) {
+        await storage.remove('user_id');
+        await storage.remove('role');
+        await storage.remove('session');
+        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(
+            builder: (context) => WelcomePageViewMain()), (route) => false
+        );
+      } else {
+        String error = response['error'] ?? "Failed to Log Out the User.";
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error)),
+        );
+      }
+    }catch(e){
+      debugPrintStack();
+      debugPrint(e.toString());
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error)),
+        SnackBar(content: Text("An Error Occured While Logging Out.")),
       );
     }
   }

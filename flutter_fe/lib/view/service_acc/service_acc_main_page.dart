@@ -30,7 +30,6 @@ class _ServiceAccMainState extends State<ServiceAccMain> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: NavUserScreen(),
       body: PageView(
         physics: NeverScrollableScrollPhysics(),
         controller: _pageController,

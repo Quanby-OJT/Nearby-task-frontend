@@ -4,6 +4,7 @@ import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/service_acc/task_information.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 
 class LikeScreen extends StatefulWidget {
   const LikeScreen({super.key});
@@ -53,23 +54,26 @@ class _LikeScreenState extends State<LikeScreen> {
       if (userId == null || userId.isEmpty) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Please log in to view your liked jobs';
+          _errorMessage = 'Please log in again to view your liked jobs';
         });
         return;
       }
 
       // Fetch liked jobs
       final likedJobs = await _jobService.fetchUserLikedJobs();
+      debugPrint("Liked Jobs ${likedJobs.toString()}");
       setState(() {
         _likedJobs = likedJobs;
         _filteredJobs = List.from(_likedJobs);
         savedJobsCount = _filteredJobs.length;
         _isLoading = false;
       });
-    } catch (e) {
+    } catch (e, st) {
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Error loading liked jobs: $e';
+        debugPrint(e.toString());
+        debugPrint(st.toString());
+        _errorMessage = 'Error loading liked jobs. Please Try Again.';
       });
     }
   }
@@ -163,10 +167,24 @@ class _LikeScreenState extends State<LikeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: Column(
+          children: [
+            Text(
+              'Saved Jobs',
+              style: TextStyle(
+                color: const Color(0xFF03045E),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
       body: Column(
         children: [
           Padding(
-            padding: EdgeInsets.all(16.0), // Added padding
+            padding: EdgeInsets.symmetric(horizontal: 16.0), // Added padding
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
@@ -326,54 +344,60 @@ class _LikeScreenState extends State<LikeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Padding(
-                  padding: EdgeInsets.all(10),
-                  child: Row(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(25),
-                        child: Container(
-                          height: 40,
-                          width: 40,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            image: const DecorationImage(
-                              image: AssetImage('assets/images/image1.jpg'),
-                              fit: BoxFit.cover,
+                Expanded( // Wrap the left content in Expanded
+                  child: Padding(
+                    padding: EdgeInsets.all(10),
+                    child: Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(25),
+                          child: Container(
+                            height: 40,
+                            width: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              image: const DecorationImage(
+                                image: AssetImage('assets/images/image1.jpg'),
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              task.title!,
-                              style: GoogleFonts.montserrat(
-                                color: const Color(0xFF03045E),
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
+                        SizedBox(width: 10), // Replace Padding with SizedBox for consistency
+                        Expanded( // Wrap the text column in Expanded to prevent overflow
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                task.title!,
+                                style: GoogleFonts.montserrat(
+                                  color: const Color(0xFF03045E),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                overflow: TextOverflow.ellipsis, // Handle long titles
                               ),
-                            ),
-                            Row(
-                              children: [
-                                if (task.status != null)
-                                  Text(
-                                    task.status!,
-                                    style: GoogleFonts.montserrat(
-                                      color: Color.fromARGB(255, 57, 209, 11),
-                                      fontSize: 8,
-                                      fontWeight: FontWeight.w500,
+                              Row(
+                                children: [
+                                  if (task.status != null)
+                                    Flexible( // Wrap status text in Flexible
+                                      child: Text(
+                                        task.status!,
+                                        style: GoogleFonts.montserrat(
+                                          color: Color.fromARGB(255, 57, 209, 11),
+                                          fontSize: 8,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
-                                  ),
-                              ],
-                            ),
-                          ],
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      )
-                    ],
+                      ],
+                    ),
                   ),
                 ),
                 Row(
@@ -395,29 +419,29 @@ class _LikeScreenState extends State<LikeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Padding(
-                  padding: EdgeInsets.only(left: 10, right: 10),
-                  child: Row(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (task.contactPrice != null)
-                            Text(
-                              '\$${task.contactPrice}',
-                              style: GoogleFonts.montserrat(
-                                color: const Color(0xFF03045E),
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
+                Expanded( // Wrap the price section in Expanded
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (task.contactPrice != null)
+                          Text(
+                            '\$${task.contactPrice}',
+                            style: GoogleFonts.montserrat(
+                              color: const Color(0xFF03045E),
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
                             ),
-                        ],
-                      )
-                    ],
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                      ],
+                    ),
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(right: 10),
+
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -443,10 +467,25 @@ class _LikeScreenState extends State<LikeScreen> {
                             Icon(Icons.arrow_forward, color: Color(0xFF03045E)),
                           ],
                         ),
-                      ),
-                    ],
+                      );
+                      print(task.id);
+                    },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min, // Minimize the Row size
+                      children: [
+                        Text(
+                          "View Details",
+                          style: GoogleFonts.montserrat(
+                            color: Color(0xFF03045E),
+                            fontSize: 10,
+                          ),
+                        ),
+                        SizedBox(width: 5),
+                        Icon(Icons.arrow_forward, color: Color(0xFF03045E)),
+                      ],
+                    ),
                   ),
-                )
+                ),
               ],
             ),
           ],
@@ -518,7 +557,7 @@ class _LikeScreenState extends State<LikeScreen> {
       if (result['success']) {
         // Remove from local list
         setState(() {
-          _likedJobs.removeWhere((item) => item.id == job.id);
+          _filteredJobs.removeWhere((item) => item.id == job.id);
         });
 
         if (mounted) {
@@ -553,8 +592,6 @@ class _LikeScreenState extends State<LikeScreen> {
   }
 
   void _viewJobDetails(TaskModel job) {
-    // Navigate to a detail page for this job
-    // TODO: Replace this with navigation to your detail page
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
