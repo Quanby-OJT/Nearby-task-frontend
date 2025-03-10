@@ -18,7 +18,7 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
-          automaticallyImplyLeading: false,
+          // automaticallyImplyLeading: false,
           title: Center(
               child: Text("NearByTask Conversation",
                   style: TextStyle(

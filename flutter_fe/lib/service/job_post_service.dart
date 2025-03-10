@@ -8,7 +8,7 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:get_storage/get_storage.dart';
 
 class JobPostService {
-  static const String apiUrl = "http://10.0.2.2:5000/connect";
+  static const String apiUrl = "http://localhost:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -73,8 +73,7 @@ class JobPostService {
         body: {...task.toJson(), "user_id": userId},
       );
 
-      return {'success': true, 'message': response.toString()};
-    } catch (e) {
+    }catch(e){
       debugPrint(e.toString());
       debugPrintStack();
       return {'success': false, "error": "Error: $e"};
@@ -93,8 +92,51 @@ class JobPostService {
 
   Future<TaskModel?> fetchTaskInformation(int taskID) async {
     try {
-      Map<String, dynamic> response = await _getRequest("/displayTask/$taskID");
-      debugPrint("Data Retrieved: ${response.toString()}");
+      if (taskID <= 0) {
+        debugPrint('fetchTaskInformation: No task ID provided');
+        return null;
+      }
+
+      final response = await http.get(
+        Uri.parse('http://localhost:5000/connect/displayTask/$taskID'),
+      );
+
+      debugPrint('Response status code: ${response.statusCode}');
+      debugPrint('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonData = jsonDecode(response.body);
+        return TaskModel.fromJson(jsonData);
+      }
+
+      debugPrint('Error fetching task $taskID');
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching tasks: $e');
+      return null;
+    }
+  }
+
+  Future<List<TaskModel>> fetchAllJobs() async {
+    try {
+      final userId = await getUserId();
+      if (userId == null) {
+        debugPrint("User not authenticated, cannot fetch jobs");
+        return [];
+      }
+
+      // Fetch all jobs
+      final response = await http
+          .get(Uri.parse('http://localhost:5000/connect/displayTask'));
+      // Fetch liked jobs
+      final likedJobsResponse = await http.get(
+          Uri.parse('http://localhost:5000/connect/displayLikedJob/${userId}'));
+
+      if (response.statusCode == 200 && likedJobsResponse.statusCode == 200) {
+        final Map<String, dynamic> jsonData = jsonDecode(response.body);
+        final Map<String, dynamic> likedJobsData =
+            jsonDecode(likedJobsResponse.body);
+
 
       // Check if response contains the "tasks" key and it's a Map
       if (response.containsKey("tasks") && response["tasks"] is Map) {

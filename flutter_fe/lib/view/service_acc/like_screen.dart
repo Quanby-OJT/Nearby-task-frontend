@@ -299,6 +299,7 @@ class _LikeScreenState extends State<LikeScreen> {
                   context,
                   MaterialPageRoute(builder: (context) => ServiceAccMain()),
                       (route) => false, // Removes all previous routes from the stack
+
                 );
               },
               child: const Text('Browse Jobs'),
@@ -399,16 +400,20 @@ class _LikeScreenState extends State<LikeScreen> {
                     ),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.delete,
-                    color: Color.fromARGB(255, 228, 11, 11),
-                    size: 24,
-                  ),
-                  onPressed: () {
-                    _unlikeJob(task);
-                  },
-                ),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.delete,
+                        color: Color.fromARGB(255, 228, 11, 11),
+                        size: 24,
+                      ),
+                      onPressed: () {
+                        _unlikeJob(task);
+                      },
+                    ),
+                  ],
+                )
               ],
             ),
             Row(
@@ -436,12 +441,31 @@ class _LikeScreenState extends State<LikeScreen> {
                 ),
                 Padding(
                   padding: const EdgeInsets.only(right: 10),
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TaskInformation(taskID: task.id as int),
+
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      TaskInformation(taskID: task.id as int)));
+                          print(task.id);
+                        },
+                        child: Row(
+                          children: [
+                            Text(
+                              "View Details",
+                              style: GoogleFonts.montserrat(
+                                color: Color(0xFF03045E),
+                                fontSize: 10,
+                              ),
+                            ),
+                            SizedBox(width: 5),
+                            Icon(Icons.arrow_forward, color: Color(0xFF03045E)),
+                          ],
                         ),
                       );
                       print(task.id);
