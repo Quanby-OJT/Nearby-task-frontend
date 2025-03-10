@@ -18,7 +18,7 @@ void main() async {
 class MyApp extends StatelessWidget {
   final storage = GetStorage();
 
-  MyApp({Key? key}) : super(key: key);
+  MyApp({super.key});
 
   Future<Map<String, dynamic>> _loadUserData() async {
     await Future.delayed(Duration(milliseconds: 300)); // Ensure GetStorage is ready
