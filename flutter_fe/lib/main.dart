@@ -10,12 +10,13 @@ void main() async {
   await GetStorage.init();
   final storage = GetStorage();
   final userId = storage.read('user_id');
-  runApp(MyApp(isLoggedIn: userId != null));
+  runApp(MyApp(isLoggedIn: userId != null, userId: userId));
 }
 
 class MyApp extends StatelessWidget {
   final bool isLoggedIn;
-  const MyApp({super.key, required this.isLoggedIn});
+  final int? userId;
+  const MyApp({super.key, required this.isLoggedIn, required this.userId});
 
   @override
   Widget build(BuildContext context) {
