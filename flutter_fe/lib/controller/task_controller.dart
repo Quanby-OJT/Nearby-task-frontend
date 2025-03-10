@@ -70,5 +70,4 @@ class TaskController {
   Future<Map<String, dynamic>> assignTask(int userId, int taskId) async {
     return await _jobPostService.assignTask(userId, taskId);
   }
-
 }

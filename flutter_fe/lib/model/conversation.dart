@@ -9,5 +9,19 @@ class Conversation {
     required this.taskTakenId
   });
 
+  Map<String, dynamic> toJson() {
+    return {
+      "conversation": conversationMessage,
+      "user_id": userId,
+      "task_taken_id": taskTakenId
+    };
+  }
 
+  factory Conversation.fromJson(Map<String, dynamic> json) {
+    return Conversation(
+        userId: json['user_id'],
+        conversationMessage: json['conversation'],
+        taskTakenId: json['task_taken_id']
+    );
+  }
 }

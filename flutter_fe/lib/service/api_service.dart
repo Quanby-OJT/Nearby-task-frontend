@@ -7,7 +7,6 @@ import 'package:flutter_fe/service/auth_service.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../model/user_model.dart';
 import '../model/tasker_model.dart';
 import '../model/client_model.dart';
 
@@ -260,7 +259,7 @@ class ApiService {
           "Content-Type": "application/json"
         },
         body: {
-          "conversation": conversation
+          conversation.toJson()
         }
       );
 
@@ -277,6 +276,33 @@ class ApiService {
     }catch (e) {
       debugPrintStack();
       return {"error": "An Error Occured while Sending a Message. Please Try Again"};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getMessages(int taskTakenId) async {
+    try{
+      String token = await AuthService.getSessionToken();
+
+      final response = await http.get(
+        Uri.parse("$apiUrl/task/$taskTakenId"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Accept": "application/json"
+        }
+      );
+
+      var data = jsonDecode(response.body);
+
+      if(response.statusCode == 200){
+        Conversation messages = Conversation.fromJson(data['messages']);
+        return {"messages": messages};
+      }else{
+        return {"error": data['error']};
+      }
+    }catch(e, st){
+      debugPrint(e.toString());
+      debugPrint(st.toString());
+      return {"error": "An Error Occured while retrieving your conversation. Please Try Again."};
     }
   }
 } 

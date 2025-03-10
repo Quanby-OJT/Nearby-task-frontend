@@ -9,6 +9,7 @@ import 'package:get_storage/get_storage.dart';
 class JobPostService {
   static const String apiUrl = "http://10.0.2.2:5000/connect";
   static final storage = GetStorage();
+  static final token = storage.read('session');
 
   Future<Map<String, dynamic>> postJob(TaskModel task, int userId) async {
     try{
