@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter_fe/controller/profile_controller.dart';
+import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/view/sign_in/sign_in.dart';
 import 'package:image_picker/image_picker.dart';
@@ -34,12 +35,12 @@ class _FillUpTaskerState extends State<FillUpTasker> {
   }
 
   Future<void> _fetchUserData() async {
-    UserModel? user = await _controller.getAuthenticatedUser(
+    AuthenticatedUser? user = await _controller.getAuthenticatedUser(
         context, widget.userId.toString());
     if (user != null) {
       setState(() {
-        _controller.firstNameController.text = user.firstName;
-        _controller.lastNameController.text = user.lastName;
+        _controller.firstNameController.text = "First Name";
+        _controller.lastNameController.text = "Last Name";
       });
     }
   }

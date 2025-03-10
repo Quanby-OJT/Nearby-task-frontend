@@ -5,15 +5,14 @@ class TaskModel {
   final String? description;
   final String? location;
   final String? period;
-  final int? duration;
+  final String? duration;
   final String? urgency;
   final String? status;
   final int? contactPrice;
   final String? remarks;
   final String? taskBeginDate;
-  final String? status;
 
-   TaskModel({
+  TaskModel({
     this.id,
     this.title,
     this.specialization,
@@ -26,7 +25,6 @@ class TaskModel {
     this.contactPrice,
     this.remarks,
     this.taskBeginDate,
-    this.status,
   });
 
   Map<String, dynamic> toJson() {
@@ -41,7 +39,7 @@ class TaskModel {
       "urgency": urgency,
       "contact_price": contactPrice,
       "remarks": remarks,
-      "task_begin_date": taskBeginDate
+      "task_begin_date": taskBeginDate,
       "id": id,
       "status": status,
     };
@@ -55,7 +53,7 @@ class TaskModel {
       specialization: json['specialization'] as String?,
       description: json['task_description'] as String?,
       location: json['location'] as String?,
-      duration: json['duration'] as int?,
+      duration: json['duration'] as String?,
       period: json['period'] as String?,
       urgency: json['urgency'] as String?,
       contactPrice: json['contact_price'] as int?,

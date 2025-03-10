@@ -31,7 +31,7 @@ class TaskController {
         specialization: specialization,
         description: jobDescriptionController.text.trim(),
         location: jobLocationController.text.trim(),
-        duration: int.tryParse(jobTimeController.text),
+        duration: jobTimeController.text,
         period: period,
         urgency: urgency,
         contactPrice: int.tryParse(contactPriceController.text.trim()) ?? 0,
@@ -73,17 +73,14 @@ class TaskController {
   }
 
   Future<String> assignTask(int taskerId, int clientId, int taskId) async {
-    TaskAssginment assignment = TaskAssginment(
-        clientId: clientId,
-        taskerId: taskerId,
-        taskId: taskId
-    );
+    TaskAssginment assignment =
+        TaskAssginment(clientId: clientId, taskerId: taskerId, taskId: taskId);
 
     final assignedTask = await _jobPostService.assignTask(assignment);
 
-    if(assignedTask.containsKey('message')){
+    if (assignedTask.containsKey('message')) {
       return assignedTask['message'].toString();
-    }else{
+    } else {
       return assignedTask['error'].toString();
     }
   }

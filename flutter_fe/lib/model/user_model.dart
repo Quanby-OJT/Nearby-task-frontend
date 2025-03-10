@@ -6,10 +6,10 @@ class UserModel {
   final String birthdate;
   final String password;
   final dynamic
-  image; // Can be either a String (URL) or Uint8List (binary data)
+      image; // Can be either a String (URL) or Uint8List (binary data)
   final String? imageName; // Store image filename if available
   final String role;
-  final String accStatus;
+  final String status;
 
   UserModel(
       {required this.firstName,
@@ -37,7 +37,6 @@ class UserModel {
         birthdate: json["birthdate"],
         status: json["acc_status"]);
   }
-
 
 // Returns whith these datas
   Map<String, dynamic> toJson() {

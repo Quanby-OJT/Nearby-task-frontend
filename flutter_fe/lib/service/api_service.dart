@@ -4,21 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/conversation.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/auth_service.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../model/user_model.dart';
-import '../model/tasker_model.dart';
 
 class ApiService {
-  static const String apiUrl =
-      "http://192.168.110.144:5000/connect"; // Adjust if needed
-// Adjust if needed
-//   static final storage = GetStorage();
-
+  static const String apiUrl = "http://localhost:5000/connect"; // Adjust if
 
   static final http.Client _client = http.Client();
-  static Map<String, String> _cookies = {};
+  static final Map<String, String> _cookies = {};
 
   static void _updateCookies(http.Response response) {
     String? rawCookie = response.headers['set-cookie'];
@@ -31,7 +24,7 @@ class ApiService {
           _cookies[keyValue[0].trim()] = keyValue[1].trim();
         }
       }
-      debugPrint('Updated Cookies: $_cookies'); // Debugging
+      print('Updated Cookies: $_cookies'); // Debugging
     }
   }
 
@@ -47,26 +40,6 @@ class ApiService {
   }
 
   static Future<bool> registerUser(UserModel user) async {
-    //Tell Which Route the Backend we going to Use
-//     var request =
-//         http.MultipartRequest("POST", Uri.parse("$apiUrl/create-new-user"));
-
-//     // Add text fields
-//     request.fields["first_name"] = user.firstName;
-//     request.fields["middle_name"] = request.fields["last_name"] = user.lastName;
-//     request.fields["email"] = user.email;
-//     request.fields["password"] = user.password;
-//     request.fields["user_role"] = user.role;
-
-    //Attach Image (if available)~
-//     if (user.image != null && user.imageName != null) {
-//       request.files.add(
-//         http.MultipartFile.fromBytes(
-//           'image_link',
-//           user.image!,
-//           filename: user.imageName!,
-//         ),
-//       );
     try {
       // Create a salt using timestamp
       String salt = DateTime.now().millisecondsSinceEpoch.toString();
@@ -80,12 +53,12 @@ class ApiService {
           "email": user.email,
           "password": user.password,
           "user_role": user.role,
-          "acc_status": user.accStatus
+          "acc_status": user.status
         },
         "salt": salt
       };
 
-      debugPrint('Request Body: ${json.encode(requestBody)}'); // Debug log
+      print('Request Body: ${json.encode(requestBody)}'); // Debug log
 
       final response = await _client.post(
         Uri.parse("$apiUrl/create-new-user"),
@@ -96,60 +69,39 @@ class ApiService {
         body: json.encode(requestBody),
       );
 
-      debugPrint('Response Status: ${response.statusCode}');
-      debugPrint('Response Body: ${response.body}');
-      debugPrint('Request URL: $apiUrl/create-new-user');
-      debugPrint('Full Request Body: ${json.encode(requestBody)}');
+      print('Response Status: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+      print('Request URL: ${apiUrl}/create-new-user');
+      print('Full Request Body: ${json.encode(requestBody)}');
 
       return response.statusCode == 201;
     } catch (e) {
-      debugPrint('Registration Error: $e');
+      print('Registration Error: $e');
       return false;
     }
   }
 
-  // static Future<bool> createTasker(TaskerModel tasker){
-  //   var request = http.MultipartRequest("POST", Uri.parse("$apiUrl/"))
-  // }
-
   static Future<Map<String, dynamic>> fetchAuthenticatedUser(
       String userId) async {
     try {
-      final String token = await AuthService.getSessionToken();
-      final response = await http.get(Uri.parse("$apiUrl/getUserData/$userId"),
-          headers: {
-            "Authorization": "Bearer $token",
-            "Content-Type": "application/json"
-          });
-
-      debugPrint("Retreived Data: ${response.body}");
+      final response = await http.get(Uri.parse("$apiUrl/getUserData/$userId"));
       var data = json.decode(response.body);
 
       if (response.statusCode == 200) {
-//         if (data.containsKey('user')) {
-//           print("User Data: " + data['user'].toString());
-//           return {"user": UserModel.fromJson(data['user'])};
-
-        UserModel user = UserModel.fromJson(data['user']);
-        if (data['user']['user_role'] == "Client") {
-          ClientModel client = ClientModel.fromJson(data['client']);
-          return {"user": user, "client": client};
-        } else if (data['user']['user_role'] == "Tasker") {
-          TaskerModel tasker = TaskerModel.fromJson(data['tasker']);
-          return {"user": user, "tasker": tasker};
-
+        if (data.containsKey('user')) {
+          print("User Data: ${data['user']}");
+          return {"user": UserModel.fromJson(data['user'])};
         } else {
-          return {
-            "error": data['error'] ?? "An Error Occured while retrieving data"
-          };
+          return {"error": "User not found"};
         }
+      } else if (response.statusCode == 401) {
+        return {"error": data['errors']};
       } else {
         return {"error": data['error'] ?? "Failed to fetch user data"};
       }
     } catch (e) {
-      debugPrint(e.toString());
-      debugPrintStack();
-      return {"error": "An error occurred while retrieving your information. Please try again."};
+      print(e.toString());
+      return {"error": "An error occurred: $e"};
     }
   }
 
@@ -165,7 +117,7 @@ class ApiService {
         }),
       );
 
-      _updateCookies(response); // 🔥 Store session cookies here
+      _updateCookies(response);
 
       var data = json.decode(response.body);
 
@@ -179,7 +131,7 @@ class ApiService {
         return {"error": data['error'] ?? 'Authentication Failed'};
       }
     } catch (e) {
-      debugPrint('Error: $e');
+      print('Error: $e');
       return {"error": "An error occurred: $e"};
     }
   }
@@ -196,14 +148,6 @@ class ApiService {
 
       var data = json.decode(response.body);
 
-      // debugPrint("Request Fields: ${request.fields}");
-      // debugPrint(
-      //     "Request Files: ${request.files.map((file) => file.filename).toList()}");
-      // debugPrint("Request URL: ${request.url}");
-
-      // var response = await request.send();
-      // return response.statusCode == 201;
-
       if (response.statusCode == 200) {
         return {"message": data['message']};
       } else if (response.statusCode == 400 && data.containsKey('errors')) {
@@ -215,7 +159,7 @@ class ApiService {
         return {"error": data['error'] ?? "OTP Generation Failed"};
       }
     } catch (e) {
-      debugPrint('Error: $e');
+      print('Error: $e');
       return {"error": "An error occurred: $e"};
     }
   }
@@ -235,11 +179,6 @@ class ApiService {
       _updateCookies(response); // 🔥 Store session cookies
 
       var data = json.decode(response.body);
-//       print('Decoded Data Type: ${data.runtimeType}');
-
-//       if (response.statusCode == 200) {
-//         return {"user_id": data['user_id'], "role": data['user_role']};
-
       debugPrint('Decoded Data Type: ${data.runtimeType}');
       debugPrint('Response Data: $data'); // Debugging
 
@@ -263,22 +202,9 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> logout(int userId) async {
+  static Future<Map<String, dynamic>> logout(int userId, String session) async {
     try {
-      debugPrint('Attempting logout for user ID: $userId');
-
-      if (userId <= 0) {
-        return {"error": "Invalid user ID"};
-      }
-
-      final requestBody = {
-        "user_id": userId, // Send as integer, not string
-        "status": 0 // Use numeric status for database compatibility
-      };
-
-      debugPrint('Request Body: ${json.encode(requestBody)}');
-
-      final response = await _client.post(
+      final response = await http.post(
         Uri.parse("$apiUrl/logout"),
         headers: {
           "Content-Type": "application/json",
@@ -292,7 +218,7 @@ class ApiService {
       debugPrint('Logout Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
-        _cookies.clear();
+        _cookies.remove("session"); // Remove only the session cookie
         return {"message": "Logged out successfully"};
       } else {
         var data = json.decode(response.body);
@@ -303,61 +229,68 @@ class ApiService {
       return {"error": "Connection error during logout"};
     }
   }
-  
-  static Future<Map<String, dynamic>> sendMessage(Conversation conversation) async {
+
+  static Future<Map<String, dynamic>> sendMessage(
+      Conversation conversation) async {
     try {
       String token = await AuthService.getSessionToken();
-      final response = await http.post(
-        Uri.parse("$apiUrl/send-message"),
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json"
-        },
-        body: {
-          conversation.toJson()
-        }
-      );
+      final response = await http.post(Uri.parse("$apiUrl/send-message"),
+          headers: {
+            "Authorization": "Bearer $token",
+            "Content-Type": "application/json"
+          },
+          body: {
+            conversation.toJson()
+          });
 
       var data = jsonDecode(response.body);
 
-      if(response.statusCode == 200){
+      if (response.statusCode == 200) {
         return {"message": data["message"] ?? "Successfully Sent the Message"};
-      }else if(response.statusCode == 400){
-        return{"error": data["errors"] ?? "Please Check Your inputs and try again"};
+      } else if (response.statusCode == 400) {
+        return {
+          "error": data["errors"] ?? "Please Check Your inputs and try again"
+        };
       } else {
         // Handle unexpected response statuses
-        return {"error": "Unexpected error occurred. Status code: ${response.statusCode}"};
+        return {
+          "error":
+              "Unexpected error occurred. Status code: ${response.statusCode}"
+        };
       }
-    }catch (e) {
+    } catch (e) {
       debugPrintStack();
-      return {"error": "An Error Occured while Sending a Message. Please Try Again"};
+      return {
+        "error": "An Error Occured while Sending a Message. Please Try Again"
+      };
     }
   }
 
   static Future<Map<String, dynamic>> getMessages(int taskTakenId) async {
-    try{
+    try {
       String token = await AuthService.getSessionToken();
 
-      final response = await http.get(
-        Uri.parse("$apiUrl/task/$taskTakenId"),
-        headers: {
-          "Authorization": "Bearer $token",
-          "Accept": "application/json"
-        }
-      );
+      final response = await http.get(Uri.parse("$apiUrl/task/$taskTakenId"),
+          headers: {
+            "Authorization": "Bearer $token",
+            "Accept": "application/json"
+          });
 
       var data = jsonDecode(response.body);
 
-      if(response.statusCode == 200){
+      if (response.statusCode == 200) {
         Conversation messages = Conversation.fromJson(data['messages']);
         return {"messages": messages};
-      }else{
+      } else {
         return {"error": data['error']};
       }
-    }catch(e, st){
+    } catch (e, st) {
       debugPrint(e.toString());
       debugPrint(st.toString());
-      return {"error": "An Error Occured while retrieving your conversation. Please Try Again."};
+      return {
+        "error":
+            "An Error Occured while retrieving your conversation. Please Try Again."
+      };
     }
   }
-} 
+}

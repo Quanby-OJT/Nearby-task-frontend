@@ -8,9 +8,9 @@ class TaskerModel {
   final String specialization;
   final String skills;
   final bool? availability;
-  final String? taskerDocuments;
-  final String? socialMediaLinks;
-  final String taskerAddress;
+  final double? wage_per_hour;
+  final String? tesda_documents_link;
+  final String? social_media_links;
 
   TaskerModel(
       {required this.gender,
@@ -35,14 +35,13 @@ class TaskerModel {
         birthDate: json["birthdate"],
         profilePicture: json["profile_picture"],
         bio: json['bio'],
-        specialization: json['specialization'],
+        specialization: json['specialization_id'],
         skills: json['skills'],
         availability: json['availability'],
         wage_per_hour: json['wage_per_hour'],
         tesda_documents_link: json['tesda_documents_link'],
         social_media_links: json['social_media_links']);
   }
-
 
   Map<String, dynamic> toJson() {
     return {
@@ -54,10 +53,10 @@ class TaskerModel {
       "bio": bio,
       "specialization": specialization,
       "skills": skills,
-      "address": taskerAddress,
       "availability": availability,
-      "tesda_documents_link": taskerDocuments,
-      "social_media_links": socialMediaLinks
+      "tesda_documents_link": tesda_documents_link,
+      "social_media_links": social_media_links,
+      "wages_per_hour": wage_per_hour,
     };
   }
 }

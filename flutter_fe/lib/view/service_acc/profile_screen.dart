@@ -28,17 +28,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _fetchUserData() async {
     try {
       int userId = storage.read("user_id");
-      AuthenticatedUser? user = await _userController.getAuthenticatedUser(context, userId.toString());
+      AuthenticatedUser? user = await _userController.getAuthenticatedUser(
+          context, userId.toString());
       debugPrint(user.toString());
       setState(() {
         _user = user;
         _isLoading = false;
 
-        _userController.firstNameController.text = user?.firstName ?? '';
-        _userController.middleNameController.text = user?.middleName ?? '';
-        _userController.lastNameController.text = user?.lastName ?? '';
-        _userController.birthdateController.text = user?.birthdate ?? '';
-        _userController.emailController.text = user?.email ?? '';
+        // _userController.firstNameController.text = user?.firstName ?? '';
+        // _userController.middleNameController.text = user?.middleName ?? '';
+        // _userController.lastNameController.text = user?.lastName ?? '';
+        // _userController.birthdateController.text = user?.birthdate ?? '';
+        // _userController.emailController.text = user?.email ?? '';
         // Concatenate full name
         String fullName = [
           _user?.user.firstName ?? '',
@@ -50,8 +51,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _userController.firstNameController.text = fullName;
         _userController.emailController.text = _user?.user.email ?? '';
         _userController.birthdateController.text = _user?.user.birthdate ?? '';
-        _userController.specializationController.text = _user?.tasker?.specialization ?? '';
-        _userController.taskerAddressController.text = _user?.tasker?.taskerAddress ?? '';
+        _userController.specializationController.text =
+            _user?.tasker?.specialization ?? '';
+        _userController.taskerAddressController.text =
+            _user?.tasker?.address ?? '';
         _userController.skillsController.text = _user?.tasker?.skills ?? '';
       });
     } catch (e) {

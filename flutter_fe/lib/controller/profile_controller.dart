@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/client_model.dart';
 import '../model/user_model.dart';
@@ -15,11 +13,10 @@ class ProfileController {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController birthdateController = TextEditingController();
   final TextEditingController confirmPasswordController =
-  TextEditingController();
+      TextEditingController();
   final TextEditingController roleController = TextEditingController();
   final TextEditingController statusController = TextEditingController();
   final TextEditingController middleNameController = TextEditingController();
-  final TextEditingController birthdateController = TextEditingController();
   // Fetched user inputs End
 
   //Tasker Text Controller
@@ -30,7 +27,8 @@ class ProfileController {
   final TextEditingController profilePictureController =
       TextEditingController();
   final TextEditingController bioController = TextEditingController();
-  final TextEditingController specializationController = TextEditingController();
+  final TextEditingController specializationController =
+      TextEditingController();
   final TextEditingController skillsController = TextEditingController();
   final TextEditingController taskerAddressController = TextEditingController();
   final TextEditingController availabilityController = TextEditingController();
@@ -85,12 +83,17 @@ class ProfileController {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-                "Registration Successful! Please Check your Email to confirm your email.")),
-      );
-    } else {
+              content: Text(
+                  "Registration Successful! Please Check your Email to confirm your email.")),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Registration Failed!")),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Registration Failed!")),
+        SnackBar(content: Text("An error occurred: $e")),
       );
     }
   }
@@ -122,7 +125,8 @@ class ProfileController {
     // Code to create tasker information.
   }
 
-  Future<AuthenticatedUser?> getAuthenticatedUser(BuildContext context, String userId) async {
+  Future<AuthenticatedUser?> getAuthenticatedUser(
+      BuildContext context, String userId) async {
     try {
       var result = await ApiService.fetchAuthenticatedUser(userId);
       debugPrint("Data: $result");
@@ -152,5 +156,4 @@ class ProfileController {
       return null;
     }
   }
-
 }
