@@ -68,13 +68,19 @@ class JobPostService {
 
 
   Future<Map<String, dynamic>> saveLikedJob(int jobId) async {
+    // debugPrint(jobId.toString());
     final userId = await getUserId();
+    // debugPrint(userId);
     if (userId == null) {
       return {'success': false, 'message': 'Please log in to like jobs', 'requiresLogin': true};
     }
     return _postRequest(
       endpoint: "/likeJob",
-      body: {"user_id": int.parse(userId), "job_post_id": jobId}
+      body: {
+        "user_id": int.parse(userId),
+        "job_post_id": jobId,
+        "created_at": DateTime.now().toString()
+      }
     );
   }
 
@@ -96,12 +102,20 @@ class JobPostService {
     final likedJobsResponse = await _getRequest("/displayLikedJob/$userId");
     final allJobsResponse = await _getRequest("/displayTask");
 
-    final likedJobIds = (likedJobsResponse["tasks"] ?? [])
-        .map<int>((job) => job["job_post_id"] as int)
+    // Explicitly type the list and cast job IDs to int
+    final likedJobIds = (likedJobsResponse["liked_tasks"] as List<dynamic>? ?? [])
+        .map<int>((job) => (job["job_post_id"] as int))
         .toSet();
 
-    return (allJobsResponse["tasks"] ?? [])
-        .where((job) => likedJobIds.contains(job["job_post_id"]))
+    debugPrint(likedJobsResponse.toString());
+    debugPrint(likedJobIds.toString());
+
+    // Explicitly type the list and filter with a safe check
+    return (allJobsResponse["tasks"] as List<dynamic>? ?? [])
+        .where((job) {
+      final jobId = job["job_post_id"];
+      return jobId is int && likedJobIds.contains(jobId);
+    })
         .map((job) => TaskModel.fromJson(job))
         .toList();
   }

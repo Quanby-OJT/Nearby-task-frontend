@@ -54,7 +54,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _saveLikedJob(TaskModel task) async {
     try {
-      debugPrint(task.toString());
+      debugPrint("Printing..." + task.toString());
       // Check if task ID is null
       if (task.id == null) {
         print("Cannot like job: Task ID is null for task: ${task.title}");
@@ -73,7 +73,7 @@ class _HomePageState extends State<HomePage> {
       // Call the service method to save the liked job - now passing an int
       final result = await jobPostService.saveLikedJob(task.id!);
 
-      if (result['success']) {
+      if (result.containsKey('message')) {
         // Show success indicator
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -86,14 +86,15 @@ class _HomePageState extends State<HomePage> {
         // Show error indicator
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result['message']),
+            content: Text(result['error']),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 2),
           ),
         );
       }
     } catch (e) {
-      print("Error saving liked job: $e");
+      debugPrint("$e");
+      debugPrintStack();
 
       // Show error indicator
       ScaffoldMessenger.of(context).showSnackBar(

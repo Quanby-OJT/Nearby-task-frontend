@@ -45,14 +45,17 @@ class _LikeScreenState extends State<LikeScreen> {
 
       // Fetch liked jobs
       final likedJobs = await _jobService.fetchUserLikedJobs();
+      debugPrint(likedJobs.toString());
       setState(() {
         _likedJobs = likedJobs;
         _isLoading = false;
       });
-    } catch (e) {
+    } catch (e, st) {
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Error loading liked jobs: $e';
+        debugPrint(e.toString());
+        debugPrint(st.toString());
+        _errorMessage = 'Error loading liked jobs. Please Try Again.';
       });
     }
   }
