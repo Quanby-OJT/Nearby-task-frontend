@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:flutter_fe/model/conversation.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  final int? taskTakenId;
+  const ChatScreen({super.key, this.taskTakenId});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -23,9 +24,12 @@ class _ChatScreenState extends State<ChatScreen> {
           title: Center(
               child: Text("NearByTask Conversation",
                   style: TextStyle(
-                      color: Color(0xFF0272B1),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 24))),
+                    color: Color(0xFF0272B1),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24
+                  )
+              )
+          ),
         ),
         body: messages.isEmpty
             ? Expanded(
@@ -61,12 +65,13 @@ class _ChatScreenState extends State<ChatScreen> {
                         index]; // Use messages instead of conversations
                     return ListTile(
                       title: Text(
-                        message?.taskTakenId.toString() ?? "Unknown Task",
+                        message.taskTakenId.toString() ?? "Unknown Task",
                         style: TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text(
-                        " ${message!.userId} \n • 🛠 ${message.conversationMessage}",
+                        "📍 ${message.userId} \n • 🛠 ${message.conversationMessage}",
+
                         style: TextStyle(fontSize: 14),
                       ),
                       trailing: Icon(Icons.arrow_forward_ios,
@@ -77,6 +82,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     );
                   },
                 ),
-              ));
+              )
+    );
   }
 }
