@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/specialization.dart';
+import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_fe/model/task_model.dart';
@@ -169,8 +170,6 @@ class JobPostService {
         };
       }
 
-      final url = Uri.parse('http://localhost:5000/connect/unlikeJob');
-
       return _deleteRequest(
           "/unlikeJob", {"user_id": int.parse(userId), "job_post_id": jobId});
     }catch(e){
@@ -216,18 +215,15 @@ class JobPostService {
   ///
   /// -Ces
   ///
-  Future<Map<String, dynamic>> assignTask(int userId, int taskId) async {
+  Future<Map<String, dynamic>> assignTask(TaskAssginment assignTask) async {
     final userId = await getUserId();
     if (userId == null) {
       return {'success': false, 'message': 'Please log in to like jobs', 'requiresLogin': true};
     }
 
     return _postRequest(
-        endpoint: "/$apiUrl/assign-task",
-        body: {
-          "user_id": userId,
-          "task_id": taskId,
-        }
+        endpoint: "$apiUrl/assign-task",
+        body: {...assignTask.toJson()}
     );
   }
 

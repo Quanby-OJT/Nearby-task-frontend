@@ -284,7 +284,6 @@ class _LikeScreenState extends State<LikeScreen> {
                   context,
                   MaterialPageRoute(builder: (context) => ServiceAccMain()),
                       (route) => false, // Removes all previous routes from the stack
-
                 );
               },
               child: const Text('Browse Jobs'),

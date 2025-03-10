@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:get_storage/get_storage.dart';
@@ -67,8 +68,20 @@ class TaskController {
     return null;
   }
 
-  Future<Map<String, dynamic>> assignTask(int userId, int taskId) async {
-    return await _jobPostService.assignTask(userId, taskId);
+  Future<String> assignTask(int taskerId, int clientId, int taskId) async {
+    TaskAssginment assignment = TaskAssginment(
+        clientId: clientId,
+        taskerId: taskerId,
+        taskId: taskId
+    );
+
+    final assignedTask = await _jobPostService.assignTask(assignment);
+
+    if(assignedTask.containsKey('message')){
+      return assignedTask['message'].toString();
+    }else{
+      return assignedTask['error'].toString();
+    }
   }
 
   // Future<Map<String, dynamic>> getLikedJobs(int taskerId) async {
