@@ -56,18 +56,18 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: ListView.builder(
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
-                    // final message = conversations[
-                    //     index]; // Use messages instead of conversations
+                    final message = conversations[
+                        index]; // Use messages instead of conversations
                     return ListTile(
-                      // title: Text(
-                      //   message?.taskTakenId.toString() ?? "Unknown Task",
-                      //   style: TextStyle(
-                      //       fontSize: 20, fontWeight: FontWeight.bold),
-                      // ),
-                      // subtitle: Text(
-                      //   "📍 ${message!.userId} \n • 🛠 ${message.conversationMessage}",
-                      //   style: TextStyle(fontSize: 14),
-                      // ),
+                      title: Text(
+                        message?.taskTakenId.toString() ?? "Unknown Task",
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        "📍 ${message!.userId} \n • 🛠 ${message.conversationMessage}",
+                        style: TextStyle(fontSize: 14),
+                      ),
                       trailing: Icon(Icons.arrow_forward_ios,
                           size: 16, color: Colors.grey),
                       onTap: () {

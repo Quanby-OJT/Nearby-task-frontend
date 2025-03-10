@@ -4,6 +4,7 @@ import 'package:flutter_fe/view/service_acc/home_page.dart';
 import 'package:flutter_fe/view/service_acc/profile_screen.dart';
 import 'package:flutter_fe/view/service_acc/like_screen.dart';
 import 'package:flutter_fe/view/service_acc/schedule_management_page.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:flutter_fe/view/nav/user_navigation.dart';
 
@@ -16,6 +17,7 @@ class ServiceAccMain extends StatefulWidget {
 
 class _ServiceAccMainState extends State<ServiceAccMain> {
   int _currentIndex = 0;
+
   final PageController _pageController = PageController();
 
   void _onItemTapped(int index) {
@@ -28,7 +30,6 @@ class _ServiceAccMainState extends State<ServiceAccMain> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: NavUserScreen(),
       body: PageView(
         physics: NeverScrollableScrollPhysics(),
         controller: _pageController,

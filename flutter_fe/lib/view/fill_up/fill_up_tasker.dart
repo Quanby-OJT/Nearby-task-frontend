@@ -3,6 +3,7 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/view/sign_in/sign_in.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 
 class FillUpTasker extends StatefulWidget {
   const FillUpTasker({super.key});
@@ -15,10 +16,29 @@ class _FillUpTaskerState extends State<FillUpTasker> {
   int currentStep = 0;
 
   final ProfileController _controller = ProfileController();
-  File? _selectedImage; // Store the selected image bytes
+  File? _selectedFile; // Store the selected file
+  String? _fileName; // Store the selected file name
+  File? _selectedImage; // Store the selected image
   String? _imageName; // Store the selected image name
   String? selectedGender;
   List<String> genderOptions = ["Male", "Female"];
+  List<String> specializtion = ['Tech Support', 'Cleaning', 'Plumbing'];
+  String? selectedSpecialization;
+
+  Future<void> _pickFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+
+    if (result != null) {
+      setState(() {
+        _selectedFile =
+            File(result.files.single.path!); // Store the selected file
+        _fileName = result.files.single.name; // Store file name
+      });
+    }
+  }
 
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
@@ -26,6 +46,13 @@ class _FillUpTaskerState extends State<FillUpTasker> {
       source:
           ImageSource.gallery, // Change to ImageSource.camera for camera input
     );
+
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path); // Store the selected image
+        _imageName = pickedFile.name; // Store image name
+      });
+    }
   }
 
   @override
@@ -38,7 +65,8 @@ class _FillUpTaskerState extends State<FillUpTasker> {
           child: Column(
             children: [
               Text(
-                'Create Service Account',
+                'Complete your service account',
+                textAlign: TextAlign.center,
                 style: TextStyle(
                     color: const Color(0xFF0272B1),
                     fontSize: 30,
@@ -127,19 +155,19 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                   ),
                 ),
               ),
-              TextButton(
-                  onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) {
-                      return SignIn();
-                    }));
-                  },
-                  child: Text(
-                    textAlign: TextAlign.right,
-                    'Already have an account',
-                    style: TextStyle(
-                        color: Colors.black, fontWeight: FontWeight.bold),
-                  )),
+              // TextButton(
+              //     onPressed: () {
+              //       Navigator.push(context,
+              //           MaterialPageRoute(builder: (context) {
+              //         return SignIn();
+              //       }));
+              //     },
+              //     child: Text(
+              //       textAlign: TextAlign.right,
+              //       'Already have an account',
+              //       style: TextStyle(
+              //           color: Colors.black, fontWeight: FontWeight.bold),
+              //     )),
             ],
           ),
         ));
@@ -263,25 +291,379 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                                 color: Color(0xFF0272B1), width: 2))),
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: TextField(
+                    controller: _controller.emailController,
+                    keyboardType: TextInputType.datetime, // Opens date keyboard
+                    readOnly: true, // Prevents manual input
+                    onTap: () async {
+                      DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2000), // Adjust as needed
+                        lastDate: DateTime(2100),
+                      );
+
+                      if (pickedDate != null) {
+                        // Format date as YYYY-MM-DD
+                        String formattedDate =
+                            "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+                        //   controller.jobTaskBeginDateController.text = formattedDate;
+                      }
+                    },
+                    decoration: InputDecoration(
+                      // labelText: 'Task Begin Date',
+                      labelStyle: TextStyle(color: Color(0xFF0272B1)),
+                      filled: true,
+                      fillColor: Color(0xFFF1F4FF),
+                      hintText: 'Birth date',
+                      hintStyle: TextStyle(color: Colors.grey),
+                      suffixIcon: Icon(Icons.calendar_today,
+                          color: Color(0xFF0272B1)), // Calendar icon
+                      enabledBorder: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: Colors.transparent, width: 0),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide:
+                            BorderSide(color: Color(0xFF0272B1), width: 2),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             )),
+// Step(
+        //     state: currentStep > 1 ? StepState.complete : StepState.indexed,
+        //     isActive: currentStep >= 1,
+        //     title: Text('Auth'),
+        //     content: Column(
+        //       children: [
+        //         Padding(
+        //           padding: const EdgeInsets.only(bottom: 10),
+        //           child: TextFormField(
+        //             controller: _controller.emailController,
+        //             cursorColor: Color(0xFF0272B1),
+        //             validator: (value) =>
+        //                 value!.isEmpty ? "Email is required" : null,
+        //             decoration: InputDecoration(
+        //                 filled: true,
+        //                 fillColor: Color(0xFFF1F4FF),
+        //                 hintText: 'Enter email',
+        //                 hintStyle: TextStyle(color: Colors.grey),
+        //                 enabledBorder: OutlineInputBorder(
+        //                     borderSide:
+        //                         BorderSide(color: Colors.transparent, width: 0),
+        //                     borderRadius: BorderRadius.circular(10)),
+        //                 focusedBorder: OutlineInputBorder(
+        //                     borderRadius: BorderRadius.circular(10),
+        //                     borderSide: BorderSide(
+        //                         color: Color(0xFF0272B1), width: 2))),
+        //           ),
+        //         ),
+        //         Padding(
+        //           padding: const EdgeInsets.only(bottom: 10),
+        //           child: TextFormField(
+        //             controller: _controller.passwordController,
+        //             cursorColor: Color(0xFF0272B1),
+        //             validator: (value) =>
+        //                 value!.isEmpty ? "Password is required" : null,
+        //             decoration: InputDecoration(
+        //                 filled: true,
+        //                 fillColor: Color(0xFFF1F4FF),
+        //                 hintText: 'Enter password',
+        //                 hintStyle: TextStyle(color: Colors.grey),
+        //                 enabledBorder: OutlineInputBorder(
+        //                     borderSide:
+        //                         BorderSide(color: Colors.transparent, width: 0),
+        //                     borderRadius: BorderRadius.circular(10)),
+        //                 focusedBorder: OutlineInputBorder(
+        //                     borderRadius: BorderRadius.circular(10),
+        //                     borderSide: BorderSide(
+        //                         color: Color(0xFF0272B1), width: 2))),
+        //           ),
+        //         ),
+        //         Padding(
+        //           padding: const EdgeInsets.only(bottom: 10),
+        //           child: TextFormField(
+        //             controller: _controller.confirmPasswordController,
+        //             cursorColor: Color(0xFF0272B1),
+        //             validator: (value) =>
+        //                 value!.isEmpty ? "Password is required" : null,
+        //             decoration: InputDecoration(
+        //                 filled: true,
+        //                 fillColor: Color(0xFFF1F4FF),
+        //                 hintText: 'Confirm password',
+        //                 hintStyle: TextStyle(color: Colors.grey),
+        //                 enabledBorder: OutlineInputBorder(
+        //                     borderSide:
+        //                         BorderSide(color: Colors.transparent, width: 0),
+        //                     borderRadius: BorderRadius.circular(10)),
+        //                 focusedBorder: OutlineInputBorder(
+        //                     borderRadius: BorderRadius.circular(10),
+        //                     borderSide: BorderSide(
+        //                         color: Color(0xFF0272B1), width: 2))),
+        //           ),
+        //         )
+        //       ],
+        //     )),
+// Step(
+        //     state: currentStep > 1 ? StepState.complete : StepState.indexed,
+        //     isActive: currentStep >= 1,
+        //     title: Text('Auth'),
+        //     content: Column(
+        //       children: [
+        //         Padding(
+        //           padding: const EdgeInsets.only(bottom: 10),
+        //           child: TextFormField(
+        //             controller: _controller.emailController,
+        //             cursorColor: Color(0xFF0272B1),
+        //             validator: (value) =>
+        //                 value!.isEmpty ? "Email is required" : null,
+        //             decoration: InputDecoration(
+        //                 filled: true,
+        //                 fillColor: Color(0xFFF1F4FF),
+        //                 hintText: 'Enter email',
+        //                 hintStyle: TextStyle(color: Colors.grey),
+        //                 enabledBorder: OutlineInputBorder(
+        //                     borderSide:
+        //                         BorderSide(color: Colors.transparent, width: 0),
+        //                     borderRadius: BorderRadius.circular(10)),
+        //                 focusedBorder: OutlineInputBorder(
+        //                     borderRadius: BorderRadius.circular(10),
+        //                     borderSide: BorderSide(
+        //                         color: Color(0xFF0272B1), width: 2))),
+        //           ),
+        //         ),
+        //         Padding(
+        //           padding: const EdgeInsets.only(bottom: 10),
+        //           child: TextFormField(
+        //             controller: _controller.passwordController,
+        //             cursorColor: Color(0xFF0272B1),
+        //             validator: (value) =>
+        //                 value!.isEmpty ? "Password is required" : null,
+        //             decoration: InputDecoration(
+        //                 filled: true,
+        //                 fillColor: Color(0xFFF1F4FF),
+        //                 hintText: 'Enter password',
+        //                 hintStyle: TextStyle(color: Colors.grey),
+        //                 enabledBorder: OutlineInputBorder(
+        //                     borderSide:
+        //                         BorderSide(color: Colors.transparent, width: 0),
+        //                     borderRadius: BorderRadius.circular(10)),
+        //                 focusedBorder: OutlineInputBorder(
+        //                     borderRadius: BorderRadius.circular(10),
+        //                     borderSide: BorderSide(
+        //                         color: Color(0xFF0272B1), width: 2))),
+        //           ),
+        //         ),
+        //         Padding(
+        //           padding: const EdgeInsets.only(bottom: 10),
+        //           child: TextFormField(
+        //             controller: _controller.confirmPasswordController,
+        //             cursorColor: Color(0xFF0272B1),
+        //             validator: (value) =>
+        //                 value!.isEmpty ? "Password is required" : null,
+        //             decoration: InputDecoration(
+        //                 filled: true,
+        //                 fillColor: Color(0xFFF1F4FF),
+        //                 hintText: 'Confirm password',
+        //                 hintStyle: TextStyle(color: Colors.grey),
+        //                 enabledBorder: OutlineInputBorder(
+        //                     borderSide:
+        //                         BorderSide(color: Colors.transparent, width: 0),
+        //                     borderRadius: BorderRadius.circular(10)),
+        //                 focusedBorder: OutlineInputBorder(
+        //                     borderRadius: BorderRadius.circular(10),
+        //                     borderSide: BorderSide(
+        //                         color: Color(0xFF0272B1), width: 2))),
+        //           ),
+        //         )
+        //       ],
+        //     )),
+// Step(
+        //     state: currentStep > 1 ? StepState.complete : StepState.indexed,
+        //     isActive: currentStep >= 1,
+        //     title: Text('Auth'),
+        //     content: Column(
+        //       children: [
+        //         Padding(
+        //           padding: const EdgeInsets.only(bottom: 10),
+        //           child: TextFormField(
+        //             controller: _controller.emailController,
+        //             cursorColor: Color(0xFF0272B1),
+        //             validator: (value) =>
+        //                 value!.isEmpty ? "Email is required" : null,
+        //             decoration: InputDecoration(
+        //                 filled: true,
+        //                 fillColor: Color(0xFFF1F4FF),
+        //                 hintText: 'Enter email',
+        //                 hintStyle: TextStyle(color: Colors.grey),
+        //                 enabledBorder: OutlineInputBorder(
+        //                     borderSide:
+        //                         BorderSide(color: Colors.transparent, width: 0),
+        //                     borderRadius: BorderRadius.circular(10)),
+        //                 focusedBorder: OutlineInputBorder(
+        //                     borderRadius: BorderRadius.circular(10),
+        //                     borderSide: BorderSide(
+        //                         color: Color(0xFF0272B1), width: 2))),
+        //           ),
+        //         ),
+        //         Padding(
+        //           padding: const EdgeInsets.only(bottom: 10),
+        //           child: TextFormField(
+        //             controller: _controller.passwordController,
+        //             cursorColor: Color(0xFF0272B1),
+        //             validator: (value) =>
+        //                 value!.isEmpty ? "Password is required" : null,
+        //             decoration: InputDecoration(
+        //                 filled: true,
+        //                 fillColor: Color(0xFFF1F4FF),
+        //                 hintText: 'Enter password',
+        //                 hintStyle: TextStyle(color: Colors.grey),
+        //                 enabledBorder: OutlineInputBorder(
+        //                     borderSide:
+        //                         BorderSide(color: Colors.transparent, width: 0),
+        //                     borderRadius: BorderRadius.circular(10)),
+        //                 focusedBorder: OutlineInputBorder(
+        //                     borderRadius: BorderRadius.circular(10),
+        //                     borderSide: BorderSide(
+        //                         color: Color(0xFF0272B1), width: 2))),
+        //           ),
+        //         ),
+        //         Padding(
+        //           padding: const EdgeInsets.only(bottom: 10),
+        //           child: TextFormField(
+        //             controller: _controller.confirmPasswordController,
+        //             cursorColor: Color(0xFF0272B1),
+        //             validator: (value) =>
+        //                 value!.isEmpty ? "Password is required" : null,
+        //             decoration: InputDecoration(
+        //                 filled: true,
+        //                 fillColor: Color(0xFFF1F4FF),
+        //                 hintText: 'Confirm password',
+        //                 hintStyle: TextStyle(color: Colors.grey),
+        //                 enabledBorder: OutlineInputBorder(
+        //                     borderSide:
+        //                         BorderSide(color: Colors.transparent, width: 0),
+        //                     borderRadius: BorderRadius.circular(10)),
+        //                 focusedBorder: OutlineInputBorder(
+        //                     borderRadius: BorderRadius.circular(10),
+        //                     borderSide: BorderSide(
+        //                         color: Color(0xFF0272B1), width: 2))),
+        //           ),
+        //         )
+        //       ],
+        //     )),
+// Step(
+        //     state: currentStep > 1 ? StepState.complete : StepState.indexed,
+        //     isActive: currentStep >= 1,
+        //     title: Text('Auth'),
+        //     content: Column(
+        //       children: [
+        //         Padding(
+        //           padding: const EdgeInsets.only(bottom: 10),
+        //           child: TextFormField(
+        //             controller: _controller.emailController,
+        //             cursorColor: Color(0xFF0272B1),
+        //             validator: (value) =>
+        //                 value!.isEmpty ? "Email is required" : null,
+        //             decoration: InputDecoration(
+        //                 filled: true,
+        //                 fillColor: Color(0xFFF1F4FF),
+        //                 hintText: 'Enter email',
+        //                 hintStyle: TextStyle(color: Colors.grey),
+        //                 enabledBorder: OutlineInputBorder(
+        //                     borderSide:
+        //                         BorderSide(color: Colors.transparent, width: 0),
+        //                     borderRadius: BorderRadius.circular(10)),
+        //                 focusedBorder: OutlineInputBorder(
+        //                     borderRadius: BorderRadius.circular(10),
+        //                     borderSide: BorderSide(
+        //                         color: Color(0xFF0272B1), width: 2))),
+        //           ),
+        //         ),
+        //         Padding(
+        //           padding: const EdgeInsets.only(bottom: 10),
+        //           child: TextFormField(
+        //             controller: _controller.passwordController,
+        //             cursorColor: Color(0xFF0272B1),
+        //             validator: (value) =>
+        //                 value!.isEmpty ? "Password is required" : null,
+        //             decoration: InputDecoration(
+        //                 filled: true,
+        //                 fillColor: Color(0xFFF1F4FF),
+        //                 hintText: 'Enter password',
+        //                 hintStyle: TextStyle(color: Colors.grey),
+        //                 enabledBorder: OutlineInputBorder(
+        //                     borderSide:
+        //                         BorderSide(color: Colors.transparent, width: 0),
+        //                     borderRadius: BorderRadius.circular(10)),
+        //                 focusedBorder: OutlineInputBorder(
+        //                     borderRadius: BorderRadius.circular(10),
+        //                     borderSide: BorderSide(
+        //                         color: Color(0xFF0272B1), width: 2))),
+        //           ),
+        //         ),
+        //         Padding(
+        //           padding: const EdgeInsets.only(bottom: 10),
+        //           child: TextFormField(
+        //             controller: _controller.confirmPasswordController,
+        //             cursorColor: Color(0xFF0272B1),
+        //             validator: (value) =>
+        //                 value!.isEmpty ? "Password is required" : null,
+        //             decoration: InputDecoration(
+        //                 filled: true,
+        //                 fillColor: Color(0xFFF1F4FF),
+        //                 hintText: 'Confirm password',
+        //                 hintStyle: TextStyle(color: Colors.grey),
+        //                 enabledBorder: OutlineInputBorder(
+        //                     borderSide:
+        //                         BorderSide(color: Colors.transparent, width: 0),
+        //                     borderRadius: BorderRadius.circular(10)),
+        //                 focusedBorder: OutlineInputBorder(
+        //                     borderRadius: BorderRadius.circular(10),
+        //                     borderSide: BorderSide(
+        //                         color: Color(0xFF0272B1), width: 2))),
+        //           ),
+        //         )
+        //       ],
+        //     )),
         Step(
             state: currentStep > 1 ? StepState.complete : StepState.indexed,
             isActive: currentStep >= 1,
-            title: Text('Auth'),
+            title: Text('Profile'),
             content: Column(
               children: [
+                if (_selectedImage != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10.0),
+                    child: CircleAvatar(
+                      backgroundImage: FileImage(_selectedImage!),
+                      radius: 70,
+                    ),
+                  ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10))),
+                  onPressed: _pickImage,
+                  child: Text("Select profile"),
+                ),
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.only(top: 10, bottom: 10),
                   child: TextFormField(
+                    maxLines: 2,
                     controller: _controller.emailController,
                     cursorColor: Color(0xFF0272B1),
-                    validator: (value) =>
-                        value!.isEmpty ? "Email is required" : null,
+                    validator: (value) => value!.isEmpty ? "Bio..." : null,
                     decoration: InputDecoration(
                         filled: true,
                         fillColor: Color(0xFFF1F4FF),
-                        hintText: 'Enter email',
+                        hintText: 'Bio...',
                         hintStyle: TextStyle(color: Colors.grey),
                         enabledBorder: OutlineInputBorder(
                             borderSide:
@@ -296,14 +678,15 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextFormField(
+                    maxLines: 3,
                     controller: _controller.passwordController,
                     cursorColor: Color(0xFF0272B1),
                     validator: (value) =>
-                        value!.isEmpty ? "Password is required" : null,
+                        value!.isEmpty ? "List of skills..." : null,
                     decoration: InputDecoration(
                         filled: true,
                         fillColor: Color(0xFFF1F4FF),
-                        hintText: 'Enter password',
+                        hintText: 'List of skills...',
                         hintStyle: TextStyle(color: Colors.grey),
                         enabledBorder: OutlineInputBorder(
                             borderSide:
@@ -315,54 +698,64 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                                 color: Color(0xFF0272B1), width: 2))),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: TextFormField(
-                    controller: _controller.confirmPasswordController,
-                    cursorColor: Color(0xFF0272B1),
-                    validator: (value) =>
-                        value!.isEmpty ? "Password is required" : null,
-                    decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Color(0xFFF1F4FF),
-                        hintText: 'Confirm password',
-                        hintStyle: TextStyle(color: Colors.grey),
-                        enabledBorder: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Colors.transparent, width: 0),
-                            borderRadius: BorderRadius.circular(10)),
-                        focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(
-                                color: Color(0xFF0272B1), width: 2))),
-                  ),
-                )
+
+                // Show Selected Image Start (if any)
               ],
             )),
         Step(
             isActive: currentStep >= 2,
-            title: Text('Certificates'),
+            title: Text('Certs'),
             content: Column(
               children: [
-                ElevatedButton(
-                  onPressed: _pickImage,
-                  child: Text("Pick Image"),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: DropdownButtonFormField<String>(
+                    value: selectedSpecialization,
+                    decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Color(0xFFF1F4FF),
+                        //labelText: 'Select an option',
+                        hintText: 'Specialization...',
+                        hintStyle: TextStyle(color: Color(0xFF0272B1)),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.transparent, width: 0),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide:
+                              BorderSide(color: Color(0xFF0272B1), width: 2),
+                        )),
+                    items: specializtion.map((String item) {
+                      return DropdownMenuItem<String>(
+                        value: item,
+                        child: Text(item),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        selectedSpecialization = newValue;
+                        // _controller.jobSpecializationController.text =
+                        //     newValue ?? "";
+                      });
+                    },
+                  ),
                 ),
-                // Image Picker Button End
+                ElevatedButton(
+                  onPressed: _pickFile,
+                  child: Text("Pick PDF"),
+                ),
+                // File Picker Button End
 
-                // Show Selected Image Start (if any if not yung icon makikita base sa baba)
-                _selectedImage != null
+                // Show Selected File Start (if any)
+                _selectedFile != null
                     ? Column(
                         children: [
-                          // Text("Selected Image: $_imageName"),
-                          Image.file(
-                            _selectedImage!,
-                            height: 200,
-                            width: 200,
-                          ), // Show image
+                          Text("Selected File: $_fileName"),
                         ],
                       )
-                    : Text("No Image Selected"),
+                    : Text("No File Selected"),
               ],
             )),
       ];

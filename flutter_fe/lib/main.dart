@@ -9,7 +9,10 @@ import 'package:get_storage/get_storage.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
-  runApp(MyApp());
+
+  final storage = GetStorage();
+  final userId = storage.read('user_id');
+  runApp(MyApp(isLoggedIn: userId != null, userId: userId));
 }
 
 class MyApp extends StatelessWidget {

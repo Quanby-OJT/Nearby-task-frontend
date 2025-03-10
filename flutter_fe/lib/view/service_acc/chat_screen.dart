@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:flutter_fe/model/conversation.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -17,7 +19,7 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
-          automaticallyImplyLeading: false,
+          // automaticallyImplyLeading: false,
           title: Center(
               child: Text("NearByTask Conversation",
                   style: TextStyle(
@@ -64,7 +66,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       subtitle: Text(
-                        "📍 ${message!.userId} \n • 🛠 ${message.conversationMessage}",
+                        " ${message!.userId} \n • 🛠 ${message.conversationMessage}",
                         style: TextStyle(fontSize: 14),
                       ),
                       trailing: Icon(Icons.arrow_forward_ios,
