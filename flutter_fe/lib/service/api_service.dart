@@ -76,7 +76,7 @@ class ApiService {
 
       debugPrint('Response Status: ${response.statusCode}');
       debugPrint('Response Body: ${response.body}');
-      debugPrint('Request URL: ${apiUrl}/create-new-user');
+      debugPrint('Request URL: $apiUrl/create-new-user');
       debugPrint('Full Request Body: ${json.encode(requestBody)}');
 
       return response.statusCode == 201;
@@ -100,7 +100,7 @@ class ApiService {
             "Content-Type": "application/json"
           });
 
-      debugPrint("Retreived Data: " + response.body);
+      debugPrint("Retreived Data: ${response.body}");
       var data = json.decode(response.body);
 
       if (response.statusCode == 200) {

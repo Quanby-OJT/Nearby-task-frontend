@@ -40,7 +40,7 @@ class TaskModel {
       "contact_price": contactPrice,
       "remarks": remarks,
       "task_begin_date": taskBeginDate,
-      "id": this.id,
+      "id": id,
     };
   }
 

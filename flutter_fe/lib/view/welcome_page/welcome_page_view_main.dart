@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/view/sign_up_acc/pre_sign_up.dart';
 import 'package:flutter_fe/view/sign_in/sign_in.dart';
 import 'package:flutter_fe/view/welcome_page/intro_page_1.dart';
 import 'package:flutter_fe/view/welcome_page/intro_page_2.dart';

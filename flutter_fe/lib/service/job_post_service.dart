@@ -81,8 +81,9 @@ class JobPostService {
 
   Future<Map<String, dynamic>> unlikeJob(int jobId) async {
     final userId = await getUserId();
-    if (userId == null)
+    if (userId == null) {
       return {'success': false, 'message': 'Please log in to unlike jobs'};
+    }
 
     return _deleteRequest(
         "/unlikeJob", {"user_id": int.parse(userId), "job_post_id": jobId});

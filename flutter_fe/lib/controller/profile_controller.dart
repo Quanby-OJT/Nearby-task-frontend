@@ -109,7 +109,7 @@ class ProfileController {
           return AuthenticatedUser(user: user, client: client);
         } else if (result.containsKey("tasker")) {
           TaskerModel tasker = result["tasker"] as TaskerModel;
-          debugPrint("Retrieved Data: "+ tasker.toString());
+          debugPrint("Retrieved Data: $tasker");
           return AuthenticatedUser(user: user, tasker: tasker);
         }
       }

@@ -5,7 +5,7 @@ import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class LikeScreen extends StatefulWidget {
-  const LikeScreen({Key? key}) : super(key: key);
+  const LikeScreen({super.key});
 
   @override
   State<LikeScreen> createState() => _LikeScreenState();
