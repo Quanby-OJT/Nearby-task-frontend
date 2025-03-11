@@ -45,71 +45,71 @@ class _HomePageState extends State<HomePage> {
                   padding: const EdgeInsets.only(left: 35, top: 20),
                   child: SizedBox(
                     width: 200,
-                    child: DropdownSearch<String>.multiSelection(
-                      items: searchCategories,
-                      selectedItems: selectedCategories,
-                      dropdownDecoratorProps: DropDownDecoratorProps(
-                        dropdownSearchDecoration: InputDecoration(
-                          prefixIcon: Icon(Icons.search),
-                          filled: true,
-                          fillColor: Color(0xFFF1F4FF),
-                          hintText: 'Search...',
-                          hintStyle: TextStyle(color: Colors.grey),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Colors.transparent, width: 0),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide:
-                                BorderSide(color: Color(0xFF0272B1), width: 2),
-                          ),
-                        ),
-                      ),
-                      popupProps: PopupPropsMultiSelection.menu(
-                        scrollbarProps: ScrollbarProps(
-                          thickness: 8,
-                          radius: Radius.circular(10),
-                        ),
-
-                        showSelectedItems:
-                            false, // This hides selected items from search field
-                        showSearchBox: true,
-                        fit: FlexFit.loose,
-
-                        itemBuilder: (context, item, isSelected) {
-                          return Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            child: Row(
-                              children: [
-                                Checkbox(
-                                  value: isSelected,
-                                  hoverColor: Color(0xFF0272B1),
-                                  activeColor: Color(0xFF0272B1),
-                                  onChanged: null,
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  item,
-                                  style: TextStyle(
-                                    fontWeight: isSelected
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                      onChanged: (List<String> selectedItems) {
-                        setState(() {
-                          selectedCategories = selectedItems;
-                        });
-                      },
-                    ),
+                    // child: DropdownSearch<String>.multiSelection(
+                    //   items: searchCategories,
+                    //   selectedItems: selectedCategories,
+                    //   dropdownDecoratorProps: DropDownDecoratorProps(
+                    //     dropdownSearchDecoration: InputDecoration(
+                    //       prefixIcon: Icon(Icons.search),
+                    //       filled: true,
+                    //       fillColor: Color(0xFFF1F4FF),
+                    //       hintText: 'Search...',
+                    //       hintStyle: TextStyle(color: Colors.grey),
+                    //       enabledBorder: OutlineInputBorder(
+                    //         borderSide:
+                    //             BorderSide(color: Colors.transparent, width: 0),
+                    //         borderRadius: BorderRadius.circular(10),
+                    //       ),
+                    //       focusedBorder: OutlineInputBorder(
+                    //         borderRadius: BorderRadius.circular(10),
+                    //         borderSide:
+                    //             BorderSide(color: Color(0xFF0272B1), width: 2),
+                    //       ),
+                    //     ),
+                    //   ),
+                    //   popupProps: PopupPropsMultiSelection.menu(
+                    //     scrollbarProps: ScrollbarProps(
+                    //       thickness: 8,
+                    //       radius: Radius.circular(10),
+                    //     ),
+                    //
+                    //     showSelectedItems:
+                    //         false, // This hides selected items from search field
+                    //     showSearchBox: true,
+                    //     fit: FlexFit.loose,
+                    //
+                    //     itemBuilder: (context, item, isSelected) {
+                    //       return Container(
+                    //         padding: EdgeInsets.symmetric(
+                    //             horizontal: 16, vertical: 8),
+                    //         child: Row(
+                    //           children: [
+                    //             Checkbox(
+                    //               value: isSelected,
+                    //               hoverColor: Color(0xFF0272B1),
+                    //               activeColor: Color(0xFF0272B1),
+                    //               onChanged: null,
+                    //             ),
+                    //             SizedBox(width: 8),
+                    //             Text(
+                    //               item,
+                    //               style: TextStyle(
+                    //                 fontWeight: isSelected
+                    //                     ? FontWeight.bold
+                    //                     : FontWeight.normal,
+                    //               ),
+                    //             ),
+                    //           ],
+                    //         ),
+                    //       );
+                    //     },
+                    //   ),
+                    //   onChanged: (List<String> selectedItems) {
+                    //     setState(() {
+                    //       selectedCategories = selectedItems;
+                    //     });
+                    //   },
+                    // ),
                   ),
                 ),
               ),
