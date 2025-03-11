@@ -8,7 +8,7 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:get_storage/get_storage.dart';
 
 class JobPostService {
-  static const String apiUrl = "http://localhost/connect";
+  static const String apiUrl = "http://10.0.2.2:5000/connect";
   static final storage = GetStorage();
 
   Future<Map<String, dynamic>> assignTask(TaskAssginment assignTask) async {

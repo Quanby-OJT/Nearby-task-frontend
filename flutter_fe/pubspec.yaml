@@ -46,7 +46,7 @@ dependencies:
   google_fonts:
   flip_card: ^0.7.0
   get_storage: ^2.1.1
-  dropdown_search: ^5.0.2
+  dropdown_search: ^6.0.2
   dropdown_textfield: ^1.2.0
   shared_preferences: ^2.5.2
   get: ^4.7.2

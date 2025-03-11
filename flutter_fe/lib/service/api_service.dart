@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ApiService {
-  static const String apiUrl = "http://localhost:5000/connect"; // Adjust if
+  static const String apiUrl = "http://10.0.2.2:5000/connect"; // Adjust if
 
   static final http.Client _client = http.Client();
   static final Map<String, String> _cookies = {};
@@ -81,10 +81,16 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> fetchAuthenticatedUser(
-      String userId) async {
+  static Future<Map<String, dynamic>> fetchAuthenticatedUser(String userId) async {
     try {
-      final response = await http.get(Uri.parse("$apiUrl/getUserData/$userId"));
+      final String token = await AuthService.getSessionToken();
+      final response = await http.get(
+        Uri.parse("$apiUrl/getUserData/$userId"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+      );
       var data = json.decode(response.body);
 
       if (response.statusCode == 200) {
@@ -94,8 +100,6 @@ class ApiService {
         } else {
           return {"error": "User not found"};
         }
-      } else if (response.statusCode == 401) {
-        return {"error": data['errors']};
       } else {
         return {"error": data['error'] ?? "Failed to fetch user data"};
       }
