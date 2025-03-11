@@ -203,7 +203,7 @@ class ApiService {
       debugPrint('Response Data: $data'); // Debugging
 
       if (response.statusCode == 200) {
-        return {"user_id": data['user_id'], "role": data['user_role'], "session": data['session_id']};
+        return {"user_id": data['user_id'], "role": data['user_role'], "session": data['session']};
       } else if (response.statusCode == 400 && data.containsKey('errors')) {
         List<dynamic> errors = data['errors'];
         String validationMessage = errors.map((e) => e['msg']).join("\n");

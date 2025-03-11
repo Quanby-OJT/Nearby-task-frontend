@@ -1,3 +1,5 @@
+import 'package:flutter_fe/model/user_model.dart';
+
 class TaskerModel{
   final String bio;
   final String specialization;
@@ -6,6 +8,7 @@ class TaskerModel{
   final String? taskerDocuments;
   final String? socialMediaLinks;
   final String taskerAddress;
+  UserModel? user;
 
   TaskerModel({
     required this.bio,
@@ -14,8 +17,14 @@ class TaskerModel{
     required this.taskerAddress,
     this.availability,
     this.taskerDocuments,
-    this.socialMediaLinks
+    this.socialMediaLinks,
+    this.user
   });
+
+  @override
+  String toString() {
+    return "user: $user)";
+  }
 
   //Factory to manage tasker data.
   factory TaskerModel.fromJson(Map<String, dynamic> json) {
@@ -28,7 +37,7 @@ class TaskerModel{
       specialization: json['tasker_specialization'] != null
           ? json['tasker_specialization']['specialization']
           : '',
-      taskerDocuments: json['tasker_documents'] ?? '', // Allow empty string for null values
+      taskerDocuments: json['tasker_documents'] ?? '',
     );
   }
 
