@@ -3,40 +3,45 @@ class UserModel {
   final String middleName;
   final String lastName;
   final String email;
-  final String birthdate;
-  final String password;
+  final String? birthdate;
+  final String? password;
   final dynamic
-      image; // Can be either a String (URL) or Uint8List (binary data)
+  image; // Can be either a String (URL) or Uint8List (binary data)
   final String? imageName; // Store image filename if available
   final String role;
-  final String status;
+  final String accStatus;
 
-  UserModel(
-      {required this.firstName,
-      required this.middleName,
-      required this.lastName,
-      required this.email,
-      required this.password,
-      required this.birthdate, // Ensure date is required
-      this.image,
-      this.imageName,
-      required this.role, // Ensure role is required
-      required this.status});
+
+//This is what the controller used
+  UserModel({
+    required this.firstName,
+    required this.middleName,
+    required this.lastName,
+    required this.email,
+    this.password,
+    this.image,
+    this.imageName,
+    required this.role,
+    this.birthdate,
+    required this.accStatus
+  });
 
   // Factory constructor to handle image as either URL or binary data, this is for the display record part
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-        firstName: json['first_name'],
-        middleName: json['middle_name'],
-        lastName: json['last_name'],
-        email: json['email'],
-        password: json['hashed_password'],
-        image: json['image_link'] is String ? json['image_link'] : null,
-        imageName: json['image_name'],
-        role: json['user_role'], // Ensure role is parsed
-        birthdate: json["birthdate"],
-        status: json["acc_status"]);
+      firstName: json['first_name'] ?? '', // Default to empty string
+      middleName: json['middle_name'] ?? '',
+      lastName: json['last_name'] ?? '',
+      birthdate: json['birthdate'] as String?, // Allow null values
+      email: json['email'] ?? '',
+      password: json['hashed_password'] as String?, // Allow null values
+      image: json['image_link'] ?? '', // Ensure it's not null
+      imageName: json['image_name'] as String?, // Allow null values
+      role: json['user_role'] ?? '',
+      accStatus: json['acc_status'] ?? '',
+    );
   }
+
 
 // Returns whith these datas
   Map<String, dynamic> toJson() {
@@ -47,8 +52,7 @@ class UserModel {
       "email": email,
       "password": password,
       "user_role": role,
-      "acc_status": status,
-      "birthdate": birthdate
+      "acc_status": accStatus
     };
   }
 }

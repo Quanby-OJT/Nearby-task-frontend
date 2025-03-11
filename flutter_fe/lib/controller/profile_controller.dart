@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/client_model.dart';
 import '../model/user_model.dart';
@@ -11,24 +13,17 @@ class ProfileController {
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController birthdateController = TextEditingController();
   final TextEditingController confirmPasswordController =
-      TextEditingController();
+  TextEditingController();
   final TextEditingController roleController = TextEditingController();
   final TextEditingController statusController = TextEditingController();
   final TextEditingController middleNameController = TextEditingController();
+  final TextEditingController birthdateController = TextEditingController();
   // Fetched user inputs End
 
   //Tasker Text Controller
-  final TextEditingController genderController = TextEditingController();
-  final TextEditingController addressController = TextEditingController();
-  final TextEditingController birthDateController = TextEditingController();
-  final TextEditingController contactController = TextEditingController();
-  final TextEditingController profilePictureController =
-      TextEditingController();
   final TextEditingController bioController = TextEditingController();
-  final TextEditingController specializationController =
-      TextEditingController();
+  final TextEditingController specializationController = TextEditingController();
   final TextEditingController skillsController = TextEditingController();
   final TextEditingController taskerAddressController = TextEditingController();
   final TextEditingController availabilityController = TextEditingController();
@@ -68,65 +63,40 @@ class ProfileController {
 // Store the inputs Start
     UserModel user = UserModel(
         firstName: firstNameController.text,
-        middleName:
-            middleNameController.text.isEmpty ? "" : middleNameController.text,
+        middleName: middleNameController.text,
         lastName: lastNameController.text,
         email: emailController.text,
         password: passwordController.text,
-        birthdate: birthdateController.text,
-        role: roleController.text.isEmpty ? "Client" : roleController.text,
-        status:
-            statusController.text.isEmpty ? "Review" : statusController.text);
-
-    try {
-      bool success = await ApiService.registerUser(user);
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(
-                  "Registration Successful! Please Check your Email to confirm your email.")),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Registration Failed!")),
-        );
-      }
-    } catch (e) {
+        role: roleController.text,
+        accStatus: 'Pending'
+    );
+    bool success = await ApiService.registerUser(user);
+    if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("An error occurred: $e")),
+        SnackBar(
+            content: Text(
+                "Registration Successful! Please Check your Email to confirm your email.")),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Registration Failed!")),
       );
     }
   }
 
   Future<void> createTasker(BuildContext context) async {
-    double wagePerHour;
-    try {
-      wagePerHour = double.parse(wageController.text);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Invalid wage per hour value")),
-      );
-      return;
-    }
-
     TaskerModel tasker = TaskerModel(
-        gender: genderController.text,
-        contactNumber: contactController.text,
-        address: addressController.text,
-        birthDate: birthDateController.text,
-        profilePicture: profilePictureController.text,
         bio: bioController.text,
         specialization: specializationController.text,
         skills: skillsController.text,
-        wage_per_hour: wagePerHour,
-        tesda_documents_link: tesdaController.text,
-        social_media_links: socialMediaeController.text);
+        taskerAddress: taskerAddressController.text,
+        taskerDocuments: tesdaController.text,
+        socialMediaLinks: socialMediaeController.text);
 
-    // Code to create tasker information.
+    //Code to create tasker information.
   }
 
-  Future<AuthenticatedUser?> getAuthenticatedUser(
-      BuildContext context, String userId) async {
+  Future<AuthenticatedUser?> getAuthenticatedUser(BuildContext context, String userId) async {
     try {
       var result = await ApiService.fetchAuthenticatedUser(userId);
       debugPrint("Data: $result");
@@ -139,7 +109,7 @@ class ProfileController {
           return AuthenticatedUser(user: user, client: client);
         } else if (result.containsKey("tasker")) {
           TaskerModel tasker = result["tasker"] as TaskerModel;
-          debugPrint("Retrieved Data: $tasker");
+          debugPrint("Retrieved Data: "+ tasker.toString());
           return AuthenticatedUser(user: user, tasker: tasker);
         }
       }
@@ -156,4 +126,5 @@ class ProfileController {
       return null;
     }
   }
+
 }

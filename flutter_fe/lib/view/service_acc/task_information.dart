@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/task_model.dart';
-import 'package:flutter_fe/service/task_information.dart';
+import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:flutter_fe/view/service_acc/chat_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class TaskInformation extends StatefulWidget {
-  final int taskID;
-  const TaskInformation({super.key, required this.taskID});
+  final int? taskID;
+  const TaskInformation({super.key, this.taskID});
 
   @override
   State<TaskInformation> createState() => _TaskInformationState();
 }
 
 class _TaskInformationState extends State<TaskInformation> {
-  final TaskDetailsService _taskPostService = TaskDetailsService();
+  final JobPostService _jobPostService = JobPostService();
   TaskModel? _taskInformation;
   bool _isLoading = true;
 
@@ -25,7 +26,8 @@ class _TaskInformationState extends State<TaskInformation> {
 
   Future<void> _fetchTaskDetails() async {
     try {
-      final response = await _taskPostService.fetchTaskDetails(widget.taskID);
+      final response =
+          await _jobPostService.fetchTaskInformation(widget.taskID ?? 0);
       setState(() {
         _taskInformation = response;
         _isLoading = false;
@@ -65,7 +67,7 @@ class _TaskInformationState extends State<TaskInformation> {
                           _buildInfoRow(
                               "Urgency", _taskInformation!.urgency ?? "N/A"),
                           _buildInfoRow(
-                              "Duration", _taskInformation!.duration ?? "N/A"),
+                              "Duration", _taskInformation!.duration.toString() ?? "N/A"),
                           _buildInfoRow(
                               "Status", _taskInformation!.status ?? "N/A"),
                           SizedBox(height: 10),
@@ -78,9 +80,11 @@ class _TaskInformationState extends State<TaskInformation> {
                             child: TextButton(
                                 onPressed: () {
                                   Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => ChatScreen()));
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => IndividualChatScreen()
+                                    )
+                                  );
                                 },
                                 style: TextButton.styleFrom(
                                     padding: EdgeInsets.symmetric(vertical: 20),

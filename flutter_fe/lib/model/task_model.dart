@@ -5,14 +5,14 @@ class TaskModel {
   final String? description;
   final String? location;
   final String? period;
-  final String? duration;
+  final int? duration;
   final String? urgency;
   final String? status;
   final int? contactPrice;
   final String? remarks;
   final String? taskBeginDate;
 
-  TaskModel({
+   TaskModel({
     this.id,
     this.title,
     this.specialization,
@@ -27,6 +27,7 @@ class TaskModel {
     this.taskBeginDate,
   });
 
+  // Convert to JSON (para gamitin sa API)
   Map<String, dynamic> toJson() {
     return {
       "task_id": id,
@@ -53,7 +54,7 @@ class TaskModel {
       specialization: json['specialization'] as String?,
       description: json['task_description'] as String?,
       location: json['location'] as String?,
-      duration: json['duration'] as String?,
+      duration: json['duration'] as int?,
       period: json['period'] as String?,
       urgency: json['urgency'] as String?,
       contactPrice: json['contact_price'] as int?,
