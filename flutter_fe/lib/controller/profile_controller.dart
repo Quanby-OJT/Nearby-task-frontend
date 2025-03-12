@@ -19,6 +19,7 @@ class ProfileController {
   final TextEditingController statusController = TextEditingController();
   final TextEditingController middleNameController = TextEditingController();
   final TextEditingController birthdateController = TextEditingController();
+  final TextEditingController imageController = TextEditingController();
   // Fetched user inputs End
 
   //Tasker Text Controller

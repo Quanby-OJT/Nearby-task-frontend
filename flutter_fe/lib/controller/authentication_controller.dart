@@ -67,24 +67,28 @@ class AuthenticationController {
     var response = await ApiService.authOTP(userId, otpController.text);
     debugPrint(response.toString());
 
-    if(response.containsKey('user_id') && response.containsKey('role') && response.containsKey('session')){
+    if (response.containsKey('user_id') &&
+        response.containsKey('role') &&
+        response.containsKey('session')) {
       await storage.write('user_id', response['user_id']);
-      await storage.write('role', response['role']); //If the user is logged in to the app, this will be the determinant if where they will be assigned.
+      await storage.write(
+          'role',
+          response[
+              'role']); //If the user is logged in to the app, this will be the determinant if where they will be assigned.
       await storage.write('session', response['session']);
-      if(response['role'] == "Client"){
-        Navigator.push(context, MaterialPageRoute(builder: (context){
+      if (response['role'] == "Client") {
+        Navigator.push(context, MaterialPageRoute(builder: (context) {
           return BusinessAccMain();
         }));
-
       } else if (response['role'] == "Tasker") {
         Navigator.push(context, MaterialPageRoute(builder: (context) {
           // return FillUpTasker(); // Replace with your actual service account main page widget
           return ServiceAccMain(); // Replace with your actual service account main page widget
-
         }));
       }
-    }else if(response.containsKey('validation_error')){
-      String error = response['validation_error'] ?? "OTP Authentication Failed.";
+    } else if (response.containsKey('validation_error')) {
+      String error =
+          response['validation_error'] ?? "OTP Authentication Failed.";
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(error)),
       );
@@ -112,7 +116,8 @@ class AuthenticationController {
       debugPrint("Session: ${await AuthService.getSessionToken()}");
       debugPrint("Stored user ID for logout: $userIdString");
 
-      final response = await ApiService.logout(int.parse(userIdString), await AuthService.getSessionToken());
+      final response = await ApiService.logout(
+          int.parse(userIdString), await AuthService.getSessionToken());
       debugPrint("Logout response: $response");
 
       if (response.containsKey('message')) {
@@ -120,7 +125,7 @@ class AuthenticationController {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => WelcomePageViewMain()),
-              (route) => false,
+          (route) => false,
         );
       } else {
         String error = response['error'] ?? "Failed to Log Out the User.";
@@ -136,5 +141,4 @@ class AuthenticationController {
       );
     }
   }
-
 }

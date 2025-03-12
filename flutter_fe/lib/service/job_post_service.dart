@@ -117,13 +117,14 @@ class JobPostService {
     debugPrint("Liked Jobs Response: ${likedJobsResponse.toString()}");
     debugPrint("All Jobs Response: ${allJobsResponse.toString()}");
 
-    final likedJobIds = (likedJobsResponse["id"] as List<dynamic>? ?? [])
-        .map<int>((job) => job["job_post_id"] as int)
-        .toSet();
+    final likedJobIds =
+        (likedJobsResponse["liked_tasks"] as List<dynamic>? ?? [])
+            .map<int>((job) => job["job_post_id"] as int)
+            .toSet();
 
     debugPrint("Liked Job IDs: ${likedJobIds.toString()}");
 
-    final unlikedJobs = (allJobsResponse["id"] as List<dynamic>? ?? [])
+    final unlikedJobs = (allJobsResponse["tasks"] as List<dynamic>? ?? [])
         .where((job) {
           final jobId = job["job_post_id"];
           return jobId is int && !likedJobIds.contains(jobId);
@@ -163,8 +164,14 @@ class JobPostService {
         };
       }
 
-      return _deleteRequest(
+      final response = await _deleteRequest(
           "/unlikeJob", {"user_id": int.parse(userId), "job_post_id": jobId});
+
+      return {
+        'success': true,
+        'message':
+            response["message"] ?? "An Error Occurred while unliking job",
+      };
     } catch (e) {
       debugPrint(e.toString());
       debugPrintStack();

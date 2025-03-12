@@ -522,7 +522,8 @@ class _LikeScreenState extends State<LikeScreen> {
         ),
       );
 
-      if (confirm != true) return;
+      // if (confirm != true) return;
+      if (confirm == null || !confirm) return;
 
       // Process the unlike action
       final result = await _jobService.unlikeJob(job.id!);
