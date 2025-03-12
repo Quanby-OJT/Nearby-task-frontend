@@ -14,7 +14,7 @@ class ProfileController {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
-  TextEditingController();
+      TextEditingController();
   final TextEditingController roleController = TextEditingController();
   final TextEditingController statusController = TextEditingController();
   final TextEditingController middleNameController = TextEditingController();
@@ -23,7 +23,8 @@ class ProfileController {
 
   //Tasker Text Controller
   final TextEditingController bioController = TextEditingController();
-  final TextEditingController specializationController = TextEditingController();
+  final TextEditingController specializationController =
+      TextEditingController();
   final TextEditingController skillsController = TextEditingController();
   final TextEditingController taskerAddressController = TextEditingController();
   final TextEditingController availabilityController = TextEditingController();
@@ -68,8 +69,7 @@ class ProfileController {
         email: emailController.text,
         password: passwordController.text,
         role: roleController.text,
-        accStatus: 'Pending'
-    );
+        accStatus: 'Pending');
     bool success = await ApiService.registerUser(user);
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -96,7 +96,8 @@ class ProfileController {
     //Code to create tasker information.
   }
 
-  Future<AuthenticatedUser?> getAuthenticatedUser(BuildContext context, String userId) async {
+  Future<AuthenticatedUser?> getAuthenticatedUser(
+      BuildContext context, String userId) async {
     try {
       var result = await ApiService.fetchAuthenticatedUser(userId);
       debugPrint("Data: $result");
@@ -109,7 +110,7 @@ class ProfileController {
           return AuthenticatedUser(user: user, client: client);
         } else if (result.containsKey("tasker")) {
           TaskerModel tasker = result["tasker"] as TaskerModel;
-          debugPrint("Retrieved Data: "+ tasker.toString());
+          debugPrint("Retrieved Data: $tasker");
           return AuthenticatedUser(user: user, tasker: tasker);
         }
       }
@@ -126,5 +127,4 @@ class ProfileController {
       return null;
     }
   }
-
 }

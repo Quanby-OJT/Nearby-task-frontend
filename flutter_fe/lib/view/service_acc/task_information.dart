@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
-import 'package:flutter_fe/view/service_acc/chat_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class TaskInformation extends StatefulWidget {
@@ -66,8 +65,8 @@ class _TaskInformationState extends State<TaskInformation> {
                               "Location", _taskInformation!.location ?? "N/A"),
                           _buildInfoRow(
                               "Urgency", _taskInformation!.urgency ?? "N/A"),
-                          _buildInfoRow(
-                              "Duration", _taskInformation!.duration.toString() ?? "N/A"),
+                          _buildInfoRow("Duration",
+                              _taskInformation!.duration.toString() ?? "N/A"),
                           _buildInfoRow(
                               "Status", _taskInformation!.status ?? "N/A"),
                           SizedBox(height: 10),
@@ -80,11 +79,10 @@ class _TaskInformationState extends State<TaskInformation> {
                             child: TextButton(
                                 onPressed: () {
                                   Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => IndividualChatScreen()
-                                    )
-                                  );
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              IndividualChatScreen()));
                                 },
                                 style: TextButton.styleFrom(
                                     padding: EdgeInsets.symmetric(vertical: 20),
