@@ -1,25 +1,27 @@
 class TaskModel {
   final int? id;
+  final int? clientId;
   final String? title;
   final String? specialization;
   final String? description;
   final String? location;
-  final String? period;
-  final int? duration;
+  final String? period;  // <- period remains a String
+  final String? duration; // <- Change duration from int? to String?
   final String? urgency;
   final String? status;
   final int? contactPrice;
   final String? remarks;
   final String? taskBeginDate;
 
-   TaskModel({
+  TaskModel({
     this.id,
+    this.clientId,
     this.title,
     this.specialization,
     this.description,
     this.location,
-    this.duration,
     this.period,
+    this.duration,  // <- Updated from int? to String?
     this.urgency,
     this.status,
     this.contactPrice,
@@ -27,16 +29,17 @@ class TaskModel {
     this.taskBeginDate,
   });
 
-  // Convert to JSON (para gamitin sa API)
+  // Convert to JSON
   Map<String, dynamic> toJson() {
     return {
-      "task_id": id,
+      "job_post_id": id,
+      "client_id": clientId,
       "task_title": title,
       "specialization": specialization,
       "task_description": description,
       "location": location,
-      "duration": period,
-      "num_of_days": duration,
+      "duration": duration, // <- Keep as String
+      "num_of_days": period,
       "urgency": urgency,
       "contact_price": contactPrice,
       "remarks": remarks,
@@ -46,17 +49,18 @@ class TaskModel {
     };
   }
 
-  // Convert from JSON (kung may fetch feature later)
+  // Convert from JSON
   factory TaskModel.fromJson(Map<String, dynamic> json) {
     return TaskModel(
-      id: json['task_id'] as int?,
+      id: json['job_post_id'] as int?,
+      clientId: json['client_id'] as int?,
       title: json['task_title'] as String?,
       specialization: json['specialization'] as String?,
       description: json['task_description'] as String?,
       location: json['location'] as String?,
-      duration: json['duration'] as int?,
-      period: json['period'] as String?,
-      urgency: json['urgency'] as String?,
+      duration: json['duration']?.toString(), // <- Ensure it remains a String
+      period: json['period']?.toString(),
+      urgency: json['urgent'] as String?,  // <- Fix key from "urgency" to "urgent"
       contactPrice: json['contact_price'] as int?,
       remarks: json['remarks'] as String?,
       taskBeginDate: json['task_begin_date'] as String?,

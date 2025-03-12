@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/specialization.dart';
-import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_fe/model/task_model.dart';
@@ -96,16 +95,8 @@ class JobPostService {
       Map<String, dynamic> response = await _getRequest("/displayTask/$taskID");
       debugPrint("Data Retrieved: ${response.toString()}");
 
-      // Check if response contains the "tasks" key and it's a Map
-      if (response.containsKey("tasks") && response["tasks"] is Map) {
-        Map<String, dynamic> taskData = response["tasks"] as Map<String, dynamic>;
-        debugPrint("Mapped: ${taskData.toString()}");
-        return TaskModel.fromJson(taskData);
-      }
-
-      // Return null if no tasks found or invalid format
-      debugPrint("No valid task data found in response");
-      return null;
+      // Since response is already a task object, just parse it directly
+      return TaskModel.fromJson(response);
     } catch (e) {
       debugPrint('Error fetching tasks: $e');
       debugPrintStack();
@@ -113,9 +104,11 @@ class JobPostService {
     }
   }
 
+
   Future<List<TaskModel>> fetchAllJobs() async {
     try {
       final response = await _getRequest("/displayTask");
+      debugPrint(response.toString());
 
       // Check if the response contains an error
       if (response.containsKey("error")) {
@@ -201,7 +194,7 @@ class JobPostService {
 
     final filteredJobs = (allJobsResponse["tasks"] as List<dynamic>? ?? [])
         .where((job) {
-      final jobId = job["task_id"]; // Changed from "job_post_id" to "task_id"
+      final jobId = job["job_post_id"]; // Changed from "job_post_id" to "task_id"
       return jobId is int && likedJobIds.contains(jobId);
     })
         .map((job) => TaskModel.fromJson(job))
@@ -218,7 +211,7 @@ class JobPostService {
   ///
   /// -Ces
   ///
-  Future<Map<String, dynamic>> assignTask(TaskAssginment assignTask) async {
+  Future<Map<String, dynamic>> assignTask(int? taskId, int? clientId, int? taskerId) async {
     final userId = await getUserId();
     if (userId == null) {
       return {'success': false, 'message': 'Please log in to like jobs', 'requiresLogin': true};
@@ -226,15 +219,12 @@ class JobPostService {
 
     return _postRequest(
         endpoint: "$apiUrl/assign-task",
-        body: {...assignTask.toJson()}
+        body: {
+          "tasker_id": taskerId,
+          "client_id": clientId,
+          "task_id": taskId
+        }
     );
   }
-
-  ///
-  /// This code is to make the process more efficient when calling APIs. Please do not edit this.
-  ///
-  /// -Ces
-  ///
-
 
 }

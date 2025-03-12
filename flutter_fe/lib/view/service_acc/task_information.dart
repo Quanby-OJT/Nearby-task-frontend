@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:flutter_fe/view/service_acc/chat_screen.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class TaskInformation extends StatefulWidget {
@@ -15,8 +17,10 @@ class TaskInformation extends StatefulWidget {
 
 class _TaskInformationState extends State<TaskInformation> {
   final JobPostService _jobPostService = JobPostService();
+  final TaskController taskController = TaskController();
   TaskModel? _taskInformation;
   bool _isLoading = true;
+  final storage = GetStorage();
 
   @override
   void initState() {
@@ -79,6 +83,7 @@ class _TaskInformationState extends State<TaskInformation> {
                             ),
                             child: TextButton(
                                 onPressed: () {
+                                  taskController.assignTask(widget.taskID, _taskInformation!.clientId, storage.read('user_id'));
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(

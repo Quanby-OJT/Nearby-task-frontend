@@ -46,7 +46,7 @@ class NavUserScreen extends StatelessWidget implements PreferredSizeWidget {
                           color: Colors.white, fontSize: 10),
                     ),
                     Text(
-                      'Ronnie Estillero',
+                      'Ronnie Estillero', //To be changed to the name retrieved from the database.
                       style: GoogleFonts.montserrat(
                         color: Colors.white,
                         fontSize: 14,

@@ -1,11 +1,20 @@
+import 'package:flutter_fe/model/user_model.dart';
+
 class ClientModel{
   final String preferences;
   final String clientAddress;
+  UserModel? user;
 
   ClientModel({
     required this.preferences,
-    required this.clientAddress
+    required this.clientAddress,
+    this.user
   });
+
+  @override
+  String toString() {
+    return "user: $user)";
+  }
 
   Map<String, dynamic> toJson() {
     return{
