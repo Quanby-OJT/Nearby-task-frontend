@@ -16,16 +16,14 @@ class ApiService {
   static void _updateCookies(http.Response response) {
     String? rawCookie = response.headers['set-cookie'];
 
-    if (rawCookie != null) {
-      List<String> cookieParts = rawCookie.split(',');
-      for (String part in cookieParts) {
-        List<String> keyValue = part.split(';')[0].split('=');
-        if (keyValue.length == 2) {
-          _cookies[keyValue[0].trim()] = keyValue[1].trim();
-        }
+    List<String> cookieParts = rawCookie!.split(',');
+    for (String part in cookieParts) {
+      List<String> keyValue = part.split(';')[0].split('=');
+      if (keyValue.length == 2) {
+        _cookies[keyValue[0].trim()] = keyValue[1].trim();
       }
-      print('Updated Cookies: $_cookies'); // Debugging
     }
+    print('Updated Cookies: $_cookies'); // Debugging
   }
 
   // Function to add cookies to requests
@@ -71,7 +69,7 @@ class ApiService {
 
       print('Response Status: ${response.statusCode}');
       print('Response Body: ${response.body}');
-      print('Request URL: ${apiUrl}/create-new-user');
+      print('Request URL: $apiUrl/create-new-user');
       print('Full Request Body: ${json.encode(requestBody)}');
 
       return response.statusCode == 201;

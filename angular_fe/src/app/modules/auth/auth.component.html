@@ -1,18 +1,24 @@
 <div class="flex h-screen w-screen">
+  <!-- Left Part -->
   <div class="auth-bg bg-main-color hidden flex-1 items-center justify-center bg-cover lg:flex">
-    <div class="max-w-2xl space-y-4 p-8 text-center text-white">Welcome To NearByTask</div>
-  </div>
-  <div class="bg-background flex flex-1 items-center justify-center">
-    <div class="max-w-md overflow-y-auto px-4 sm:w-[500px]">
-      <!-- logo -->
-      <div class="flex items-center justify-center">
-        <a class="rounded-sm p-2">
-          <svg-icon src="assets/icons/Nearbytask.svg" [svgClass]="'h-5 w-5'"> </svg-icon>
-        </a>
-        <b class="text-md text-foreground pl-3 font-bold">NearByTask </b>
+    <div class="flex flex-col items-center justify-center h-full">
+      <img src="assets/icons/SigninPage.svg" class="h-120 w-120" />
+      <div class="animate-typing whitespace-nowrap border-r-4 border-r-white pr-5 text-4xl text-white font-sans font-bold">
+        Welcome To NearByTask
       </div>
-      <!-- Route -->
-      <router-outlet></router-outlet>
+    </div>
+  </div>
+
+  <!-- Right Part -->
+  <div class="flex-1 flex flex-col">
+    <div class="p-4">
+        <svg-icon src="assets/icons/Nearbytask.svg" [svgClass]="'h-20 w-20'"></svg-icon>
+    </div>
+    <div class="flex-1 flex items-center justify-center">
+      <div class="w-full max-w-md px-4">
+        <!-- Route -->
+        <router-outlet></router-outlet>
+      </div>
     </div>
   </div>
 </div>

@@ -1,8 +1,9 @@
-import { Component} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TaskService } from 'src/app/services/task.service';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-task',
@@ -11,7 +12,7 @@ import { Router } from '@angular/router';
   templateUrl: './task.component.html',
   styleUrls: ['./task.component.css']
 })
-export class TaskComponent {
+export class TaskComponent implements OnInit {
   Math = Math;
   tasks: any[] = [];
   filteredTasks: any[] = [];
@@ -24,11 +25,25 @@ export class TaskComponent {
   constructor(
     private route: Router,
     private taskService: TaskService
-  ) {}
+  ) {
+    // Listen for navigation events to refresh tasks
+    this.route.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => {
+        if (this.route.url === '/tasks-management') {
+          this.fetchTasks(); // Refresh tasks when navigating back
+        }
+      });
+  }
 
   ngOnInit(): void {
+    this.fetchTasks();
+  }
+
+  fetchTasks(): void {
     this.taskService.getTasks().subscribe(
       (response) => {
+        console.log('Fetched tasks:', response.tasks); // Debug
         this.tasks = response.tasks;
         this.filteredTasks = response.tasks;
         this.updatePagination();
@@ -61,33 +76,28 @@ export class TaskComponent {
       (this.currentPage - 1) * this.tasksPerPage,
       this.currentPage * this.tasksPerPage
     );
-
     this.generatePagination();
   }
 
   generatePagination() {
-    let maxPagesToShow = 3; // Always show 3 page numbers in the middle
+    let maxPagesToShow = 3;
     let startPage = Math.max(1, this.currentPage - 1);
     let endPage = Math.min(this.totalPages, startPage + maxPagesToShow - 1);
   
     this.paginationButtons = [];
   
-    // Show "..." before the middle pages if we're past page 2
     if (startPage > 2) {
       this.paginationButtons.push('...');
     }
   
-    // Add the 3 middle page numbers
     for (let i = startPage; i <= endPage; i++) {
       this.paginationButtons.push(i);
     }
   
-    // // Show "..." after the middle pages if there are more pages after
     if (endPage < this.totalPages - 1) {
       this.paginationButtons.push('...');
     }
   }
-  
 
   changeTasksPerPage(event: Event) {
     this.tasksPerPage = parseInt((event.target as HTMLSelectElement).value, 10);
@@ -102,7 +112,7 @@ export class TaskComponent {
       this.updatePagination();
     }
   }
-  
+
   disableTask(taskId: string) {
     this.route.navigate(['tasks-management/task-disable', taskId]);
   }
