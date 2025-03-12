@@ -24,7 +24,8 @@ class TaskController {
   final contactpriceController = TextEditingController();
   final storage = GetStorage();
 
-  Future<Map<String, dynamic>> postJob(String? specialization, String? urgency, String? period) async {
+  Future<Map<String, dynamic>> postJob(
+      String? specialization, String? urgency, String? period) async {
     try {
       int userId = storage.read('user_id');
       print('Submitting data...'); // Debug print
@@ -52,39 +53,44 @@ class TaskController {
     }
   }
 
-  Future<List<TaskModel>?> getJobsforClient(BuildContext context, int clientId) async {
+  Future<List<TaskModel>?> getJobsforClient(
+      BuildContext context, int clientId) async {
     final clientTask = await _jobPostService.fetchJobsForClient(clientId);
     debugPrint(clientTask.toString());
 
-
     if (clientTask.containsKey('tasks')) {
-      List<dynamic> tasksList = clientTask['tasks']; // Extract the list from the map
+      List<dynamic> tasksList =
+          clientTask['tasks']; // Extract the list from the map
 
-      List<TaskModel> tasks = tasksList.map((task) => TaskModel.fromJson(task)).toList(); // Convert list to TaskModel list
+      List<TaskModel> tasks = tasksList
+          .map((task) => TaskModel.fromJson(task))
+          .toList(); // Convert list to TaskModel list
 
       return tasks;
     }
 
     // Show error message if tasks are not found
-    ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(clientTask['error'] ?? "Something Went Wrong while Retrieving Your Tasks."))
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(clientTask['error'] ??
+            "Something Went Wrong while Retrieving Your Tasks.")));
 
     return null;
   }
 
   Future<String> assignTask(int? taskerId, int? clientId, int? taskId) async {
-    debugPrint("Assigning task...");
-    final assignedTask = await _jobPostService.assignTask(taskId, taskerId, clientId);
 
-    if(assignedTask.containsKey('message')){
+    final assignedTask =
+        await _jobPostService.assignTask(taskId, taskerId, clientId);
+
+    if (assignedTask.containsKey('message')) {
       return assignedTask['message'].toString();
-    }else{
+    } else {
       return assignedTask['error'].toString();
     }
   }
 
-  Future<List<TaskAssignment>?> getAllAssignedTasks(BuildContext context, int userId) async {
+  Future<TaskAssignment?> getAllAssignedTasks(
+      BuildContext context, int userId) async {
     final assignedTasks = await TaskDetailsService().getAllTakenTasks();
     debugPrint(assignedTasks.toString());
 
@@ -151,16 +157,14 @@ class TaskController {
 
       return taskAssignments;
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(assignedTasks['error'] ?? "Something Went Wrong while Retrieving Your Tasks."),
-        ),
-      );
-      return null;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(assignedTasks['error'] ??
+              "Something Went Wrong while Retrieving Your Tasks.")));
+
     }
   }
 
   // Future<Map<String, dynamic>> getLikedJobs(int taskerId) async {
-  // 
+  //
   // }
 }

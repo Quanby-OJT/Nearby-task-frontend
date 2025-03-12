@@ -18,14 +18,12 @@ void main() async {
 class MyApp extends StatelessWidget {
   final storage = GetStorage();
 
-  // Make userId nullable (int?) since it might not exist in storage
-  MyApp({Key? key, required this.isLoggedIn, this.userId}) : super(key: key);
-
-  final bool isLoggedIn;
-  final dynamic userId; // Use dynamic or int? based on your needs
+  MyApp({Key? key, required bool isLoggedIn, required dynamic userId})
+      : super(key: key);
 
   Future<Map<String, dynamic>> _loadUserData() async {
-    await Future.delayed(Duration(milliseconds: 300)); // Ensure GetStorage is ready
+    await Future.delayed(
+        Duration(milliseconds: 300)); // Ensure GetStorage is ready
 
     final userId = storage.read('user_id');
     final role = storage.read('role');
@@ -41,7 +39,9 @@ class MyApp extends StatelessWidget {
         if (!snapshot.hasData) {
           return MaterialApp(
             home: Scaffold(
-              body: Center(child: CircularProgressIndicator()), // Show loading while fetching data
+              body: Center(
+                  child:
+                      CircularProgressIndicator()), // Show loading while fetching data
             ),
           );
         }
@@ -56,7 +56,8 @@ class MyApp extends StatelessWidget {
             GetPage(name: '/welcome', page: () => WelcomePageViewMain()),
             GetPage(name: '/service-home', page: () => ServiceAccMain()),
             GetPage(name: '/client-home', page: () => BusinessAccMain()),
-            GetPage(name: '/email-confirmation', page: () => EmailConfirmation()),
+            GetPage(
+                name: '/email-confirmation', page: () => EmailConfirmation()),
           ],
         );
       },
