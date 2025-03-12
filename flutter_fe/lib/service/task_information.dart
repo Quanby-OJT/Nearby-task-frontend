@@ -6,8 +6,8 @@ import 'package:flutter_fe/model/task_model.dart';
 class TaskDetailsService {
   Future<TaskModel?> fetchTaskDetails(int taskId) async {
     try {
-      final url =
-          Uri.parse("http://localhost:5000/connect/displayLikedJob/$taskId");
+      final url = Uri.parse(
+          "http://192.168.254.113:5000/connect/displayLikedJob/$taskId");
 
       final response = await http.get(url);
 

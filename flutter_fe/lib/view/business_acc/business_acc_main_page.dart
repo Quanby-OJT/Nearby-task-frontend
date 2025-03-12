@@ -5,6 +5,7 @@ import 'package:flutter_fe/view/business_acc/job_post_page.dart';
 import 'package:flutter_fe/view/business_acc/likes_screen.dart';
 import 'package:flutter_fe/view/business_acc/profile_screen.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:flutter_fe/view/nav/user_navigation.dart';
 
 class BusinessAccMain extends StatefulWidget {
   const BusinessAccMain({super.key});
@@ -27,6 +28,7 @@ class _BusinessAccMainState extends State<BusinessAccMain> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: NavUserScreen(),
       body: PageView(
         physics: NeverScrollableScrollPhysics(),
         controller: _pageController,

@@ -8,7 +8,7 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:get_storage/get_storage.dart';
 
 class JobPostService {
-  static const String apiUrl = "http://10.0.2.2:5000/connect";
+  static const String apiUrl = "http://192.168.254.113:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -27,7 +27,10 @@ class JobPostService {
     try {
       final response = await http.get(
         Uri.parse('$apiUrl/$endpoint'),
-        headers: {"Authorization": "Bearer $token", "Content-Type": "application/json"},
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
       );
       print("API Response for $endpoint: ${response.body}");
       return _handleResponse(response);
@@ -38,20 +41,20 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
-    final response = await http.post(
-        Uri.parse("$apiUrl$endpoint"),
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json"
-      },
-      body: jsonEncode(body)
-    );
+  Future<Map<String, dynamic>> _postRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
+    final response = await http.post(Uri.parse("$apiUrl$endpoint"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+        body: jsonEncode(body));
 
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> _deleteRequest(
+      String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
       final request = http.Request("DELETE", Uri.parse('$apiUrl$endpoint'))
@@ -67,14 +70,14 @@ class JobPostService {
   }
 
   Future<Map<String, dynamic>> postJob(TaskModel task, int userId) async {
-    try{
+    try {
       Future<Map<String, dynamic>> response = _postRequest(
         endpoint: "/addTask",
         body: {...task.toJson(), "user_id": userId},
       );
 
       return response;
-    }catch(e){
+    } catch (e) {
       debugPrint(e.toString());
       debugPrintStack();
       return {'success': false, "error": "Error: $e"};
@@ -83,8 +86,8 @@ class JobPostService {
 
   Future<List<SpecializationModel>> getSpecializations() async {
     final response = await _getRequest("/get-specializations");
-    if (response["specializations"] != null) {
-      return (response["specializations"] as List)
+    if (response["specialization"] != null) {
+      return (response["specialization"] as List)
           .map((item) => SpecializationModel.fromJson(item))
           .toList();
     }
@@ -98,7 +101,8 @@ class JobPostService {
 
       // Check if response contains the "tasks" key and it's a Map
       if (response.containsKey("tasks") && response["tasks"] is Map) {
-        Map<String, dynamic> taskData = response["tasks"] as Map<String, dynamic>;
+        Map<String, dynamic> taskData =
+            response["tasks"] as Map<String, dynamic>;
         debugPrint("Mapped: ${taskData.toString()}");
         return TaskModel.fromJson(taskData);
       }
@@ -145,16 +149,17 @@ class JobPostService {
     final userId = await getUserId();
     // debugPrint(userId);
     if (userId == null) {
-      return {'success': false, 'message': 'Please log in to like jobs', 'requiresLogin': true};
+      return {
+        'success': false,
+        'message': 'Please log in to like jobs',
+        'requiresLogin': true
+      };
     }
-    return _postRequest(
-      endpoint: "/likeJob",
-      body: {
-        "user_id": int.parse(userId),
-        "job_post_id": jobId,
-        "created_at": DateTime.now().toString()
-      }
-    );
+    return _postRequest(endpoint: "/likeJob", body: {
+      "user_id": int.parse(userId),
+      "job_post_id": jobId,
+      "created_at": DateTime.now().toString()
+    });
   }
 
   Future<Map<String, dynamic>> unlikeJob(int jobId) async {
@@ -170,7 +175,7 @@ class JobPostService {
 
       return _deleteRequest(
           "/unlikeJob", {"user_id": int.parse(userId), "job_post_id": jobId});
-    }catch(e){
+    } catch (e) {
       debugPrint(e.toString());
       debugPrintStack();
       return {"error": "An Error Occured while getting all jobs."};
@@ -192,18 +197,20 @@ class JobPostService {
     debugPrint("All Jobs Response: ${allJobsResponse.toString()}");
 
     // Explicitly type the list and cast job IDs to int
-    final likedJobIds = (likedJobsResponse["liked_tasks"] as List<dynamic>? ?? [])
-        .map<int>((job) => (job["job_post_id"] as int))
-        .toSet();
+    final likedJobIds =
+        (likedJobsResponse["liked_tasks"] as List<dynamic>? ?? [])
+            .map<int>((job) => (job["job_post_id"] as int))
+            .toSet();
 
     debugPrint("Liked Jobs Response ${likedJobsResponse.toString()}");
     debugPrint("All Jobs: ${likedJobIds.toString()}");
 
     final filteredJobs = (allJobsResponse["tasks"] as List<dynamic>? ?? [])
         .where((job) {
-      final jobId = job["task_id"]; // Changed from "job_post_id" to "task_id"
-      return jobId is int && likedJobIds.contains(jobId);
-    })
+          final jobId =
+              job["task_id"]; // Changed from "job_post_id" to "task_id"
+          return jobId is int && likedJobIds.contains(jobId);
+        })
         .map((job) => TaskModel.fromJson(job))
         .toList();
 
@@ -221,13 +228,15 @@ class JobPostService {
   Future<Map<String, dynamic>> assignTask(TaskAssginment assignTask) async {
     final userId = await getUserId();
     if (userId == null) {
-      return {'success': false, 'message': 'Please log in to like jobs', 'requiresLogin': true};
+      return {
+        'success': false,
+        'message': 'Please log in to like jobs',
+        'requiresLogin': true
+      };
     }
 
     return _postRequest(
-        endpoint: "$apiUrl/assign-task",
-        body: {...assignTask.toJson()}
-    );
+        endpoint: "$apiUrl/assign-task", body: {...assignTask.toJson()});
   }
 
   ///
@@ -235,6 +244,4 @@ class JobPostService {
   ///
   /// -Ces
   ///
-
-
 }
