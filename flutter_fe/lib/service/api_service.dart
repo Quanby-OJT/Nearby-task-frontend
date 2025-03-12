@@ -39,50 +39,84 @@ class ApiService {
         _cookies.entries.map((e) => '${e.key}=${e.value}').join('; ');
     return {
       "Content-Type": "application/json",
-      "Accept": "application/json",
       if (_cookies.isNotEmpty) "Cookie": cookieHeader,
     };
   }
 
-  static Future<bool> registerUser(UserModel user) async {
+  static Future<Map<String, dynamic>> registerUser(UserModel user) async {
     try {
       // Create a salt using timestamp
       String salt = DateTime.now().millisecondsSinceEpoch.toString();
 
-      // Create the request payload
-      Map<String, dynamic> requestBody = {
-        "data": {
-          "first_name": user.firstName,
-          "middle_name": user.middleName,
-          "last_name": user.lastName,
-          "email": user.email,
-          "password": user.password,
-          "user_role": user.role,
-          // "acc_status": user.accStatus
-        },
-        "salt": salt
-      };
-
-      debugPrint('Request Body: ${json.encode(requestBody)}'); // Debug log
-
       final response = await _client.post(
-        Uri.parse("$apiUrl/create-new-user"),
+        Uri.parse("$apiUrl/create-new-account"),
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
         },
-        body: json.encode(requestBody),
+        body: json.encode({
+          ...user.toJson(),
+          "salt": salt,
+        }),
       );
+
+      var data = jsonDecode(response.body);
 
       debugPrint('Response Status: ${response.statusCode}');
       debugPrint('Response Body: ${response.body}');
-      debugPrint('Request URL: ${apiUrl}/create-new-user');
-      debugPrint('Full Request Body: ${json.encode(requestBody)}');
 
-      return response.statusCode == 201;
+
+      if (response.statusCode == 201) {
+        return {"message": data["message"] ?? "Registration Successful"};
+      } else if (response.statusCode == 400) {
+        // Handle errors field, which could be a string or a list
+        if (data['errors'] is String) {
+          // If errors is a string, return it directly
+          return {"error": data['errors']};
+        } else if (data['errors'] is List) {
+          // If errors is a list, map it to a single string
+          List<dynamic> errors = data['errors'];
+          String errorMessage = errors.map((e) => e['msg'] ?? e.toString()).join('\n');
+          return {"error": errorMessage};
+        } else {
+          return {"error": "Unknown error format from server"};
+        }
+      } else {
+        return {
+          "error": data["error"] ?? "An error occurred while registering your account. Please try again."
+        };
+      }
     } catch (e) {
       debugPrint('Registration Error: $e');
-      return false;
+      return {
+        "error": "An error occurred while registering your account: $e"
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> verifyEmail(String token, String email) async {
+    try {
+      final response = await _client.post(
+        Uri.parse("$apiUrl/verify"),
+        headers: _getHeaders(),
+        body: json.encode({
+          "token": token,
+          "email": email
+        }
+      ));
+
+      var data = jsonDecode(response.body);
+      debugPrint('Verify Response: ${response.statusCode} - ${response.body}');
+
+      if(response.statusCode == 200){
+        return {"message": data["message"] ?? "Email Verified Successfully.", "user_id": data["user_id"], "session": data["session"]};
+      }else {
+        return {"error": data["error"] ?? "An Error Occured while verifying your email. Please Try Again"};
+      }
+    }catch(e, stackTrace) {
+      debugPrint(e.toString());
+      debugPrint(stackTrace.toString());
+      return {"error": "An Error Occured while verifying your email. Please Try Again"};
     }
   }
 

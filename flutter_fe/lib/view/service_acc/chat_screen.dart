@@ -14,7 +14,7 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  List<TaskAssignment>? taskAssignments;
+  List<TaskAssignment>? taskAssignments; // This is already correctly typed
   final GetStorage storage = GetStorage();
   final TaskController _taskController = TaskController();
 
@@ -27,10 +27,11 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _fetchTaskAssignments() async {
     int userId = storage.read('user_id');
 
-    TaskAssignment? assignTask = await _taskController.getAllAssignedTasks(context, userId);
+    // Get the list of task assignments
+    List<TaskAssignment>? fetchedAssignments = await _taskController.getAllAssignedTasks(context, userId);
 
     setState(() {
-      // taskAssignments = assignTask;
+      taskAssignments = fetchedAssignments; // Assign the list directly
     });
   }
 

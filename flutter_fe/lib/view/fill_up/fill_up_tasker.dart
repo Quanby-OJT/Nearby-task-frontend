@@ -4,9 +4,12 @@ import 'package:flutter_fe/view/sign_in/sign_in.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_fe/model/specialization.dart';
+import 'package:flutter_fe/service/job_post_service.dart';
 
 class FillUpTasker extends StatefulWidget {
-  const FillUpTasker({super.key});
+  final int userId;
+  const FillUpTasker({super.key, required this.userId});
 
   @override
   State<FillUpTasker> createState() => _FillUpTaskerState();
@@ -16,13 +19,16 @@ class _FillUpTaskerState extends State<FillUpTasker> {
   int currentStep = 0;
 
   final ProfileController _controller = ProfileController();
+  final JobPostService jobPostService = JobPostService();
+  String? _message;
+  bool _isSuccess = false;
   File? _selectedFile; // Store the selected file
   String? _fileName; // Store the selected file name
   File? _selectedImage; // Store the selected image
   String? _imageName; // Store the selected image name
   String? selectedGender;
-  List<String> genderOptions = ["Male", "Female"];
-  List<String> specializtion = ['Tech Support', 'Cleaning', 'Plumbing'];
+  List<String> genderOptions = ["Male", "Female", "Non-Binary", "I don't Want to Say"];
+  List<String> specialization = [];
   String? selectedSpecialization;
 
   Future<void> _pickFile() async {
@@ -52,6 +58,24 @@ class _FillUpTaskerState extends State<FillUpTasker> {
         _selectedImage = File(pickedFile.path); // Store the selected image
         _imageName = pickedFile.name; // Store image name
       });
+    }
+  }
+
+  @override
+  void initState(){
+    super.initState();
+    fetchSpecialization();
+  }
+
+  Future<void> fetchSpecialization() async {
+    try {
+      List<SpecializationModel> fetchedSpecializations = await jobPostService.getSpecializations();
+      debugPrint(fetchedSpecializations.toString());
+      setState(() {
+        specialization = fetchedSpecializations.map((spec) => spec.specialization).toList();
+      });
+    } catch (error) {
+      print('Error fetching specializations: $error');
     }
   }
 
@@ -95,11 +119,12 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                       final isLastStep = currentStep == getSteps().length - 1;
 
                       if (isLastStep) {
-                        print('completed');
+                        debugPrint('Creating New Tasker...');
                         try {
                           _controller.registerUser(context);
                         } catch (error) {
-                          print('Registration error: $error');
+                          debugPrint('Registration error: $error');
+                          debugPrintStack();
                         }
                       } else {
                         setState(() {
@@ -177,20 +202,21 @@ class _FillUpTaskerState extends State<FillUpTasker> {
         Step(
             state: currentStep > 0 ? StepState.complete : StepState.indexed,
             isActive: currentStep >= 0,
-            title: Text('Basic'),
+            title: Text('General'),
             content: Column(
               children: [
+                //Wage
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextFormField(
                     controller: _controller.firstNameController,
                     cursorColor: Color(0xFF0272B1),
                     validator: (value) =>
-                        value!.isEmpty ? "First name is required" : null,
+                        value!.isEmpty ? "Please Indicate Your Desired Wage" : null,
                     decoration: InputDecoration(
                         filled: true,
                         fillColor: Color(0xFFF1F4FF),
-                        hintText: 'First Name',
+                        hintText: 'How Much Would You Want to be Paid?',
                         hintStyle: TextStyle(color: Colors.grey),
                         enabledBorder: OutlineInputBorder(
                             borderSide:
@@ -202,6 +228,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                                 color: Color(0xFF0272B1), width: 2))),
                   ),
                 ),
+                //Duration
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextFormField(
@@ -212,7 +239,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                     decoration: InputDecoration(
                         filled: true,
                         fillColor: Color(0xFFF1F4FF),
-                        hintText: 'Last Name',
+                        hintText: 'How do you want to be Paid?',
                         hintStyle: TextStyle(color: Colors.grey),
                         enabledBorder: OutlineInputBorder(
                             borderSide:
@@ -224,13 +251,14 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                                 color: Color(0xFF0272B1), width: 2))),
                   ),
                 ),
+                //Gender
                 Padding(
                   padding: EdgeInsets.only(bottom: 10.0),
                   child: DropdownButtonFormField<String>(
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Color(0xFFF1F4FF),
-                      hintText: 'Gender...',
+                      hintText: 'Select Your Gender...',
                       hintStyle: TextStyle(color: Colors.grey),
                       enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.transparent)),
@@ -249,12 +277,13 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                     },
                   ),
                 ),
+                //Contact Number
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextFormField(
                     cursorColor: Color(0xFF0272B1),
                     validator: (value) =>
-                        value!.isEmpty ? "Contact is required" : null,
+                        value!.isEmpty ? "Please indicate your contact number" : null,
                     decoration: InputDecoration(
                         filled: true,
                         fillColor: Color(0xFFF1F4FF),
@@ -270,6 +299,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                                 color: Color(0xFF0272B1), width: 2))),
                   ),
                 ),
+                //Tasker Address
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextFormField(
@@ -279,7 +309,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                     decoration: InputDecoration(
                         filled: true,
                         fillColor: Color(0xFFF1F4FF),
-                        hintText: 'Address',
+                        hintText: 'Indicate Your Address',
                         hintStyle: TextStyle(color: Colors.grey),
                         enabledBorder: OutlineInputBorder(
                             borderSide:
@@ -291,6 +321,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                                 color: Color(0xFF0272B1), width: 2))),
                   ),
                 ),
+                //Birthdate
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextField(
@@ -659,11 +690,11 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                     maxLines: 2,
                     controller: _controller.emailController,
                     cursorColor: Color(0xFF0272B1),
-                    validator: (value) => value!.isEmpty ? "Bio..." : null,
+                    validator: (value) => value!.isEmpty ? "Indicate Your desired description." : null,
                     decoration: InputDecoration(
                         filled: true,
                         fillColor: Color(0xFFF1F4FF),
-                        hintText: 'Bio...',
+                        hintText: 'How do you describe yourself as a Worker?',
                         hintStyle: TextStyle(color: Colors.grey),
                         enabledBorder: OutlineInputBorder(
                             borderSide:
@@ -672,7 +703,9 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                         focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                             borderSide: BorderSide(
-                                color: Color(0xFF0272B1), width: 2))),
+                                color: Color(0xFF0272B1), width: 2)
+                        )
+                    ),
                   ),
                 ),
                 Padding(
@@ -686,7 +719,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                     decoration: InputDecoration(
                         filled: true,
                         fillColor: Color(0xFFF1F4FF),
-                        hintText: 'List of skills...',
+                        hintText: 'Enumerate what Skills Do you possessed at this moment.',
                         hintStyle: TextStyle(color: Colors.grey),
                         enabledBorder: OutlineInputBorder(
                             borderSide:
@@ -698,6 +731,39 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                                 color: Color(0xFF0272B1), width: 2))),
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
+                  child: DropdownButtonFormField<String>(
+                    value: selectedSpecialization,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Color(0xFFF1F4FF),
+                      hintText: 'Select Tasker Specialization *',
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.transparent),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
+                      ),
+                    ),
+                    items: specialization.map((String spec) {
+                      return DropdownMenuItem<String>(
+                        value: spec,
+                        child: Text(
+                          spec,
+                          overflow: TextOverflow.ellipsis, // Ensures text does not overflow
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (newValue) {
+                      setState(() {
+                        selectedSpecialization = newValue;
+                      });
+                    },
+                  ),
+                ),
 
                 // Show Selected Image Start (if any)
               ],
@@ -707,41 +773,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
             title: Text('Certs'),
             content: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: DropdownButtonFormField<String>(
-                    value: selectedSpecialization,
-                    decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Color(0xFFF1F4FF),
-                        //labelText: 'Select an option',
-                        hintText: 'Specialization...',
-                        hintStyle: TextStyle(color: Color(0xFF0272B1)),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Colors.transparent, width: 0),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              BorderSide(color: Color(0xFF0272B1), width: 2),
-                        )),
-                    items: specializtion.map((String item) {
-                      return DropdownMenuItem<String>(
-                        value: item,
-                        child: Text(item),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        selectedSpecialization = newValue;
-                        // _controller.jobSpecializationController.text =
-                        //     newValue ?? "";
-                      });
-                    },
-                  ),
-                ),
+
                 ElevatedButton(
                   onPressed: _pickFile,
                   child: Text("Pick PDF"),

@@ -11,7 +11,7 @@ void main() async {
   await GetStorage.init();
 
   final storage = GetStorage();
-  final userId = storage.read('user_id');
+  final userId = storage.read('user_id'); // This could be null or any type
   runApp(MyApp(isLoggedIn: userId != null, userId: userId));
 }
 
