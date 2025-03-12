@@ -5,7 +5,7 @@
     <p class="text-muted-foreground text-sm">Enter your credential to access your account.</p>
   </div>
 
-  <div>
+  <!-- <div>
     <p>Email: daniel.brown&#64;example.com</p>
     <p>Password: Brown</p>
   </div>
@@ -15,7 +15,7 @@
       <svg-icon src="assets/icons/google-logo.svg" [svgClass]="'h-6 w-6 mr-2'"> </svg-icon>
       Log in with Google
     </app-button>
-  </div>
+  </div> -->
 
   <div class="space-y-3 text-left">
     <div class="form__group">
@@ -76,10 +76,18 @@
   </div>
 
   <!-- Submit Button -->
+  <div class="pt-5">
   <div>
-    <app-button full impact="bold" shape="rounded" size="medium">Sign in</app-button>
+    <app-button full impact="bold" shape="rounded" size="medium" class="py-2">Sign in</app-button>
   </div>
 
+  <div routerLink="/dashboard" class="py-2">
+    <app-button full impact="bold" tone="light" shape="rounded" size="medium">
+      <svg-icon src="assets/icons/google-logo.svg" [svgClass]="'h-6 w-6 mr-2'"> </svg-icon>
+      Log in with Google
+    </app-button>
+  </div>
+</div>
   <!-- Sign-up -->
   <div class="text-muted-foreground flex items-center text-sm">
     Not a Member yet?

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
@@ -56,3 +57,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
     _addMessage(textMessage);
   }
 }
+=======
+// import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+// import 'package:flutter_chat_ui/flutter_chat_ui.dart';
+>>>>>>> master

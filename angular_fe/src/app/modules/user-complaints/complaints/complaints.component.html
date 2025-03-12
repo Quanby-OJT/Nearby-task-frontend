@@ -1,1 +1,37 @@
-<p>complaints works!</p>
+<!--Header page navigation-->
+<div class="mb-4 flex justify-between w-full max-w-[1440px] mx-auto px-4">
+    <div>
+      <h3 class="text-foreground font-semibold">User Complains</h3>
+      <div class="text-muted-foreground text-xs font-medium">
+        <a href="#" class="hover:text-primary">Dashboards > User Complains</a>
+      </div>
+    </div>
+  </div>
+
+<!--Container-->
+<div class="place-items-end pr-20 border border-black">
+<div class="flex">
+    <div class="border border-black rounded-md">
+        <button class="px-4 py-2 text-sm font-medium text-blue-700 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white" (click)="switchTab('ClientTab')">Client Complains</button>
+    </div>
+    <div class="border border-black ">
+        <button class="px-4 py-2 text-sm font-medium text-blue-700 bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:border-gray-700 dark:text-white dark:hover:text-white dark:hover:bg-gray-700 dark:focus:ring-blue-500 dark:focus:text-white" (click)="switchTab('TaskerTab')">Tasker Complain</button>
+    </div>
+</div>
+
+<!--Default Tab-->
+<div class="border border-black">
+<div>
+    <div *ngIf="currentTab == 'ClientTab'" class="place-items-center">
+        <app-client-complain-tab></app-client-complain-tab>
+    </div>
+</div>
+
+<!--Second Tab-->
+<div>
+    <div *ngIf="currentTab == 'TaskerTab'" class="place-items-center">
+        <app-tasker-complain-tab></app-tasker-complain-tab>
+    </div>
+</div>
+</div>
+</div>

@@ -54,7 +54,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _saveLikedJob(TaskModel task) async {
     try {
-      debugPrint("Printing..." + task.toString());
+      debugPrint(task.toString());
       // Check if task ID is null
       if (task.id == null) {
         print("Cannot like job: Task ID is null for task: ${task.title}");
@@ -73,7 +73,7 @@ class _HomePageState extends State<HomePage> {
       // Call the service method to save the liked job - now passing an int
       final result = await jobPostService.saveLikedJob(task.id!);
 
-      if (result.containsKey('message')) {
+      if (result['success']) {
         // Show success indicator
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -86,15 +86,14 @@ class _HomePageState extends State<HomePage> {
         // Show error indicator
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result['error']),
+            content: Text(result['message']),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 2),
           ),
         );
       }
     } catch (e) {
-      debugPrint("$e");
-      debugPrintStack();
+      print("Error saving liked job: $e");
 
       // Show error indicator
       ScaffoldMessenger.of(context).showSnackBar(
@@ -209,7 +208,8 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 )
-                ///
+
+              ///
               /// This code, if the backend data contains only one data, it must display the data and the card swipe must work regardless.
               ///
               /// -Ces

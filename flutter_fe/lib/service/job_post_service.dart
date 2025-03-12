@@ -38,17 +38,66 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
-    final response = await http.post(
-        Uri.parse("$apiUrl$endpoint"),
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json"
-      },
-      body: jsonEncode(body)
-    );
+  Future<Map<String, dynamic>> _postRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
+    final token = await AuthService.getSessionToken();
+    try {
+      String? userId = await getUserId();
+      if (userId == null || userId.isEmpty) {
+        debugPrint("Cannot fetch liked jobs: User not logged in");
+        return {"error": "User not logged in"};
+      }
 
-    return _handleResponse(response);
+      final url =
+          Uri.parse("http://localhost:5000/connect/displayLikedJob/$userId");
+
+      debugPrint("Fetching liked jobs from: $url");
+
+      final response = await http.get(url);
+      debugPrint("Response status: ${response.statusCode}");
+      debugPrint("Raw response body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonData = jsonDecode(response.body);
+        debugPrint("Decoded JSON data: $jsonData");
+
+        if (jsonData.containsKey('tasks')) {
+          final List<dynamic> likedJobs = jsonData['tasks'];
+          debugPrint("Raw liked jobs: $likedJobs"); // Debug print
+
+          // Fetch full job details for each liked job
+          final jobDetailsResponse = await http
+              .get(Uri.parse('http://localhost:5000/connect/displayTask'));
+
+          if (jobDetailsResponse.statusCode == 200) {
+            final Map<String, dynamic> allJobsData =
+                jsonDecode(jobDetailsResponse.body);
+            final List<dynamic> allJobs = allJobsData['tasks'];
+
+            // Get liked job IDs
+            final Set<int> likedJobIds =
+                likedJobs.map<int>((job) => job['job_post_id'] as int).toSet();
+
+            // Filter and map jobs
+            List<TaskModel> taskModels = allJobs
+                .where((job) => likedJobIds.contains(job['job_post_id']))
+                .map((job) => TaskModel.fromJson(job))
+                .toList();
+
+            debugPrint("Successfully parsed ${taskModels.length} tasks");
+            return {"tasks": taskModels};
+          } else {
+            return {"error": "Failed to fetch job details"};
+          }
+        } else {
+          return {"error": "No liked jobs found"};
+        }
+      } else {
+        return {"error": "Failed to fetch liked jobs"};
+      }
+    } catch (e) {
+      return {"error": "Request failed: $e"};
+    }
   }
 
   Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
@@ -123,11 +172,37 @@ class JobPostService {
         return [];
       }
 
-      // Ensure the 'tasks' key exists and is a List
-      if (response["tasks"] != null && response["tasks"] is List) {
-        return (response["tasks"] as List)
-            .map((task) => TaskModel.fromJson(task as Map<String, dynamic>))
-            .toList();
+      // Fetch all jobs
+
+      final response = await http
+          .get(Uri.parse('http://localhost:5000/connect/displayTask'));
+
+      // Fetch liked jobs
+      final likedJobsResponse = await http.get(
+          Uri.parse('http://localhost:5000/connect/displayLikedJob/$userId'));
+
+      if (response.statusCode == 200 && likedJobsResponse.statusCode == 200) {
+        final Map<String, dynamic> jsonData = jsonDecode(response.body);
+        final Map<String, dynamic> likedJobsData =
+            jsonDecode(likedJobsResponse.body);
+
+        if (jsonData.containsKey('tasks') &&
+            likedJobsData.containsKey('tasks')) {
+          final List<dynamic> taskList = jsonData['tasks'];
+          final List<dynamic> likedJobs = likedJobsData['tasks'];
+
+          // Extract liked job IDs
+          final Set<int> likedJobIds =
+              likedJobs.map<int>((job) => job['job_post_id'] as int).toSet();
+
+          // Filter out liked jobs from all jobs
+          final List<TaskModel> filteredTasks = taskList
+              .map((task) => TaskModel.fromJson(task))
+              .where((task) => !likedJobIds.contains(task.id))
+              .toList();
+
+          return filteredTasks;
+        }
       }
 
       // If 'tasks' is missing or not a list, return an empty list
@@ -182,30 +257,45 @@ class JobPostService {
   }
 
   Future<List<TaskModel>> fetchUserLikedJobs() async {
-    final userId = await getUserId();
-    if (userId == null) return [];
+    try {
+      String? userId = await getUserId();
+      if (userId == null || userId.isEmpty) {
+        debugPrint("Cannot fetch liked jobs: User not logged in");
+        return [];
+      }
+      final url =
+          Uri.parse("http://localhost:5000/connect/displayLikedJob/$userId");
+      debugPrint("Fetching liked jobs from: $url");
 
-    final likedJobsResponse = await _getRequest("/displayLikedJob/$userId");
-    final allJobsResponse = await _getRequest("/displayTask");
+      final response = await http.get(url);
+      debugPrint("Response status: ${response.statusCode}");
+      debugPrint("Raw response body: ${response.body}");
 
-    debugPrint("Liked Jobs Response: ${likedJobsResponse.toString()}");
-    debugPrint("All Jobs Response: ${allJobsResponse.toString()}");
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonData = jsonDecode(response.body);
+        debugPrint("Decoded JSON data: $jsonData");
 
-    // Explicitly type the list and cast job IDs to int
-    final likedJobIds = (likedJobsResponse["liked_tasks"] as List<dynamic>? ?? [])
-        .map<int>((job) => (job["job_post_id"] as int))
-        .toSet();
+        if (jsonData.containsKey('tasks')) {
+          final List<dynamic> likedJobs = jsonData['tasks'];
+          debugPrint("Raw liked jobs: $likedJobs"); // Debug print
 
-    debugPrint("Liked Jobs Response ${likedJobsResponse.toString()}");
-    debugPrint("All Jobs: ${likedJobIds.toString()}");
+          final jobDetailsResponse = await http
+              .get(Uri.parse('http://localhost:5000/connect/displayTask'));
 
-    final filteredJobs = (allJobsResponse["tasks"] as List<dynamic>? ?? [])
-        .where((job) {
-      final jobId = job["task_id"]; // Changed from "job_post_id" to "task_id"
-      return jobId is int && likedJobIds.contains(jobId);
-    })
-        .map((job) => TaskModel.fromJson(job))
-        .toList();
+          if (jobDetailsResponse.statusCode == 200) {
+            final Map<String, dynamic> allJobsData =
+                jsonDecode(jobDetailsResponse.body);
+            final List<dynamic> allJobs = allJobsData['tasks'];
+
+            // Get liked job IDs
+            final Set<int> likedJobIds =
+                likedJobs.map<int>((job) => job['job_post_id'] as int).toSet();
+
+            // Filter and map jobs
+            List<TaskModel> taskModels = allJobs
+                .where((job) => likedJobIds.contains(job['job_post_id']))
+                .map((job) => TaskModel.fromJson(job))
+                .toList();
 
     debugPrint("Filtered Jobs: ${filteredJobs.toString()}");
     return filteredJobs;
