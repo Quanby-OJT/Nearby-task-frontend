@@ -27,7 +27,10 @@ class JobPostService {
     try {
       final response = await http.get(
         Uri.parse('$apiUrl/$endpoint'),
-        headers: {"Authorization": "Bearer $token", "Content-Type": "application/json"},
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
       );
       print("API Response for $endpoint: ${response.body}");
       return _handleResponse(response);
@@ -105,27 +108,29 @@ class JobPostService {
     }
   }
 
-
   Future<List<TaskModel>> fetchAllJobs() async {
-    try {
-      final response = await _getRequest("/displayTask");
-      debugPrint(response.toString());
+    try{
+    final userId = await getUserId();
+    if (userId == null) return [];
+
+    final likedJobsResponse = await _getRequest("/displayLikedJob/$userId");
+    final allJobsResponse = await _getRequest("/displayTask");
 
       // Check if the response contains an error
-      if (response.containsKey("error")) {
-        debugPrint("Error fetching jobs: ${response['error']}");
+      if (likedJobsResponse.containsKey("error")) {
+        debugPrint("Error fetching jobs: ${likedJobsResponse['error']}");
         return [];
       }
 
       // Ensure the 'tasks' key exists and is a List
-      if (response["tasks"] != null && response["tasks"] is List) {
-        return (response["tasks"] as List)
+      if (likedJobsResponse["tasks"] != null && likedJobsResponse["tasks"] is List) {
+        return (likedJobsResponse["tasks"] as List)
             .map((task) => TaskModel.fromJson(task as Map<String, dynamic>))
             .toList();
       }
 
       // If 'tasks' is missing or not a list, return an empty list
-      debugPrint("Unexpected response format: $response");
+      debugPrint("Unexpected response format: $likedJobsResponse");
       return [];
     } catch (e) {
       debugPrint("Exception in fetchAllJobs: $e");
@@ -139,7 +144,11 @@ class JobPostService {
     final userId = await getUserId();
     // debugPrint(userId);
     if (userId == null) {
-      return {'success': false, 'message': 'Please log in to like jobs', 'requiresLogin': true};
+      return {
+        'success': false,
+        'message': 'Please log in to like jobs',
+        'requiresLogin': true
+      };
     }
     return _postRequest(
       endpoint: "/likeJob",
@@ -162,9 +171,15 @@ class JobPostService {
         };
       }
 
-      return _deleteRequest(
-          "/unlikeJob", {"user_id": int.parse(userId), "task_id": jobId});
-    }catch(e){
+      final response = await _deleteRequest(
+          "/unlikeJob", {"user_id": int.parse(userId), "job_post_id": jobId});
+
+      return {
+        'success': true,
+        'message':
+            response["message"] ?? "An Error Occurred while unliking job",
+      };
+    } catch (e) {
       debugPrint(e.toString());
       debugPrintStack();
       return {"error": "An Error Occured while getting all jobs."};
@@ -207,15 +222,15 @@ class JobPostService {
 
   Future<String?> getUserId() async => storage.read('user_id')?.toString();
 
-  ///
-  /// Once the user liked the job after saving it, if they open a chat, it will assign the task automatically.
-  ///
-  /// -Ces
-  ///
-  Future<Map<String, dynamic>> assignTask(int? taskId, int? clientId, int? taskerId) async {
+  Future<Map<String, dynamic>> assignTask(
+      int? taskId, int? clientId, int? taskerId) async {
     final userId = await getUserId();
     if (userId == null) {
-      return {'success': false, 'message': 'Please log in to like jobs', 'requiresLogin': true};
+      return {
+        'success': false,
+        'message': 'Please log in to like jobs',
+        'requiresLogin': true
+      };
     }
 
     debugPrint(taskId.toString() + " " + clientId.toString() + " " + taskerId.toString());
@@ -229,5 +244,4 @@ class JobPostService {
         }
     );
   }
-
 }

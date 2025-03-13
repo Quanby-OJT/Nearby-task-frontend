@@ -285,7 +285,8 @@ class _LikeScreenState extends State<LikeScreen> {
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => ServiceAccMain()),
-                      (route) => false, // Removes all previous routes from the stack
+                  (route) =>
+                      false, // Removes all previous routes from the stack
                 );
               },
               child: const Text('Browse Jobs'),
@@ -330,7 +331,8 @@ class _LikeScreenState extends State<LikeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded( // Wrap the left content in Expanded
+                Expanded(
+                  // Wrap the left content in Expanded
                   child: Padding(
                     padding: EdgeInsets.all(10),
                     child: Row(
@@ -349,8 +351,11 @@ class _LikeScreenState extends State<LikeScreen> {
                             ),
                           ),
                         ),
-                        SizedBox(width: 10), // Replace Padding with SizedBox for consistency
-                        Expanded( // Wrap the text column in Expanded to prevent overflow
+                        SizedBox(
+                            width:
+                                10), // Replace Padding with SizedBox for consistency
+                        Expanded(
+                          // Wrap the text column in Expanded to prevent overflow
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -361,16 +366,19 @@ class _LikeScreenState extends State<LikeScreen> {
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                 ),
-                                overflow: TextOverflow.ellipsis, // Handle long titles
+                                overflow:
+                                    TextOverflow.ellipsis, // Handle long titles
                               ),
                               Row(
                                 children: [
                                   if (task.status != null)
-                                    Flexible( // Wrap status text in Flexible
+                                    Flexible(
+                                      // Wrap status text in Flexible
                                       child: Text(
                                         task.status!,
                                         style: GoogleFonts.montserrat(
-                                          color: Color.fromARGB(255, 57, 209, 11),
+                                          color:
+                                              Color.fromARGB(255, 57, 209, 11),
                                           fontSize: 8,
                                           fontWeight: FontWeight.w500,
                                         ),
@@ -401,7 +409,8 @@ class _LikeScreenState extends State<LikeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded( // Wrap the price section in Expanded
+                Expanded(
+                  // Wrap the price section in Expanded
                   child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 10),
                     child: Column(
@@ -428,7 +437,8 @@ class _LikeScreenState extends State<LikeScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => TaskInformation(taskID: task.id as int),
+                          builder: (context) =>
+                              TaskInformation(taskID: task.id as int),
                         ),
                       );
                       print(task.id);
@@ -512,7 +522,8 @@ class _LikeScreenState extends State<LikeScreen> {
         ),
       );
 
-      if (confirm != true) return;
+      // if (confirm != true) return;
+      if (confirm == null || !confirm) return;
 
       // Process the unlike action
       final result = await _jobService.unlikeJob(job.id!);
@@ -520,7 +531,7 @@ class _LikeScreenState extends State<LikeScreen> {
       if (result['success']) {
         // Remove from local list
         setState(() {
-          _likedJobs.removeWhere((item) => item.id == job.id);
+          _filteredJobs.removeWhere((item) => item.id == job.id);
         });
 
         if (mounted) {

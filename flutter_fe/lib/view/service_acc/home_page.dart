@@ -209,7 +209,8 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 )
-                ///
+
+              ///
               /// This code, if the backend data contains only one data, it must display the data and the card swipe must work regardless.
               ///
               /// -Ces

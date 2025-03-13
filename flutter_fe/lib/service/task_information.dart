@@ -24,7 +24,10 @@ class TaskDetailsService {
     try {
       final response = await http.get(
         Uri.parse('$apiUrl/$endpoint'),
-        headers: {"Authorization": "Bearer $token", "Content-Type": "application/json"},
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
       );
       print("API Response for $endpoint: ${response.body}");
       return _handleResponse(response);
@@ -35,21 +38,21 @@ class TaskDetailsService {
     }
   }
 
-  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _postRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
-    final response = await http.post(
-        Uri.parse("$apiUrl$endpoint"),
+    final response = await http.post(Uri.parse("$apiUrl$endpoint"),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
         },
-        body: jsonEncode(body)
-    );
+        body: jsonEncode(body));
 
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> _deleteRequest(
+      String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
       final request = http.Request("DELETE", Uri.parse('$apiUrl$endpoint'))
@@ -65,11 +68,8 @@ class TaskDetailsService {
   }
 
   Future<TaskModel?> fetchTaskDetails(int taskId) async {
-
     try {
-
-      final url =
-          Uri.parse("$apiUrl/displayLikedJob/$taskId");
+      final url = Uri.parse("$apiUrl/displayLikedJob/$taskId");
 
       final response = await http.get(url);
 
@@ -93,10 +93,10 @@ class TaskDetailsService {
       final data = await _getRequest("/all-messages/${userId}");
 
       return data;
-    }catch(e, st){
+    } catch (e, st) {
       debugPrint(e.toString());
       debugPrint(st.toString());
-      return{"error": "An Error Occured while getting all jobs."};
+      return {"error": "An Error Occured while getting all jobs."};
     }
   }
 }

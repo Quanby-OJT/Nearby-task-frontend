@@ -77,9 +77,9 @@ class TaskController {
     debugPrint("Assigning task...");
     final assignedTask = await _jobPostService.assignTask(taskId, clientId, taskerId);
 
-    if(assignedTask.containsKey('message')){
+    if (assignedTask.containsKey('message')) {
       return assignedTask['message'].toString();
-    }else{
+    } else {
       return assignedTask['error'].toString();
     }
   }
@@ -100,6 +100,7 @@ Future<List<TaskAssignment>?> getAllAssignedTasks(BuildContext context, int user
         Map<String, dynamic> taskData = item['tasks'] as Map<String, dynamic>;
         TaskModel task = TaskModel(
           title: taskData['task_title'] as String?,
+          // Provide default or null values for required fields not in the response
           clientId: null,
           specialization: null,
           description: null,

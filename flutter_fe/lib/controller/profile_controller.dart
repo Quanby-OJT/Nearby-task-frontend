@@ -14,16 +14,18 @@ class ProfileController {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
-  TextEditingController();
+      TextEditingController();
   final TextEditingController roleController = TextEditingController();
   final TextEditingController statusController = TextEditingController();
   final TextEditingController middleNameController = TextEditingController();
   final TextEditingController birthdateController = TextEditingController();
+  final TextEditingController imageController = TextEditingController();
   // Fetched user inputs End
 
   //Tasker Text Controller
   final TextEditingController bioController = TextEditingController();
-  final TextEditingController specializationController = TextEditingController();
+  final TextEditingController specializationController =
+      TextEditingController();
   final TextEditingController skillsController = TextEditingController();
   final TextEditingController taskerAddressController = TextEditingController();
   final TextEditingController availabilityController = TextEditingController();
@@ -70,9 +72,8 @@ class ProfileController {
         email: emailController.text,
         password: passwordController.text,
         role: roleController.text,
-        accStatus: 'Pending'
-    );
-    var resultData = await ApiService.registerUser(user);
+        accStatus: 'Pending');
+    Map<String, dynamic> resultData = await ApiService.registerUser(user);
     if (resultData.containsKey("message")) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -130,7 +131,8 @@ class ProfileController {
     //Code to create tasker information.
   }
 
-  Future<AuthenticatedUser?> getAuthenticatedUser(BuildContext context, String userId) async {
+  Future<AuthenticatedUser?> getAuthenticatedUser(
+      BuildContext context, String userId) async {
     try {
       var result = await ApiService.fetchAuthenticatedUser(userId);
       debugPrint("Data: $result");
@@ -143,7 +145,7 @@ class ProfileController {
           return AuthenticatedUser(user: user, client: client);
         } else if (result.containsKey("tasker")) {
           TaskerModel tasker = result["tasker"] as TaskerModel;
-          debugPrint("Retrieved Data: "+ tasker.toString());
+          debugPrint("Retrieved Data: " + tasker.toString());
           return AuthenticatedUser(user: user, tasker: tasker);
         }
       }
@@ -160,5 +162,4 @@ class ProfileController {
       return null;
     }
   }
-
 }
