@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter_fe/controller/profile_controller.dart';
-import 'package:flutter_fe/view/sign_in/sign_in.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
@@ -20,7 +19,6 @@ class _FillUpTaskerState extends State<FillUpTasker> {
 
   final ProfileController _controller = ProfileController();
   final JobPostService jobPostService = JobPostService();
-  String? _message;
   bool _isSuccess = false;
   File? _selectedFile; // Store the selected file
   String? _fileName; // Store the selected file name
@@ -121,7 +119,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                       if (isLastStep) {
                         debugPrint('Creating New Tasker...');
                         try {
-                          _controller.registerUser(context);
+                          _controller.createTasker(context);
                         } catch (error) {
                           debugPrint('Registration error: $error');
                           debugPrintStack();

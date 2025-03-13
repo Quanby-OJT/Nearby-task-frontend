@@ -43,6 +43,8 @@ class ApiService {
     };
   }
 
+
+  //Creating New Users
   static Future<Map<String, dynamic>> registerUser(UserModel user) async {
     try {
       // Create a salt using timestamp
@@ -121,9 +123,41 @@ class ApiService {
     }
   }
 
-  // static Future<bool> createTasker(TaskerModel tasker){
-  //   var request = http.MultipartRequest("POST", Uri.parse("$apiUrl/"))
-  // }
+  //Creating Tasker/Client Information but needs authentication token from the backend.
+  static Future<Map<String, dynamic>> createTasker(TaskerModel tasker) async{
+    try{
+      //Code to store uploaded files to database, and retrieve its url link.
+
+      String token = await AuthService.getSessionToken();
+
+      var request = await http.post(
+        Uri.parse("$apiUrl/create-new-tasker"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+        body: tasker.toJson()
+      );
+
+      var data = jsonDecode(request.body);
+      debugPrint("Response Data: " + data.toString());
+
+      if(request.statusCode == 201){
+        return {"message": data["message"] ?? "Profile Created Successfully"};
+      }else if(request.statusCode == 400){
+        return {
+          "error": data["errors"] ?? "Please Check Your inputs and try again"
+        };
+      }else{
+        return {
+          "error": data["error"] ?? "Something went wrong when creating your profile. Please try again."
+        };
+      }
+    }catch(e){
+      debugPrint(e.toString());
+      return {"error": "Something went wrong when creating your profile. Please try again."};
+    }
+  }
 
   static Future<Map<String, dynamic>> fetchAuthenticatedUser(String userId) async {
     try {
@@ -162,8 +196,7 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> authUser(
-      String email, String password) async {
+  static Future<Map<String, dynamic>> authUser(String email, String password) async {
     try {
       final response = await _client.post(
         Uri.parse("$apiUrl/login-auth"),
@@ -323,6 +356,10 @@ class ApiService {
     }
   }
 
+  ///
+  /// Will Upgrade this to receive messges from two users according to task taken.
+  ///
+  /// -Ces
   static Future<Map<String, dynamic>> getMessages(int? taskTakenId) async {
     try {
       debugPrint("Getting All Message for Task Taken id of: " + taskTakenId.toString());

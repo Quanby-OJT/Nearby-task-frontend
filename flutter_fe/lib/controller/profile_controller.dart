@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/client_model.dart';
+import 'package:get_storage/get_storage.dart';
 import '../model/user_model.dart';
 import '../service/api_service.dart';
 import '../model/tasker_model.dart';
@@ -32,10 +31,14 @@ class ProfileController {
   final TextEditingController wageController = TextEditingController();
   final TextEditingController tesdaController = TextEditingController();
   final TextEditingController socialMediaeController = TextEditingController();
+  final TextEditingController contactNumberController = TextEditingController();
+  final TextEditingController genderController = TextEditingController();
+  final TextEditingController addressController = TextEditingController();
 
   //Client Text Controller
   final TextEditingController prefsController = TextEditingController();
   final TextEditingController clientAddressController = TextEditingController();
+  final storage = GetStorage();
 
 
 
@@ -98,16 +101,12 @@ class ProfileController {
     }
   }
 
-// In your ProfileController class (assuming this is where verifyEmail is defined)
-// Update verifyEmail to return userId
   Future<int> verifyEmail(BuildContext context, String token, String email) async {
     try {
-      // Your existing verification logic
-      // Assuming this returns a response with userId after successful verification
-      //debugPrint("Token : ${token}" + "Email: ${email}");
-      final response = await ApiService.verifyEmail(token, email); // Modify this based on your actual implementation
-      if (response.containsKey("message")) { // Adjust this condition based on your API response
-        return response["user_id"]; // Return the userId from your API response
+      final response = await ApiService.verifyEmail(token, email);
+      if (response.containsKey("message")) {
+        await storage.write("session", response["token"]);
+        return response["user_id"];
       }
       return 0;
     } catch (e) {
@@ -121,14 +120,29 @@ class ProfileController {
 
   Future<void> createTasker(BuildContext context) async {
     TaskerModel tasker = TaskerModel(
-        bio: bioController.text,
-        specialization: specializationController.text,
-        skills: skillsController.text,
-        taskerAddress: taskerAddressController.text,
-        taskerDocuments: tesdaController.text,
-        socialMediaLinks: socialMediaeController.text);
+      bio: bioController.text,
+      specialization: specializationController.text,
+      skills: skillsController.text,
+      taskerAddress: taskerAddressController.text,
+      taskerDocuments: tesdaController.text,
+      socialMediaLinks: socialMediaeController.text,
+      availability: false,
+      wage: double.tryParse(wageController.text) ?? 0,
+      group: false,
+      phoneNumber: contactNumberController.text,
+      gender: genderController.text,
+      payPeriod: "Hourly",
+      birthDate: DateTime.parse(birthdateController.text)
+    );
 
     //Code to create tasker information.
+    Map<String, dynamic> resultData = await ApiService.createTasker(tasker);
+
+    if (resultData.containsKey('message')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(resultData['message'])),
+      );
+    }
   }
 
   Future<AuthenticatedUser?> getAuthenticatedUser(
