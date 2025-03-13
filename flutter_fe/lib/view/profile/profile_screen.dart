@@ -78,7 +78,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.only(top: 20.0, bottom: 30),
+                padding: const EdgeInsets.only(top: 20.0, bottom: 0),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.vertical,
                   child: Column(
@@ -306,25 +306,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ],
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 30.0),
-                        child: Container(
-                            height: 50,
-                            width: double.infinity,
-                            padding: EdgeInsets.symmetric(horizontal: 40),
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                _authController.logout(context);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color(0xFF0272B1),
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10))),
-                              icon: Icon(Icons.logout, color: Colors.white),
-                              label: Text('Logout',
-                                  style: TextStyle(color: Colors.white)),
-                            )),
-                      ),
+                      // Padding(
+                      //   padding: const EdgeInsets.only(top: 30.0),
+                      //   child: Container(
+                      //       height: 50,
+                      //       width: double.infinity,
+                      //       padding: EdgeInsets.symmetric(horizontal: 40),
+                      //       child: ElevatedButton.icon(
+                      //         onPressed: () {
+                      //           _authController.logout(context);
+                      //         },
+                      //         style: ElevatedButton.styleFrom(
+                      //             backgroundColor: Color(0xFF0272B1),
+                      //             shape: RoundedRectangleBorder(
+                      //                 borderRadius: BorderRadius.circular(10))),
+                      //         icon: Icon(Icons.logout, color: Colors.white),
+                      //         label: Text('Logout',
+                      //             style: TextStyle(color: Colors.white)),
+                      //       )),
+                      // ),
                     ],
                   ),
                 ),

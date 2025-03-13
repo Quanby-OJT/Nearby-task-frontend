@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/view/profile/initial_profile_screen.dart';
 import 'package:flutter_fe/view/service_acc/chat_screen.dart';
 import 'package:flutter_fe/view/service_acc/home_page.dart';
-import 'package:flutter_fe/view/service_acc/profile_screen.dart';
 import 'package:flutter_fe/view/service_acc/like_screen.dart';
 import 'package:flutter_fe/view/service_acc/schedule_management_page.dart';
 import 'package:get_storage/get_storage.dart';
@@ -31,7 +30,7 @@ class _ServiceAccMainState extends State<ServiceAccMain> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: NavUserScreen(),
+      // appBar: NavUserScreen(),
       body: PageView(
         physics: NeverScrollableScrollPhysics(),
         controller: _pageController,
