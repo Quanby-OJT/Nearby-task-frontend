@@ -623,38 +623,63 @@ class _JobPostPageState extends State<JobPostPage> {
     debugPrint("Submitting job...");
     setState(() {
       _message = "";
-      _errors.clear(); // Clears previous errors
+      _errors.clear();
       _isSuccess = false;
     });
 
-    final result = await controller.postJob(
-        _selectedSkill, selectedUrgency, selectedTimePeriod);
-    debugPrint(result.toString());
+    try {
+      final result = await controller.postJob(
+          _selectedSkill, selectedUrgency, selectedTimePeriod);
+      debugPrint(result.toString());
 
-    if (result['success']) {
-      setState(() {
-        _message = result['message'] ?? "Successfully Posted Task.";
-        _isSuccess = true;
-      });
-    } else {
-      setState(() {
-        if (result.containsKey('errors') && result['errors'] is List) {
-          for (var error in result['errors']) {
-            if (error is Map<String, dynamic> &&
-                error.containsKey('path') &&
-                error.containsKey('msg')) {
-              _errors[error['path']] =
-                  error['msg']; // Store field-specific errors
-            }
-          }
-        } else if (result.containsKey('message')) {
-          _message = result['message'];
+      if (result['success']) {
+        setState(() {
+          _message = result['message'] ?? "Successfully Posted Task.";
+          _isSuccess = true;
+        });
+
+        // Refresh the task list only if submission was successful
+        if (_isSuccess) {
+          await getAllJobsforClient();
+          // Close the modal after successful submission
+          Navigator.pop(context);
         }
+      } else {
+        setState(() {
+          if (result.containsKey('errors') && result['errors'] is List) {
+            for (var error in result['errors']) {
+              if (error is Map<String, dynamic> &&
+                  error.containsKey('path') &&
+                  error.containsKey('msg')) {
+                _errors[error['path']] = error['msg'];
+              }
+            }
+          } else if (result.containsKey('message')) {
+            _message = result['message'];
+          }
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _message =
+            "Unable to connect to server. Please check your internet connection and try again.";
       });
-    }
 
-    if (_isSuccess) {
-      getAllJobsforClient();
+      // Show a snackbar with the error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_message!),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 5),
+          action: SnackBarAction(
+            label: 'Dismiss',
+            onPressed: () {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            },
+            textColor: Colors.white,
+          ),
+        ),
+      );
     }
   }
 

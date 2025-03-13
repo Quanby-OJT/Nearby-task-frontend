@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/view/business_acc/chat_screen.dart';
 import 'package:flutter_fe/view/business_acc/home_page.dart';
+import 'package:flutter_fe/view/business_acc/initial_profile_screen.dart';
 import 'package:flutter_fe/view/business_acc/job_post_page.dart';
 import 'package:flutter_fe/view/business_acc/likes_screen.dart';
 import 'package:flutter_fe/view/business_acc/profile_screen.dart';
@@ -28,7 +29,7 @@ class _BusinessAccMainState extends State<BusinessAccMain> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: NavUserScreen(),
+      // appBar: NavUserScreen(),
       body: PageView(
         physics: NeverScrollableScrollPhysics(),
         controller: _pageController,
@@ -42,7 +43,7 @@ class _BusinessAccMainState extends State<BusinessAccMain> {
           JobPostPage(),
           ChatScreen(),
           LikesScreen(),
-          ProfileScreen()
+          InitialProfileScreen()
         ],
       ),
       bottomNavigationBar: SizedBox(
