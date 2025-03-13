@@ -43,7 +43,7 @@ class JobPostService {
     final token = await AuthService.getSessionToken();
     try {
       String? userId = await getUserId();
-      if (userId == null || userId.isEmpty) {
+      if (userId.isEmpty) {
         debugPrint("Cannot fetch liked jobs: User not logged in");
         return {"error": "User not logged in"};
       }
@@ -235,7 +235,7 @@ class JobPostService {
   Future<Map<String, dynamic>> unlikeJob(int jobId) async {
     try {
       String? userId = await getUserId();
-      if (userId == null || userId.isEmpty) {
+      if (userId.isEmpty) {
         debugPrint("User not logged in, cannot unlike job");
         return {
           'success': false,
@@ -259,7 +259,7 @@ class JobPostService {
   Future<List<TaskModel>> fetchUserLikedJobs() async {
     try {
       String? userId = await getUserId();
-      if (userId == null || userId.isEmpty) {
+      if (userId.isEmpty) {
         debugPrint("Cannot fetch liked jobs: User not logged in");
         return [];
       }
@@ -328,3 +328,4 @@ class JobPostService {
 
 
 }
+      

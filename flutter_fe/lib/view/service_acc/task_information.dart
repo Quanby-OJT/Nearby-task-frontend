@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
-import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class TaskInformation extends StatefulWidget {

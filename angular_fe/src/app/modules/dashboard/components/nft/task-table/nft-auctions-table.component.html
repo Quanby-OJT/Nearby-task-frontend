@@ -1,12 +1,8 @@
 <div class="bg-background flex-col rounded-lg px-8 py-8 shadow-md sm:flex-row">
   <div class="mb-4 flex items-center justify-between">
     <div class="flex-col items-center">
-      <h3 class="text-md text-foreground font-bold">Task Overview</h3>
+      <h3 class="text-md text-foreground font-bold">Available Tasks</h3>
     </div>
-    <!-- <button
-      class="bg-card text-muted-foreground hover:bg-muted hover:text-foreground flex-none rounded-md px-4 py-2.5 text-xs font-semibold">
-      History
-    </button> -->
     <div>
       <select
         name=""
@@ -21,26 +17,22 @@
 
   <div class="relative overflow-x-auto">
     <table class="w-full table-auto">
-      <!--Table head-->
       <thead class="text-muted-foreground text-xs uppercase">
         <tr>
-          <th class="py-3 text-left">Trans ID</th>
-          <th class="py-3 text-right">Task ID</th>
-          <th class="py-3 text-right">Time Left</th>
+          <th class="py-3 text-left">Client Name</th>
+          <th class="py-3 text-right">Job Title</th>
+          <th class="py-3 text-right">Date Posted</th>
           <th class="py-3 text-right">Status</th>
-          <th class="py-3 text-right">View</th>
         </tr>
       </thead>
-      <!--end Table head-->
-      <!--Table body-->
       <tbody>
-        <tr
-          *ngFor="let auction of TaskTaken"
-          [TaskTaken]="auction"
-          nft-auctions-table-item
-          class="border-border hover:bg-card border-b border-dashed"></tr>
-      </tbody>
-      <!--end::Table body-->
+        <tr *ngFor="let data of TaskTaken">
+          <td class="py-3 text-left">{{data.client}}</td>
+          <td class="py-3 text-right">{{data.tasker}}</td>
+          <td class="py-3 text-right">{{data.ending_in}}</td>
+          <td class="py-3 text-right">{{data.status}}</td>
+        </tr>
+      </tbody>  
     </table>
   </div>
 </div>

@@ -1,8 +1,7 @@
 <!-- login form -->
 <form class="my-10 space-y-6" [formGroup]="form" (ngSubmit)="onSubmit()">
-  <div class="text-center">
-    <h2 class="text-foreground mb-1 text-3xl font-semibold">Login</h2>
-    <p class="text-muted-foreground text-sm">Enter your credential to access your account.</p>
+  <div class="text-center font-mono">
+    <h2 class="text-foreground mb-1 text-5xl pb-13 text-indigo-900">Login</h2>
   </div>
 
   <!-- <div>
@@ -20,18 +19,12 @@
   <div class="space-y-3 text-left">
     <div class="form__group">
       <div class="relative">
-        <input
-          type="text"
-          id="email"
-          [ngClass]="{ 'is__invalid-input': submitted && f['email'].errors }"
-          class="peer block"
-          placeholder=" "
-          formControlName="email" />
+        <input type="text" id="email" [ngClass]="{ 'is__invalid-input': submitted && f['email'].errors }" class="peer block" placeholder=" " formControlName="email" />
         <label
           for="email"
           [ngClass]="{ 'peer-focus:text-destructive!': submitted && f['email'].errors }"
           class="bg-background text-muted-foreground peer-focus:text-primary absolute top-2 left-1 z-10 origin-[0] -translate-y-4 scale-95 transform px-2 text-sm duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-95 peer-focus:px-2">
-          Email address
+        Email address
         </label>
       </div>
       <div *ngIf="submitted && f['email'].errors" class="is__invalid-error">

@@ -51,11 +51,6 @@ const routes: Routes = [
     component: LayoutComponent,
     loadChildren: () => import('../report/report-routing.module').then((m) => m.ReportRoutingModule),
   },
-  {
-    path: 'settings',
-    component: LayoutComponent,
-    loadChildren: () => import('../setting/setting-routing.module').then((m) => m.SettingRoutingModule),
-  },
 
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
   { path: '**', redirectTo: 'error/404' },
