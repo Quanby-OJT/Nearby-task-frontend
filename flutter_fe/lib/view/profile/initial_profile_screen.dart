@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/view/business_acc/profile_screen.dart';
+import 'package:flutter_fe/view/profile/profile_screen.dart';
 
 class InitialProfileScreen extends StatefulWidget {
   const InitialProfileScreen({super.key});
