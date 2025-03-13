@@ -109,29 +109,36 @@ class JobPostService {
   }
 
   Future<List<TaskModel>> fetchAllJobs() async {
-    try{
-    final userId = await getUserId();
-    if (userId == null) return [];
-
-    final likedJobsResponse = await _getRequest("/displayLikedJob/$userId");
-    final allJobsResponse = await _getRequest("/displayTask");
-
-      // Check if the response contains an error
-      if (likedJobsResponse.containsKey("error")) {
-        debugPrint("Error fetching jobs: ${likedJobsResponse['error']}");
+    try {
+      final userId = await getUserId();
+      if (userId == null) {
+        debugPrint("User ID is null, returning empty list");
         return [];
       }
 
-      // Ensure the 'tasks' key exists and is a List
-      if (likedJobsResponse["tasks"] != null && likedJobsResponse["tasks"] is List) {
-        return (likedJobsResponse["tasks"] as List)
-            .map((task) => TaskModel.fromJson(task as Map<String, dynamic>))
-            .toList();
+      final likedJobsResponse = await _getRequest("/displayLikedJob/$userId");
+      final allJobsResponse = await _getRequest("/displayTask");
+
+      // Log responses for debugging
+      debugPrint("Liked Jobs Response: $likedJobsResponse");
+      debugPrint("All Jobs Response: $allJobsResponse");
+
+      // Check if allJobsResponse is a valid Map with tasks
+      if (allJobsResponse.containsKey("error")) {
+        debugPrint("Error fetching jobs: ${allJobsResponse['error'] ?? 'Invalid response'}");
+        return [];
       }
 
-      // If 'tasks' is missing or not a list, return an empty list
-      debugPrint("Unexpected response format: $likedJobsResponse");
-      return [];
+      // Ensure 'tasks' exists and is a List
+      final tasks = allJobsResponse["tasks"];
+      if (tasks == null || tasks is! List) {
+        debugPrint("Unexpected response format: 'tasks' is missing or not a list");
+        return [];
+      }
+
+      return tasks
+          .map((task) => TaskModel.fromJson(task as Map<String, dynamic>))
+          .toList();
     } catch (e) {
       debugPrint("Exception in fetchAllJobs: $e");
       debugPrintStack();
@@ -187,7 +194,7 @@ class JobPostService {
   }
 
   Future<Map<String, dynamic>> fetchJobsForClient(int clientId) async {
-    return _getRequest("/displayTask/$clientId");
+    return _getRequest("/display-task-for-client/$clientId");
   }
 
   Future<List<TaskModel>> fetchUserLikedJobs() async {

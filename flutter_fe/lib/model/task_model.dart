@@ -7,7 +7,7 @@ class TaskModel {
   final String? location;
   final String? period;  // <- period remains a String
   final String? duration; // <- Change duration from int? to String?
-  final String? urgency;
+  final bool? urgency;
   final String? status;
   final int? contactPrice;
   final String? remarks;
@@ -60,7 +60,7 @@ class TaskModel {
       location: json['location'] as String?,
       duration: json['duration']?.toString(), // <- Ensure it remains a String
       period: json['period']?.toString(),
-      urgency: json['urgent'] as String?,  // <- Fix key from "urgency" to "urgent"
+      urgency: json['urgent'] as bool,  // <- Fix key from "urgency" to "urgent"
       contactPrice: json['contact_price'] as int?,
       remarks: json['remarks'] as String?,
       taskBeginDate: json['task_begin_date'] as String?,

@@ -24,7 +24,7 @@ class TaskController {
   final contactpriceController = TextEditingController();
   final storage = GetStorage();
 
-  Future<Map<String, dynamic>> postJob(String? specialization, String? urgency, String? period) async {
+  Future<Map<String, dynamic>> postJob(String? specialization, bool urgency, String? period) async {
     try {
       int userId = storage.read('user_id');
       print('Submitting data...'); // Debug print
@@ -107,7 +107,7 @@ Future<List<TaskAssignment>?> getAllAssignedTasks(BuildContext context, int user
           location: null,
           period: null,
           duration: null,
-          urgency: null,
+          urgency: taskData['urgent'] as bool?,
           status: null,
           contactPrice: null,
           remarks: null,
