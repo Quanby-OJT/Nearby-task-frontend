@@ -12,6 +12,7 @@ class JobPostService {
   static final token = storage.read('session');
 
   Map<String, dynamic> _handleResponse(http.Response response) {
+    debugPrint(response.body.toString());
     final responseBody = jsonDecode(response.body);
     if (response.statusCode >= 200 && response.statusCode < 300) {
       debugPrint(responseBody.toString());
@@ -93,7 +94,7 @@ class JobPostService {
   Future<TaskModel?> fetchTaskInformation(int taskID) async {
     try {
       Map<String, dynamic> response = await _getRequest("/displayTask/$taskID");
-      debugPrint("Data Retrieved: ${response.toString()}");
+      debugPrint("Message Data Retrieved: ${response.toString()}");
 
       // Since response is already a task object, just parse it directly
       return TaskModel.fromJson(response);
@@ -144,7 +145,7 @@ class JobPostService {
       endpoint: "/likeJob",
       body: {
         "user_id": int.parse(userId),
-        "job_post_id": jobId,
+        "task_id": jobId,
         "created_at": DateTime.now().toString()
       }
     );
@@ -162,7 +163,7 @@ class JobPostService {
       }
 
       return _deleteRequest(
-          "/unlikeJob", {"user_id": int.parse(userId), "job_post_id": jobId});
+          "/unlikeJob", {"user_id": int.parse(userId), "task_id": jobId});
     }catch(e){
       debugPrint(e.toString());
       debugPrintStack();
@@ -185,8 +186,8 @@ class JobPostService {
     debugPrint("All Jobs Response: ${allJobsResponse.toString()}");
 
     // Explicitly type the list and cast job IDs to int
-    final likedJobIds = (likedJobsResponse["liked_tasks"] as List<dynamic>? ?? [])
-        .map<int>((job) => (job["job_post_id"] as int))
+    final likedJobIds = (likedJobsResponse["tasks"] as List<dynamic>? ?? [])
+        .map<int>((job) => (job["task_id"] as int))
         .toSet();
 
     debugPrint("Liked Jobs Response ${likedJobsResponse.toString()}");
@@ -194,7 +195,7 @@ class JobPostService {
 
     final filteredJobs = (allJobsResponse["tasks"] as List<dynamic>? ?? [])
         .where((job) {
-      final jobId = job["job_post_id"]; // Changed from "job_post_id" to "task_id"
+      final jobId = job["task_id"]; // Changed from "task_id" to "task_id"
       return jobId is int && likedJobIds.contains(jobId);
     })
         .map((job) => TaskModel.fromJson(job))
@@ -216,6 +217,8 @@ class JobPostService {
     if (userId == null) {
       return {'success': false, 'message': 'Please log in to like jobs', 'requiresLogin': true};
     }
+
+    debugPrint(taskId.toString() + " " + clientId.toString() + " " + taskerId.toString());
 
     return _postRequest(
         endpoint: "$apiUrl/assign-task",

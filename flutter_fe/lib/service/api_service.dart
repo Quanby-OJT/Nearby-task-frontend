@@ -292,9 +292,7 @@ class ApiService {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
         },
-        body: {
-          conversation.toJson()
-        }
+        body: jsonEncode(conversation.toJson())
       );
 
       var data = jsonDecode(response.body);
@@ -308,35 +306,42 @@ class ApiService {
         return {"error": "Unexpected error occurred. Status code: ${response.statusCode}"};
       }
     }catch (e) {
+      debugPrint(e.toString());
       debugPrintStack();
       return {"error": "An Error Occured while Sending a Message. Please Try Again"};
     }
   }
 
-  static Future<Map<String, dynamic>> getMessages(int taskTakenId) async {
-    try{
+  static Future<Map<String, dynamic>> getMessages(int? taskTakenId) async {
+    try {
+      debugPrint("Getting All Message for Task Taken id of: " + taskTakenId.toString());
       String token = await AuthService.getSessionToken();
 
       final response = await http.get(
-        Uri.parse("$apiUrl/task/$taskTakenId"),
+        Uri.parse("$apiUrl/messages/$taskTakenId"),
         headers: {
           "Authorization": "Bearer $token",
-          "Accept": "application/json"
-        }
+          "Accept": "application/json",
+        },
       );
+
+      debugPrint("All Messages Data: " + response.body.toString());
 
       var data = jsonDecode(response.body);
 
-      if(response.statusCode == 200){
-        Conversation messages = Conversation.fromJson(data['messages']);
-        return {"messages": messages};
-      }else{
-        return {"error": data['error']};
+      if (response.statusCode == 200) {
+        if (data['data'] != null && data['data'] is List) {
+          return {"messages": data['data']}; // Return the list directly
+        } else {
+          return {}; // No messages found
+        }
+      } else {
+        return {"error": data['error'] ?? "Failed to retrieve messages"};
       }
-    }catch(e, st){
+    } catch (e, st) {
       debugPrint(e.toString());
       debugPrint(st.toString());
-      return {"error": "An Error Occured while retrieving your conversation. Please Try Again."};
+      return {"error": "An error occurred while retrieving your conversation. Please try again."};
     }
   }
 } 

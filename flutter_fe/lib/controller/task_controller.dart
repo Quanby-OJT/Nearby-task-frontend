@@ -73,9 +73,9 @@ class TaskController {
     return null;
   }
 
-  Future<String> assignTask(int? taskerId, int? clientId, int? taskId) async {
+  Future<String> assignTask(int? taskId, int? clientId, int? taskerId) async {
     debugPrint("Assigning task...");
-    final assignedTask = await _jobPostService.assignTask(taskId, taskerId, clientId);
+    final assignedTask = await _jobPostService.assignTask(taskId, clientId, taskerId);
 
     if(assignedTask.containsKey('message')){
       return assignedTask['message'].toString();
@@ -84,18 +84,22 @@ class TaskController {
     }
   }
 
-  Future<List<TaskAssignment>?> getAllAssignedTasks(BuildContext context, int userId) async {
+Future<List<TaskAssignment>?> getAllAssignedTasks(BuildContext context, int userId) async {
     final assignedTasks = await TaskDetailsService().getAllTakenTasks();
     debugPrint(assignedTasks.toString());
 
     if (assignedTasks.containsKey('data') && assignedTasks['data'] != null) {
       List<dynamic> dataList = assignedTasks['data'] as List<dynamic>;
+
       List<TaskAssignment> taskAssignments = dataList.map((item) {
+        // Get task_taken_id from each item
+        int? taskId = item['task_taken_id'] as int?;  // Directly access task_taken_id
+        //debugPrint("Task Id: $taskId");
+
         // Parse tasks
         Map<String, dynamic> taskData = item['tasks'] as Map<String, dynamic>;
         TaskModel task = TaskModel(
           title: taskData['task_title'] as String?,
-          // Provide default or null values for required fields not in the response
           clientId: null,
           specialization: null,
           description: null,
@@ -107,7 +111,7 @@ class TaskController {
           contactPrice: null,
           remarks: null,
           taskBeginDate: null,
-          id: null,
+          id: taskId,  // You could use taskId here if needed
         );
 
         // Parse client and its user
@@ -159,8 +163,4 @@ class TaskController {
       return null;
     }
   }
-
-  // Future<Map<String, dynamic>> getLikedJobs(int taskerId) async {
-  // 
-  // }
 }

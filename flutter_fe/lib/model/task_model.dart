@@ -32,7 +32,7 @@ class TaskModel {
   // Convert to JSON
   Map<String, dynamic> toJson() {
     return {
-      "job_post_id": id,
+      "task_id": id,
       "client_id": clientId,
       "task_title": title,
       "specialization": specialization,
@@ -52,7 +52,7 @@ class TaskModel {
   // Convert from JSON
   factory TaskModel.fromJson(Map<String, dynamic> json) {
     return TaskModel(
-      id: json['job_post_id'] as int?,
+      id: json['task_id'] as int?,
       clientId: json['client_id'] as int?,
       title: json['task_title'] as String?,
       specialization: json['specialization'] as String?,

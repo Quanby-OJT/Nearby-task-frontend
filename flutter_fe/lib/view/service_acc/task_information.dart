@@ -3,7 +3,6 @@ import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
-import 'package:flutter_fe/view/service_acc/chat_screen.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -71,7 +70,7 @@ class _TaskInformationState extends State<TaskInformation> {
                           _buildInfoRow(
                               "Urgency", _taskInformation!.urgency ?? "N/A"),
                           _buildInfoRow(
-                              "Duration", _taskInformation!.duration.toString() ?? "N/A"),
+                              "Duration", _taskInformation!.duration.toString()),
                           _buildInfoRow(
                               "Status", _taskInformation!.status ?? "N/A"),
                           SizedBox(height: 10),
@@ -83,7 +82,9 @@ class _TaskInformationState extends State<TaskInformation> {
                             ),
                             child: TextButton(
                                 onPressed: () {
-                                  taskController.assignTask(widget.taskID, _taskInformation!.clientId, storage.read('user_id'));
+                                  int userId = storage.read('user_id');
+                                  debugPrint("User ID: ${userId}");
+                                  taskController.assignTask(widget.taskID, _taskInformation!.clientId, userId);
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
