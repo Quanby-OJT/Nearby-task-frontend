@@ -1,35 +1,31 @@
-class TaskAssginment{
-  final int clientId;
-  final int taskerId;
-  final int taskId;
-  String? taskStatus;
-  String? rejectionReason;
+import 'package:flutter_fe/model/task_model.dart';
+import 'package:flutter_fe/model/tasker_model.dart';
+import 'package:flutter_fe/model/client_model.dart';
 
-  TaskAssginment({
-    required this.clientId,
-    required this.taskerId,
-    required this.taskId,
-    this.taskStatus,
-    this.rejectionReason
+class TaskAssignment{
+  final ClientModel client;
+  final TaskerModel tasker;
+  final TaskModel task;
+  final int? taskTakenId;
+
+  TaskAssignment({
+    required this.client,
+    required this.tasker,
+    required this.task,
+    this.taskTakenId,
   });
 
-  Map<String, dynamic> toJson() {
-    return {
-      "task_id": taskId,
-      "tasker_id": taskerId,
-      "client_id": clientId,
-      "task_status": taskStatus,
-      "reason_for_rejection": rejectionReason
-    };
+  @override
+  String toString() {
+    return "TaskAssignment(client: $client, tasker: $tasker, task: $task)";
   }
 
-  factory TaskAssginment.fromJson(Map<String, dynamic> json) {
-    return TaskAssginment(
-      taskId: json['task_id'] as int,
-      clientId: json['client_id'] as int,
-      taskerId: json['tasker_id'] as int,
-      taskStatus: json['task_status'] as String,
-      rejectionReason: json['reason_for_rejection'] as String
+  factory TaskAssignment.fromJson(Map<String, dynamic> json){
+    return TaskAssignment(
+      client: ClientModel.fromJson(json['client']),
+      tasker: TaskerModel.fromJson(json['tasker']),
+      task: TaskModel.fromJson(json['task']),
+      taskTakenId: json['task_taken_id']
     );
   }
 }

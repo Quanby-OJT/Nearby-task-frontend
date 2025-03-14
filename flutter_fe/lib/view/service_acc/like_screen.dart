@@ -4,6 +4,8 @@ import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/service_acc/task_information.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
+import 'package:intl/intl.dart';
 
 class LikeScreen extends StatefulWidget {
   const LikeScreen({super.key});
@@ -416,7 +418,7 @@ class _LikeScreenState extends State<LikeScreen> {
                       children: [
                         if (task.contactPrice != null)
                           Text(
-                            '\$${task.contactPrice}',
+                            '\₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice!.roundToDouble())}',
                             style: GoogleFonts.montserrat(
                               color: const Color(0xFF03045E),
                               fontSize: 20,
@@ -520,7 +522,8 @@ class _LikeScreenState extends State<LikeScreen> {
         ),
       );
 
-      if (confirm != true) return;
+      // if (confirm != true) return;
+      if (confirm == null || !confirm) return;
 
       // Process the unlike action
       final result = await _jobService.unlikeJob(job.id!);
@@ -528,7 +531,7 @@ class _LikeScreenState extends State<LikeScreen> {
       if (result['success']) {
         // Remove from local list
         setState(() {
-          _likedJobs.removeWhere((item) => item.id == job.id);
+          _filteredJobs.removeWhere((item) => item.id == job.id);
         });
 
         if (mounted) {

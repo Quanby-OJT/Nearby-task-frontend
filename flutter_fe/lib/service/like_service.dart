@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class LikeService {
-  static final String apiUrl = "http://10.0.2.2/connect";
+  static final String apiUrl = "http://10.0.2.2:5000/connect";
 
   static Future<void> addLike(int userId, bool like, String likedBy) async {
     final String token = await AuthService.getSessionToken();

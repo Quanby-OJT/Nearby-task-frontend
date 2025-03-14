@@ -50,7 +50,7 @@ dependencies:
   dropdown_textfield: ^1.2.0
   shared_preferences: ^2.5.2
   get: ^4.7.2
-  flutter_chat_ui: ^1.6.15
+  app_links: ^6.4.0
 
 dev_dependencies:
   flutter_test:

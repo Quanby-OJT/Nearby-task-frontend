@@ -11,36 +11,50 @@ class ConversationController {
     int userId = storage.read('user_id');
 
     final conversation = Conversation(
-        conversationMessage: conversationMessage.text,
-        userId: userId,
-        taskTakenId: taskTaken);
-    Map<String, dynamic> messageSent =
-        await ApiService.sendMessage(conversation);
+
+      conversationMessage: conversationMessage.text,
+      userId: userId,
+      taskTakenId: taskTaken,
+    );
+    Map<String, dynamic> messageSent = await ApiService.sendMessage(conversation);
 
     if (messageSent.containsKey('message')) {
+      // Optionally notify success if needed
     } else if (messageSent.containsKey('error')) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(messageSent['error'])));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(messageSent['error'])),
+      );
     }
   }
 
-  Future<List<Conversation>?> getMessages(
-      BuildContext context, int taskTakenId) async {
+  Future<List<Conversation>> getMessages(BuildContext context, int? taskTakenId) async {
+    //debugPrint(taskTakenId.toString());
+
     final messages = await ApiService.getMessages(taskTakenId);
     debugPrint(messages.toString());
 
     if (messages.containsKey("messages")) {
-      List<dynamic> message = messages['messages'];
-      List<Conversation> conversation = message
+
+      // Expecting a list of conversations from the API
+      List<dynamic> messageList = messages['messages'];
+      List<Conversation> conversations = messageList
           .map((conversation) => Conversation.fromJson(conversation))
           .toList();
-      return conversation;
+      return conversations;
+    } else if (messages.isEmpty) {
+      return []; // Return empty list if no messages
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(messages['error'] ?? "Something went wrong while retrieving your messages."),
+        ),
+      );
+      return []; // Return empty list on error
+
     }
+  }
 
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(messages['error'] ??
-            "Something Went Wrong while Retrieving Your Tasks.")));
-
-    return null;
+  void dispose() {
+    conversationMessage.dispose();
   }
 }

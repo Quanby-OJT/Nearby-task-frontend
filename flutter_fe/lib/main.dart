@@ -11,14 +11,17 @@ void main() async {
   await GetStorage.init();
 
   final storage = GetStorage();
-  final userId = storage.read('user_id');
+  final userId = storage.read('user_id'); // This could be null or any type
   runApp(MyApp(isLoggedIn: userId != null, userId: userId));
 }
 
 class MyApp extends StatelessWidget {
   final storage = GetStorage();
 
-  MyApp({super.key, required bool isLoggedIn, required dynamic userId});
+
+  MyApp({Key? key, required bool isLoggedIn, required dynamic userId})
+      : super(key: key);
+
 
   Future<Map<String, dynamic>> _loadUserData() async {
     await Future.delayed(
