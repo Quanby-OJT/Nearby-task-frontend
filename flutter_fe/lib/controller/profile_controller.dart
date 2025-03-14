@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/client_model.dart';
 import 'package:get_storage/get_storage.dart';
@@ -23,8 +25,7 @@ class ProfileController {
 
   //Tasker Text Controller
   final TextEditingController bioController = TextEditingController();
-  final TextEditingController specializationController =
-      TextEditingController();
+  final TextEditingController specializationController = TextEditingController();
   final TextEditingController skillsController = TextEditingController();
   final TextEditingController taskerAddressController = TextEditingController();
   final TextEditingController availabilityController = TextEditingController();
@@ -145,8 +146,7 @@ class ProfileController {
     }
   }
 
-  Future<AuthenticatedUser?> getAuthenticatedUser(
-      BuildContext context, String userId) async {
+  Future<AuthenticatedUser?> getAuthenticatedUser(BuildContext context, String userId) async {
     try {
       var result = await ApiService.fetchAuthenticatedUser(userId);
       debugPrint("Data: $result");

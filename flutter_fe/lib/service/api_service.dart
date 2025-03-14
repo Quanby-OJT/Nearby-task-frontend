@@ -43,18 +43,33 @@ class ApiService {
     };
   }
 
-
-  //Creating New Users
-  static Future<Map<String, dynamic>> registerUser(UserModel user) async {
+  static Future<bool> registerUser(UserModel user) async {
     try {
       // Create a salt using timestamp
       String salt = DateTime.now().millisecondsSinceEpoch.toString();
 
+      // Create the request payload
+      Map<String, dynamic> requestBody = {
+        "data": {
+          "first_name": user.firstName,
+          "middle_name": user.middleName,
+          "last_name": user.lastName,
+          "email": user.email,
+          "password": user.password,
+          "user_role": user.role,
+          // "acc_status": user.accStatus
+        },
+        "salt": salt
+      };
+
+      debugPrint('Request Body: ${json.encode(requestBody)}'); // Debug log
+      final String token = await AuthService.getSessionToken();
       final response = await _client.post(
         Uri.parse("$apiUrl/create-new-account"),
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
+          "Authentication": "Bearer $token"
         },
         body: json.encode({
           ...user.toJson(),
@@ -159,16 +174,15 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> fetchAuthenticatedUser(String userId) async {
+  static Future<Map<String, dynamic>> fetchAuthenticatedUser(
+      String userId) async {
     try {
       final String token = await AuthService.getSessionToken();
-      final response = await http.get(
-          Uri.parse("$apiUrl/getUserData/$userId"),
+      final response = await http.get(Uri.parse("$apiUrl/getUserData/$userId"),
           headers: {
             "Authorization": "Bearer $token",
             "Content-Type": "application/json"
-          }
-      );
+          });
 
       debugPrint("Retreived Data: " + response.body);
       var data = jsonDecode(response.body);
@@ -356,13 +370,8 @@ class ApiService {
     }
   }
 
-  ///
-  /// Will Upgrade this to receive messges from two users according to task taken.
-  ///
-  /// -Ces
-  static Future<Map<String, dynamic>> getMessages(int? taskTakenId) async {
+  static Future<Map<String, dynamic>> getMessages(int taskTakenId) async {
     try {
-      debugPrint("Getting All Message for Task Taken id of: " + taskTakenId.toString());
       String token = await AuthService.getSessionToken();
 
       final response = await http.get(

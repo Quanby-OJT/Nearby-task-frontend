@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/specialization.dart';
+import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_fe/model/task_model.dart';
@@ -54,7 +55,8 @@ class JobPostService {
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> _deleteRequest(
+      String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
       final request = http.Request("DELETE", Uri.parse('$apiUrl$endpoint'))
@@ -99,8 +101,17 @@ class JobPostService {
       Map<String, dynamic> response = await _getRequest("/displayTask/$taskID");
       debugPrint("Message Data Retrieved: ${response.toString()}");
 
-      // Since response is already a task object, just parse it directly
-      return TaskModel.fromJson(response);
+      // Check if response contains the "tasks" key and it's a Map
+      if (response.containsKey("tasks") && response["tasks"] is Map) {
+        Map<String, dynamic> taskData =
+            response["tasks"] as Map<String, dynamic>;
+        debugPrint("Mapped: ${taskData.toString()}");
+        return TaskModel.fromJson(taskData);
+      }
+
+      // Return null if no tasks found or invalid format
+      debugPrint("No valid task data found in response");
+      return null;
     } catch (e) {
       debugPrint('Error fetching tasks: $e');
       debugPrintStack();
@@ -178,14 +189,8 @@ class JobPostService {
         };
       }
 
-      final response = await _deleteRequest(
+      return _deleteRequest(
           "/unlikeJob", {"user_id": int.parse(userId), "job_post_id": jobId});
-
-      return {
-        'success': true,
-        'message':
-            response["message"] ?? "An Error Occurred while unliking job",
-      };
     } catch (e) {
       debugPrint(e.toString());
       debugPrintStack();
