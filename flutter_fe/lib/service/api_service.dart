@@ -43,7 +43,7 @@ class ApiService {
     };
   }
 
-  static Future<bool> registerUser(UserModel user) async {
+  static Future<Map<String, dynamic>> registerUser(UserModel user) async {
     try {
       // Create a salt using timestamp
       String salt = DateTime.now().millisecondsSinceEpoch.toString();
