@@ -73,8 +73,8 @@ class ProfileController {
         password: passwordController.text,
         role: roleController.text,
         accStatus: 'Pending');
-    bool success = await ApiService.registerUser(user);
-    if (success) {
+    Map<String, dynamic> resultData = await ApiService.registerUser(user);
+    if (resultData.containsKey("message")) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(

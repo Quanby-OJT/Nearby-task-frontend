@@ -7,7 +7,7 @@ class TaskModel {
   final String? location;
   final String? period;  // <- period remains a String
   final String? duration; // <- Change duration from int? to String?
-  final String? urgency;
+  final bool? urgency;
   final String? status;
   final int? contactPrice;
   final String? remarks;
@@ -32,7 +32,7 @@ class TaskModel {
   // Convert to JSON
   Map<String, dynamic> toJson() {
     return {
-      "job_post_id": id,
+      "task_id": id,
       "client_id": clientId,
       "task_title": title,
       "specialization": specialization,
@@ -52,7 +52,7 @@ class TaskModel {
   // Convert from JSON
   factory TaskModel.fromJson(Map<String, dynamic> json) {
     return TaskModel(
-      id: json['job_post_id'] as int?,
+      id: json['task_id'] as int?,
       clientId: json['client_id'] as int?,
       title: json['task_title'] as String?,
       specialization: json['specialization'] as String?,
@@ -60,7 +60,7 @@ class TaskModel {
       location: json['location'] as String?,
       duration: json['duration']?.toString(), // <- Ensure it remains a String
       period: json['period']?.toString(),
-      urgency: json['urgent'] as String?,  // <- Fix key from "urgency" to "urgent"
+      urgency: json['urgent'] as bool,  // <- Fix key from "urgency" to "urgent"
       contactPrice: json['contact_price'] as int?,
       remarks: json['remarks'] as String?,
       taskBeginDate: json['task_begin_date'] as String?,

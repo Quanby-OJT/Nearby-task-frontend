@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
-import 'dart:io';
-import 'package:flutter_fe/model/conversation.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
+import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:get_storage/get_storage.dart';
 
 class ChatScreen extends StatefulWidget {
-  final int? taskTakenId;
-  const ChatScreen({super.key, this.taskTakenId});
+  const ChatScreen({super.key});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -66,7 +64,7 @@ class _ChatScreenState extends State<ChatScreen> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Text(
-                "You Don't Have Messages Yet, You can Start a Conversation By 'Right-Swiping' Your Favorite Tasker.",
+                "You Don't Have Messages Yet, You can Start a Conversation By 'Right-Swiping' Your Favorite Task in hand.",
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16),
               ),
@@ -90,7 +88,14 @@ class _ChatScreenState extends State<ChatScreen> {
             trailing: Icon(Icons.arrow_forward_ios,
                 size: 16, color: Colors.grey),
             onTap: () {
-              // Open task details
+              // Open Chat History
+              debugPrint("Task Id: " + assignment.taskTakenId.toString());
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => IndividualChatScreen(taskTitle: assignment.task.title, taskTakenId: assignment.task.id)
+                ),
+              );
             },
           );
         },

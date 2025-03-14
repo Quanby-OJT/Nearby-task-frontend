@@ -6,7 +6,7 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 
 class TaskDetailsService {
-  final String apiUrl = "http://localhost:5000/connect";
+  final String apiUrl = "http://10.0.2.2:5000/connect";
   final storage = GetStorage();
 
   Map<String, dynamic> _handleResponse(http.Response response) {
@@ -90,7 +90,7 @@ class TaskDetailsService {
   Future<Map<String, dynamic>> getAllTakenTasks() async {
     try {
       final userId = await storage.read('user_id');
-      final data = await _getRequest("/messages/${userId}");
+      final data = await _getRequest("/all-messages/${userId}");
 
       return data;
     } catch (e, st) {
