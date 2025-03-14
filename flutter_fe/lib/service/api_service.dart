@@ -21,22 +21,20 @@ class ApiService {
   static void _updateCookies(http.Response response) {
     String? rawCookie = response.headers['set-cookie'];
 
-    if (rawCookie != null) {
-      List<String> cookieParts = rawCookie.split(',');
-      for (String part in cookieParts) {
-        List<String> keyValue = part.split(';')[0].split('=');
-        if (keyValue.length == 2) {
-          _cookies[keyValue[0].trim()] = keyValue[1].trim();
-        }
+    List<String> cookieParts = rawCookie!.split(',');
+    for (String part in cookieParts) {
+      List<String> keyValue = part.split(';')[0].split('=');
+      if (keyValue.length == 2) {
+        _cookies[keyValue[0].trim()] = keyValue[1].trim();
       }
-      debugPrint('Updated Cookies: $_cookies'); // Debugging
     }
+    print('Updated Cookies: $_cookies'); // Debugging
   }
 
   // Function to add cookies to requests
   static Map<String, String> _getHeaders() {
     String cookieHeader =
-    _cookies.entries.map((e) => '${e.key}=${e.value}').join('; ');
+        _cookies.entries.map((e) => '${e.key}=${e.value}').join('; ');
     return {
       "Content-Type": "application/json",
       if (_cookies.isNotEmpty) "Cookie": cookieHeader,
@@ -125,16 +123,15 @@ class ApiService {
   //   var request = http.MultipartRequest("POST", Uri.parse("$apiUrl/"))
   // }
 
-  static Future<Map<String, dynamic>> fetchAuthenticatedUser(String userId) async {
+  static Future<Map<String, dynamic>> fetchAuthenticatedUser(
+      String userId) async {
     try {
       final String token = await AuthService.getSessionToken();
-      final response = await http.get(
-          Uri.parse("$apiUrl/getUserData/$userId"),
+      final response = await http.get(Uri.parse("$apiUrl/getUserData/$userId"),
           headers: {
             "Authorization": "Bearer $token",
             "Content-Type": "application/json"
-          }
-      );
+          });
 
       debugPrint("Retreived Data: " + response.body);
       var data = jsonDecode(response.body);
@@ -158,7 +155,10 @@ class ApiService {
     } catch (e) {
       debugPrint(e.toString());
       debugPrintStack();
-      return {"error": "An error occurred while retrieving your information. Please try again."};
+      return {
+        "error":
+            "An error occurred while retrieving your information. Please try again."
+      };
     }
   }
 
@@ -268,10 +268,7 @@ class ApiService {
           "Authorization": "Bearer $session",
           "Access-Control-Allow-Credentials": "true"
         },
-        body: json.encode({
-          "user_id": userId,
-          "session": session
-        }),
+        body: json.encode({"user_id": userId, "session": session}),
       );
 
       debugPrint('Logout Status Code: ${response.statusCode}');
@@ -289,10 +286,12 @@ class ApiService {
       return {"error": "Connection error during logout"};
     }
   }
-  
-  static Future<Map<String, dynamic>> sendMessage(Conversation conversation) async {
+
+  static Future<Map<String, dynamic>> sendMessage(
+      Conversation conversation) async {
     try {
       String token = await AuthService.getSessionToken();
+
       final response = await http.post(
         Uri.parse("$apiUrl/send-message"),
         headers: {
@@ -312,8 +311,12 @@ class ApiService {
         };
       } else {
         // Handle unexpected response statuses
-        return {"error": "Unexpected error occurred. Status code: ${response.statusCode}"};
+        return {
+          "error":
+              "Unexpected error occurred. Status code: ${response.statusCode}"
+        };
       }
+
     }catch (e) {
       debugPrint(e.toString());
       debugPrintStack();

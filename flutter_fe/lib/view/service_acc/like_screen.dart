@@ -8,7 +8,7 @@ import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:intl/intl.dart';
 
 class LikeScreen extends StatefulWidget {
-  const LikeScreen({Key? key}) : super(key: key);
+  const LikeScreen({super.key});
 
   @override
   State<LikeScreen> createState() => _LikeScreenState();

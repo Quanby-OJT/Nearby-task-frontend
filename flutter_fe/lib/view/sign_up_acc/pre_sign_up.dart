@@ -50,12 +50,13 @@ class _PreSignUpState extends State<PreSignUp> {
               SizedBox(height: screenHeight * 0.05),
 
               // TASKER BUTTON
-              Container(
+              SizedBox(
                 width: screenWidth * 0.8,
                 height: screenHeight * 0.22,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
                       return SignUpTaskerAcc(role: "Tasker");
                     }));
                   },
@@ -91,12 +92,13 @@ class _PreSignUpState extends State<PreSignUp> {
               SizedBox(height: screenHeight * 0.02),
 
               // CLIENT BUTTON
-              Container(
+              SizedBox(
                 width: screenWidth * 0.8,
                 height: screenHeight * 0.22,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
                       return SignUpClientAcc(role: "Client");
                     }));
                   },

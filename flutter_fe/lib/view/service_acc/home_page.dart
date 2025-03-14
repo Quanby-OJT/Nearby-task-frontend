@@ -24,6 +24,7 @@ class _HomePageState extends State<HomePage> {
   ];
   List<String> selectedCategories = [];
   bool _isLoading = true;
+  @override
   void initState() {
     super.initState();
     _fetchTasks();
@@ -35,7 +36,7 @@ class _HomePageState extends State<HomePage> {
       JobPostService jobPostService = JobPostService();
       List<TaskModel> fetchedTasks = await jobPostService.fetchAllJobs();
 
-      print("Raw API Response: ${fetchedTasks}"); // Print entire response
+      print("Raw API Response: $fetchedTasks"); // Print entire response
       print(
           "Parsed tasks count: ${fetchedTasks.length}"); // Check if tasks are parsed
 
@@ -73,7 +74,7 @@ class _HomePageState extends State<HomePage> {
       // Call the service method to save the liked job - now passing an int
       final result = await jobPostService.saveLikedJob(task.id!);
 
-      if (result.containsKey('message')) {
+      if (result['success']) {
         // Show success indicator
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -86,15 +87,14 @@ class _HomePageState extends State<HomePage> {
         // Show error indicator
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result['error']),
+            content: Text(result['message']),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 2),
           ),
         );
       }
     } catch (e) {
-      debugPrint("$e");
-      debugPrintStack();
+      print("Error saving liked job: $e");
 
       // Show error indicator
       ScaffoldMessenger.of(context).showSnackBar(

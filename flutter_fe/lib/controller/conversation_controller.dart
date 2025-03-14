@@ -11,6 +11,7 @@ class ConversationController {
     int userId = storage.read('user_id');
 
     final conversation = Conversation(
+
       conversationMessage: conversationMessage.text,
       userId: userId,
       taskTakenId: taskTaken,
@@ -28,10 +29,12 @@ class ConversationController {
 
   Future<List<Conversation>> getMessages(BuildContext context, int? taskTakenId) async {
     //debugPrint(taskTakenId.toString());
+
     final messages = await ApiService.getMessages(taskTakenId);
     debugPrint(messages.toString());
 
     if (messages.containsKey("messages")) {
+
       // Expecting a list of conversations from the API
       List<dynamic> messageList = messages['messages'];
       List<Conversation> conversations = messageList
@@ -47,6 +50,7 @@ class ConversationController {
         ),
       );
       return []; // Return empty list on error
+
     }
   }
 
