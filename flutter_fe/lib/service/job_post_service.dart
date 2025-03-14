@@ -27,7 +27,7 @@ class JobPostService {
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.get(
-        Uri.parse('$apiUrl/$endpoint'),
+        Uri.parse('$apiUrl$endpoint'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -55,8 +55,7 @@ class JobPostService {
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> _deleteRequest(
-      String endpoint, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
       final request = http.Request("DELETE", Uri.parse('$apiUrl$endpoint'))

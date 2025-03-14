@@ -174,8 +174,7 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> fetchAuthenticatedUser(
-      String userId) async {
+  static Future<Map<String, dynamic>> fetchAuthenticatedUser(String userId) async {
     try {
       final String token = await AuthService.getSessionToken();
       final response = await http.get(Uri.parse("$apiUrl/getUserData/$userId"),
@@ -326,10 +325,11 @@ class ApiService {
 
       if (response.statusCode == 200) {
         _cookies.remove("session"); // Remove only the session cookie
+        storage.erase();
         return {"message": "Logged out successfully"};
       } else {
         var data = json.decode(response.body);
-        return {"error": data['message'] ?? "Failed to logout"};
+        return {"error": data['error'] ?? "Failed to logout"};
       }
     } catch (e) {
       debugPrint('Logout Error: $e');
