@@ -90,7 +90,7 @@ class _LikeScreenState extends State<LikeScreen> {
     setState(() {
       if (selectedFilters.isNotEmpty) {
         _filteredJobs = _filteredJobs.where((task) {
-          int priceFilter = _getPriceFilter(task.contactPrice);
+          int priceFilter = _getPriceFilter(task.contactPrice as int?);
           return selectedFilters.contains(priceFilter);
         }).toList();
       }
@@ -418,7 +418,7 @@ class _LikeScreenState extends State<LikeScreen> {
                       children: [
                         if (task.contactPrice != null)
                           Text(
-                            '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice!.roundToDouble())}',
+                            '\₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice!.roundToDouble())}',
                             style: GoogleFonts.montserrat(
                               color: const Color(0xFF03045E),
                               fontSize: 20,

@@ -1,6 +1,6 @@
 import 'package:flutter_fe/model/user_model.dart';
 
-class TaskerModel{
+class TaskerModel {
   final String bio;
   final String specialization;
   final String skills;
@@ -10,16 +10,15 @@ class TaskerModel{
   final String taskerAddress;
   UserModel? user;
 
-  TaskerModel({
-    required this.bio,
-    required this.specialization,
-    required this.skills,
-    required this.taskerAddress,
-    this.availability,
-    this.taskerDocuments,
-    this.socialMediaLinks,
-    this.user
-  });
+  TaskerModel(
+      {required this.bio,
+      required this.specialization,
+      required this.skills,
+      required this.taskerAddress,
+      this.availability,
+      this.taskerDocuments,
+      this.socialMediaLinks,
+      this.user});
 
   @override
   String toString() {
@@ -40,7 +39,6 @@ class TaskerModel{
       taskerDocuments: json['tasker_documents'] ?? '',
     );
   }
-
 
   Map<String, dynamic> toJson() {
     return {

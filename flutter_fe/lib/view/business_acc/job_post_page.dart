@@ -19,6 +19,7 @@ class _JobPostPageState extends State<JobPostPage> {
   final JobPostService jobPostService = JobPostService();
   String? _message;
   bool _isSuccess = false;
+  bool _isLoadingSpecializations = true; // Added loading state
 
   String? selectedTimePeriod;
   String? selectedUrgency;
@@ -39,14 +40,25 @@ class _JobPostPageState extends State<JobPostPage> {
 
   Future<void> fetchSpecialization() async {
     try {
+      setState(() {
+        _isLoadingSpecializations = true;
+      });
       List<SpecializationModel> fetchedSpecializations =
           await jobPostService.getSpecializations();
       setState(() {
-        specialization =
-            fetchedSpecializations.map((spec) => spec.specialization).toList();
+        specialization = fetchedSpecializations
+            .map((spec) => spec.specialization)
+            .where((spec) => spec != null) // Filter out null values
+            .cast<String>()
+            .toList();
+        debugPrint('Specializations loaded: $specialization');
+        _isLoadingSpecializations = false;
       });
     } catch (error) {
-      print('Error fetching specializations: $error');
+      debugPrint('Error fetching specializations: $error');
+      setState(() {
+        _isLoadingSpecializations = false;
+      });
     }
   }
 
@@ -222,22 +234,43 @@ class _JobPostPageState extends State<JobPostPage> {
                           borderSide:
                               BorderSide(color: Color(0xFF0272B1), width: 2),
                         ),
+                        errorText: _errors['specialization'],
                       ),
-                      items: specialization.map((String spec) {
-                        return DropdownMenuItem<String>(
-                          value: spec,
-                          child: Text(
-                            spec,
-                            overflow: TextOverflow
-                                .ellipsis, // Ensures text does not overflow
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (newValue) {
-                        setState(() {
-                          selectedSpecialization = newValue;
-                        });
-                      },
+                      items: _isLoadingSpecializations
+                          ? [
+                              DropdownMenuItem<String>(
+                                value: null,
+                                child: Text('Loading specializations...'),
+                                enabled: false,
+                              )
+                            ]
+                          : specialization.isEmpty
+                              ? [
+                                  DropdownMenuItem<String>(
+                                    value: null,
+                                    child: Text('No specializations available'),
+                                    enabled: false,
+                                  )
+                                ]
+                              : specialization.map((String spec) {
+                                  return DropdownMenuItem<String>(
+                                    value: spec,
+                                    child: Text(
+                                      spec,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  );
+                                }).toList(),
+                      onChanged:
+                          _isLoadingSpecializations || specialization.isEmpty
+                              ? null
+                              : (newValue) {
+                                  setState(() {
+                                    selectedSpecialization = newValue;
+                                    debugPrint(
+                                        'Selected specialization: $newValue');
+                                  });
+                                },
                     ),
                   ),
                   Padding(
@@ -330,7 +363,6 @@ class _JobPostPageState extends State<JobPostPage> {
                       decoration: InputDecoration(
                           filled: true,
                           fillColor: Color(0xFFF1F4FF),
-                          //labelText: 'Select an option',
                           hintText: 'Indicate the Time Priod',
                           hintStyle: TextStyle(color: Color(0xFF0272B1)),
                           enabledBorder: OutlineInputBorder(
@@ -438,7 +470,6 @@ class _JobPostPageState extends State<JobPostPage> {
                       decoration: InputDecoration(
                           filled: true,
                           fillColor: Color(0xFFF1F4FF),
-                          //labelText: 'Select an option',
                           hintText: 'Does your task need be done ASAP? *',
                           hintStyle: TextStyle(color: Color(0xFF0272B1)),
                           enabledBorder: OutlineInputBorder(
@@ -524,8 +555,7 @@ class _JobPostPageState extends State<JobPostPage> {
                   Container(
                     height: 50,
                     width: double.infinity,
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 40), // Match padding
+                    padding: EdgeInsets.symmetric(horizontal: 40),
                     child: ElevatedButton(
                       onPressed: () {
                         Navigator.pop(context);

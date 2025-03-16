@@ -36,10 +36,10 @@ class TaskController {
         specialization: specialization,
         description: jobDescriptionController.text.trim(),
         location: jobLocationController.text.trim(),
-        duration: jobTimeController.text,
+        duration: int.tryParse(jobTimeController.text.trim()),
         period: period,
         urgency: urgency,
-        contactPrice: int.tryParse(contactPriceController.text.trim()) ?? 0,
+        contactPrice: double.tryParse(contactPriceController.text.trim()),
         remarks: jobRemarksController.text.trim(),
         taskBeginDate: jobTaskBeginDateController.text.trim(),
       );

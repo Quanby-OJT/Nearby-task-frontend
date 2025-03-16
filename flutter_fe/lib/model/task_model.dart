@@ -5,11 +5,11 @@ class TaskModel {
   final String? specialization;
   final String? description;
   final String? location;
-  final String? period;  // <- period remains a String
-  final String? duration; // <- Change duration from int? to String?
+  final String? period;
+  final int? duration;
   final bool? urgency;
   final String? status;
-  final int? contactPrice;
+  final double? contactPrice;
   final String? remarks;
   final String? taskBeginDate;
 
@@ -21,7 +21,7 @@ class TaskModel {
     this.description,
     this.location,
     this.period,
-    this.duration,  // <- Updated from int? to String?
+    this.duration,
     this.urgency,
     this.status,
     this.contactPrice,
@@ -38,7 +38,7 @@ class TaskModel {
       "specialization": specialization,
       "task_description": description,
       "location": location,
-      "duration": duration, // <- Keep as String
+      "duration": duration,
       "num_of_days": period,
       "urgency": urgency,
       "contact_price": contactPrice,
@@ -58,10 +58,10 @@ class TaskModel {
       specialization: json['specialization'] as String?,
       description: json['task_description'] as String?,
       location: json['location'] as String?,
-      duration: json['duration']?.toString(), // <- Ensure it remains a String
-      period: json['period']?.toString(),
-      urgency: json['urgent'] as bool,  // <- Fix key from "urgency" to "urgent"
-      contactPrice: json['contact_price'] as int?,
+      duration: json['duration'] as int?,
+      period: json['period'] as String?,
+      urgency: json['urgent'] as bool,
+      contactPrice: (json['contact_price'] as num).toDouble(),
       remarks: json['remarks'] as String?,
       taskBeginDate: json['task_begin_date'] as String?,
       status: json['status'] as String?,
