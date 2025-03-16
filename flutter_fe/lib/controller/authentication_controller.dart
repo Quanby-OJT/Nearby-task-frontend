@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/service/api_service.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 import 'package:flutter_fe/view/business_acc/business_acc_main_page.dart';
-import 'package:flutter_fe/view/fill_up/fill_up_tasker.dart';
 import 'package:flutter_fe/view/sign_in/otp_screen.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
@@ -100,11 +99,16 @@ class AuthenticationController {
     }
   }
 
+  void redirectRologout(BuildContext context) {
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => WelcomePageViewMain()));
+  }
+
   Future<void> logout(BuildContext context) async {
     try {
-      final storedUserId = storage.read('user_id');
+      // redirectRologout(context);
 
-      // Ensure storedUserId is a valid String or int
+      final storedUserId = storage.read('user_id');
       if (storedUserId == null) {
         debugPrint("No user ID found in storage");
         return;
