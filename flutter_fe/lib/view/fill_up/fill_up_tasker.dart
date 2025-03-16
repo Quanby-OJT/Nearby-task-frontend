@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter_fe/controller/profile_controller.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
@@ -28,6 +29,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
   List<String> genderOptions = ["Male", "Female", "Non-Binary", "I don't Want to Say"];
   List<String> specialization = [];
   String? selectedSpecialization;
+  List<String> payPeriod = ["Hourly", "Daily", "Weekly", "Bi-Weekly" ,"Monthly"];
 
   Future<void> _pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -67,13 +69,15 @@ class _FillUpTaskerState extends State<FillUpTasker> {
 
   Future<void> fetchSpecialization() async {
     try {
+      debugPrint(GetStorage().read("session"));
       List<SpecializationModel> fetchedSpecializations = await jobPostService.getSpecializations();
       debugPrint(fetchedSpecializations.toString());
       setState(() {
         specialization = fetchedSpecializations.map((spec) => spec.specialization).toList();
       });
-    } catch (error) {
-      print('Error fetching specializations: $error');
+    } catch (error, stackTrace) {
+      debugPrint('Error fetching specializations: $error');
+      debugPrintStack(stackTrace: stackTrace);
     }
   }
 
@@ -119,7 +123,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                       if (isLastStep) {
                         debugPrint('Creating New Tasker...');
                         try {
-                          _controller.createTasker(context);
+                          _controller.createTasker(context, selectedSpecialization ?? "Unknown Specialization", selectedGender ?? "Unknown Gender");
                         } catch (error) {
                           debugPrint('Registration error: $error');
                           debugPrintStack();
@@ -207,7 +211,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextFormField(
-                    controller: _controller.firstNameController,
+                    controller: _controller.wageController,
                     cursorColor: Color(0xFF0272B1),
                     validator: (value) =>
                         value!.isEmpty ? "Please Indicate Your Desired Wage" : null,
@@ -226,14 +230,15 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                                 color: Color(0xFF0272B1), width: 2))),
                   ),
                 ),
+
                 //Duration
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextFormField(
-                    controller: _controller.lastNameController,
+                    controller: _controller.payPeriodController,
                     cursorColor: Color(0xFF0272B1),
                     validator: (value) =>
-                        value!.isEmpty ? "Last name is required" : null,
+                        value!.isEmpty ? "Indicate your pay period." : null,
                     decoration: InputDecoration(
                         filled: true,
                         fillColor: Color(0xFFF1F4FF),
@@ -249,6 +254,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                                 color: Color(0xFF0272B1), width: 2))),
                   ),
                 ),
+
                 //Gender
                 Padding(
                   padding: EdgeInsets.only(bottom: 10.0),
@@ -275,10 +281,12 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                     },
                   ),
                 ),
+
                 //Contact Number
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextFormField(
+                    controller: _controller.contactNumberController,
                     cursorColor: Color(0xFF0272B1),
                     validator: (value) =>
                         value!.isEmpty ? "Please indicate your contact number" : null,
@@ -297,10 +305,12 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                                 color: Color(0xFF0272B1), width: 2))),
                   ),
                 ),
+
                 //Tasker Address
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextFormField(
+                    controller: _controller.taskerAddressController,
                     cursorColor: Color(0xFF0272B1),
                     validator: (value) =>
                         value!.isEmpty ? "Address is required" : null,
@@ -323,8 +333,8 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextField(
-                    controller: _controller.emailController,
-                    keyboardType: TextInputType.datetime, // Opens date keyboard
+                    controller: _controller.birthdateController, // Dedicated controller
+                    keyboardType: TextInputType.datetime, // Optional, but not needed for picker
                     readOnly: true, // Prevents manual input
                     onTap: () async {
                       DateTime? pickedDate = await showDatePicker(
@@ -338,27 +348,23 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                         // Format date as YYYY-MM-DD
                         String formattedDate =
                             "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
-                        //   controller.jobTaskBeginDateController.text = formattedDate;
+                        _controller.birthdateController.text = formattedDate; // Set the text
                       }
                     },
                     decoration: InputDecoration(
-                      // labelText: 'Task Begin Date',
                       labelStyle: TextStyle(color: Color(0xFF0272B1)),
                       filled: true,
                       fillColor: Color(0xFFF1F4FF),
                       hintText: 'Birth date',
                       hintStyle: TextStyle(color: Colors.grey),
-                      suffixIcon: Icon(Icons.calendar_today,
-                          color: Color(0xFF0272B1)), // Calendar icon
+                      suffixIcon: Icon(Icons.calendar_today, color: Color(0xFF0272B1)), // Calendar icon
                       enabledBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Colors.transparent, width: 0),
+                        borderSide: BorderSide(color: Colors.transparent, width: 0),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide:
-                            BorderSide(color: Color(0xFF0272B1), width: 2),
+                        borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
                       ),
                     ),
                   ),
@@ -390,7 +396,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                   padding: const EdgeInsets.only(top: 10, bottom: 10),
                   child: TextFormField(
                     maxLines: 2,
-                    controller: _controller.emailController,
+                    controller: _controller.bioController,
                     cursorColor: Color(0xFF0272B1),
                     validator: (value) => value!.isEmpty ? "Indicate Your desired description." : null,
                     decoration: InputDecoration(
@@ -414,7 +420,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextFormField(
                     maxLines: 3,
-                    controller: _controller.passwordController,
+                    controller: _controller.skillsController,
                     cursorColor: Color(0xFF0272B1),
                     validator: (value) =>
                         value!.isEmpty ? "List of skills..." : null,

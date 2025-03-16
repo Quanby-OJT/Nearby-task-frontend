@@ -23,7 +23,7 @@ class TaskDetailsService {
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.get(
-        Uri.parse('$apiUrl/$endpoint'),
+        Uri.parse('$apiUrl$endpoint'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"

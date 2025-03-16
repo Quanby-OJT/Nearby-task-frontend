@@ -77,7 +77,6 @@ class TaskerModel{
       "wage_per_hour": wage,
       "pay_period": payPeriod,
       "birth_date": birthDate.toIso8601String(),
-      "user": user?.toJson()
     };
   }
 }
