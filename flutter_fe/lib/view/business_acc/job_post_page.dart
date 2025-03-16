@@ -563,9 +563,11 @@ class _JobPostPageState extends State<JobPostPage> {
     });
 
     bool urgent = false;
-    if(selectedUrgency == "Urgent")  urgent = true;
-    else if(selectedUrgency == "Non-Urgent") urgent = false;
-    final result = await controller.postJob(selectedSpecialization, urgent, selectedTimePeriod);
+    if (selectedUrgency == "Urgent") {
+      urgent = true;
+    } else if (selectedUrgency == "Non-Urgent") urgent = false;
+    final result = await controller.postJob(
+        selectedSpecialization, urgent, selectedTimePeriod);
     debugPrint(result.toString());
 
     if (result['success']) {

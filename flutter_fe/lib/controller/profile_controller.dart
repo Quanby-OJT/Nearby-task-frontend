@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/client_model.dart';
 import '../model/user_model.dart';
@@ -35,8 +34,6 @@ class ProfileController {
   //Client Text Controller
   final TextEditingController prefsController = TextEditingController();
   final TextEditingController clientAddressController = TextEditingController();
-
-
 
   // Byte for the image start
   // void setImage(File image, String name) {
@@ -77,36 +74,34 @@ class ProfileController {
     if (resultData.containsKey("message")) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            resultData["message"] ?? "Registration Successful! Please Check your Email to confirm your email."
-          )
-        ),
+            content: Text(resultData["message"] ??
+                "Registration Successful! Please Check your Email to confirm your email.")),
       );
     } else if (resultData.containsKey("errors")) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(
-            resultData["errors"] ?? "Please Check Your inputs and try again"
-          )
-        ),
+        SnackBar(
+            content: Text(resultData["errors"] ??
+                "Please Check Your inputs and try again")),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(
-          resultData["error"] ?? "Registration Failed!")
-        ),
+        SnackBar(content: Text(resultData["error"] ?? "Registration Failed!")),
       );
     }
   }
 
 // In your ProfileController class (assuming this is where verifyEmail is defined)
 // Update verifyEmail to return userId
-  Future<int> verifyEmail(BuildContext context, String token, String email) async {
+  Future<int> verifyEmail(
+      BuildContext context, String token, String email) async {
     try {
       // Your existing verification logic
       // Assuming this returns a response with userId after successful verification
       //debugPrint("Token : ${token}" + "Email: ${email}");
-      final response = await ApiService.verifyEmail(token, email); // Modify this based on your actual implementation
-      if (response.containsKey("message")) { // Adjust this condition based on your API response
+      final response = await ApiService.verifyEmail(
+          token, email); // Modify this based on your actual implementation
+      if (response.containsKey("message")) {
+        // Adjust this condition based on your API response
         return response["user_id"]; // Return the userId from your API response
       }
       return 0;
@@ -117,7 +112,6 @@ class ProfileController {
       return 0;
     }
   }
-
 
   Future<void> createTasker(BuildContext context) async {
     TaskerModel tasker = TaskerModel(
@@ -146,7 +140,7 @@ class ProfileController {
         } else if (result.containsKey("tasker")) {
           TaskerModel tasker = result["tasker"] as TaskerModel;
 
-          debugPrint("Retrieved Data: " + tasker.toString());
+          debugPrint("Retrieved Data: $tasker");
 
           return AuthenticatedUser(user: user, tasker: tasker);
         }

@@ -12,7 +12,7 @@ import '../model/client_model.dart';
 
 class ApiService {
   static const String apiUrl =
-      "http://10.0.2.2:5000/connect"; // Adjust if needed
+      "http://localhost:5000/connect"; // Adjust if needed
   static final storage = GetStorage();
 
   static final http.Client _client = http.Client();
@@ -20,15 +20,18 @@ class ApiService {
 
   static void _updateCookies(http.Response response) {
     String? rawCookie = response.headers['set-cookie'];
-
-    List<String> cookieParts = rawCookie!.split(',');
-    for (String part in cookieParts) {
-      List<String> keyValue = part.split(';')[0].split('=');
-      if (keyValue.length == 2) {
-        _cookies[keyValue[0].trim()] = keyValue[1].trim();
+    if (rawCookie != null) {
+      List<String> cookieParts = rawCookie.split(',');
+      for (String part in cookieParts) {
+        List<String> keyValue = part.split(';')[0].split('=');
+        if (keyValue.length == 2) {
+          _cookies[keyValue[0].trim()] = keyValue[1].trim();
+        }
       }
+      debugPrint('Updated Cookies: $_cookies'); // Debugging
+    } else {
+      debugPrint('No set-cookie header found in response');
     }
-    print('Updated Cookies: $_cookies'); // Debugging
   }
 
   // Function to add cookies to requests
@@ -75,47 +78,52 @@ class ApiService {
         } else if (data['errors'] is List) {
           // If errors is a list, map it to a single string
           List<dynamic> errors = data['errors'];
-          String errorMessage = errors.map((e) => e['msg'] ?? e.toString()).join('\n');
+          String errorMessage =
+              errors.map((e) => e['msg'] ?? e.toString()).join('\n');
           return {"error": errorMessage};
         } else {
           return {"error": "Unknown error format from server"};
         }
       } else {
         return {
-          "error": data["error"] ?? "An error occurred while registering your account. Please try again."
+          "error": data["error"] ??
+              "An error occurred while registering your account. Please try again."
         };
       }
     } catch (e) {
       debugPrint('Registration Error: $e');
-      return {
-        "error": "An error occurred while registering your account: $e"
-      };
+      return {"error": "An error occurred while registering your account: $e"};
     }
   }
 
-  static Future<Map<String, dynamic>> verifyEmail(String token, String email) async {
+  static Future<Map<String, dynamic>> verifyEmail(
+      String token, String email) async {
     try {
-      final response = await _client.post(
-        Uri.parse("$apiUrl/verify"),
-        headers: _getHeaders(),
-        body: json.encode({
-          "token": token,
-          "email": email
-        }
-      ));
+      final response = await _client.post(Uri.parse("$apiUrl/verify"),
+          headers: _getHeaders(),
+          body: json.encode({"token": token, "email": email}));
 
       var data = jsonDecode(response.body);
       debugPrint('Verify Response: ${response.statusCode} - ${response.body}');
 
-      if(response.statusCode == 200){
-        return {"message": data["message"] ?? "Email Verified Successfully.", "user_id": data["user_id"], "session": data["session"]};
-      }else {
-        return {"error": data["error"] ?? "An Error Occured while verifying your email. Please Try Again"};
+      if (response.statusCode == 200) {
+        return {
+          "message": data["message"] ?? "Email Verified Successfully.",
+          "user_id": data["user_id"],
+          "session": data["session"]
+        };
+      } else {
+        return {
+          "error": data["error"] ??
+              "An Error Occured while verifying your email. Please Try Again"
+        };
       }
-    }catch(e, stackTrace) {
+    } catch (e, stackTrace) {
       debugPrint(e.toString());
       debugPrint(stackTrace.toString());
-      return {"error": "An Error Occured while verifying your email. Please Try Again"};
+      return {
+        "error": "An Error Occured while verifying your email. Please Try Again"
+      };
     }
   }
 
@@ -133,7 +141,7 @@ class ApiService {
             "Content-Type": "application/json"
           });
 
-      debugPrint("Retreived Data: " + response.body);
+      debugPrint("Retreived Data: ${response.body}");
       var data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
@@ -292,14 +300,12 @@ class ApiService {
     try {
       String token = await AuthService.getSessionToken();
 
-      final response = await http.post(
-        Uri.parse("$apiUrl/send-message"),
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json"
-        },
-        body: jsonEncode(conversation.toJson())
-      );
+      final response = await http.post(Uri.parse("$apiUrl/send-message"),
+          headers: {
+            "Authorization": "Bearer $token",
+            "Content-Type": "application/json"
+          },
+          body: jsonEncode(conversation.toJson()));
 
       var data = jsonDecode(response.body);
 
@@ -316,8 +322,7 @@ class ApiService {
               "Unexpected error occurred. Status code: ${response.statusCode}"
         };
       }
-
-    }catch (e) {
+    } catch (e) {
       debugPrint(e.toString());
       debugPrintStack();
       return {
@@ -328,7 +333,7 @@ class ApiService {
 
   static Future<Map<String, dynamic>> getMessages(int? taskTakenId) async {
     try {
-      debugPrint("Getting All Message for Task Taken id of: " + taskTakenId.toString());
+      debugPrint("Getting All Message for Task Taken id of: $taskTakenId");
       String token = await AuthService.getSessionToken();
 
       final response = await http.get(
@@ -339,7 +344,7 @@ class ApiService {
         },
       );
 
-      debugPrint("All Messages Data: " + response.body.toString());
+      debugPrint("All Messages Data: ${response.body}");
 
       var data = jsonDecode(response.body);
 
@@ -355,7 +360,10 @@ class ApiService {
     } catch (e, st) {
       debugPrint(e.toString());
       debugPrint(st.toString());
-      return {"error": "An error occurred while retrieving your conversation. Please try again."};
+      return {
+        "error":
+            "An error occurred while retrieving your conversation. Please try again."
+      };
     }
   }
 }

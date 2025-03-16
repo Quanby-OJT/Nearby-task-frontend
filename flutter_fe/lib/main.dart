@@ -18,10 +18,7 @@ void main() async {
 class MyApp extends StatelessWidget {
   final storage = GetStorage();
 
-
-  MyApp({Key? key, required bool isLoggedIn, required dynamic userId})
-      : super(key: key);
-
+  MyApp({super.key, required bool isLoggedIn, required dynamic userId});
 
   Future<Map<String, dynamic>> _loadUserData() async {
     await Future.delayed(

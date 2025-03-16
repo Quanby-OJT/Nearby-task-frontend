@@ -21,9 +21,10 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final storage = GetStorage();
-  final ConversationController conversationController = ConversationController();
+  final ConversationController conversationController =
+      ConversationController();
   final JobPostService jobPostService = JobPostService();
-  TaskModel? task;
+  TaskModel? task; // Changed from 'final TaskModel? task' to 'TaskModel? task'
   Timer? _timer;
 
   @override
@@ -37,19 +38,19 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   }
 
   Future<void> loadInitialData() async {
-    final _task = await jobPostService.fetchTaskInformation(widget.taskTakenId ?? 0);
-    setState(() {
-      task = _task;
-    });
+    task = await jobPostService
+        .fetchTaskInformation(widget.taskTakenId ?? 0); // Direct assignment
     await loadConversationHistory();
   }
 
   Future<void> loadConversationHistory() async {
     debugPrint(widget.taskTitle.toString() + widget.taskTakenId.toString());
-    final messages = await conversationController.getMessages(context, widget.taskTakenId);
+    final messages =
+        await conversationController.getMessages(context, widget.taskTakenId);
     setState(() {
       _messages.clear();
-      _messages.addAll(messages); // No type error: messages is List<Conversation>
+      _messages
+          .addAll(messages); // No type error: messages is List<Conversation>
     });
   }
 
@@ -61,7 +62,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
     super.dispose();
   }
 
-  //Main Screen
+  // Main Screen
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -73,50 +74,51 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
         children: [
           Expanded(
             child: _messages.isEmpty
-              ? Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment:
-                    MainAxisAlignment.center, // Centers vertically
-                    crossAxisAlignment:
-                    CrossAxisAlignment.center, // Centers horizontally
-                    children: [
-                      Icon(
-                        Icons.message,
-                        size: 100,
-                        color: Color(0xFF0272B1),
+                ? Expanded(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment:
+                            MainAxisAlignment.center, // Centers vertically
+                        crossAxisAlignment:
+                            CrossAxisAlignment.center, // Centers horizontally
+                        children: [
+                          Icon(
+                            Icons.message,
+                            size: 100,
+                            color: Color(0xFF0272B1),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            child: Text(
+                              "You Don't Have Messages Yet, You can Start a Conversation By Sending Your First Message to your Client.",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ],
                       ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: Text(
-                          "You Don't Have Messages Yet, You can Start a Conversation By Sending Your First Message to your Client.",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ],
+                    ),
+                  )
+                : ListView.builder(
+                    controller: _scrollController,
+                    reverse: false,
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      final message = _messages[index];
+                      return _ChatBubble(
+                        message: message,
+                        profile: message.user ??
+                            UserModel(
+                              firstName: 'Unknown',
+                              middleName: '',
+                              lastName: '',
+                              email: '',
+                              role: '',
+                              accStatus: '',
+                            ),
+                      );
+                    },
                   ),
-                ),
-                )
-              : ListView.builder(
-              controller: _scrollController,
-              reverse: false,
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                return _ChatBubble(
-                  message: message,
-                  profile: message.user ?? UserModel(
-                    firstName: 'Unknown',
-                    middleName: '',
-                    lastName: '',
-                    email: '',
-                    role: '',
-                    accStatus: '',
-                  ),
-                );
-              },
-            ),
           ),
           _MessageBar(
             controller: conversationController,
@@ -149,8 +151,7 @@ class _MessageBar extends StatelessWidget {
     });
   }
 
-
-  //Text Form Field
+  // Text Form Field
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -186,7 +187,7 @@ class _MessageBar extends StatelessWidget {
   }
 }
 
-//Chat Bubble
+// Chat Bubble
 class _ChatBubble extends StatelessWidget {
   final Conversation message;
   final UserModel profile;
@@ -225,7 +226,8 @@ class _ChatBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 18),
       child: Row(
-        mainAxisAlignment: isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: chatContents,
       ),
     );
