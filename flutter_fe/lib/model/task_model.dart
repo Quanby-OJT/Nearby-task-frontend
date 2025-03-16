@@ -12,22 +12,27 @@ class TaskModel {
   final double? contactPrice;
   final String? remarks;
   final String? taskBeginDate;
+  final double? finalPrice;
+  final String? priceStatus;
+  final String? taskerRole;
 
-  TaskModel({
-    this.id,
-    this.clientId,
-    this.title,
-    this.specialization,
-    this.description,
-    this.location,
-    this.period,
-    this.duration,
-    this.urgency,
-    this.status,
-    this.contactPrice,
-    this.remarks,
-    this.taskBeginDate,
-  });
+  TaskModel(
+      {this.id,
+      this.clientId,
+      this.title,
+      this.specialization,
+      this.description,
+      this.location,
+      this.period,
+      this.duration,
+      this.urgency,
+      this.status,
+      this.contactPrice,
+      this.remarks,
+      this.taskBeginDate,
+      this.finalPrice,
+      this.priceStatus,
+      this.taskerRole});
 
   // Convert to JSON
   Map<String, dynamic> toJson() {
@@ -46,6 +51,9 @@ class TaskModel {
       "task_begin_date": taskBeginDate,
       "id": id,
       "status": status,
+      "final_price": finalPrice,
+      "price_status": priceStatus,
+      "tasker_role": taskerRole,
     };
   }
 
@@ -65,6 +73,9 @@ class TaskModel {
       remarks: json['remarks'] as String?,
       taskBeginDate: json['task_begin_date'] as String?,
       status: json['status'] as String?,
+      finalPrice: (json['final_price'] as num).toDouble(),
+      priceStatus: json['price_status'] as String?,
+      taskerRole: json['tasker_role'] as String?,
     );
   }
 }

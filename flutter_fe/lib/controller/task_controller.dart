@@ -22,6 +22,11 @@ class TaskController {
   final jobRemarksController = TextEditingController();
   final jobTaskBeginDateController = TextEditingController();
   final contactpriceController = TextEditingController();
+
+  final finalPriceController = TextEditingController();
+  final priceStatusController = TextEditingController();
+  final taskerRoleController = TextEditingController();
+
   final storage = GetStorage();
 
   Future<Map<String, dynamic>> postJob(
@@ -42,6 +47,9 @@ class TaskController {
         contactPrice: double.tryParse(contactPriceController.text.trim()),
         remarks: jobRemarksController.text.trim(),
         taskBeginDate: jobTaskBeginDateController.text.trim(),
+        finalPrice: double.tryParse(finalPriceController.text.trim()),
+        priceStatus: priceStatusController.text.trim(),
+        taskerRole: taskerRoleController.text.trim(),
       );
 
       print('Task data: ${task.toJson()}'); // Debug print
@@ -119,7 +127,10 @@ class TaskController {
           contactPrice: null,
           remarks: null,
           taskBeginDate: null,
-          id: taskId, // You could use taskId here if needed
+          finalPrice: null,
+          priceStatus: null,
+          taskerRole: null,
+          id: taskId,
         );
 
         // Parse client and its user

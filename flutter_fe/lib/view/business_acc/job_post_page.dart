@@ -102,6 +102,22 @@ class _JobPostPageState extends State<JobPostPage> {
             'Contract Price must be a valid positive number';
       }
 
+      String finalPrice = controller.finalPriceController.text.trim();
+      if (finalPrice.isEmpty) {
+        _errors['final_price'] = 'Indicate the Final Price';
+      } else if (double.tryParse(finalPrice) == null ||
+          double.parse(finalPrice) <= 0) {
+        _errors['final_price'] = 'Final Price must be a valid positive number';
+      }
+
+      if (controller.priceStatusController.text.trim().isEmpty) {
+        _errors['price_status'] = 'Indicate the Price Status';
+      }
+
+      if (controller.taskerRoleController.text.trim().isEmpty) {
+        _errors['tasker_role'] = 'Indicate the Tasker Role';
+      }
+
       if (controller.jobLocationController.text.trim().isEmpty) {
         _errors['location'] =
             'Indicate Your Location where the Task will be held.';
@@ -329,6 +345,85 @@ class _JobPostPageState extends State<JobPostPage> {
                                 BorderSide(color: Color(0xFF0272B1), width: 2),
                           ),
                           errorText: _errors['contract_price']),
+                    ),
+                  ),
+                  Padding(
+                    padding:
+                        const EdgeInsets.only(left: 40, right: 40, top: 20),
+                    child: TextFormField(
+                      maxLines: 1, // Single line for numbers
+                      cursorColor: Color(0xFF0272B1),
+                      controller: controller.finalPriceController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly
+                      ], // Restricts to numbers only
+                      decoration: InputDecoration(
+                          label: Text('Final Price *'),
+                          labelStyle: TextStyle(color: Color(0xFF0272B1)),
+                          filled: true,
+                          fillColor: Color(0xFFF1F4FF),
+                          hintText: 'Enter price...',
+                          hintStyle: TextStyle(color: Colors.grey),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Colors.transparent, width: 0),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide:
+                                BorderSide(color: Color(0xFF0272B1), width: 2),
+                          ),
+                          errorText: _errors['final_price']),
+                    ),
+                  ),
+                  Padding(
+                    padding:
+                        const EdgeInsets.only(left: 40, right: 40, top: 20),
+                    child: TextField(
+                      cursorColor: Color(0xFF0272B1),
+                      controller: controller.priceStatusController,
+                      decoration: InputDecoration(
+                          label: Text('Price Status *'),
+                          labelStyle: TextStyle(color: Color(0xFF0272B1)),
+                          filled: true,
+                          fillColor: Color(0xFFF1F4FF),
+                          hintText: 'Price Status *',
+                          hintStyle: TextStyle(color: Colors.grey),
+                          enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Colors.transparent, width: 0),
+                              borderRadius: BorderRadius.circular(10)),
+                          focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                  color: Color(0xFF0272B1), width: 2)),
+                          errorText: _errors['price_status']),
+                    ),
+                  ),
+                  Padding(
+                    padding:
+                        const EdgeInsets.only(left: 40, right: 40, top: 20),
+                    child: TextField(
+                      cursorColor: Color(0xFF0272B1),
+                      controller: controller.taskerRoleController,
+                      decoration: InputDecoration(
+                          label: Text('Tasker Role *'),
+                          labelStyle: TextStyle(color: Color(0xFF0272B1)),
+                          filled: true,
+                          fillColor: Color(0xFFF1F4FF),
+                          hintText: 'Tasker Role *',
+                          hintStyle: TextStyle(color: Colors.grey),
+                          enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Colors.transparent, width: 0),
+                              borderRadius: BorderRadius.circular(10)),
+                          focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                  color: Color(0xFF0272B1), width: 2)),
+                          errorText: _errors['tasker_role']),
                     ),
                   ),
                   Padding(
