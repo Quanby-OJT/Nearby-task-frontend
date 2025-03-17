@@ -48,7 +48,7 @@ class _JobPostPageState extends State<JobPostPage> {
       setState(() {
         specialization = fetchedSpecializations
             .map((spec) => spec.specialization)
-            .where((spec) => spec != null) // Filter out null values
+            .where((spec) => spec != null)
             .cast<String>()
             .toList();
         debugPrint('Specializations loaded: $specialization');

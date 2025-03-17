@@ -5,6 +5,7 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/controller/conversation_controller.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/view/chat/complain/complain.dart';
 import 'package:get_storage/get_storage.dart';
 
 class IndividualChatScreen extends StatefulWidget {
@@ -24,22 +25,20 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   final ConversationController conversationController =
       ConversationController();
   final JobPostService jobPostService = JobPostService();
-  TaskModel? task; // Changed from 'final TaskModel? task' to 'TaskModel? task'
+  TaskModel? task;
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     loadInitialData();
-    // Poll for new messages every 5 seconds
     _timer = Timer.periodic(Duration(seconds: 5), (timer) {
       loadConversationHistory();
     });
   }
 
   Future<void> loadInitialData() async {
-    task = await jobPostService
-        .fetchTaskInformation(widget.taskTakenId ?? 0); // Direct assignment
+    task = await jobPostService.fetchTaskInformation(widget.taskTakenId ?? 0);
     await loadConversationHistory();
   }
 
@@ -49,8 +48,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
         await conversationController.getMessages(context, widget.taskTakenId);
     setState(() {
       _messages.clear();
-      _messages
-          .addAll(messages); // No type error: messages is List<Conversation>
+      _messages.addAll(messages);
     });
   }
 
@@ -62,7 +60,6 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
     super.dispose();
   }
 
-  // Main Screen
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,29 +71,43 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
         children: [
           Expanded(
             child: _messages.isEmpty
-                ? Expanded(
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment:
-                            MainAxisAlignment.center, // Centers vertically
-                        crossAxisAlignment:
-                            CrossAxisAlignment.center, // Centers horizontally
-                        children: [
-                          Icon(
-                            Icons.message,
-                            size: 100,
-                            color: Color(0xFF0272B1),
+                ? SingleChildScrollView(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.message,
+                          size: 100,
+                          color: const Color(0xFF0272B1),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Text(
+                            "You Don't Have Messages Yet, You can Start a Conversation By Sending Your First Message to your Client.",
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 16),
                           ),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 20),
-                            child: Text(
-                              "You Don't Have Messages Yet, You can Start a Conversation By Sending Your First Message to your Client.",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 16),
-                            ),
+                        ),
+                        const SizedBox(
+                            height: 20), // Spacing between text and button
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue, // Visible background
+                            foregroundColor: Colors.white, // Text/icon color
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 10),
                           ),
-                        ],
-                      ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ComplainScreen(),
+                              ),
+                            );
+                          },
+                          child: const Text("Go to Complain"),
+                        ),
+                      ],
                     ),
                   )
                 : ListView.builder(
@@ -151,7 +162,6 @@ class _MessageBar extends StatelessWidget {
     });
   }
 
-  // Text Form Field
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -187,7 +197,6 @@ class _MessageBar extends StatelessWidget {
   }
 }
 
-// Chat Bubble
 class _ChatBubble extends StatelessWidget {
   final Conversation message;
   final UserModel profile;
@@ -196,7 +205,6 @@ class _ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Add logic to determine if message is from current user
     bool isMine = message.userId == GetStorage().read('userId');
 
     List<Widget> chatContents = [
@@ -216,7 +224,6 @@ class _ChatBubble extends StatelessWidget {
         ),
       ),
       const SizedBox(width: 12),
-      // Add timestamp if available from your API
     ];
 
     if (isMine) {
