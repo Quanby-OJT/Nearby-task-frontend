@@ -24,6 +24,7 @@ class JobPostService {
   }
 
   Future<Map<String, dynamic>> _getRequest(String endpoint) async {
+    debugPrint("Current Session: ${await storage.read('session')}");
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.get(
@@ -149,9 +150,9 @@ class JobPostService {
       return tasks
           .map((task) => TaskModel.fromJson(task as Map<String, dynamic>))
           .toList();
-    } catch (e) {
+    } catch (e, st) {
       debugPrint("Exception in fetchAllJobs: $e");
-      debugPrintStack();
+      debugPrintStack(stackTrace: st);
       return [];
     }
   }

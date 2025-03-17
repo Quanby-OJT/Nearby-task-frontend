@@ -29,8 +29,10 @@ class _FillUpTaskerState extends State<FillUpTasker> {
   List<String> genderOptions = ["Male", "Female", "Non-Binary", "I don't Want to Say"];
   List<String> specialization = [];
   String? selectedSpecialization;
+  List<String> taskerGroup = ["Solo Tasker", "Agency"];
   List<String> payPeriod = ["Hourly", "Daily", "Weekly", "Bi-Weekly" ,"Monthly"];
 
+  //TESDA Documents
   Future<void> _pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -46,6 +48,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
     }
   }
 
+  //Profile Image
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? pickedFile = await picker.pickImage(
@@ -123,7 +126,15 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                       if (isLastStep) {
                         debugPrint('Creating New Tasker...');
                         try {
-                          _controller.createTasker(context, selectedSpecialization ?? "Unknown Specialization", selectedGender ?? "Unknown Gender");
+                          _controller.createTasker(
+                            context,
+                            selectedSpecialization ?? "Unknown Specialization",
+                            selectedGender ?? "Unknown Gender",
+                            _imageName ?? "Unknown Image",
+                            _fileName ?? "Illegal File",
+                            _selectedFile ?? File(""),
+                            _selectedImage ?? File(""),
+                          );
                         } catch (error) {
                           debugPrint('Registration error: $error');
                           debugPrintStack();
@@ -211,6 +222,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextFormField(
+                    keyboardType: TextInputType.number,
                     controller: _controller.wageController,
                     cursorColor: Color(0xFF0272B1),
                     validator: (value) =>
@@ -234,26 +246,39 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                 //Duration
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
-                  child: TextFormField(
-                    controller: _controller.payPeriodController,
-                    cursorColor: Color(0xFF0272B1),
-                    validator: (value) =>
-                        value!.isEmpty ? "Indicate your pay period." : null,
+                  child: DropdownButtonFormField<String>(
                     decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Color(0xFFF1F4FF),
-                        hintText: 'How do you want to be Paid?',
-                        hintStyle: TextStyle(color: Colors.grey),
-                        enabledBorder: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Colors.transparent, width: 0),
-                            borderRadius: BorderRadius.circular(10)),
-                        focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(
-                                color: Color(0xFF0272B1), width: 2))),
-                  ),
-                ),
+                      filled: true,
+                      fillColor: Color(0xFFF1F4FF),
+                      hintText: 'How do you want to be paid?',
+                      hintStyle: TextStyle(color: Colors.grey),
+                      enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.transparent)),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(
+                            color: Color(0xFF0272B1), width: 2),
+                      )
+                    ),
+                    value: _controller.payPeriodController.text.isNotEmpty ? _controller.payPeriodController.text : null,
+                    items: payPeriod.map((String period) {
+                      return DropdownMenuItem<String>(
+                        value: period,
+                        child: Text(period),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                         _controller.payPeriodController.text = newValue!;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select a pay period';
+                      }
+                      return null;
+                    },
+                  )),
 
                 //Gender
                 Padding(

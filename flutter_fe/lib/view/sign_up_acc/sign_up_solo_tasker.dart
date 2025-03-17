@@ -5,15 +5,16 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'dart:async';
 import 'package:app_links/app_links.dart';
 
-class SignUpTaskerAcc extends StatefulWidget {
+class SignUpSoloTaskerAcc extends StatefulWidget {
   final String role;
-  const SignUpTaskerAcc({super.key, required this.role});
+  final String taskerGroup;
+  const SignUpSoloTaskerAcc({super.key, required this.role, required this.taskerGroup});
 
   @override
-  State<SignUpTaskerAcc> createState() => _SignUpTaskerAccState();
+  State<SignUpSoloTaskerAcc> createState() => _SignUpSoloTaskerAccState();
 }
 
-class _SignUpTaskerAccState extends State<SignUpTaskerAcc> {
+class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
   final ProfileController _controller = ProfileController();
   String _status = "Please fill out the form to register";
   bool _isVerified = false; // Track verification status

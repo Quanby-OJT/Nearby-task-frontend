@@ -1,5 +1,7 @@
 // service/api_service.dart
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/conversation.dart';
 import 'package:flutter_fe/model/user_model.dart';
@@ -150,28 +152,52 @@ class ApiService {
   }
 
   //Creating Tasker/Client Information but needs authentication token from the backend.
-  static Future<Map<String, dynamic>> createTasker(TaskerModel tasker) async{
+  static Future<Map<String, dynamic>> createTasker(TaskerModel tasker, File tesdaFile, File profileImage) async{
     try{
       //Code to store uploaded files to database, and retrieve its url link.
 
       String token = await AuthService.getSessionToken();
-      debugPrint("Sending data: ${jsonEncode(tasker.toJson())}");
+      debugPrint("Sending data: ${tasker.toJson()}");
 
-      var request = await http.post(
+      var request = http.MultipartRequest(
+        "POST",
         Uri.parse("$apiUrl/create-new-tasker"),
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json"
-        },
-        body: jsonEncode(tasker.toJson())
+      );
+      request.headers.addAll({
+        "Authorization": "Bearer $token",
+        "Content-Type": "multipart/form-data",
+      });
+
+      request.fields.addAll({
+        ...tasker.toJson().map((key, value) => MapEntry(key, value.toString())),
+        "user_id": await storage.read("user_id").toString(),
+      });
+
+      request.files.addAll([
+          http.MultipartFile.fromBytes(
+            "document",
+            await tesdaFile.readAsBytes(),
+            filename: "document.pdf",
+          ),
+          http.MultipartFile.fromBytes(
+            "image",
+            await profileImage.readAsBytes(),
+            filename: "profile_image.jpg",
+            // Adjust content type if necessary (e.g., image/png)
+          ),
+        ]
       );
 
-      var data = jsonDecode(request.body);
+      var response = await request.send();
+
+      debugPrint("Status Code: " + response.statusCode.toString());
+      var body = await response.stream.bytesToString();
+      var data = jsonDecode(body);
       debugPrint("Response Data: " + data.toString());
 
-      if(request.statusCode == 201){
-        return {"message": data["message"] ?? "Profile Created Successfully"};
-      }else if(request.statusCode == 400){
+      if(response.statusCode == 201){
+        return {"message": data["message"] ?? "Profile Created Successfully. Please Wait for Our Team to Verify Your Account"};
+      }else if(response.statusCode == 400){
         return {
           "error": data["errors"] ?? "Please Check Your inputs and try again"
         };
@@ -180,8 +206,9 @@ class ApiService {
           "error": data["error"] ?? "Something went wrong when creating your profile. Please try again."
         };
       }
-    }catch(e){
+    }catch(e, stackTrace){
       debugPrint(e.toString());
+      debugPrintStack(stackTrace: stackTrace);
       return {"error": "Something went wrong when creating your profile. Please try again."};
     }
   }
@@ -336,8 +363,6 @@ class ApiService {
       debugPrint('Logout Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
-        _cookies.remove("session"); // Remove only the session cookie
-        storage.erase();
         return {"message": "Logged out successfully"};
       } else {
         var data = json.decode(response.body);

@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/view/sign_up_acc/sign_up_client.dart';
-import 'package:flutter_fe/view/sign_up_acc/pre_sign_up_tasker.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/view/sign_up_acc/sign_up_solo_tasker.dart';
+import 'package:flutter_fe/view/sign_up_acc/sign_up_group_tasker.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-class PreSignUp extends StatefulWidget {
-  const PreSignUp({super.key});
+class PreSignUpTasker extends StatefulWidget {
+  const PreSignUpTasker({super.key});
 
   @override
-  State<PreSignUp> createState() => _PreSignUpState();
+  State<PreSignUpTasker> createState() => _PreSignUpTaskerState();
 }
 
-class _PreSignUpState extends State<PreSignUp> {
+class _PreSignUpTaskerState extends State<PreSignUpTasker> {
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
@@ -30,34 +30,23 @@ class _PreSignUpState extends State<PreSignUp> {
             children: [
               SizedBox(height: screenHeight * 0.05), // 5% of screen height
               Text(
-                'NearByTask',
+                'Select Your Classification',
                 style: GoogleFonts.openSans(
                   color: Colors.white,
                   fontSize: screenWidth * 0.08, // Responsive font size
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
-                child: Text(
-                  'Be PAID for Tasks Done through a TASKER ACCOUNT or Find an expert to have your task completed with a CLIENT ACCOUNT. \n\n To Begin, please select one of the two accounts you want to create:',
-                  style: GoogleFonts.openSans(
-                    color: Colors.white,
-                    fontSize: screenWidth * 0.035, // Responsive text
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
               SizedBox(height: screenHeight * 0.05),
 
-              // TASKER BUTTON
+              // SOLO TASKER BUTTON
               Container(
                 width: screenWidth * 0.8,
                 height: screenHeight * 0.22,
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.push(context, MaterialPageRoute(builder: (context) {
-                      return SignUpSoloTaskerAcc(role: "Tasker", taskerGroup: "Solo Tasker");
+                      return SignUpSoloTaskerAcc(role: "Tasker", taskerGroup: "Solo Tasker",);
                     }));
                   },
                   style: ElevatedButton.styleFrom(
@@ -77,7 +66,7 @@ class _PreSignUpState extends State<PreSignUp> {
                       ),
                       SizedBox(height: screenHeight * 0.02),
                       Text(
-                        'TASKER ACCOUNT',
+                        'I AM ONLY ONE TASKER',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -91,15 +80,15 @@ class _PreSignUpState extends State<PreSignUp> {
 
               SizedBox(height: screenHeight * 0.02),
 
-              // CLIENT BUTTON
+              // GROUP TASKER BUTTON
               Container(
                 width: screenWidth * 0.8,
                 height: screenHeight * 0.22,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) {
-                      return SignUpClientAcc(role: "Client");
-                    }));
+                    // Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    //   return SignUpGroupTaskerAcc(role: "Tasker", taskerGroup: "Group Tasker");
+                    // }));
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0272B1),
@@ -118,7 +107,7 @@ class _PreSignUpState extends State<PreSignUp> {
                       ),
                       SizedBox(height: screenHeight * 0.02),
                       Text(
-                        'CLIENT ACCOUNT',
+                        'I AM AN AGENCY WITH MANY TASKERS',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,

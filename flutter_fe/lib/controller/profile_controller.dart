@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/client_model.dart';
 import 'package:get_storage/get_storage.dart';
@@ -12,13 +14,14 @@ class ProfileController {
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-      TextEditingController();
+  final TextEditingController confirmPasswordController =TextEditingController();
   final TextEditingController roleController = TextEditingController();
   final TextEditingController statusController = TextEditingController();
   final TextEditingController middleNameController = TextEditingController();
   final TextEditingController birthdateController = TextEditingController();
   final TextEditingController imageController = TextEditingController();
+  final TextEditingController companyNameController = TextEditingController();
+  final TextEditingController taskerGroupController = TextEditingController();
   // Fetched user inputs End
 
   //Tasker Text Controller
@@ -28,8 +31,7 @@ class ProfileController {
   final TextEditingController taskerAddressController = TextEditingController();
   final TextEditingController availabilityController = TextEditingController();
   final TextEditingController wageController = TextEditingController();
-  final TextEditingController tesdaController = TextEditingController();
-  final TextEditingController socialMediaeController = TextEditingController();
+  final TextEditingController socialMediaController = TextEditingController();
   final TextEditingController contactNumberController = TextEditingController();
   final TextEditingController genderController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
@@ -107,6 +109,7 @@ class ProfileController {
       final response = await ApiService.verifyEmail(token, email);
       if (response.containsKey("message")) {
         await storage.write("session", response["token"]);
+        await storage.write("user_id", response["user_id"]);
         return response["user_id"];
       }
       return 0;
@@ -114,21 +117,36 @@ class ProfileController {
       debugPrint(e.toString());
       debugPrintStack(stackTrace: stackTrace);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Verification failed: $e')),
+        SnackBar(content: Text('Verification failed. Please Try Again.')),
       );
       return 0;
     }
   }
 
 
-  Future<void> createTasker(BuildContext context, String specialization, String gender) async {
+  Future<void> createTasker(BuildContext context, String specialization, String gender, String image, String tesdaFile, File documentFile, File profileImage) async {
+     if (birthdateController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter your birthdate')),
+      );
+      return;
+    }
+    DateTime birthDate = DateTime.parse(birthdateController.text);
+    DateTime eighteenYearsAgo = DateTime.now().subtract(Duration(days: 18 * 365));
+    if (birthDate.isAfter(eighteenYearsAgo)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('You must be at least 18 years old to register')),
+      );
+      return;
+    }
+
     TaskerModel tasker = TaskerModel(
       bio: bioController.text,
       specialization: specialization,
       skills: skillsController.text,
       taskerAddress: taskerAddressController.text,
-      taskerDocuments: tesdaController.text,
-      socialMediaLinks: socialMediaeController.text,
+      taskerDocuments: tesdaFile,
+      socialMediaLinks: socialMediaController.text,
       availability: false,
       wage: double.tryParse(wageController.text) ?? 0,
       group: false,
@@ -139,7 +157,7 @@ class ProfileController {
     );
 
     //Code to create tasker information.
-    Map<String, dynamic> resultData = await ApiService.createTasker(tasker);
+    Map<String, dynamic> resultData = await ApiService.createTasker(tasker, documentFile, profileImage);
 
     if (resultData.containsKey('message')) {
       ScaffoldMessenger.of(context).showSnackBar(
