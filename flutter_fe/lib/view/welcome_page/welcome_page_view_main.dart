@@ -35,57 +35,41 @@ class _WelcomePageViewMainState extends State<WelcomePageViewMain> {
               IntroPage3(),
             ],
           ),
-          Container(
-              alignment: const Alignment(0, 0.75),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  GestureDetector(
-                      onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context){
-                          return SignIn();
-                        }));
-                      },
-                      child: Text(
-                        'skip',
-                        style: GoogleFonts.openSans(
-                            color: Colors.white, fontWeight: FontWeight.bold),
-                      )),
-                  SmoothPageIndicator(
-                    controller: _controller,
-                    count: 3,
-                    effect: SwapEffect(
-                        activeDotColor: Color(0xFF0272B1),
-                        dotColor: Colors.white),
-                  ),
-                  onLastPage
-                      ? GestureDetector(
-                          onTap: () {
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (context) {
-                              return SignIn();
-                            }));
-                          },
-                          child: Text(
-                            'done',
-                            style: GoogleFonts.openSans(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                          ))
-                      : GestureDetector(
-                          onTap: () {
-                            _controller.nextPage(
-                                duration: Duration(milliseconds: 500),
-                                curve: Curves.easeIn);
-                          },
-                          child: Text(
-                            'next',
-                            style: GoogleFonts.openSans(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                          ))
-                ],
-              ))
+          Positioned.fill(
+            child: Align(
+                alignment: Alignment(0, 0.75),
+                child: Column(
+                  spacing: 25,
+                  //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SmoothPageIndicator(
+                      controller: _controller,
+                      count: 3,
+                      effect: SwapEffect(
+                          activeDotColor: Color(0xFF0272B1),
+                          dotColor: Colors.white),
+                    ),
+                    ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                            return SignIn();
+                          }));
+                        },
+                        style: ElevatedButton.styleFrom(
+                            minimumSize: Size(250, 50),
+                            backgroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(26))),
+                        child: Text(
+                          "Get Started",
+                          style: GoogleFonts.openSans(
+                              fontWeight: FontWeight.bold, color: Colors.blue),
+                        ))
+                  ],
+                )),
+          ),
         ],
       ),
     );
