@@ -89,7 +89,8 @@ class ApiService {
         } else if (data['errors'] is List) {
           // If errors is a list, map it to a single string
           List<dynamic> errors = data['errors'];
-          String errorMessage = errors.map((e) => e['msg'] ?? e.toString()).join('\n');
+          String errorMessage =
+              errors.map((e) => e['msg'] ?? e.toString()).join('\n');
           return {"error": errorMessage};
         } else {
           return {"error": "Unknown error format from server"};
@@ -261,7 +262,7 @@ class ApiService {
         }),
       );
 
-      //_updateCookies(response);
+      _updateCookies(response);
 
       var data = json.decode(response.body);
 
@@ -356,13 +357,18 @@ class ApiService {
           "Authorization": "Bearer $session",
           "Access-Control-Allow-Credentials": "true"
         },
-        body: json.encode({"user_id": userId, "session": session}),
+        body: json.encode({
+          "user_id": userId,
+          "session": session
+        }),
       );
 
       debugPrint('Logout Status Code: ${response.statusCode}');
       debugPrint('Logout Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
+        _cookies.remove("session"); // Remove only the session cookie
+        storage.erase();
         return {"message": "Logged out successfully"};
       } else {
         var data = json.decode(response.body);
@@ -403,8 +409,7 @@ class ApiService {
               "Unexpected error occurred. Status code: ${response.statusCode}"
         };
       }
-
-    }catch (e) {
+    } catch (e) {
       debugPrint(e.toString());
       debugPrintStack();
       return {
