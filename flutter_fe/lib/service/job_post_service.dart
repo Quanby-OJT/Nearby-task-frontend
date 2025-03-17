@@ -210,8 +210,8 @@ class JobPostService {
     final likedJobsResponse = await _getRequest("/displayLikedJob/$userId");
     final allJobsResponse = await _getRequest("/displayTask");
 
-      if (jsonData.containsKey('tasks')) {
-        final List<dynamic> likedJobs = jsonData['tasks'] as List<dynamic>;
+      if (likedJobsResponse.containsKey('tasks')) {
+        final List<dynamic> likedJobs = likedJobsResponse['tasks'] as List<dynamic>;
         debugPrint("Raw liked jobs: $likedJobs"); // Debug print
 
         final allJobsResponse = await _getRequest('/displayTask');

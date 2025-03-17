@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/service/api_service.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 import 'package:flutter_fe/view/business_acc/business_acc_main_page.dart';
-import 'package:flutter_fe/view/sign_in/otp_screen.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
+import 'package:flutter_fe/view/sign_in/otp_screen.dart';
 import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -84,9 +84,7 @@ class AuthenticationController {
         userId = response['user_id'];
         Navigator.push(context, MaterialPageRoute(builder: (context) {
           // return FillUpTasker(); // Replace with your actual service account main page widget
-          return FillUpTasker(
-            userId: userId,
-          ); // Replace with your actual service account main page widget
+          return ServiceAccMain(); // Replace with your actual service account main page widget
         }));
       }
     } else if (response.containsKey('validation_error')) {

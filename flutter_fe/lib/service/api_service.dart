@@ -262,7 +262,7 @@ class ApiService {
         }),
       );
 
-      _updateCookies(response);
+      //_updateCookies(response);
 
       var data = json.decode(response.body);
 
