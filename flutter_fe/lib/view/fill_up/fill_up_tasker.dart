@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter_fe/controller/profile_controller.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
@@ -33,6 +34,13 @@ class _FillUpTaskerState extends State<FillUpTasker> {
   ];
   List<String> specialization = [];
   String? selectedSpecialization;
+  List<String> payPeriod = [
+    "Hourly",
+    "Daily",
+    "Weekly",
+    "Bi-Weekly",
+    "Monthly"
+  ];
 
   Future<void> _pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -72,6 +80,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
 
   Future<void> fetchSpecialization() async {
     try {
+      debugPrint(GetStorage().read("session"));
       List<SpecializationModel> fetchedSpecializations =
           await jobPostService.getSpecializations();
       debugPrint(fetchedSpecializations.toString());
@@ -79,8 +88,9 @@ class _FillUpTaskerState extends State<FillUpTasker> {
         specialization =
             fetchedSpecializations.map((spec) => spec.specialization).toList();
       });
-    } catch (error) {
-      print('Error fetching specializations: $error');
+    } catch (error, stackTrace) {
+      debugPrint('Error fetching specializations: $error');
+      debugPrintStack(stackTrace: stackTrace);
     }
   }
 
@@ -132,7 +142,10 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                     if (isLastStep) {
                       debugPrint('Creating New Tasker...');
                       try {
-                        _controller.createTasker(context);
+                        _controller.createTasker(
+                            context,
+                            selectedSpecialization ?? "Unknown Specialization",
+                            selectedGender ?? "Unknown Gender");
                       } catch (error) {
                         debugPrint('Registration error: $error');
                         debugPrintStack();

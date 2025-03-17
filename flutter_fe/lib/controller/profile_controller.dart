@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/client_model.dart';
 import 'package:get_storage/get_storage.dart';
@@ -35,6 +33,7 @@ class ProfileController {
   final TextEditingController contactNumberController = TextEditingController();
   final TextEditingController genderController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
+  final TextEditingController payPeriodController = TextEditingController();
 
   //Client Text Controller
   final TextEditingController prefsController = TextEditingController();
@@ -53,7 +52,8 @@ class ProfileController {
     if (passwordController.text.isEmpty ||
         firstNameController.text.isEmpty ||
         lastNameController.text.isEmpty ||
-        emailController.text.isEmpty) {
+        emailController.text.isEmpty ||
+      passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Please fill in all required fields")),
       );
@@ -110,7 +110,9 @@ class ProfileController {
         return response["user_id"];
       }
       return 0;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint(e.toString());
+      debugPrintStack(stackTrace: stackTrace);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Verification failed: $e')),
       );
@@ -119,10 +121,10 @@ class ProfileController {
   }
 
 
-  Future<void> createTasker(BuildContext context) async {
+  Future<void> createTasker(BuildContext context, String specialization, String gender) async {
     TaskerModel tasker = TaskerModel(
       bio: bioController.text,
-      specialization: specializationController.text,
+      specialization: specialization,
       skills: skillsController.text,
       taskerAddress: taskerAddressController.text,
       taskerDocuments: tesdaController.text,
@@ -131,7 +133,7 @@ class ProfileController {
       wage: double.tryParse(wageController.text) ?? 0,
       group: false,
       phoneNumber: contactNumberController.text,
-      gender: genderController.text,
+      gender: gender,
       payPeriod: "Hourly",
       birthDate: DateTime.parse(birthdateController.text)
     );
@@ -142,6 +144,10 @@ class ProfileController {
     if (resultData.containsKey('message')) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(resultData['message'])),
+      );
+    }else{
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(resultData['error'])),
       );
     }
   }

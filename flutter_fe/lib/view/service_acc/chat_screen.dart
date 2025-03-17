@@ -81,9 +81,17 @@ class _ChatScreenState extends State<ChatScreen> {
               assignment.task.title ?? "Unknown Task",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            subtitle: Text(
-              "📍 ${assignment.client.user?.firstName ?? ''} ${assignment.client.user?.middleName ?? ''} ${assignment.client.user?.lastName ?? ''}",
-              style: TextStyle(fontSize: 14),
+            subtitle: Row(
+              children: [
+                Icon(
+                  Icons.cases,
+                  size: 20,
+                ),
+                Text(
+                "${assignment.tasker.user?.firstName ?? ''} ${assignment.tasker.user?.middleName ?? ''} ${assignment.tasker.user?.lastName ?? ''}",
+                    style: TextStyle(fontSize: 14),
+                )
+              ]
             ),
             trailing: Icon(Icons.arrow_forward_ios,
                 size: 16, color: Colors.grey),

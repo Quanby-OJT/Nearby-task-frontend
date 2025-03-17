@@ -49,32 +49,27 @@ class ApiService {
       String salt = DateTime.now().millisecondsSinceEpoch.toString();
 
       // Create the request payload
-      Map<String, dynamic> requestBody = {
-        "data": {
-          "first_name": user.firstName,
-          "middle_name": user.middleName,
-          "last_name": user.lastName,
-          "email": user.email,
-          "password": user.password,
-          "user_role": user.role,
-          // "acc_status": user.accStatus
-        },
-        "salt": salt
-      };
+      // Map<String, dynamic> requestBody = {
+      //   "data": {
+      //     "first_name": user.firstName,
+      //     "middle_name": user.middleName,
+      //     "last_name": user.lastName,
+      //     "email": user.email,
+      //     "password": user.password,
+      //     "user_role": user.role,
+      //     // "acc_status": user.accStatus
+      //   },
+      //   "salt": salt
+      // };
 
-      debugPrint('Request Body: ${json.encode(requestBody)}'); // Debug log
-      final String token = await AuthService.getSessionToken();
+      debugPrint('Request Body: ${user.toJson}'); // Debug log
       final response = await _client.post(
         Uri.parse("$apiUrl/create-new-account"),
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
-          "Authentication": "Bearer $token"
         },
-        body: json.encode({
-          ...user.toJson(),
-          "salt": salt,
-        }),
+        body: json.encode({...user.toJson(), "salt": salt}),
       );
 
       var data = jsonDecode(response.body);
@@ -106,39 +101,63 @@ class ApiService {
               "An error occurred while registering your account. Please try again."
         };
       }
-    } catch (e) {
+    } catch (e, st) {
       debugPrint('Registration Error: $e');
-      return {"error": "An error occurred while registering your account: $e"};
+
+      debugPrint(st.toString());
+      return {
+        "error":
+            "An error occurred while registering your account. Please Try Again. If the Problem Persists, contact us."
+      };
     }
   }
 
   static Future<Map<String, dynamic>> verifyEmail(
       String token, String email) async {
     try {
-      final response = await _client.post(Uri.parse("$apiUrl/verify"),
-          headers: _getHeaders(),
-          body: json.encode({"token": token, "email": email}));
+// <<<<<<< HEAD
+//       final response = await _client.post(Uri.parse("$apiUrl/verify"),
+//           headers: _getHeaders(),
+//           body: json.encode({"token": token, "email": email}));
+// =======
+      debugPrint('Starting email verification for: $email with token: $token');
+      final response = await _client.post(
+        Uri.parse("$apiUrl/verify"),
+        headers: _getHeaders(),
+        body: json.encode({"token": token, "email": email}),
+      );
+
+      debugPrint('Verify Response Status: ${response.statusCode}');
+      debugPrint('Verify Response Body: ${response.body}');
+
+      if (response.body.isEmpty) {
+        debugPrint('Error: Response body is empty');
+        return {"error": "Empty response from server"};
+      }
 
       var data = jsonDecode(response.body);
-      debugPrint('Verify Response: ${response.statusCode} - ${response.body}');
+      debugPrint('Decoded Response Data: $data');
 
       if (response.statusCode == 200) {
         return {
-          "message": data["message"] ?? "Email Verified Successfully.",
-          "user_id": data["user_id"],
-          "session": data["session"]
+          "message":
+              data["message"]?.toString() ?? "Email Verified Successfully.",
+          "user_id": data["user_id"], // Convert to string for consistency
+          "token": data["session"],
         };
       } else {
+        debugPrint('Non-200 status code: ${response.statusCode}');
         return {
-          "error": data["error"] ??
-              "An Error Occured while verifying your email. Please Try Again"
+          "error": data["error"]?.toString() ??
+              "An error occurred while verifying your email. Please try again."
         };
       }
     } catch (e, stackTrace) {
-      debugPrint(e.toString());
-      debugPrint(stackTrace.toString());
+      debugPrint('Verification Error: $e');
+      debugPrint('Stack Trace: $stackTrace');
       return {
-        "error": "An Error Occured while verifying your email. Please Try Again"
+        "error":
+            "An error occurred while verifying your email. Please try again."
       };
     }
   }
@@ -149,13 +168,14 @@ class ApiService {
       //Code to store uploaded files to database, and retrieve its url link.
 
       String token = await AuthService.getSessionToken();
+      debugPrint("Sending data: ${jsonEncode(tasker.toJson())}");
 
       var request = await http.post(Uri.parse("$apiUrl/create-new-tasker"),
           headers: {
             "Authorization": "Bearer $token",
             "Content-Type": "application/json"
           },
-          body: tasker.toJson());
+          body: jsonEncode(tasker.toJson()));
 
       var data = jsonDecode(request.body);
       debugPrint("Response Data: " + data.toString());
@@ -334,10 +354,11 @@ class ApiService {
 
       if (response.statusCode == 200) {
         _cookies.remove("session"); // Remove only the session cookie
+        storage.erase();
         return {"message": "Logged out successfully"};
       } else {
         var data = json.decode(response.body);
-        return {"error": data['message'] ?? "Failed to logout"};
+        return {"error": data['error'] ?? "Failed to logout"};
       }
     } catch (e) {
       debugPrint('Logout Error: $e');
