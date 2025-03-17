@@ -13,6 +13,7 @@ class AuthenticationController {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController otpController = TextEditingController();
   int userId;
+
   final storage = GetStorage();
   AuthenticationController({this.userId = 0});
 
@@ -71,22 +72,27 @@ class AuthenticationController {
         response.containsKey('role') &&
         response.containsKey('session')) {
       await storage.write('user_id', response['user_id']);
-      await storage.write('role', response['role']); //If the user is logged in to the app, this will be the determinant if where they will be assigned.
+      await storage.write(
+          'role',
+          response[
+              'role']); //If the user is logged in to the app, this will be the determinant if where they will be assigned.
       await storage.write('session', response['session']);
       if (response['role'] == "Client") {
         Navigator.push(context, MaterialPageRoute(builder: (context) {
           return BusinessAccMain();
         }));
-
       } else if (response['role'] == "Tasker") {
+        userId = response['user_id'];
         Navigator.push(context, MaterialPageRoute(builder: (context) {
           // return FillUpTasker(); // Replace with your actual service account main page widget
-          return ServiceAccMain(); // Replace with your actual service account main page widget
-
+          return FillUpTasker(
+            userId: userId,
+          ); // Replace with your actual service account main page widget
         }));
       }
-    }else if(response.containsKey('validation_error')){
-      String error = response['validation_error'] ?? "OTP Authentication Failed.";
+    } else if (response.containsKey('validation_error')) {
+      String error =
+          response['validation_error'] ?? "OTP Authentication Failed.";
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(error)),
       );
@@ -101,7 +107,11 @@ class AuthenticationController {
   Future<void> logout(BuildContext context) async {
     try {
       final storedUserId = storage.read('user_id');
-
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => WelcomePageViewMain()),
+        (route) => false,
+      );
       // Ensure storedUserId is a valid String or int
       if (storedUserId == null) {
         debugPrint("No user ID found in storage");
@@ -114,7 +124,8 @@ class AuthenticationController {
       debugPrint("Session: ${await AuthService.getSessionToken()}");
       debugPrint("Stored user ID for logout: $userIdString");
 
-      final response = await ApiService.logout(int.parse(userIdString), await AuthService.getSessionToken());
+      final response = await ApiService.logout(
+          int.parse(userIdString), await AuthService.getSessionToken());
       debugPrint("Logout response: $response");
 
       if (response.containsKey('message')) {
@@ -122,7 +133,7 @@ class AuthenticationController {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => WelcomePageViewMain()),
-              (route) => false,
+          (route) => false,
         );
       } else {
         String error = response['error'] ?? "Failed to Log Out the User.";

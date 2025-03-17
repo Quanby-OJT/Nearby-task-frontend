@@ -12,7 +12,7 @@ import '../model/client_model.dart';
 
 class ApiService {
   static const String apiUrl =
-      "http://10.0.2.2:5000/connect"; // Adjust if needed
+      "http://localhost:5000/connect"; // Adjust if needed
   static final storage = GetStorage();
 
   static final http.Client _client = http.Client();
@@ -36,7 +36,7 @@ class ApiService {
   // Function to add cookies to requests
   static Map<String, String> _getHeaders() {
     String cookieHeader =
-    _cookies.entries.map((e) => '${e.key}=${e.value}').join('; ');
+        _cookies.entries.map((e) => '${e.key}=${e.value}').join('; ');
     return {
       "Content-Type": "application/json",
       if (_cookies.isNotEmpty) "Cookie": cookieHeader,
@@ -94,83 +94,90 @@ class ApiService {
         } else if (data['errors'] is List) {
           // If errors is a list, map it to a single string
           List<dynamic> errors = data['errors'];
-          String errorMessage = errors.map((e) => e['msg'] ?? e.toString()).join('\n');
+          String errorMessage =
+              errors.map((e) => e['msg'] ?? e.toString()).join('\n');
           return {"error": errorMessage};
         } else {
           return {"error": "Unknown error format from server"};
         }
       } else {
         return {
-          "error": data["error"] ?? "An error occurred while registering your account. Please try again."
+          "error": data["error"] ??
+              "An error occurred while registering your account. Please try again."
         };
       }
     } catch (e) {
       debugPrint('Registration Error: $e');
-      return {
-        "error": "An error occurred while registering your account: $e"
-      };
+      return {"error": "An error occurred while registering your account: $e"};
     }
   }
 
-  static Future<Map<String, dynamic>> verifyEmail(String token, String email) async {
+  static Future<Map<String, dynamic>> verifyEmail(
+      String token, String email) async {
     try {
-      final response = await _client.post(
-        Uri.parse("$apiUrl/verify"),
-        headers: _getHeaders(),
-        body: json.encode({
-          "token": token,
-          "email": email
-        }
-      ));
+      final response = await _client.post(Uri.parse("$apiUrl/verify"),
+          headers: _getHeaders(),
+          body: json.encode({"token": token, "email": email}));
 
       var data = jsonDecode(response.body);
       debugPrint('Verify Response: ${response.statusCode} - ${response.body}');
 
-      if(response.statusCode == 200){
-        return {"message": data["message"] ?? "Email Verified Successfully.", "user_id": data["user_id"], "session": data["session"]};
-      }else {
-        return {"error": data["error"] ?? "An Error Occured while verifying your email. Please Try Again"};
+      if (response.statusCode == 200) {
+        return {
+          "message": data["message"] ?? "Email Verified Successfully.",
+          "user_id": data["user_id"],
+          "session": data["session"]
+        };
+      } else {
+        return {
+          "error": data["error"] ??
+              "An Error Occured while verifying your email. Please Try Again"
+        };
       }
-    }catch(e, stackTrace) {
+    } catch (e, stackTrace) {
       debugPrint(e.toString());
       debugPrint(stackTrace.toString());
-      return {"error": "An Error Occured while verifying your email. Please Try Again"};
+      return {
+        "error": "An Error Occured while verifying your email. Please Try Again"
+      };
     }
   }
 
   //Creating Tasker/Client Information but needs authentication token from the backend.
-  static Future<Map<String, dynamic>> createTasker(TaskerModel tasker) async{
-    try{
+  static Future<Map<String, dynamic>> createTasker(TaskerModel tasker) async {
+    try {
       //Code to store uploaded files to database, and retrieve its url link.
 
       String token = await AuthService.getSessionToken();
 
-      var request = await http.post(
-        Uri.parse("$apiUrl/create-new-tasker"),
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json"
-        },
-        body: tasker.toJson()
-      );
+      var request = await http.post(Uri.parse("$apiUrl/create-new-tasker"),
+          headers: {
+            "Authorization": "Bearer $token",
+            "Content-Type": "application/json"
+          },
+          body: tasker.toJson());
 
       var data = jsonDecode(request.body);
       debugPrint("Response Data: " + data.toString());
 
-      if(request.statusCode == 201){
+      if (request.statusCode == 201) {
         return {"message": data["message"] ?? "Profile Created Successfully"};
-      }else if(request.statusCode == 400){
+      } else if (request.statusCode == 400) {
         return {
           "error": data["errors"] ?? "Please Check Your inputs and try again"
         };
-      }else{
+      } else {
         return {
-          "error": data["error"] ?? "Something went wrong when creating your profile. Please try again."
+          "error": data["error"] ??
+              "Something went wrong when creating your profile. Please try again."
         };
       }
-    }catch(e){
+    } catch (e) {
       debugPrint(e.toString());
-      return {"error": "Something went wrong when creating your profile. Please try again."};
+      return {
+        "error":
+            "Something went wrong when creating your profile. Please try again."
+      };
     }
   }
 
@@ -206,11 +213,15 @@ class ApiService {
     } catch (e) {
       debugPrint(e.toString());
       debugPrintStack();
-      return {"error": "An error occurred while retrieving your information. Please try again."};
+      return {
+        "error":
+            "An error occurred while retrieving your information. Please try again."
+      };
     }
   }
 
-  static Future<Map<String, dynamic>> authUser(String email, String password) async {
+  static Future<Map<String, dynamic>> authUser(
+      String email, String password) async {
     try {
       final response = await _client.post(
         Uri.parse("$apiUrl/login-auth"),
@@ -315,10 +326,7 @@ class ApiService {
           "Authorization": "Bearer $session",
           "Access-Control-Allow-Credentials": "true"
         },
-        body: json.encode({
-          "user_id": userId,
-          "session": session
-        }),
+        body: json.encode({"user_id": userId, "session": session}),
       );
 
       debugPrint('Logout Status Code: ${response.statusCode}');
@@ -336,18 +344,17 @@ class ApiService {
       return {"error": "Connection error during logout"};
     }
   }
-  
-  static Future<Map<String, dynamic>> sendMessage(Conversation conversation) async {
+
+  static Future<Map<String, dynamic>> sendMessage(
+      Conversation conversation) async {
     try {
       String token = await AuthService.getSessionToken();
-      final response = await http.post(
-        Uri.parse("$apiUrl/send-message"),
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json"
-        },
-        body: jsonEncode(conversation.toJson())
-      );
+      final response = await http.post(Uri.parse("$apiUrl/send-message"),
+          headers: {
+            "Authorization": "Bearer $token",
+            "Content-Type": "application/json"
+          },
+          body: jsonEncode(conversation.toJson()));
 
       var data = jsonDecode(response.body);
 
@@ -359,9 +366,12 @@ class ApiService {
         };
       } else {
         // Handle unexpected response statuses
-        return {"error": "Unexpected error occurred. Status code: ${response.statusCode}"};
+        return {
+          "error":
+              "Unexpected error occurred. Status code: ${response.statusCode}"
+        };
       }
-    }catch (e) {
+    } catch (e) {
       debugPrint(e.toString());
       debugPrintStack();
       return {
@@ -398,7 +408,10 @@ class ApiService {
     } catch (e, st) {
       debugPrint(e.toString());
       debugPrint(st.toString());
-      return {"error": "An error occurred while retrieving your conversation. Please try again."};
+      return {
+        "error":
+            "An error occurred while retrieving your conversation. Please try again."
+      };
     }
   }
 }

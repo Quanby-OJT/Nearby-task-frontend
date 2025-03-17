@@ -8,7 +8,7 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:get_storage/get_storage.dart';
 
 class JobPostService {
-  static const String apiUrl = "http://10.0.2.2:5000/connect";
+  static const String apiUrl = "http://localhost:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -42,15 +42,14 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
-    final response = await http.post(
-        Uri.parse("$apiUrl$endpoint"),
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json"
-      },
-      body: jsonEncode(body)
-    );
+  Future<Map<String, dynamic>> _postRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
+    final response = await http.post(Uri.parse("$apiUrl$endpoint"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+        body: jsonEncode(body));
 
     return _handleResponse(response);
   }
@@ -72,14 +71,14 @@ class JobPostService {
   }
 
   Future<Map<String, dynamic>> postJob(TaskModel task, int userId) async {
-    try{
+    try {
       Future<Map<String, dynamic>> response = _postRequest(
         endpoint: "/addTask",
         body: {...task.toJson(), "user_id": userId},
       );
 
       return response;
-    }catch(e){
+    } catch (e) {
       debugPrint(e.toString());
       debugPrintStack();
       return {'success': false, "error": "Error: $e"};
@@ -136,14 +135,16 @@ class JobPostService {
 
       // Check if allJobsResponse is a valid Map with tasks
       if (allJobsResponse.containsKey("error")) {
-        debugPrint("Error fetching jobs: ${allJobsResponse['error'] ?? 'Invalid response'}");
+        debugPrint(
+            "Error fetching jobs: ${allJobsResponse['error'] ?? 'Invalid response'}");
         return [];
       }
 
       // Ensure 'tasks' exists and is a List
       final tasks = allJobsResponse["tasks"];
       if (tasks == null || tasks is! List) {
-        debugPrint("Unexpected response format: 'tasks' is missing or not a list");
+        debugPrint(
+            "Unexpected response format: 'tasks' is missing or not a list");
         return [];
       }
 
@@ -168,14 +169,11 @@ class JobPostService {
         'requiresLogin': true
       };
     }
-    return _postRequest(
-      endpoint: "/likeJob",
-      body: {
-        "user_id": int.parse(userId),
-        "task_id": jobId,
-        "created_at": DateTime.now().toString()
-      }
-    );
+    return _postRequest(endpoint: "/likeJob", body: {
+      "user_id": int.parse(userId),
+      "task_id": jobId,
+      "created_at": DateTime.now().toString()
+    });
   }
 
   Future<Map<String, dynamic>> unlikeJob(int jobId) async {
@@ -222,9 +220,9 @@ class JobPostService {
 
     final filteredJobs = (allJobsResponse["tasks"] as List<dynamic>? ?? [])
         .where((job) {
-      final jobId = job["task_id"]; // Changed from "task_id" to "task_id"
-      return jobId is int && likedJobIds.contains(jobId);
-    })
+          final jobId = job["task_id"]; // Changed from "task_id" to "task_id"
+          return jobId is int && likedJobIds.contains(jobId);
+        })
         .map((job) => TaskModel.fromJson(job))
         .toList();
 
@@ -245,15 +243,16 @@ class JobPostService {
       };
     }
 
-    debugPrint(taskId.toString() + " " + clientId.toString() + " " + taskerId.toString());
+    debugPrint(taskId.toString() +
+        " " +
+        clientId.toString() +
+        " " +
+        taskerId.toString());
 
-    return _postRequest(
-        endpoint: "$apiUrl/assign-task",
-        body: {
-          "tasker_id": taskerId,
-          "client_id": clientId,
-          "task_id": taskId
-        }
-    );
+    return _postRequest(endpoint: "$apiUrl/assign-task", body: {
+      "tasker_id": taskerId,
+      "client_id": clientId,
+      "task_id": taskId
+    });
   }
 }
