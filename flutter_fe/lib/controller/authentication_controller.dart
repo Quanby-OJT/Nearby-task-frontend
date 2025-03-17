@@ -107,7 +107,9 @@ class AuthenticationController {
   Future<void> logout(BuildContext context) async {
     try {
       // redirectRologout(context);
-
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return WelcomePageViewMain();
+      }));
       final storedUserId = storage.read('user_id');
       if (storedUserId == null) {
         debugPrint("No user ID found in storage");

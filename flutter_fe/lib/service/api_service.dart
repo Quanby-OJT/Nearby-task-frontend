@@ -12,7 +12,7 @@ import '../model/client_model.dart';
 
 class ApiService {
   static const String apiUrl =
-      "http://localhost:5000/connect"; // Adjust if needed
+      "http://192.168.254.114:5000/connect"; // Adjust if needed
   static final storage = GetStorage();
 
   static final http.Client _client = http.Client();
@@ -20,16 +20,30 @@ class ApiService {
 
   static void _updateCookies(http.Response response) {
     String? rawCookie = response.headers['set-cookie'];
+    debugPrint('Raw Cookie: $rawCookie');
 
     if (rawCookie != null) {
       List<String> cookieParts = rawCookie.split(',');
       for (String part in cookieParts) {
-        List<String> keyValue = part.split(';')[0].split('=');
-        if (keyValue.length == 2) {
-          _cookies[keyValue[0].trim()] = keyValue[1].trim();
+        List<String> cookieSegments = part.split(';');
+        if (cookieSegments.isNotEmpty) {
+          String mainPart = cookieSegments[0].trim();
+          List<String> keyValue = mainPart.split('=');
+          if (keyValue.length == 2) {
+            String key = keyValue[0].trim();
+            String value = keyValue[1].trim();
+            _cookies[key] = value;
+            debugPrint('Cookie updated: $key=$value');
+
+            // If this is a session cookie, store it in GetStorage for persistence
+            if (key == 'session' || key.toLowerCase() == 'authorization') {
+              GetStorage().write('session', value);
+              debugPrint('Session stored in GetStorage: $value');
+            }
+          }
         }
       }
-      debugPrint('Updated Cookies: $_cookies'); // Debugging
+      debugPrint('Updated Cookies: $_cookies');
     }
   }
 
@@ -125,6 +139,12 @@ class ApiService {
       String userId) async {
     try {
       final String token = await AuthService.getSessionToken();
+
+      // Check if token is empty and handle accordingly
+      if (token.isEmpty) {
+        return {"error": "No valid session token. Please log in again."};
+      }
+
       final response = await http.get(Uri.parse("$apiUrl/getUserData/$userId"),
           headers: {
             "Authorization": "Bearer $token",
@@ -235,10 +255,14 @@ class ApiService {
       debugPrint('Response Data: $data'); // Debugging
 
       if (response.statusCode == 200) {
+        // Extract session from cookies if not in response data
+        String? sessionFromCookies = _cookies['session'];
+        debugPrint('Session from cookies: $sessionFromCookies');
+
         return {
           "user_id": data['user_id'],
           "role": data['user_role'],
-          "session": data['session']
+          "session": data['session'] ?? sessionFromCookies ?? ""
         };
       } else if (response.statusCode == 400 && data.containsKey('errors')) {
         List<dynamic> errors = data['errors'];
