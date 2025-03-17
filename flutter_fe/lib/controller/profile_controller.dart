@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/client_model.dart';
 import 'package:get_storage/get_storage.dart';
@@ -79,6 +78,7 @@ class ProfileController {
         password: passwordController.text,
         role: roleController.text,
         accStatus: 'Pending');
+
     Map<String, dynamic> resultData = await ApiService.registerUser(user);
     if (resultData.containsKey("message")) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -183,7 +183,9 @@ class ProfileController {
           return AuthenticatedUser(user: user, client: client);
         } else if (result.containsKey("tasker")) {
           TaskerModel tasker = result["tasker"] as TaskerModel;
+
           debugPrint("Retrieved Data: " + tasker.toString());
+
           return AuthenticatedUser(user: user, tasker: tasker);
         }
       }

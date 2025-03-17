@@ -4,7 +4,6 @@ import 'package:flutter_fe/view/service_acc/chat_screen.dart';
 import 'package:flutter_fe/view/service_acc/home_page.dart';
 import 'package:flutter_fe/view/service_acc/like_screen.dart';
 import 'package:flutter_fe/view/service_acc/schedule_management_page.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:flutter_fe/view/nav/user_navigation.dart';
 
