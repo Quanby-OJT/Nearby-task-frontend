@@ -27,7 +27,7 @@ class ConversationController {
     }
   }
 
-  Future<List<Conversation>> getMessages(BuildContext context, int? taskTakenId) async {
+  Future<List<Conversation>> getMessages(BuildContext context, int taskTakenId) async {
     //debugPrint(taskTakenId.toString());
 
     final messages = await ApiService.getMessages(taskTakenId);

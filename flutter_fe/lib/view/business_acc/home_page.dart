@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flip_card/flip_card.dart';
+import 'package:flutter_fe/view/nav/user_navigation.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,16 +24,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Center(
-            child: Text(
-          'Available Taskers',
-          style:
-              TextStyle(color: Color(0xFF0272B1), fontWeight: FontWeight.bold),
-        )),
-        backgroundColor: Colors.transparent,
-      ),
+      appBar: NavUserScreen(),
       body: Stack(
         children: [
           Column(

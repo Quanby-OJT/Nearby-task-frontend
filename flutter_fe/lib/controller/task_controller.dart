@@ -37,7 +37,6 @@ class TaskController {
         location: jobLocationController.text.trim(),
         duration: jobTimeController.text,
         period: period,
-        urgency: urgency,
         contactPrice: int.tryParse(contactPriceController.text.trim()) ?? 0,
         remarks: jobRemarksController.text.trim(),
         taskBeginDate: jobTaskBeginDateController.text.trim(),
@@ -107,7 +106,7 @@ Future<List<TaskAssignment>?> getAllAssignedTasks(BuildContext context, int user
           location: null,
           period: null,
           duration: null,
-          urgency: taskData['urgent'] as bool?,
+          urgency: taskData['urgent'] as String?,
           status: null,
           contactPrice: null,
           remarks: null,
@@ -148,6 +147,13 @@ Future<List<TaskAssignment>?> getAllAssignedTasks(BuildContext context, int user
           specialization: '', // Required field, provide default
           skills: '', // Required field, provide default
           taskerAddress: '', // Required field, provide default
+          availability: false, // Required field, provide default
+          wage: 0.0, // Required field, provide default
+          payPeriod: '', // Required field, provide default
+          birthDate: DateTime.now(), // Required field, provide default
+          phoneNumber: '', // Required field, provide default
+          gender: '', // Required field, provide default
+          group: false, // Required field, provide default
           user: taskerUser,
         );
 

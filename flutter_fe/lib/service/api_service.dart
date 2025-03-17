@@ -1,5 +1,7 @@
 // service/api_service.dart
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/conversation.dart';
 import 'package:flutter_fe/model/user_model.dart';
@@ -46,16 +48,28 @@ class ApiService {
       // Create a salt using timestamp
       String salt = DateTime.now().millisecondsSinceEpoch.toString();
 
+      // Create the request payload
+      // Map<String, dynamic> requestBody = {
+      //   "data": {
+      //     "first_name": user.firstName,
+      //     "middle_name": user.middleName,
+      //     "last_name": user.lastName,
+      //     "email": user.email,
+      //     "password": user.password,
+      //     "user_role": user.role,
+      //     // "acc_status": user.accStatus
+      //   },
+      //   "salt": salt
+      // };
+
+      debugPrint('Request Body: ${user.toJson}'); // Debug log
       final response = await _client.post(
         Uri.parse("$apiUrl/create-new-account"),
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
         },
-        body: json.encode({
-          ...user.toJson(),
-          "salt": salt,
-        }),
+        body: json.encode({...user.toJson(), "salt": salt}),
       );
 
       var data = jsonDecode(response.body);
@@ -75,7 +89,8 @@ class ApiService {
         } else if (data['errors'] is List) {
           // If errors is a list, map it to a single string
           List<dynamic> errors = data['errors'];
-          String errorMessage = errors.map((e) => e['msg'] ?? e.toString()).join('\n');
+          String errorMessage =
+              errors.map((e) => e['msg'] ?? e.toString()).join('\n');
           return {"error": errorMessage};
         } else {
           return {"error": "Unknown error format from server"};
@@ -85,43 +100,117 @@ class ApiService {
           "error": data["error"] ?? "An error occurred while registering your account. Please try again."
         };
       }
-    } catch (e) {
+    } catch (e, st) {
       debugPrint('Registration Error: $e');
+      debugPrint(st.toString());
       return {
-        "error": "An error occurred while registering your account: $e"
+        "error": "An error occurred while registering your account. Please Try Again. If the Problem Persists, contact us."
       };
     }
   }
 
   static Future<Map<String, dynamic>> verifyEmail(String token, String email) async {
     try {
+      debugPrint('Starting email verification for: $email with token: $token');
       final response = await _client.post(
         Uri.parse("$apiUrl/verify"),
         headers: _getHeaders(),
-        body: json.encode({
-          "token": token,
-          "email": email
-        }
-      ));
+        body: json.encode({"token": token, "email": email}),
+      );
+
+      debugPrint('Verify Response Status: ${response.statusCode}');
+      debugPrint('Verify Response Body: ${response.body}');
+
+      if (response.body.isEmpty) {
+        debugPrint('Error: Response body is empty');
+        return {"error": "Empty response from server"};
+      }
 
       var data = jsonDecode(response.body);
-      debugPrint('Verify Response: ${response.statusCode} - ${response.body}');
+      debugPrint('Decoded Response Data: $data');
 
-      if(response.statusCode == 200){
-        return {"message": data["message"] ?? "Email Verified Successfully.", "user_id": data["user_id"], "session": data["session"]};
-      }else {
-        return {"error": data["error"] ?? "An Error Occured while verifying your email. Please Try Again"};
+      if (response.statusCode == 200) {
+        return {
+          "message": data["message"]?.toString() ?? "Email Verified Successfully.",
+          "user_id": data["user_id"], // Convert to string for consistency
+          "token": data["session"],
+        };
+      } else {
+        debugPrint('Non-200 status code: ${response.statusCode}');
+        return {
+          "error": data["error"]?.toString() ?? "An error occurred while verifying your email. Please try again."
+        };
       }
-    }catch(e, stackTrace) {
-      debugPrint(e.toString());
-      debugPrint(stackTrace.toString());
-      return {"error": "An Error Occured while verifying your email. Please Try Again"};
+    } catch (e, stackTrace) {
+      debugPrint('Verification Error: $e');
+      debugPrint('Stack Trace: $stackTrace');
+      return {
+        "error": "An error occurred while verifying your email. Please try again."
+      };
     }
   }
 
-  // static Future<bool> createTasker(TaskerModel tasker){
-  //   var request = http.MultipartRequest("POST", Uri.parse("$apiUrl/"))
-  // }
+  //Creating Tasker/Client Information but needs authentication token from the backend.
+  static Future<Map<String, dynamic>> createTasker(TaskerModel tasker, File tesdaFile, File profileImage) async{
+    try{
+      //Code to store uploaded files to database, and retrieve its url link.
+
+      String token = await AuthService.getSessionToken();
+      debugPrint("Sending data: ${tasker.toJson()}");
+
+      var request = http.MultipartRequest(
+        "POST",
+        Uri.parse("$apiUrl/create-new-tasker"),
+      );
+      request.headers.addAll({
+        "Authorization": "Bearer $token",
+        "Content-Type": "multipart/form-data",
+      });
+
+      request.fields.addAll({
+        ...tasker.toJson().map((key, value) => MapEntry(key, value.toString())),
+        "user_id": await storage.read("user_id").toString(),
+      });
+
+      request.files.addAll([
+          http.MultipartFile.fromBytes(
+            "document",
+            await tesdaFile.readAsBytes(),
+            filename: "document.pdf",
+          ),
+          http.MultipartFile.fromBytes(
+            "image",
+            await profileImage.readAsBytes(),
+            filename: "profile_image.jpg",
+            // Adjust content type if necessary (e.g., image/png)
+          ),
+        ]
+      );
+
+      var response = await request.send();
+
+      debugPrint("Status Code: " + response.statusCode.toString());
+      var body = await response.stream.bytesToString();
+      var data = jsonDecode(body);
+      debugPrint("Response Data: " + data.toString());
+
+      if(response.statusCode == 201){
+        return {"message": data["message"] ?? "Profile Created Successfully. Please Wait for Our Team to Verify Your Account"};
+      }else if(response.statusCode == 400){
+        return {
+          "error": data["errors"] ?? "Please Check Your inputs and try again"
+        };
+      }else{
+        return {
+          "error": data["error"] ?? "Something went wrong when creating your profile. Please try again."
+        };
+      }
+    }catch(e, stackTrace){
+      debugPrint(e.toString());
+      debugPrintStack(stackTrace: stackTrace);
+      return {"error": "Something went wrong when creating your profile. Please try again."};
+    }
+  }
 
   static Future<Map<String, dynamic>> fetchAuthenticatedUser(
       String userId) async {
@@ -162,8 +251,7 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> authUser(
-      String email, String password) async {
+  static Future<Map<String, dynamic>> authUser(String email, String password) async {
     try {
       final response = await _client.post(
         Uri.parse("$apiUrl/login-auth"),
@@ -174,7 +262,7 @@ class ApiService {
         }),
       );
 
-      _updateCookies(response);
+      //_updateCookies(response);
 
       var data = json.decode(response.body);
 
@@ -187,8 +275,9 @@ class ApiService {
       } else {
         return {"error": data['error'] ?? 'Authentication Failed'};
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('Error: $e');
+      debugPrintStack(stackTrace: stackTrace);
       return {"error": "An error occurred: $e"};
     }
   }
@@ -268,7 +357,10 @@ class ApiService {
           "Authorization": "Bearer $session",
           "Access-Control-Allow-Credentials": "true"
         },
-        body: json.encode({"user_id": userId, "session": session}),
+        body: json.encode({
+          "user_id": userId,
+          "session": session
+        }),
       );
 
       debugPrint('Logout Status Code: ${response.statusCode}');
@@ -276,10 +368,11 @@ class ApiService {
 
       if (response.statusCode == 200) {
         _cookies.remove("session"); // Remove only the session cookie
+        storage.erase();
         return {"message": "Logged out successfully"};
       } else {
         var data = json.decode(response.body);
-        return {"error": data['message'] ?? "Failed to logout"};
+        return {"error": data['error'] ?? "Failed to logout"};
       }
     } catch (e) {
       debugPrint('Logout Error: $e');
@@ -316,8 +409,7 @@ class ApiService {
               "Unexpected error occurred. Status code: ${response.statusCode}"
         };
       }
-
-    }catch (e) {
+    } catch (e) {
       debugPrint(e.toString());
       debugPrintStack();
       return {
@@ -326,9 +418,8 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> getMessages(int? taskTakenId) async {
+  static Future<Map<String, dynamic>> getMessages(int taskTakenId) async {
     try {
-      debugPrint("Getting All Message for Task Taken id of: " + taskTakenId.toString());
       String token = await AuthService.getSessionToken();
 
       final response = await http.get(

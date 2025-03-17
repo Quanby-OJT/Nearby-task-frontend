@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/view/sign_up_acc/sign_up_client.dart';
-import 'package:flutter_fe/view/sign_up_acc/sign_up_tasker.dart';
+import 'package:flutter_fe/view/sign_up_acc/pre_sign_up_tasker.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_fe/view/sign_up_acc/sign_up_solo_tasker.dart';
 
 class PreSignUp extends StatefulWidget {
   const PreSignUp({super.key});
@@ -55,9 +56,8 @@ class _PreSignUpState extends State<PreSignUp> {
                 height: screenHeight * 0.22,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) {
-                      return SignUpTaskerAcc(role: "Tasker");
+                    Navigator.push(context, MaterialPageRoute(builder: (context) {
+                      return SignUpSoloTaskerAcc(role: "Tasker", taskerGroup: "Solo Tasker");
                     }));
                   },
                   style: ElevatedButton.styleFrom(

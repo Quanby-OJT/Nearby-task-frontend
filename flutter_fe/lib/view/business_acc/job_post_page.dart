@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
@@ -6,6 +8,7 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 class JobPostPage extends StatefulWidget {
   const JobPostPage({super.key});
@@ -28,32 +31,47 @@ class _JobPostPageState extends State<JobPostPage> {
   List<String> specialization = [];
   List<TaskModel?> clientTasks = [];
   Map<String, String> _errors = {};
+
+  String? _selectedSkill;
+  List<String> _skills = [];
   final storage = GetStorage();
 
   @override
   void initState() {
     super.initState();
     fetchSpecialization();
+    _loadSkills();
     getAllJobsforClient();
   }
 
   Future<void> fetchSpecialization() async {
     try {
-      List<SpecializationModel> fetchedSpecializations =
-          await jobPostService.getSpecializations();
+      List<SpecializationModel> fetchedSpecializations = await jobPostService.getSpecializations();
       setState(() {
-        specialization =
-            fetchedSpecializations.map((spec) => spec.specialization).toList();
+        specialization = fetchedSpecializations.map((spec) => spec.specialization).toList();
       });
     } catch (error) {
       print('Error fetching specializations: $error');
     }
   }
 
+  Future<void> _loadSkills() async {
+    try {
+      final String response =
+          await rootBundle.loadString('assets/tesda_skills.json');
+      final data = jsonDecode(response);
+      setState(() {
+        _skills = List<String>.from(data['tesda_skills']);
+        // Do not set _selectedSkill here; leave it as null
+      });
+    } catch (e) {
+      print('Error loading skills: $e');
+    }
+  }
+
   Future<void> getAllJobsforClient() async {
     try {
-      List<TaskModel?>? fetchedTasks =
-          await controller.getJobsforClient(context, storage.read('user_id'));
+      List<TaskModel?>? fetchedTasks = await controller.getJobsforClient(context, storage.read('user_id'));
 
       if (fetchedTasks != null) {
         setState(() {
@@ -73,7 +91,7 @@ class _JobPostPageState extends State<JobPostPage> {
       if (controller.jobTitleController.text.trim().isEmpty) {
         _errors['task_title'] = 'Please Indicate Your Needed Task';
       }
-      if (selectedSpecialization == null) {
+      if (_selectedSkill == null) {
         _errors['specialization'] = "Please Indicate the Needed Specialization";
       }
       if (controller.jobDescriptionController.text.trim().isEmpty) {
@@ -145,6 +163,7 @@ class _JobPostPageState extends State<JobPostPage> {
 
   void _showCreateTaskModal() {
     showModalBottomSheet(
+      enableDrag: true,
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
@@ -558,7 +577,7 @@ class _JobPostPageState extends State<JobPostPage> {
     debugPrint("Submitting job...");
     setState(() {
       _message = "";
-      _errors.clear(); // Clears previous errors
+      _errors.clear();
       _isSuccess = false;
     });
 
@@ -567,31 +586,50 @@ class _JobPostPageState extends State<JobPostPage> {
     else if(selectedUrgency == "Non-Urgent") urgent = false;
     final result = await controller.postJob(selectedSpecialization, urgent, selectedTimePeriod);
     debugPrint(result.toString());
+    try {
+      final result = await controller.postJob(_selectedSkill, urgent, selectedTimePeriod);
+      debugPrint(result.toString());
 
-    if (result['success']) {
-      setState(() {
-        _message = result['message'] ?? "Successfully Posted Task.";
-        _isSuccess = true;
-      });
-    } else {
-      setState(() {
-        if (result.containsKey('errors') && result['errors'] is List) {
-          for (var error in result['errors']) {
-            if (error is Map<String, dynamic> &&
-                error.containsKey('path') &&
-                error.containsKey('msg')) {
-              _errors[error['path']] =
-                  error['msg']; // Store field-specific errors
+      if (result['success']) {
+        setState(() {
+          _message = result['message'] ?? "Successfully Posted Task.";
+          _isSuccess = true;
+        });
+      } else {
+        setState(() {
+          if (result.containsKey('errors') && result['errors'] is List) {
+            for (var error in result['errors']) {
+              if (error is Map<String, dynamic> &&
+                  error.containsKey('path') &&
+                  error.containsKey('msg')) {
+                _errors[error['path']] =
+                    error['msg']; // Store field-specific errors
+              }
             }
+          } else if (result.containsKey('message')) {
+            _message = result['message'];
           }
-        } else if (result.containsKey('message')) {
-          _message = result['message'];
-        }
-      });
-    }
+        });
+      }
 
-    if (_isSuccess) {
-      getAllJobsforClient();
+      // Show a snackbar with the error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_message!),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 5),
+          action: SnackBarAction(
+            label: 'Dismiss',
+            onPressed: () {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            },
+            textColor: Colors.white,
+          ),
+        ),
+      );
+    }catch(error, stackTrace){
+      debugPrint(error.toString());
+      debugPrintStack(stackTrace: stackTrace);
     }
   }
 
@@ -618,8 +656,8 @@ class _JobPostPageState extends State<JobPostPage> {
                           TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   subtitle: Text(
                     "📍 ${task!.location} \n • "
-                    "₱ ${NumberFormat("#,##0.00", "en_US").format(task.contactPrice!.roundToDouble())} \n • "
-                    "🛠 ${task.specialization}",
+                    "₱ ${NumberFormat("#,##0.00", "en_US").format(task!.contactPrice!.roundToDouble())} \n • "
+                    "🛠 ${task!.specialization}",
                     style: TextStyle(fontSize: 14), // Optional styling
                   ),
                   trailing: Icon(Icons.arrow_forward_ios,

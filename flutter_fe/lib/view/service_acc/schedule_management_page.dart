@@ -1,5 +1,6 @@
 // calendar_availability_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/view/nav/user_navigation.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class ScheduleManagement extends StatefulWidget {
@@ -18,27 +19,28 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text(
-          'Set Schedule',
-          style:
-              TextStyle(color: Color(0xFF0272B1), fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Colors.transparent,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.calendar_view_month),
-            onPressed: () {
-              setState(() {
-                _calendarFormat = _calendarFormat == CalendarFormat.month
-                    ? CalendarFormat.week
-                    : CalendarFormat.month;
-              });
-            },
-          ),
-        ],
-      ),
+      // appBar: AppBar(
+      //   automaticallyImplyLeading: false,
+      //   title: Text(
+      //     'Set Schedule',
+      //     style:
+      //         TextStyle(color: Color(0xFF0272B1), fontWeight: FontWeight.bold),
+      //   ),
+      //   backgroundColor: Colors.transparent,
+      //   actions: [
+      //     IconButton(
+      //       icon: Icon(Icons.calendar_view_month),
+      //       onPressed: () {
+      //         setState(() {
+      //           _calendarFormat = _calendarFormat == CalendarFormat.month
+      //               ? CalendarFormat.week
+      //               : CalendarFormat.month;
+      //         });
+      //       },
+      //     ),
+      //   ],
+      // ),
+      appBar: NavUserScreen(),
       body: Column(
         children: [
           TableCalendar(
@@ -47,6 +49,11 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
             focusedDay: _focusedDay,
             selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
             calendarFormat: _calendarFormat,
+            onFormatChanged: (format) {
+              setState(() {
+                _calendarFormat = format;
+              });
+            },
             onDaySelected: (selectedDay, focusedDay) {
               setState(() {
                 _selectedDay = selectedDay;

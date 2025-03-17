@@ -46,7 +46,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
 
   Future<void> loadConversationHistory() async {
     debugPrint(widget.taskTitle.toString() + widget.taskTakenId.toString());
-    final messages = await conversationController.getMessages(context, widget.taskTakenId);
+    final messages = await conversationController.getMessages(context, widget.taskTakenId ?? 0);
     setState(() {
       _messages.clear();
       _messages.addAll(messages); // No type error: messages is List<Conversation>

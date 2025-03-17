@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter_fe/controller/profile_controller.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
@@ -19,7 +20,6 @@ class _FillUpTaskerState extends State<FillUpTasker> {
 
   final ProfileController _controller = ProfileController();
   final JobPostService jobPostService = JobPostService();
-  String? _message;
   bool _isSuccess = false;
   File? _selectedFile; // Store the selected file
   String? _fileName; // Store the selected file name
@@ -29,7 +29,10 @@ class _FillUpTaskerState extends State<FillUpTasker> {
   List<String> genderOptions = ["Male", "Female", "Non-Binary", "I don't Want to Say"];
   List<String> specialization = [];
   String? selectedSpecialization;
+  List<String> taskerGroup = ["Solo Tasker", "Agency"];
+  List<String> payPeriod = ["Hourly", "Daily", "Weekly", "Bi-Weekly" ,"Monthly"];
 
+  //TESDA Documents
   Future<void> _pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -45,6 +48,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
     }
   }
 
+  //Profile Image
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? pickedFile = await picker.pickImage(
@@ -68,13 +72,15 @@ class _FillUpTaskerState extends State<FillUpTasker> {
 
   Future<void> fetchSpecialization() async {
     try {
+      debugPrint(GetStorage().read("session"));
       List<SpecializationModel> fetchedSpecializations = await jobPostService.getSpecializations();
       debugPrint(fetchedSpecializations.toString());
       setState(() {
         specialization = fetchedSpecializations.map((spec) => spec.specialization).toList();
       });
-    } catch (error) {
-      print('Error fetching specializations: $error');
+    } catch (error, stackTrace) {
+      debugPrint('Error fetching specializations: $error');
+      debugPrintStack(stackTrace: stackTrace);
     }
   }
 
@@ -120,7 +126,15 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                       if (isLastStep) {
                         debugPrint('Creating New Tasker...');
                         try {
-                          _controller.registerUser(context);
+                          _controller.createTasker(
+                            context,
+                            selectedSpecialization ?? "Unknown Specialization",
+                            selectedGender ?? "Unknown Gender",
+                            _imageName ?? "Unknown Image",
+                            _fileName ?? "Illegal File",
+                            _selectedFile ?? File(""),
+                            _selectedImage ?? File(""),
+                          );
                         } catch (error) {
                           debugPrint('Registration error: $error');
                           debugPrintStack();
@@ -208,7 +222,8 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextFormField(
-                    controller: _controller.firstNameController,
+                    keyboardType: TextInputType.number,
+                    controller: _controller.wageController,
                     cursorColor: Color(0xFF0272B1),
                     validator: (value) =>
                         value!.isEmpty ? "Please Indicate Your Desired Wage" : null,
@@ -227,29 +242,44 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                                 color: Color(0xFF0272B1), width: 2))),
                   ),
                 ),
+
                 //Duration
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
-                  child: TextFormField(
-                    controller: _controller.lastNameController,
-                    cursorColor: Color(0xFF0272B1),
-                    validator: (value) =>
-                        value!.isEmpty ? "Last name is required" : null,
+                  child: DropdownButtonFormField<String>(
                     decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Color(0xFFF1F4FF),
-                        hintText: 'How do you want to be Paid?',
-                        hintStyle: TextStyle(color: Colors.grey),
-                        enabledBorder: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Colors.transparent, width: 0),
-                            borderRadius: BorderRadius.circular(10)),
-                        focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(
-                                color: Color(0xFF0272B1), width: 2))),
-                  ),
-                ),
+                      filled: true,
+                      fillColor: Color(0xFFF1F4FF),
+                      hintText: 'How do you want to be paid?',
+                      hintStyle: TextStyle(color: Colors.grey),
+                      enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.transparent)),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(
+                            color: Color(0xFF0272B1), width: 2),
+                      )
+                    ),
+                    value: _controller.payPeriodController.text.isNotEmpty ? _controller.payPeriodController.text : null,
+                    items: payPeriod.map((String period) {
+                      return DropdownMenuItem<String>(
+                        value: period,
+                        child: Text(period),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                         _controller.payPeriodController.text = newValue!;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select a pay period';
+                      }
+                      return null;
+                    },
+                  )),
+
                 //Gender
                 Padding(
                   padding: EdgeInsets.only(bottom: 10.0),
@@ -276,10 +306,12 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                     },
                   ),
                 ),
+
                 //Contact Number
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextFormField(
+                    controller: _controller.contactNumberController,
                     cursorColor: Color(0xFF0272B1),
                     validator: (value) =>
                         value!.isEmpty ? "Please indicate your contact number" : null,
@@ -298,10 +330,12 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                                 color: Color(0xFF0272B1), width: 2))),
                   ),
                 ),
+
                 //Tasker Address
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextFormField(
+                    controller: _controller.taskerAddressController,
                     cursorColor: Color(0xFF0272B1),
                     validator: (value) =>
                         value!.isEmpty ? "Address is required" : null,
@@ -324,8 +358,8 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextField(
-                    controller: _controller.emailController,
-                    keyboardType: TextInputType.datetime, // Opens date keyboard
+                    controller: _controller.birthdateController, // Dedicated controller
+                    keyboardType: TextInputType.datetime, // Optional, but not needed for picker
                     readOnly: true, // Prevents manual input
                     onTap: () async {
                       DateTime? pickedDate = await showDatePicker(
@@ -339,329 +373,29 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                         // Format date as YYYY-MM-DD
                         String formattedDate =
                             "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
-                        //   controller.jobTaskBeginDateController.text = formattedDate;
+                        _controller.birthdateController.text = formattedDate; // Set the text
                       }
                     },
                     decoration: InputDecoration(
-                      // labelText: 'Task Begin Date',
                       labelStyle: TextStyle(color: Color(0xFF0272B1)),
                       filled: true,
                       fillColor: Color(0xFFF1F4FF),
                       hintText: 'Birth date',
                       hintStyle: TextStyle(color: Colors.grey),
-                      suffixIcon: Icon(Icons.calendar_today,
-                          color: Color(0xFF0272B1)), // Calendar icon
+                      suffixIcon: Icon(Icons.calendar_today, color: Color(0xFF0272B1)), // Calendar icon
                       enabledBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Colors.transparent, width: 0),
+                        borderSide: BorderSide(color: Colors.transparent, width: 0),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide:
-                            BorderSide(color: Color(0xFF0272B1), width: 2),
+                        borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
                       ),
                     ),
                   ),
                 ),
               ],
             )),
-// Step(
-        //     state: currentStep > 1 ? StepState.complete : StepState.indexed,
-        //     isActive: currentStep >= 1,
-        //     title: Text('Auth'),
-        //     content: Column(
-        //       children: [
-        //         Padding(
-        //           padding: const EdgeInsets.only(bottom: 10),
-        //           child: TextFormField(
-        //             controller: _controller.emailController,
-        //             cursorColor: Color(0xFF0272B1),
-        //             validator: (value) =>
-        //                 value!.isEmpty ? "Email is required" : null,
-        //             decoration: InputDecoration(
-        //                 filled: true,
-        //                 fillColor: Color(0xFFF1F4FF),
-        //                 hintText: 'Enter email',
-        //                 hintStyle: TextStyle(color: Colors.grey),
-        //                 enabledBorder: OutlineInputBorder(
-        //                     borderSide:
-        //                         BorderSide(color: Colors.transparent, width: 0),
-        //                     borderRadius: BorderRadius.circular(10)),
-        //                 focusedBorder: OutlineInputBorder(
-        //                     borderRadius: BorderRadius.circular(10),
-        //                     borderSide: BorderSide(
-        //                         color: Color(0xFF0272B1), width: 2))),
-        //           ),
-        //         ),
-        //         Padding(
-        //           padding: const EdgeInsets.only(bottom: 10),
-        //           child: TextFormField(
-        //             controller: _controller.passwordController,
-        //             cursorColor: Color(0xFF0272B1),
-        //             validator: (value) =>
-        //                 value!.isEmpty ? "Password is required" : null,
-        //             decoration: InputDecoration(
-        //                 filled: true,
-        //                 fillColor: Color(0xFFF1F4FF),
-        //                 hintText: 'Enter password',
-        //                 hintStyle: TextStyle(color: Colors.grey),
-        //                 enabledBorder: OutlineInputBorder(
-        //                     borderSide:
-        //                         BorderSide(color: Colors.transparent, width: 0),
-        //                     borderRadius: BorderRadius.circular(10)),
-        //                 focusedBorder: OutlineInputBorder(
-        //                     borderRadius: BorderRadius.circular(10),
-        //                     borderSide: BorderSide(
-        //                         color: Color(0xFF0272B1), width: 2))),
-        //           ),
-        //         ),
-        //         Padding(
-        //           padding: const EdgeInsets.only(bottom: 10),
-        //           child: TextFormField(
-        //             controller: _controller.confirmPasswordController,
-        //             cursorColor: Color(0xFF0272B1),
-        //             validator: (value) =>
-        //                 value!.isEmpty ? "Password is required" : null,
-        //             decoration: InputDecoration(
-        //                 filled: true,
-        //                 fillColor: Color(0xFFF1F4FF),
-        //                 hintText: 'Confirm password',
-        //                 hintStyle: TextStyle(color: Colors.grey),
-        //                 enabledBorder: OutlineInputBorder(
-        //                     borderSide:
-        //                         BorderSide(color: Colors.transparent, width: 0),
-        //                     borderRadius: BorderRadius.circular(10)),
-        //                 focusedBorder: OutlineInputBorder(
-        //                     borderRadius: BorderRadius.circular(10),
-        //                     borderSide: BorderSide(
-        //                         color: Color(0xFF0272B1), width: 2))),
-        //           ),
-        //         )
-        //       ],
-        //     )),
-// Step(
-        //     state: currentStep > 1 ? StepState.complete : StepState.indexed,
-        //     isActive: currentStep >= 1,
-        //     title: Text('Auth'),
-        //     content: Column(
-        //       children: [
-        //         Padding(
-        //           padding: const EdgeInsets.only(bottom: 10),
-        //           child: TextFormField(
-        //             controller: _controller.emailController,
-        //             cursorColor: Color(0xFF0272B1),
-        //             validator: (value) =>
-        //                 value!.isEmpty ? "Email is required" : null,
-        //             decoration: InputDecoration(
-        //                 filled: true,
-        //                 fillColor: Color(0xFFF1F4FF),
-        //                 hintText: 'Enter email',
-        //                 hintStyle: TextStyle(color: Colors.grey),
-        //                 enabledBorder: OutlineInputBorder(
-        //                     borderSide:
-        //                         BorderSide(color: Colors.transparent, width: 0),
-        //                     borderRadius: BorderRadius.circular(10)),
-        //                 focusedBorder: OutlineInputBorder(
-        //                     borderRadius: BorderRadius.circular(10),
-        //                     borderSide: BorderSide(
-        //                         color: Color(0xFF0272B1), width: 2))),
-        //           ),
-        //         ),
-        //         Padding(
-        //           padding: const EdgeInsets.only(bottom: 10),
-        //           child: TextFormField(
-        //             controller: _controller.passwordController,
-        //             cursorColor: Color(0xFF0272B1),
-        //             validator: (value) =>
-        //                 value!.isEmpty ? "Password is required" : null,
-        //             decoration: InputDecoration(
-        //                 filled: true,
-        //                 fillColor: Color(0xFFF1F4FF),
-        //                 hintText: 'Enter password',
-        //                 hintStyle: TextStyle(color: Colors.grey),
-        //                 enabledBorder: OutlineInputBorder(
-        //                     borderSide:
-        //                         BorderSide(color: Colors.transparent, width: 0),
-        //                     borderRadius: BorderRadius.circular(10)),
-        //                 focusedBorder: OutlineInputBorder(
-        //                     borderRadius: BorderRadius.circular(10),
-        //                     borderSide: BorderSide(
-        //                         color: Color(0xFF0272B1), width: 2))),
-        //           ),
-        //         ),
-        //         Padding(
-        //           padding: const EdgeInsets.only(bottom: 10),
-        //           child: TextFormField(
-        //             controller: _controller.confirmPasswordController,
-        //             cursorColor: Color(0xFF0272B1),
-        //             validator: (value) =>
-        //                 value!.isEmpty ? "Password is required" : null,
-        //             decoration: InputDecoration(
-        //                 filled: true,
-        //                 fillColor: Color(0xFFF1F4FF),
-        //                 hintText: 'Confirm password',
-        //                 hintStyle: TextStyle(color: Colors.grey),
-        //                 enabledBorder: OutlineInputBorder(
-        //                     borderSide:
-        //                         BorderSide(color: Colors.transparent, width: 0),
-        //                     borderRadius: BorderRadius.circular(10)),
-        //                 focusedBorder: OutlineInputBorder(
-        //                     borderRadius: BorderRadius.circular(10),
-        //                     borderSide: BorderSide(
-        //                         color: Color(0xFF0272B1), width: 2))),
-        //           ),
-        //         )
-        //       ],
-        //     )),
-// Step(
-        //     state: currentStep > 1 ? StepState.complete : StepState.indexed,
-        //     isActive: currentStep >= 1,
-        //     title: Text('Auth'),
-        //     content: Column(
-        //       children: [
-        //         Padding(
-        //           padding: const EdgeInsets.only(bottom: 10),
-        //           child: TextFormField(
-        //             controller: _controller.emailController,
-        //             cursorColor: Color(0xFF0272B1),
-        //             validator: (value) =>
-        //                 value!.isEmpty ? "Email is required" : null,
-        //             decoration: InputDecoration(
-        //                 filled: true,
-        //                 fillColor: Color(0xFFF1F4FF),
-        //                 hintText: 'Enter email',
-        //                 hintStyle: TextStyle(color: Colors.grey),
-        //                 enabledBorder: OutlineInputBorder(
-        //                     borderSide:
-        //                         BorderSide(color: Colors.transparent, width: 0),
-        //                     borderRadius: BorderRadius.circular(10)),
-        //                 focusedBorder: OutlineInputBorder(
-        //                     borderRadius: BorderRadius.circular(10),
-        //                     borderSide: BorderSide(
-        //                         color: Color(0xFF0272B1), width: 2))),
-        //           ),
-        //         ),
-        //         Padding(
-        //           padding: const EdgeInsets.only(bottom: 10),
-        //           child: TextFormField(
-        //             controller: _controller.passwordController,
-        //             cursorColor: Color(0xFF0272B1),
-        //             validator: (value) =>
-        //                 value!.isEmpty ? "Password is required" : null,
-        //             decoration: InputDecoration(
-        //                 filled: true,
-        //                 fillColor: Color(0xFFF1F4FF),
-        //                 hintText: 'Enter password',
-        //                 hintStyle: TextStyle(color: Colors.grey),
-        //                 enabledBorder: OutlineInputBorder(
-        //                     borderSide:
-        //                         BorderSide(color: Colors.transparent, width: 0),
-        //                     borderRadius: BorderRadius.circular(10)),
-        //                 focusedBorder: OutlineInputBorder(
-        //                     borderRadius: BorderRadius.circular(10),
-        //                     borderSide: BorderSide(
-        //                         color: Color(0xFF0272B1), width: 2))),
-        //           ),
-        //         ),
-        //         Padding(
-        //           padding: const EdgeInsets.only(bottom: 10),
-        //           child: TextFormField(
-        //             controller: _controller.confirmPasswordController,
-        //             cursorColor: Color(0xFF0272B1),
-        //             validator: (value) =>
-        //                 value!.isEmpty ? "Password is required" : null,
-        //             decoration: InputDecoration(
-        //                 filled: true,
-        //                 fillColor: Color(0xFFF1F4FF),
-        //                 hintText: 'Confirm password',
-        //                 hintStyle: TextStyle(color: Colors.grey),
-        //                 enabledBorder: OutlineInputBorder(
-        //                     borderSide:
-        //                         BorderSide(color: Colors.transparent, width: 0),
-        //                     borderRadius: BorderRadius.circular(10)),
-        //                 focusedBorder: OutlineInputBorder(
-        //                     borderRadius: BorderRadius.circular(10),
-        //                     borderSide: BorderSide(
-        //                         color: Color(0xFF0272B1), width: 2))),
-        //           ),
-        //         )
-        //       ],
-        //     )),
-// Step(
-        //     state: currentStep > 1 ? StepState.complete : StepState.indexed,
-        //     isActive: currentStep >= 1,
-        //     title: Text('Auth'),
-        //     content: Column(
-        //       children: [
-        //         Padding(
-        //           padding: const EdgeInsets.only(bottom: 10),
-        //           child: TextFormField(
-        //             controller: _controller.emailController,
-        //             cursorColor: Color(0xFF0272B1),
-        //             validator: (value) =>
-        //                 value!.isEmpty ? "Email is required" : null,
-        //             decoration: InputDecoration(
-        //                 filled: true,
-        //                 fillColor: Color(0xFFF1F4FF),
-        //                 hintText: 'Enter email',
-        //                 hintStyle: TextStyle(color: Colors.grey),
-        //                 enabledBorder: OutlineInputBorder(
-        //                     borderSide:
-        //                         BorderSide(color: Colors.transparent, width: 0),
-        //                     borderRadius: BorderRadius.circular(10)),
-        //                 focusedBorder: OutlineInputBorder(
-        //                     borderRadius: BorderRadius.circular(10),
-        //                     borderSide: BorderSide(
-        //                         color: Color(0xFF0272B1), width: 2))),
-        //           ),
-        //         ),
-        //         Padding(
-        //           padding: const EdgeInsets.only(bottom: 10),
-        //           child: TextFormField(
-        //             controller: _controller.passwordController,
-        //             cursorColor: Color(0xFF0272B1),
-        //             validator: (value) =>
-        //                 value!.isEmpty ? "Password is required" : null,
-        //             decoration: InputDecoration(
-        //                 filled: true,
-        //                 fillColor: Color(0xFFF1F4FF),
-        //                 hintText: 'Enter password',
-        //                 hintStyle: TextStyle(color: Colors.grey),
-        //                 enabledBorder: OutlineInputBorder(
-        //                     borderSide:
-        //                         BorderSide(color: Colors.transparent, width: 0),
-        //                     borderRadius: BorderRadius.circular(10)),
-        //                 focusedBorder: OutlineInputBorder(
-        //                     borderRadius: BorderRadius.circular(10),
-        //                     borderSide: BorderSide(
-        //                         color: Color(0xFF0272B1), width: 2))),
-        //           ),
-        //         ),
-        //         Padding(
-        //           padding: const EdgeInsets.only(bottom: 10),
-        //           child: TextFormField(
-        //             controller: _controller.confirmPasswordController,
-        //             cursorColor: Color(0xFF0272B1),
-        //             validator: (value) =>
-        //                 value!.isEmpty ? "Password is required" : null,
-        //             decoration: InputDecoration(
-        //                 filled: true,
-        //                 fillColor: Color(0xFFF1F4FF),
-        //                 hintText: 'Confirm password',
-        //                 hintStyle: TextStyle(color: Colors.grey),
-        //                 enabledBorder: OutlineInputBorder(
-        //                     borderSide:
-        //                         BorderSide(color: Colors.transparent, width: 0),
-        //                     borderRadius: BorderRadius.circular(10)),
-        //                 focusedBorder: OutlineInputBorder(
-        //                     borderRadius: BorderRadius.circular(10),
-        //                     borderSide: BorderSide(
-        //                         color: Color(0xFF0272B1), width: 2))),
-        //           ),
-        //         )
-        //       ],
-        //     )),
         Step(
             state: currentStep > 1 ? StepState.complete : StepState.indexed,
             isActive: currentStep >= 1,
@@ -687,7 +421,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                   padding: const EdgeInsets.only(top: 10, bottom: 10),
                   child: TextFormField(
                     maxLines: 2,
-                    controller: _controller.emailController,
+                    controller: _controller.bioController,
                     cursorColor: Color(0xFF0272B1),
                     validator: (value) => value!.isEmpty ? "Indicate Your desired description." : null,
                     decoration: InputDecoration(
@@ -711,7 +445,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextFormField(
                     maxLines: 3,
-                    controller: _controller.passwordController,
+                    controller: _controller.skillsController,
                     cursorColor: Color(0xFF0272B1),
                     validator: (value) =>
                         value!.isEmpty ? "List of skills..." : null,

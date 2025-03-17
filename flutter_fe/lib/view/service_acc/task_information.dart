@@ -69,9 +69,11 @@ class _TaskInformationState extends State<TaskInformation> {
                   _buildInfoRow("Location", task.location ?? "N/A"),
                   _buildInfoRow(
                       "Urgency",
-                      task.urgency ?? false
-                          ? "My Task is Urgent"
-                          : "My Task is Not Urgent"),
+                      // task.urgency ?? false
+                      //     ? "My Task is Urgent"
+                      //     : "My Task is Not Urgent"),
+                    task.urgency.toString()
+                  ),
                   _buildInfoRow(
                       "Duration", task.duration.toString()),
                   _buildInfoRow("Status", task.status ?? "N/A"),
