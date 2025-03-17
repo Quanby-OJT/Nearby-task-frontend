@@ -54,13 +54,13 @@ class ProfileController {
       return;
     }
 
+// Validation if password not matched end
     if (passwordController.text != confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Passwords do not match!")),
       );
       return;
     }
-// Validation if password not matched end
 
 // Store the inputs Start
     UserModel user = UserModel(
@@ -126,6 +126,27 @@ class ProfileController {
         SnackBar(content: Text("Error: $e")),
       );
       return null;
+    }
+  }
+
+  Future<int> verifyEmail(
+      BuildContext context, String token, String email) async {
+    try {
+      // Your existing verification logic
+      // Assuming this returns a response with userId after successful verification
+      //debugPrint("Token : ${token}" + "Email: ${email}");
+      final response = await ApiService.verifyEmail(
+          token, email); // Modify this based on your actual implementation
+      if (response.containsKey("message")) {
+        // Adjust this condition based on your API response
+        return response["user_id"]; // Return the userId from your API response
+      }
+      return 0;
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Verification failed: $e')),
+      );
+      return 0;
     }
   }
 }

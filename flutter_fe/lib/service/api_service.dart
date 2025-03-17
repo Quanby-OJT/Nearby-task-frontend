@@ -33,6 +33,37 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> verifyEmail(
+      String token, String email) async {
+    try {
+      final response = await _client.post(Uri.parse("$apiUrl/verify"),
+          headers: _getHeaders(),
+          body: json.encode({"token": token, "email": email}));
+
+      var data = jsonDecode(response.body);
+      debugPrint('Verify Response: ${response.statusCode} - ${response.body}');
+
+      if (response.statusCode == 200) {
+        return {
+          "message": data["message"] ?? "Email Verified Successfully.",
+          "user_id": data["user_id"],
+          "session": data["session"]
+        };
+      } else {
+        return {
+          "error": data["error"] ??
+              "An Error Occured while verifying your email. Please Try Again"
+        };
+      }
+    } catch (e, stackTrace) {
+      debugPrint(e.toString());
+      debugPrint(stackTrace.toString());
+      return {
+        "error": "An Error Occured while verifying your email. Please Try Again"
+      };
+    }
+  }
+
   // Function to add cookies to requests
   static Map<String, String> _getHeaders() {
     String cookieHeader =
