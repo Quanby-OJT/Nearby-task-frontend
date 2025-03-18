@@ -50,8 +50,8 @@ class TaskerModel{
           ? json['tasker_specialization']['specialization']
           : '',
       taskerDocuments: json['tasker_documents'] ?? '',
-      wage: json['wage'] != null ? json['wage'].toDouble() : 0.0,
-      payPeriod: json['pay_period'] != null ? json['pay_period'].toDouble() : 0.0,
+      wage: json['wage'] != null ? json['wage_per_hour'].toDouble() : 0.0,
+      payPeriod: json['pay_period'] ?? "",
       birthDate: json['birth_date'] != null
           ? DateTime.parse(json['birth_date'])
           : DateTime.now(),
