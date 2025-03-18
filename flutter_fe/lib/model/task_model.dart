@@ -12,8 +12,6 @@ class TaskModel {
   final double? contactPrice;
   final String? remarks;
   final String? taskBeginDate;
-  final double? finalPrice;
-  final String? priceStatus;
   final String? taskerRole;
 
   TaskModel(
@@ -30,8 +28,6 @@ class TaskModel {
       this.contactPrice,
       this.remarks,
       this.taskBeginDate,
-      this.finalPrice,
-      this.priceStatus,
       this.taskerRole});
 
   // Convert to JSON
@@ -51,8 +47,6 @@ class TaskModel {
       "task_begin_date": taskBeginDate,
       "id": id,
       "status": status,
-      "final_price": finalPrice,
-      "price_status": priceStatus,
       "tasker_role": taskerRole,
     };
   }
@@ -73,8 +67,6 @@ class TaskModel {
       remarks: json['remarks'] as String?,
       taskBeginDate: json['task_begin_date'] as String?,
       status: json['status'] as String?,
-      finalPrice: (json['final_price'] as num).toDouble(),
-      priceStatus: json['price_status'] as String?,
       taskerRole: json['tasker_role'] as String?,
     );
   }

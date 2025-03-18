@@ -19,13 +19,14 @@ class _JobPostPageState extends State<JobPostPage> {
   final JobPostService jobPostService = JobPostService();
   String? _message;
   bool _isSuccess = false;
-  bool _isLoadingSpecializations = true; // Added loading state
-
+  bool _isLoadingSpecializations = true;
   String? selectedTimePeriod;
   String? selectedUrgency;
+  String? selectedTaskerRole;
   String? selectedSpecialization;
   List<String> items = ['Day/s', 'Week/s', 'Month/s', 'Year/s'];
   List<String> urgency = ['Non-Urgent', 'Urgent'];
+  List<String> taskerRoleOptions = ['Solo', 'Group'];
   List<String> specialization = [];
   List<TaskModel?> clientTasks = [];
   Map<String, String> _errors = {};
@@ -102,20 +103,8 @@ class _JobPostPageState extends State<JobPostPage> {
             'Contract Price must be a valid positive number';
       }
 
-      String finalPrice = controller.finalPriceController.text.trim();
-      if (finalPrice.isEmpty) {
-        _errors['final_price'] = 'Indicate the Final Price';
-      } else if (double.tryParse(finalPrice) == null ||
-          double.parse(finalPrice) <= 0) {
-        _errors['final_price'] = 'Final Price must be a valid positive number';
-      }
-
-      if (controller.priceStatusController.text.trim().isEmpty) {
-        _errors['price_status'] = 'Indicate the Price Status';
-      }
-
-      if (controller.taskerRoleController.text.trim().isEmpty) {
-        _errors['tasker_role'] = 'Indicate the Tasker Role';
+      if (selectedTaskerRole == null) {
+        _errors['tasker_role'] = 'Please select a Tasker Role';
       }
 
       if (controller.jobLocationController.text.trim().isEmpty) {
@@ -350,80 +339,36 @@ class _JobPostPageState extends State<JobPostPage> {
                   Padding(
                     padding:
                         const EdgeInsets.only(left: 40, right: 40, top: 20),
-                    child: TextFormField(
-                      maxLines: 1, // Single line for numbers
-                      cursorColor: Color(0xFF0272B1),
-                      controller: controller.finalPriceController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly
-                      ], // Restricts to numbers only
+                    child: DropdownButtonFormField<String>(
+                      value: selectedTaskerRole,
                       decoration: InputDecoration(
-                          label: Text('Final Price *'),
-                          labelStyle: TextStyle(color: Color(0xFF0272B1)),
-                          filled: true,
-                          fillColor: Color(0xFFF1F4FF),
-                          hintText: 'Enter price...',
-                          hintStyle: TextStyle(color: Colors.grey),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Colors.transparent, width: 0),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide:
-                                BorderSide(color: Color(0xFF0272B1), width: 2),
-                          ),
-                          errorText: _errors['final_price']),
-                    ),
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.only(left: 40, right: 40, top: 20),
-                    child: TextField(
-                      cursorColor: Color(0xFF0272B1),
-                      controller: controller.priceStatusController,
-                      decoration: InputDecoration(
-                          label: Text('Price Status *'),
-                          labelStyle: TextStyle(color: Color(0xFF0272B1)),
-                          filled: true,
-                          fillColor: Color(0xFFF1F4FF),
-                          hintText: 'Price Status *',
-                          hintStyle: TextStyle(color: Colors.grey),
-                          enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Colors.transparent, width: 0),
-                              borderRadius: BorderRadius.circular(10)),
-                          focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
-                                  color: Color(0xFF0272B1), width: 2)),
-                          errorText: _errors['price_status']),
-                    ),
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.only(left: 40, right: 40, top: 20),
-                    child: TextField(
-                      cursorColor: Color(0xFF0272B1),
-                      controller: controller.taskerRoleController,
-                      decoration: InputDecoration(
-                          label: Text('Tasker Role *'),
-                          labelStyle: TextStyle(color: Color(0xFF0272B1)),
-                          filled: true,
-                          fillColor: Color(0xFFF1F4FF),
-                          hintText: 'Tasker Role *',
-                          hintStyle: TextStyle(color: Colors.grey),
-                          enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Colors.transparent, width: 0),
-                              borderRadius: BorderRadius.circular(10)),
-                          focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
-                                  color: Color(0xFF0272B1), width: 2)),
-                          errorText: _errors['tasker_role']),
+                        label: Text('Tasker Role *'),
+                        labelStyle: TextStyle(color: Color(0xFF0272B1)),
+                        filled: true,
+                        fillColor: Color(0xFFF1F4FF),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.transparent, width: 0),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide:
+                              BorderSide(color: Color(0xFF0272B1), width: 2),
+                        ),
+                        errorText: _errors['tasker_role'],
+                      ),
+                      items: taskerRoleOptions.map((String role) {
+                        return DropdownMenuItem<String>(
+                          value: role,
+                          child: Text(role),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        setState(() {
+                          selectedTaskerRole = newValue;
+                        });
+                      },
                     ),
                   ),
                   Padding(
@@ -687,12 +632,17 @@ class _JobPostPageState extends State<JobPostPage> {
       _isSuccess = false;
     });
 
+    String taskerRole = "Solo";
+    if (selectedTaskerRole == "Solo") {
+      taskerRole = "Solo";
+    } else if (selectedTaskerRole == "Group") taskerRole = "Group";
+
     bool urgent = false;
     if (selectedUrgency == "Urgent") {
       urgent = true;
     } else if (selectedUrgency == "Non-Urgent") urgent = false;
     final result = await controller.postJob(
-        selectedSpecialization, urgent, selectedTimePeriod);
+        selectedSpecialization, urgent, selectedTimePeriod, taskerRole);
     debugPrint(result.toString());
 
     if (result['success']) {

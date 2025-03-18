@@ -23,14 +23,10 @@ class TaskController {
   final jobTaskBeginDateController = TextEditingController();
   final contactpriceController = TextEditingController();
 
-  final finalPriceController = TextEditingController();
-  final priceStatusController = TextEditingController();
-  final taskerRoleController = TextEditingController();
-
   final storage = GetStorage();
 
-  Future<Map<String, dynamic>> postJob(
-      String? specialization, bool urgency, String? period) async {
+  Future<Map<String, dynamic>> postJob(String? specialization, bool urgency,
+      String? period, String? taskerRole) async {
     try {
       int userId = storage.read('user_id');
       print('Submitting data...'); // Debug print
@@ -47,9 +43,7 @@ class TaskController {
         contactPrice: double.tryParse(contactPriceController.text.trim()),
         remarks: jobRemarksController.text.trim(),
         taskBeginDate: jobTaskBeginDateController.text.trim(),
-        finalPrice: double.tryParse(finalPriceController.text.trim()),
-        priceStatus: priceStatusController.text.trim(),
-        taskerRole: taskerRoleController.text.trim(),
+        taskerRole: taskerRole,
       );
 
       print('Task data: ${task.toJson()}'); // Debug print
@@ -127,8 +121,6 @@ class TaskController {
           contactPrice: null,
           remarks: null,
           taskBeginDate: null,
-          finalPrice: null,
-          priceStatus: null,
           taskerRole: null,
           id: taskId,
         );
