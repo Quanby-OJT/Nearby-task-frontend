@@ -24,12 +24,12 @@ class TaskController {
   final contactpriceController = TextEditingController();
   final storage = GetStorage();
 
-  Future<Map<String, dynamic>> postJob(String? specialization, bool urgency, String? period) async {
+  Future<Map<String, dynamic>> postJob(String? specialization, String? urgency, String? period, String? workType) async {
     try {
       int userId = storage.read('user_id');
-      print('Submitting data...'); // Debug print
+      print('Submitting data...');
       final task = TaskModel(
-        id: 0, // Set to 0 for new posts
+        id: 0,
         clientId: userId,
         title: jobTitleController.text.trim(),
         specialization: specialization,
@@ -37,50 +37,49 @@ class TaskController {
         location: jobLocationController.text.trim(),
         duration: jobTimeController.text,
         period: period,
+        urgency: urgency,
         contactPrice: int.tryParse(contactPriceController.text.trim()) ?? 0,
         remarks: jobRemarksController.text.trim(),
         taskBeginDate: jobTaskBeginDateController.text.trim(),
+        workType: workType,
       );
 
-      print('Task data: ${task.toJson()}'); // Debug print
+      print('Task data: ${task.toJson()}');
       return await _jobPostService.postJob(task, userId);
     } catch (e, stackTrace) {
-      print('Error in postJob: $e'); // Debug print
+      print('Error in postJob: $e');
       debugPrint(stackTrace.toString());
       return {'success': false, 'error': 'Error: $e'};
     }
   }
 
-  Future<List<TaskModel>?> getJobsforClient(BuildContext context, int clientId) async {
+  Future<List<TaskModel>?> getJobsforClient(
+      BuildContext context, int clientId) async {
     final clientTask = await _jobPostService.fetchJobsForClient(clientId);
     debugPrint(clientTask.toString());
 
-
     if (clientTask.containsKey('tasks')) {
-      List<dynamic> tasksList = clientTask['tasks']; // Extract the list from the map
-
-      List<TaskModel> tasks = tasksList.map((task) => TaskModel.fromJson(task)).toList(); // Convert list to TaskModel list
-
+      List<dynamic> tasksList = clientTask['tasks'];
+      List<TaskModel> tasks =
+          tasksList.map((task) => TaskModel.fromJson(task)).toList();
       return tasks;
     }
 
-    // Show error message if tasks are not found
     ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(clientTask['error'] ?? "Something Went Wrong while Retrieving Your Tasks."))
+      SnackBar(
+          content: Text(clientTask['error'] ??
+              "Something Went Wrong while Retrieving Your Tasks.")),
     );
-
     return null;
   }
 
   Future<String> assignTask(int? taskId, int? clientId, int? taskerId) async {
     debugPrint("Assigning task...");
-    final assignedTask = await _jobPostService.assignTask(taskId, clientId, taskerId);
-
-    if (assignedTask.containsKey('message')) {
-      return assignedTask['message'].toString();
-    } else {
-      return assignedTask['error'].toString();
-    }
+    final assignedTask =
+        await _jobPostService.assignTask(taskId, clientId, taskerId);
+    return assignedTask.containsKey('message')
+        ? assignedTask['message'].toString()
+        : assignedTask['error'].toString();
   }
 
   //All Messages to client/tasker
@@ -90,7 +89,6 @@ class TaskController {
 
     if (assignedTasks.containsKey('data') && assignedTasks['data'] != null) {
       List<dynamic> dataList = assignedTasks['data'] as List<dynamic>;
-
       List<TaskAssignment> taskAssignments = dataList.map((item) {
         // Get task_taken_id from the root level of item
         int? taskTakenId = item['task_taken_id'] as int?; // Correct key
@@ -167,13 +165,12 @@ class TaskController {
         debugPrint(assignment.toString()); // Verify the full object
         return assignment;
       }).toList();
-
       return taskAssignments;
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(assignedTasks['error'] ?? "Something Went Wrong while Retrieving Your Tasks."),
-        ),
+            content: Text(assignedTasks['error'] ??
+                "Something Went Wrong while Retrieving Your Tasks.")),
       );
       return null;
     }
