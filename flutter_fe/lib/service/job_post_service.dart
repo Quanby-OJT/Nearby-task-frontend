@@ -7,7 +7,7 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:get_storage/get_storage.dart';
 
 class JobPostService {
-  static const String apiUrl = "http://192.168.254.114:5000/connect";
+  static const String apiUrl = "http://localhost:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 

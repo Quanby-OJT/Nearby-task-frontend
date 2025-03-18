@@ -34,16 +34,36 @@ class _HomePageState extends State<HomePage> {
       _errorMessage = null;
     });
 
-    ClientServices clientServices = ClientServices();
-    List<UserModel> tasks = await clientServices.fetchAllTasker();
+    try {
+      ClientServices clientServices = ClientServices();
+      debugPrint("Fetching taskers...");
+      List<UserModel> tasks = await clientServices.fetchAllTasker();
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    setState(() {
-      _isLoading = false;
-      tasker = tasks;
-      cardNumber = tasks.length;
-    });
+      if (tasks.isEmpty) {
+        debugPrint("No taskers returned from service");
+      } else {
+        debugPrint("Successfully fetched ${tasks.length} taskers");
+      }
+
+      setState(() {
+        _isLoading = false;
+        tasker = tasks;
+        cardNumber = tasks.length;
+      });
+    } catch (e, st) {
+      debugPrint("Error fetching taskers: $e");
+      debugPrint(st.toString());
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage =
+              "Failed to load taskers. Please check your connection and try again.";
+        });
+      }
+    }
   }
 
   void _cardCounter() {
@@ -137,10 +157,36 @@ class _HomePageState extends State<HomePage> {
               ],
             ))
           else if (tasker.isEmpty)
-            const Center(
-              child: Text(
-                "No taskers found",
-                style: TextStyle(fontSize: 16),
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.person_search,
+                    size: 80,
+                    color: Colors.grey.shade300,
+                  ),
+                  SizedBox(height: 20),
+                  Text(
+                    "No taskers found",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    "We couldn't find any taskers at the moment.\nPlease try again later.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _fetchTasker,
+                    child: Text('Refresh'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF0272B1),
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             )
           else
@@ -153,6 +199,13 @@ class _HomePageState extends State<HomePage> {
                     padding: const EdgeInsets.only(left: 35, top: 20),
                     child: SizedBox(
                       width: 200,
+                      child: Text(
+                        "Swipe right to like, left to skip",
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -166,9 +219,12 @@ class _HomePageState extends State<HomePage> {
                     cardsCount: tasker.length,
                     onSwipe: (previousIndex, targetIndex, swipeDirection) {
                       if (swipeDirection == CardSwiperDirection.left) {
-                        print("Swiped Left (Disliked)");
+                        debugPrint(
+                            "Swiped Left (Disliked) for tasker: ${tasker[previousIndex].firstName}");
                         _cardCounter();
                       } else if (swipeDirection == CardSwiperDirection.right) {
+                        debugPrint(
+                            "Swiped Right (Liked) for tasker: ${tasker[previousIndex].firstName}");
                         _saveLikedTasker(tasker[previousIndex]);
                         _cardCounter();
                       }
@@ -187,12 +243,64 @@ class _HomePageState extends State<HomePage> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: Image.asset(
-                                  'assets/images/image1.jpg',
-                                  fit: BoxFit.cover,
-                                ),
+                              child: Stack(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Image.asset(
+                                      'assets/images/image1.jpg',
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                    ),
+                                  ),
+                                  Positioned(
+                                    bottom: 0,
+                                    left: 0,
+                                    right: 0,
+                                    child: Container(
+                                      padding:
+                                          EdgeInsets.only(bottom: 60, left: 16),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.only(
+                                          bottomLeft: Radius.circular(16),
+                                          bottomRight: Radius.circular(16),
+                                        ),
+                                        gradient: LinearGradient(
+                                          begin: Alignment.bottomCenter,
+                                          end: Alignment.topCenter,
+                                          colors: [
+                                            Colors.black.withOpacity(0.8),
+                                            Colors.transparent,
+                                          ],
+                                        ),
+                                      ),
+                                      // padding: EdgeInsets.all(16),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "${task.firstName} ${task.lastName}",
+                                            style: TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          SizedBox(height: 4),
+                                          Text(
+                                            "Tap to see more details",
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.white70,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                             back: Card(
@@ -203,33 +311,43 @@ class _HomePageState extends State<HomePage> {
                               child: Padding(
                                 padding: const EdgeInsets.all(16.0),
                                 child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "${cardNumber?.toString()}" ?? "No Name",
+                                      "${task.firstName} ${task.lastName}",
                                       style: TextStyle(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
                                         color: Color(0xFF0272B1),
                                       ),
                                     ),
-                                    SizedBox(height: 16),
+                                    SizedBox(height: 8),
                                     Text(
-                                      'Additional information about the service can go here',
-                                      textAlign: TextAlign.center,
+                                      "Email: ${task.email}",
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      "Role: ${task.role}",
                                       style: TextStyle(fontSize: 16),
                                     ),
                                     Spacer(),
-                                    Icon(
-                                      Icons.touch_app,
-                                      color: Colors.grey,
-                                      size: 32,
-                                    ),
-                                    Text(
-                                      'Tap',
-                                      style: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 14,
+                                    Center(
+                                      child: Column(
+                                        children: [
+                                          Icon(
+                                            Icons.touch_app,
+                                            color: Colors.grey,
+                                            size: 32,
+                                          ),
+                                          Text(
+                                            'Tap to flip back',
+                                            style: TextStyle(
+                                              color: Colors.grey,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ],
