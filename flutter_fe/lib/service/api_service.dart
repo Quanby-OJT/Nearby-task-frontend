@@ -322,7 +322,7 @@ class ApiService {
       );
 
       //debugPrint('Sent Headers: ${_getHeaders()}'); // Debugging
-      _updateCookies(response); // 🔥 Store session cookies
+      //_updateCookies(response); // 🔥 Store session cookies
 
       var data = json.decode(response.body);
       debugPrint('Decoded Data Type: ${data.runtimeType}');
@@ -340,11 +340,12 @@ class ApiService {
         debugPrint(validationMessage);
         return {"validation_error": validationMessage};
       } else {
-        return {"error": data['error'] ?? "OTP Authentication Failed"};
+        return {"error": data['error'] ?? "OTP Authentication Failed. Please Try again."};
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('Error: $e');
-      return {"error": "An error occurred: $e"};
+      debugPrintStack(stackTrace: stackTrace);
+      return {"error": "OTP Authentication Failed. Please Try again. If the Problem Persists, Contact Us."};
     }
   }
 

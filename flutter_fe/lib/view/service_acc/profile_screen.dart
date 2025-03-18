@@ -4,6 +4,7 @@ import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

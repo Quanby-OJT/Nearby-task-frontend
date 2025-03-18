@@ -83,7 +83,8 @@ class TaskController {
     }
   }
 
-Future<List<TaskAssignment>?> getAllAssignedTasks(BuildContext context, int userId) async {
+  //All Messages to client/tasker
+  Future<List<TaskAssignment>?> getAllAssignedTasks(BuildContext context, int userId) async {
     final assignedTasks = await TaskDetailsService().getAllTakenTasks();
     debugPrint(assignedTasks.toString());
 
@@ -91,73 +92,80 @@ Future<List<TaskAssignment>?> getAllAssignedTasks(BuildContext context, int user
       List<dynamic> dataList = assignedTasks['data'] as List<dynamic>;
 
       List<TaskAssignment> taskAssignments = dataList.map((item) {
-        // Get task_taken_id from each item
-        int? taskId = item['task_taken_id'] as int?;  // Directly access task_taken_id
-        //debugPrint("Task Id: $taskId");
+        // Get task_taken_id from the root level of item
+        int? taskTakenId = item['task_taken_id'] as int?; // Correct key
+        debugPrint("Task Taken ID: $taskTakenId"); // Verify the value
 
-        // Parse tasks
-        Map<String, dynamic> taskData = item['tasks'] as Map<String, dynamic>;
+        // Parse tasks from post_task
+        Map<String, dynamic> taskData = item['post_task'] as Map<String, dynamic>;
         TaskModel task = TaskModel(
           title: taskData['task_title'] as String?,
-          // Provide default or null values for required fields not in the response
           clientId: null,
           specialization: null,
           description: null,
           location: null,
           period: null,
           duration: null,
-          urgency: taskData['urgent'] as String?,
+          urgency: taskData['urgent'] as String?, // Check if this field exists in your API
           status: null,
           contactPrice: null,
           remarks: null,
           taskBeginDate: null,
-          id: taskId,  // You could use taskId here if needed
+          id: taskTakenId, // Use taskTakenId here if it’s meant to be the task’s ID
         );
 
         // Parse client and its user
-        Map<String, dynamic> clientData = item['clients'] as Map<String, dynamic>;
+        Map<String, dynamic> clientData = item['clients'] != null ? item['clients'] as Map<String, dynamic> : {};
         Map<String, dynamic> clientUserData = clientData['user'] as Map<String, dynamic>;
         UserModel clientUser = UserModel(
           firstName: clientUserData['first_name'] as String? ?? '',
           middleName: clientUserData['middle_name'] as String? ?? '',
           lastName: clientUserData['last_name'] as String? ?? '',
-          email: '', // Required field, provide default
-          role: '',  // Required field, provide default
-          accStatus: '', // Required field, provide default
+          email: '',
+          role: '',
+          accStatus: '',
         );
         ClientModel client = ClientModel(
-          preferences: '', // Required field, provide default
-          clientAddress: '', // Required field, provide default
+          preferences: '',
+          clientAddress: '',
           user: clientUser,
         );
 
         // Parse tasker and its user
-        Map<String, dynamic> taskerData = item['tasker'] as Map<String, dynamic>;
+        Map<String, dynamic> taskerData = item['tasker'] != null ? item['tasker'] as Map<String, dynamic> : {};
         Map<String, dynamic> taskerUserData = taskerData['user'] as Map<String, dynamic>;
         UserModel taskerUser = UserModel(
           firstName: taskerUserData['first_name'] as String? ?? '',
           middleName: taskerUserData['middle_name'] as String? ?? '',
           lastName: taskerUserData['last_name'] as String? ?? '',
-          email: '', // Required field, provide default
-          role: '',  // Required field, provide default
-          accStatus: '', // Required field, provide default
+          email: '',
+          role: '',
+          accStatus: '',
         );
         TaskerModel tasker = TaskerModel(
-          bio: '', // Required field, provide default
-          specialization: '', // Required field, provide default
-          skills: '', // Required field, provide default
-          taskerAddress: '', // Required field, provide default
-          availability: false, // Required field, provide default
-          wage: 0.0, // Required field, provide default
-          payPeriod: '', // Required field, provide default
-          birthDate: DateTime.now(), // Required field, provide default
-          phoneNumber: '', // Required field, provide default
-          gender: '', // Required field, provide default
-          group: false, // Required field, provide default
+          bio: '',
+          specialization: '',
+          skills: '',
+          taskerAddress: '',
+          availability: false,
+          wage: 0.0,
+          payPeriod: '',
+          birthDate: DateTime.now(),
+          phoneNumber: '',
+          gender: '',
+          group: false,
           user: taskerUser,
         );
 
-        return TaskAssignment(client: client, tasker: tasker, task: task);
+        // Create TaskAssignment with the correct taskTakenId
+        TaskAssignment assignment = TaskAssignment(
+          client: client,
+          tasker: tasker,
+          task: task,
+          taskTakenId: taskTakenId, // Use the root-level task_taken_id
+        );
+        debugPrint(assignment.toString()); // Verify the full object
+        return assignment;
       }).toList();
 
       return taskAssignments;
