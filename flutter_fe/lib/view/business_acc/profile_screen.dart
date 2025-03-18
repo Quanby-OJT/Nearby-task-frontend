@@ -30,7 +30,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _fetchUserData() async {
     try {
       int userId = storage.read("user_id");
-      AuthenticatedUser? user = await _userController.getAuthenticatedUser(context, userId.toString());
+      AuthenticatedUser? user = await _userController.getAuthenticatedUser(context, userId);
       debugPrint(user.toString());
       setState(() {
         _user = user;

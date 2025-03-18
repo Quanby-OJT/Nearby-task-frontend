@@ -34,7 +34,7 @@ class _NavUserScreenState extends State<NavUserScreen> {
     try {
       int userId = storage.read("user_id");
       AuthenticatedUser? user = await _profileController.getAuthenticatedUser(
-          context, userId.toString());
+          context, userId);
       debugPrint(user.toString());
       setState(() {
         _user = user;

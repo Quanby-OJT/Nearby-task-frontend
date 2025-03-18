@@ -8,7 +8,6 @@ import '../model/tasker_model.dart';
 import '../model/auth_user.dart';
 
 class ProfileController {
-  // Fetched user inputs Start
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
@@ -37,51 +36,157 @@ class ProfileController {
   final TextEditingController prefsController = TextEditingController();
   final TextEditingController clientAddressController = TextEditingController();
 
-  // Byte for the image start
-  // void setImage(File image, String name) {
-  //   imageData = image;
-  //   imageName = name;
-  // }
-  // Byte for the image end
+  //Client Text Controller
+
+  // Validation methods
+  String? validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Please enter your email";
+    }
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(value)) {
+      return "Please enter a valid email address";
+    }
+    return null;
+  }
+
+  String? validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Please enter a password";
+    }
+    if (value.length < 6) {
+      return "Password must be at least 6 characters long";
+    }
+    if (!value.contains(RegExp(r'[A-Z]'))) {
+      return "Password must contain at least one uppercase letter";
+    }
+    if (!value.contains(RegExp(r'[0-9]'))) {
+      return "Password must contain at least one number";
+    }
+    return null;
+  }
+
+  String? validateConfirmPassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Please confirm your password";
+    }
+    if (value != passwordController.text) {
+      return "Passwords do not match";
+    }
+    return null;
+  }
+
+  String? validateName(String? value, String fieldName) {
+    if (value == null || value.isEmpty) {
+      return "Please enter your $fieldName";
+    }
+    if (value.length < 2) {
+      return "$fieldName must be at least 2 characters long";
+    }
+    return null;
+  }
+
   Future<void> registerUser(BuildContext context) async {
-    if (passwordController.text.isEmpty ||
-        firstNameController.text.isEmpty ||
-        lastNameController.text.isEmpty ||
-        emailController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Please fill in all required fields")),
-      );
-      return;
-    }
+    // Validate all fields
+    String? emailError = validateEmail(emailController.text);
+    String? passwordError = validatePassword(passwordController.text);
+    String? confirmPasswordError =
+        validateConfirmPassword(confirmPasswordController.text);
+    String? firstNameError =
+        validateName(firstNameController.text, "first name");
+    String? lastNameError = validateName(lastNameController.text, "last name");
 
-// Validation if password not matched end
-    if (passwordController.text != confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Passwords do not match!")),
-      );
-      return;
-    }
-
-// Store the inputs Start
-    UserModel user = UserModel(
-        firstName: firstNameController.text,
-        middleName: middleNameController.text,
-        lastName: lastNameController.text,
-        email: emailController.text,
-        password: passwordController.text,
-        role: roleController.text,
-        accStatus: 'Pending');
-    bool success = await ApiService.registerUser(user);
-    if (success) {
+    // Check if there are any validation errors
+    if (emailError != null ||
+        passwordError != null ||
+        confirmPasswordError != null ||
+        firstNameError != null ||
+        lastNameError != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(
-                "Registration Successful! Please Check your Email to confirm your email.")),
+          content: Text(emailError ??
+              passwordError ??
+              confirmPasswordError ??
+              firstNameError ??
+              lastNameError ??
+              "Please fix the errors in the form"),
+          backgroundColor: Colors.red,
+        ),
       );
-    } else {
+      return;
+    }
+
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        },
+      );
+
+      UserModel user = UserModel(
+          firstName: firstNameController.text,
+          middleName: middleNameController.text,
+          lastName: lastNameController.text,
+          email: emailController.text,
+          password: passwordController.text,
+          role: roleController.text,
+          accStatus: 'Pending');
+
+      Map<String, dynamic> resultData = await ApiService.registerUser(user);
+
+      // Hide loading indicator
+      Navigator.pop(context);
+
+      if (resultData.containsKey("errors")) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(resultData["errors"] ??
+                "Registration failed. Please try again."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(resultData["message"] ??
+                "Registration successful! Please check your email to verify your account."),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      // Hide loading indicator if still showing
+      Navigator.pop(context);
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Registration Failed!")),
+        SnackBar(
+          content: Text("An error occurred. Please try again later."),
+          backgroundColor: Colors.red,
+        ),
       );
+    }
+  }
+
+  Future<int> verifyEmail(
+      BuildContext context, String token, String email) async {
+    try {
+      final response = await ApiService.verifyEmail(
+          token, email); // Modify this based on your actual implementation
+      if (response.containsKey("message")) {
+        // Adjust this condition based on your API response
+        return response["user_id"]; // Return the userId from your API response
+      }
+      return 0;
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Verification failed: $e')),
+      );
+      return 0;
     }
   }
 
@@ -98,7 +203,7 @@ class ProfileController {
   }
 
   Future<AuthenticatedUser?> getAuthenticatedUser(
-      BuildContext context, String userId) async {
+      BuildContext context, int userId) async {
     try {
       var result = await ApiService.fetchAuthenticatedUser(userId);
       debugPrint("Data: $result");
@@ -126,27 +231,6 @@ class ProfileController {
         SnackBar(content: Text("Error: $e")),
       );
       return null;
-    }
-  }
-
-  Future<int> verifyEmail(
-      BuildContext context, String token, String email) async {
-    try {
-      // Your existing verification logic
-      // Assuming this returns a response with userId after successful verification
-      //debugPrint("Token : ${token}" + "Email: ${email}");
-      final response = await ApiService.verifyEmail(
-          token, email); // Modify this based on your actual implementation
-      if (response.containsKey("message")) {
-        // Adjust this condition based on your API response
-        return response["user_id"]; // Return the userId from your API response
-      }
-      return 0;
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Verification failed: $e')),
-      );
-      return 0;
     }
   }
 }
