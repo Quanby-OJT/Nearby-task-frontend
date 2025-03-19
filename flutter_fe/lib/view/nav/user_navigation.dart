@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
-// import 'package:flutter_fe/view/business_acc/profile_screen.dart';
+
+import 'package:flutter_fe/view/business_acc/notif_screen.dart';
+import 'package:flutter_fe/view/business_acc/profile_screen.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -33,10 +35,30 @@ class _NavUserScreenState extends State<NavUserScreen> {
 
   Future<void> _fetchUserData() async {
     try {
-      int userId = storage.read("user_id");
+      final dynamic userId = storage.read("user_id");
+
+      if (userId == null) {
+        setState(() {
+          _fullName = "Not logged in";
+          _role = "Please log in";
+          _image = "Unknown";
+        });
+        return;
+      }
+
       AuthenticatedUser? user = await _profileController.getAuthenticatedUser(
           context, userId);
       debugPrint(user.toString());
+
+      if (user == null) {
+        setState(() {
+          _fullName = "User not found";
+          _role = "Error fetching user data";
+          _image = "Unknown";
+        });
+        return;
+      }
+
       setState(() {
         _user = user;
 
@@ -47,7 +69,7 @@ class _NavUserScreenState extends State<NavUserScreen> {
         ].where((name) => name.isNotEmpty).join(' ');
 
         _role = _user?.user.role ?? "Unknown";
-        _image = user?.user.image ?? "Unknown";
+        _image = user.user.image ?? "Unknown";
 
         _profileController.firstNameController.text = _fullName;
         _profileController.roleController.text = _role;
@@ -88,11 +110,21 @@ class _NavUserScreenState extends State<NavUserScreen> {
                     width: 40,
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      image: DecorationImage(
-                        image: NetworkImage(_image),
-                        fit: BoxFit.cover,
-                      ),
+                      image: _image != "Unknown" && _image.isNotEmpty
+                          ? DecorationImage(
+                              image: NetworkImage(_image),
+                              fit: BoxFit.cover,
+                              onError: (exception, stackTrace) {
+                                setState(() {
+                                  _image = "Unknown";
+                                });
+                              },
+                            )
+                          : null,
                     ),
+                    child: _image == "Unknown" || _image.isEmpty
+                        ? Icon(Icons.person, color: Colors.grey)
+                        : null,
                   ),
                 ),
               ),
@@ -122,6 +154,12 @@ class _NavUserScreenState extends State<NavUserScreen> {
               IconButton(
                 onPressed: () {
                   print('Notifications clicked');
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => NotifScreen(),
+                    ),
+                  );
                 },
                 icon: const Icon(
                   Icons.notifications_outlined,

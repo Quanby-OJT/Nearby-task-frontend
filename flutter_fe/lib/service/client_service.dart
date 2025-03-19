@@ -17,63 +17,116 @@ class ClientServices {
   Future<Map<String, dynamic>> _getRequest(String endpoint) async {
     final token = await AuthService.getSessionToken();
     try {
+      // Ensure endpoint starts with a slash if not already
+      String formattedEndpoint =
+          endpoint.startsWith('/') ? endpoint : '/$endpoint';
+      debugPrint('Making GET request to: $apiUrl$formattedEndpoint');
+      debugPrint('Using token: $token');
+
       final response = await http.get(
-        Uri.parse('$apiUrl/$endpoint'),
+        Uri.parse('$apiUrl$formattedEndpoint'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
         },
       );
-      print("API Response for $endpoint: ${response.body}");
+      debugPrint("API Response Status: ${response.statusCode}");
+      debugPrint("API Response for $endpoint: ${response.body}");
       return _handleResponse(response);
     } catch (e, stackTrace) {
-      debugPrint(e.toString());
+      debugPrint("API Request Error: $e");
       debugPrint(stackTrace.toString());
       return {"error": "Request failed: $e"};
     }
   }
 
   Map<String, dynamic> _handleResponse(http.Response response) {
-    final responseBody = jsonDecode(response.body);
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      debugPrint(responseBody.toString());
-      return responseBody;
-    } else {
-      return {"error": responseBody["error"] ?? "Unknown error"};
+    try {
+      final responseBody = jsonDecode(response.body);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return responseBody;
+      } else {
+        debugPrint("API Error Response: $responseBody");
+        return {"error": responseBody["error"] ?? "Unknown error"};
+      }
+    } catch (e) {
+      debugPrint("Error parsing response: $e");
+      return {"error": "Failed to parse response: $e"};
     }
   }
 
   Future<List<UserModel>> fetchAllTasker() async {
     final userId = await getUserId();
-    if (userId == null) return [];
+    if (userId == null) {
+      debugPrint("Cannot fetch taskers: User ID is null");
+      return [];
+    }
 
     try {
+      debugPrint("Fetching all taskers for user ID: $userId");
+
+      // Get all taskers
       final allTaskersResponse = await _getRequest("/client/getAllTaskers");
+      if (allTaskersResponse.containsKey("error")) {
+        debugPrint(
+            "Error fetching all taskers: ${allTaskersResponse["error"]}");
+        return [];
+      }
+
+      // Get saved/liked taskers
       final savedTaskResponse =
           await _getRequest("/client/getsavedTask/$userId");
+      if (savedTaskResponse.containsKey("error")) {
+        debugPrint(
+            "Error fetching saved taskers: ${savedTaskResponse["error"]}");
+        // Continue with empty liked list rather than failing completely
+      }
 
-      debugPrint("All Taskers Response: ${allTaskersResponse.length}");
-
+      // Extract taskers from response
       final allTaskers = allTaskersResponse["taskers"] as List<dynamic>? ?? [];
+      debugPrint("All Taskers Count: ${allTaskers.length}");
 
+      if (allTaskers.isEmpty) {
+        debugPrint("No taskers returned from API");
+        return [];
+      }
+
+      // Extract liked tasker IDs
       final likedTaskerIds =
           (savedTaskResponse["liked_tasks"] as List<dynamic>? ?? [])
               .map<int>((task) => task["tasker_id"] as int)
               .toSet();
+      debugPrint("Liked Tasker IDs: $likedTaskerIds");
 
-      debugPrint("Liked Tasker IDs: ${likedTaskerIds.toString()}");
+      // Filter out liked taskers and convert to UserModel
       final taskerList = allTaskers
           .where((tasker) {
             final taskerId = tasker["user_id"];
-            return taskerId is int && !likedTaskerIds.contains(taskerId);
+            final isNotLiked =
+                taskerId is int && !likedTaskerIds.contains(taskerId);
+            if (!isNotLiked) {
+              debugPrint("Filtering out already liked tasker: $taskerId");
+            }
+            return isNotLiked;
           })
-          .map((tasker) => UserModel.fromJson(tasker))
+          .map((tasker) {
+            try {
+              return UserModel.fromJson(tasker);
+            } catch (e) {
+              debugPrint("Error parsing tasker: $e");
+              debugPrint("Problematic tasker data: $tasker");
+              return null;
+            }
+          })
+          .where((tasker) => tasker != null)
+          .cast<UserModel>()
           .toList();
 
-      debugPrint("Unliked Taskers: ${taskerList.toString()}");
+      debugPrint("Filtered Taskers Count: ${taskerList.length}");
       return taskerList;
-    } catch (e) {
+    } catch (e, st) {
       debugPrint("Error fetching taskers: $e");
+      debugPrint(st.toString());
       return [];
     }
   }

@@ -20,7 +20,8 @@ class ApiService {
 
   static void _updateCookies(http.Response response) {
     String? rawCookie = response.headers['set-cookie'];
-
+    debugPrint('Raw Cookie: $rawCookie');
+    
     List<String> cookieParts = rawCookie!.split(',');
     for (String part in cookieParts) {
       List<String> keyValue = part.split(';')[0].split('=');
@@ -82,6 +83,7 @@ class ApiService {
     } catch (e) {
       debugPrint('Registration Error: $e');
       return {"errors": "An error occurred while registering your account: $e"};
+
     }
   }
 
@@ -235,6 +237,12 @@ class ApiService {
 
     try {
       final String token = await AuthService.getSessionToken();
+
+      // Check if token is empty and handle accordingly
+      if (token.isEmpty) {
+        return {"error": "No valid session token. Please log in again."};
+      }
+
       final response = await http.get(Uri.parse("$apiUrl/getUserData/$userId"),
           headers: {
             "Authorization": "Bearer $token",
@@ -349,10 +357,14 @@ class ApiService {
       debugPrint('Response Data: $data'); // Debugging
 
       if (response.statusCode == 200) {
+        // Extract session from cookies if not in response data
+        String? sessionFromCookies = _cookies['session'];
+        debugPrint('Session from cookies: $sessionFromCookies');
+
         return {
           "user_id": data['user_id'],
           "role": data['user_role'],
-          "session": data['session']
+          "session": data['session'] ?? sessionFromCookies ?? ""
         };
       } else if (response.statusCode == 400 && data.containsKey('errors')) {
         List<dynamic> errors = data['errors'];

@@ -7,6 +7,7 @@ import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class JobPostPage extends StatefulWidget {
@@ -532,8 +533,6 @@ class _JobPostPageState extends State<JobPostPage> {
                       ),
                     ),
                   ),
-                ),
-                if (_message != null)
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 40, vertical: 10),
@@ -543,6 +542,24 @@ class _JobPostPageState extends State<JobPostPage> {
                           color: _isSuccess ? Colors.green : Colors.red,
                           fontSize: 16),
                     ),
+                  Container(
+                    height: 50,
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(horizontal: 40),
+                    child: ElevatedButton(
+                        onPressed: () {
+                          _message = "";
+                          _validateAndSubmit();
+                        },
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFF0272B1),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10))),
+                        child: Text(
+                          'Post Job',
+                          style: TextStyle(
+                              color: Colors.white, fontWeight: FontWeight.bold),
+                        )),
                   ),
                 Container(
                   height: 50,
@@ -648,6 +665,7 @@ class _JobPostPageState extends State<JobPostPage> {
     } catch (error, stackTrace) {
       debugPrint(error.toString());
       debugPrintStack(stackTrace: stackTrace);
+
     }
   }
 
@@ -655,11 +673,13 @@ class _JobPostPageState extends State<JobPostPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        iconTheme: IconThemeData(color: Color(0xFF0272B1)),
         title: Text(
           'Your Tasks',
           textAlign: TextAlign.center,
           style:
               TextStyle(color: Color(0xFF0272B1), fontWeight: FontWeight.bold),
+
         ),
       ),
       body: clientTasks.isEmpty
@@ -679,6 +699,7 @@ class _JobPostPageState extends State<JobPostPage> {
                   trailing: Icon(Icons.arrow_forward_ios,
                       size: 16, color: Colors.grey),
                   onTap: () {},
+
                 );
               },
             ),
