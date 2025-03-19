@@ -1,6 +1,7 @@
 import 'package:flutter_fe/model/user_model.dart';
 
-class TaskerModel{
+class TaskerModel {
+  final int? id;
   final String bio;
   final String specialization;
   final String skills;
@@ -17,6 +18,7 @@ class TaskerModel{
   UserModel? user;
 
   TaskerModel({
+    this.id,
     required this.bio,
     required this.group,
     required this.specialization,
@@ -30,7 +32,7 @@ class TaskerModel{
     required this.gender,
     this.taskerDocuments,
     this.socialMediaLinks,
-    this.user
+    this.user,
   });
 
   @override
@@ -41,6 +43,7 @@ class TaskerModel{
   //Factory to manage tasker data.
   factory TaskerModel.fromJson(Map<String, dynamic> json) {
     return TaskerModel(
+      id: json["id"] ?? '',
       bio: json['bio'] ?? '',
       skills: json['skills'] ?? '',
       availability: json['availability'] ?? false,
@@ -50,8 +53,8 @@ class TaskerModel{
           ? json['tasker_specialization']['specialization']
           : '',
       taskerDocuments: json['tasker_documents'] ?? '',
-      wage: json['wage'] != null ? json['wage'].toDouble() : 0.0,
-      payPeriod: json['pay_period'] != null ? json['pay_period'].toDouble() : 0.0,
+      wage: json['wage'] != null ? json['wage_per_hour'].toDouble() : 0.0,
+      payPeriod: json['pay_period'] ?? "",
       birthDate: json['birth_date'] != null
           ? DateTime.parse(json['birth_date'])
           : DateTime.now(),
@@ -61,9 +64,9 @@ class TaskerModel{
     );
   }
 
-
   Map<String, dynamic> toJson() {
     return {
+      "id": id,
       "bio": bio,
       "specialization": specialization,
       "skills": skills,

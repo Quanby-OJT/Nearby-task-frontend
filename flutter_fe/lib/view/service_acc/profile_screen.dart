@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/auth_user.dart';
-import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
@@ -30,7 +29,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       int userId = storage.read("user_id");
       AuthenticatedUser? user = await _userController.getAuthenticatedUser(
-          context, userId.toString());
+          context, userId);
       debugPrint(user.toString());
       setState(() {
         _user = user;

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/auth_user.dart';
-import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
@@ -30,8 +29,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _fetchUserData() async {
     try {
       int userId = storage.read("user_id");
-      AuthenticatedUser? user = await _userController.getAuthenticatedUser(
-          context, userId.toString());
+      AuthenticatedUser? user =
+          await _userController.getAuthenticatedUser(context, userId);
       debugPrint(user.toString());
       setState(() {
         _user = user;

@@ -2,8 +2,11 @@ import 'dart:async';
 import 'package:flutter_fe/view/sign_in/sign_in.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
+import 'dart:async';
+import 'package:app_links/app_links.dart';
 import 'package:app_links/app_links.dart';
 import 'package:flutter_fe/view/fill_up/nearby_task_rules.dart';
+
 
 class SignUpClientAcc extends StatefulWidget {
   final String role;
@@ -16,7 +19,10 @@ class SignUpClientAcc extends StatefulWidget {
 class _SignUpClientAccState extends State<SignUpClientAcc> {
   final ProfileController _controller = ProfileController();
   String _status = "Please fill out the form to register";
-  bool _isVerified = false; // Track verification status
+
+  bool _isVerified = false;
+  bool _isLoading = false;
+  final _formKey = GlobalKey<FormState>();
   StreamSubscription<Uri>? _linkSubscription;
 
   @override
@@ -43,7 +49,7 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
 
     // Listen for links while app is running
     _linkSubscription = _appLinks.uriLinkStream.listen(
-          (Uri? uri) {
+      (Uri? uri) {
         if (uri != null) {
           _handleDeepLink(uri);
         }
@@ -70,13 +76,14 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
         });
 
         // Redirect to rules page
-        if (mounted) { // Check if widget is still mounted before navigation
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => NearbyTaskRules(userId: userId),
-            ),
-          );
+        if (mounted) {
+          // Check if widget is still mounted before navigation
+          // Navigator.pushReplacement(
+          //   context,
+          //   MaterialPageRoute(
+          //     builder: (context) => NearbyTaskRules(userId: userId),
+          //   ),
+          // );
         }
       } else {
         setState(() => _status = "Email verification failed");
@@ -97,175 +104,170 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Color(0xFF0272B1)),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Image.asset(
-              'assets/images/icons8-checklist-100-colored.png',
-              height: 150,
-              width: 150,
-            ),
-            SizedBox(height: 20),
-            Text(
-              'Create a New Client Account',
-              style: TextStyle(
-                color: const Color(0xFF0272B1),
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              Image.asset(
+                'assets/images/icons8-checklist-100-colored.png',
+                height: 150,
+                width: 150,
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-              child: Text(
-                textAlign: TextAlign.center,
-                "With ONE SWIPE, You can Find a New Tasker in a MATTER OF SECONDS.",
-                style: TextStyle(fontWeight: FontWeight.normal, fontSize: 18),
+              SizedBox(height: 20),
+              Text(
+                'Create a New Client Account',
+                style: TextStyle(
+                    color: const Color(0xFF0272B1),
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold),
               ),
-            ),
-            if (!_isVerified) ...[
-              SizedBox(
-                height: 450,
-                child: Theme(
-                  data: Theme.of(context).copyWith(
-                    colorScheme: ColorScheme.light(primary: Color(0xFF0272B1)),
-                  ),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                        child: TextFormField(
-                          controller: _controller.firstNameController,
-                          cursorColor: Color(0xFF0272B1),
-                          validator: (value) => value!.isEmpty ? "Please Input Your First Name" : null,
-                          decoration: _inputDecoration('First Name'),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                controller: _controller.middleNameController,
-                                cursorColor: Color(0xFF0272B1),
-                                validator: (value) => value!.isEmpty ? "Please Input Your Middle Name" : null,
-                                decoration: _inputDecoration('Middle Name'),
-                              ),
-                            ),
-                            SizedBox(width: 10),
-                            Expanded(
-                              child: TextFormField(
-                                controller: _controller.lastNameController,
-                                cursorColor: Color(0xFF0272B1),
-                                validator: (value) => value!.isEmpty ? "Please Input Your Last Name" : null,
-                                decoration: _inputDecoration('Last Name'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                        child: TextFormField(
-                          controller: _controller.emailController,
-                          cursorColor: Color(0xFF0272B1),
-                          validator: (value) => value!.isEmpty ? "Please Input Your Valid Email" : null,
-                          decoration: _inputDecoration('Your Valid Email'),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                        child: TextFormField(
-                          controller: _controller.passwordController,
-                          obscureText: true,
-                          cursorColor: Color(0xFF0272B1),
-                          validator: (value) => value!.length < 6 ? "Password must be at least 6 characters" : null,
-                          decoration: _inputDecoration('Your Password'),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                        child: TextFormField(
-                          controller: _controller.confirmPasswordController,
-                          obscureText: true,
-                          cursorColor: Color(0xFF0272B1),
-                          validator: (value) => value != _controller.passwordController.text ? "Passwords do not match" : null,
-                          decoration: _inputDecoration('Confirmed Password'),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF0272B1),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            padding: EdgeInsets.symmetric(horizontal: 30),
-                          ),
-                          onPressed: () {
-                            _controller.registerUser(context).then((_) {
-                              setState(() => _status = "Please check your email to verify your account");
-                            });
-                          },
-                          child: Text(
-                            'Create New Client Account',
-                            style: TextStyle(fontSize: 18, color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  // Navigator.push(context, MaterialPageRoute(builder: (context) => SignIn()));
-                },
-                child: Text(
-                  'Already have an account',
-                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ] else ...[
               Padding(
-                padding: const EdgeInsets.all(20),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 child: Text(
-                  _status,
-                  style: TextStyle(fontSize: 18, color: Colors.green),
+                  "With ONE SWIPE, You can Find a New Tasker in a MATTER OF SECONDS.",
                   textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 18),
                 ),
               ),
-              ElevatedButton(
-                onPressed: () {
-                  // Navigate to next screen (e.g., home or login) after verification
-                  // Navigator.push(context, MaterialPageRoute(builder: (context) => HomeScreen()));
-                },
-                child: Text('Continue'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF0272B1),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              if (_status.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    _status,
+                    style: TextStyle(
+                      color: _isVerified ? Colors.green : Colors.blue,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              Container(
+                padding: EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: _controller.firstNameController,
+                      validator: (value) =>
+                          _controller.validateName(value, "first name"),
+                      decoration: _getInputDecoration('First Name'),
+                    ),
+                    SizedBox(height: 10),
+                    TextFormField(
+                      controller: _controller.middleNameController,
+                      decoration: _getInputDecoration('Middle Name (Optional)'),
+                    ),
+                    SizedBox(height: 10),
+                    TextFormField(
+                      controller: _controller.lastNameController,
+                      validator: (value) =>
+                          _controller.validateName(value, "last name"),
+                      decoration: _getInputDecoration('Last Name'),
+                    ),
+                    SizedBox(height: 10),
+                    TextFormField(
+                      controller: _controller.emailController,
+                      validator: _controller.validateEmail,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: _getInputDecoration('Email Address'),
+                    ),
+                    SizedBox(height: 10),
+                    TextFormField(
+                      controller: _controller.passwordController,
+                      validator: _controller.validatePassword,
+                      obscureText: true,
+                      decoration: _getInputDecoration('Password'),
+                    ),
+                    SizedBox(height: 10),
+                    TextFormField(
+                      controller: _controller.confirmPasswordController,
+                      validator: _controller.validateConfirmPassword,
+                      obscureText: true,
+                      decoration: _getInputDecoration('Confirm Password'),
+                    ),
+                    SizedBox(height: 20),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF0272B1),
+                        minimumSize: Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: _isLoading
+                          ? null
+                          : () async {
+                              if (_formKey.currentState!.validate()) {
+                                setState(() {
+                                  _isLoading = true;
+                                  _status = "Creating your account...";
+                                });
+
+                                await _controller.registerUser(context);
+
+                                setState(() {
+                                  _isLoading = false;
+                                  _status =
+                                      "Please check your email to verify your account";
+                                });
+                              }
+                            },
+                      child: _isLoading
+                          ? CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                              'Create New Client Account',
+                              style: TextStyle(fontSize: 18),
+                            ),
+                    ),
+                    SizedBox(height: 10),
+                    TextButton(
+                      onPressed: () =>
+                          Navigator.pushReplacementNamed(context, '/signin'),
+                      child: Text(
+                        'Already have an account? Sign In',
+                        style: TextStyle(
+                          color: Color(0xFF0272B1),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
-          ],
+          ),
         ),
       ),
     );
   }
 
-  InputDecoration _inputDecoration(String hintText) {
+  InputDecoration _getInputDecoration(String label) {
     return InputDecoration(
       filled: true,
       fillColor: Color(0xFFF1F4FF),
-      hintText: hintText,
+      labelText: label,
       hintStyle: TextStyle(color: Colors.grey),
-      enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Colors.transparent, width: 0),
+      border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: Colors.red, width: 1),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: Colors.red, width: 2),
       ),
     );
   }

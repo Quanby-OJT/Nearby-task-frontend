@@ -32,9 +32,11 @@ class TaskDetailsService {
       print("API Response for $endpoint: ${response.body}");
       return _handleResponse(response);
     } catch (e, stackTrace) {
-      debugPrint(e.toString());
+      debugPrint("Message Retrieval Error: $e");
       debugPrint(stackTrace.toString());
-      return {"error": "Request failed: $e"};
+      return {
+        "error": "An Error while retrieving your messages. Please Try Again."
+      };
     }
   }
 

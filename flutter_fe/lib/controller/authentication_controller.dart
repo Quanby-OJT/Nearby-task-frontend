@@ -22,7 +22,6 @@ class AuthenticationController {
 
     if (response.containsKey('user_id')) {
       userId = response['user_id'];
-      // Store user ID temporarily until OTP verification
       storage.write('temp_user_id', userId.toString());
       debugPrint("User ID stored at: ${storage.read('temp_user_id')}");
 
@@ -71,10 +70,7 @@ class AuthenticationController {
         response.containsKey('role') &&
         response.containsKey('session')) {
       await storage.write('user_id', response['user_id']);
-      await storage.write(
-          'role',
-          response[
-              'role']); //If the user is logged in to the app, this will be the determinant if where they will be assigned.
+      await storage.write('role',response['role']); //If the user is logged in to the app, this will be the determinant if where they will be assigned.
       await storage.write('session', response['session']);
       if (response['role'] == "Client") {
         Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -101,6 +97,12 @@ class AuthenticationController {
     }
   }
 
+// This is for direct redirection to logout/welcome page.
+  void redirectRologout(BuildContext context) {
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => WelcomePageViewMain()));
+  }
+
   Future<void> logout(BuildContext context) async {
     try {
       final storedUserId = storage.read('user_id');
@@ -110,6 +112,7 @@ class AuthenticationController {
         (route) => false,
       );
       // Ensure storedUserId is a valid String or int
+
       if (storedUserId == null) {
         debugPrint("No user ID found in storage");
         return;

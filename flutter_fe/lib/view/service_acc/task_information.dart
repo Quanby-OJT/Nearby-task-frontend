@@ -30,7 +30,7 @@ class _TaskInformationState extends State<TaskInformation> {
   Future<void> _fetchTaskDetails() async {
     try {
       final response =
-      await _jobPostService.fetchTaskInformation(widget.taskID ?? 0);
+          await _jobPostService.fetchTaskInformation(widget.taskID ?? 0);
       setState(() {
         _taskInformation = response;
         _isLoading = false;
@@ -46,75 +46,79 @@ class _TaskInformationState extends State<TaskInformation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Task Information')),
+      appBar: AppBar(title: const Text('Task Information')),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : _taskInformation == null
-          ? Center(child: Text('No task information available'))
-          : () {
-        final task = _taskInformation!; // Promote to non-nullable
-        return Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Card(
-            elevation: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildInfoRow("Title", task.title ?? "N/A"),
-                  _buildInfoRow(
-                      "Description", task.description ?? "N/A"),
-                  _buildInfoRow("Location", task.location ?? "N/A"),
-                  _buildInfoRow(
-                      "Urgency",
-                      // task.urgency ?? false
-                      //     ? "My Task is Urgent"
-                      //     : "My Task is Not Urgent"),
-                    task.urgency.toString()
-                  ),
-                  _buildInfoRow(
-                      "Duration", task.duration.toString()),
-                  _buildInfoRow("Status", task.status ?? "N/A"),
-                  SizedBox(height: 10),
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: const Color(0xFF03045E),
+              ? const Center(child: Text('No task information available'))
+              : Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Card(
+                    elevation: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildInfoRow(
+                              "Title", _taskInformation!.title ?? "N/A"),
+                          _buildInfoRow("Description",
+                              _taskInformation!.description ?? "N/A"),
+                          _buildInfoRow(
+                              "Location", _taskInformation!.location ?? "N/A"),
+                          _buildInfoRow(
+                              "Urgency", _taskInformation!.urgency ?? "N/A"),
+                          _buildInfoRow("Duration",
+                              _taskInformation!.duration?.toString() ?? "N/A"),
+                          _buildInfoRow(
+                              "Status", _taskInformation!.status ?? "N/A"),
+                          const SizedBox(height: 10),
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              color: const Color(0xFF03045E),
+                            ),
+                            child: TextButton(
+                              onPressed: () {
+                                int userId = storage.read('user_id') ?? 0;
+                                if (_taskInformation != null) {
+                                  taskController.assignTask(
+                                    widget.taskID ?? 0,
+                                    _taskInformation!.clientId,
+                                    userId,
+                                  );
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          IndividualChatScreen(),
+                                    ),
+                                  );
+                                }
+                              },
+                              style: TextButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 20),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: Text(
+                                "Apply for this job".toUpperCase(),
+                                style: GoogleFonts.montserrat(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
                     ),
-                    child: TextButton(
-                        onPressed: () {
-                          int userId = storage.read('user_id');
-                          debugPrint("User ID: $userId");
-                          taskController.assignTask(
-                              widget.taskID, task.clientId, userId);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    IndividualChatScreen()),
-                          );
-                        },
-                        style: TextButton.styleFrom(
-                            padding:
-                            EdgeInsets.symmetric(vertical: 20),
-                            shape: RoundedRectangleBorder(
-                                borderRadius:
-                                BorderRadius.circular(10))),
-                        child: Text(
-                            "Apply for this job".toUpperCase(),
-                            style: GoogleFonts.montserrat(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold))),
-                  )
-                ],
-              ),
-            ),
-          ),
-        );
-      }(),
+                  ),
+                ),
     );
   }
 
@@ -122,10 +126,11 @@ class _TaskInformationState extends State<TaskInformation> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             "$label: ",
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           Expanded(
             child: Text(value, softWrap: true),
