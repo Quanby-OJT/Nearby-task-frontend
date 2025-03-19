@@ -1,9 +1,12 @@
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
+import 'dart:async';
+import 'package:flutter_fe/view/sign_in/sign_in.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'dart:async';
 import 'package:app_links/app_links.dart';
+import 'package:app_links/app_links.dart';
+import 'package:flutter_fe/view/fill_up/nearby_task_rules.dart';
+
 
 class SignUpClientAcc extends StatefulWidget {
   final String role;
@@ -16,6 +19,7 @@ class SignUpClientAcc extends StatefulWidget {
 class _SignUpClientAccState extends State<SignUpClientAcc> {
   final ProfileController _controller = ProfileController();
   String _status = "Please fill out the form to register";
+
   bool _isVerified = false;
   bool _isLoading = false;
   final _formKey = GlobalKey<FormState>();

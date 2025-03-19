@@ -30,7 +30,7 @@ class _TaskInformationState extends State<TaskInformation> {
   Future<void> _fetchTaskDetails() async {
     try {
       final response =
-          await _jobPostService.fetchTaskInformation(widget.taskID ?? 0);
+      await _jobPostService.fetchTaskInformation(widget.taskID ?? 0);
       setState(() {
         _taskInformation = response;
         _isLoading = false;
@@ -105,8 +105,49 @@ class _TaskInformationState extends State<TaskInformation> {
                         ],
                       ),
                     ),
+
                   ),
-                ),
+                  _buildInfoRow(
+                      "Duration", task.duration.toString()),
+                  _buildInfoRow("Status", task.status ?? "N/A"),
+                  SizedBox(height: 10),
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: const Color(0xFF03045E),
+                    ),
+                    child: TextButton(
+                        onPressed: () {
+                          int userId = storage.read('user_id');
+                          debugPrint("User ID: $userId");
+                          taskController.assignTask(
+                              widget.taskID, task.clientId, userId);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    IndividualChatScreen()),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                            padding:
+                            EdgeInsets.symmetric(vertical: 20),
+                            shape: RoundedRectangleBorder(
+                                borderRadius:
+                                BorderRadius.circular(10))),
+                        child: Text(
+                            "Apply for this job".toUpperCase(),
+                            style: GoogleFonts.montserrat(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold))),
+                  )
+                ],
+              ),
+            ),
+          ),
+        );
+      }(),
     );
   }
 

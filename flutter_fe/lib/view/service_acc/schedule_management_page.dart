@@ -1,8 +1,11 @@
 // calendar_availability_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/view/nav/user_navigation.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class ScheduleManagement extends StatefulWidget {
+  const ScheduleManagement({super.key});
+
   @override
   _ScheduleManagementState createState() => _ScheduleManagementState();
 }
@@ -11,32 +14,33 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
   CalendarFormat _calendarFormat = CalendarFormat.week;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  Map<DateTime, List<TimeSlot>> _availabilitySlots = {};
+  final Map<DateTime, List<TimeSlot>> _availabilitySlots = {};
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text(
-          'Set Schedule',
-          style:
-              TextStyle(color: Color(0xFF0272B1), fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Colors.transparent,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.calendar_view_month),
-            onPressed: () {
-              setState(() {
-                _calendarFormat = _calendarFormat == CalendarFormat.month
-                    ? CalendarFormat.week
-                    : CalendarFormat.month;
-              });
-            },
-          ),
-        ],
-      ),
+      // appBar: AppBar(
+      //   automaticallyImplyLeading: false,
+      //   title: Text(
+      //     'Set Schedule',
+      //     style:
+      //         TextStyle(color: Color(0xFF0272B1), fontWeight: FontWeight.bold),
+      //   ),
+      //   backgroundColor: Colors.transparent,
+      //   actions: [
+      //     IconButton(
+      //       icon: Icon(Icons.calendar_view_month),
+      //       onPressed: () {
+      //         setState(() {
+      //           _calendarFormat = _calendarFormat == CalendarFormat.month
+      //               ? CalendarFormat.week
+      //               : CalendarFormat.month;
+      //         });
+      //       },
+      //     ),
+      //   ],
+      // ),
+      appBar: NavUserScreen(),
       body: Column(
         children: [
           TableCalendar(
@@ -45,6 +49,11 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
             focusedDay: _focusedDay,
             selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
             calendarFormat: _calendarFormat,
+            onFormatChanged: (format) {
+              setState(() {
+                _calendarFormat = format;
+              });
+            },
             onDaySelected: (selectedDay, focusedDay) {
               setState(() {
                 _selectedDay = selectedDay;
@@ -73,8 +82,8 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
       floatingActionButton: _selectedDay == null
           ? null
           : FloatingActionButton(
-              child: Icon(Icons.add),
               onPressed: _addTimeSlot,
+              child: Icon(Icons.add),
             ),
     );
   }
@@ -245,7 +254,8 @@ class NumberPickerDialog extends StatefulWidget {
   final Widget title;
   final Widget message;
 
-  NumberPickerDialog({
+  const NumberPickerDialog({
+    super.key,
     required this.minValue,
     required this.maxValue,
     required this.title,

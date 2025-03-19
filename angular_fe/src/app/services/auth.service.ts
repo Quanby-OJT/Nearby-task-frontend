@@ -38,7 +38,9 @@ export class AuthService {
     // Clean both values
     const cleanedSessionID = sessionID.replace(/^"|"$/g, '').trim();
     // console.log('logout: ' + sessionData);
-    return this.http.post<any>(`${this.apiUrl}/logout`, { userID, cleanedSessionID }).pipe(
+    return this.http.post<any>(`${this.apiUrl}/logout`, { userID, cleanedSessionID }
+     
+    ).pipe(
       catchError((error) => {
         console.error('HTTP Error:', error);
         return throwError(() => new Error(error?.error?.message || 'Unknown API Error'));

@@ -46,13 +46,13 @@ dependencies:
   dropdown_search: ^6.0.2
   dropdown_textfield: ^1.2.0
   shared_preferences: ^2.5.2
-  get: ^4.6.5
   flutter_chat_ui: ^1.6.15
   sqflite: ^2.0.0+3
   path: ^1.8.0
-  app_links: ^6.0.0
   go_router: ^13.2.0
   url_strategy: ^0.2.0
+  get: ^4.7.2
+  app_links: ^6.4.0
 
 dev_dependencies:
   flutter_test:
@@ -86,6 +86,7 @@ flutter:
     - assets/images/icons8-checklist-100.png
     - assets/images/icons8-worker-100-colored.png
     - assets/images/icons8-checklist-100-colored.png
+    - assets/tesda_skills.json
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

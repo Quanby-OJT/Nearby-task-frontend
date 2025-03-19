@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/auth_user.dart';
-import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
-import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -22,7 +20,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = true;
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     _fetchUserData();
   }
@@ -31,6 +29,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       int userId = storage.read("user_id");
       AuthenticatedUser? user = await _userController.getAuthenticatedUser(context, userId);
+
       debugPrint(user.toString());
       setState(() {
         _user = user;
@@ -48,7 +47,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _userController.emailController.text = _user?.user.email ?? '';
         _userController.birthdateController.text = _user?.user.birthdate ?? '';
         _userController.prefsController.text = _user?.client?.preferences ?? '';
-        _userController.clientAddressController.text = _user?.client?.clientAddress ?? '';
+        _userController.clientAddressController.text =
+            _user?.client?.clientAddress ?? '';
       });
     } catch (e) {
       print("Error fetching user data: $e");
@@ -64,9 +64,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         automaticallyImplyLeading: false,
         title: Center(
             child: Text(
-              '',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-            )),
+          '',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        )),
         backgroundColor: Colors.transparent,
       ),
       body: Stack(
@@ -112,25 +112,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         fontWeight: FontWeight.bold,
                                         fontSize: 14)),
                                 TextField(
-                                  controller: _userController.firstNameController,
+                                  controller:
+                                      _userController.firstNameController,
                                   enabled: true,
                                   cursorColor: Color(0xFF0272B1),
                                   decoration: InputDecoration(
                                       filled: true,
                                       fillColor: Color(0xFFF1F4FF),
-                                      hintText: 'John Michael Doe', // Example with middle name
+                                      hintText:
+                                          'John Michael Doe', // Example with middle name
                                       hintStyle: TextStyle(color: Colors.grey),
                                       disabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(10),
-                                          borderSide: BorderSide(color: Colors.transparent, width: 2)),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          borderSide: BorderSide(
+                                              color: Colors.transparent,
+                                              width: 2)),
                                       enabledBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(color: Colors.transparent, width: 0),
-                                          borderRadius: BorderRadius.circular(10)),
+                                          borderSide: BorderSide(
+                                              color: Colors.transparent,
+                                              width: 0),
+                                          borderRadius:
+                                              BorderRadius.circular(10)),
                                       border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(10),
-                                          borderSide: BorderSide(color: Color(0xFF0272B1), width: 2))),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          borderSide: BorderSide(
+                                              color: Color(0xFF0272B1),
+                                              width: 2))),
                                 ),
-
                               ],
                             ),
                           ),
@@ -157,7 +167,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       hintStyle: TextStyle(color: Colors.grey),
                                       disabledBorder: OutlineInputBorder(
                                           borderRadius:
-                                          BorderRadius.circular(10),
+                                              BorderRadius.circular(10),
                                           borderSide: BorderSide(
                                               color: Colors.transparent,
                                               width: 2)),
@@ -166,10 +176,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                               color: Colors.transparent,
                                               width: 0),
                                           borderRadius:
-                                          BorderRadius.circular(10)),
+                                              BorderRadius.circular(10)),
                                       border: OutlineInputBorder(
                                           borderRadius:
-                                          BorderRadius.circular(10),
+                                              BorderRadius.circular(10),
                                           borderSide: BorderSide(
                                               color: Color(0xFF0272B1),
                                               width: 2))),
@@ -199,7 +209,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       hintStyle: TextStyle(color: Colors.grey),
                                       disabledBorder: OutlineInputBorder(
                                           borderRadius:
-                                          BorderRadius.circular(10),
+                                              BorderRadius.circular(10),
                                           borderSide: BorderSide(
                                               color: Colors.transparent,
                                               width: 2)),
@@ -208,10 +218,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                               color: Colors.transparent,
                                               width: 0),
                                           borderRadius:
-                                          BorderRadius.circular(10)),
+                                              BorderRadius.circular(10)),
                                       border: OutlineInputBorder(
                                           borderRadius:
-                                          BorderRadius.circular(10),
+                                              BorderRadius.circular(10),
                                           borderSide: BorderSide(
                                               color: Color(0xFF0272B1),
                                               width: 2))),
@@ -242,7 +252,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       hintStyle: TextStyle(color: Colors.grey),
                                       disabledBorder: OutlineInputBorder(
                                           borderRadius:
-                                          BorderRadius.circular(10),
+                                              BorderRadius.circular(10),
                                           borderSide: BorderSide(
                                               color: Colors.transparent,
                                               width: 2)),
@@ -251,10 +261,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                               color: Colors.transparent,
                                               width: 0),
                                           borderRadius:
-                                          BorderRadius.circular(10)),
+                                              BorderRadius.circular(10)),
                                       border: OutlineInputBorder(
                                           borderRadius:
-                                          BorderRadius.circular(10),
+                                              BorderRadius.circular(10),
                                           borderSide: BorderSide(
                                               color: Color(0xFF0272B1),
                                               width: 2))),
@@ -275,7 +285,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         fontWeight: FontWeight.bold,
                                         fontSize: 14)),
                                 TextField(
-                                  controller: _userController.clientAddressController,
+                                  controller:
+                                      _userController.clientAddressController,
                                   enabled: true,
                                   cursorColor: Color(0xFF0272B1),
                                   decoration: InputDecoration(
@@ -285,7 +296,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       hintStyle: TextStyle(color: Colors.grey),
                                       disabledBorder: OutlineInputBorder(
                                           borderRadius:
-                                          BorderRadius.circular(10),
+                                              BorderRadius.circular(10),
                                           borderSide: BorderSide(
                                               color: Colors.transparent,
                                               width: 2)),
@@ -294,10 +305,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                               color: Colors.transparent,
                                               width: 0),
                                           borderRadius:
-                                          BorderRadius.circular(10)),
+                                              BorderRadius.circular(10)),
                                       border: OutlineInputBorder(
                                           borderRadius:
-                                          BorderRadius.circular(10),
+                                              BorderRadius.circular(10),
                                           borderSide: BorderSide(
                                               color: Color(0xFF0272B1),
                                               width: 2))),
@@ -318,7 +329,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         fontWeight: FontWeight.bold,
                                         fontSize: 14)),
                                 TextField(
-                                  controller: _userController.birthdateController,
+                                  controller:
+                                      _userController.birthdateController,
                                   enabled: true,
                                   cursorColor: Color(0xFF0272B1),
                                   decoration: InputDecoration(
@@ -328,7 +340,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       hintStyle: TextStyle(color: Colors.grey),
                                       disabledBorder: OutlineInputBorder(
                                           borderRadius:
-                                          BorderRadius.circular(10),
+                                              BorderRadius.circular(10),
                                           borderSide: BorderSide(
                                               color: Colors.transparent,
                                               width: 2)),
@@ -337,10 +349,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                               color: Colors.transparent,
                                               width: 0),
                                           borderRadius:
-                                          BorderRadius.circular(10)),
+                                              BorderRadius.circular(10)),
                                       border: OutlineInputBorder(
                                           borderRadius:
-                                          BorderRadius.circular(10),
+                                              BorderRadius.circular(10),
                                           borderSide: BorderSide(
                                               color: Color(0xFF0272B1),
                                               width: 2))),
@@ -362,7 +374,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       backgroundColor: Color(0xFF0272B1),
                                       shape: RoundedRectangleBorder(
                                           borderRadius:
-                                          BorderRadius.circular(10))),
+                                              BorderRadius.circular(10))),
                                   icon: Icon(Icons.logout, color: Colors.white),
                                   label: Text('Logout',
                                       style: TextStyle(color: Colors.white)),

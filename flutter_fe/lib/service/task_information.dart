@@ -6,7 +6,7 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 
 class TaskDetailsService {
-  final String apiUrl = "http://localhost:5000/connect";
+  final String apiUrl = "http://10.0.2.2:5000/connect";
   final storage = GetStorage();
 
   Map<String, dynamic> _handleResponse(http.Response response) {
@@ -23,7 +23,7 @@ class TaskDetailsService {
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.get(
-        Uri.parse('$apiUrl/$endpoint'),
+        Uri.parse('$apiUrl$endpoint'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -32,9 +32,9 @@ class TaskDetailsService {
       print("API Response for $endpoint: ${response.body}");
       return _handleResponse(response);
     } catch (e, stackTrace) {
-      debugPrint(e.toString());
+      debugPrint("Message Retrieval Error: $e");
       debugPrint(stackTrace.toString());
-      return {"error": "Request failed: $e"};
+      return {"error": "An Error while retrieving your messages. Please Try Again."};
     }
   }
 
@@ -51,8 +51,7 @@ class TaskDetailsService {
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> _deleteRequest(
-      String endpoint, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
       final request = http.Request("DELETE", Uri.parse('$apiUrl$endpoint'))
@@ -90,7 +89,7 @@ class TaskDetailsService {
   Future<Map<String, dynamic>> getAllTakenTasks() async {
     try {
       final userId = await storage.read('user_id');
-      final data = await _getRequest("/messages/${userId}");
+      final data = await _getRequest("/all-messages/${userId}");
 
       return data;
     } catch (e, st) {

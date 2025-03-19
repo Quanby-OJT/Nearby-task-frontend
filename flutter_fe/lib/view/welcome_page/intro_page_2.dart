@@ -12,6 +12,8 @@ class IntroPage2 extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          Lottie.asset('assets/lottie/welcomeScreen3.json',
+              width: 300, height: 300, fit: BoxFit.fitWidth),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 30.0),
             child: Text(
@@ -21,8 +23,6 @@ class IntroPage2 extends StatelessWidget {
                   color: Colors.white, fontWeight: FontWeight.w400),
             ),
           ),
-          Lottie.asset('assets/lottie/welcomeScreen3.json',
-              width: 300, height: 300, fit: BoxFit.fitWidth),
         ],
       ),
     );

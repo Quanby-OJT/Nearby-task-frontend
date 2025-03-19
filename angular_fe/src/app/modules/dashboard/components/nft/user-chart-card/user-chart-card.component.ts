@@ -15,6 +15,7 @@ export type ChartOptions = {
   series: ApexNonAxisChartSeries;
   chart: ApexChart;
   labels: string[];
+  colors: string[];
   responsive: ApexResponsive[];
   legend: ApexLegend;
 };
@@ -34,6 +35,8 @@ export class UserChartCardComponent implements OnInit {
       type: 'pie',
     },
     labels: ['Admin', 'Moderator', 'Client', 'Tasker'],
+    colors: ['#8586EC', '#8586EC', '#C2C3F6', '#E1E1FA'],
+    //  colors: ['#03045E', '#3C28CC', '#8586EC', '#DA5896'],
     responsive: [
       {
         breakpoint: 480,

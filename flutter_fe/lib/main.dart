@@ -26,3 +26,68 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+//   final storage = GetStorage();
+//   final userId = storage.read('user_id'); // This could be null or any type
+//   runApp(MyApp(isLoggedIn: userId != null, userId: userId));
+// }
+
+// class MyApp extends StatelessWidget {
+//   final storage = GetStorage();
+
+
+//   MyApp({Key? key, required bool isLoggedIn, required dynamic userId})
+//       : super(key: key);
+
+
+//   Future<Map<String, dynamic>> _loadUserData() async {
+//     await Future.delayed(Duration(milliseconds: 300));
+
+//     final userId = storage.read('user_id');
+//     final role = storage.read('role');
+
+//     return {'userId': userId, 'role': role};
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return FutureBuilder<Map<String, dynamic>>(
+//       future: _loadUserData(),
+//       builder: (context, snapshot) {
+//         if (!snapshot.hasData) {
+//           return MaterialApp(
+//             home: Scaffold(
+//               body: Center(child: CircularProgressIndicator()),
+//             ),
+//           );
+//         }
+
+//         final userId = snapshot.data!['userId'];
+//         final role = snapshot.data!['role'];
+
+//         return GetMaterialApp(
+//           debugShowCheckedModeBanner: false,
+//           initialRoute: _getInitialRoute(userId, role),
+//           getPages: [
+//             GetPage(name: '/welcome', page: () => WelcomePageViewMain()),
+//             GetPage(name: '/service-home', page: () => ServiceAccMain()),
+//             GetPage(name: '/client-home', page: () => BusinessAccMain()),
+//             GetPage(name: '/email-confirmation', page: () => EmailConfirmation()),
+//           ],
+//         );
+//       },
+//     );
+//   }
+
+//   String _getInitialRoute(dynamic userId, dynamic role) {
+//     if (userId == null || userId.toString().isEmpty) return '/welcome';
+
+//     if (role == 'Client') {
+//       return '/client-home';
+//     } else if (role == 'Tasker') {
+//       return '/service-home';
+//     }
+
+//     return '/welcome';
+//   }
+// }
