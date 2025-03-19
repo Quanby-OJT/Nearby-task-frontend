@@ -82,17 +82,20 @@ class TaskController {
         ? assignedTask['message'].toString()
         : assignedTask['error'].toString();
   }
-
-  Future<List<TaskAssignment>?> getAllAssignedTasks(
-      BuildContext context, int userId) async {
+  //All Messages to client/tasker
+  Future<List<TaskAssignment>?> getAllAssignedTasks(BuildContext context, int userId) async {
     final assignedTasks = await TaskDetailsService().getAllTakenTasks();
     debugPrint(assignedTasks.toString());
 
     if (assignedTasks.containsKey('data') && assignedTasks['data'] != null) {
       List<dynamic> dataList = assignedTasks['data'] as List<dynamic>;
       List<TaskAssignment> taskAssignments = dataList.map((item) {
-        int? taskId = item['task_taken_id'] as int?;
-        Map<String, dynamic> taskData = item['tasks'] as Map<String, dynamic>;
+        // Get task_taken_id from the root level of item
+        int? taskTakenId = item['task_taken_id'] as int?; // Correct key
+        debugPrint("Task Taken ID: $taskTakenId"); // Verify the value
+
+        // Parse tasks from post_task
+        Map<String, dynamic> taskData = item['post_task'] as Map<String, dynamic>;
         TaskModel task = TaskModel(
           title: taskData['task_title'] as String?,
           clientId: null,
@@ -101,18 +104,17 @@ class TaskController {
           location: null,
           period: null,
           duration: null,
-          urgency: null,
+          urgency: taskData['urgent'] as String?, // Check if this field exists in your API
           status: null,
           contactPrice: null,
           remarks: null,
           taskBeginDate: null,
-          id: taskId,
+          id: taskTakenId, // Use taskTakenId here if it’s meant to be the task’s ID
         );
 
-        Map<String, dynamic> clientData =
-            item['clients'] as Map<String, dynamic>;
-        Map<String, dynamic> clientUserData =
-            clientData['user'] as Map<String, dynamic>;
+        // Parse client and its user
+        Map<String, dynamic> clientData = item['clients'] != null ? item['clients'] as Map<String, dynamic> : {};
+        Map<String, dynamic> clientUserData = clientData['user'] as Map<String, dynamic>;
         UserModel clientUser = UserModel(
           firstName: clientUserData['first_name'] as String? ?? '',
           middleName: clientUserData['middle_name'] as String? ?? '',
@@ -121,13 +123,17 @@ class TaskController {
           role: '',
           accStatus: '',
         );
+        ClientModel client = ClientModel(
+          preferences: '',
+          clientAddress: '',
+          user: clientUser,
+        );
         ClientModel client =
             ClientModel(preferences: '', clientAddress: '', user: clientUser);
 
-        Map<String, dynamic> taskerData =
-            item['tasker'] as Map<String, dynamic>;
-        Map<String, dynamic> taskerUserData =
-            taskerData['user'] as Map<String, dynamic>;
+        // Parse tasker and its user
+        Map<String, dynamic> taskerData = item['tasker'] != null ? item['tasker'] as Map<String, dynamic> : {};
+        Map<String, dynamic> taskerUserData = taskerData['user'] as Map<String, dynamic>;
         UserModel taskerUser = UserModel(
           firstName: taskerUserData['first_name'] as String? ?? '',
           middleName: taskerUserData['middle_name'] as String? ?? '',
@@ -151,7 +157,15 @@ class TaskController {
           user: taskerUser,
         );
 
-        return TaskAssignment(client: client, tasker: tasker, task: task);
+        // Create TaskAssignment with the correct taskTakenId
+        TaskAssignment assignment = TaskAssignment(
+          client: client,
+          tasker: tasker,
+          task: task,
+          taskTakenId: taskTakenId, // Use the root-level task_taken_id
+        );
+        debugPrint(assignment.toString()); // Verify the full object
+        return assignment;
       }).toList();
       return taskAssignments;
     } else {

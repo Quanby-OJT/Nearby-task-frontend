@@ -71,10 +71,7 @@ class AuthenticationController {
         response.containsKey('role') &&
         response.containsKey('session')) {
       await storage.write('user_id', response['user_id']);
-      await storage.write(
-          'role',
-          response[
-              'role']); //If the user is logged in to the app, this will be the determinant if where they will be assigned.
+      await storage.write('role',response['role']); //If the user is logged in to the app, this will be the determinant if where they will be assigned.
       await storage.write('session', response['session']);
       if (response['role'] == "Client") {
         Navigator.push(context, MaterialPageRoute(builder: (context) {

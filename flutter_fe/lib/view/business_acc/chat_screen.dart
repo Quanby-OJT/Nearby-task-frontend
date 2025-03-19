@@ -5,8 +5,7 @@ import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:get_storage/get_storage.dart';
 
 class ChatScreen extends StatefulWidget {
-  final int? taskTakenId;
-  const ChatScreen({super.key, this.taskTakenId});
+  const ChatScreen({super.key});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -16,6 +15,7 @@ class _ChatScreenState extends State<ChatScreen> {
   List<TaskAssignment>? taskAssignments; // This is already correctly typed
   final GetStorage storage = GetStorage();
   final TaskController _taskController = TaskController();
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -29,8 +29,14 @@ class _ChatScreenState extends State<ChatScreen> {
     // Get the list of task assignments
     List<TaskAssignment>? fetchedAssignments = await _taskController.getAllAssignedTasks(context, userId);
 
+    if(fetchedAssignments != null){
+      setState(() {
+        taskAssignments = fetchedAssignments;
+      });
+    }
+
     setState(() {
-      taskAssignments = fetchedAssignments; // Assign the list directly
+      isLoading = false;
     });
   }
 
@@ -51,63 +57,66 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ),
       ),
-      body: (taskAssignments == null || taskAssignments!.isEmpty)
+      body: isLoading
+        ? Center(child: CircularProgressIndicator())
+        : (taskAssignments == null || taskAssignments!.isEmpty)
           ? Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.message,
-              size: 100,
-              color: Color(0xFF0272B1),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                "You Don't Have Messages Yet, You can Start a Conversation By 'Right-Swiping' Your Favorite Tasker.",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-          ],
-        ),
-      )
-          : ListView.builder(
-        itemCount: taskAssignments?.length ?? 0,
-        itemBuilder: (context, index) {
-          final assignment = taskAssignments![index];
-          return ListTile(
-            title: Text(
-              assignment.task.title ?? "Unknown Task",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            subtitle: Row(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.person,
-                    size: 20
+                    Icons.message,
+                    size: 100,
+                    color: Color(0xFF0272B1),
                   ),
-                  Text(
-                    "${assignment.client.user?.firstName ?? ''} ${assignment.client.user?.middleName ?? ''} ${assignment.client.user?.lastName ?? ''}",
-                    style: TextStyle(fontSize: 14),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      "You Don't Have Messages Yet, You can Start a Conversation By 'Right-Swiping' Your Favorite Tasker.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 16),
+                    ),
                   ),
-                ]
+                ],
+              ),
+            ) :
+            ListView.builder(
+              itemCount: taskAssignments?.length ?? 0,
+              itemBuilder: (context, index) {
+                final assignment = taskAssignments![index];
+                return ListTile(
+                  title: Text(
+                    assignment.task.title ?? "Unknown Task",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Row(
+                      children: [
+                        Icon(
+                          Icons.person,
+                          size: 20
+                        ),
+                        Text(
+                          "${assignment.tasker.user?.firstName ?? ''} ${assignment.tasker.user?.middleName ?? ''} ${assignment.tasker.user?.lastName ?? ''}",
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ]
+                  ),
+                  trailing: Icon(Icons.arrow_forward_ios,
+                      size: 16, color: Colors.grey),
+                  onTap: () {
+                    // Open Chat History
+                    debugPrint("Task Taken ID: ${assignment.taskTakenId}");
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => IndividualChatScreen(taskTitle: assignment.task.title, taskTakenId: assignment.taskTakenId)
+                      ),
+                    );
+                  },
+                );
+              },
             ),
-            trailing: Icon(Icons.arrow_forward_ios,
-                size: 16, color: Colors.grey),
-            onTap: () {
-              // Open Chat History
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => IndividualChatScreen(taskTitle: assignment.task.title, taskTakenId: widget.taskTakenId,)
-                ),
-              );
-            },
-          );
-        },
-      ),
     );
   }
 }

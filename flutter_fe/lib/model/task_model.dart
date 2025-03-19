@@ -41,8 +41,12 @@ class TaskModel {
       "location": location,
       "duration": duration,
       "num_of_days": period,
+       // Convert boolean urgency to string
+      "urgent": urgency == "This task is urgent"
+        ? true
+        : false,
       "urgency": urgency,
-      "contact_price": contactPrice,
+      "proposed_price": contactPrice,
       "remarks": remarks,
       "task_begin_date": taskBeginDate,
       "id": id,
@@ -61,8 +65,12 @@ class TaskModel {
       location: json['location'] as String?,
       duration: json['duration']?.toString(),
       period: json['period']?.toString(),
-      urgency: json['urgent'] as String?,
-      contactPrice: json['contact_price'] as int?,
+       // Convert boolean to string for urgency
+      urgency: json['urgent'] as bool
+        ? "This task is urgent"
+        : "This task is not urgent.",
+      //urgency: json['urgent'] as String,  // <- Fix key from "urgency" to "urgent"
+      contactPrice: json['proposed_price'] as int?,
       remarks: json['remarks'] as String?,
       taskBeginDate: json['task_begin_date'] as String?,
       status: json['status'] as String?,

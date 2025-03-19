@@ -31,7 +31,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
     super.initState();
     loadInitialData();
     // Poll for new messages every 5 seconds
-    _timer = Timer.periodic(Duration(seconds: 5), (timer) {
+    _timer = Timer.periodic(Duration(seconds: 3), (timer) {
       loadConversationHistory();
     });
   }
@@ -45,7 +45,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   }
 
   Future<void> loadConversationHistory() async {
-    debugPrint(widget.taskTitle.toString() + widget.taskTakenId.toString());
+    //debugPrint(widget.taskTitle.toString() + " | Task Taken ID: " + widget.taskTakenId.toString());
     final messages = await conversationController.getMessages(context, widget.taskTakenId ?? 0);
     setState(() {
       _messages.clear();
@@ -97,17 +97,18 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                     ],
                   ),
                 ),
-                )
-              : ListView.builder(
+            )
+            :
+            ListView.builder(
               controller: _scrollController,
               reverse: false,
               itemCount: _messages.length,
               itemBuilder: (context, index) {
-                final message = _messages[index];
-                return _ChatBubble(
-                  message: message,
-                  profile: message.user ?? UserModel(
-                    firstName: 'Unknown',
+              final message = _messages[index];
+              return _ChatBubble(
+                message: message,
+                profile: message.user ?? UserModel(
+                    firstName: message.user?.firstName ?? "Loading...",
                     middleName: '',
                     lastName: '',
                     email: '',
@@ -187,6 +188,51 @@ class _MessageBar extends StatelessWidget {
 }
 
 //Chat Bubble
+// class _ChatBubble extends StatelessWidget {
+//   final Conversation message;
+//   final UserModel profile;
+//
+//   const _ChatBubble({required this.message, required this.profile});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     // Add logic to determine if message is from current user
+//     bool isMine = message.userId == GetStorage().read('userId');
+//
+//     List<Widget> chatContents = [
+//       if (!isMine)
+//         CircleAvatar(
+//           child: Text(profile.firstName.substring(0, 2)),
+//         ),
+//       const SizedBox(width: 12),
+//       Flexible(
+//         child: Container(
+//           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+//           decoration: BoxDecoration(
+//             color: isMine ? Theme.of(context).primaryColor : Colors.grey[300],
+//             borderRadius: BorderRadius.circular(8),
+//           ),
+//           child: Text(message.conversationMessage ?? ''),
+//         ),
+//       ),
+//       const SizedBox(width: 12),
+//       // Add timestamp if available from your API
+//     ];
+//
+//     if (isMine) {
+//       chatContents = chatContents.reversed.toList();
+//     }
+//
+//     return Padding(
+//       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 18),
+//       child: Row(
+//         mainAxisAlignment: isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
+//         children: chatContents,
+//       ),
+//     );
+//   }
+// }
+
 class _ChatBubble extends StatelessWidget {
   final Conversation message;
   final UserModel profile;
@@ -195,39 +241,54 @@ class _ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Add logic to determine if message is from current user
-    bool isMine = message.userId == GetStorage().read('userId');
+    // Determine if the message is from the current user
+    bool isMine = message.userId == GetStorage().read('user_id');
+    //debugPrint(isMine.toString());
 
-    List<Widget> chatContents = [
-      if (!isMine)
-        CircleAvatar(
-          child: Text(profile.firstName.substring(0, 2)),
+    // Define the message bubble widget (used in both cases)
+    Widget messageBubble = Flexible(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        decoration: BoxDecoration(
+          color: isMine ? Theme.of(context).primaryColor : Colors.grey[300],
+          borderRadius: BorderRadius.circular(8),
         ),
-      const SizedBox(width: 12),
-      Flexible(
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-          decoration: BoxDecoration(
-            color: isMine ? Theme.of(context).primaryColor : Colors.grey[300],
-            borderRadius: BorderRadius.circular(8),
+        child: Text(
+          message.conversationMessage ?? '',
+          style: TextStyle(
+            color: isMine ? Colors.white : Colors.black87,
           ),
-          child: Text(message.conversationMessage ?? ''),
         ),
-      ),
-      const SizedBox(width: 12),
-      // Add timestamp if available from your API
-    ];
-
-    if (isMine) {
-      chatContents = chatContents.reversed.toList();
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 18),
-      child: Row(
-        mainAxisAlignment: isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
-        children: chatContents,
       ),
     );
+
+    // Return different layouts based on whether the message is from the current user
+    if (isMine) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 18),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            messageBubble,
+          ],
+        ),
+      );
+    } else {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 18),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              child: Text(profile.firstName.isNotEmpty
+                  ? profile.firstName.substring(0, profile.firstName.length > 1 ? 2 : 1)
+                  : 'U'),
+            ),
+            const SizedBox(width: 12),
+            messageBubble,
+          ],
+        ),
+      );
+    }
   }
 }
