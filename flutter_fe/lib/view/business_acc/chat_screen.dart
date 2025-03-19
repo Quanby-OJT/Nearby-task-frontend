@@ -1,10 +1,10 @@
-import 'dart:io'; // For File class
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:image_picker/image_picker.dart'; // Import image_picker
+import 'package:image_picker/image_picker.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -64,37 +64,47 @@ class _ChatScreenState extends State<ChatScreen> {
       enableDrag: true,
       context: context,
       isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState) {
             return Container(
               height: MediaQuery.of(context).size.height * 0.75,
               padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom),
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
               child: SingleChildScrollView(
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Header: "Report User" and Subtitle
                     Padding(
                       padding:
                           const EdgeInsets.only(left: 40, right: 40, top: 20),
-                      child: Text(
-                        "Report User",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.indigo,
-                            fontSize: 24),
-                      ),
-                    ),
-                    Padding(
-                      padding:
-                          const EdgeInsets.only(left: 40, right: 40, top: 5),
-                      child: Text(
-                        "Please fill in the details below",
-                        style: TextStyle(
-                            fontWeight: FontWeight.normal,
-                            color: Colors.indigo,
-                            fontSize: 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Report User",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.indigo,
+                              fontSize: 24,
+                            ),
+                          ),
+                          SizedBox(height: 5),
+                          Text(
+                            "Please fill in the details below",
+                            style: TextStyle(
+                              fontWeight: FontWeight.normal,
+                              color: Colors.indigo,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     // Reported User Name Input Field
@@ -153,36 +163,46 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                       ),
                     ),
-                    // Proof (Image Upload)
+                    // Proof (Upload Image) Section
                     Padding(
                       padding:
-                          const EdgeInsets.only(left: 0, right: 0, top: 20),
+                          const EdgeInsets.only(left: 40, right: 40, top: 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'Proof (Upload Image)',
                             style: TextStyle(
-                                color: Color(0xFF0272B1),
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold),
+                              color: Color(0xFF0272B1),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           SizedBox(height: 10),
-                          ElevatedButton.icon(
-                            onPressed: () async {
-                              await _pickImage(); // Call the image picker
-                              setModalState(
-                                  () {}); // Update modal state to show selected image
-                            },
-                            icon: Icon(Icons.upload_file, color: Colors.white),
-                            label: Text(
-                              'Upload Image',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF0272B1),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10)),
+                          Container(
+                            alignment: Alignment.centerLeft,
+                            child: ElevatedButton.icon(
+                              onPressed: () async {
+                                await _pickImage(); // Call the image picker
+                                setModalState(
+                                    () {}); // Update modal state to show selected image
+                              },
+                              icon:
+                                  Icon(Icons.upload_file, color: Colors.white),
+                              label: Text(
+                                'Upload Image',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFF0272B1),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: EdgeInsets.only(left: 16, right: 16),
+                                alignment: Alignment.centerLeft,
+                                minimumSize: Size(150,
+                                    50), // Ensure button has a reasonable size
+                              ),
                             ),
                           ),
                           if (_selectedImage != null) ...[
@@ -216,13 +236,17 @@ class _ChatScreenState extends State<ChatScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.red,
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10)),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 15),
                             ),
                             child: Text(
                               'Cancel',
                               style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold),
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                           SizedBox(width: 10),
@@ -251,13 +275,17 @@ class _ChatScreenState extends State<ChatScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Color(0xFF0272B1),
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10)),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 15),
                             ),
                             child: Text(
                               'Submit',
                               style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold),
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
