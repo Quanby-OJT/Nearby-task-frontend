@@ -1,9 +1,12 @@
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
+import 'dart:async';
+import 'package:flutter_fe/view/sign_in/sign_in.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'dart:async';
 import 'package:app_links/app_links.dart';
+import 'package:app_links/app_links.dart';
+import 'package:flutter_fe/view/fill_up/nearby_task_rules.dart';
+
 
 class SignUpClientAcc extends StatefulWidget {
   final String role;
@@ -14,13 +17,13 @@ class SignUpClientAcc extends StatefulWidget {
 }
 
 class _SignUpClientAccState extends State<SignUpClientAcc> {
-  //int currentStep = 0;
-
   final ProfileController _controller = ProfileController();
-  final _appLinks = AppLinks();
-  StreamSubscription<Uri>? _linkSubscription;
   String _status = "Please fill out the form to register";
+
   bool _isVerified = false;
+  bool _isLoading = false;
+  final _formKey = GlobalKey<FormState>();
+  StreamSubscription<Uri>? _linkSubscription;
 
   @override
   void initState() {
@@ -30,7 +33,7 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
   }
 
   Future<void> _initDeepLinkListener() async {
-    // Track verification status
+    final _appLinks = AppLinks();
 
     // Handle initial link (app opened via deep link)
     try {
@@ -75,7 +78,12 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
         // Redirect to rules page
         if (mounted) {
           // Check if widget is still mounted before navigation
-          print('need configuration');
+          // Navigator.pushReplacement(
+          //   context,
+          //   MaterialPageRoute(
+          //     builder: (context) => NearbyTaskRules(userId: userId),
+          //   ),
+          // );
         }
       } else {
         setState(() => _status = "Email verification failed");
@@ -91,32 +99,28 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
     super.dispose();
   }
 
-  // File? _selectedImage; // Store the selected image bytes
-  // String? _imageName; // Store the selected image name
-  //
-  // Future<void> _pickImage() async {
-  //   final ImagePicker picker = ImagePicker();
-  //   final XFile? pickedFile = await picker.pickImage(
-  //     source:
-  //         ImageSource.gallery, // Change to ImageSource.camera for camera input
-  //   );
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Color(0xFF0272B1)),
+          onPressed: () => Navigator.of(context).pop(),
         ),
-        body: SingleChildScrollView(
+      ),
+      body: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
           child: Column(
             children: [
               Image.asset(
-                'assets/images/icons8-checklist-100-colored.png', // Replace with your actual logo path
+                'assets/images/icons8-checklist-100-colored.png',
                 height: 150,
                 width: 150,
               ),
-              SizedBox(height: 20), // Spa
+              SizedBox(height: 20),
               Text(
                 'Create a New Client Account',
                 style: TextStyle(
@@ -125,415 +129,146 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                     fontWeight: FontWeight.bold),
               ),
               Padding(
-                padding: const EdgeInsets.only(
-                    top: 10, bottom: 10, left: 20, right: 20),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 child: Text(
-                  textAlign: TextAlign.center,
                   "With ONE SWIPE, You can Find a New Tasker in a MATTER OF SECONDS.",
-                  style: TextStyle(fontWeight: FontWeight.normal, fontSize: 18),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 18),
                 ),
               ),
-              SizedBox(
-                  height: 450,
-                  child: Theme(
-                    data: Theme.of(context).copyWith(
-                      colorScheme:
-                          ColorScheme.light(primary: Color(0xFF0272B1)),
-                    ),
-                    child: Column(children: [
-                      Padding(
-                        padding: const EdgeInsets.only(
-                            bottom: 10, left: 20, right: 20),
-                        child: TextFormField(
-                          controller: _controller.firstNameController,
-                          cursorColor: Color(0xFF0272B1),
-                          validator: (value) => value!.isEmpty
-                              ? "Please Input Your First Name"
-                              : null,
-                          decoration: InputDecoration(
-                              filled: true,
-                              fillColor: Color(0xFFF1F4FF),
-                              hintText: 'First Name',
-                              hintStyle: TextStyle(color: Colors.grey),
-                              enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Colors.transparent, width: 0),
-                                  borderRadius: BorderRadius.circular(10)),
-                              focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(
-                                      color: Color(0xFF0272B1), width: 2))),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                            bottom: 10, left: 20, right: 20),
-                        child: Row(
-                          children: [
-                            // Middle Name Field
-                            Expanded(
-                              child: TextFormField(
-                                controller: _controller
-                                    .middleNameController, // Make sure this controller exists
-                                cursorColor: Color(0xFF0272B1),
-                                validator: (value) => value!.isEmpty
-                                    ? "Please Input Your Middle Name"
-                                    : null,
-                                decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: Color(0xFFF1F4FF),
-                                  hintText: 'Middle Name',
-                                  hintStyle: TextStyle(color: Colors.grey),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Colors.transparent, width: 0),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    borderSide: BorderSide(
-                                        color: Color(0xFF0272B1), width: 2),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 10), // Spacing between the fields
-                            // Last Name Field
-                            Expanded(
-                              child: TextFormField(
-                                controller: _controller.lastNameController,
-                                cursorColor: Color(0xFF0272B1),
-                                validator: (value) => value!.isEmpty
-                                    ? "Please Input Your Last Name"
-                                    : null,
-                                decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: Color(0xFFF1F4FF),
-                                  hintText: 'Last Name',
-                                  hintStyle: TextStyle(color: Colors.grey),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Colors.transparent, width: 0),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    borderSide: BorderSide(
-                                        color: Color(0xFF0272B1), width: 2),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                            bottom: 10, left: 20, right: 20),
-                        child: TextFormField(
-                          controller: _controller.emailController,
-                          cursorColor: Color(0xFF0272B1),
-                          validator: (value) => value!.isEmpty
-                              ? "Please Input Your Valid Email"
-                              : null,
-                          decoration: InputDecoration(
-                              filled: true,
-                              fillColor: Color(0xFFF1F4FF),
-                              hintText: 'Your Valid Email',
-                              hintStyle: TextStyle(color: Colors.grey),
-                              enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Colors.transparent, width: 0),
-                                  borderRadius: BorderRadius.circular(10)),
-                              focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(
-                                      color: Color(0xFF0272B1), width: 2))),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                            bottom: 10, left: 20, right: 20),
-                        child: TextFormField(
-                          controller: _controller.passwordController,
-                          obscureText: true,
-                          cursorColor: Color(0xFF0272B1),
-                          validator: (value) => value!.isEmpty
-                              ? "Your Password Must had at least 6 characters long"
-                              : null,
-                          decoration: InputDecoration(
-                              filled: true,
-                              fillColor: Color(0xFFF1F4FF),
-                              hintText: 'Your Password',
-                              hintStyle: TextStyle(color: Colors.grey),
-                              enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Colors.transparent, width: 0),
-                                  borderRadius: BorderRadius.circular(10)),
-                              focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(
-                                      color: Color(0xFF0272B1), width: 2))),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                            bottom: 10, left: 20, right: 20),
-                        child: TextFormField(
-                          controller: _controller.confirmPasswordController,
-                          obscureText: true,
-                          cursorColor: Color(0xFF0272B1),
-                          validator: (value) =>
-                              value!.isEmpty ? "Passwords do not match" : null,
-                          decoration: InputDecoration(
-                              filled: true,
-                              fillColor: Color(0xFFF1F4FF),
-                              hintText: 'Confirmed Password',
-                              hintStyle: TextStyle(color: Colors.grey),
-                              enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Colors.transparent, width: 0),
-                                  borderRadius: BorderRadius.circular(10)),
-                              focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(
-                                      color: Color(0xFF0272B1), width: 2))),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                            bottom: 10, left: 20, right: 20),
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF0272B1),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            padding: EdgeInsets.symmetric(horizontal: 30),
-                          ),
-                          onPressed: () {
-                            _controller.registerUser(context);
-                          },
-                          child: Text(
-                            'Create New Client Account',
-                            style: TextStyle(fontSize: 18, color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    ]),
-                  )),
-              TextButton(
-                  onPressed: () {
-                    // Navigator.push(context,
-                    //     MaterialPageRoute(builder: (context) {
-                    //       return SignIn();
-                    //     }));
-                  },
+              if (_status.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
                   child: Text(
-                    textAlign: TextAlign.right,
-                    'Already have an account',
+                    _status,
                     style: TextStyle(
-                        color: Colors.black, fontWeight: FontWeight.bold),
-                  )),
+                      color: _isVerified ? Colors.green : Colors.blue,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              Container(
+                padding: EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: _controller.firstNameController,
+                      validator: (value) =>
+                          _controller.validateName(value, "first name"),
+                      decoration: _getInputDecoration('First Name'),
+                    ),
+                    SizedBox(height: 10),
+                    TextFormField(
+                      controller: _controller.middleNameController,
+                      decoration: _getInputDecoration('Middle Name (Optional)'),
+                    ),
+                    SizedBox(height: 10),
+                    TextFormField(
+                      controller: _controller.lastNameController,
+                      validator: (value) =>
+                          _controller.validateName(value, "last name"),
+                      decoration: _getInputDecoration('Last Name'),
+                    ),
+                    SizedBox(height: 10),
+                    TextFormField(
+                      controller: _controller.emailController,
+                      validator: _controller.validateEmail,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: _getInputDecoration('Email Address'),
+                    ),
+                    SizedBox(height: 10),
+                    TextFormField(
+                      controller: _controller.passwordController,
+                      validator: _controller.validatePassword,
+                      obscureText: true,
+                      decoration: _getInputDecoration('Password'),
+                    ),
+                    SizedBox(height: 10),
+                    TextFormField(
+                      controller: _controller.confirmPasswordController,
+                      validator: _controller.validateConfirmPassword,
+                      obscureText: true,
+                      decoration: _getInputDecoration('Confirm Password'),
+                    ),
+                    SizedBox(height: 20),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF0272B1),
+                        minimumSize: Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: _isLoading
+                          ? null
+                          : () async {
+                              if (_formKey.currentState!.validate()) {
+                                setState(() {
+                                  _isLoading = true;
+                                  _status = "Creating your account...";
+                                });
+
+                                await _controller.registerUser(context);
+
+                                setState(() {
+                                  _isLoading = false;
+                                  _status =
+                                      "Please check your email to verify your account";
+                                });
+                              }
+                            },
+                      child: _isLoading
+                          ? CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                              'Create New Client Account',
+                              style: TextStyle(fontSize: 18),
+                            ),
+                    ),
+                    SizedBox(height: 10),
+                    TextButton(
+                      onPressed: () =>
+                          Navigator.pushReplacementNamed(context, '/signin'),
+                      child: Text(
+                        'Already have an account? Sign In',
+                        style: TextStyle(
+                          color: Color(0xFF0272B1),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 
-  // List<Step> getSteps() => [
-  //       Step(
-  //           state: currentStep > 0 ? StepState.complete : StepState.indexed,
-  //           isActive: currentStep >= 0,
-  //           title: Text('Basic Information'),
-  //           content: Column(
-  //             children: [
-  //               Padding(
-  //                 padding: const EdgeInsets.only(bottom: 10),
-  //                 child: TextFormField(
-  //                   controller: _controller.firstNameController,
-  //                   cursorColor: Color(0xFF0272B1),
-  //                   validator: (value) =>
-  //                       value!.isEmpty ? "First name is required" : null,
-  //                   decoration: InputDecoration(
-  //                       filled: true,
-  //                       fillColor: Color(0xFFF1F4FF),
-  //                       hintText: 'First Name',
-  //                       hintStyle: TextStyle(color: Colors.grey),
-  //                       enabledBorder: OutlineInputBorder(
-  //                           borderSide:
-  //                               BorderSide(color: Colors.transparent, width: 0),
-  //                           borderRadius: BorderRadius.circular(10)),
-  //                       focusedBorder: OutlineInputBorder(
-  //                           borderRadius: BorderRadius.circular(10),
-  //                           borderSide: BorderSide(
-  //                               color: Color(0xFF0272B1), width: 2))),
-  //                 ),
-  //               ),
-  //               Padding(
-  //                 padding: const EdgeInsets.only(bottom: 10),
-  //                 child: TextFormField(
-  //                   controller: _controller.lastNameController,
-  //                   cursorColor: Color(0xFF0272B1),
-  //                   validator: (value) =>
-  //                       value!.isEmpty ? "Last name is required" : null,
-  //                   decoration: InputDecoration(
-  //                       filled: true,
-  //                       fillColor: Color(0xFFF1F4FF),
-  //                       hintText: 'Last Name',
-  //                       hintStyle: TextStyle(color: Colors.grey),
-  //                       enabledBorder: OutlineInputBorder(
-  //                           borderSide:
-  //                               BorderSide(color: Colors.transparent, width: 0),
-  //                           borderRadius: BorderRadius.circular(10)),
-  //                       focusedBorder: OutlineInputBorder(
-  //                           borderRadius: BorderRadius.circular(10),
-  //                           borderSide: BorderSide(
-  //                               color: Color(0xFF0272B1), width: 2))),
-  //                 ),
-  //               ),
-  //               Padding(
-  //                 padding: const EdgeInsets.only(bottom: 10),
-  //                 child: TextFormField(
-  //                   cursorColor: Color(0xFF0272B1),
-  //                   validator: (value) =>
-  //                       value!.isEmpty ? "Contact is required" : null,
-  //                   decoration: InputDecoration(
-  //                       filled: true,
-  //                       fillColor: Color(0xFFF1F4FF),
-  //                       hintText: 'Contact number',
-  //                       hintStyle: TextStyle(color: Colors.grey),
-  //                       enabledBorder: OutlineInputBorder(
-  //                           borderSide:
-  //                               BorderSide(color: Colors.transparent, width: 0),
-  //                           borderRadius: BorderRadius.circular(10)),
-  //                       focusedBorder: OutlineInputBorder(
-  //                           borderRadius: BorderRadius.circular(10),
-  //                           borderSide: BorderSide(
-  //                               color: Color(0xFF0272B1), width: 2))),
-  //                 ),
-  //               ),
-  //               Padding(
-  //                 padding: const EdgeInsets.only(bottom: 10),
-  //                 child: TextFormField(
-  //                   cursorColor: Color(0xFF0272B1),
-  //                   validator: (value) =>
-  //                       value!.isEmpty ? "Address is required" : null,
-  //                   decoration: InputDecoration(
-  //                       filled: true,
-  //                       fillColor: Color(0xFFF1F4FF),
-  //                       hintText: 'Address',
-  //                       hintStyle: TextStyle(color: Colors.grey),
-  //                       enabledBorder: OutlineInputBorder(
-  //                           borderSide:
-  //                               BorderSide(color: Colors.transparent, width: 0),
-  //                           borderRadius: BorderRadius.circular(10)),
-  //                       focusedBorder: OutlineInputBorder(
-  //                           borderRadius: BorderRadius.circular(10),
-  //                           borderSide: BorderSide(
-  //                               color: Color(0xFF0272B1), width: 2))),
-  //                 ),
-  //               ),
-  //             ],
-  //           )),
-  //       Step(
-  //           state: currentStep > 1 ? StepState.complete : StepState.indexed,
-  //           isActive: currentStep >= 1,
-  //           title: Text('Authentication'),
-  //           content: Column(
-  //             children: [
-  //               Padding(
-  //                 padding: const EdgeInsets.only(bottom: 10),
-  //                 child: TextFormField(
-  //                   controller: _controller.emailController,
-  //                   cursorColor: Color(0xFF0272B1),
-  //                   validator: (value) =>
-  //                       value!.isEmpty ? "Email is required" : null,
-  //                   decoration: InputDecoration(
-  //                       filled: true,
-  //                       fillColor: Color(0xFFF1F4FF),
-  //                       hintText: 'Enter email',
-  //                       hintStyle: TextStyle(color: Colors.grey),
-  //                       enabledBorder: OutlineInputBorder(
-  //                           borderSide:
-  //                               BorderSide(color: Colors.transparent, width: 0),
-  //                           borderRadius: BorderRadius.circular(10)),
-  //                       focusedBorder: OutlineInputBorder(
-  //                           borderRadius: BorderRadius.circular(10),
-  //                           borderSide: BorderSide(
-  //                               color: Color(0xFF0272B1), width: 2))),
-  //                 ),
-  //               ),
-  //               Padding(
-  //                 padding: const EdgeInsets.only(bottom: 10),
-  //                 child: TextFormField(
-  //                   controller: _controller.passwordController,
-  //                   cursorColor: Color(0xFF0272B1),
-  //                   validator: (value) =>
-  //                       value!.isEmpty ? "Password is required" : null,
-  //                   decoration: InputDecoration(
-  //                       filled: true,
-  //                       fillColor: Color(0xFFF1F4FF),
-  //                       hintText: 'Enter password',
-  //                       hintStyle: TextStyle(color: Colors.grey),
-  //                       enabledBorder: OutlineInputBorder(
-  //                           borderSide:
-  //                               BorderSide(color: Colors.transparent, width: 0),
-  //                           borderRadius: BorderRadius.circular(10)),
-  //                       focusedBorder: OutlineInputBorder(
-  //                           borderRadius: BorderRadius.circular(10),
-  //                           borderSide: BorderSide(
-  //                               color: Color(0xFF0272B1), width: 2))),
-  //                 ),
-  //               ),
-  //               Padding(
-  //                 padding: const EdgeInsets.only(bottom: 10),
-  //                 child: TextFormField(
-  //                   controller: _controller.confirmPasswordController,
-  //                   cursorColor: Color(0xFF0272B1),
-  //                   validator: (value) =>
-  //                       value!.isEmpty ? "Password is required" : null,
-  //                   decoration: InputDecoration(
-  //                       filled: true,
-  //                       fillColor: Color(0xFFF1F4FF),
-  //                       hintText: 'Confirm password',
-  //                       hintStyle: TextStyle(color: Colors.grey),
-  //                       enabledBorder: OutlineInputBorder(
-  //                           borderSide:
-  //                               BorderSide(color: Colors.transparent, width: 0),
-  //                           borderRadius: BorderRadius.circular(10)),
-  //                       focusedBorder: OutlineInputBorder(
-  //                           borderRadius: BorderRadius.circular(10),
-  //                           borderSide: BorderSide(
-  //                               color: Color(0xFF0272B1), width: 2))),
-  //                 ),
-  //               )
-  //             ],
-  //           )),
-  //       Step(
-  //           isActive: currentStep >= 2,
-  //           title: Text('Certificates'),
-  //           content: Column(
-  //             children: [
-  //               ElevatedButton(
-  //                 onPressed: _pickImage,
-  //                 child: Text("Pick Image"),
-  //               ),
-  //               // Image Picker Button End
-  //
-  //               // Show Selected Image Start (if any if not yung icon makikita base sa baba)
-  //               _selectedImage != null
-  //                   ? Column(
-  //                       children: [
-  //                         // Text("Selected Image: $_imageName"),
-  //                         Image.file(
-  //                           _selectedImage!,
-  //                           height: 200,
-  //                           width: 200,
-  //                         ), // Show image
-  //                       ],
-  //                     )
-  //                   : Text("No Image Selected"),
-  //             ],
-  //           )),
-  //     ];
+  InputDecoration _getInputDecoration(String label) {
+    return InputDecoration(
+      filled: true,
+      fillColor: Color(0xFFF1F4FF),
+      labelText: label,
+      hintStyle: TextStyle(color: Colors.grey),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: Colors.red, width: 1),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: Colors.red, width: 2),
+      ),
+    );
+  }
 }

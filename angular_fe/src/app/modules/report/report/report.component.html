@@ -1,1 +1,44 @@
-<p>report works!</p>
+<!--Header page navigation-->
+<div class="mb-4 flex justify-between w-full max-w-[1440px] mx-auto px-4">
+    <div>
+      <h3 class="text-foreground font-semibold">Report and Analysis</h3>
+      <div class="text-muted-foreground text-xs font-medium">
+        <a href="#" class="hover:text-primary">Dashboards > Report & Analysis</a>
+      </div>
+    </div>
+  </div>
+
+<!-- Top Container -->
+<div class="flex w-full max-w-[1440px] mx-auto flex-col pb-3">
+    <div class="inline-flex w-full gap-3 flex-wrap">
+      <!-- Top Right Container -->
+      <div class="flex-1 min-w-[300px] max-w-[50%] max-h-[400px] border border-muted-200 bg-white rounded-xl p-6 shadow-md overflow-auto">
+        <strong>Processed by Moderator</strong>
+        
+      </div>
+      <!-- Top Left Container -->
+      <div class="place-items-start flex-1 min-w-[300px] max-w-[50%] max-h-[400px] border border-muted-200 bg-white rounded-xl p-6 shadow-md overflow-auto">
+        <strong>Approved by Admin</strong>
+        
+      </div>
+    </div>
+</div>
+
+<!-- Bottom Container -->
+<div class="border-muted-200 bg-white w-full max-w-[1440px] mx-auto flex-col rounded-xl border-4 min-h-[400px] shadow-md p-6">
+  <div class="flex justify-center">
+    <div class="min-w-[300px]">
+      <button type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800" (click)="changeTab('ReportTab')">Reports</button>
+      <button type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800" (click)="changeTab('AnalysisTab')">Analysis</button>
+    </div>
+  </div>
+
+  <div>
+    <div *ngIf="currentTab == 'ReportTab'">
+    <app-reports></app-reports>
+    </div>
+    <div *ngIf="currentTab == 'AnalysisTab'">
+      <app-analysis></app-analysis>
+    </div>
+  </div>
+</div>

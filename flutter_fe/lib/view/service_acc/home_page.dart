@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/view/nav/user_navigation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 
@@ -24,6 +25,7 @@ class _HomePageState extends State<HomePage> {
   ];
   List<String> selectedCategories = [];
   bool _isLoading = true;
+  @override
   void initState() {
     super.initState();
     _fetchTasks();
@@ -35,7 +37,7 @@ class _HomePageState extends State<HomePage> {
       JobPostService jobPostService = JobPostService();
       List<TaskModel> fetchedTasks = await jobPostService.fetchAllJobs();
 
-      print("Raw API Response: ${fetchedTasks}"); // Print entire response
+      print("Raw API Response: $fetchedTasks"); // Print entire response
       print(
           "Parsed tasks count: ${fetchedTasks.length}"); // Check if tasks are parsed
 
@@ -72,7 +74,7 @@ class _HomePageState extends State<HomePage> {
       // Call the service method to save the liked job - now passing an int
       final result = await jobPostService.saveLikedJob(task.id!);
 
-      if (result.containsKey('message')) {
+      if (result['success']) {
         // Show success indicator
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -85,15 +87,14 @@ class _HomePageState extends State<HomePage> {
         // Show error indicator
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result['error']),
+            content: Text(result['message']),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 2),
           ),
         );
       }
     } catch (e) {
-      debugPrint("$e");
-      debugPrintStack();
+      print("Error saving liked job: $e");
 
       // Show error indicator
       ScaffoldMessenger.of(context).showSnackBar(
@@ -109,6 +110,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: NavUserScreen(),
       backgroundColor: Color(0xFF0272B1),
       body: Stack(
         children: [

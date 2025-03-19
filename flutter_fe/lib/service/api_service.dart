@@ -1,5 +1,7 @@
 // service/api_service.dart
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/conversation.dart';
 import 'package:flutter_fe/model/user_model.dart';
@@ -11,39 +13,77 @@ import '../model/tasker_model.dart';
 import '../model/client_model.dart';
 
 class ApiService {
-  static const String apiUrl =
-      "http://localhost:5000/connect"; // Adjust if needed
+  static const String apiUrl = "http://localhost:5000/connect";
   static final storage = GetStorage();
-
   static final http.Client _client = http.Client();
   static final Map<String, String> _cookies = {};
 
   static void _updateCookies(http.Response response) {
     String? rawCookie = response.headers['set-cookie'];
     debugPrint('Raw Cookie: $rawCookie');
-
-    if (rawCookie != null) {
-      List<String> cookieParts = rawCookie.split(',');
-      for (String part in cookieParts) {
-        List<String> cookieSegments = part.split(';');
-        if (cookieSegments.isNotEmpty) {
-          String mainPart = cookieSegments[0].trim();
-          List<String> keyValue = mainPart.split('=');
-          if (keyValue.length == 2) {
-            String key = keyValue[0].trim();
-            String value = keyValue[1].trim();
-            _cookies[key] = value;
-            debugPrint('Cookie updated: $key=$value');
-
-            // If this is a session cookie, store it in GetStorage for persistence
-            if (key == 'session' || key.toLowerCase() == 'authorization') {
-              GetStorage().write('session', value);
-              debugPrint('Session stored in GetStorage: $value');
-            }
-          }
-        }
+    
+    List<String> cookieParts = rawCookie!.split(',');
+    for (String part in cookieParts) {
+      List<String> keyValue = part.split(';')[0].split('=');
+      if (keyValue.length == 2) {
+        _cookies[keyValue[0].trim()] = keyValue[1].trim();
       }
-      debugPrint('Updated Cookies: $_cookies');
+    }
+    print('Updated Cookies: $_cookies'); // Debugging
+  }
+
+  static Future<Map<String, dynamic>> registerUser(UserModel user) async {
+    try {
+      final response = await _client.post(
+        Uri.parse("$apiUrl/create-new-account"),
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: json.encode({
+          "first_name": user.firstName,
+          "middle_name": user.middleName,
+          "last_name": user.lastName,
+          "email": user.email,
+          "password": user.password,
+          "user_role": user.role,
+        }),
+      );
+
+      var data = jsonDecode(response.body);
+
+      debugPrint('Response Status: ${response.statusCode}');
+      debugPrint('Response Body: ${response.body}');
+
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 201) {
+        return {
+          "message": data["message"] ??
+              "Registration successful! Please check your email to verify your account.",
+          "user": data["user"]
+        };
+      } else if (response.statusCode == 400) {
+        if (data['errors'] is String) {
+          return {"errors": data['errors']};
+        } else if (data['errors'] is List) {
+          String errorMessage = (data['errors'] as List)
+              .map((e) => e['msg'] ?? e.toString())
+              .join('\n');
+          return {"errors": errorMessage};
+        }
+        return {"errors": "Registration failed. Please try again."};
+      } else {
+        return {
+          "errors": data["error"] ??
+              "An error occurred during registration. Please try again."
+        };
+      }
+    } catch (e) {
+      debugPrint('Registration Error: $e');
+      return {"errors": "An error occurred while registering your account: $e"};
+
     }
   }
 
@@ -54,89 +94,147 @@ class ApiService {
           headers: _getHeaders(),
           body: json.encode({"token": token, "email": email}));
 
-      var data = jsonDecode(response.body);
       debugPrint('Verify Response: ${response.statusCode} - ${response.body}');
+      final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
+        _updateCookies(response);
         return {
-          "message": data["message"] ?? "Email Verified Successfully.",
+          "message": data["message"] ?? "Email verified successfully",
           "user_id": data["user_id"],
           "session": data["session"]
         };
       } else {
         return {
+          "error":
+              data["error"] ?? "Email verification failed. Please try again."
+        };
+      }
+    } catch (e) {
+      debugPrint('Verification Error: $e');
+      return {"error": "An error occurred during email verification: $e"};
+    }
+  }
+
+  
+
+//   static Future<Map<String, dynamic>> verifyEmail(
+//       String token, String email) async {
+//     try {
+//       debugPrint('Starting email verification for: $email with token: $token');
+//       final response = await _client.post(
+//         Uri.parse("$apiUrl/verify"),
+//         headers: _getHeaders(),
+//         body: json.encode({"token": token, "email": email}),
+//       );
+
+//       debugPrint('Verify Response Status: ${response.statusCode}');
+//       debugPrint('Verify Response Body: ${response.body}');
+
+//       if (response.body.isEmpty) {
+//         debugPrint('Error: Response body is empty');
+//         return {"error": "Empty response from server"};
+//       }
+
+//       var data = jsonDecode(response.body);
+//       debugPrint('Decoded Response Data: $data');
+
+//       if (response.statusCode == 200) {
+//         return {
+//           "message":
+//               data["message"]?.toString() ?? "Email Verified Successfully.",
+//           "user_id": data["user_id"], // Convert to string for consistency
+//           "token": data["session"],
+//         };
+//       } else {
+//         debugPrint('Non-200 status code: ${response.statusCode}');
+//         return {
+//           "error": data["error"]?.toString() ??
+//               "An error occurred while verifying your email. Please try again."
+//         };
+//       }
+//     } catch (e, stackTrace) {
+//       debugPrint('Verification Error: $e');
+//       debugPrint('Stack Trace: $stackTrace');
+//       return {
+//         "error":
+//             "An error occurred while verifying your email. Please try again."
+//       };
+//     }
+//   }
+
+  //Creating Tasker/Client Information but needs authentication token from the backend.
+  static Future<Map<String, dynamic>> createTasker(
+      TaskerModel tasker, File tesdaFile, File profileImage) async {
+    try {
+      //Code to store uploaded files to database, and retrieve its url link.
+
+      String token = await AuthService.getSessionToken();
+      debugPrint("Sending data: ${tasker.toJson()}");
+
+      var request = http.MultipartRequest(
+        "POST",
+        Uri.parse("$apiUrl/create-new-tasker"),
+      );
+      request.headers.addAll({
+        "Authorization": "Bearer $token",
+        "Content-Type": "multipart/form-data",
+      });
+
+      request.fields.addAll({
+        ...tasker.toJson().map((key, value) => MapEntry(key, value.toString())),
+        "user_id": await storage.read("user_id").toString(),
+      });
+
+      request.files.addAll([
+        http.MultipartFile.fromBytes(
+          "document",
+          await tesdaFile.readAsBytes(),
+          filename: "document.pdf",
+        ),
+        http.MultipartFile.fromBytes(
+          "image",
+          await profileImage.readAsBytes(),
+          filename: "profile_image.jpg",
+          // Adjust content type if necessary (e.g., image/png)
+        ),
+      ]);
+
+      var response = await request.send();
+
+      debugPrint("Status Code: " + response.statusCode.toString());
+      var body = await response.stream.bytesToString();
+      var data = jsonDecode(body);
+      debugPrint("Response Data: " + data.toString());
+
+      if (response.statusCode == 201) {
+        return {
+          "message": data["message"] ??
+              "Profile Created Successfully. Please Wait for Our Team to Verify Your Account"
+        };
+      } else if (response.statusCode == 400) {
+        return {
+          "error": data["errors"] ?? "Please Check Your inputs and try again"
+        };
+      } else {
+        return {
           "error": data["error"] ??
-              "An Error Occured while verifying your email. Please Try Again"
+              "Something went wrong when creating your profile. Please try again."
         };
       }
     } catch (e, stackTrace) {
       debugPrint(e.toString());
-      debugPrint(stackTrace.toString());
+      debugPrintStack(stackTrace: stackTrace);
       return {
-        "error": "An Error Occured while verifying your email. Please Try Again"
+        "error":
+            "Something went wrong when creating your profile. Please try again."
       };
     }
   }
+  
+  
+  static Future<Map<String, dynamic>> fetchAuthenticatedUser(String userId) async {
 
-  // Function to add cookies to requests
-  static Map<String, String> _getHeaders() {
-    String cookieHeader =
-        _cookies.entries.map((e) => '${e.key}=${e.value}').join('; ');
-    return {
-      "Content-Type": "application/json",
-      "Accept": "application/json",
-      if (_cookies.isNotEmpty) "Cookie": cookieHeader,
-    };
-  }
-
-  static Future<bool> registerUser(UserModel user) async {
-    try {
-      // Create a salt using timestamp
-      String salt = DateTime.now().millisecondsSinceEpoch.toString();
-
-      // Create the request payload
-      Map<String, dynamic> requestBody = {
-        "data": {
-          "first_name": user.firstName,
-          "middle_name": user.middleName,
-          "last_name": user.lastName,
-          "email": user.email,
-          "password": user.password,
-          "user_role": user.role,
-          // "acc_status": user.accStatus
-        },
-        "salt": salt
-      };
-
-      debugPrint('Request Body: ${json.encode(requestBody)}'); // Debug log
-
-      final response = await _client.post(
-        Uri.parse("$apiUrl/create-new-user"),
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-        body: json.encode(requestBody),
-      );
-
-      debugPrint('Response Status: ${response.statusCode}');
-      debugPrint('Response Body: ${response.body}');
-      debugPrint('Request URL: ${apiUrl}/create-new-user');
-      debugPrint('Full Request Body: ${json.encode(requestBody)}');
-
-      return response.statusCode == 201;
-    } catch (e) {
-      debugPrint('Registration Error: $e');
-      return false;
-    }
-  }
-
-  // static Future<bool> createTasker(TaskerModel tasker){
-  //   var request = http.MultipartRequest("POST", Uri.parse("$apiUrl/"))
-  // }
-
-  static Future<Map<String, dynamic>> fetchAuthenticatedUser(
-      String userId) async {
     try {
       final String token = await AuthService.getSessionToken();
 
@@ -170,10 +268,13 @@ class ApiService {
       } else {
         return {"error": data['error'] ?? "Failed to fetch user data"};
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint(e.toString());
-      debugPrintStack();
-      return {"error": "An error occurred: $e"};
+      debugPrintStack(stackTrace: stackTrace);
+      return {
+        "error":
+            "An error occurred while retrieving your information. Please try again."
+      };
     }
   }
 
@@ -189,7 +290,7 @@ class ApiService {
         }),
       );
 
-      _updateCookies(response);
+      //_updateCookies(response);
 
       var data = json.decode(response.body);
 
@@ -202,8 +303,9 @@ class ApiService {
       } else {
         return {"error": data['error'] ?? 'Authentication Failed'};
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('Error: $e');
+      debugPrintStack(stackTrace: stackTrace);
       return {"error": "An error occurred: $e"};
     }
   }
@@ -248,7 +350,7 @@ class ApiService {
       );
 
       //debugPrint('Sent Headers: ${_getHeaders()}'); // Debugging
-      _updateCookies(response); // 🔥 Store session cookies
+      //_updateCookies(response); // 🔥 Store session cookies
 
       var data = json.decode(response.body);
       debugPrint('Decoded Data Type: ${data.runtimeType}');
@@ -270,11 +372,12 @@ class ApiService {
         debugPrint(validationMessage);
         return {"validation_error": validationMessage};
       } else {
-        return {"error": data['error'] ?? "OTP Authentication Failed"};
+        return {"error": data['error'] ?? "OTP Authentication Failed. Please Try again."};
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('Error: $e');
-      return {"error": "An error occurred: $e"};
+      debugPrintStack(stackTrace: stackTrace);
+      return {"error": "OTP Authentication Failed. Please Try again. If the Problem Persists, Contact Us."};
     }
   }
 
@@ -285,7 +388,7 @@ class ApiService {
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer $session",
-          // "Access-Control-Allow-Credentials": "true"
+          "Access-Control-Allow-Credentials": "true"
         },
         body: json.encode({"user_id": userId, "session": session}),
       );
@@ -295,10 +398,11 @@ class ApiService {
 
       if (response.statusCode == 200) {
         _cookies.remove("session"); // Remove only the session cookie
+        storage.erase();
         return {"message": "Logged out successfully"};
       } else {
         var data = json.decode(response.body);
-        return {"error": data['message'] ?? "Failed to logout"};
+        return {"error": data['error'] ?? "Failed to logout"};
       }
     } catch (e) {
       debugPrint('Logout Error: $e');
@@ -310,14 +414,13 @@ class ApiService {
       Conversation conversation) async {
     try {
       String token = await AuthService.getSessionToken();
+
       final response = await http.post(Uri.parse("$apiUrl/send-message"),
           headers: {
             "Authorization": "Bearer $token",
             "Content-Type": "application/json"
           },
-          body: {
-            conversation.toJson()
-          });
+          body: jsonEncode(conversation.toJson()));
 
       var data = jsonDecode(response.body);
 
@@ -335,6 +438,7 @@ class ApiService {
         };
       }
     } catch (e) {
+      debugPrint(e.toString());
       debugPrintStack();
       return {
         "error": "An Error Occured while Sending a Message. Please Try Again"
@@ -346,27 +450,44 @@ class ApiService {
     try {
       String token = await AuthService.getSessionToken();
 
-      final response = await http.get(Uri.parse("$apiUrl/task/$taskTakenId"),
-          headers: {
-            "Authorization": "Bearer $token",
-            "Accept": "application/json"
-          });
+      final response = await http.get(
+        Uri.parse("$apiUrl/messages/$taskTakenId"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Accept": "application/json",
+        },
+      );
+
+      debugPrint("All Messages Data: " + response.body.toString());
 
       var data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        Conversation messages = Conversation.fromJson(data['messages']);
-        return {"messages": messages};
+        if (data['data'] != null && data['data'] is List) {
+          return {"messages": data['data']}; // Return the list directly
+        } else {
+          return {}; // No messages found
+        }
       } else {
-        return {"error": data['error']};
+        return {"error": data['error'] ?? "Failed to retrieve messages"};
       }
     } catch (e, st) {
       debugPrint(e.toString());
       debugPrint(st.toString());
       return {
         "error":
-            "An Error Occured while retrieving your conversation. Please Try Again."
+            "An error occurred while retrieving your conversation. Please try again."
       };
     }
+  }
+
+  static Map<String, String> _getHeaders() {
+    String cookieHeader =
+        _cookies.entries.map((e) => '${e.key}=${e.value}').join('; ');
+    return {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      if (_cookies.isNotEmpty) "Cookie": cookieHeader,
+    };
   }
 }

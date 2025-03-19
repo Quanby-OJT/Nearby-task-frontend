@@ -1,0 +1,24 @@
+/* component.css */
+.container {
+    display: grid;
+    grid-template-areas: 
+      "top-left top-right"
+      "bottom bottom";
+    gap: 20px;
+    height: 100vh;
+  }
+  
+  .top-left {
+    grid-area: top-left;
+    /* Add any specific styling needed */
+  }
+  
+  .top-right {
+    grid-area: top-right;
+    /* Add any specific styling needed */
+  }
+  
+  .bottom {
+    grid-area: bottom;
+    /* Add any specific styling needed */
+  }

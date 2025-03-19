@@ -1,12 +1,19 @@
+import 'package:flutter_fe/model/task_assignment.dart';
+import 'package:flutter_fe/model/user_model.dart';
+
 class Conversation {
-  final int userId;
-  final int taskTakenId;
-  final String conversationMessage;
+  final UserModel? user;
+  final TaskAssignment? taskTaken;
+  final String? conversationMessage;
+  final int? userId;
+  final int? taskTakenId;
 
   Conversation({
-    required this.userId,
-    required this.conversationMessage,
-    required this.taskTakenId
+    this.user,
+    this.conversationMessage,
+    this.taskTaken,
+    this.userId,
+    this.taskTakenId
   });
 
   Map<String, dynamic> toJson() {
@@ -17,10 +24,16 @@ class Conversation {
     };
   }
 
+  @override
+  String toString() {
+    return "Conversation(user: $user, taskTaken: $taskTaken, conversationMessage: $conversationMessage)";
+  }
+
   factory Conversation.fromJson(Map<String, dynamic> json) {
     return Conversation(
+        user: json['user'],
         userId: json['user_id'],
-        taskTakenId: json['task_taken_id'],
+        taskTaken: json['task_taken'],
         conversationMessage: json['conversation'],
     );
   }

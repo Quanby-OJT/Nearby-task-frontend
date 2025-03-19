@@ -55,4 +55,9 @@ class UserModel {
       "acc_status": accStatus
     };
   }
+
+  @override
+  String toString() {
+    return 'UserModel(firstName: $firstName, middleName: $middleName, lastName: $lastName, email: $email, password: ${password != null ? "****" : "null"}, role: $role, accStatus: $accStatus)';
+  }
 }

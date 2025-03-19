@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
-import 'dart:io';
-import 'package:flutter_fe/model/conversation.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
+import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:get_storage/get_storage.dart';
 
 class ChatScreen extends StatefulWidget {
-  final int? taskTakenId;
-  const ChatScreen({super.key, this.taskTakenId});
+  const ChatScreen({super.key});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  List<TaskAssignment>? taskAssignments;
+  List<TaskAssignment>? taskAssignments; // This is already correctly typed
   final GetStorage storage = GetStorage();
   final TaskController _taskController = TaskController();
 
@@ -27,10 +25,11 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _fetchTaskAssignments() async {
     int userId = storage.read('user_id');
 
-    TaskAssignment? assignTask = await _taskController.getAllAssignedTasks(context, userId);
+    // Get the list of task assignments
+    List<TaskAssignment>? fetchedAssignments = await _taskController.getAllAssignedTasks(context, userId);
 
     setState(() {
-      // taskAssignments = assignTask;
+      taskAssignments = fetchedAssignments; // Assign the list directly
     });
   }
 
@@ -65,7 +64,7 @@ class _ChatScreenState extends State<ChatScreen> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Text(
-                "You Don't Have Messages Yet, You can Start a Conversation By 'Right-Swiping' Your Favorite Tasker.",
+                "You Don't Have Messages Yet, You can Start a Conversation By 'Right-Swiping' Your Favorite Task in hand.",
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16),
               ),
@@ -82,14 +81,29 @@ class _ChatScreenState extends State<ChatScreen> {
               assignment.task.title ?? "Unknown Task",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            subtitle: Text(
-              "📍 ${assignment.client.user?.firstName ?? ''} ${assignment.client.user?.middleName ?? ''} ${assignment.client.user?.lastName ?? ''}",
-              style: TextStyle(fontSize: 14),
+            subtitle: Row(
+              children: [
+                Icon(
+                  Icons.cases,
+                  size: 20,
+                ),
+                Text(
+                "${assignment.tasker.user?.firstName ?? ''} ${assignment.tasker.user?.middleName ?? ''} ${assignment.tasker.user?.lastName ?? ''}",
+                    style: TextStyle(fontSize: 14),
+                )
+              ]
             ),
             trailing: Icon(Icons.arrow_forward_ios,
                 size: 16, color: Colors.grey),
             onTap: () {
-              // Open task details
+              // Open Chat History
+              debugPrint("Task Id: " + assignment.taskTakenId.toString());
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => IndividualChatScreen(taskTitle: assignment.task.title, taskTakenId: assignment.task.id ?? 0)
+                ),
+              );
             },
           );
         },
