@@ -13,7 +13,8 @@ class ProfileController {
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
   final TextEditingController roleController = TextEditingController();
   final TextEditingController statusController = TextEditingController();
   final TextEditingController middleNameController = TextEditingController();
@@ -25,7 +26,8 @@ class ProfileController {
 
   //Tasker Text Controller
   final TextEditingController bioController = TextEditingController();
-  final TextEditingController specializationController = TextEditingController();
+  final TextEditingController specializationController =
+      TextEditingController();
   final TextEditingController skillsController = TextEditingController();
   final TextEditingController taskerAddressController = TextEditingController();
   final TextEditingController availabilityController = TextEditingController();
@@ -40,8 +42,6 @@ class ProfileController {
   final TextEditingController prefsController = TextEditingController();
   final TextEditingController clientAddressController = TextEditingController();
   final storage = GetStorage();
-
-
 
   //Client Text Controller
 
@@ -249,66 +249,75 @@ class ProfileController {
     }
   }
 
-  Future<int> verifyEmail(BuildContext context, String token, String email) async {
-    try {
-      final response = await ApiService.verifyEmail(token, email);
-      if (response.containsKey("message")) {
-        await storage.write("session", response["token"]);
-        await storage.write("user_id", response["user_id"]);
-        return response["user_id"];
-      }
-      return 0;
-    } catch (e, stackTrace) {
-      debugPrint(e.toString());
-      debugPrintStack(stackTrace: stackTrace);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Verification failed. Please Try Again.')),
-      );
-      return 0;
-    }
-  }
+  // Future<int> verifyEmail(
+  //     BuildContext context, String token, String email) async {
+  //   try {
+  //     final response = await ApiService.verifyEmail(token, email);
+  //     if (response.containsKey("message")) {
+  //       await storage.write("session", response["token"]);
+  //       await storage.write("user_id", response["user_id"]);
+  //       return response["user_id"];
+  //     }
+  //     return 0;
+  //   } catch (e, stackTrace) {
+  //     debugPrint(e.toString());
+  //     debugPrintStack(stackTrace: stackTrace);
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Verification failed. Please Try Again.')),
+  //     );
+  //     return 0;
+  //   }
+  // }
 
-
-  Future<void> createTasker(BuildContext context, String specialization, String gender, String image, String tesdaFile, File documentFile, File profileImage) async {
-     if (birthdateController.text.isEmpty) {
+  Future<void> createTasker(
+      BuildContext context,
+      String specialization,
+      String gender,
+      String image,
+      String tesdaFile,
+      File documentFile,
+      File profileImage) async {
+    if (birthdateController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Please enter your birthdate')),
       );
       return;
     }
     DateTime birthDate = DateTime.parse(birthdateController.text);
-    DateTime eighteenYearsAgo = DateTime.now().subtract(Duration(days: 18 * 365));
+    DateTime eighteenYearsAgo =
+        DateTime.now().subtract(Duration(days: 18 * 365));
     if (birthDate.isAfter(eighteenYearsAgo)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('You must be at least 18 years old to register')),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('You must be at least 18 years old to register')),
       );
       return;
     }
 
     TaskerModel tasker = TaskerModel(
-      bio: bioController.text,
-      specialization: specialization,
-      skills: skillsController.text,
-      taskerAddress: taskerAddressController.text,
-      taskerDocuments: tesdaFile,
-      socialMediaLinks: socialMediaController.text,
-      availability: false,
-      wage: double.tryParse(wageController.text) ?? 0,
-      group: false,
-      phoneNumber: contactNumberController.text,
-      gender: gender,
-      payPeriod: "Hourly",
-      birthDate: DateTime.parse(birthdateController.text)
-    );
+        bio: bioController.text,
+        specialization: specialization,
+        skills: skillsController.text,
+        taskerAddress: taskerAddressController.text,
+        taskerDocuments: tesdaFile,
+        socialMediaLinks: socialMediaController.text,
+        availability: false,
+        wage: double.tryParse(wageController.text) ?? 0,
+        group: false,
+        phoneNumber: contactNumberController.text,
+        gender: gender,
+        payPeriod: "Hourly",
+        birthDate: DateTime.parse(birthdateController.text));
 
     //Code to create tasker information.
-    Map<String, dynamic> resultData = await ApiService.createTasker(tasker, documentFile, profileImage);
+    Map<String, dynamic> resultData =
+        await ApiService.createTasker(tasker, documentFile, profileImage);
 
     if (resultData.containsKey('message')) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(resultData['message'])),
       );
-    }else{
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(resultData['error'])),
       );

@@ -21,7 +21,7 @@ class ApiService {
   static void _updateCookies(http.Response response) {
     String? rawCookie = response.headers['set-cookie'];
     debugPrint('Raw Cookie: $rawCookie');
-    
+
     List<String> cookieParts = rawCookie!.split(',');
     for (String part in cookieParts) {
       List<String> keyValue = part.split(';')[0].split('=');
@@ -50,11 +50,10 @@ class ApiService {
         }),
       );
 
-      var data = jsonDecode(response.body);
+      // var data = jsonDecode(response.body);
 
       debugPrint('Response Status: ${response.statusCode}');
       debugPrint('Response Body: ${response.body}');
-
 
       final data = jsonDecode(response.body);
 
@@ -83,7 +82,6 @@ class ApiService {
     } catch (e) {
       debugPrint('Registration Error: $e');
       return {"errors": "An error occurred while registering your account: $e"};
-
     }
   }
 
@@ -115,8 +113,6 @@ class ApiService {
       return {"error": "An error occurred during email verification: $e"};
     }
   }
-
-  
 
 //   static Future<Map<String, dynamic>> verifyEmail(
 //       String token, String email) async {
@@ -231,10 +227,8 @@ class ApiService {
       };
     }
   }
-  
-  
-  static Future<Map<String, dynamic>> fetchAuthenticatedUser(String userId) async {
 
+  static Future<Map<String, dynamic>> fetchAuthenticatedUser(int userId) async {
     try {
       final String token = await AuthService.getSessionToken();
 
@@ -372,12 +366,18 @@ class ApiService {
         debugPrint(validationMessage);
         return {"validation_error": validationMessage};
       } else {
-        return {"error": data['error'] ?? "OTP Authentication Failed. Please Try again."};
+        return {
+          "error":
+              data['error'] ?? "OTP Authentication Failed. Please Try again."
+        };
       }
     } catch (e, stackTrace) {
       debugPrint('Error: $e');
       debugPrintStack(stackTrace: stackTrace);
-      return {"error": "OTP Authentication Failed. Please Try again. If the Problem Persists, Contact Us."};
+      return {
+        "error":
+            "OTP Authentication Failed. Please Try again. If the Problem Persists, Contact Us."
+      };
     }
   }
 
