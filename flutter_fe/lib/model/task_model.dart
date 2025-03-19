@@ -66,9 +66,7 @@ class TaskModel {
       duration: json['duration']?.toString(),
       period: json['period']?.toString(),
        // Convert boolean to string for urgency
-      urgency: json['urgent'] as bool
-        ? "This task is urgent"
-        : "This task is not urgent.",
+      urgency: json['urgent'] as String,
       //urgency: json['urgent'] as String,  // <- Fix key from "urgency" to "urgent"
       contactPrice: json['proposed_price'] as int?,
       remarks: json['remarks'] as String?,

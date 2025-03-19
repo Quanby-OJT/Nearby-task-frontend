@@ -24,8 +24,7 @@ class TaskController {
   final contactpriceController = TextEditingController();
   final storage = GetStorage();
 
-  Future<Map<String, dynamic>> postJob(String? specialization, String? urgency,
-      String? period, String? workType) async {
+  Future<Map<String, dynamic>> postJob(String? specialization, String? urgency, String? period, String? workType) async {
     try {
       int userId = storage.read('user_id');
       print('Submitting data...');
@@ -82,6 +81,7 @@ class TaskController {
         ? assignedTask['message'].toString()
         : assignedTask['error'].toString();
   }
+
   //All Messages to client/tasker
   Future<List<TaskAssignment>?> getAllAssignedTasks(BuildContext context, int userId) async {
     final assignedTasks = await TaskDetailsService().getAllTakenTasks();
@@ -112,9 +112,10 @@ class TaskController {
           id: taskTakenId, // Use taskTakenId here if it’s meant to be the task’s ID
         );
 
-        // Parse client and its user
-        Map<String, dynamic> clientData = item['clients'] != null ? item['clients'] as Map<String, dynamic> : {};
-        Map<String, dynamic> clientUserData = clientData['user'] as Map<String, dynamic>;
+        Map<String, dynamic> clientData =
+            item['clients'] as Map<String, dynamic>;
+        Map<String, dynamic> clientUserData =
+            clientData['user'] as Map<String, dynamic>;
         UserModel clientUser = UserModel(
           firstName: clientUserData['first_name'] as String? ?? '',
           middleName: clientUserData['middle_name'] as String? ?? '',
@@ -128,8 +129,6 @@ class TaskController {
           clientAddress: '',
           user: clientUser,
         );
-        ClientModel client =
-            ClientModel(preferences: '', clientAddress: '', user: clientUser);
 
         // Parse tasker and its user
         Map<String, dynamic> taskerData = item['tasker'] != null ? item['tasker'] as Map<String, dynamic> : {};

@@ -604,7 +604,7 @@ class _JobPostPageState extends State<JobPostPage> {
       _isSuccess = false;
     });
 
-    bool urgent = selectedUrgency == "Urgent";
+    selectedUrgency == "Urgent";
     try {
       final result = await controller.postJob(selectedSpecialization,
           selectedUrgency, selectedTimePeriod, selectedWorkType);

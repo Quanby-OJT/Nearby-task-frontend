@@ -5,6 +5,7 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/controller/conversation_controller.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/view/chat/task_details_screen.dart';
 import 'package:get_storage/get_storage.dart';
 
 class IndividualChatScreen extends StatefulWidget {
@@ -66,55 +67,87 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.taskTitle ?? "Please Wait..."),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Left side with flexible width
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.taskTitle ?? "Please Wait...",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis, // Prevents text overflow
+                  ),
+                ],
+              ),
+            ),
+            // Right side with icons
+            Row(
+              mainAxisSize: MainAxisSize.min, // Keeps icons tightly packed
+              children: [
+                IconButton(
+                  icon: Icon(Icons.info_outline, color: Color(0xFF0272B1)),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TaskDetailsScreen(
+                          taskTakenId: widget.taskTakenId ?? 0,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
         backgroundColor: Colors.transparent,
       ),
       body: Column(
         children: [
           Expanded(
             child: _messages.isEmpty
-              ? Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment:
-                    MainAxisAlignment.center, // Centers vertically
-                    crossAxisAlignment:
-                    CrossAxisAlignment.center, // Centers horizontally
-                    children: [
-                      Icon(
-                        Icons.message,
-                        size: 100,
-                        color: Color(0xFF0272B1),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: Text(
-                          "You Don't Have Messages Yet, You can Start a Conversation By Sending Your First Message to your Client.",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ],
+                ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.message,
+                    size: 100,
+                    color: Color(0xFF0272B1),
                   ),
-                ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      "You Don't Have Messages Yet, You can Start a Conversation By Sending Your First Message to your Client.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ],
+              ),
             )
-            :
-            ListView.builder(
+                : ListView.builder(
               controller: _scrollController,
               reverse: false,
               itemCount: _messages.length,
               itemBuilder: (context, index) {
-              final message = _messages[index];
-              return _ChatBubble(
-                message: message,
-                profile: message.user ?? UserModel(
-                    firstName: message.user?.firstName ?? "Loading...",
-                    middleName: '',
-                    lastName: '',
-                    email: '',
-                    role: '',
-                    accStatus: '',
-                  ),
+                final message = _messages[index];
+                return _ChatBubble(
+                  message: message,
+                  profile: message.user ??
+                      UserModel(
+                        firstName: message.user?.firstName ?? "Loading...",
+                        middleName: '',
+                        lastName: '',
+                        email: '',
+                        role: '',
+                        accStatus: '',
+                      ),
                 );
               },
             ),

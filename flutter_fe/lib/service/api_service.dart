@@ -14,7 +14,7 @@ import '../model/client_model.dart';
 
 class ApiService {
   static const String apiUrl =
-      "http://localhost:5000/connect"; // Adjust if needed
+      "http://10.0.2.2:5000/connect"; // Adjust if needed
   static final storage = GetStorage();
 
   static final http.Client _client = http.Client();
@@ -225,8 +225,7 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> fetchAuthenticatedUser(
-      String userId) async {
+  static Future<Map<String, dynamic>> fetchAuthenticatedUser(String userId) async {
     try {
       final String token = await AuthService.getSessionToken();
       final response = await http.get(Uri.parse("$apiUrl/getUserData/$userId"),
@@ -254,9 +253,9 @@ class ApiService {
       } else {
         return {"error": data['error'] ?? "Failed to fetch user data"};
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint(e.toString());
-      debugPrintStack();
+      debugPrintStack(stackTrace: stackTrace);
       return {
         "error":
             "An error occurred while retrieving your information. Please try again."
