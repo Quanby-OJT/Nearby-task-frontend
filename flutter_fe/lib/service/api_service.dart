@@ -13,7 +13,7 @@ import '../model/tasker_model.dart';
 import '../model/client_model.dart';
 
 class ApiService {
-  static const String apiUrl = "http://localhost:5000/connect";
+  static const String apiUrl = "http://10.0.2.2:5000/connect"; // Adjust if needed
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
   static final Map<String, String> _cookies = {};
@@ -34,20 +34,31 @@ class ApiService {
 
   static Future<Map<String, dynamic>> registerUser(UserModel user) async {
     try {
+      // Create a salt using timestamp
+      String salt = DateTime.now().millisecondsSinceEpoch.toString();
+
+      // Create the request payload
+      // Map<String, dynamic> requestBody = {
+      //   "data": {
+      //     "first_name": user.firstName,
+      //     "middle_name": user.middleName,
+      //     "last_name": user.lastName,
+      //     "email": user.email,
+      //     "password": user.password,
+      //     "user_role": user.role,
+      //     // "acc_status": user.accStatus
+      //   },
+      //   "salt": salt
+      // };
+
+      debugPrint('Request Body: ${user.toJson}'); // Debug log
       final response = await _client.post(
         Uri.parse("$apiUrl/create-new-account"),
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
         },
-        body: json.encode({
-          "first_name": user.firstName,
-          "middle_name": user.middleName,
-          "last_name": user.lastName,
-          "email": user.email,
-          "password": user.password,
-          "user_role": user.role,
-        }),
+        body: json.encode({...user.toJson(), "salt": salt}),
       );
 
       // var data = jsonDecode(response.body);
@@ -366,18 +377,12 @@ class ApiService {
         debugPrint(validationMessage);
         return {"validation_error": validationMessage};
       } else {
-        return {
-          "error":
-              data['error'] ?? "OTP Authentication Failed. Please Try again."
-        };
+        return {"error": data['error'] ?? "OTP Authentication Failed. Please Try again."};
       }
     } catch (e, stackTrace) {
       debugPrint('Error: $e');
       debugPrintStack(stackTrace: stackTrace);
-      return {
-        "error":
-            "OTP Authentication Failed. Please Try again. If the Problem Persists, Contact Us."
-      };
+      return {"error": "OTP Authentication Failed. Please Try again. If the Problem Persists, Contact Us."};
     }
   }
 

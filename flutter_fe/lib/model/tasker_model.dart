@@ -43,7 +43,7 @@ class TaskerModel {
   //Factory to manage tasker data.
   factory TaskerModel.fromJson(Map<String, dynamic> json) {
     return TaskerModel(
-      id: json["id"] ?? '',
+      id: json["id"] ?? 0,
       bio: json['bio'] ?? '',
       skills: json['skills'] ?? '',
       availability: json['availability'] ?? false,
@@ -63,6 +63,7 @@ class TaskerModel {
       group: json['group'] ?? false,
     );
   }
+
 
   Map<String, dynamic> toJson() {
     return {

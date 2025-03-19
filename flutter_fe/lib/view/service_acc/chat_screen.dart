@@ -101,7 +101,7 @@ class _ChatScreenState extends State<ChatScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => IndividualChatScreen(taskTitle: assignment.task.title, taskTakenId: assignment.task.id ?? 0)
+                  builder: (context) => IndividualChatScreen(taskTitle: assignment.task.title, taskTakenId: assignment.taskTakenId ?? 0, taskId: assignment.task.id ?? 0)
                 ),
               );
             },
