@@ -8,7 +8,7 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:get_storage/get_storage.dart';
 
 class JobPostService {
-  static const String apiUrl = "http://10.0.2.2:5000/connect";
+  static const String apiUrl = "http://localhost:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -53,7 +53,6 @@ class JobPostService {
 
     return _handleResponse(response);
   }
-
   Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
@@ -102,7 +101,7 @@ class JobPostService {
       // Check if response contains the "tasks" key and it's a Map
       if (response.containsKey("tasks") && response["tasks"] is Map) {
         Map<String, dynamic> taskData =
-        response["tasks"] as Map<String, dynamic>;
+            response["tasks"] as Map<String, dynamic>;
         debugPrint("Mapped: ${taskData.toString()}");
         return TaskModel.fromJson(taskData);
       }
@@ -134,14 +133,16 @@ class JobPostService {
 
       // Check if allJobsResponse is a valid Map with tasks
       if (allJobsResponse.containsKey("error")) {
-        debugPrint("Error fetching jobs: ${allJobsResponse['error'] ?? 'Invalid response'}");
+        debugPrint(
+            "Error fetching jobs: ${allJobsResponse['error'] ?? 'Invalid response'}");
         return [];
       }
 
       // Ensure 'tasks' exists and is a List
       final tasks = allJobsResponse["tasks"];
       if (tasks == null || tasks is! List) {
-        debugPrint("Unexpected response format: 'tasks' is missing or not a list");
+        debugPrint(
+            "Unexpected response format: 'tasks' is missing or not a list");
         return [];
       }
 
@@ -166,14 +167,11 @@ class JobPostService {
         'requiresLogin': true
       };
     }
-    return _postRequest(
-        endpoint: "/likeJob",
-        body: {
-          "user_id": int.parse(userId),
-          "task_id": jobId,
-          "created_at": DateTime.now().toString()
-        }
-    );
+    return _postRequest(endpoint: "/likeJob", body: {
+      "user_id": int.parse(userId),
+      "task_id": jobId,
+      "created_at": DateTime.now().toString()
+    });
   }
 
   Future<Map<String, dynamic>> unlikeJob(int jobId) async {
@@ -205,33 +203,36 @@ class JobPostService {
     try {
       String? userId = await getUserId();
 
-    final likedJobsResponse = await _getRequest("/displayLikedJob/$userId");
-    final allJobsResponse = await _getRequest("/displayTask");
+      final likedJobsResponse = await _getRequest("/displayLikedJob/$userId");
+      final allJobsResponse = await _getRequest("/displayTask");
 
       if (likedJobsResponse.containsKey('tasks')) {
-        final List<dynamic> likedJobs = likedJobsResponse['tasks'] as List<dynamic>;
+        final List<dynamic> likedJobs =
+            likedJobsResponse['tasks'] as List<dynamic>;
         debugPrint("Raw liked jobs: $likedJobs"); // Debug print
 
         final allJobsResponse = await _getRequest('/displayTask');
 
         // Get liked job IDs safely
         final Set<int> likedJobIds = likedJobs
-            .where((job) => job['job_post_id'] != null) // Filter out null values
+            .where(
+                (job) => job['job_post_id'] != null) // Filter out null values
             .map<int>((job) => (job['job_post_id'] is int
-            ? job['job_post_id']
-            : int.parse(job['job_post_id'].toString())) as int)
+                ? job['job_post_id']
+                : int.parse(job['job_post_id'].toString())) as int)
             .toSet();
 
-    debugPrint("Liked Jobs Response ${likedJobsResponse.toString()}");
-    debugPrint("All Jobs: ${likedJobIds.toString()}");
+        debugPrint("Liked Jobs Response ${likedJobsResponse.toString()}");
+        debugPrint("All Jobs: ${likedJobIds.toString()}");
 
-    final filteredJobs = (allJobsResponse["tasks"] as List<dynamic>? ?? [])
-        .where((job) {
-          final jobId = job["task_id"]; // Changed from "task_id" to "task_id"
-          return jobId is int && likedJobIds.contains(jobId);
-        })
-        .map((job) => TaskModel.fromJson(job))
-        .toList();
+        final filteredJobs = (allJobsResponse["tasks"] as List<dynamic>? ?? [])
+            .where((job) {
+              final jobId =
+                  job["task_id"]; // Changed from "task_id" to "task_id"
+              return jobId is int && likedJobIds.contains(jobId);
+            })
+            .map((job) => TaskModel.fromJson(job))
+            .toList();
 
         debugPrint("Filtered Jobs: ${filteredJobs.toString()}");
         return filteredJobs;
@@ -247,8 +248,8 @@ class JobPostService {
 
   Future<String?> getUserId() async => storage.read('user_id')?.toString();
 
-  Future<Map<String, dynamic>> assignTask(int? taskId, int? clientId,
-      int? taskerId) async {
+  Future<Map<String, dynamic>> assignTask(
+      int? taskId, int? clientId, int? taskerId) async {
     final userId = await getUserId();
     if (userId == null) {
       return {
@@ -258,7 +259,10 @@ class JobPostService {
       };
     }
 
-    debugPrint(taskId.toString() + " " + clientId.toString() + " " +
+    debugPrint(taskId.toString() +
+        " " +
+        clientId.toString() +
+        " " +
         taskerId.toString());
 
     return _postRequest(endpoint: "$apiUrl/assign-task", body: {
