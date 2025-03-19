@@ -556,41 +556,79 @@ class _JobPostPageState extends State<JobPostPage> {
   }
 
   Future<void> _submitJob() async {
-    debugPrint("Submitting job...");
-    setState(() {
-      _message = "";
-      _errors.clear(); // Clears previous errors
-      _isSuccess = false;
-    });
-
-    final result = await controller.postJob(
-        selectedSpecialization, selectedUrgency, selectedTimePeriod);
-    debugPrint(result.toString());
-
-    if (result['success']) {
+    try {
       setState(() {
-        _message = result['message'] ?? "Successfully Posted Task.";
-        _isSuccess = true;
+        _message = 'Submitting task...';
+        _isSuccess = false;
       });
-    } else {
+
+      final result = await controller.postJob(
+          selectedSpecialization, selectedUrgency, selectedTimePeriod);
+
+      debugPrint("Result from posting job: $result");
+
+      // Handle null safety for success field
+      bool isSuccess =
+          result.containsKey('success') && result['success'] == true;
+
       setState(() {
-        if (result.containsKey('errors') && result['errors'] is List) {
-          for (var error in result['errors']) {
-            if (error is Map<String, dynamic> &&
-                error.containsKey('path') &&
-                error.containsKey('msg')) {
-              _errors[error['path']] =
-                  error['msg']; // Store field-specific errors
-            }
-          }
-        } else if (result.containsKey('message')) {
-          _message = result['message'];
+        if (isSuccess) {
+          _message = result['message'] ?? "Successfully Posted Task.";
+          _isSuccess = true;
+
+          // Reset form fields
+          controller.jobTitleController.clear();
+          controller.jobDescriptionController.clear();
+          controller.jobLocationController.clear();
+          controller.jobTaskBeginDateController.clear();
+          controller.contactPriceController.clear();
+          controller.jobTimeController.clear();
+
+          selectedSpecialization = null;
+          selectedUrgency = null;
+          selectedTimePeriod = null;
+        } else {
+          _message = result['error'] ?? "Failed to post task.";
+          _isSuccess = false;
         }
       });
-    }
 
-    if (_isSuccess) {
-      getAllJobsforClient();
+      if (_isSuccess) {
+        // Refresh job list
+        await getAllJobsforClient();
+        // Close the modal if open
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_message!),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_message!),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint("Error in _submitJob: $e");
+      setState(() {
+        _message = "An error occurred: $e";
+        _isSuccess = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("An error occurred: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 

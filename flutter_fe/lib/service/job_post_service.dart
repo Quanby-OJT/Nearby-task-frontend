@@ -70,12 +70,19 @@ class JobPostService {
 
   Future<Map<String, dynamic>> postJob(TaskModel task, int userId) async {
     try {
-      Future<Map<String, dynamic>> response = _postRequest(
+      Map<String, dynamic> response = await _postRequest(
         endpoint: "/addTask",
         body: {...task.toJson(), "user_id": userId},
       );
 
-      return response;
+      // Ensure the success field is always a boolean
+      return {
+        'success': response.containsKey('success')
+            ? response['success'] == true
+            : false,
+        'message': response['message'] ?? 'Task posted successfully',
+        'error': response['error']
+      };
     } catch (e) {
       debugPrint(e.toString());
       debugPrintStack();

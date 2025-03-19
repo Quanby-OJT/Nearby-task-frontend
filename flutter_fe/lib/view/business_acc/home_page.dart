@@ -5,6 +5,7 @@ import 'package:flip_card/flip_card.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
+import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
 import 'package:flutter_fe/view/nav/user_navigation.dart';
 
 class HomePage extends StatefulWidget {
@@ -330,6 +331,34 @@ class _HomePageState extends State<HomePage> {
                                     Text(
                                       "Role: ${task.role}",
                                       style: TextStyle(fontSize: 16),
+                                    ),
+                                    SizedBox(height: 20),
+                                    Center(
+                                      child: ElevatedButton.icon(
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  TaskerProfilePage(
+                                                      tasker: task),
+                                            ),
+                                          );
+                                        },
+                                        icon: Icon(Icons.person,
+                                            color: Colors.white),
+                                        label: Text('View Full Profile'),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Color(0xFF0272B1),
+                                          foregroundColor: Colors.white,
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 20, vertical: 10),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                     Spacer(),
                                     Center(
