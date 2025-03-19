@@ -90,9 +90,6 @@ class TaskController {
     if (assignedTasks.containsKey('data') && assignedTasks['data'] != null) {
       List<dynamic> dataList = assignedTasks['data'] as List<dynamic>;
       List<TaskAssignment> taskAssignments = dataList.map((item) {
-        // Get task_taken_id from the root level of item
-        int? taskTakenId = item['task_taken_id'] as int?; // Correct key
-        debugPrint("Task Taken ID: $taskTakenId"); // Verify the value
 
         // Parse tasks from post_task
         Map<String, dynamic> taskData = item['post_task'] as Map<String, dynamic>;
@@ -109,7 +106,7 @@ class TaskController {
           contactPrice: null,
           remarks: null,
           taskBeginDate: null,
-          id: taskTakenId, // Use taskTakenId here if it’s meant to be the task’s ID
+          id: taskData['task_id'], // Use taskTakenId here if it’s meant to be the task’s ID
         );
 
         // Parse client and its user
@@ -154,6 +151,8 @@ class TaskController {
           group: false,
           user: taskerUser,
         );
+
+        int taskTakenId = item['task_taken_id'];
 
         // Create TaskAssignment with the correct taskTakenId
         TaskAssignment assignment = TaskAssignment(

@@ -13,8 +13,7 @@ import '../model/tasker_model.dart';
 import '../model/client_model.dart';
 
 class ApiService {
-  static const String apiUrl =
-      "http://localhost:5000/connect"; // Adjust if needed
+  static const String apiUrl = "http://10.0.2.2:5000/connect"; // Adjust if needed
   static final storage = GetStorage();
 
   static final http.Client _client = http.Client();
@@ -254,9 +253,9 @@ class ApiService {
       } else {
         return {"error": data['error'] ?? "Failed to fetch user data"};
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint(e.toString());
-      debugPrintStack();
+      debugPrintStack(stackTrace: stackTrace);
       return {
         "error":
             "An error occurred while retrieving your information. Please try again."
