@@ -10,6 +10,7 @@ import 'package:get_storage/get_storage.dart';
 
 class TaskController {
   final JobPostService _jobPostService = JobPostService();
+  final TaskDetailsService _taskDetailsService = TaskDetailsService();
   final jobIdController = TextEditingController();
   final jobTitleController = TextEditingController();
   final jobSpecializationController = TextEditingController();
@@ -172,6 +173,23 @@ class TaskController {
                 "Something Went Wrong while Retrieving Your Tasks.")),
       );
       return null;
+    }
+  }
+
+  //Update Task Status in Conversation
+  Future<void> updateTaskStatus(BuildContext context, int taskTakenId, String? newStatus) async {
+    try {
+      final response = await _taskDetailsService.updateTaskStatus(taskTakenId, newStatus);
+
+      if (response.containsKey("message")) {
+        debugPrint('Task status updated successfully');
+      } else {
+        debugPrint('Failed to update task status: ${response["error"]}');
+      }
+    }
+    catch (e, stackTrace) {
+      debugPrint('Error updating task status: $e');
+      debugPrintStack(stackTrace: stackTrace);
     }
   }
 }

@@ -10,6 +10,7 @@ class TaskDetailsService {
   final storage = GetStorage();
 
   Map<String, dynamic> _handleResponse(http.Response response) {
+    debugPrint(response.body);
     final responseBody = jsonDecode(response.body);
     if (response.statusCode >= 200 && response.statusCode < 300) {
       debugPrint(responseBody.toString());
@@ -95,6 +96,20 @@ class TaskDetailsService {
       debugPrint(e.toString());
       debugPrint(st.toString());
       return {"error": "An Error Occured while getting all jobs."};
+    }
+  }
+
+  //This is for client.
+  Future<Map<String, dynamic>> updateTaskStatus(int taskTakenId, String? newStatus) async {
+    try{
+      return await _postRequest(endpoint: "/update-status-client", body: {
+        "task_id": taskTakenId,
+        "status": newStatus,
+      });
+    }catch(e, stackTrace){
+      debugPrint(e.toString());
+      debugPrint(stackTrace.toString());
+      return {"error": "An Error Occured while updating task status."};
     }
   }
 }
