@@ -120,13 +120,13 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
               Text(
                 'Create a New Client Account',
                 style: TextStyle(
-                  color: const Color(0xFF0272B1),
-                  fontSize: 30,
-                  fontWeight: FontWeight.bold
-                ),
+                    color: const Color(0xFF0272B1),
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 child: Text(
                   "With ONE SWIPE, You can Find a New Tasker in a MATTER OF SECONDS.",
                   textAlign: TextAlign.center,
@@ -150,7 +150,8 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                   children: [
                     TextFormField(
                       controller: _controller.firstNameController,
-                      validator: (value) => _controller.validateName(value, "first name"),
+                      validator: (value) =>
+                          _controller.validateName(value, "first name"),
                       decoration: _getInputDecoration('First Name'),
                     ),
                     SizedBox(height: 10),
@@ -160,8 +161,9 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                     ),
                     SizedBox(height: 10),
                     TextFormField(
-                     controller: _controller.lastNameController,
-                      validator: (value) => _controller.validateName(value, "last name"),
+                      controller: _controller.lastNameController,
+                      validator: (value) =>
+                          _controller.validateName(value, "last name"),
                       decoration: _getInputDecoration('Last Name'),
                     ),
                     SizedBox(height: 10),
@@ -202,12 +204,13 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                                   _isLoading = true;
                                   _status = "Creating your account...";
                                 });
-                                
+
                                 await _controller.registerUser(context);
-                                
+
                                 setState(() {
                                   _isLoading = false;
-                                  _status = "Please check your email to verify your account";
+                                  _status =
+                                      "Please check your email to verify your account";
                                 });
                               }
                             },
@@ -220,7 +223,8 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                     ),
                     SizedBox(height: 10),
                     TextButton(
-                      onPressed: () => Navigator.pushReplacementNamed(context, '/signin'),
+                      onPressed: () =>
+                          Navigator.pushReplacementNamed(context, '/signin'),
                       child: Text(
                         'Already have an account? Sign In',
                         style: TextStyle(

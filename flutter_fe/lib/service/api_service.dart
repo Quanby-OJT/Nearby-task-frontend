@@ -56,7 +56,8 @@ class ApiService {
 
       if (response.statusCode == 201) {
         return {
-          "message": data["message"] ?? "Registration successful! Please check your email to verify your account.",
+          "message": data["message"] ??
+              "Registration successful! Please check your email to verify your account.",
           "user": data["user"]
         };
       } else if (response.statusCode == 400) {
@@ -71,7 +72,8 @@ class ApiService {
         return {"errors": "Registration failed. Please try again."};
       } else {
         return {
-          "errors": data["error"] ?? "An error occurred during registration. Please try again."
+          "errors": data["error"] ??
+              "An error occurred during registration. Please try again."
         };
       }
     } catch (e) {
@@ -80,16 +82,12 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> verifyEmail(String token, String email) async {
+  static Future<Map<String, dynamic>> verifyEmail(
+      String token, String email) async {
     try {
-      final response = await _client.post(
-        Uri.parse("$apiUrl/verify"),
-        headers: _getHeaders(),
-        body: json.encode({
-          "token": token,
-          "email": email
-        })
-      );
+      final response = await _client.post(Uri.parse("$apiUrl/verify"),
+          headers: _getHeaders(),
+          body: json.encode({"token": token, "email": email}));
 
       debugPrint('Verify Response: ${response.statusCode} - ${response.body}');
       final data = jsonDecode(response.body);
@@ -103,14 +101,13 @@ class ApiService {
         };
       } else {
         return {
-          "error": data["error"] ?? "Email verification failed. Please try again."
+          "error":
+              data["error"] ?? "Email verification failed. Please try again."
         };
       }
     } catch (e) {
       debugPrint('Verification Error: $e');
-      return {
-        "error": "An error occurred during email verification: $e"
-      };
+      return {"error": "An error occurred during email verification: $e"};
     }
   }
 
@@ -149,7 +146,8 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> authUser(String email, String password) async {
+  static Future<Map<String, dynamic>> authUser(
+      String email, String password) async {
     try {
       final response = await _client.post(
         Uri.parse("$apiUrl/login-auth"),
@@ -273,7 +271,8 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> sendMessage(Conversation conversation) async {
+  static Future<Map<String, dynamic>> sendMessage(
+      Conversation conversation) async {
     try {
       String token = await AuthService.getSessionToken();
       final response = await http.post(Uri.parse("$apiUrl/send-message"),

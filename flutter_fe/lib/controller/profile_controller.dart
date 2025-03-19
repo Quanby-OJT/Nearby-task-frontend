@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/client_model.dart';
+import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
 import '../model/user_model.dart';
 import '../service/api_service.dart';
 import '../model/tasker_model.dart';
@@ -143,50 +144,68 @@ class ProfileController {
       Navigator.pop(context);
 
       if (resultData.containsKey("errors")) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(resultData["errors"] ??
-                "Registration failed. Please try again."),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+                  title: Text("Registration Failed"),
+                  content: Text(resultData["errors"] ??
+                      "Registration failed. Please try again."),
+                  actions: [
+                    TextButton(
+                      child: Text("OK"),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ));
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(resultData["message"] ??
-                "Registration successful! Please check your email to verify your account."),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+                  title: Text("Registration Successful"),
+                  content: Text(resultData["message"] ??
+                      "Registration successful! Please check your email to verify your account."),
+                  actions: [
+                    TextButton(
+                      child: Text("OK"),
+                      onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => WelcomePageViewMain())),
+                    ),
+                  ],
+                ));
       }
     } catch (e) {
-      // Hide loading indicator if still showing
       Navigator.pop(context);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("An error occurred. Please try again later."),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+                title: Text("Error"),
+                content: Text("An error occurred. Please try again later."),
+                actions: [
+                  TextButton(
+                    child: Text("OK"),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ));
     }
   }
 
   Future<int> verifyEmail(
       BuildContext context, String token, String email) async {
     try {
-      final response = await ApiService.verifyEmail(
-          token, email); // Modify this based on your actual implementation
+      final response = await ApiService.verifyEmail(token, email);
+
       if (response.containsKey("message")) {
-        // Adjust this condition based on your API response
-        return response["user_id"]; // Return the userId from your API response
+        // Return the user_id for navigation
+        return response["user_id"] as int;
+      } else {
+        throw Exception(response["error"] ?? "Verification failed");
       }
-      return 0;
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Verification failed: $e')),
-      );
-      return 0;
+      throw Exception("Failed to verify email: ${e.toString()}");
     }
   }
 
