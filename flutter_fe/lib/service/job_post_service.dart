@@ -223,7 +223,7 @@ class JobPostService {
             final filteredJobs = allJobsList.where((job) => likedJobIds.contains(job.id)).toList();
 
             debugPrint("Filtered Jobs: ${filteredJobs.toString()}");
-            return [...filteredJobs , ...allJobsList];
+            return filteredJobs;
        }
        else{
         return [];
