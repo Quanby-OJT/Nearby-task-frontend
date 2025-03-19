@@ -128,8 +128,6 @@ class TaskController {
           clientAddress: '',
           user: clientUser,
         );
-        ClientModel client =
-            ClientModel(preferences: '', clientAddress: '', user: clientUser);
 
         // Parse tasker and its user
         Map<String, dynamic> taskerData = item['tasker'] != null ? item['tasker'] as Map<String, dynamic> : {};
