@@ -41,7 +41,7 @@ class TaskController {
         contactPrice: int.tryParse(contactPriceController.text.trim()) ?? 0,
         remarks: jobRemarksController.text.trim(),
         taskBeginDate: jobTaskBeginDateController.text.trim(),
-        workType: workType,
+        workType: workType, // New field
       );
 
       print('Task data: ${task.toJson()}');
@@ -112,9 +112,10 @@ class TaskController {
           id: taskTakenId, // Use taskTakenId here if it’s meant to be the task’s ID
         );
 
-        // Parse client and its user
-        Map<String, dynamic> clientData = item['clients'] != null ? item['clients'] as Map<String, dynamic> : {};
-        Map<String, dynamic> clientUserData = clientData['user'] as Map<String, dynamic>;
+        Map<String, dynamic> clientData =
+            item['clients'] as Map<String, dynamic>;
+        Map<String, dynamic> clientUserData =
+            clientData['user'] as Map<String, dynamic>;
         UserModel clientUser = UserModel(
           firstName: clientUserData['first_name'] as String? ?? '',
           middleName: clientUserData['middle_name'] as String? ?? '',
