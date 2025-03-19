@@ -1,34 +1,34 @@
 class UserModel {
+  final int? id;
   final String firstName;
   final String middleName;
   final String lastName;
   final String email;
   final String? birthdate;
   final String? password;
-  final dynamic
-  image; // Can be either a String (URL) or Uint8List (binary data)
-  final String? imageName; // Store image filename if available
+  final dynamic image;
+  final String? imageName;
   final String role;
   final String accStatus;
 
-
 //This is what the controller used
-  UserModel({
-    required this.firstName,
-    required this.middleName,
-    required this.lastName,
-    required this.email,
-    this.password,
-    this.image,
-    this.imageName,
-    required this.role,
-    this.birthdate,
-    required this.accStatus
-  });
+  UserModel(
+      {this.id,
+      required this.firstName,
+      required this.middleName,
+      required this.lastName,
+      required this.email,
+      this.password,
+      this.image,
+      this.imageName,
+      required this.role,
+      this.birthdate,
+      required this.accStatus});
 
   // Factory constructor to handle image as either URL or binary data, this is for the display record part
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
+      id: json['user_id'] as int?, // Allow null values
       firstName: json['first_name'] ?? '', // Default to empty string
       middleName: json['middle_name'] ?? '',
       lastName: json['last_name'] ?? '',
@@ -42,10 +42,10 @@ class UserModel {
     );
   }
 
-
 // Returns whith these datas
   Map<String, dynamic> toJson() {
     return {
+      "user_id": id,
       "first_name": firstName,
       "middle_name": middleName,
       "last_name": lastName,
@@ -54,5 +54,10 @@ class UserModel {
       "user_role": role,
       "acc_status": accStatus
     };
+  }
+
+  @override
+  String toString() {
+    return 'UserModel(firstName: $firstName, middleName: $middleName, lastName: $lastName, email: $email, password: ${password != null ? "****" : "null"}, role: $role, accStatus: $accStatus)';
   }
 }

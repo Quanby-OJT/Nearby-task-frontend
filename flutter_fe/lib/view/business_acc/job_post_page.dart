@@ -7,6 +7,7 @@ import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class JobPostPage extends StatefulWidget {
@@ -506,88 +507,96 @@ class _JobPostPageState extends State<JobPostPage> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(
-                      left: 40, right: 40, top: 20, bottom: 20),
-                  child: TextField(
-                    maxLines: 3,
-                    cursorColor: Color(0xFF0272B1),
-                    controller: controller.jobRemarksController,
-                    decoration: InputDecoration(
-                      label: Text('Remarks'),
-                      labelStyle: TextStyle(color: Color(0xFF0272B1)),
-                      alignLabelWithHint: true,
-                      filled: true,
-                      fillColor: Color(0xFFF1F4FF),
-                      hintText: 'Enter remarks...',
-                      hintStyle: TextStyle(color: Colors.grey),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Colors.transparent, width: 0),
-                        borderRadius: BorderRadius.circular(10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+                  child: Column(
+                    children: [
+                      TextField(
+                        maxLines: 3,
+                        cursorColor: Color(0xFF0272B1),
+                        controller: controller.jobRemarksController,
+                        decoration: InputDecoration(
+                          labelText: 'Remarks',
+                          labelStyle: TextStyle(color: Color(0xFF0272B1)),
+                          alignLabelWithHint: true,
+                          filled: true,
+                          fillColor: Color(0xFFF1F4FF),
+                          hintText: 'Enter remarks...',
+                          hintStyle: TextStyle(color: Colors.grey),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: Colors.transparent, width: 0),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide:
+                                BorderSide(color: Color(0xFF0272B1), width: 2),
+                          ),
+                        ),
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide:
-                            BorderSide(color: Color(0xFF0272B1), width: 2),
-                      ),
-                    ),
-                  ),
-                ),
-                if (_message != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 40, vertical: 10),
-                    child: Text(
-                      _message!,
-                      style: TextStyle(
+                      SizedBox(height: 10),
+                      Text(
+                        _message ?? '',
+                        style: TextStyle(
                           color: _isSuccess ? Colors.green : Colors.red,
-                          fontSize: 16),
-                    ),
+                          fontSize: 16,
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Container(
+                        height: 50,
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() => _message = "");
+                            _validateAndSubmit();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFF0272B1),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(
+                            'Post Job',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Container(
+                        height: 50,
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            setState(() {
+                              _message = "";
+                              _errors = {};
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.pink,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(
+                            'Show My Task List',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                Container(
-                  height: 50,
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(horizontal: 40),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      _message = "";
-                      _validateAndSubmit();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF0272B1),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: Text(
-                      'Post Job',
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 10),
-                Container(
-                  height: 50,
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(horizontal: 40),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _message = "";
-                      _errors = {};
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.pink,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: Text(
-                      'Show My Task List',
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
+                )
               ],
             ),
           ),
@@ -604,7 +613,7 @@ class _JobPostPageState extends State<JobPostPage> {
       _isSuccess = false;
     });
 
-    bool urgent = selectedUrgency == "Urgent";
+    selectedUrgency == "Urgent";
     try {
       final result = await controller.postJob(selectedSpecialization,
           selectedUrgency, selectedTimePeriod, selectedWorkType);
@@ -655,6 +664,7 @@ class _JobPostPageState extends State<JobPostPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        iconTheme: IconThemeData(color: Color(0xFF0272B1)),
         title: Text(
           'Your Tasks',
           textAlign: TextAlign.center,
