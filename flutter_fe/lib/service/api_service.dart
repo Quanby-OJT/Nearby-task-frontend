@@ -13,7 +13,8 @@ import '../model/tasker_model.dart';
 import '../model/client_model.dart';
 
 class ApiService {
-  static const String apiUrl = "http://10.0.2.2:5000/connect"; // Adjust if needed
+  static const String apiUrl =
+      "http://localhost:5000/connect"; // Adjust if needed
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
   static final Map<String, String> _cookies = {};
@@ -377,12 +378,18 @@ class ApiService {
         debugPrint(validationMessage);
         return {"validation_error": validationMessage};
       } else {
-        return {"error": data['error'] ?? "OTP Authentication Failed. Please Try again."};
+        return {
+          "error":
+              data['error'] ?? "OTP Authentication Failed. Please Try again."
+        };
       }
     } catch (e, stackTrace) {
       debugPrint('Error: $e');
       debugPrintStack(stackTrace: stackTrace);
-      return {"error": "OTP Authentication Failed. Please Try again. If the Problem Persists, Contact Us."};
+      return {
+        "error":
+            "OTP Authentication Failed. Please Try again. If the Problem Persists, Contact Us."
+      };
     }
   }
 

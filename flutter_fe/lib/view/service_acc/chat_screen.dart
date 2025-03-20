@@ -384,62 +384,102 @@ class _ChatScreenState extends State<ChatScreen> {
           : null,
       body: isLoading
           ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.message,
-                    size: 100,
-                    color: Color(0xFF0272B1),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: Text(
-                      "You Don't Have Messages Yet, You can Start a Conversation By 'Right-Swiping' Your Favorite Task in hand.",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                ],
-              ),
+              child: CircularProgressIndicator(),
             )
-          : ListView.builder(
-              itemCount: taskAssignments?.length ?? 0,
-              itemBuilder: (context, index) {
-                final assignment = taskAssignments![index];
-                return ListTile(
-                  title: Text(
-                    assignment.task.title ?? "Unknown Task",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          : (taskAssignments == null || taskAssignments!.isEmpty)
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.message,
+                        size: 100,
+                        color: Color(0xFF0272B1),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Text(
+                          "You Don't Have Messages Yet, You can Start a Conversation By 'Right-Swiping' Your Favorite Task in hand.",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 6,
+                                  offset: Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Material(
+                              color: Colors.redAccent,
+                              shape: CircleBorder(),
+                              child: InkWell(
+                                onTap: _showReportModal,
+                                borderRadius: BorderRadius.circular(30),
+                                child: Container(
+                                  padding: EdgeInsets.all(12),
+                                  child: Icon(
+                                    Icons.flag,
+                                    color: Colors.white,
+                                    size: 28,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  subtitle: Row(children: [
-                    Icon(
-                      Icons.cases,
-                      size: 20,
-                    ),
-                    Text(
-                      "${assignment.tasker.user?.firstName ?? ''} ${assignment.tasker.user?.middleName ?? ''} ${assignment.tasker.user?.lastName ?? ''}",
-                      style: TextStyle(fontSize: 14),
-                    )
-                  ]),
-                  trailing: Icon(Icons.arrow_forward_ios,
-                      size: 16, color: Colors.grey),
-                  onTap: () {
-                    // Open Chat History
-                    debugPrint("Task Id: " + assignment.taskTakenId.toString());
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => IndividualChatScreen(
-                              taskTitle: assignment.task.title,
-                              taskTakenId: assignment.taskTakenId ?? 0,
-                              taskId: assignment.task.id ?? 0)),
+                )
+              : ListView.builder(
+                  itemCount: taskAssignments?.length ?? 0,
+                  itemBuilder: (context, index) {
+                    final assignment = taskAssignments![index];
+                    return ListTile(
+                      title: Text(
+                        assignment.task.title ?? "Unknown Task",
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Row(children: [
+                        Icon(
+                          Icons.cases,
+                          size: 20,
+                        ),
+                        Text(
+                          "${assignment.tasker.user?.firstName ?? ''} ${assignment.tasker.user?.middleName ?? ''} ${assignment.tasker.user?.lastName ?? ''}",
+                          style: TextStyle(fontSize: 14),
+                        )
+                      ]),
+                      trailing: Icon(Icons.arrow_forward_ios,
+                          size: 16, color: Colors.grey),
+                      onTap: () {
+                        // Open Chat History
+                        debugPrint(
+                            "Task Id: " + assignment.taskTakenId.toString());
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => IndividualChatScreen(
+                                  taskTitle: assignment.task.title,
+                                  taskTakenId: assignment.task.id ?? 0)),
+                        );
+                      },
                     );
                   },
-                );
-              },
-            ),
+                ),
     );
   }
 }

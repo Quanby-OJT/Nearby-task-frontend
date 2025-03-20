@@ -461,20 +461,20 @@ class _ChatScreenState extends State<ChatScreen> {
                         Text(
                           "${assignment.tasker.user?.firstName ?? ''} ${assignment.tasker.user?.middleName ?? ''} ${assignment.tasker.user?.lastName ?? ''}",
                           style: TextStyle(fontSize: 14),
-                        ),
+                        )
                       ]),
                       trailing: Icon(Icons.arrow_forward_ios,
                           size: 16, color: Colors.grey),
                       onTap: () {
                         // Open Chat History
-                        debugPrint("Task Taken ID: ${assignment.taskTakenId}");
+                        debugPrint(
+                            "Task Id: " + assignment.taskTakenId.toString());
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) => IndividualChatScreen(
                                   taskTitle: assignment.task.title,
-                                  taskTakenId: assignment.taskTakenId ?? 0,
-                                  taskId: assignment.task.id ?? 0)),
+                                  taskTakenId: assignment.task.id ?? 0)),
                         );
                       },
                     );
