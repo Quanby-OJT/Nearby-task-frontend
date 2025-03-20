@@ -8,7 +8,7 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:get_storage/get_storage.dart';
 
 class JobPostService {
-  static const String apiUrl = "http://10.0.2.2:5000/connect";
+  static const String apiUrl = "http://localhost:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -43,7 +43,8 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _postRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final response = await http.post(Uri.parse("$apiUrl$endpoint"),
         headers: {
           "Authorization": "Bearer $token",
@@ -54,7 +55,8 @@ class JobPostService {
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> _deleteRequest(
+      String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
       final request = http.Request("DELETE", Uri.parse('$apiUrl$endpoint'))
@@ -215,26 +217,32 @@ class JobPostService {
       final allJobsResponse = await _getRequest("/displayTask");
       debugPrint(likedJobsResponse.toString());
 
-      final allJobsList = (allJobsResponse["tasks"] as List<dynamic>?)?.map((job) => TaskModel.fromJson(job)).toList() ?? [];
+      final allJobsList = (allJobsResponse["tasks"] as List<dynamic>?)
+              ?.map((job) => TaskModel.fromJson(job))
+              .toList() ??
+          [];
 
-       if (likedJobsResponse.containsKey("liked_tasks")) {
-          final likedJobs = likedJobsResponse["liked_tasks"] as List<dynamic>;
-            debugPrint("Raw liked jobs: $likedJobs");
-          final Set<int> likedJobIds = likedJobs.where((job) => job["job_post_id"] != null)
-            .map<int>((job) => (job["job_post_id"] is int ? job["job_post_id"] : int.parse(job["job_post_id"].toString())) as int)
+      if (likedJobsResponse.containsKey("liked_tasks")) {
+        final likedJobs = likedJobsResponse["liked_tasks"] as List<dynamic>;
+        debugPrint("Raw liked jobs: $likedJobs");
+        final Set<int> likedJobIds = likedJobs
+            .where((job) => job["job_post_id"] != null)
+            .map<int>((job) => (job["job_post_id"] is int
+                ? job["job_post_id"]
+                : int.parse(job["job_post_id"].toString())) as int)
             .toSet();
 
-            debugPrint("Liked Jobs Response ${likedJobsResponse.toString()}");
-            debugPrint("All Jobs: ${likedJobIds.toString()}");
+        debugPrint("Liked Jobs Response ${likedJobsResponse.toString()}");
+        debugPrint("All Jobs: ${likedJobIds.toString()}");
 
-            final filteredJobs = allJobsList.where((job) => likedJobIds.contains(job.id)).toList();
+        final filteredJobs =
+            allJobsList.where((job) => likedJobIds.contains(job.id)).toList();
 
-            debugPrint("Filtered Jobs: ${filteredJobs.toString()}");
-            return filteredJobs;
-       }
-       else{
+        debugPrint("Filtered Jobs: ${filteredJobs.toString()}");
+        return filteredJobs;
+      } else {
         return [];
-       }
+      }
     } catch (e, stackTrace) {
       debugPrint(e.toString());
       debugPrintStack(stackTrace: stackTrace);
