@@ -6,6 +6,7 @@ import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/view/business_acc/business_task_detail.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -37,13 +38,14 @@ class _JobPostPageState extends State<JobPostPage> {
   String? _selectedSkill;
   List<String> _skills = [];
   final storage = GetStorage();
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     fetchSpecialization();
     _loadSkills();
-    getAllJobsforClient();
+    fetchCreatedTasks();
   }
 
   Future<void> fetchSpecialization() async {
@@ -72,18 +74,32 @@ class _JobPostPageState extends State<JobPostPage> {
     }
   }
 
-  Future<void> getAllJobsforClient() async {
+  Future<void> fetchCreatedTasks() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
-      List<TaskModel?>? fetchedTasks =
-          await controller.getJobsforClient(context, storage.read('user_id'));
-      if (fetchedTasks != null) {
+      final userId = storage.read('user_id');
+      if (userId != null) {
+        final tasks = await controller.getCreatedTasksByClient(userId);
         setState(() {
-          clientTasks = fetchedTasks;
+          clientTasks = tasks;
         });
       }
-    } catch (e, st) {
-      debugPrint(e.toString());
-      debugPrint(st.toString());
+    } catch (e) {
+      debugPrint("Error fetching created tasks: $e");
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("Failed to load your tasks. Please try again."),
+        action: SnackBarAction(
+          label: 'Retry',
+          onPressed: () => fetchCreatedTasks(),
+        ),
+      ));
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -624,6 +640,25 @@ class _JobPostPageState extends State<JobPostPage> {
           _message = result['message'] ?? "Successfully Posted Task.";
           _isSuccess = true;
         });
+
+        // Refresh the task list to show the newly created task
+        await fetchCreatedTasks();
+
+        // Clear form fields after successful submission
+        controller.jobTitleController.clear();
+        controller.jobDescriptionController.clear();
+        controller.jobLocationController.clear();
+        controller.jobTimeController.clear();
+        controller.contactPriceController.clear();
+        controller.jobRemarksController.clear();
+        controller.jobTaskBeginDateController.clear();
+
+        setState(() {
+          selectedSpecialization = null;
+          selectedUrgency = null;
+          selectedTimePeriod = null;
+          selectedWorkType = null;
+        });
       } else {
         setState(() {
           if (result.containsKey('errors') && result['errors'] is List) {
@@ -672,35 +707,106 @@ class _JobPostPageState extends State<JobPostPage> {
               TextStyle(color: Color(0xFF0272B1), fontWeight: FontWeight.bold),
         ),
       ),
-      body: clientTasks.isEmpty
-          ? Center(child: Text("No tasks available"))
-          : ListView.builder(
-              itemCount: clientTasks.length,
-              itemBuilder: (context, index) {
-                final task = clientTasks[index];
-                return ListTile(
-                  title: Text(task?.title ?? "Untitled Task",
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  subtitle: Text(
-                    "📍 ${task!.location} \n • ₱ ${NumberFormat("#,##0.00", "en_US").format(task!.contactPrice!.roundToDouble())} \n • 🛠 ${task!.specialization}",
-                    style: TextStyle(fontSize: 14),
-                  ),
-                  trailing: Icon(Icons.arrow_forward_ios,
-                      size: 16, color: Colors.grey),
-                  onTap: () {},
-                );
-              },
-            ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showCreateTaskModal,
-        icon: Icon(Icons.add, size: 26),
-        label: Text("Had a New Task in Mind?",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.blueAccent,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : clientTasks.isEmpty
+              ? Center(child: Text("No tasks available"))
+              : ListView.builder(
+                  itemCount: clientTasks.length,
+                  itemBuilder: (context, index) {
+                    final task = clientTasks[index];
+                    if (task == null) {
+                      return SizedBox.shrink(); // Skip null tasks
+                    }
+
+                    // Format the price safely
+                    String priceDisplay = "N/A";
+                    if (task.contactPrice != null) {
+                      try {
+                        priceDisplay = NumberFormat("#,##0.00", "en_US")
+                            .format(task.contactPrice!.roundToDouble());
+                      } catch (e) {
+                        priceDisplay = task.contactPrice.toString();
+                      }
+                    }
+
+                    return Card(
+                      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      elevation: 2,
+                      child: ListTile(
+                        contentPadding: EdgeInsets.all(12),
+                        title: Text(task.title ?? "Untitled Task",
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(height: 4),
+                            Text(
+                              "📍 ${task.location ?? 'Location not specified'}",
+                              style: TextStyle(fontSize: 14),
+                            ),
+                            Text(
+                              "• ₱ $priceDisplay",
+                              style: TextStyle(fontSize: 14),
+                            ),
+                            Text(
+                              "• 🛠 ${task.specialization ?? 'No specialization'}",
+                              style: TextStyle(fontSize: 14),
+                            ),
+                            if (task.duration != null)
+                              Text(
+                                "• ⏱ Duration: ${task.duration}",
+                                style: TextStyle(fontSize: 14),
+                              ),
+                          ],
+                        ),
+                        trailing: Icon(Icons.arrow_forward_ios,
+                            size: 16, color: Colors.grey),
+                        onTap: () {
+                          // Navigate to task details page
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => BusinessTaskDetail(
+                                taskID: task.id ?? 0,
+                                task: task,
+                              ),
+                            ),
+                          ).then((_) {
+                            // Refresh the task list when returning from details
+                            fetchCreatedTasks();
+                          });
+                        },
+                      ),
+                    );
+                  },
+                ),
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            heroTag: "refreshBtn",
+            mini: true,
+            onPressed: fetchCreatedTasks,
+            child: Icon(Icons.refresh),
+            backgroundColor: Colors.green,
+          ),
+          SizedBox(height: 16),
+          FloatingActionButton.extended(
+            heroTag: "addTaskBtn",
+            onPressed: _showCreateTaskModal,
+            icon: Icon(Icons.add, size: 26),
+            label: Text("Had a New Task in Mind?",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            backgroundColor: Colors.blueAccent,
+            foregroundColor: Colors.white,
+            elevation: 4,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ],
       ),
     );
   }

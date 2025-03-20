@@ -6,7 +6,7 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 
 class TaskDetailsService {
-  final String apiUrl = "http://10.0.2.2:5000/connect";
+  final String apiUrl = "http://localhost:5000/connect";
   final storage = GetStorage();
 
   Map<String, dynamic> _handleResponse(http.Response response) {
@@ -34,7 +34,9 @@ class TaskDetailsService {
     } catch (e, stackTrace) {
       debugPrint("Message Retrieval Error: $e");
       debugPrint(stackTrace.toString());
-      return {"error": "An Error while retrieving your messages. Please Try Again."};
+      return {
+        "error": "An Error while retrieving your messages. Please Try Again."
+      };
     }
   }
 
@@ -51,7 +53,8 @@ class TaskDetailsService {
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> _deleteRequest(
+      String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
       final request = http.Request("DELETE", Uri.parse('$apiUrl$endpoint'))

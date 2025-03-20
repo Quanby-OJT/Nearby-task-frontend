@@ -24,10 +24,20 @@ class TaskController {
   final contactpriceController = TextEditingController();
   final storage = GetStorage();
 
-  Future<Map<String, dynamic>> postJob(String? specialization, String? urgency, String? period, String? workType) async {
+  Future<Map<String, dynamic>> postJob(String? specialization, String? urgency,
+      String? period, String? workType) async {
     try {
       int userId = storage.read('user_id');
       print('Submitting data...');
+
+      // Parse the duration as an integer
+      final durationText = jobTimeController.text.trim();
+      final durationInt = int.tryParse(durationText) ?? 0;
+
+      // Parse the price as an integer
+      final priceText = contactPriceController.text.trim();
+      final priceInt = int.tryParse(priceText) ?? 0;
+
       final task = TaskModel(
         id: 0,
         clientId: userId,
@@ -35,10 +45,10 @@ class TaskController {
         specialization: specialization,
         description: jobDescriptionController.text.trim(),
         location: jobLocationController.text.trim(),
-        duration: jobTimeController.text,
+        duration: durationInt.toString(), // Use the parsed integer value
         period: period,
         urgency: urgency,
-        contactPrice: int.tryParse(contactPriceController.text.trim()) ?? 0,
+        contactPrice: priceInt, // Use the parsed integer value
         remarks: jobRemarksController.text.trim(),
         taskBeginDate: jobTaskBeginDateController.text.trim(),
         workType: workType, // New field
@@ -73,6 +83,16 @@ class TaskController {
     return null;
   }
 
+  Future<List<TaskModel>> getCreatedTasksByClient(int clientId) async {
+    try {
+      return await _jobPostService.fetchCreatedTasksByClient(clientId);
+    } catch (e, stackTrace) {
+      debugPrint("Error fetching created tasks: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return [];
+    }
+  }
+
   Future<String> assignTask(int? taskId, int? clientId, int? taskerId) async {
     debugPrint("Assigning task...");
     final assignedTask =
@@ -82,8 +102,22 @@ class TaskController {
         : assignedTask['error'].toString();
   }
 
+  // Method to disable a task
+  Future<Map<String, dynamic>> disableTask(int taskId) async {
+    try {
+      debugPrint("Disabling task with ID: $taskId");
+      final result = await _jobPostService.disableTask(taskId);
+      return result;
+    } catch (e, stackTrace) {
+      debugPrint("Error disabling task: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {'success': false, 'error': 'Failed to disable task: $e'};
+    }
+  }
+
   //All Messages to client/tasker
-  Future<List<TaskAssignment>?> getAllAssignedTasks(BuildContext context, int userId) async {
+  Future<List<TaskAssignment>?> getAllAssignedTasks(
+      BuildContext context, int userId) async {
     final assignedTasks = await TaskDetailsService().getAllTakenTasks();
     debugPrint(assignedTasks.toString());
 
@@ -95,7 +129,8 @@ class TaskController {
         debugPrint("Task Taken ID: $taskTakenId"); // Verify the value
 
         // Parse tasks from post_task
-        Map<String, dynamic> taskData = item['post_task'] as Map<String, dynamic>;
+        Map<String, dynamic> taskData =
+            item['post_task'] as Map<String, dynamic>;
         TaskModel task = TaskModel(
           title: taskData['task_title'] as String?,
           clientId: null,
@@ -104,12 +139,13 @@ class TaskController {
           location: null,
           period: null,
           duration: null,
-          urgency: taskData['urgent'] as String?, // Check if this field exists in your API
+          urgency: taskData['urgent']
+              as String?, // Check if this field exists in your API
           status: null,
           contactPrice: null,
           remarks: null,
           taskBeginDate: null,
-          id: taskTakenId, // Use taskTakenId here if it’s meant to be the task’s ID
+          id: taskTakenId, // Use taskTakenId here if it's meant to be the task's ID
         );
 
         Map<String, dynamic> clientData =
@@ -131,8 +167,11 @@ class TaskController {
         );
 
         // Parse tasker and its user
-        Map<String, dynamic> taskerData = item['tasker'] != null ? item['tasker'] as Map<String, dynamic> : {};
-        Map<String, dynamic> taskerUserData = taskerData['user'] as Map<String, dynamic>;
+        Map<String, dynamic> taskerData = item['tasker'] != null
+            ? item['tasker'] as Map<String, dynamic>
+            : {};
+        Map<String, dynamic> taskerUserData =
+            taskerData['user'] as Map<String, dynamic>;
         UserModel taskerUser = UserModel(
           firstName: taskerUserData['first_name'] as String? ?? '',
           middleName: taskerUserData['middle_name'] as String? ?? '',
