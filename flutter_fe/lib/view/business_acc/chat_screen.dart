@@ -176,6 +176,15 @@ class _ChatScreenState extends State<ChatScreen> {
                                     ),
                                   ),
                                 ),
+                                if (reportController.imageUploadError !=
+                                    null) ...[
+                                  SizedBox(height: 5),
+                                  Text(
+                                    reportController.imageUploadError!,
+                                    style: TextStyle(
+                                        color: Colors.red, fontSize: 12),
+                                  ),
+                                ],
                                 if (reportController
                                     .selectedImages.isNotEmpty) ...[
                                   SizedBox(height: 10),
@@ -307,8 +316,8 @@ class _ChatScreenState extends State<ChatScreen> {
                         SizedBox(width: 10),
                         ElevatedButton(
                           onPressed: () {
-                            reportController.validateAndSubmit(modalContext,
-                                setModalState); // Use modalContext
+                            reportController.validateAndSubmit(
+                                context, setModalState);
                             setState(() {
                               _isModalOpen =
                                   false; // Reset flag when modal closes
