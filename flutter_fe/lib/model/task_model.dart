@@ -1,5 +1,5 @@
 class TaskModel {
-  final int? id;
+  final int id;
   final int? clientId;
   final String? title;
   final String? specialization;
@@ -15,7 +15,7 @@ class TaskModel {
   final String? workType; // New field
 
   TaskModel({
-    this.id,
+    required this.id,
     this.clientId,
     this.title,
     this.specialization,
@@ -55,7 +55,7 @@ class TaskModel {
 
   factory TaskModel.fromJson(Map<String, dynamic> json) {
     return TaskModel(
-      id: json['task_id'] as int?,
+      id: json['task_id'] as int,
       clientId: json['client_id'] as int?,
       title: json['task_title'] as String?,
       specialization: json['specialization'] as String?,
@@ -64,8 +64,10 @@ class TaskModel {
       duration: json['duration']?.toString(),
       period: json['period']?.toString(),
       // Convert boolean to string for urgency
-      urgency: json['urgent'] as String,
-      //urgency: json['urgent'] as String,  // <- Fix key from "urgency" to "urgent"
+      urgency: json['urgent'] as bool
+          ? "This task is urgent"
+          : "This task is not urgent.",
+      // urgency: json['urgent'] as String,  // <- Fix key from "urgency" to "urgent"
       contactPrice: json['proposed_price'] as int?,
       remarks: json['remarks'] as String?,
       taskBeginDate: json['task_begin_date'] as String?,
