@@ -8,7 +8,7 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:get_storage/get_storage.dart';
 
 class JobPostService {
-  static const String apiUrl = "http://localhost:5000/connect";
+  static const String apiUrl = "http://192.168.254.110:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -355,22 +355,87 @@ class JobPostService {
     });
   }
 
-  // Method to disable a task
-  Future<Map<String, dynamic>> disableTask(int taskId) async {
+  // Method to update a task
+  Future<Map<String, dynamic>> updateTask(
+      int taskId, Map<String, dynamic> taskData) async {
     try {
-      debugPrint("Disabling task with ID: $taskId");
+      debugPrint("Updating task with ID: $taskId");
+      final response = await http.put(
+        Uri.parse('$apiUrl/updateTask/$taskId'),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+        body: jsonEncode(taskData),
+      );
+
+      print("API Response for updateTask: ${response.body}");
+      return _handleResponse(response);
+    } catch (e) {
+      debugPrint('Error updating task: $e');
+      debugPrintStack();
+      return {'success': false, 'error': 'Error: $e'};
+    }
+  }
+
+  // Method to disable a task
+  Future<Map<String, dynamic>> disableTask(int taskId,
+      [String status = "cancelled"]) async {
+    try {
+      debugPrint("Disabling task with ID: $taskId with status: $status");
       final response = await http.put(
         Uri.parse('$apiUrl/disableTask/$taskId'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
         },
+        body: jsonEncode({"status": status}),
       );
 
       print("API Response for disableTask: ${response.body}");
       return _handleResponse(response);
     } catch (e) {
       debugPrint('Error disabling task: $e');
+      debugPrintStack();
+      return {'success': false, 'error': 'Error: $e'};
+    }
+  }
+
+  // Method to fetch valid task statuses
+  Future<List<String>> fetchValidTaskStatuses() async {
+    try {
+      final response = await _getRequest("/task-statuses");
+
+      if (response.containsKey("statuses") && response["statuses"] is List) {
+        return (response["statuses"] as List).map((s) => s.toString()).toList();
+      }
+
+      // If we can't get the valid statuses, return some common ones
+      return ["ACTIVE", "INACTIVE", "COMPLETED", "CANCELLED"];
+    } catch (e) {
+      debugPrint('Error fetching valid task statuses: $e');
+      // Return default values if we can't get them from the server
+      return ["ACTIVE", "INACTIVE", "COMPLETED", "CANCELLED"];
+    }
+  }
+
+  // Method to delete a task
+  Future<Map<String, dynamic>> deleteTask(int taskId) async {
+    try {
+      debugPrint("Deleting task with ID: $taskId");
+      final token = await AuthService.getSessionToken();
+      final response = await http.delete(
+        Uri.parse('$apiUrl/deleteTask/$taskId'),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+      );
+
+      print("API Response for deleteTask: ${response.body}");
+      return _handleResponse(response);
+    } catch (e) {
+      debugPrint('Error deleting task: $e');
       debugPrintStack();
       return {'success': false, 'error': 'Error: $e'};
     }

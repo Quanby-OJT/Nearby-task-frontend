@@ -41,15 +41,13 @@ class TaskModel {
       "location": location,
       "duration": duration != null ? int.tryParse(duration!) ?? 0 : 0,
       "num_of_days": period,
-      // Convert boolean urgency to string
-      "urgent": urgency == "This task is urgent" ? true : false,
-      "urgency": urgency,
+      "urgent": urgency == "Urgent", // Convert string to boolean
       "proposed_price": contactPrice != null ? contactPrice : 0,
       "remarks": remarks,
       "task_begin_date": taskBeginDate,
       "id": id,
       "status": status,
-      "work_type": workType, // New field in JSON
+      "work_type": workType,
     };
   }
 

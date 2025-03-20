@@ -13,7 +13,7 @@ import '../model/tasker_model.dart';
 import '../model/client_model.dart';
 
 class ApiService {
-  static const String apiUrl = "http://localhost:5000/connect";
+  static const String apiUrl = "http://192.168.254.110:5000/connect";
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
   static final Map<String, String> _cookies = {};

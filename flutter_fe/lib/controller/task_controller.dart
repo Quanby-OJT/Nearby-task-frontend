@@ -102,11 +102,54 @@ class TaskController {
         : assignedTask['error'].toString();
   }
 
+  // Method to update a task
+  Future<Map<String, dynamic>> updateTask(
+      int taskId, Map<String, dynamic> taskData) async {
+    try {
+      debugPrint("Updating task with ID: $taskId");
+      final result = await _jobPostService.updateTask(taskId, taskData);
+      return result;
+    } catch (e, stackTrace) {
+      debugPrint("Error updating task: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {'success': false, 'error': 'Failed to update task: $e'};
+    }
+  }
+
   // Method to disable a task
   Future<Map<String, dynamic>> disableTask(int taskId) async {
     try {
       debugPrint("Disabling task with ID: $taskId");
-      final result = await _jobPostService.disableTask(taskId);
+
+      // First try to get valid statuses from the backend
+      List<String> validStatuses =
+          await _jobPostService.fetchValidTaskStatuses();
+      debugPrint("Valid task statuses: $validStatuses");
+
+      // Add some common variations just in case
+      if (!validStatuses.contains("CANCELLED")) validStatuses.add("CANCELLED");
+      if (!validStatuses.contains("cancelled")) validStatuses.add("cancelled");
+      if (!validStatuses.contains("INACTIVE")) validStatuses.add("INACTIVE");
+      if (!validStatuses.contains("inactive")) validStatuses.add("inactive");
+
+      // Try with different status values
+      Map<String, dynamic> result = {
+        'success': false,
+        'error': 'All status values failed'
+      };
+
+      for (String status in validStatuses) {
+        debugPrint("Trying with status '$status'");
+        result = await _jobPostService.disableTask(taskId, status);
+
+        // If successful or error is not related to enum, break the loop
+        if (result['success'] == true ||
+            (result['error'] != null &&
+                !result['error'].toString().contains("enum"))) {
+          break;
+        }
+      }
+
       return result;
     } catch (e, stackTrace) {
       debugPrint("Error disabling task: $e");
@@ -213,6 +256,19 @@ class TaskController {
                 "Something Went Wrong while Retrieving Your Tasks.")),
       );
       return null;
+    }
+  }
+
+  // Method to delete a task
+  Future<Map<String, dynamic>> deleteTask(int taskId) async {
+    try {
+      debugPrint("Deleting task with ID: $taskId");
+      final result = await _jobPostService.deleteTask(taskId);
+      return result;
+    } catch (e, stackTrace) {
+      debugPrint("Error deleting task: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {'success': false, 'error': 'Failed to delete task: $e'};
     }
   }
 }

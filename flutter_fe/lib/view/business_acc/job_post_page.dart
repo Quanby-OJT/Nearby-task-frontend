@@ -695,6 +695,19 @@ class _JobPostPageState extends State<JobPostPage> {
     }
   }
 
+  void _navigateToTaskDetail(TaskModel task) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BusinessTaskDetail(task: task, taskID: task.id!),
+      ),
+    );
+    if (result == true) {
+      // Task was updated or disabled, refresh the task list
+      await fetchCreatedTasks();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -765,18 +778,7 @@ class _JobPostPageState extends State<JobPostPage> {
                             size: 16, color: Colors.grey),
                         onTap: () {
                           // Navigate to task details page
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => BusinessTaskDetail(
-                                taskID: task.id ?? 0,
-                                task: task,
-                              ),
-                            ),
-                          ).then((_) {
-                            // Refresh the task list when returning from details
-                            fetchCreatedTasks();
-                          });
+                          _navigateToTaskDetail(task);
                         },
                       ),
                     );
