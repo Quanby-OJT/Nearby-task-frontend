@@ -106,11 +106,11 @@ class AuthenticationController {
   Future<void> logout(BuildContext context) async {
     try {
       final storedUserId = storage.read('user_id');
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => WelcomePageViewMain()),
-        (route) => false,
-      );
+      // Navigator.pushAndRemoveUntil(
+      //   context,
+      //   MaterialPageRoute(builder: (context) => WelcomePageViewMain()),
+      //   (route) => false,
+      // );
       // Ensure storedUserId is a valid String or int
 
       if (storedUserId == null) {

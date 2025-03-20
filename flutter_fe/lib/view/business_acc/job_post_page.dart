@@ -9,6 +9,7 @@ import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_fe/view/business_acc/task_details_screen.dart';
 
 class JobPostPage extends StatefulWidget {
   const JobPostPage({super.key});
@@ -37,7 +38,6 @@ class _JobPostPageState extends State<JobPostPage> {
   String? _selectedSkill;
   List<String> _skills = [];
   final storage = GetStorage();
-
   @override
   void initState() {
     super.initState();
@@ -158,6 +158,7 @@ class _JobPostPageState extends State<JobPostPage> {
     });
   }
 
+  //Form for Task Creation.
   void _showCreateTaskModal() {
     showModalBottomSheet(
       enableDrag: true,
@@ -660,6 +661,7 @@ class _JobPostPageState extends State<JobPostPage> {
     }
   }
 
+  //Main Application Page
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -688,7 +690,14 @@ class _JobPostPageState extends State<JobPostPage> {
                   ),
                   trailing: Icon(Icons.arrow_forward_ios,
                       size: 16, color: Colors.grey),
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TaskDetailsScreen(taskId: task.id,)
+                      )
+                    );
+                  },
                 );
               },
             ),
