@@ -351,12 +351,28 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ),
       ),
+      floatingActionButton:
+          (taskAssignments != null && taskAssignments!.isNotEmpty)
+              ? FloatingActionButton(
+                  onPressed: _showReportModal,
+                  backgroundColor:
+                      Colors.redAccent, // Use a warning color for reporting
+                  elevation: 6, // Add shadow for depth
+                  child: Icon(
+                    Icons.flag, // Use a flag icon to represent reporting
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                  tooltip: 'Report User', // Add tooltip for accessibility
+                )
+              : null, // Show FAB only when there are task assignments
       body: isLoading
           ? Center(
               child: CircularProgressIndicator(),
             )
           : (taskAssignments == null || taskAssignments!.isEmpty)
-              ? Center(
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -375,20 +391,41 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                       ),
                       SizedBox(height: 10),
-                      ElevatedButton(
-                        onPressed: _showReportModal,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF0272B1),
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 30, vertical: 15),
-                        ),
-                        child: Text(
-                          "Report User",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
+                      Row(
+                        mainAxisAlignment:
+                            MainAxisAlignment.end, // Align button to the right
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 6,
+                                  offset: Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Material(
+                              color: Colors
+                                  .redAccent, // Use a warning color for reporting
+                              shape: CircleBorder(),
+                              child: InkWell(
+                                onTap: _showReportModal,
+                                borderRadius: BorderRadius.circular(30),
+                                child: Container(
+                                  padding: EdgeInsets.all(12),
+                                  child: Icon(
+                                    Icons
+                                        .flag, // Use a flag icon to represent reporting
+                                    color: Colors.white,
+                                    size: 28,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
