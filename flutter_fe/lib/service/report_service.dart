@@ -1,6 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart'
-    show kIsWeb; // Add this to check if running on web
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/report_model.dart';
 import 'package:http/http.dart' as http;
@@ -13,33 +12,27 @@ class ReportService {
 
   Future<Map<String, dynamic>> submitReport(ReportModel report) async {
     try {
-      // Create a multipart request
       var request = http.MultipartRequest(
         'POST',
         Uri.parse("$apiUrl/reports"),
       );
 
-      // Add headers (optional)
       request.headers['Authorization'] = "Bearer $token" ?? '';
 
-      // Add the reason field
       request.fields['reason'] = report.reason ?? '';
 
-      // Add the images under the key 'images[]'
       if (report.images != null && report.images!.isNotEmpty) {
         for (var image in report.images!) {
           if (kIsWeb) {
-            // For web: Use MultipartFile.fromBytes
-            final bytes = await image.readAsBytes(); // Read the image as bytes
+            final bytes = await image.readAsBytes();
             request.files.add(
               http.MultipartFile.fromBytes(
                 'images[]',
                 bytes,
-                filename: image.name, // Use the file name
+                filename: image.name,
               ),
             );
           } else {
-            // For non-web (mobile/desktop): Use MultipartFile.fromPath
             request.files.add(
               await http.MultipartFile.fromPath('images[]', image.path),
             );
@@ -47,19 +40,15 @@ class ReportService {
         }
       }
 
-      // Log the data being sent
       debugPrint(
           "Data being sent to backend: reason=${report.reason}, images=${report.images?.length ?? 0}");
 
-      // Send the request
       var response = await request.send();
       var responseBody = await http.Response.fromStream(response);
 
-      // Log the raw response for debugging
       debugPrint("Raw backend response: ${responseBody.body}");
       debugPrint("Response status code: ${response.statusCode}");
 
-      // Check if the response is JSON
       if (response.statusCode >= 200 && response.statusCode < 300) {
         var contentType = response.headers['content-type'];
         if (contentType != null && contentType.contains('application/json')) {

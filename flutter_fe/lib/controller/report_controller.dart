@@ -9,7 +9,7 @@ class ReportController {
   final reasonController = TextEditingController();
   List<XFile> selectedImages = [];
   Map<String, String> errors = {};
-  String? imageUploadError; // Add this to store the error message
+  String? imageUploadError;
 
   Future<void> pickImages(BuildContext context) async {
     const int maxImages = 5;
@@ -18,7 +18,7 @@ class ReportController {
     if (images.isNotEmpty) {
       if (selectedImages.length + images.length <= maxImages) {
         selectedImages.addAll(images);
-        imageUploadError = null; // Clear error if successful
+        imageUploadError = null;
       } else {
         imageUploadError = 'You can only upload up to $maxImages images.';
       }
@@ -56,7 +56,6 @@ class ReportController {
       images: selectedImages,
     );
 
-    // Log the JSON data being sent to the backend
     debugPrint("JSON Data being sent to backend: ${report.toJson()}");
 
     try {
@@ -81,7 +80,7 @@ class ReportController {
               errors[error['path']] = error['msg'];
             }
           }
-          setModalState(() {}); // Update the modal to show errors
+          setModalState(() {});
         } else if (result.containsKey('message')) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -107,6 +106,6 @@ class ReportController {
     reasonController.clear();
     selectedImages.clear();
     errors.clear();
-    imageUploadError = null; // Clear error on form reset
+    imageUploadError = null;
   }
 }

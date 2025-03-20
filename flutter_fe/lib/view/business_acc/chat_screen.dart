@@ -20,7 +20,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final TaskController _taskController = TaskController();
   final ReportController reportController = ReportController();
   bool isLoading = true;
-  bool _isModalOpen = false; // Track whether the modal is open
+  bool _isModalOpen = false;
 
   @override
   void initState() {
@@ -31,11 +31,9 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _fetchTaskAssignments() async {
     int userId = storage.read('user_id');
 
-    // Get the list of task assignments
     List<TaskAssignment>? fetchedAssignments =
         await _taskController.getAllAssignedTasks(context, userId);
 
-    // Check if the widget is still mounted before calling setState
     if (mounted) {
       setState(() {
         taskAssignments = fetchedAssignments;
@@ -46,19 +44,18 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _showReportModal() {
     setState(() {
-      _isModalOpen = true; // Set flag to true when modal opens
+      _isModalOpen = true;
     });
 
     showModalBottomSheet(
       enableDrag: true,
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white, // Make modal background opaque
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (BuildContext modalContext) {
-        // Use modalContext for the modal
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState) {
             return Container(
@@ -68,14 +65,12 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               child: Column(
                 children: [
-                  // Scrollable content
                   Expanded(
                     child: SingleChildScrollView(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Header: "Report User" and Subtitle
                           Padding(
                             padding: const EdgeInsets.only(
                                 left: 40, right: 40, top: 20),
@@ -102,7 +97,6 @@ class _ChatScreenState extends State<ChatScreen> {
                               ],
                             ),
                           ),
-                          // Report Description Text Field
                           Padding(
                             padding: const EdgeInsets.only(
                                 left: 40, right: 40, top: 20),
@@ -134,7 +128,6 @@ class _ChatScreenState extends State<ChatScreen> {
                               ),
                             ),
                           ),
-                          // Proof (Upload Images) Section
                           Padding(
                             padding: const EdgeInsets.only(
                                 left: 40, right: 40, top: 20, bottom: 20),
@@ -154,8 +147,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                   alignment: Alignment.centerLeft,
                                   child: ElevatedButton.icon(
                                     onPressed: () async {
-                                      await reportController.pickImages(
-                                          modalContext); // Use modalContext
+                                      await reportController
+                                          .pickImages(modalContext);
                                       setModalState(() {});
                                     },
                                     icon: Icon(Icons.upload_file,
@@ -202,7 +195,6 @@ class _ChatScreenState extends State<ChatScreen> {
                                             children: [
                                               Stack(
                                                 children: [
-                                                  // Use FutureBuilder to load the image bytes
                                                   FutureBuilder<Uint8List>(
                                                     future: reportController
                                                         .selectedImages[index]
@@ -281,7 +273,6 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     ),
                   ),
-                  // Fixed buttons at the bottom
                   Padding(
                     padding:
                         const EdgeInsets.only(left: 40, right: 40, bottom: 20),
@@ -293,8 +284,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             Navigator.pop(context);
                             reportController.clearForm();
                             setState(() {
-                              _isModalOpen =
-                                  false; // Reset flag when modal closes
+                              _isModalOpen = false;
                             });
                           },
                           style: ElevatedButton.styleFrom(
@@ -319,8 +309,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             reportController.validateAndSubmit(
                                 context, setModalState);
                             setState(() {
-                              _isModalOpen =
-                                  false; // Reset flag when modal closes
+                              _isModalOpen = false;
                             });
                           },
                           style: ElevatedButton.styleFrom(
@@ -349,7 +338,6 @@ class _ChatScreenState extends State<ChatScreen> {
         );
       },
     ).whenComplete(() {
-      // Reset the flag when the modal is dismissed (e.g., by swiping down)
       setState(() {
         _isModalOpen = false;
       });
@@ -358,7 +346,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
-    // Clean up controllers or any resources
     reportController.reasonController.dispose();
     super.dispose();
   }
@@ -382,18 +369,17 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       floatingActionButton: (taskAssignments != null &&
               taskAssignments!.isNotEmpty &&
-              !_isModalOpen) // Hide FAB when modal is open
+              !_isModalOpen)
           ? FloatingActionButton(
               onPressed: _showReportModal,
-              backgroundColor:
-                  Colors.redAccent, // Use a warning color for reporting
-              elevation: 6, // Add shadow for depth
+              backgroundColor: Colors.redAccent,
+              elevation: 6,
+              tooltip: 'Report User',
               child: Icon(
-                Icons.flag, // Use a flag icon to represent reporting
+                Icons.flag,
                 color: Colors.white,
                 size: 28,
               ),
-              tooltip: 'Report User', // Add tooltip for accessibility
             )
           : null,
       body: isLoading
@@ -422,8 +408,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       SizedBox(height: 10),
                       Row(
-                        mainAxisAlignment:
-                            MainAxisAlignment.end, // Align button to the right
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           Container(
                             decoration: BoxDecoration(
@@ -437,8 +422,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               ],
                             ),
                             child: Material(
-                              color: Colors
-                                  .redAccent, // Use a warning color for reporting
+                              color: Colors.redAccent,
                               shape: CircleBorder(),
                               child: InkWell(
                                 onTap: _showReportModal,
@@ -446,8 +430,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 child: Container(
                                   padding: EdgeInsets.all(12),
                                   child: Icon(
-                                    Icons
-                                        .flag, // Use a flag icon to represent reporting
+                                    Icons.flag,
                                     color: Colors.white,
                                     size: 28,
                                   ),
