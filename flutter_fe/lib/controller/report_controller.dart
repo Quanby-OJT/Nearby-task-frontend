@@ -6,10 +6,10 @@ import 'package:image_picker/image_picker.dart';
 
 class ReportController {
   final ReportService _reportService = ReportService();
-  final reasonController =
-      TextEditingController(); // Renamed to reasonController
+  final reasonController = TextEditingController();
   List<XFile> selectedImages = [];
   Map<String, String> errors = {};
+  String? imageUploadError; // Add this to store the error message
 
   Future<void> pickImages(BuildContext context) async {
     const int maxImages = 5;
@@ -18,13 +18,9 @@ class ReportController {
     if (images.isNotEmpty) {
       if (selectedImages.length + images.length <= maxImages) {
         selectedImages.addAll(images);
+        imageUploadError = null; // Clear error if successful
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('You can only upload up to $maxImages images.'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        imageUploadError = 'You can only upload up to $maxImages images.';
       }
     }
   }
@@ -111,5 +107,6 @@ class ReportController {
     reasonController.clear();
     selectedImages.clear();
     errors.clear();
+    imageUploadError = null; // Clear error on form reset
   }
 }

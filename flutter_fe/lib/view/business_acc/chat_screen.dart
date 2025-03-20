@@ -20,6 +20,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final TaskController _taskController = TaskController();
   final ReportController reportController = ReportController();
   bool isLoading = true;
+  bool _isModalOpen = false; // Track whether the modal is open
 
   @override
   void initState() {
@@ -44,10 +45,15 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _showReportModal() {
+    setState(() {
+      _isModalOpen = true; // Set flag to true when modal opens
+    });
+
     showModalBottomSheet(
       enableDrag: true,
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.white, // Make modal background opaque
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -169,6 +175,15 @@ class _ChatScreenState extends State<ChatScreen> {
                                     ),
                                   ),
                                 ),
+                                if (reportController.imageUploadError !=
+                                    null) ...[
+                                  SizedBox(height: 5),
+                                  Text(
+                                    reportController.imageUploadError!,
+                                    style: TextStyle(
+                                        color: Colors.red, fontSize: 12),
+                                  ),
+                                ],
                                 if (reportController
                                     .selectedImages.isNotEmpty) ...[
                                   SizedBox(height: 10),
@@ -276,6 +291,10 @@ class _ChatScreenState extends State<ChatScreen> {
                           onPressed: () {
                             Navigator.pop(context);
                             reportController.clearForm();
+                            setState(() {
+                              _isModalOpen =
+                                  false; // Reset flag when modal closes
+                            });
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.red,
@@ -298,6 +317,10 @@ class _ChatScreenState extends State<ChatScreen> {
                           onPressed: () {
                             reportController.validateAndSubmit(
                                 context, setModalState);
+                            setState(() {
+                              _isModalOpen =
+                                  false; // Reset flag when modal closes
+                            });
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Color(0xFF0272B1),
@@ -324,7 +347,12 @@ class _ChatScreenState extends State<ChatScreen> {
           },
         );
       },
-    );
+    ).whenComplete(() {
+      // Reset the flag when the modal is dismissed (e.g., by swiping down)
+      setState(() {
+        _isModalOpen = false;
+      });
+    });
   }
 
   @override
@@ -351,21 +379,22 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ),
       ),
-      floatingActionButton:
-          (taskAssignments != null && taskAssignments!.isNotEmpty)
-              ? FloatingActionButton(
-                  onPressed: _showReportModal,
-                  backgroundColor:
-                      Colors.redAccent, // Use a warning color for reporting
-                  elevation: 6, // Add shadow for depth
-                  child: Icon(
-                    Icons.flag, // Use a flag icon to represent reporting
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                  tooltip: 'Report User', // Add tooltip for accessibility
-                )
-              : null, // Show FAB only when there are task assignments
+      floatingActionButton: (taskAssignments != null &&
+              taskAssignments!.isNotEmpty &&
+              !_isModalOpen) // Hide FAB when modal is open
+          ? FloatingActionButton(
+              onPressed: _showReportModal,
+              backgroundColor:
+                  Colors.redAccent, // Use a warning color for reporting
+              elevation: 6, // Add shadow for depth
+              child: Icon(
+                Icons.flag, // Use a flag icon to represent reporting
+                color: Colors.white,
+                size: 28,
+              ),
+              tooltip: 'Report User', // Add tooltip for accessibility
+            )
+          : null,
       body: isLoading
           ? Center(
               child: CircularProgressIndicator(),
