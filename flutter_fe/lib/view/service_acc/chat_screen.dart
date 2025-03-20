@@ -1,10 +1,11 @@
-import 'dart:io'; // For File class
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/controller/report_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:image_picker/image_picker.dart'; // Import image_picker for image upload
+import 'package:image_picker/image_picker.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -17,8 +18,9 @@ class _ChatScreenState extends State<ChatScreen> {
   List<TaskAssignment>? taskAssignments;
   final GetStorage storage = GetStorage();
   final TaskController _taskController = TaskController();
-  bool isLoading = true; // Added to handle loading state
-  File? _selectedImage; // To store the selected image for the report modal
+  final ReportController reportController = ReportController();
+  bool isLoading = true;
+  bool _isModalOpen = false;
 
   @override
   void initState() {
@@ -29,41 +31,31 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _fetchTaskAssignments() async {
     int userId = storage.read('user_id');
 
-    // Get the list of task assignments
     List<TaskAssignment>? fetchedAssignments =
         await _taskController.getAllAssignedTasks(context, userId);
 
-    setState(() {
-      taskAssignments = fetchedAssignments;
-      isLoading = false; // Set loading to false after fetching
-    });
-  }
-
-  // Method to pick an image for the report modal
-  Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(
-        source: ImageSource.gallery); // Use gallery as source
-    if (image != null) {
+    if (mounted) {
       setState(() {
-        _selectedImage = File(image.path); // Store the selected image
+        taskAssignments = fetchedAssignments;
+        isLoading = false;
       });
     }
   }
 
-  // Method to show the Report User modal
   void _showReportModal() {
-    final TextEditingController userNameController = TextEditingController();
-    final TextEditingController descriptionController = TextEditingController();
+    setState(() {
+      _isModalOpen = true;
+    });
 
     showModalBottomSheet(
       enableDrag: true,
       context: context,
       isScrollControlled: true,
-      shape: RoundedRectangleBorder(
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (BuildContext context) {
+      builder: (BuildContext modalContext) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState) {
             return Container(
@@ -71,230 +63,291 @@ class _ChatScreenState extends State<ChatScreen> {
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(context).viewInsets.bottom,
               ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header: "Report User" and Subtitle
-                    Padding(
-                      padding:
-                          const EdgeInsets.only(left: 40, right: 40, top: 20),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            "Report User",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.indigo,
-                              fontSize: 24,
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                left: 40, right: 40, top: 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Report User",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.indigo,
+                                    fontSize: 24,
+                                  ),
+                                ),
+                                SizedBox(height: 5),
+                                Text(
+                                  "Please fill in the details below",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.normal,
+                                    color: Colors.indigo,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          SizedBox(height: 5),
-                          Text(
-                            "Please fill in the details below",
-                            style: TextStyle(
-                              fontWeight: FontWeight.normal,
-                              color: Colors.indigo,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Reported User Name Input Field
-                    Padding(
-                      padding:
-                          const EdgeInsets.only(left: 40, right: 40, top: 20),
-                      child: TextField(
-                        controller: userNameController,
-                        cursorColor: Color(0xFF0272B1),
-                        decoration: InputDecoration(
-                          label: Text('Reported User Name *'),
-                          labelStyle: TextStyle(color: Color(0xFF0272B1)),
-                          filled: true,
-                          fillColor: Color(0xFFF1F4FF),
-                          hintText: 'Enter user name',
-                          hintStyle: TextStyle(color: Colors.grey),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Colors.transparent, width: 0),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide:
-                                BorderSide(color: Color(0xFF0272B1), width: 2),
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Report Description Text Field
-                    Padding(
-                      padding:
-                          const EdgeInsets.only(left: 40, right: 40, top: 20),
-                      child: TextField(
-                        controller: descriptionController,
-                        maxLines: 5,
-                        cursorColor: Color(0xFF0272B1),
-                        decoration: InputDecoration(
-                          label: Text('Report Description *'),
-                          labelStyle: TextStyle(color: Color(0xFF0272B1)),
-                          alignLabelWithHint: true,
-                          filled: true,
-                          fillColor: Color(0xFFF1F4FF),
-                          hintText: 'Enter description...',
-                          hintStyle: TextStyle(color: Colors.grey),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Colors.transparent, width: 0),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide:
-                                BorderSide(color: Color(0xFF0272B1), width: 2),
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Proof (Upload Image) Section
-                    Padding(
-                      padding:
-                          const EdgeInsets.only(left: 40, right: 40, top: 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Proof (Upload Image)',
-                            style: TextStyle(
-                              color: Color(0xFF0272B1),
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                          Container(
-                            alignment: Alignment.centerLeft,
-                            child: ElevatedButton.icon(
-                              onPressed: () async {
-                                await _pickImage(); // Call the image picker
-                                setModalState(
-                                    () {}); // Update modal state to show selected image
-                              },
-                              icon:
-                                  Icon(Icons.upload_file, color: Colors.white),
-                              label: Text(
-                                'Upload Image',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFF0272B1),
-                                shape: RoundedRectangleBorder(
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                left: 40, right: 40, top: 20),
+                            child: TextField(
+                              controller: reportController.reasonController,
+                              maxLines: 5,
+                              cursorColor: Color(0xFF0272B1),
+                              decoration: InputDecoration(
+                                label: Text('Report Description *'),
+                                labelStyle: TextStyle(color: Color(0xFF0272B1)),
+                                alignLabelWithHint: true,
+                                filled: true,
+                                fillColor: Color(0xFFF1F4FF),
+                                hintText: 'Enter description...',
+                                hintStyle: TextStyle(color: Colors.grey),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Colors.transparent,
+                                    width: 0,
+                                  ),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                padding: EdgeInsets.only(left: 16, right: 16),
-                                alignment: Alignment.centerLeft,
-                                minimumSize: Size(150,
-                                    50), // Ensure button has a reasonable size
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                      color: Color(0xFF0272B1), width: 2),
+                                ),
+                                errorText: reportController.errors['reason'],
                               ),
                             ),
                           ),
-                          if (_selectedImage != null) ...[
-                            SizedBox(height: 10),
-                            Image.file(
-                              _selectedImage!,
-                              height: 100,
-                              width: 100,
-                              fit: BoxFit.cover,
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                left: 40, right: 40, top: 20, bottom: 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Upload Proof (Limited to 5 images only)',
+                                  style: TextStyle(
+                                    color: Color(0xFF0272B1),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(height: 10),
+                                Container(
+                                  alignment: Alignment.centerLeft,
+                                  child: ElevatedButton.icon(
+                                    onPressed: () async {
+                                      await reportController
+                                          .pickImages(modalContext);
+                                      setModalState(() {});
+                                    },
+                                    icon: Icon(Icons.upload_file,
+                                        color: Colors.white),
+                                    label: Text(
+                                      'Upload Images',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Color(0xFF0272B1),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      padding:
+                                          EdgeInsets.only(left: 16, right: 16),
+                                      alignment: Alignment.centerLeft,
+                                      minimumSize: Size(150, 50),
+                                    ),
+                                  ),
+                                ),
+                                if (reportController.imageUploadError !=
+                                    null) ...[
+                                  SizedBox(height: 5),
+                                  Text(
+                                    reportController.imageUploadError!,
+                                    style: TextStyle(
+                                        color: Colors.red, fontSize: 12),
+                                  ),
+                                ],
+                                if (reportController
+                                    .selectedImages.isNotEmpty) ...[
+                                  SizedBox(height: 10),
+                                  SizedBox(
+                                    height: 140,
+                                    child: ListView.builder(
+                                      scrollDirection: Axis.horizontal,
+                                      itemCount: reportController
+                                          .selectedImages.length,
+                                      itemBuilder: (context, index) {
+                                        return Padding(
+                                          padding:
+                                              const EdgeInsets.only(right: 10),
+                                          child: Column(
+                                            children: [
+                                              Stack(
+                                                children: [
+                                                  FutureBuilder<Uint8List>(
+                                                    future: reportController
+                                                        .selectedImages[index]
+                                                        .readAsBytes(),
+                                                    builder:
+                                                        (context, snapshot) {
+                                                      if (snapshot
+                                                              .connectionState ==
+                                                          ConnectionState
+                                                              .waiting) {
+                                                        return SizedBox(
+                                                          height: 100,
+                                                          width: 100,
+                                                          child: Center(
+                                                              child:
+                                                                  CircularProgressIndicator()),
+                                                        );
+                                                      }
+                                                      if (snapshot.hasError) {
+                                                        return SizedBox(
+                                                          height: 100,
+                                                          width: 100,
+                                                          child: Center(
+                                                              child: Text(
+                                                                  'Error loading image')),
+                                                        );
+                                                      }
+                                                      return Image.memory(
+                                                        snapshot.data!,
+                                                        height: 100,
+                                                        width: 100,
+                                                        fit: BoxFit.cover,
+                                                      );
+                                                    },
+                                                  ),
+                                                  Positioned(
+                                                    top: 0,
+                                                    right: 0,
+                                                    child: GestureDetector(
+                                                      onTap: () {
+                                                        setModalState(() {
+                                                          reportController
+                                                              .removeImage(
+                                                                  index);
+                                                        });
+                                                      },
+                                                      child: Container(
+                                                        color: Colors.red,
+                                                        child: Icon(
+                                                          Icons.close,
+                                                          color: Colors.white,
+                                                          size: 20,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              SizedBox(height: 5),
+                                              Text(
+                                                'Image ${index + 1}',
+                                                style: TextStyle(
+                                                    color: Colors.grey),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
-                            SizedBox(height: 10),
-                            Text(
-                              'Selected: ${_selectedImage!.path.split('/').last}',
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                          ],
+                          ),
                         ],
                       ),
                     ),
-                    // Submit and Cancel Buttons
-                    Padding(
-                      padding: const EdgeInsets.only(
-                          left: 40, right: 40, top: 20, bottom: 20),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 15),
+                  ),
+                  Padding(
+                    padding:
+                        const EdgeInsets.only(left: 40, right: 40, bottom: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            reportController.clearForm();
+                            setState(() {
+                              _isModalOpen = false;
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Text(
-                              'Cancel',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 15),
+                          ),
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          SizedBox(width: 10),
-                          ElevatedButton(
-                            onPressed: () {
-                              // Basic validation
-                              if (userNameController.text.trim().isEmpty ||
-                                  descriptionController.text.trim().isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                        'Please fill in all required fields'),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
-                              } else {
-                                Navigator.pop(context); // Close the modal
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Report Submitted!'),
-                                    backgroundColor: Colors.green,
-                                  ),
-                                );
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF0272B1),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 15),
+                        ),
+                        SizedBox(width: 10),
+                        ElevatedButton(
+                          onPressed: () {
+                            reportController.validateAndSubmit(
+                                context, setModalState);
+                            setState(() {
+                              _isModalOpen = false;
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFF0272B1),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Text(
-                              'Submit',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 15),
+                          ),
+                          child: Text(
+                            'Submit',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             );
           },
         );
       },
-    );
+    ).whenComplete(() {
+      setState(() {
+        _isModalOpen = false;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    reportController.reasonController.dispose();
+    super.dispose();
   }
 
   @override
@@ -314,12 +367,28 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         ),
       ),
+      floatingActionButton: (taskAssignments != null &&
+              taskAssignments!.isNotEmpty &&
+              !_isModalOpen)
+          ? FloatingActionButton(
+              onPressed: _showReportModal,
+              backgroundColor: Colors.redAccent,
+              elevation: 6,
+              tooltip: 'Report User',
+              child: Icon(
+                Icons.flag,
+                color: Colors.white,
+                size: 28,
+              ),
+            )
+          : null,
       body: isLoading
           ? Center(
-              child:
-                  CircularProgressIndicator()) // Show loading indicator while fetching
+              child: CircularProgressIndicator(),
+            )
           : (taskAssignments == null || taskAssignments!.isEmpty)
-              ? Center(
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -338,20 +407,38 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                       ),
                       SizedBox(height: 10),
-                      ElevatedButton(
-                        onPressed: _showReportModal, // Show report modal
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF0272B1),
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 30, vertical: 15),
-                        ),
-                        child: Text(
-                          "Report User",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 6,
+                                  offset: Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Material(
+                              color: Colors.redAccent,
+                              shape: CircleBorder(),
+                              child: InkWell(
+                                onTap: _showReportModal,
+                                borderRadius: BorderRadius.circular(30),
+                                child: Container(
+                                  padding: EdgeInsets.all(12),
+                                  child: Icon(
+                                    Icons.flag,
+                                    color: Colors.white,
+                                    size: 28,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
