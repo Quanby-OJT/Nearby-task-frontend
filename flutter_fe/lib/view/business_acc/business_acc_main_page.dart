@@ -29,7 +29,7 @@ class _BusinessAccMainState extends State<BusinessAccMain> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: NavUserScreen(),
+      appBar: NavUserScreen(),
       body: PageView(
         physics: NeverScrollableScrollPhysics(),
         controller: _pageController,

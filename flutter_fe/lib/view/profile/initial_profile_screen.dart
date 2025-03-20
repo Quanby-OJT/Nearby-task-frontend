@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
+import 'package:flutter_fe/controller/profile_controller.dart';
+import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
+import 'package:get_storage/get_storage.dart';
 
 class InitialProfileScreen extends StatefulWidget {
   const InitialProfileScreen({super.key});
@@ -12,6 +15,34 @@ class InitialProfileScreen extends StatefulWidget {
 
 class _InitialProfileScreenState extends State<InitialProfileScreen> {
   final AuthenticationController _authController = AuthenticationController();
+  final storage = GetStorage();
+  final ProfileController _profileController = ProfileController();
+  AuthenticatedUser? _user;
+  bool isLoading = true;
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _fetchUserData();
+  }
+
+  Future<void> _fetchUserData() async {
+    try {
+      int userId = storage.read("user_id");
+      AuthenticatedUser? user = await _profileController.getAuthenticatedUser(context, userId);
+      debugPrint(user.toString());
+      setState(() {
+        isLoading = false;
+        _user = user;
+      });
+    }catch(e, stackTrace){
+      debugPrint("Error fetching user data: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      setState(() => _user = null);
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,7 +63,7 @@ class _InitialProfileScreenState extends State<InitialProfileScreen> {
                   CircleAvatar(
                     radius: 30,
                     backgroundImage: NetworkImage(
-                      'https://via.placeholder.com/150', // Replace with actual profile image URL
+                      isLoading ? '/assets/images/default-profile.jpg' : '${_user?.user.image}', // Replace with actual profile image URL
                     ),
                   ),
                   SizedBox(width: 16.0),
@@ -40,14 +71,14 @@ class _InitialProfileScreenState extends State<InitialProfileScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'William John Malik',
+                        isLoading ? "Loading..." : "${_user?.user.firstName} ${_user?.user.lastName}",
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
-                        'Client',
+                        storage.read('role'),
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey,

@@ -120,9 +120,9 @@ class AuthenticationController {
 
       // Convert to String if needed
       final userIdString = storedUserId.toString();
-      debugPrint(userIdString);
-      debugPrint("Session: ${await AuthService.getSessionToken()}");
-      debugPrint("Stored user ID for logout: $userIdString");
+      // debugPrint(userIdString);
+      // debugPrint("Session: ${await AuthService.getSessionToken()}");
+      // debugPrint("Stored user ID for logout: $userIdString");
 
       final response = await ApiService.logout(
           int.parse(userIdString), await AuthService.getSessionToken());

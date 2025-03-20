@@ -199,8 +199,7 @@ class ProfileController {
     }
   }
 
-  Future<int> verifyEmail(
-      BuildContext context, String token, String email) async {
+  Future<int> verifyEmail(BuildContext context, String token, String email) async {
     try {
       final response = await ApiService.verifyEmail(token, email);
 
@@ -338,9 +337,7 @@ class ProfileController {
           return AuthenticatedUser(user: user, client: client);
         } else if (result.containsKey("tasker")) {
           TaskerModel tasker = result["tasker"] as TaskerModel;
-
           debugPrint("Retrieved Data: " + tasker.toString());
-
           return AuthenticatedUser(user: user, tasker: tasker);
         }
       }
