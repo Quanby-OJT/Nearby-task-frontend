@@ -93,7 +93,7 @@ class ApiService {
 
       var request = http.MultipartRequest(
         "PUT",
-        Uri.parse("$apiUrl/update-client-user/${user.id}"),
+        Uri.parse("$apiUrl/update-user-with-profile-image/${user.id}"),
       );
 
       request.headers.addAll({
@@ -116,7 +116,7 @@ class ApiService {
       // Add the profile image to the request
       request.files.add(
         http.MultipartFile.fromBytes(
-          "image",
+          "profileImage",
           await profileImage.readAsBytes(),
           filename: "profile_image.jpg",
         ),
@@ -126,7 +126,7 @@ class ApiService {
       var responseBody = await response.stream.bytesToString();
 
       debugPrint('Response Status: ${response.statusCode}');
-      debugPrint('Response Body: $responseBody');
+      debugPrint('Response Body updated: $responseBody');
 
       final data = jsonDecode(responseBody);
 
@@ -166,7 +166,7 @@ class ApiService {
 
       var request = http.MultipartRequest(
         "PUT",
-        Uri.parse("$apiUrl/update-client-user/${user.id}"),
+        Uri.parse("$apiUrl/update-user-with-id-image/${user.id}"),
       );
 
       request.headers.addAll({
@@ -189,7 +189,7 @@ class ApiService {
       // Add the ID image to the request
       request.files.add(
         http.MultipartFile.fromBytes(
-          "id_image",
+          "idImage",
           await idImage.readAsBytes(),
           filename: "id_image.jpg",
         ),
@@ -199,7 +199,7 @@ class ApiService {
       var responseBody = await response.stream.bytesToString();
 
       debugPrint('Response Status: ${response.statusCode}');
-      debugPrint('Response Body: $responseBody');
+      debugPrint('Response Body update id image: $responseBody');
 
       final data = jsonDecode(responseBody);
 

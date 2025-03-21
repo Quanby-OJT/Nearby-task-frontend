@@ -194,7 +194,6 @@ class _InitialProfileScreenState extends State<InitialProfileScreen> {
               title: Text('Logout'),
               trailing: Icon(Icons.chevron_right),
               onTap: () {
-                print('sample tap');
                 _authController.logout(context);
               },
             ),

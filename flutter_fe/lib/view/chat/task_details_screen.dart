@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-class TaskDetailsScreen extends StatefulWidget{
+class TaskDetailsScreen extends StatefulWidget {
   final int taskTakenId;
 
   const TaskDetailsScreen({super.key, required this.taskTakenId});
@@ -31,7 +29,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
 
   Future<void> _fetchTaskDetails() async {
     try {
-      final response = await _jobPostService.fetchTaskInformation(widget.taskTakenId ?? 0);
+      final response =
+          await _jobPostService.fetchTaskInformation(widget.taskTakenId ?? 0);
       debugPrint("Response: $response");
       setState(() {
         _taskInformation = response;
@@ -52,39 +51,37 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : _taskInformation == null
-          ? Center(child: Text('No task information available'))
-          : () {
-        final task = _taskInformation!; // Promote to non-nullable
-        return Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Card(
-            elevation: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildInfoRow("Title", task.title ?? "N/A"),
-                  _buildInfoRow(
-                      "Description", task.description ?? "N/A"),
-                  _buildInfoRow("Location", task.location ?? "N/A"),
-                  _buildInfoRow(
-                      "Urgency",
-                      // task.urgency ?? false
-                      //     ? "My Task is Urgent"
-                      //     : "My Task is Not Urgent"),
-                      task.urgency.toString()
-                  ),
-                  _buildInfoRow(
-                      "Duration", task.duration.toString()),
-                  _buildInfoRow("Status", task.status ?? "N/A"),
-                ],
-              ),
-            ),
-          ),
-        );
-      }(),
+              ? Center(child: Text('No task information available'))
+              : () {
+                  final task = _taskInformation!; // Promote to non-nullable
+                  return Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Card(
+                      elevation: 2,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _buildInfoRow("Title", task.title ?? "N/A"),
+                            _buildInfoRow(
+                                "Description", task.description ?? "N/A"),
+                            _buildInfoRow("Location", task.location ?? "N/A"),
+                            _buildInfoRow(
+                                "Urgency",
+                                // task.urgency ?? false
+                                //     ? "My Task is Urgent"
+                                //     : "My Task is Not Urgent"),
+                                task.urgency.toString()),
+                            _buildInfoRow("Duration", task.duration.toString()),
+                            _buildInfoRow("Status", task.status ?? "N/A"),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }(),
     );
   }
 

@@ -20,17 +20,28 @@ class _FillUpTaskerState extends State<FillUpTasker> {
 
   final ProfileController _controller = ProfileController();
   final JobPostService jobPostService = JobPostService();
-  bool _isSuccess = false;
+  final bool _isSuccess = false;
   File? _selectedFile; // Store the selected file
   String? _fileName; // Store the selected file name
   File? _selectedImage; // Store the selected image
   String? _imageName; // Store the selected image name
   String? selectedGender;
-  List<String> genderOptions = ["Male", "Female", "Non-Binary", "I don't Want to Say"];
+  List<String> genderOptions = [
+    "Male",
+    "Female",
+    "Non-Binary",
+    "I don't Want to Say"
+  ];
   List<String> specialization = [];
   String? selectedSpecialization;
   List<String> taskerGroup = ["Solo Tasker", "Agency"];
-  List<String> payPeriod = ["Hourly", "Daily", "Weekly", "Bi-Weekly" ,"Monthly"];
+  List<String> payPeriod = [
+    "Hourly",
+    "Daily",
+    "Weekly",
+    "Bi-Weekly",
+    "Monthly"
+  ];
 
   //TESDA Documents
   Future<void> _pickFile() async {
@@ -65,7 +76,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
   }
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     fetchSpecialization();
   }
@@ -73,10 +84,12 @@ class _FillUpTaskerState extends State<FillUpTasker> {
   Future<void> fetchSpecialization() async {
     try {
       debugPrint(GetStorage().read("session"));
-      List<SpecializationModel> fetchedSpecializations = await jobPostService.getSpecializations();
+      List<SpecializationModel> fetchedSpecializations =
+          await jobPostService.getSpecializations();
       debugPrint(fetchedSpecializations.toString());
       setState(() {
-        specialization = fetchedSpecializations.map((spec) => spec.specialization).toList();
+        specialization =
+            fetchedSpecializations.map((spec) => spec.specialization).toList();
       });
     } catch (error, stackTrace) {
       debugPrint('Error fetching specializations: $error');
@@ -225,8 +238,9 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                     keyboardType: TextInputType.number,
                     controller: _controller.wageController,
                     cursorColor: Color(0xFF0272B1),
-                    validator: (value) =>
-                        value!.isEmpty ? "Please Indicate Your Desired Wage" : null,
+                    validator: (value) => value!.isEmpty
+                        ? "Please Indicate Your Desired Wage"
+                        : null,
                     decoration: InputDecoration(
                         filled: true,
                         fillColor: Color(0xFFF1F4FF),
@@ -245,40 +259,42 @@ class _FillUpTaskerState extends State<FillUpTasker> {
 
                 //Duration
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Color(0xFFF1F4FF),
-                      hintText: 'How do you want to be paid?',
-                      hintStyle: TextStyle(color: Colors.grey),
-                      enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.transparent)),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                            color: Color(0xFF0272B1), width: 2),
-                      )
-                    ),
-                    value: _controller.payPeriodController.text.isNotEmpty ? _controller.payPeriodController.text : null,
-                    items: payPeriod.map((String period) {
-                      return DropdownMenuItem<String>(
-                        value: period,
-                        child: Text(period),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                         _controller.payPeriodController.text = newValue!;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please select a pay period';
-                      }
-                      return null;
-                    },
-                  )),
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: DropdownButtonFormField<String>(
+                      decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Color(0xFFF1F4FF),
+                          hintText: 'How do you want to be paid?',
+                          hintStyle: TextStyle(color: Colors.grey),
+                          enabledBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: Colors.transparent)),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide:
+                                BorderSide(color: Color(0xFF0272B1), width: 2),
+                          )),
+                      value: _controller.payPeriodController.text.isNotEmpty
+                          ? _controller.payPeriodController.text
+                          : null,
+                      items: payPeriod.map((String period) {
+                        return DropdownMenuItem<String>(
+                          value: period,
+                          child: Text(period),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _controller.payPeriodController.text = newValue!;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please select a pay period';
+                        }
+                        return null;
+                      },
+                    )),
 
                 //Gender
                 Padding(
@@ -313,8 +329,9 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                   child: TextFormField(
                     controller: _controller.contactNumberController,
                     cursorColor: Color(0xFF0272B1),
-                    validator: (value) =>
-                        value!.isEmpty ? "Please indicate your contact number" : null,
+                    validator: (value) => value!.isEmpty
+                        ? "Please indicate your contact number"
+                        : null,
                     decoration: InputDecoration(
                         filled: true,
                         fillColor: Color(0xFFF1F4FF),
@@ -358,8 +375,10 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextField(
-                    controller: _controller.birthdateController, // Dedicated controller
-                    keyboardType: TextInputType.datetime, // Optional, but not needed for picker
+                    controller:
+                        _controller.birthdateController, // Dedicated controller
+                    keyboardType: TextInputType
+                        .datetime, // Optional, but not needed for picker
                     readOnly: true, // Prevents manual input
                     onTap: () async {
                       DateTime? pickedDate = await showDatePicker(
@@ -373,7 +392,8 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                         // Format date as YYYY-MM-DD
                         String formattedDate =
                             "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
-                        _controller.birthdateController.text = formattedDate; // Set the text
+                        _controller.birthdateController.text =
+                            formattedDate; // Set the text
                       }
                     },
                     decoration: InputDecoration(
@@ -382,14 +402,17 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                       fillColor: Color(0xFFF1F4FF),
                       hintText: 'Birth date',
                       hintStyle: TextStyle(color: Colors.grey),
-                      suffixIcon: Icon(Icons.calendar_today, color: Color(0xFF0272B1)), // Calendar icon
+                      suffixIcon: Icon(Icons.calendar_today,
+                          color: Color(0xFF0272B1)), // Calendar icon
                       enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.transparent, width: 0),
+                        borderSide:
+                            BorderSide(color: Colors.transparent, width: 0),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
+                        borderSide:
+                            BorderSide(color: Color(0xFF0272B1), width: 2),
                       ),
                     ),
                   ),
@@ -423,7 +446,9 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                     maxLines: 2,
                     controller: _controller.bioController,
                     cursorColor: Color(0xFF0272B1),
-                    validator: (value) => value!.isEmpty ? "Indicate Your desired description." : null,
+                    validator: (value) => value!.isEmpty
+                        ? "Indicate Your desired description."
+                        : null,
                     decoration: InputDecoration(
                         filled: true,
                         fillColor: Color(0xFFF1F4FF),
@@ -436,9 +461,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                         focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                             borderSide: BorderSide(
-                                color: Color(0xFF0272B1), width: 2)
-                        )
-                    ),
+                                color: Color(0xFF0272B1), width: 2))),
                   ),
                 ),
                 Padding(
@@ -452,7 +475,8 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                     decoration: InputDecoration(
                         filled: true,
                         fillColor: Color(0xFFF1F4FF),
-                        hintText: 'Enumerate what Skills Do you possessed at this moment.',
+                        hintText:
+                            'Enumerate what Skills Do you possessed at this moment.',
                         hintStyle: TextStyle(color: Colors.grey),
                         enabledBorder: OutlineInputBorder(
                             borderSide:
@@ -465,7 +489,8 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
                   child: DropdownButtonFormField<String>(
                     value: selectedSpecialization,
                     decoration: InputDecoration(
@@ -478,7 +503,8 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
+                        borderSide:
+                            BorderSide(color: Color(0xFF0272B1), width: 2),
                       ),
                     ),
                     items: specialization.map((String spec) {
@@ -486,7 +512,8 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                         value: spec,
                         child: Text(
                           spec,
-                          overflow: TextOverflow.ellipsis, // Ensures text does not overflow
+                          overflow: TextOverflow
+                              .ellipsis, // Ensures text does not overflow
                         ),
                       );
                     }).toList(),
@@ -506,7 +533,6 @@ class _FillUpTaskerState extends State<FillUpTasker> {
             title: Text('Certs'),
             content: Column(
               children: [
-
                 ElevatedButton(
                   onPressed: _pickFile,
                   child: Text("Pick PDF"),

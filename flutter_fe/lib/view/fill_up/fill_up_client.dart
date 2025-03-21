@@ -202,34 +202,92 @@ class _FillUpClientState extends State<FillUpClient> {
   }
 
   Future<void> _saveUserWithImages() async {
+    // Case 1: Both new images are selected
     if (_selectedImage != null && _selectedImageID != null) {
       try {
         int userId = int.parse(storage.read('user_id').toString());
         await _controller.updateUserWithBothImages(
-            context, userId, _selectedImage!, _selectedImageID!);
-
-        // Reset the changed flag after successful upload
-        setState(() {
-          _imagesChanged = false;
-        });
-
-        // Refresh user data to get updated URLs
-        await _fetchUserData();
+          context,
+          userId,
+          _selectedImage!,
+          _selectedImageID!,
+        );
+        // The method already shows success/error messages internally
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving images: ${e.toString()}'),
+            content: Text('Error: $e'),
             backgroundColor: Colors.red,
           ),
         );
       }
-    } else {
+    }
+    // Case 2: Both existing images are present - update user data only
+    else if (_existingProfileImageUrl != null &&
+        _existingIDImageUrl != null &&
+        _selectedImage != null &&
+        _selectedImageID == null) {
+      debugPrint(
+          "Updating user data only - both images already exist but profile image is selected to be updated" +
+              _selectedImage!.path);
+
+      try {
+        int userId = int.parse(storage.read('user_id').toString());
+        await _controller.updateUserWithImage(
+          context,
+          userId,
+          _selectedImage!,
+        );
+        // The method already shows success/error messages internally
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+    // Case 3: Selected ID but no profile image
+    else if (_existingProfileImageUrl != null &&
+        _existingIDImageUrl != null &&
+        _selectedImageID != null &&
+        _selectedImage == null) {
+      try {
+        int userId = int.parse(storage.read('user_id').toString());
+        await _controller.updateUserWithID(
+          context,
+          userId,
+          _selectedImageID!,
+        );
+        // The method already shows success/error messages internally
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+    // Case 5: No images at all
+    else if ((_selectedImage == null &&
+            (_existingProfileImageUrl == null ||
+                _existingProfileImageUrl!.isEmpty)) &&
+        (_selectedImageID == null &&
+            (_existingIDImageUrl == null || _existingIDImageUrl!.isEmpty))) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Please select both profile and ID images'),
+          content: Text('Please provide both profile and ID images'),
           backgroundColor: Colors.orange,
         ),
       );
+    }
+    // Fallback case
+    else {
+      debugPrint(
+          "Unexpected image state - attempting to update user data only");
+      await _controller.updateUserData(context, storage.read('user_id') as int);
     }
   }
 
@@ -331,24 +389,44 @@ class _FillUpClientState extends State<FillUpClient> {
                 ),
               ),
               child: Stepper(
-                type: StepperType.horizontal,
-                currentStep: currentStep,
-                onStepTapped: (step) => setState(() => currentStep = step),
-                onStepContinue: () {
-                  final isLastStep = currentStep == getSteps().length - 1;
-                  if (isLastStep) {
-                    // Handle form submission
-                    _controller.updateUserData(
-                        context, int.parse(storage.read('user_id').toString()));
-                  } else {
-                    setState(() => currentStep += 1);
-                  }
-                },
-                onStepCancel: currentStep == 0
-                    ? null
-                    : () => setState(() => currentStep -= 1),
-                steps: getSteps(),
-              ),
+                  type: StepperType.horizontal,
+                  currentStep: currentStep,
+                  onStepTapped: (step) => setState(() => currentStep = step),
+                  onStepContinue: () {
+                    final isLastStep = currentStep == getSteps().length - 1;
+                    if (isLastStep) {
+                      _saveUserWithImages();
+                    } else {
+                      setState(() => currentStep += 1);
+                    }
+                  },
+                  onStepCancel: currentStep == 0
+                      ? null
+                      : () => setState(() => currentStep -= 1),
+                  steps: getSteps(),
+                  controlsBuilder:
+                      (BuildContext context, ControlsDetails details) {
+                    final isLastStep = currentStep == getSteps().length - 1;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          if (currentStep != 0)
+                            ElevatedButton(
+                              onPressed: details.onStepCancel,
+                              child: Text("Back"),
+                            ),
+                          SizedBox(width: 10),
+                          ElevatedButton(
+                            onPressed: details.onStepContinue,
+                            child:
+                                Text(isLastStep ? "Save Changes" : "Continue"),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
             ),
     );
   }
@@ -566,285 +644,270 @@ class _FillUpClientState extends State<FillUpClient> {
             state: currentStep > 1 ? StepState.complete : StepState.indexed,
             isActive: currentStep >= 1,
             title: Text(''),
-            content: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  child: Text(
-                    'Choose a profile picture',
-                    style: GoogleFonts.openSans(
-                        fontSize: 20, color: Color(0xFF0272B1)),
+            content: Padding(
+              padding: const EdgeInsets.only(bottom: 10.0),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: Text(
+                      'Choose a profile picture',
+                      style: GoogleFonts.openSans(
+                          fontSize: 20, color: Color(0xFF0272B1)),
+                    ),
                   ),
-                ),
-                // Profile Image Display
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      // Profile Image Preview
-                      Container(
-                        width: 200,
-                        height: 200,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(100),
-                          border:
-                              Border.all(color: Color(0xFF0272B1), width: 3),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 10,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
+                  // Profile Image Display
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(100),
-                          child: _selectedImage != null
-                              ? Image.file(
-                                  _selectedImage!,
-                                  fit: BoxFit.cover,
-                                )
-                              : _existingProfileImageUrl != null &&
-                                      _existingProfileImageUrl!.isNotEmpty
-                                  ? Image.network(
-                                      _existingProfileImageUrl!,
-                                      fit: BoxFit.cover,
-                                      loadingBuilder:
-                                          (context, child, loadingProgress) {
-                                        if (loadingProgress == null) {
-                                          return child;
-                                        }
-                                        return Center(
-                                          child: CircularProgressIndicator(
-                                            value: loadingProgress
-                                                        .expectedTotalBytes !=
-                                                    null
-                                                ? loadingProgress
-                                                        .cumulativeBytesLoaded /
-                                                    loadingProgress
-                                                        .expectedTotalBytes!
-                                                : null,
-                                          ),
-                                        );
-                                      },
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                        return Center(
-                                          child: Icon(
-                                            Icons.person,
-                                            size: 80,
-                                            color: Colors.grey[600],
-                                          ),
-                                        );
-                                      },
-                                    )
-                                  : Center(
-                                      child: Icon(
-                                        Icons.person,
-                                        size: 80,
-                                        color: Colors.grey[600],
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        // Profile Image Preview
+                        Container(
+                          width: 200,
+                          height: 200,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(100),
+                            border:
+                                Border.all(color: Color(0xFF0272B1), width: 3),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 10,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(100),
+                            child: _selectedImage != null
+                                ? Image.file(
+                                    _selectedImage!,
+                                    fit: BoxFit.cover,
+                                  )
+                                : _existingProfileImageUrl != null &&
+                                        _existingProfileImageUrl!.isNotEmpty
+                                    ? Image.network(
+                                        _existingProfileImageUrl!,
+                                        fit: BoxFit.cover,
+                                        loadingBuilder:
+                                            (context, child, loadingProgress) {
+                                          if (loadingProgress == null) {
+                                            return child;
+                                          }
+                                          return Center(
+                                            child: CircularProgressIndicator(
+                                              value: loadingProgress
+                                                          .expectedTotalBytes !=
+                                                      null
+                                                  ? loadingProgress
+                                                          .cumulativeBytesLoaded /
+                                                      loadingProgress
+                                                          .expectedTotalBytes!
+                                                  : null,
+                                            ),
+                                          );
+                                        },
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          return Center(
+                                            child: Icon(
+                                              Icons.person,
+                                              size: 80,
+                                              color: Colors.grey[600],
+                                            ),
+                                          );
+                                        },
+                                      )
+                                    : Center(
+                                        child: Icon(
+                                          Icons.person,
+                                          size: 80,
+                                          color: Colors.grey[600],
+                                        ),
                                       ),
-                                    ),
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      // Select Profile Image Button
-                      ElevatedButton.icon(
-                        onPressed: _pickImageProfile,
-                        icon: Icon(
-                          Icons.edit,
-                          color: Colors.white,
-                        ),
-                        label: Text("Change Profile"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF0272B1),
-                          foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                      ),
-                      if (_imageName != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            "Name: ${_imageName ?? ''}",
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        )
-                    ],
-                  ),
-                ),
-              ],
-            )),
-        Step(
-            state: currentStep > 2 ? StepState.complete : StepState.indexed,
-            isActive: currentStep >= 2,
-            title: Text(''),
-            content: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  child: Text(
-                    'Upload your ID for verification',
-                    style: GoogleFonts.openSans(
-                        fontSize: 20, color: Color(0xFF0272B1)),
-                  ),
-                ),
-                // ID Image Display
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      // ID Image Preview
-                      Container(
-                        width: 300,
-                        height: 180,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(12),
-                          border:
-                              Border.all(color: Color(0xFF0272B1), width: 2),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 10,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: _selectedImageID != null
-                              ? Image.file(
-                                  _selectedImageID!,
-                                  fit: BoxFit.cover,
-                                )
-                              : _existingIDImageUrl != null &&
-                                      _existingIDImageUrl!.isNotEmpty
-                                  ? Image.network(
-                                      _existingIDImageUrl!,
-                                      fit: BoxFit.cover,
-                                      loadingBuilder:
-                                          (context, child, loadingProgress) {
-                                        if (loadingProgress == null) {
-                                          return child;
-                                        }
-                                        return Center(
-                                          child: CircularProgressIndicator(
-                                            value: loadingProgress
-                                                        .expectedTotalBytes !=
-                                                    null
-                                                ? loadingProgress
-                                                        .cumulativeBytesLoaded /
-                                                    loadingProgress
-                                                        .expectedTotalBytes!
-                                                : null,
-                                          ),
-                                        );
-                                      },
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                        return Center(
-                                          child: Icon(
-                                            Icons.credit_card,
-                                            size: 80,
-                                            color: Colors.grey[600],
-                                          ),
-                                        );
-                                      },
-                                    )
-                                  : Center(
-                                      child: Icon(
-                                        Icons.credit_card,
-                                        size: 80,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      // Select ID Image Button
-                      ElevatedButton.icon(
-                        onPressed: _pickImageID,
-                        icon: Icon(Icons.add_photo_alternate),
-                        label: Text("Select ID Image"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF0272B1),
-                          foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                      if (_selectedImageID != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            "Selected: ${_imageNameID ?? 'id_image.jpg'}",
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        ),
-
-                      SizedBox(height: 30),
-
-                      // Save Images Button
-                      if (_imagesChanged ||
-                          (_existingProfileImageUrl != null &&
-                              _existingIDImageUrl != null))
+                        SizedBox(height: 20),
+                        // Select Profile Image Button
                         ElevatedButton.icon(
-                          onPressed: _saveUserWithImages,
-                          icon: Icon(Icons.save),
-                          label: Text("Save Images"),
+                          onPressed: _pickImageProfile,
+                          icon: Icon(
+                            Icons.edit,
+                            color: Colors.white,
+                          ),
+                          label: Text("Change Profile"),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
+                            backgroundColor: Color(0xFF0272B1),
                             foregroundColor: Colors.white,
                             padding: EdgeInsets.symmetric(
-                                horizontal: 30, vertical: 15),
+                                horizontal: 20, vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
                         ),
-                    ],
+                        if (_imageName != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              "Name: ${_imageName ?? ''}",
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          )
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
+            )),
+        Step(
+            state: currentStep > 2 ? StepState.complete : StepState.indexed,
+            isActive: currentStep >= 2,
+            title: Text(''),
+            content: Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: Text(
+                      'Upload your ID for verification',
+                      style: GoogleFonts.openSans(
+                          fontSize: 20, color: Color(0xFF0272B1)),
+                    ),
+                  ),
+                  // ID Image Display
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        // ID Image Preview
+                        Container(
+                          width: 300,
+                          height: 180,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(12),
+                            border:
+                                Border.all(color: Color(0xFF0272B1), width: 2),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 10,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: _selectedImageID != null
+                                ? Image.file(
+                                    _selectedImageID!,
+                                    fit: BoxFit.cover,
+                                  )
+                                : _existingIDImageUrl != null &&
+                                        _existingIDImageUrl!.isNotEmpty
+                                    ? Image.network(
+                                        _existingIDImageUrl!,
+                                        fit: BoxFit.cover,
+                                        loadingBuilder:
+                                            (context, child, loadingProgress) {
+                                          if (loadingProgress == null) {
+                                            return child;
+                                          }
+                                          return Center(
+                                            child: CircularProgressIndicator(
+                                              value: loadingProgress
+                                                          .expectedTotalBytes !=
+                                                      null
+                                                  ? loadingProgress
+                                                          .cumulativeBytesLoaded /
+                                                      loadingProgress
+                                                          .expectedTotalBytes!
+                                                  : null,
+                                            ),
+                                          );
+                                        },
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          return Center(
+                                            child: Icon(
+                                              Icons.credit_card,
+                                              size: 80,
+                                              color: Colors.grey[600],
+                                            ),
+                                          );
+                                        },
+                                      )
+                                    : Center(
+                                        child: Icon(
+                                          Icons.credit_card,
+                                          size: 80,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                        // Select ID Image Button
+                        ElevatedButton.icon(
+                          onPressed: _pickImageID,
+                          icon: Icon(Icons.edit, color: Colors.white),
+                          label: Text("Change ID Image"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFF0272B1),
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                        if (_selectedImageID != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              "Selected: ${_imageNameID ?? 'id_image.jpg'}",
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             )),
       ];
 }
