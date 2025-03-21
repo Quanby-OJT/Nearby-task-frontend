@@ -10,10 +10,12 @@ class UserModel {
   final String? imageName;
   final String role;
   final String accStatus;
+  final String? gender;
 
 //This is what the controller used
   UserModel(
-      {this.id,
+    {
+      this.id,
       required this.firstName,
       required this.middleName,
       required this.lastName,
@@ -23,7 +25,10 @@ class UserModel {
       this.imageName,
       required this.role,
       this.birthdate,
-      required this.accStatus});
+      required this.accStatus,
+      this.gender,
+    }
+  );
 
   // Factory constructor to handle image as either URL or binary data, this is for the display record part
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -39,6 +44,7 @@ class UserModel {
       imageName: json['image_link'] as String?, // Allow null values
       role: json['user_role'] ?? '',
       accStatus: json['acc_status'] ?? '',
+      gender: json['gender'] as String?, // Allow null values
     );
   }
 
@@ -52,7 +58,8 @@ class UserModel {
       "email": email,
       "password": password,
       "user_role": role,
-      "acc_status": accStatus
+      "acc_status": accStatus,
+      "gender": gender
     };
   }
 

@@ -149,7 +149,6 @@ class TaskController {
           payPeriod: '',
           birthDate: DateTime.now(),
           phoneNumber: '',
-          gender: '',
           group: false,
           user: taskerUser,
         );

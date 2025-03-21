@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/model/user_model.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_fe/service/auth_service.dart';
@@ -90,7 +91,7 @@ class ProfileService{
   ///
   /// Update Client/Tasker Information
   ///
-  static Future<Map<String, dynamic>> updateTasker(TaskerModel tasker, File tesdaFiles, File profileImage) async {
+  static Future<Map<String, dynamic>> updateTasker(TaskerModel tasker, UserModel user, File tesdaFiles, File profileImage) async {
     debugPrint("Updating Tasker information...");
     final userId = await getUserId();
     if (userId == null) {
@@ -138,7 +139,7 @@ class ProfileService{
     }
   }
 
-  static Future<Map<String, dynamic>> updateClient(ClientModel client, File profileImage) async {
+  static Future<Map<String, dynamic>> updateClient(ClientModel client, UserModel user, File profileImage) async {
     debugPrint("Updating Client information...");
     final userId = await getUserId();
     if (userId == null) {

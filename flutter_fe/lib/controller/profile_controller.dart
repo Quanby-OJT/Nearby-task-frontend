@@ -307,7 +307,6 @@ class ProfileController {
         wage: double.tryParse(wageController.text) ?? 0,
         group: false,
         phoneNumber: contactNumberController.text,
-        gender: gender,
         payPeriod: "Hourly",
         birthDate: DateTime.parse(birthdateController.text));
 
@@ -369,13 +368,23 @@ class ProfileController {
     ) async{
     String role = await storage.read('role');
 
+    UserModel user = UserModel(
+      firstName: '',
+      middleName: '',
+      lastName: '',
+      email: '',
+      role: role,
+      accStatus: '',
+      gender: gender
+    );
+
     if(role == 'Client'){
       ClientModel client = ClientModel(
         preferences: prefsController.text,
         clientAddress: clientAddressController.text
       );
 
-      Map<String, dynamic> resultData = await ProfileService.updateClient(client, profileImage);
+      Map<String, dynamic> resultData = await ProfileService.updateClient(client, user, profileImage);
 
       if(resultData.containsKey("message")){
         ScaffoldMessenger.of(context).showSnackBar(
@@ -402,10 +411,9 @@ class ProfileController {
         payPeriod: payPeriodController.text,
         birthDate: DateTime.parse(birthdateController.text),
         phoneNumber: contactNumberController.text,
-        gender: gender
       );
 
-      Map<String, dynamic> resultData = await ProfileService.updateTasker(tasker, documentFile, profileImage);
+      Map<String, dynamic> resultData = await ProfileService.updateTasker(tasker, user, documentFile, profileImage);
 
       if(resultData.containsKey("message")){
         ScaffoldMessenger.of(context).showSnackBar(

@@ -14,7 +14,6 @@ class TaskerModel {
   final DateTime birthDate;
   final String phoneNumber;
   final bool? group;
-  final String gender;
   UserModel? user;
 
   TaskerModel({
@@ -29,7 +28,6 @@ class TaskerModel {
     required this.payPeriod,
     required this.birthDate,
     required this.phoneNumber,
-    required this.gender,
     this.taskerDocuments,
     this.socialMediaLinks,
     this.user,
@@ -59,7 +57,6 @@ class TaskerModel {
           ? DateTime.parse(json['birth_date'])
           : DateTime.now(),
       phoneNumber: json['phone_number'] ?? '',
-      gender: json['gender'] ?? '',
       group: json['group'] ?? false,
     );
   }
@@ -75,7 +72,6 @@ class TaskerModel {
       "availability": availability,
       "tesda_documents_link": taskerDocuments,
       "social_media_links": socialMediaLinks,
-      "gender": gender,
       "contact_number": phoneNumber,
       "group": group,
       "wage_per_hour": wage,
