@@ -1,7 +1,7 @@
 class UserModel {
   final int? id;
   final String firstName;
-  final String middleName;
+  final String? middleName;
   final String lastName;
   final String email;
   final String? birthdate;
@@ -9,23 +9,29 @@ class UserModel {
   final dynamic image;
   final String? imageName;
   final String role;
-  final String accStatus;
+  final String? accStatus;
+  final String? contact;
+  final String? gender;
 
 //This is what the controller used
-  UserModel(
-      {this.id,
-      required this.firstName,
-      required this.middleName,
-      required this.lastName,
-      required this.email,
-      this.password,
-      this.image,
-      this.imageName,
-      required this.role,
-      this.birthdate,
-      required this.accStatus});
+  UserModel({
+    this.id,
+    required this.firstName,
+    this.middleName,
+    required this.lastName,
+    required this.email,
+    this.password,
+    this.image,
+    this.imageName,
+    required this.role,
+    this.birthdate,
+    this.accStatus,
+    this.contact,
+    this.gender,
+  });
 
   // Factory constructor to handle image as either URL or binary data, this is for the display record part
+  // This is for the display record part
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['user_id'] as int?, // Allow null values
@@ -39,10 +45,13 @@ class UserModel {
       imageName: json['image_name'] as String?, // Allow null values
       role: json['user_role'] ?? '',
       accStatus: json['acc_status'] ?? '',
+      contact: json['contact'] ?? '',
+      gender: json['gender'] ?? '',
     );
   }
 
 // Returns whith these datas
+// This is for the display record part
   Map<String, dynamic> toJson() {
     return {
       "user_id": id,
@@ -52,12 +61,17 @@ class UserModel {
       "email": email,
       "password": password,
       "user_role": role,
-      "acc_status": accStatus
+      "acc_status": accStatus,
+      "contact": contact,
+      "gender": gender,
+      "birthdate": birthdate
     };
   }
 
   @override
+
+  // This is for the display record part
   String toString() {
-    return 'UserModel(firstName: $firstName, middleName: $middleName, lastName: $lastName, email: $email, password: ${password != null ? "****" : "null"}, role: $role, accStatus: $accStatus)';
+    return 'UserModel(firstName: $firstName, middleName: $middleName, lastName: $lastName, email: $email, password: ${password != null ? "****" : "null"}, role: $role, accStatus: $accStatus, contact: $contact, gender: $gender, birthdate: $birthdate, image: $image, imageName: $imageName)';
   }
 }

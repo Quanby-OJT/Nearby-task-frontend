@@ -92,7 +92,7 @@ class TaskDetailsService {
   Future<Map<String, dynamic>> getAllTakenTasks() async {
     try {
       final userId = await storage.read('user_id');
-      final data = await _getRequest("/all-messages/${userId}");
+      final data = await _getRequest("/all-messages/$userId");
 
       return data;
     } catch (e, st) {

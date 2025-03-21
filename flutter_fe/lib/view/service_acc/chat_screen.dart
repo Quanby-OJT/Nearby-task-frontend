@@ -30,7 +30,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _fetchTaskAssignments() async {
     int userId = storage.read('user_id');
-
     List<TaskAssignment>? fetchedAssignments =
         await _taskController.getAllAssignedTasks(context, userId);
 

@@ -7,10 +7,10 @@ class EmailVerificationPage extends StatefulWidget {
   final String email;
 
   const EmailVerificationPage({
-    Key? key,
+    super.key,
     required this.token,
     required this.email,
-  }) : super(key: key);
+  });
 
   @override
   _EmailVerificationPageState createState() => _EmailVerificationPageState();

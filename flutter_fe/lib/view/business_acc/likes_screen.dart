@@ -8,7 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class LikesScreen extends StatefulWidget {
-  const LikesScreen({Key? key}) : super(key: key);
+  const LikesScreen({super.key});
 
   @override
   State<LikesScreen> createState() => _LikesScreenState();
@@ -35,7 +35,7 @@ class _LikesScreenState extends State<LikesScreen> {
     String query = _searchController.text.trim().toLowerCase();
     setState(() {
       _filteredTasks = _likedTasks.where((task) {
-        return task.firstName!.toLowerCase().contains(query) ||
+        return task.firstName.toLowerCase().contains(query) ||
             task.accStatus!.toLowerCase().contains(query);
       }).toList();
     });
@@ -360,7 +360,7 @@ class _LikesScreenState extends State<LikesScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                task.firstName! ?? "NO data",
+                                task.firstName ?? "NO data",
                                 style: GoogleFonts.montserrat(
                                   color: const Color(0xFF03045E),
                                   fontSize: 14,
@@ -375,7 +375,7 @@ class _LikesScreenState extends State<LikesScreen> {
                                     Flexible(
                                       // Wrap status text in Flexible
                                       child: Text(
-                                        task.email!,
+                                        task.email,
                                         style: GoogleFonts.montserrat(
                                           color:
                                               Color.fromARGB(255, 57, 209, 11),
