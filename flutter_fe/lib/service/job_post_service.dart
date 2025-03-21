@@ -43,7 +43,8 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _postRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final response = await http.post(Uri.parse("$apiUrl$endpoint"),
         headers: {
           "Authorization": "Bearer $token",
@@ -53,7 +54,9 @@ class JobPostService {
 
     return _handleResponse(response);
   }
-  Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
+
+  Future<Map<String, dynamic>> _deleteRequest(
+      String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
       final request = http.Request("DELETE", Uri.parse('$apiUrl$endpoint'))
@@ -266,11 +269,7 @@ class JobPostService {
       };
     }
 
-    debugPrint(taskId.toString() +
-        " " +
-        clientId.toString() +
-        " " +
-        taskerId.toString());
+    debugPrint("$taskId $clientId $taskerId");
 
     return _postRequest(endpoint: "$apiUrl/assign-task", body: {
       "tasker_id": taskerId,

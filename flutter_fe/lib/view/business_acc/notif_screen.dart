@@ -99,7 +99,7 @@ class _NotifScreenState extends State<NotifScreen> {
                           Stack(
                             alignment: Alignment.topRight,
                             children: [
-                              Container(
+                              SizedBox(
                                 width: 80,
                                 height: 80,
                                 child: Icon(

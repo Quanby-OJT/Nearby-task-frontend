@@ -34,7 +34,9 @@ class TaskDetailsService {
     } catch (e, stackTrace) {
       debugPrint("Message Retrieval Error: $e");
       debugPrint(stackTrace.toString());
-      return {"error": "An Error while retrieving your messages. Please Try Again."};
+      return {
+        "error": "An Error while retrieving your messages. Please Try Again."
+      };
     }
   }
 
@@ -51,7 +53,8 @@ class TaskDetailsService {
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> _deleteRequest(
+      String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
       final request = http.Request("DELETE", Uri.parse('$apiUrl$endpoint'))
@@ -89,7 +92,7 @@ class TaskDetailsService {
   Future<Map<String, dynamic>> getAllTakenTasks() async {
     try {
       final userId = await storage.read('user_id');
-      final data = await _getRequest("/all-messages/${userId}");
+      final data = await _getRequest("/all-messages/$userId");
 
       return data;
     } catch (e, st) {
