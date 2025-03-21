@@ -10,6 +10,7 @@ import 'package:get_storage/get_storage.dart';
 
 class TaskController {
   final JobPostService _jobPostService = JobPostService();
+  final TaskDetailsService _taskDetailsService = TaskDetailsService();
   final jobIdController = TextEditingController();
   final jobTitleController = TextEditingController();
   final jobSpecializationController = TextEditingController();
@@ -167,9 +168,6 @@ class TaskController {
     if (assignedTasks.containsKey('data') && assignedTasks['data'] != null) {
       List<dynamic> dataList = assignedTasks['data'] as List<dynamic>;
       List<TaskAssignment> taskAssignments = dataList.map((item) {
-        // Get task_taken_id from the root level of item
-        int? taskTakenId = item['task_taken_id'] as int?; // Correct key
-        debugPrint("Task Taken ID: $taskTakenId"); // Verify the value
 
         // Parse tasks from post_task
         Map<String, dynamic> taskData =
@@ -189,6 +187,9 @@ class TaskController {
           remarks: null,
           taskBeginDate: null,
           id: taskTakenId, // Use taskTakenId here if it's meant to be the task's ID
+
+          //id: taskData['task_id'], // Use taskTakenId here if it’s meant to be the task’s ID
+
         );
 
         Map<String, dynamic> clientData =
@@ -238,6 +239,8 @@ class TaskController {
           user: taskerUser,
         );
 
+        int taskTakenId = item['task_taken_id'];
+
         // Create TaskAssignment with the correct taskTakenId
         TaskAssignment assignment = TaskAssignment(
           client: client,
@@ -259,6 +262,7 @@ class TaskController {
     }
   }
 
+
   // Method to delete a task
   Future<Map<String, dynamic>> deleteTask(int taskId) async {
     try {
@@ -269,6 +273,22 @@ class TaskController {
       debugPrint("Error deleting task: $e");
       debugPrintStack(stackTrace: stackTrace);
       return {'success': false, 'error': 'Failed to delete task: $e'};
-    }
-  }
+
+  //Update Task Status in Conversation
+//   Future<void> updateTaskStatus(BuildContext context, int taskTakenId, String? newStatus) async {
+//     try {
+//       final response = await _taskDetailsService.updateTaskStatus(taskTakenId, newStatus);
+
+//       if (response.containsKey("message")) {
+//         debugPrint('Task status updated successfully');
+//       } else {
+//         debugPrint('Failed to update task status: ${response["error"]}');
+//       }
+//     }
+//     catch (e, stackTrace) {
+//       debugPrint('Error updating task status: $e');
+//       debugPrintStack(stackTrace: stackTrace);
+
+//     }
+//   }
 }

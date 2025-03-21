@@ -22,6 +22,9 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   TaskModel? _taskInformation;
   bool _isLoading = true;
   final storage = GetStorage();
+  List<String> taskClientStatus = ['In Negotiation', 'Interested', 'Confirmed', 'Rejected', 'Ongoing', 'Completed', 'Canceled', 'Pending'];//For Client Only
+  List<String> taskTaskerStatus = ['In Negotiation', 'Interested', 'Confirmed', 'Rejected', 'Ongoing', 'Completed', 'Canceled', 'Pending'];//For Tasker Only
+
 
   @override
   void initState() {
@@ -71,14 +74,34 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                   _buildInfoRow("Location", task.location ?? "N/A"),
                   _buildInfoRow(
                       "Urgency",
-                      // task.urgency ?? false
-                      //     ? "My Task is Urgent"
-                      //     : "My Task is Not Urgent"),
                       task.urgency.toString()
                   ),
                   _buildInfoRow(
-                      "Duration", task.duration.toString()),
-                  _buildInfoRow("Status", task.status ?? "N/A"),
+                      "Duration", "${task.duration} ${task.period}"
+                  ),
+                  _buildInfoRow("Task Status", "${task.status}"),
+                  DropdownButtonFormField(
+                    value: task.status,
+                    items: taskClientStatus.map((String item) {
+                      return DropdownMenuItem<String>(
+                        value: item,
+                        child: Text(item),
+                      );
+                    }).toList(),
+                    onChanged: (String? newStatus) {
+                      // Handle the status change here
+                      print('Status changed to: $newStatus');
+                      // Optionally, update the task's status in your controller/service
+                      taskController.updateTaskStatus(context, widget.taskTakenId, newStatus);
+                    },
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                  ),
+                  //_buildInfoRow("Status", task.status ?? "N/A"),
                 ],
               ),
             ),

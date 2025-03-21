@@ -8,7 +8,9 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:get_storage/get_storage.dart';
 
 class JobPostService {
-  static const String apiUrl = "http://192.168.254.110:5000/connect";
+
+  static const String apiUrl = "http://localhost:5000/connect";
+
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -288,34 +290,28 @@ class JobPostService {
 
       final likedJobsResponse = await _getRequest("/displayLikedJob/$userId");
       final allJobsResponse = await _getRequest("/displayTask");
+      debugPrint(likedJobsResponse.toString());
 
-      if (likedJobsResponse.containsKey('tasks')) {
-        final List<dynamic> likedJobs =
-            likedJobsResponse['tasks'] as List<dynamic>;
-        debugPrint("Raw liked jobs: $likedJobs"); // Debug print
+      final allJobsList = (allJobsResponse["tasks"] as List<dynamic>?)
+              ?.map((job) => TaskModel.fromJson(job))
+              .toList() ??
+          [];
 
-        final allJobsResponse = await _getRequest('/displayTask');
-
-        // Get liked job IDs safely
+      if (likedJobsResponse.containsKey("liked_tasks")) {
+        final likedJobs = likedJobsResponse["liked_tasks"] as List<dynamic>;
+        debugPrint("Raw liked jobs: $likedJobs");
         final Set<int> likedJobIds = likedJobs
-            .where(
-                (job) => job['job_post_id'] != null) // Filter out null values
-            .map<int>((job) => (job['job_post_id'] is int
-                ? job['job_post_id']
-                : int.parse(job['job_post_id'].toString())) as int)
+            .where((job) => job["job_post_id"] != null)
+            .map<int>((job) => (job["job_post_id"] is int
+                ? job["job_post_id"]
+                : int.parse(job["job_post_id"].toString())) as int)
             .toSet();
 
         debugPrint("Liked Jobs Response ${likedJobsResponse.toString()}");
         debugPrint("All Jobs: ${likedJobIds.toString()}");
 
-        final filteredJobs = (allJobsResponse["tasks"] as List<dynamic>? ?? [])
-            .where((job) {
-              final jobId =
-                  job["task_id"]; // Changed from "task_id" to "task_id"
-              return jobId is int && likedJobIds.contains(jobId);
-            })
-            .map((job) => TaskModel.fromJson(job))
-            .toList();
+        final filteredJobs =
+            allJobsList.where((job) => likedJobIds.contains(job.id)).toList();
 
         debugPrint("Filtered Jobs: ${filteredJobs.toString()}");
         return filteredJobs;

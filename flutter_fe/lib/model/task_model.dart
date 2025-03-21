@@ -1,5 +1,5 @@
 class TaskModel {
-  final int? id;
+  final int id;
   final int? clientId;
   final String? title;
   final String? specialization;
@@ -15,7 +15,7 @@ class TaskModel {
   final String? workType; // New field
 
   TaskModel({
-    this.id,
+    required this.id,
     this.clientId,
     this.title,
     this.specialization,
@@ -64,7 +64,7 @@ class TaskModel {
     }
 
     return TaskModel(
-      id: json['task_id'] as int?,
+      id: json['task_id'] as int,
       clientId: json['client_id'] as int?,
       title: json['task_title'] as String?,
       specialization: json['specialization'] as String?,
