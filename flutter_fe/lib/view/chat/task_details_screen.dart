@@ -20,6 +20,9 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   TaskModel? _taskInformation;
   bool _isLoading = true;
   final storage = GetStorage();
+  List<String> taskClientStatus = ['In Negotiation', 'Interested', 'Confirmed', 'Rejected', 'Ongoing', 'Completed', 'Canceled', 'Pending'];//For Client Only
+  List<String> taskTaskerStatus = ['In Negotiation', 'Interested', 'Confirmed', 'Rejected', 'Ongoing', 'Completed', 'Canceled', 'Pending'];//For Tasker Only
+
 
   @override
   void initState() {
@@ -51,37 +54,59 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : _taskInformation == null
-              ? Center(child: Text('No task information available'))
-              : () {
-                  final task = _taskInformation!; // Promote to non-nullable
-                  return Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Card(
-                      elevation: 2,
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _buildInfoRow("Title", task.title ?? "N/A"),
-                            _buildInfoRow(
-                                "Description", task.description ?? "N/A"),
-                            _buildInfoRow("Location", task.location ?? "N/A"),
-                            _buildInfoRow(
-                                "Urgency",
-                                // task.urgency ?? false
-                                //     ? "My Task is Urgent"
-                                //     : "My Task is Not Urgent"),
-                                task.urgency.toString()),
-                            _buildInfoRow("Duration", task.duration.toString()),
-                            _buildInfoRow("Status", task.status ?? "N/A"),
-                          ],
-                        ),
-                      ),
+          ? Center(child: Text('No task information available'))
+          : () {
+        final task = _taskInformation!; // Promote to non-nullable
+        return Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Card(
+            elevation: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildInfoRow("Title", task.title ?? "N/A"),
+                  _buildInfoRow(
+                      "Description", task.description ?? "N/A"),
+                  _buildInfoRow("Location", task.location ?? "N/A"),
+                  _buildInfoRow(
+                      "Urgency",
+                      task.urgency.toString()
+                  ),
+                  _buildInfoRow(
+                      "Duration", "${task.duration} ${task.period}"
+                  ),
+                  _buildInfoRow("Task Status", "${task.status}"),
+                  DropdownButtonFormField(
+                    value: task.status,
+                    items: taskClientStatus.map((String item) {
+                      return DropdownMenuItem<String>(
+                        value: item,
+                        child: Text(item),
+                      );
+                    }).toList(),
+                    onChanged: (String? newStatus) {
+                      // Handle the status change here
+                      print('Status changed to: $newStatus');
+                      // Optionally, update the task's status in your controller/service
+                      taskController.updateTaskStatus(context, widget.taskTakenId, newStatus);
+                    },
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
+                      filled: true,
+                      fillColor: Colors.white,
                     ),
-                  );
-                }(),
+                  ),
+                  //_buildInfoRow("Status", task.status ?? "N/A"),
+                ],
+              ),
+            ),
+          ),
+        );
+      }(),
     );
   }
 

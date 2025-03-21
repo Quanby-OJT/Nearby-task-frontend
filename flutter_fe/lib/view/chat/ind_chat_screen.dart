@@ -11,7 +11,8 @@ import 'package:get_storage/get_storage.dart';
 class IndividualChatScreen extends StatefulWidget {
   final String? taskTitle;
   final int? taskTakenId;
-  const IndividualChatScreen({super.key, this.taskTitle, this.taskTakenId});
+  final int? taskId;
+  const IndividualChatScreen({super.key, this.taskTitle, this.taskTakenId, this.taskId});
 
   @override
   State<IndividualChatScreen> createState() => _IndividualChatScreenState();
@@ -89,12 +90,15 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
               children: [
                 IconButton(
                   icon: Icon(Icons.info_outline, color: Color(0xFF0272B1)),
+                  ///
+                  /// NOTE: When retrieving task information, task_id must be used to retrieve task information
+                  ///
                   onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => TaskDetailsScreen(
-                          taskTakenId: widget.taskTakenId ?? 0,
+                          taskTakenId: widget.taskId ?? 0,
                         ),
                       ),
                     );

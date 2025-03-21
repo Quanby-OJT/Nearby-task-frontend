@@ -93,8 +93,9 @@ class _HomePageState extends State<HomePage> {
           ),
         );
       }
-    } catch (e) {
-      print("Error saving liked job: $e");
+    } catch (e, stackTrace) {
+      debugPrint("Error saving liked job: $e");
+      debugPrintStack(stackTrace: stackTrace);
 
       // Show error indicator
       ScaffoldMessenger.of(context).showSnackBar(
