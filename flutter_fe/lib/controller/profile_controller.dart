@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/client_model.dart';
+import 'package:flutter_fe/service/profile_service.dart';
 import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
 import 'package:get_storage/get_storage.dart';
 import '../model/user_model.dart';
@@ -9,22 +10,24 @@ import '../model/tasker_model.dart';
 import '../model/auth_user.dart';
 
 class ProfileController {
+  //General Account Information
   final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController middleNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-      TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
   final TextEditingController roleController = TextEditingController();
   final TextEditingController statusController = TextEditingController();
-  final TextEditingController middleNameController = TextEditingController();
+
+
+  // Fetched user inputs End
+
+  //Tasker Text Controller
   final TextEditingController birthdateController = TextEditingController();
   final TextEditingController imageController = TextEditingController();
   final TextEditingController companyNameController = TextEditingController();
   final TextEditingController taskerGroupController = TextEditingController();
-  // Fetched user inputs End
-
-  //Tasker Text Controller
   final TextEditingController bioController = TextEditingController();
   final TextEditingController specializationController =
       TextEditingController();
@@ -352,6 +355,71 @@ class ProfileController {
         SnackBar(content: Text("Error: $e")),
       );
       return null;
+    }
+  }
+
+  Future<void> updateUser(
+      BuildContext context,
+      String specialization,
+      String gender,
+      String image,
+      String tesdaFile,
+      File documentFile,
+      File profileImage
+    ) async{
+    String role = await storage.read('role');
+
+    if(role == 'Client'){
+      ClientModel client = ClientModel(
+        preferences: prefsController.text,
+        clientAddress: clientAddressController.text
+      );
+
+      Map<String, dynamic> resultData = await ProfileService.updateClient(client, profileImage);
+
+      if(resultData.containsKey("message")){
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(resultData['error'])),
+        );
+      }else if(resultData.containsKey("errors")){
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(resultData['errors'])),
+        );
+      }else{
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(resultData['error'])),
+        );
+      }
+    }else if(role == 'Tasker'){
+      TaskerModel tasker = TaskerModel(
+        bio: bioController.text,
+        group: false,
+        specialization: specialization,
+        skills: skillsController.text,
+        taskerAddress: taskerAddressController.text,
+        availability: availabilityController.text == "I am available" ? true : false,
+        wage: double.parse(wageController.text),
+        payPeriod: payPeriodController.text,
+        birthDate: DateTime.parse(birthdateController.text),
+        phoneNumber: contactNumberController.text,
+        gender: gender
+      );
+
+      Map<String, dynamic> resultData = await ProfileService.updateTasker(tasker, documentFile, profileImage);
+
+      if(resultData.containsKey("message")){
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(resultData['error'])),
+        );
+      }else if(resultData.containsKey("errors")){
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(resultData['errors'])),
+        );
+      }else{
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(resultData['error'])),
+        );
+      }
     }
   }
 }

@@ -5,15 +5,16 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_fe/service/auth_service.dart';
 import 'package:flutter_fe/model/client_model.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
+import 'dart:io';
 
 
 class ProfileService{
   static const String apiUrl = "http://10.0.2.2:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
-  Future<String?> getUserId() async => storage.read('user_id')?.toString();
+  static Future<String?> getUserId() async => storage.read('user_id')?.toString();
 
-  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  static Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
     final response = await http.post(Uri.parse("$apiUrl$endpoint"),
         headers: {
           "Authorization": "Bearer $token",
@@ -24,7 +25,7 @@ class ProfileService{
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> _getRequest(String endpoint) async {
+  static Future<Map<String, dynamic>> _getRequest(String endpoint) async {
     final token = await AuthService.getSessionToken();
     try {
       // Ensure endpoint starts with a slash if not already
@@ -50,12 +51,14 @@ class ProfileService{
     }
   }
 
-  Map<String, dynamic> _handleResponse(http.Response response) {
+  static Map<String, dynamic> _handleResponse(http.Response response) {
     try {
       final responseBody = jsonDecode(response.body);
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return responseBody;
-      } else {
+      } else if(response.statusCode == 400){
+        return {"errors": responseBody["errors"] ?? "Please Check Your Inputs and try again."};
+      }else{
         debugPrint("API Error Response: $responseBody");
         return {"error": responseBody["error"] ?? "Unknown error"};
       }
@@ -65,7 +68,7 @@ class ProfileService{
     }
   }
 
-  Future<Map<String, dynamic>> _putRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  static Future<Map<String, dynamic>> _putRequest({required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.put(
@@ -87,9 +90,9 @@ class ProfileService{
   ///
   /// Update Client/Tasker Information
   ///
-  Future<Map<String, dynamic>> updateTasker(TaskerModel tasker) async {
+  static Future<Map<String, dynamic>> updateTasker(TaskerModel tasker, File tesdaFiles, File profileImage) async {
+    debugPrint("Updating Tasker information...");
     final userId = await getUserId();
-
     if (userId == null) {
       return {
         'success': false,
@@ -98,10 +101,45 @@ class ProfileService{
       };
     }
 
-    return await _putRequest(endpoint: "/user/updateTasker", body: tasker.toJson());
+    // Create a multipart request for the PUT endpoint
+    var request = http.MultipartRequest('PUT', Uri.parse('$apiUrl/user/updateTasker'));
+    request.headers['Authorization'] = 'Bearer $token';
+    request.headers['Content-Type'] = 'multipart/form-data';
+
+    // Add tasker data as a JSON string in a form field
+    request.fields.addAll({
+      ...tasker.toJson().map((key, value) => MapEntry(key, value.toString())),
+      "user_id": await storage.read("user_id").toString()
+    });
+
+    // Add each document file to the 'documents' field
+    request.files.addAll([
+      http.MultipartFile.fromBytes(
+        "document",
+        await tesdaFiles.readAsBytes(),
+        filename: "document.pdf",
+      ),
+      http.MultipartFile.fromBytes(
+        "image",
+        await profileImage.readAsBytes(),
+        filename: "profile_image.jpg",
+        // Adjust content type if necessary (e.g., image/png)
+      ),
+    ]);
+
+    try {
+      // Send the request and get the response
+      final response = await request.send();
+      final responseBody = await http.Response.fromStream(response);
+      return _handleResponse(responseBody);
+    } catch (e) {
+      debugPrint("Error uploading files: $e");
+      return {"error": "Failed to upload files: $e"};
+    }
   }
 
-  Future<Map<String, dynamic>> updateClient(ClientModel client) async {
+  static Future<Map<String, dynamic>> updateClient(ClientModel client, File profileImage) async {
+    debugPrint("Updating Client information...");
     final userId = await getUserId();
     if (userId == null) {
       return {
@@ -110,6 +148,35 @@ class ProfileService{
         'requiresLogin': true
       };
     }
-    return await _putRequest(endpoint: "/user/updateClient", body: client.toJson());
+
+    // Create a multipart request for the PUT endpoint
+    var request = http.MultipartRequest('PUT', Uri.parse('$apiUrl/user/updateTasker'));
+    request.headers['Authorization'] = 'Bearer $token';
+
+    // Add tasker data as a JSON string in a form field
+    request.fields.addAll({
+      ...client.toJson().map((key, value) => MapEntry(key, value.toString())),
+      "user_id": await storage.read("user_id").toString()
+    });
+
+    // Add each document file to the 'documents' field
+    request.files.addAll([
+      http.MultipartFile.fromBytes(
+        "image",
+        await profileImage.readAsBytes(),
+        filename: "profile_image.jpg",
+        // Adjust content type if necessary (e.g., image/png)
+      ),
+    ]);
+
+    try {
+      // Send the request and get the response
+      final response = await request.send();
+      final responseBody = await http.Response.fromStream(response);
+      return _handleResponse(responseBody);
+    } catch (e) {
+      debugPrint("Error uploading files: $e");
+      return {"error": "Failed to upload files: $e"};
+    }
   }
 }

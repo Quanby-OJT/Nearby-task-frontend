@@ -13,14 +13,14 @@ class TaskerModel {
   final String payPeriod;
   final DateTime birthDate;
   final String phoneNumber;
-  final bool group;
+  final bool? group;
   final String gender;
   UserModel? user;
 
   TaskerModel({
     this.id,
     required this.bio,
-    required this.group,
+    this.group,
     required this.specialization,
     required this.skills,
     required this.taskerAddress,
@@ -53,7 +53,7 @@ class TaskerModel {
           ? json['tasker_specialization']['specialization']
           : '',
       taskerDocuments: json['tasker_documents'] ?? '',
-      wage: json['wage'] != null ? json['wage_per_hour'].toDouble() : 0.0,
+      wage: json['wage_per_hour'] != null ? json['wage_per_hour'].toDouble() : 0.0,
       payPeriod: json['pay_period'] ?? "",
       birthDate: json['birth_date'] != null
           ? DateTime.parse(json['birth_date'])
