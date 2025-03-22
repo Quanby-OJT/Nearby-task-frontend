@@ -28,7 +28,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _fetchTaskAssignments();
-    _fetchTaskers();
+    _fetchClients();
   }
 
   Future<void> _fetchTaskAssignments() async {
@@ -45,9 +45,9 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Future<void> _fetchTaskers() async {
-    await reportController.fetchTaskers();
-    debugPrint("Taskers loaded in ChatScreen: ${reportController.taskers}");
+  Future<void> _fetchClients() async {
+    await reportController.fetchClients(); // Fetch clients instead of taskers
+    debugPrint("Clients loaded in ChatScreen: ${reportController.clients}");
     setState(() {});
   }
 
@@ -87,7 +87,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  "Report User",
+                                  "Report Client",
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.indigo,
@@ -114,17 +114,18 @@ class _ChatScreenState extends State<ChatScreen> {
                                 showSearchBox: true,
                                 searchFieldProps: TextFieldProps(
                                   decoration: InputDecoration(
-                                    hintText: 'Search users...',
+                                    hintText: 'Search clients...',
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                   ),
                                 ),
                               ),
-                              items: reportController.taskers,
+                              items: reportController
+                                  .clients, // Use clients instead of taskers
                               dropdownDecoratorProps: DropDownDecoratorProps(
                                 dropdownSearchDecoration: InputDecoration(
-                                  labelText: 'Report User *',
+                                  labelText: 'Report Client *',
                                   labelStyle:
                                       TextStyle(color: Color(0xFF0272B1)),
                                   filled: true,
@@ -143,8 +144,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                   ),
                                 ),
                               ),
-                              itemAsString: (Map<String, dynamic> tasker) =>
-                                  "${tasker['first_name']} ${tasker['middle_name'] ?? ''} ${tasker['last_name']}",
+                              itemAsString: (Map<String, dynamic> client) =>
+                                  "${client['first_name']} ${client['middle_name'] ?? ''} ${client['last_name']}",
                               onChanged: (Map<String, dynamic>? newValue) {
                                 setModalState(() {
                                   _selectedReportCategory = newValue != null
@@ -153,7 +154,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 });
                               },
                               validator: (value) =>
-                                  value == null ? 'Select a Category' : null,
+                                  value == null ? 'Select a Client' : null,
                             ),
                           ),
                           Padding(
@@ -344,6 +345,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             reportController.clearForm();
                             setState(() {
                               _isModalOpen = false;
+                              _selectedReportCategory = null; // Reset dropdown
                             });
                           },
                           style: ElevatedButton.styleFrom(
@@ -366,10 +368,10 @@ class _ChatScreenState extends State<ChatScreen> {
                         ElevatedButton(
                           onPressed: () {
                             int userId = storage
-                                .read('user_id'); // Current user's user_id
+                                .read('user_id'); // Current tasker's user_id
                             int? reportedWhom = _selectedReportCategory != null
                                 ? int.tryParse(_selectedReportCategory!)
-                                : null; // Selected tasker's user_id
+                                : null; // Selected client's user_id
                             reportController.validateAndSubmit(
                                 context, setModalState, userId, reportedWhom);
                             setState(() {
@@ -439,7 +441,7 @@ class _ChatScreenState extends State<ChatScreen> {
               onPressed: _showReportModal,
               backgroundColor: Colors.redAccent,
               elevation: 6,
-              tooltip: 'Report User',
+              tooltip: 'Report Client',
               child: Icon(
                 Icons.flag,
                 color: Colors.white,

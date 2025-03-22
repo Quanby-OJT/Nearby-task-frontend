@@ -13,6 +13,7 @@ class ReportController {
   Map<String, String> errors = {};
   String? imageUploadError;
   List<Map<String, dynamic>> taskers = [];
+  List<Map<String, dynamic>> clients = []; // New list for clients
 
   Future<void> fetchTaskers() async {
     try {
@@ -43,6 +44,38 @@ class ReportController {
     } catch (e) {
       debugPrint("Exception while fetching taskers: $e");
       taskers = [];
+    }
+  }
+
+  Future<void> fetchClients() async {
+    try {
+      debugPrint("Fetching clients...");
+      final response = await http.get(
+        Uri.parse("${ReportService.apiUrl}/clients"),
+        headers: {
+          'Authorization': "Bearer ${ReportService.token}",
+        },
+      );
+
+      debugPrint("Clients API Response Status: ${response.statusCode}");
+      debugPrint("Clients API Response Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success']) {
+          clients = List<Map<String, dynamic>>.from(data['clients']);
+          debugPrint("Successfully fetched ${clients.length} clients");
+        } else {
+          debugPrint("Failed to fetch clients: ${data['message']}");
+          clients = [];
+        }
+      } else {
+        debugPrint("Error fetching clients: ${response.statusCode}");
+        clients = [];
+      }
+    } catch (e) {
+      debugPrint("Exception while fetching clients: $e");
+      clients = [];
     }
   }
 
@@ -96,7 +129,7 @@ class ReportController {
       reason: reasonController.text.trim(),
       images: selectedImages,
       reportedBy: reportedBy, // Pass the current user's user_id
-      reportedWhom: reportedWhom, // Pass the selected tasker's user_id
+      reportedWhom: reportedWhom, // Pass the selected user's user_id
     );
 
     debugPrint("JSON Data being sent to backend: ${report.toJson()}");
