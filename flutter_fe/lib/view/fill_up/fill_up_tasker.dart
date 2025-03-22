@@ -30,7 +30,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
   File? _selectedImage; // Store the selected image
   String? _imageName; // Store the selected image name
   String? selectedGender;
-
+  int _specializationId = 0;
   String _firstname = '';
   String _lastname = '';
   String? _middlename = '';
@@ -143,6 +143,8 @@ class _FillUpTaskerState extends State<FillUpTasker> {
           if (index >= 0 && index <= specialization.length) {
             selectedSpecialization =
                 specialization[index - 1]; // Subtract 1 for zero-based index
+            _controller.specializationIdController.text =
+                (index + 1).toString();
           } else {
             selectedSpecialization = 'Not Found'; // Fallback value
           }
@@ -212,12 +214,6 @@ class _FillUpTaskerState extends State<FillUpTasker> {
           _selectedFile!,
           _selectedImage!,
         );
-      } else if (_existingPDFUrl != null && _existingProfileImageUrl != null) {
-        // Create without images (using existing URLs)
-        await _controller.createTaskerNoImages(
-          context,
-          userId,
-        );
       } else {
         // Images are required for new tasker profiles
         ScaffoldMessenger.of(context).showSnackBar(
@@ -242,16 +238,14 @@ class _FillUpTaskerState extends State<FillUpTasker> {
       // Create user model with current data
       UserModel user = UserModel(
         id: userId,
-        firstName: _controller.firstNameController.text,
-        middleName: _controller.middleNameController.text.isNotEmpty
-            ? _controller.middleNameController.text
-            : null,
-        lastName: _controller.lastNameController.text,
+        firstName: _firstname,
+        middleName: _middlename,
+        lastName: _lastname,
         email: _controller.emailController.text,
         role: _controller.roleController.text,
         birthdate: _controller.birthdateController.text,
         contact: _controller.contactNumberController.text,
-        gender: _controller.genderController.text,
+        gender: selectedGender ?? '',
         image: _existingProfileImageUrl,
       );
 
@@ -818,6 +812,18 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                     onChanged: (newValue) {
                       setState(() {
                         selectedSpecialization = newValue;
+
+                        for (int i = 0; i < specialization.length; i++) {
+                          if (specialization[i] == newValue) {
+                            _specializationId = i + 1;
+                            break;
+                          }
+                        }
+
+                        _controller.specializationIdController.text =
+                            _specializationId.toString();
+
+                        debugPrint("Specialization ID: $_specializationId");
                       });
                     },
                     validator: (value) =>

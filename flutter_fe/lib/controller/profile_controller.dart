@@ -23,6 +23,8 @@ class ProfileController {
   final TextEditingController imageController = TextEditingController();
   final TextEditingController companyNameController = TextEditingController();
   final TextEditingController taskerGroupController = TextEditingController();
+  final TextEditingController specializationIdController =
+      TextEditingController();
   final TaskerService taskerService = TaskerService();
   // Fetched user inputs End
 
@@ -176,6 +178,13 @@ class ProfileController {
   String? validateRole(String? value) {
     if (value == null || value.isEmpty) {
       return "Please select your role";
+    }
+    return null;
+  }
+
+  String? validateSpecializationId(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Please select your id";
     }
     return null;
   }
@@ -728,8 +737,6 @@ class ProfileController {
     }
   }
 
-  Future<void> createTaskerNoImages(BuildContext context, int userId) async {}
-
   Future<Map<String, dynamic>> updateTaskerNoImages(
       BuildContext context, UserModel user) async {
     try {
@@ -745,6 +752,8 @@ class ProfileController {
       String? bioError = validateBio(bioController.text);
       String? skillsError = validateSkills(skillsController.text);
       String? roleError = validateRole(roleController.text);
+      String? specializationIdError =
+          validateSpecializationId(specializationIdController.text);
 
       // Check if there are any validation errors
       if (contactError != null ||
@@ -755,7 +764,8 @@ class ProfileController {
           payScheduleError != null ||
           bioError != null ||
           skillsError != null ||
-          roleError != null) {
+          roleError != null ||
+          specializationIdError != null) {
         return {
           "errors": contactError ??
               genderError ??
@@ -766,6 +776,7 @@ class ProfileController {
               roleError ??
               bioError ??
               skillsError ??
+              specializationIdError ??
               "Please fix the errors in the form"
         };
       }
@@ -785,7 +796,7 @@ class ProfileController {
           "contact": user.contact ?? '',
           "gender": user.gender ?? '',
           "birthdate": user.birthdate ?? '',
-          "specialization": specializationController.text,
+          "specialization": specializationIdController.text,
           "bio": bioController.text,
           "skills": skillsController.text,
           "wage_per_hour": wageController.text,
