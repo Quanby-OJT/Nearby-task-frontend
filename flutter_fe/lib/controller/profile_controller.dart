@@ -632,13 +632,15 @@ class ProfileController {
       BuildContext context, int userId) async {
     try {
       var result = await ApiService.fetchAuthenticatedUser(userId);
-      debugPrint("Data: $result");
+      debugPrint("Data fetch from profile controller: $result");
 
       if (result.containsKey("user")) {
         UserModel user = result["user"] as UserModel;
+        debugPrint("Retrieved Data: $user");
 
         if (result.containsKey("client")) {
           ClientModel client = result["client"] as ClientModel;
+          debugPrint("Retrieved Data: $client");
           return AuthenticatedUser(user: user, client: client);
         } else if (result.containsKey("tasker")) {
           TaskerModel tasker = result["tasker"] as TaskerModel;

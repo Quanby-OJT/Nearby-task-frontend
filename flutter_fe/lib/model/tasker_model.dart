@@ -53,7 +53,11 @@ class TaskerModel {
           ? json['tasker_specialization']['specialization']
           : '',
       taskerDocuments: json['tasker_documents'] ?? '',
-      wage: json['wage'] != null ? json['wage_per_hour'].toDouble() : 0.0,
+      wage: json['wage_per_hour'] != null
+          ? (json['wage_per_hour'] is int
+              ? json['wage_per_hour'].toDouble()
+              : double.tryParse(json['wage_per_hour'].toString()) ?? 0.0)
+          : 0.0,
       payPeriod: json['pay_period'] ?? "",
       birthDate: json['birth_date'] != null
           ? DateTime.parse(json['birth_date'])
@@ -63,7 +67,6 @@ class TaskerModel {
       group: json['group'] ?? false,
     );
   }
-
 
   Map<String, dynamic> toJson() {
     return {
