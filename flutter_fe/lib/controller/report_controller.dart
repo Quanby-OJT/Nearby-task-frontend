@@ -34,15 +34,15 @@ class ReportController {
           debugPrint("Successfully fetched ${taskers.length} taskers");
         } else {
           debugPrint("Failed to fetch taskers: ${data['message']}");
-          taskers = []; // Ensure taskers is empty if the request fails
+          taskers = [];
         }
       } else {
         debugPrint("Error fetching taskers: ${response.statusCode}");
-        taskers = []; // Ensure taskers is empty if the request fails
+        taskers = [];
       }
     } catch (e) {
       debugPrint("Exception while fetching taskers: $e");
-      taskers = []; // Ensure taskers is empty if an exception occurs
+      taskers = [];
     }
   }
 
@@ -64,11 +64,16 @@ class ReportController {
     selectedImages.removeAt(index);
   }
 
-  void validateAndSubmit(BuildContext context, StateSetter setModalState) {
+  void validateAndSubmit(BuildContext context, StateSetter setModalState,
+      int reportedBy, int? reportedWhom) {
     errors.clear();
 
     if (reasonController.text.trim().isEmpty) {
       errors['reason'] = 'Please enter a reason';
+    }
+
+    if (reportedWhom == null) {
+      errors['reported_whom'] = 'Please select a user to report';
     }
 
     if (errors.isNotEmpty) {
@@ -81,14 +86,17 @@ class ReportController {
       return;
     }
 
-    _submitReport(context, setModalState);
+    // Since we return early if reportedWhom is null, we can safely assert it's non-null here
+    _submitReport(context, setModalState, reportedBy, reportedWhom!);
   }
 
-  Future<void> _submitReport(
-      BuildContext context, StateSetter setModalState) async {
+  Future<void> _submitReport(BuildContext context, StateSetter setModalState,
+      int reportedBy, int reportedWhom) async {
     final report = ReportModel(
       reason: reasonController.text.trim(),
       images: selectedImages,
+      reportedBy: reportedBy, // Pass the current user's user_id
+      reportedWhom: reportedWhom, // Pass the selected tasker's user_id
     );
 
     debugPrint("JSON Data being sent to backend: ${report.toJson()}");

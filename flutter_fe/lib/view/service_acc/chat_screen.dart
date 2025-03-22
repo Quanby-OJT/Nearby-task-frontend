@@ -6,6 +6,7 @@ import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -21,11 +22,13 @@ class _ChatScreenState extends State<ChatScreen> {
   final ReportController reportController = ReportController();
   bool isLoading = true;
   bool _isModalOpen = false;
+  String? _selectedReportCategory;
 
   @override
   void initState() {
     super.initState();
     _fetchTaskAssignments();
+    _fetchTaskers();
   }
 
   Future<void> _fetchTaskAssignments() async {
@@ -40,6 +43,12 @@ class _ChatScreenState extends State<ChatScreen> {
         isLoading = false;
       });
     }
+  }
+
+  Future<void> _fetchTaskers() async {
+    await reportController.fetchTaskers();
+    debugPrint("Taskers loaded in ChatScreen: ${reportController.taskers}");
+    setState(() {});
   }
 
   void _showReportModal() {
@@ -95,6 +104,56 @@ class _ChatScreenState extends State<ChatScreen> {
                                   ),
                                 ),
                               ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                left: 40, right: 40, top: 20),
+                            child: DropdownSearch<Map<String, dynamic>>(
+                              popupProps: PopupProps.menu(
+                                showSearchBox: true,
+                                searchFieldProps: TextFieldProps(
+                                  decoration: InputDecoration(
+                                    hintText: 'Search users...',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              items: reportController.taskers,
+                              dropdownDecoratorProps: DropDownDecoratorProps(
+                                dropdownSearchDecoration: InputDecoration(
+                                  labelText: 'Report User *',
+                                  labelStyle:
+                                      TextStyle(color: Color(0xFF0272B1)),
+                                  filled: true,
+                                  fillColor: Color(0xFFF1F4FF),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Colors.transparent,
+                                      width: 0,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: BorderSide(
+                                        color: Color(0xFF0272B1), width: 2),
+                                  ),
+                                ),
+                              ),
+                              itemAsString: (Map<String, dynamic> tasker) =>
+                                  "${tasker['first_name']} ${tasker['middle_name'] ?? ''} ${tasker['last_name']}",
+                              onChanged: (Map<String, dynamic>? newValue) {
+                                setModalState(() {
+                                  _selectedReportCategory = newValue != null
+                                      ? newValue['user_id'].toString()
+                                      : null;
+                                });
+                              },
+                              validator: (value) =>
+                                  value == null ? 'Select a Category' : null,
                             ),
                           ),
                           Padding(
@@ -306,8 +365,13 @@ class _ChatScreenState extends State<ChatScreen> {
                         SizedBox(width: 10),
                         ElevatedButton(
                           onPressed: () {
+                            int userId = storage
+                                .read('user_id'); // Current user's user_id
+                            int? reportedWhom = _selectedReportCategory != null
+                                ? int.tryParse(_selectedReportCategory!)
+                                : null; // Selected tasker's user_id
                             reportController.validateAndSubmit(
-                                context, setModalState);
+                                context, setModalState, userId, reportedWhom);
                             setState(() {
                               _isModalOpen = false;
                             });
@@ -347,6 +411,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() {
     reportController.reasonController.dispose();
+    _selectedReportCategory = null;
     super.dispose();
   }
 
@@ -466,7 +531,6 @@ class _ChatScreenState extends State<ChatScreen> {
                       trailing: Icon(Icons.arrow_forward_ios,
                           size: 16, color: Colors.grey),
                       onTap: () {
-                        // Open Chat History
                         debugPrint(
                             "Task Id: " + assignment.taskTakenId.toString());
                         Navigator.push(

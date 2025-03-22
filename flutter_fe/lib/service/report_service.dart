@@ -19,7 +19,13 @@ class ReportService {
 
       request.headers['Authorization'] = "Bearer $token" ?? '';
 
-      request.fields['reason'] = report.reason ?? '';
+      // Add all fields from report.toJson() to request.fields
+      final reportJson = report.toJson();
+      request.fields['reason'] = reportJson['reason'] ?? '';
+      request.fields['reported_by'] =
+          reportJson['reported_by']?.toString() ?? '';
+      request.fields['reported_whom'] =
+          reportJson['reported_whom']?.toString() ?? '';
 
       if (report.images != null && report.images!.isNotEmpty) {
         for (var image in report.images!) {
@@ -41,7 +47,7 @@ class ReportService {
       }
 
       debugPrint(
-          "Data being sent to backend: reason=${report.reason}, images=${report.images?.length ?? 0}");
+          "Data being sent to backend: ${request.fields}, images=${report.images?.length ?? 0}");
 
       var response = await request.send();
       var responseBody = await http.Response.fromStream(response);

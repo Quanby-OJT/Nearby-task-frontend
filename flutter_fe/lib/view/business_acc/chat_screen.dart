@@ -48,7 +48,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _fetchTaskers() async {
     await reportController.fetchTaskers();
     debugPrint("Taskers loaded in ChatScreen: ${reportController.taskers}");
-    setState(() {}); // Update the UI after fetching taskers
+    setState(() {});
   }
 
   void _showReportModal() {
@@ -365,8 +365,13 @@ class _ChatScreenState extends State<ChatScreen> {
                         SizedBox(width: 10),
                         ElevatedButton(
                           onPressed: () {
+                            int userId = storage
+                                .read('user_id'); // Current user's user_id
+                            int? reportedWhom = _selectedReportCategory != null
+                                ? int.tryParse(_selectedReportCategory!)
+                                : null; // Selected tasker's user_id
                             reportController.validateAndSubmit(
-                                context, setModalState);
+                                context, setModalState, userId, reportedWhom);
                             setState(() {
                               _isModalOpen = false;
                             });
