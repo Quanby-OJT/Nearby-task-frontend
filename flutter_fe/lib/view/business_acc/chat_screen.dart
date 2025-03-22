@@ -23,18 +23,12 @@ class _ChatScreenState extends State<ChatScreen> {
   bool isLoading = true;
   bool _isModalOpen = false;
   String? _selectedReportCategory;
-  final List<String> _reportCategories = [
-    'User1',
-    'User2',
-    'User3',
-    'User4',
-    'User5'
-  ];
 
   @override
   void initState() {
     super.initState();
     _fetchTaskAssignments();
+    _fetchTaskers();
   }
 
   Future<void> _fetchTaskAssignments() async {
@@ -49,6 +43,12 @@ class _ChatScreenState extends State<ChatScreen> {
         isLoading = false;
       });
     }
+  }
+
+  Future<void> _fetchTaskers() async {
+    await reportController.fetchTaskers();
+    debugPrint("Taskers loaded in ChatScreen: ${reportController.taskers}");
+    setState(() {}); // Update the UI after fetching taskers
   }
 
   void _showReportModal() {
@@ -109,7 +109,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           Padding(
                             padding: const EdgeInsets.only(
                                 left: 40, right: 40, top: 20),
-                            child: DropdownSearch<String>(
+                            child: DropdownSearch<Map<String, dynamic>>(
                               popupProps: PopupProps.menu(
                                 showSearchBox: true,
                                 searchFieldProps: TextFieldProps(
@@ -121,7 +121,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   ),
                                 ),
                               ),
-                              items: _reportCategories,
+                              items: reportController.taskers,
                               dropdownDecoratorProps: DropDownDecoratorProps(
                                 dropdownSearchDecoration: InputDecoration(
                                   labelText: 'Report User *',
@@ -143,12 +143,15 @@ class _ChatScreenState extends State<ChatScreen> {
                                   ),
                                 ),
                               ),
-                              onChanged: (String? newValue) {
+                              itemAsString: (Map<String, dynamic> tasker) =>
+                                  "${tasker['first_name']} ${tasker['middle_name'] ?? ''} ${tasker['last_name']}",
+                              onChanged: (Map<String, dynamic>? newValue) {
                                 setModalState(() {
-                                  _selectedReportCategory = newValue;
+                                  _selectedReportCategory = newValue != null
+                                      ? newValue['user_id'].toString()
+                                      : null;
                                 });
                               },
-                              selectedItem: _selectedReportCategory,
                               validator: (value) =>
                                   value == null ? 'Select a Category' : null,
                             ),

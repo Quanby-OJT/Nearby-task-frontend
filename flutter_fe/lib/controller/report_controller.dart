@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/report_model.dart';
 import 'package:flutter_fe/service/report_service.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ReportController {
   final ReportService _reportService = ReportService();
@@ -10,6 +12,39 @@ class ReportController {
   List<XFile> selectedImages = [];
   Map<String, String> errors = {};
   String? imageUploadError;
+  List<Map<String, dynamic>> taskers = [];
+
+  Future<void> fetchTaskers() async {
+    try {
+      debugPrint("Fetching taskers...");
+      final response = await http.get(
+        Uri.parse("${ReportService.apiUrl}/taskers"),
+        headers: {
+          'Authorization': "Bearer ${ReportService.token}",
+        },
+      );
+
+      debugPrint("Taskers API Response Status: ${response.statusCode}");
+      debugPrint("Taskers API Response Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success']) {
+          taskers = List<Map<String, dynamic>>.from(data['taskers']);
+          debugPrint("Successfully fetched ${taskers.length} taskers");
+        } else {
+          debugPrint("Failed to fetch taskers: ${data['message']}");
+          taskers = []; // Ensure taskers is empty if the request fails
+        }
+      } else {
+        debugPrint("Error fetching taskers: ${response.statusCode}");
+        taskers = []; // Ensure taskers is empty if the request fails
+      }
+    } catch (e) {
+      debugPrint("Exception while fetching taskers: $e");
+      taskers = []; // Ensure taskers is empty if an exception occurs
+    }
+  }
 
   Future<void> pickImages(BuildContext context) async {
     const int maxImages = 5;
