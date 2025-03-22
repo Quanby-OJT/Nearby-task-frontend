@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
+import 'package:flutter_fe/model/user_model.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
@@ -41,11 +42,12 @@ class _FillUpTaskerState extends State<FillUpTasker> {
   bool _imagesChanged = false;
   String _wage = '';
   String _paySchedule = '';
+  String _bio = '';
+  String _skills = '';
 
-  File? _selectedImageID; // Store the selected ID image
   String? _imageNameID; // Store the selected ID image name
   String? _existingProfileImageUrl; // Store existing profile image URL
-  String? _existingIDImageUrl; // Store existing ID image URL
+  String? _existingPDFUrl; // Store existing ID image URL
   final _generalFormKey = GlobalKey<FormState>();
   final _profileFormKey = GlobalKey<FormState>();
   final _certsFormKey = GlobalKey<FormState>();
@@ -69,16 +71,13 @@ class _FillUpTaskerState extends State<FillUpTasker> {
 
   //TESDA Documents
   Future<void> _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
-    );
+    FilePickerResult? result = await FilePicker.platform
+        .pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
 
     if (result != null) {
       setState(() {
-        _selectedFile =
-            File(result.files.single.path!); // Store the selected file
-        _fileName = result.files.single.name; // Store file name
+        _selectedFile = File(result.files.single.path!);
+        _fileName = result.files.single.name;
       });
     }
   }
@@ -112,7 +111,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
 
       AuthenticatedUser? user =
           await _controller.getAuthenticatedUser(context, userId);
-      debugPrint("Fetched user data: ${user.toString()}");
+      debugPrint("Fetched user data from the fill up task: ${user.toString()}");
 
       List<SpecializationModel> fetchedSpecializations =
           await jobPostService.getSpecializations();
@@ -125,35 +124,181 @@ class _FillUpTaskerState extends State<FillUpTasker> {
       if (user?.tasker != null) {
         debugPrint("Fetched user data in mt table : ${user.toString()}");
         setState(() {
-          _role = user!.user.role ?? 'Tasker';
-          _contact = user!.user.contact ?? '';
+          _firstname = user!.user.firstName;
+          _lastname = user.user.lastName;
+          _middlename = user.user.middleName;
+          _role = user.user.role;
+          _contact = user.user.contact ?? '';
           _wage = user.tasker!.wage.toString();
           _paySchedule = user.tasker!.payPeriod;
-          _image = user!.user.image?.toString() ?? '';
+          _image = user.user.image?.toString() ?? '';
           _birthday = user.user.birthdate ?? '';
           _isLoading = false;
-          selectedGender = user!.user.gender;
+          selectedGender = user.user.gender;
+          _bio = user.tasker!.bio;
+          _skills = user.tasker!.skills;
+          int index = int.tryParse(user.tasker!.specialization) ?? -1;
 
-          // Existing profile picture
+          // Check if the index is within bounds
+          if (index >= 0 && index <= specialization.length) {
+            selectedSpecialization =
+                specialization[index - 1]; // Subtract 1 for zero-based index
+          } else {
+            selectedSpecialization = 'Not Found'; // Fallback value
+          }
+
           _existingProfileImageUrl = user!.user.image?.toString() ?? '';
 
           // Update text controllers
-          _controller.contactNumberController.text = _contact;
+
           _controller.emailController.text = user.user.email;
           _controller.firstNameController.text = _firstname;
           _controller.middleNameController.text = _middlename ?? '';
           _controller.lastNameController.text = _lastname;
           _controller.roleController.text = _role;
+
+          _controller.contactNumberController.text = _contact;
           _controller.imageController.text = _image;
           _controller.birthdateController.text = _birthday;
           _controller.genderController.text = selectedGender ?? '';
-
+          _controller.wageController.text = _wage ?? '0.00';
           _controller.payPeriodController.text = _paySchedule;
+          _controller.bioController.text = _bio;
+          _controller.skillsController.text = _skills;
+          _controller.specializationController.text =
+              selectedSpecialization ?? '';
+
+// Fetch Document Link for tasker
+          final int documentId = user.tasker!.taskerDocuments ?? 0;
+          _fetchDocumentLink(documentId);
         });
       }
     } catch (error, stackTrace) {
       debugPrint('Error fetching specializations: $error');
       debugPrintStack(stackTrace: stackTrace);
+    }
+  }
+
+// Fetch Document Link for tasker
+  Future<void> _fetchDocumentLink(int documentId) async {
+    try {
+      final documentLink = await _controller.getDocumentLink(documentId);
+      setState(() {
+        _existingPDFUrl = documentLink;
+      });
+    } catch (error, stackTrace) {
+      debugPrint('Error fetching document link: $error');
+      debugPrintStack(stackTrace: stackTrace);
+    }
+  }
+
+  Future<void> saveTaskerWithImages() async {
+    // Validate birthdate
+
+    try {
+      int userId = int.parse(storage.read('user_id').toString());
+
+      // Check if this is an update or a new creation
+      if (_existingPDFUrl != null &&
+          _existingProfileImageUrl != null &&
+          !_imagesChanged) {
+        // Update without changing images
+        await updateTaskerWithoutImages(userId);
+      } else if (_selectedFile != null && _selectedImage != null) {
+        // Create new with images
+        await _controller.createTasker(
+          context,
+          userId,
+          _selectedFile!,
+          _selectedImage!,
+        );
+      } else if (_existingPDFUrl != null && _existingProfileImageUrl != null) {
+        // Create without images (using existing URLs)
+        await _controller.createTaskerNoImages(
+          context,
+          userId,
+        );
+      } else {
+        // Images are required for new tasker profiles
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Please upload both a profile image and a document'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> updateTaskerWithoutImages(int userId) async {
+    try {
+      // Create user model with current data
+      UserModel user = UserModel(
+        id: userId,
+        firstName: _controller.firstNameController.text,
+        middleName: _controller.middleNameController.text.isNotEmpty
+            ? _controller.middleNameController.text
+            : null,
+        lastName: _controller.lastNameController.text,
+        email: _controller.emailController.text,
+        role: _controller.roleController.text,
+        birthdate: _controller.birthdateController.text,
+        contact: _controller.contactNumberController.text,
+        gender: _controller.genderController.text,
+        image: _existingProfileImageUrl,
+      );
+
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        },
+      );
+
+      // Call API service to update tasker profile without images
+      Map<String, dynamic> result =
+          await _controller.updateTaskerNoImages(context, user);
+
+      // Close loading indicator
+      Navigator.pop(context);
+
+      if (result.containsKey("errors")) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result["errors"] ??
+                "Failed to update profile. Please try again."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result["message"] ?? "Profile updated successfully"),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Navigate to home page or refresh the current page
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error updating profile: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -197,21 +342,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                       final isLastStep = currentStep == getSteps().length - 1;
 
                       if (isLastStep) {
-                        debugPrint('Creating New Tasker...');
-                        try {
-                          _controller.createTasker(
-                            context,
-                            selectedSpecialization ?? "Unknown Specialization",
-                            selectedGender ?? "Unknown Gender",
-                            _imageName ?? "Unknown Image",
-                            _fileName ?? "Illegal File",
-                            _selectedFile ?? File(""),
-                            _selectedImage ?? File(""),
-                          );
-                        } catch (error) {
-                          debugPrint('Registration error: $error');
-                          debugPrintStack();
-                        }
+                        saveTaskerWithImages();
                       } else {
                         setState(() {
                           currentStep += 1;
@@ -266,19 +397,6 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                   ),
                 ),
               ),
-              // TextButton(
-              //     onPressed: () {
-              //       Navigator.push(context,
-              //           MaterialPageRoute(builder: (context) {
-              //         return SignIn();
-              //       }));
-              //     },
-              //     child: Text(
-              //       textAlign: TextAlign.right,
-              //       'Already have an account',
-              //       style: TextStyle(
-              //           color: Colors.black, fontWeight: FontWeight.bold),
-              //     )),
             ],
           ),
         ));
@@ -669,7 +787,6 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                     ),
                   ),
                 ),
-                // Specialization
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
@@ -716,22 +833,106 @@ class _FillUpTaskerState extends State<FillUpTasker> {
           isActive: currentStep >= 2,
           title: const Text('Certs'),
           content: Form(
-            key:
-                _certsFormKey, // Form key for validation (optional if enforcing file selection)
-            child: Column(
-              children: [
-                ElevatedButton(
-                  onPressed: _pickFile,
-                  child: const Text("Pick PDF"),
-                ),
-                _selectedFile != null
-                    ? Column(
-                        children: [
-                          Text("Selected File: $_fileName"),
+            key: _certsFormKey,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 10.0),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: Text(
+                      'Upload a PDF File',
+                      style: GoogleFonts.openSans(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF0272B1),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 200,
+                          height: 200,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: const Color(0xFF0272B1),
+                              width: 3,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: _selectedFile != null
+                              ? const Icon(Icons.picture_as_pdf,
+                                  size: 80, color: Colors.red)
+                              : _existingPDFUrl != null &&
+                                      _existingPDFUrl!.isNotEmpty
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Image.network(
+                                        _existingPDFUrl!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error,
+                                                stackTrace) =>
+                                            const Icon(Icons.insert_drive_file,
+                                                size: 80, color: Colors.grey),
+                                      ),
+                                    )
+                                  : const Icon(Icons.insert_drive_file,
+                                      size: 80, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton.icon(
+                          onPressed: _pickFile,
+                          icon: const Icon(Icons.upload_file,
+                              color: Colors.white),
+                          label: const Text("Select PDF"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF0272B1),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                        if (_fileName != null) ...[
+                          const SizedBox(height: 10),
+                          Text(
+                            "Selected File: $_fileName",
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
                         ],
-                      )
-                    : const Text("No File Selected"),
-              ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

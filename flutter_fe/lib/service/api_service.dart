@@ -87,6 +87,31 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> updateTaskerProfileNoImages(
+      int userId, Map<String, dynamic> data) async {
+    try {
+      final token = await AuthService.getSessionToken();
+      final response = await _client.put(
+        Uri.parse("$apiUrl/update-tasker-profile/$userId"),
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: json.encode(data),
+      );
+
+      if (response.statusCode == 200) {
+        debugPrint('Response Body po: ${response.body}');
+        return json.decode(response.body);
+      } else {
+        return {"errors": "Failed to update tasker profile"};
+      }
+    } catch (e) {
+      return {"errors": "Exception: $e"};
+    }
+  }
+
   static Future<Map<String, dynamic>> updateUserWithProfileImage(
       UserModel user, File profileImage) async {
     try {
@@ -322,20 +347,6 @@ class ApiService {
       // Create a salt using timestamp
       String salt = DateTime.now().millisecondsSinceEpoch.toString();
 
-      // Create the request payload
-      // Map<String, dynamic> requestBody = {
-      //   "data": {
-      //     "first_name": user.firstName,
-      //     "middle_name": user.middleName,
-      //     "last_name": user.lastName,
-      //     "email": user.email,
-      //     "password": user.password,
-      //     "user_role": user.role,
-      //     // "acc_status": user.accStatus
-      //   },
-      //   "salt": salt
-      // };
-
       debugPrint('Request Body: ${user.toJson}'); // Debug log
       final response = await _client.post(
         Uri.parse("$apiUrl/create-new-account"),
@@ -410,51 +421,6 @@ class ApiService {
     }
   }
 
-//   static Future<Map<String, dynamic>> verifyEmail(
-//       String token, String email) async {
-//     try {
-//       debugPrint('Starting email verification for: $email with token: $token');
-//       final response = await _client.post(
-//         Uri.parse("$apiUrl/verify"),
-//         headers: _getHeaders(),
-//         body: json.encode({"token": token, "email": email}),
-//       );
-
-//       debugPrint('Verify Response Status: ${response.statusCode}');
-//       debugPrint('Verify Response Body: ${response.body}');
-
-//       if (response.body.isEmpty) {
-//         debugPrint('Error: Response body is empty');
-//         return {"error": "Empty response from server"};
-//       }
-
-//       var data = jsonDecode(response.body);
-//       debugPrint('Decoded Response Data: $data');
-
-//       if (response.statusCode == 200) {
-//         return {
-//           "message":
-//               data["message"]?.toString() ?? "Email Verified Successfully.",
-//           "user_id": data["user_id"], // Convert to string for consistency
-//           "token": data["session"],
-//         };
-//       } else {
-//         debugPrint('Non-200 status code: ${response.statusCode}');
-//         return {
-//           "error": data["error"]?.toString() ??
-//               "An error occurred while verifying your email. Please try again."
-//         };
-//       }
-//     } catch (e, stackTrace) {
-//       debugPrint('Verification Error: $e');
-//       debugPrint('Stack Trace: $stackTrace');
-//       return {
-//         "error":
-//             "An error occurred while verifying your email. Please try again."
-//       };
-//     }
-//   }
-
   //Creating Tasker/Client Information but needs authentication token from the backend.
   static Future<Map<String, dynamic>> createTasker(
       TaskerModel tasker, File tesdaFile, File profileImage) async {
@@ -488,7 +454,6 @@ class ApiService {
           "image",
           await profileImage.readAsBytes(),
           filename: "profile_image.jpg",
-          // Adjust content type if necessary (e.g., image/png)
         ),
       ]);
 
@@ -546,14 +511,17 @@ class ApiService {
         UserModel user =
             UserModel.fromJson(data['user'] as Map<String, dynamic>);
         if (data['user']['user_role'] == "Client") {
+          debugPrint("User is a client and has client data: ${data['client']}");
           ClientModel client =
               ClientModel.fromJson(data['client'] as Map<String, dynamic>);
           return {"user": user, "client": client};
         } else if (data['user']['user_role'] == "Tasker") {
+          debugPrint("User is a tasker and has tasker data: ${data['tasker']}");
           TaskerModel tasker =
               TaskerModel.fromJson(data['tasker'] as Map<String, dynamic>);
-          debugPrint(
-              "================================================== $tasker");
+
+          debugPrint("User is a tasker and has tasker data: $tasker");
+
           return {"user": user, "tasker": tasker};
         } else {
           return {
