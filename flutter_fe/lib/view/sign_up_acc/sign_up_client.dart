@@ -7,7 +7,6 @@ import 'package:app_links/app_links.dart';
 import 'package:app_links/app_links.dart';
 import 'package:flutter_fe/view/fill_up/nearby_task_rules.dart';
 
-
 class SignUpClientAcc extends StatefulWidget {
   final String role;
   const SignUpClientAcc({super.key, required this.role});

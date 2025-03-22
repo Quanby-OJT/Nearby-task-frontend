@@ -7,7 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 class TaskerProfilePage extends StatefulWidget {
   final UserModel tasker;
 
-  const TaskerProfilePage({Key? key, required this.tasker}) : super(key: key);
+  const TaskerProfilePage({super.key, required this.tasker});
 
   @override
   State<TaskerProfilePage> createState() => _TaskerProfilePageState();
@@ -78,11 +78,11 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                       SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: _loadTaskerDetails,
-                        child: Text('Retry'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFF0272B1),
                           foregroundColor: Colors.white,
                         ),
+                        child: Text('Retry'),
                       ),
                     ],
                   ),

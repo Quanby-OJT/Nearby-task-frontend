@@ -33,6 +33,290 @@ class ApiService {
     print('Updated Cookies: $_cookies'); // Debugging
   }
 
+  static Future<Map<String, dynamic>> updateUser(UserModel user) async {
+    try {
+      final response = await _client.put(
+        Uri.parse("$apiUrl/update-client-user/${user.id}"),
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: json.encode({
+          "id": user.id,
+          "first_name": user.firstName,
+          "middle_name": user.middleName,
+          "last_name": user.lastName,
+          "email": user.email,
+          "user_role": user.role,
+          "contact": user.contact,
+          "gender": user.gender,
+          "birthdate": user.birthdate,
+        }),
+      );
+
+      debugPrint('Response Status: ${response.statusCode}');
+      debugPrint('Response Body: ${response.body}');
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          "message":
+              data["message"] ?? "User information updated successfully!",
+          "user": data["user"]
+        };
+      } else if (response.statusCode == 400) {
+        String errorMessage = "";
+        if (data['errors'] is String) {
+          errorMessage = data['errors'];
+        } else if (data['errors'] is List) {
+          errorMessage = (data['errors'] as List)
+              .map((e) => e['msg'] ?? e.toString())
+              .join('\n');
+        }
+        return {
+          "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed."
+        };
+      } else {
+        return {"errors": data["error"] ?? "An unexpected error occurred."};
+      }
+    } catch (e) {
+      return {
+        "errors": "An error occurred during updating user information: $e"
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateUserWithProfileImage(
+      UserModel user, File profileImage) async {
+    try {
+      String token = await AuthService.getSessionToken();
+
+      var request = http.MultipartRequest(
+        "PUT",
+        Uri.parse("$apiUrl/update-user-with-profile-image/${user.id}"),
+      );
+
+      request.headers.addAll({
+        "Authorization": "Bearer $token",
+        "Content-Type": "multipart/form-data",
+      });
+
+      request.fields.addAll({
+        "first_name": user.firstName,
+        "middle_name": user.middleName ?? '',
+        "last_name": user.lastName,
+        "email": user.email,
+        "user_role": user.role,
+        "acc_status": user.accStatus ?? '',
+        "birthday": user.birthdate ?? '',
+        "contact": user.contact ?? '',
+        "gender": user.gender ?? '',
+      });
+
+      // Add the profile image to the request
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          "profileImage",
+          await profileImage.readAsBytes(),
+          filename: "profile_image.jpg",
+        ),
+      );
+
+      var response = await request.send();
+      var responseBody = await response.stream.bytesToString();
+
+      debugPrint('Response Status: ${response.statusCode}');
+      debugPrint('Response Body updated: $responseBody');
+
+      final data = jsonDecode(responseBody);
+
+      if (response.statusCode == 200) {
+        return {
+          "message": data["message"] ??
+              "User information with profile image updated successfully!",
+          "user": data["user"]
+        };
+      } else if (response.statusCode == 400) {
+        String errorMessage = "";
+        if (data['errors'] is String) {
+          errorMessage = data['errors'];
+        } else if (data['errors'] is List) {
+          errorMessage = (data['errors'] as List)
+              .map((e) => e['msg'] ?? e.toString())
+              .join('\n');
+        }
+        return {
+          "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed."
+        };
+      } else {
+        return {"errors": data["error"] ?? "An unexpected error occurred."};
+      }
+    } catch (e) {
+      return {
+        "errors":
+            "An error occurred during updating user information with profile image: $e"
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateUserWithIDImage(
+      UserModel user, File idImage) async {
+    try {
+      String token = await AuthService.getSessionToken();
+
+      var request = http.MultipartRequest(
+        "PUT",
+        Uri.parse("$apiUrl/update-user-with-id-image/${user.id}"),
+      );
+
+      request.headers.addAll({
+        "Authorization": "Bearer $token",
+        "Content-Type": "multipart/form-data",
+      });
+
+      request.fields.addAll({
+        "first_name": user.firstName,
+        "middle_name": user.middleName ?? '',
+        "last_name": user.lastName,
+        "email": user.email,
+        "user_role": user.role,
+        "acc_status": user.accStatus ?? '',
+        "birthday": user.birthdate ?? '',
+        "contact": user.contact ?? '',
+        "gender": user.gender ?? '',
+      });
+
+      // Add the ID image to the request
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          "idImage",
+          await idImage.readAsBytes(),
+          filename: "id_image.jpg",
+        ),
+      );
+
+      var response = await request.send();
+      var responseBody = await response.stream.bytesToString();
+
+      debugPrint('Response Status: ${response.statusCode}');
+      debugPrint('Response Body update id image: $responseBody');
+
+      final data = jsonDecode(responseBody);
+
+      if (response.statusCode == 200) {
+        return {
+          "message": data["message"] ??
+              "User information with ID image updated successfully!",
+          "user": data["user"]
+        };
+      } else if (response.statusCode == 400) {
+        String errorMessage = "";
+        if (data['errors'] is String) {
+          errorMessage = data['errors'];
+        } else if (data['errors'] is List) {
+          errorMessage = (data['errors'] as List)
+              .map((e) => e['msg'] ?? e.toString())
+              .join('\n');
+        }
+        return {
+          "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed."
+        };
+      } else {
+        return {"errors": data["error"] ?? "An unexpected error occurred."};
+      }
+    } catch (e) {
+      return {
+        "errors":
+            "An error occurred during updating user information with ID image: $e"
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateUserWithBothImages(
+      UserModel user, File profileImage, File idImage) async {
+    try {
+      String token = await AuthService.getSessionToken();
+
+      var request = http.MultipartRequest(
+        "PUT",
+        Uri.parse("$apiUrl/update-user-with-images/${user.id}"),
+      );
+
+      request.headers.addAll({
+        "Authorization": "Bearer $token",
+        "Content-Type": "multipart/form-data",
+      });
+
+      request.fields.addAll({
+        "first_name": user.firstName,
+        "middle_name": user.middleName ?? '',
+        "last_name": user.lastName,
+        "email": user.email,
+        "user_role": user.role,
+        "contact": user.contact ?? '',
+        "gender": user.gender ?? '',
+        "birthdate": user.birthdate ?? '',
+      });
+
+      // Add the profile image to the request
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          "profileImage",
+          await profileImage.readAsBytes(),
+          filename: "profile_image.jpg",
+        ),
+      );
+
+      // Add the ID image to the request
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          "idImage",
+          await idImage.readAsBytes(),
+          filename: "id_image.jpg",
+        ),
+      );
+
+      var response = await request.send();
+      var responseBody = await response.stream.bytesToString();
+
+      debugPrint('Response Status: ${response.statusCode}');
+      debugPrint('Response Body: $responseBody');
+
+      final data = jsonDecode(responseBody);
+
+      if (response.statusCode == 200) {
+        return {
+          "message": data["message"] ??
+              "User information with images updated successfully!",
+          "user": data["user"],
+          "profileImage": data["profileImage"],
+          "idImage": data["idImage"],
+        };
+      } else if (response.statusCode == 400) {
+        String errorMessage = "";
+        if (data['errors'] is String) {
+          errorMessage = data['errors'];
+        } else if (data['errors'] is List) {
+          errorMessage = (data['errors'] as List)
+              .map((e) => e['msg'] ?? e.toString())
+              .join('\n');
+        }
+        return {
+          "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed."
+        };
+      } else {
+        return {"errors": data["error"] ?? "An unexpected error occurred."};
+      }
+    } catch (e) {
+      debugPrint("Error updating user with images: $e");
+      return {
+        "errors":
+            "An error occurred during updating user information with images: $e"
+      };
+    }
+  }
+
   static Future<Map<String, dynamic>> registerUser(UserModel user) async {
     try {
       // Create a salt using timestamp
@@ -191,7 +475,7 @@ class ApiService {
 
       request.fields.addAll({
         ...tasker.toJson().map((key, value) => MapEntry(key, value.toString())),
-        "user_id": await storage.read("user_id").toString(),
+        "user_id": storage.read("user_id").toString(),
       });
 
       request.files.addAll([
@@ -210,10 +494,10 @@ class ApiService {
 
       var response = await request.send();
 
-      debugPrint("Status Code: " + response.statusCode.toString());
+      debugPrint("Status Code: ${response.statusCode}");
       var body = await response.stream.bytesToString();
       var data = jsonDecode(body);
-      debugPrint("Response Data: " + data.toString());
+      debugPrint("Response Data: $data");
 
       if (response.statusCode == 201) {
         return {
@@ -255,7 +539,7 @@ class ApiService {
             "Content-Type": "application/json"
           });
 
-      debugPrint("Retreived Data: " + response.body);
+      debugPrint("Retreived Data: ${response.body}");
       var data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
@@ -470,7 +754,7 @@ class ApiService {
         },
       );
 
-      debugPrint("All Messages Data: " + response.body.toString());
+      debugPrint("All Messages Data: ${response.body}");
 
       var data = jsonDecode(response.body);
 

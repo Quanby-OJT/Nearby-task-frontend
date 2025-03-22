@@ -37,6 +37,7 @@ class ProfileController {
   final TextEditingController genderController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
   final TextEditingController payPeriodController = TextEditingController();
+  final TextEditingController accStatusController = TextEditingController();
 
   //Client Text Controller
   final TextEditingController prefsController = TextEditingController();
@@ -91,6 +92,363 @@ class ProfileController {
       return "$fieldName must be at least 2 characters long";
     }
     return null;
+  }
+
+  String? validateLastName(String? value, String fieldName) {
+    if (value == null || value.isEmpty) {
+      return "Please enter your $fieldName";
+    }
+    if (value.length < 2) {
+      return "$fieldName must be at least 2 characters long";
+    }
+    return null;
+  }
+
+  String? validateContactNumber(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Please enter your contact number";
+    }
+
+    if (value[0] != '0' && value[1] != '9') {
+      return "Contact number must start with 09";
+    }
+    if (value.length != 11) {
+      return "Contact number must be 11 digits";
+    }
+    return null;
+  }
+
+  String? validateBirthdate(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Please enter your birthdate";
+    }
+    DateTime birthDate = DateTime.parse(value);
+    if (birthDate.isAfter(DateTime.now())) {
+      return "Birthdate cannot be in the future";
+    }
+    return null;
+  }
+
+  String? validateGender(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Please select your gender";
+    }
+    return null;
+  }
+
+  Future<void> updateUserData(BuildContext context, userId) async {
+    print('Updating user data');
+
+    // Validate all fields
+    String? emailError = validateEmail(emailController.text);
+    String? firstNameError =
+        validateName(firstNameController.text, "first name");
+    String? lastNameError = validateName(lastNameController.text, "last name");
+    String? contactError = validateContactNumber(contactNumberController.text);
+    String? genderError = validateGender(genderController.text);
+    String? birthdateError = validateBirthdate(birthdateController.text);
+
+    // Check if there are any validation errors
+    if (emailError != null ||
+        firstNameError != null ||
+        lastNameError != null ||
+        contactError != null ||
+        genderError != null ||
+        birthdateError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(emailError ??
+              firstNameError ??
+              lastNameError ??
+              contactError ??
+              genderError ??
+              birthdateError ??
+              "Please fix the errors in the form"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    try {
+      UserModel user = UserModel(
+        id: userId,
+        firstName: firstNameController.text,
+        middleName: middleNameController.text.isNotEmpty
+            ? middleNameController.text
+            : null,
+        lastName: lastNameController.text,
+        email: emailController.text,
+        role: roleController.text,
+        birthdate: birthdateController.text,
+        contact: contactNumberController.text,
+        gender: genderController.text,
+      );
+
+      print('User data from updateUserData: ${user.toString()}');
+
+      Map<String, dynamic> resultData = await ApiService.updateUser(user);
+
+      if (resultData.containsKey("errors")) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(resultData["errors"] ??
+                "Failed to update user. Please try again."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("User updated successfully"),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error updating user: ${e.toString()}"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> updateUserWithImage(
+      BuildContext context, userId, File profileImage) async {
+    try {
+      // Validate fields
+      String? emailError = validateEmail(emailController.text);
+      String? firstNameError =
+          validateName(firstNameController.text, "first name");
+      String? lastNameError =
+          validateName(lastNameController.text, "last name");
+
+      // Check if there are any validation errors
+      if (emailError != null ||
+          firstNameError != null ||
+          lastNameError != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(emailError ??
+                firstNameError ??
+                lastNameError ??
+                "Please fix the errors in the form"),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Create user model
+      UserModel user = UserModel(
+          id: userId,
+          firstName: firstNameController.text,
+          middleName: middleNameController.text,
+          lastName: lastNameController.text,
+          email: emailController.text,
+          role: roleController.text,
+          accStatus: accStatusController.text,
+          birthdate: birthdateController.text,
+          contact: contactNumberController.text,
+          gender: genderController.text);
+
+      // Call API service to update user with image
+      Map<String, dynamic> resultData =
+          await ApiService.updateUserWithProfileImage(user, profileImage);
+
+      if (resultData.containsKey("errors")) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(resultData["errors"] ??
+                "Failed to update user with profile image. Please try again."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("User profile updated successfully with new image"),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text("Error updating user with profile image: ${e.toString()}"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> updateUserWithID(
+      BuildContext context, userId, File idImage) async {
+    try {
+      // Validate fields
+      String? emailError = validateEmail(emailController.text);
+      String? firstNameError =
+          validateName(firstNameController.text, "first name");
+      String? lastNameError =
+          validateName(lastNameController.text, "last name");
+
+      // Check if there are any validation errors
+      if (emailError != null ||
+          firstNameError != null ||
+          lastNameError != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(emailError ??
+                firstNameError ??
+                lastNameError ??
+                "Please fix the errors in the form"),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Create user model
+      UserModel user = UserModel(
+          id: userId,
+          firstName: firstNameController.text,
+          middleName: middleNameController.text,
+          lastName: lastNameController.text,
+          email: emailController.text,
+          role: roleController.text,
+          accStatus: accStatusController.text,
+          birthdate: birthdateController.text,
+          contact: contactNumberController.text,
+          gender: genderController.text);
+
+      // Call API service to update user with ID image
+      Map<String, dynamic> resultData =
+          await ApiService.updateUserWithIDImage(user, idImage);
+
+      if (resultData.containsKey("errors")) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(resultData["errors"] ??
+                "Failed to update user with ID image. Please try again."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text("User profile updated successfully with new ID image"),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error updating user with ID image: ${e.toString()}"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> updateUserWithBothImages(
+      BuildContext context, int userId, File profileImage, File idImage) async {
+    try {
+      // Validate fields
+      String? emailError = validateEmail(emailController.text);
+      String? firstNameError =
+          validateName(firstNameController.text, "first name");
+      String? lastNameError =
+          validateName(lastNameController.text, "last name");
+      String? contactError =
+          validateContactNumber(contactNumberController.text);
+      String? genderError = validateGender(genderController.text);
+      String? birthdateError = validateBirthdate(birthdateController.text);
+
+      // Check if there are any validation errors
+      if (emailError != null ||
+          firstNameError != null ||
+          lastNameError != null ||
+          contactError != null ||
+          genderError != null ||
+          birthdateError != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(emailError ??
+                firstNameError ??
+                lastNameError ??
+                contactError ??
+                genderError ??
+                birthdateError ??
+                "Please fix the errors in the form"),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Create user model
+      UserModel user = UserModel(
+        id: userId,
+        firstName: firstNameController.text,
+        middleName: middleNameController.text.isNotEmpty
+            ? middleNameController.text
+            : null,
+        lastName: lastNameController.text,
+        email: emailController.text,
+        role: roleController.text,
+        birthdate: birthdateController.text,
+        contact: contactNumberController.text,
+        gender: genderController.text,
+      );
+
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        },
+      );
+
+      // Call API service to update user with both images
+      Map<String, dynamic> resultData =
+          await ApiService.updateUserWithBothImages(
+              user, profileImage, idImage);
+
+      // Close loading indicator
+      Navigator.pop(context);
+
+      if (resultData.containsKey("errors")) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(resultData["errors"] ??
+                "Failed to update user with images. Please try again."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(resultData["message"] ?? "User updated successfully"),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error updating user with images: ${e.toString()}"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Future<void> registerUser(BuildContext context) async {
@@ -212,62 +570,8 @@ class ProfileController {
       }
     } catch (e) {
       throw Exception("Failed to verify email: ${e.toString()}");
-// Validation if password not matched end
-
-// Store the inputs Start
-//     UserModel user = UserModel(
-//         firstName: firstNameController.text,
-//         middleName: middleNameController.text,
-//         lastName: lastNameController.text,
-//         email: emailController.text,
-//         password: passwordController.text,
-//         role: roleController.text,
-//         accStatus: 'Pending');
-
-//     Map<String, dynamic> resultData = await ApiService.registerUser(user);
-//     if (resultData.containsKey("message")) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(
-//           content: Text(
-//             resultData["message"] ?? "Registration Successful! Please Check your Email to confirm your email."
-//           )
-//         ),
-//       );
-//     } else if (resultData.containsKey("errors")) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(content: Text(
-//             resultData["errors"] ?? "Please Check Your inputs and try again"
-//           )
-//         ),
-//       );
-//     } else {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(content: Text(
-//           resultData["error"] ?? "Registration Failed!")
-//         ),
-//       );
     }
   }
-
-  // Future<int> verifyEmail(
-  //     BuildContext context, String token, String email) async {
-  //   try {
-  //     final response = await ApiService.verifyEmail(token, email);
-  //     if (response.containsKey("message")) {
-  //       await storage.write("session", response["token"]);
-  //       await storage.write("user_id", response["user_id"]);
-  //       return response["user_id"];
-  //     }
-  //     return 0;
-  //   } catch (e, stackTrace) {
-  //     debugPrint(e.toString());
-  //     debugPrintStack(stackTrace: stackTrace);
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text('Verification failed. Please Try Again.')),
-  //     );
-  //     return 0;
-  //   }
-  // }
 
   Future<void> createTasker(
       BuildContext context,
@@ -339,7 +643,7 @@ class ProfileController {
         } else if (result.containsKey("tasker")) {
           TaskerModel tasker = result["tasker"] as TaskerModel;
 
-          debugPrint("Retrieved Data: " + tasker.toString());
+          debugPrint("Retrieved Data: $tasker");
 
           return AuthenticatedUser(user: user, tasker: tasker);
         }
