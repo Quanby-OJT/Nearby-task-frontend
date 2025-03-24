@@ -54,6 +54,7 @@ class ProfileService{
 
   static Map<String, dynamic> _handleResponse(http.Response response) {
     try {
+      debugPrint(response.body.toString());
       final responseBody = jsonDecode(response.body);
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return responseBody;
@@ -91,7 +92,7 @@ class ProfileService{
   ///
   /// Update Client/Tasker Information
   ///
-  static Future<Map<String, dynamic>> updateTasker(TaskerModel tasker, UserModel user, File tesdaFiles, File profileImage) async {
+  static Future<Map<String, dynamic>> updateTasker(TaskerModel tasker, UserModel user, List<dynamic> tesdaFiles, File profileImage) async {
     debugPrint("Updating Tasker information...");
     final userId = await getUserId();
     if (userId == null) {
@@ -102,8 +103,11 @@ class ProfileService{
       };
     }
 
+    debugPrint(tasker.toJson().toString());
+    debugPrint(user.toJson().toString());
+
     // Create a multipart request for the PUT endpoint
-    var request = http.MultipartRequest('PUT', Uri.parse('$apiUrl/user/updateTasker'));
+    var request = http.MultipartRequest('PUT', Uri.parse('$apiUrl/user/tasker/$userId'));
     request.headers['Authorization'] = 'Bearer $token';
     request.headers['Content-Type'] = 'multipart/form-data';
 
@@ -113,25 +117,36 @@ class ProfileService{
       "user_id": await storage.read("user_id").toString()
     });
 
-    // Add each document file to the 'documents' field
-    request.files.addAll([
-      http.MultipartFile.fromBytes(
-        "document",
-        await tesdaFiles.readAsBytes(),
-        filename: "document.pdf",
-      ),
+    // Add profile image
+    debugPrint("Adding profile image...");
+    request.files.add(
       http.MultipartFile.fromBytes(
         "image",
         await profileImage.readAsBytes(),
         filename: "profile_image.jpg",
-        // Adjust content type if necessary (e.g., image/png)
       ),
-    ]);
+    );
+
+    // Add each TESDA file to the request
+    debugPrint("Adding TESDA files...");
+    for (int i = 0; i < tesdaFiles.length; i++) {
+      File file = tesdaFiles[i];
+      String fileName = file.path.split('/').last;
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          "documents", // Using "documents" as per your statement
+          await file.readAsBytes(),
+          filename: fileName,
+        ),
+      );
+    }
 
     try {
-      // Send the request and get the response
+      debugPrint("Request files: ${request.files.map((f) => '${f.field}: ${f.filename}').toList()}");
+      debugPrint("Sending request to: $apiUrl/user/tasker/$userId");
       final response = await request.send();
       final responseBody = await http.Response.fromStream(response);
+      debugPrint("Response: ${responseBody.body}");
       return _handleResponse(responseBody);
     } catch (e) {
       debugPrint("Error uploading files: $e");

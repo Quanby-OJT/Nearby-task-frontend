@@ -302,7 +302,7 @@ class ProfileController {
         skills: skillsController.text,
         taskerAddress: taskerAddressController.text,
         taskerDocuments: tesdaFile,
-        socialMediaLinks: socialMediaController.text,
+        socialMediaLinks: [socialMediaController.text],
         availability: false,
         wage: double.tryParse(wageController.text) ?? 0,
         group: false,
@@ -359,11 +359,7 @@ class ProfileController {
 
   Future<void> updateUser(
       BuildContext context,
-      String specialization,
-      String gender,
-      String image,
-      String tesdaFile,
-      File documentFile,
+      List<dynamic> documentFile,
       File profileImage
     ) async{
     String role = await storage.read('role');
@@ -375,7 +371,7 @@ class ProfileController {
       email: '',
       role: role,
       accStatus: '',
-      gender: gender
+      gender: genderController.text
     );
 
     if(role == 'Client'){
@@ -400,14 +396,18 @@ class ProfileController {
         );
       }
     }else if(role == 'Tasker'){
+      String cleanedWage = wageController.text
+          .replaceAll('₱', '') // Remove currency symbol
+          .replaceAll(',', ''); // Remove thousands separator
+
       TaskerModel tasker = TaskerModel(
         bio: bioController.text,
         group: false,
-        specialization: specialization,
+        specialization: specializationController.text,
         skills: skillsController.text,
         taskerAddress: taskerAddressController.text,
         availability: availabilityController.text == "I am available" ? true : false,
-        wage: double.parse(wageController.text),
+        wage: double.parse(cleanedWage),
         payPeriod: payPeriodController.text,
         birthDate: DateTime.parse(birthdateController.text),
         phoneNumber: contactNumberController.text,

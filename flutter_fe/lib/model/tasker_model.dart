@@ -7,7 +7,7 @@ class TaskerModel {
   final String skills;
   final bool availability;
   final String? taskerDocuments;
-  final String? socialMediaLinks;
+  final List<String>? socialMediaLinks;
   final String taskerAddress;
   final double wage;
   final String payPeriod;
@@ -41,19 +41,19 @@ class TaskerModel {
   //Factory to manage tasker data.
   factory TaskerModel.fromJson(Map<String, dynamic> json) {
     return TaskerModel(
-      id: json["id"] ?? 0,
+      id: json["tasker_id"] ?? 0,
       bio: json['bio'] ?? '',
       skills: json['skills'] ?? '',
       availability: json['availability'] ?? false,
-      socialMediaLinks: json['social_media_links'] ?? '',
+      socialMediaLinks: json['social_media_links'] ?? [],
       taskerAddress: json['address'] ?? '',
       specialization: json['tasker_specialization'] != null
           ? json['tasker_specialization']['specialization']
           : '',
-      taskerDocuments: json['tasker_documents'] ?? '',
+      taskerDocuments: json['tasker_documents']['tesda_document_link'] ?? '',
       wage: json['wage_per_hour'] != null ? json['wage_per_hour'].toDouble() : 0.0,
       payPeriod: json['pay_period'] ?? "",
-      birthDate: json['birth_date'] != null
+      birthDate: json['birthdate'] != null
           ? DateTime.parse(json['birth_date'])
           : DateTime.now(),
       phoneNumber: json['phone_number'] ?? '',

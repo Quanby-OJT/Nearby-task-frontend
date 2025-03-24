@@ -11,7 +11,6 @@ class SignIn extends StatefulWidget {
 
 class _SignInState extends State<SignIn> {
   final AuthenticationController _controller = AuthenticationController();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
