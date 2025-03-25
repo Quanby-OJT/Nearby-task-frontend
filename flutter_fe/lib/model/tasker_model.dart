@@ -6,7 +6,7 @@ class TaskerModel {
   final String specialization;
   final String skills;
   final bool availability;
-  final String? taskerDocuments;
+  final int? taskerDocuments;
   final String? socialMediaLinks;
   final String taskerAddress;
   final double wage;
@@ -37,50 +37,63 @@ class TaskerModel {
 
   @override
   String toString() {
-    return "user: $user)";
+    return "Tasker(id: $id, bio: $bio, specialization: $specialization, user: $user)";
   }
 
-  //Factory to manage tasker data.
+  // Factory method to map JSON to TaskerModel
   factory TaskerModel.fromJson(Map<String, dynamic> json) {
     return TaskerModel(
-      id: json["id"] ?? 0,
+      id: json["tasker_id"] ?? 0, // Correct key for ID
       bio: json['bio'] ?? '',
       skills: json['skills'] ?? '',
       availability: json['availability'] ?? false,
       socialMediaLinks: json['social_media_links'] ?? '',
       taskerAddress: json['address'] ?? '',
-      specialization: json['tasker_specialization'] != null
-          ? json['tasker_specialization']['specialization']
-          : '',
-      taskerDocuments: json['tasker_documents'] ?? '',
-      wage: json['wage'] != null ? json['wage_per_hour'].toDouble() : 0.0,
-      payPeriod: json['pay_period'] ?? "",
-      birthDate: json['birth_date'] != null
-          ? DateTime.parse(json['birth_date'])
-          : DateTime.now(),
-      phoneNumber: json['phone_number'] ?? '',
+      specialization:
+          json['specialization_id']?.toString() ?? '', // Use specialization_id
+      taskerDocuments:
+          json['tesda_documents_id'] ?? 0, // Adjusted for null safety
+      wage: (json['wage_per_hour'] is int)
+          ? json['wage_per_hour'].toDouble()
+          : double.tryParse(json['wage_per_hour'].toString()) ?? 0.0,
+      payPeriod: json['pay_period'] ?? "Hourly", // Added default value
+      birthDate: json['birthdate'] != null
+          ? DateTime.tryParse(json['birthdate']) ?? DateTime(2000, 1, 1)
+          : DateTime(2000, 1, 1), // Default fallback
+      phoneNumber: json['contact_number']?.toString() ?? '',
       gender: json['gender'] ?? '',
       group: json['group'] ?? false,
+      user: json['user'] != null
+          ? UserModel.fromJson(json['user'])
+          : null, // Ensure user object is correctly parsed
     );
   }
 
-
   Map<String, dynamic> toJson() {
     return {
-      "id": id,
+      "tasker_id": id,
       "bio": bio,
-      "specialization": specialization,
+      "specialization_id": specialization,
+
+      // must/json in another table
       "skills": skills,
+
+      //Must be in another table
       "address": taskerAddress,
       "availability": availability,
-      "tesda_documents_link": taskerDocuments,
+
+      // MUST in another table
+      "tesda_documents_id": taskerDocuments,
       "social_media_links": socialMediaLinks,
       "gender": gender,
+
+      // remove kasi nasa user na siya
       "contact_number": phoneNumber,
       "group": group,
       "wage_per_hour": wage,
       "pay_period": payPeriod,
-      "birth_date": birthDate.toIso8601String(),
+      "birthdate": birthDate.toIso8601String(),
+      "user": user?.toJson(),
     };
   }
 }

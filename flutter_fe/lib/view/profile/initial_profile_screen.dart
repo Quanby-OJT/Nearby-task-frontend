@@ -3,6 +3,7 @@ import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
+import 'package:flutter_fe/view/fill_up/fill_up_tasker.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
 import 'package:get_storage/get_storage.dart';
 
@@ -151,10 +152,16 @@ class _InitialProfileScreenState extends State<InitialProfileScreen> {
               title: Text('Verify Account'),
               trailing: Icon(Icons.chevron_right),
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  return FillUpClient();
-                }));
-                // Handle navigation to Settings
+                final userId = storage.read("user_id");
+                if (_userController.roleController.text == 'Client') {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return FillUpClient();
+                  }));
+                } else {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return FillUpTasker(userId: userId as int);
+                  }));
+                }
               },
             ),
             ListTile(

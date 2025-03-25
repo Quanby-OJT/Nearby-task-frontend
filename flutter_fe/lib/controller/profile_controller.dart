@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/client_model.dart';
+import 'package:flutter_fe/service/tasker_service.dart';
 import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
 import 'package:get_storage/get_storage.dart';
 import '../model/user_model.dart';
@@ -22,6 +23,9 @@ class ProfileController {
   final TextEditingController imageController = TextEditingController();
   final TextEditingController companyNameController = TextEditingController();
   final TextEditingController taskerGroupController = TextEditingController();
+  final TextEditingController specializationIdController =
+      TextEditingController();
+  final TaskerService taskerService = TaskerService();
   // Fetched user inputs End
 
   //Tasker Text Controller
@@ -136,6 +140,56 @@ class ProfileController {
     return null;
   }
 
+  String? validateSpecialization(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Please select your specialization";
+    }
+    return null;
+  }
+
+  String? validateWage(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Please enter your wage";
+    }
+    return null;
+  }
+
+  String? validatePaySchedule(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Please select your pay schedule";
+    }
+    return null;
+  }
+
+  String? validateBio(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Please enter your bio";
+    }
+    return null;
+  }
+
+  String? validateSkills(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Please enter your skills";
+    }
+    return null;
+  }
+
+  String? validateRole(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Please select your role";
+    }
+    return null;
+  }
+
+  String? validateSpecializationId(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Please select your id";
+    }
+    return null;
+  }
+
+// Client field
   Future<void> updateUserData(BuildContext context, userId) async {
     print('Updating user data');
 
@@ -406,12 +460,14 @@ class ProfileController {
         gender: genderController.text,
       );
 
+      print('User data from updateUserData: ${user.toString()}');
+
       // Show loading indicator
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (BuildContext context) {
-          return const Center(
+          return Center(
             child: CircularProgressIndicator(),
           );
         },
@@ -573,58 +629,184 @@ class ProfileController {
     }
   }
 
-  Future<void> createTasker(
-      BuildContext context,
-      String specialization,
-      String gender,
-      String image,
-      String tesdaFile,
-      File documentFile,
+  Future<void> createTasker(BuildContext context, int userId, File documentFile,
       File profileImage) async {
-    if (birthdateController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter your birthdate')),
+    try {
+      // Validate fields
+
+      String? contactError =
+          validateContactNumber(contactNumberController.text);
+      String? genderError = validateGender(genderController.text);
+      String? birthdateError = validateBirthdate(birthdateController.text);
+      String? specializationError =
+          validateSpecialization(specializationController.text);
+      String? wageError = validateWage(wageController.text);
+      String? payScheduleError = validatePaySchedule(payPeriodController.text);
+      String? bioError = validateBio(bioController.text);
+      String? skillsError = validateSkills(skillsController.text);
+      String? roleError = validateRole(roleController.text);
+
+      debugPrint(
+          "Validation errors: $contactError, $genderError, $birthdateError, $specializationError, $wageError, $payScheduleError, $roleError, $bioError, $skillsError");
+      // Check if there are any validation errors
+      if (contactError != null ||
+          genderError != null ||
+          birthdateError != null ||
+          specializationError != null ||
+          wageError != null ||
+          payScheduleError != null ||
+          bioError != null ||
+          skillsError != null ||
+          roleError != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(contactError ??
+                genderError ??
+                birthdateError ??
+                specializationError ??
+                wageError ??
+                payScheduleError ??
+                roleError ??
+                bioError ??
+                skillsError ??
+                "Please fix the errors in the form"),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Create user model
+      UserModel user = UserModel(
+        id: userId,
+        firstName: firstNameController.text,
+        middleName: middleNameController.text.isNotEmpty
+            ? middleNameController.text
+            : null,
+        lastName: lastNameController.text,
+        email: emailController.text,
+        role: roleController.text,
+        birthdate: birthdateController.text,
+        contact: contactNumberController.text,
+        gender: genderController.text,
       );
-      return;
-    }
-    DateTime birthDate = DateTime.parse(birthdateController.text);
-    DateTime eighteenYearsAgo =
-        DateTime.now().subtract(Duration(days: 18 * 365));
-    if (birthDate.isAfter(eighteenYearsAgo)) {
+
+      debugPrint("User model: $user");
+
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        },
+      );
+
+      // Call API service to update user with both images
+      Map<String, dynamic> resultData = await taskerService.updateTaskerProfile(
+          user, profileImage, documentFile);
+
+      // Close loading indicator
+      Navigator.pop(context);
+
+      if (resultData.containsKey("errors")) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(resultData["errors"] ??
+                "Failed to update user with images. Please try again."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(resultData["message"] ?? "User updated successfully"),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('You must be at least 18 years old to register')),
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
-      return;
     }
+  }
 
-    TaskerModel tasker = TaskerModel(
-        bio: bioController.text,
-        specialization: specialization,
-        skills: skillsController.text,
-        taskerAddress: taskerAddressController.text,
-        taskerDocuments: tesdaFile,
-        socialMediaLinks: socialMediaController.text,
-        availability: false,
-        wage: double.tryParse(wageController.text) ?? 0,
-        group: false,
-        phoneNumber: contactNumberController.text,
-        gender: gender,
-        payPeriod: "Hourly",
-        birthDate: DateTime.parse(birthdateController.text));
+  Future<Map<String, dynamic>> updateTaskerNoImages(
+      BuildContext context, UserModel user) async {
+    try {
+      // Validate fields
+      String? contactError =
+          validateContactNumber(contactNumberController.text);
+      String? genderError = validateGender(genderController.text);
+      String? birthdateError = validateBirthdate(birthdateController.text);
+      String? specializationError =
+          validateSpecialization(specializationController.text);
+      String? wageError = validateWage(wageController.text);
+      String? payScheduleError = validatePaySchedule(payPeriodController.text);
+      String? bioError = validateBio(bioController.text);
+      String? skillsError = validateSkills(skillsController.text);
+      String? roleError = validateRole(roleController.text);
+      String? specializationIdError =
+          validateSpecializationId(specializationIdController.text);
 
-    //Code to create tasker information.
-    Map<String, dynamic> resultData =
-        await ApiService.createTasker(tasker, documentFile, profileImage);
+      // Check if there are any validation errors
+      if (contactError != null ||
+          genderError != null ||
+          birthdateError != null ||
+          specializationError != null ||
+          wageError != null ||
+          payScheduleError != null ||
+          bioError != null ||
+          skillsError != null ||
+          roleError != null ||
+          specializationIdError != null) {
+        return {
+          "errors": contactError ??
+              genderError ??
+              birthdateError ??
+              specializationError ??
+              wageError ??
+              payScheduleError ??
+              roleError ??
+              bioError ??
+              skillsError ??
+              specializationIdError ??
+              "Please fix the errors in the form"
+        };
+      }
 
-    if (resultData.containsKey('message')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(resultData['message'])),
+      //convert specialization to ID
+
+      // Call API service to update user without images
+      Map<String, dynamic> result =
+          await ApiService.updateTaskerProfileNoImages(
+        user.id ?? 0, // Use 0 as fallback if id is null
+        {
+          "first_name": user.firstName,
+          "middle_name": user.middleName ?? '',
+          "last_name": user.lastName,
+          "email": user.email,
+          "user_role": user.role,
+          "contact": user.contact ?? '',
+          "gender": user.gender ?? '',
+          "birthdate": user.birthdate ?? '',
+          "specialization": specializationIdController.text,
+          "bio": bioController.text,
+          "skills": skillsController.text,
+          "wage_per_hour": wageController.text,
+          "pay_period": payPeriodController.text,
+        },
       );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(resultData['error'])),
-      );
+
+      return result;
+    } catch (e) {
+      return {"errors": "Error updating profile: $e"};
     }
   }
 
@@ -632,18 +814,21 @@ class ProfileController {
       BuildContext context, int userId) async {
     try {
       var result = await ApiService.fetchAuthenticatedUser(userId);
-      debugPrint("Data: $result");
+      debugPrint("Data fetch from profile controller: $result");
 
       if (result.containsKey("user")) {
         UserModel user = result["user"] as UserModel;
+        debugPrint("Retrieved Data: $user");
 
         if (result.containsKey("client")) {
+          //Client
           ClientModel client = result["client"] as ClientModel;
+          debugPrint("User is a client and has client data: $client");
           return AuthenticatedUser(user: user, client: client);
         } else if (result.containsKey("tasker")) {
           TaskerModel tasker = result["tasker"] as TaskerModel;
-
-          debugPrint("Retrieved Data: $tasker");
+          //Tasker
+          debugPrint("User is a tasker and has tasker data: $tasker $user");
 
           return AuthenticatedUser(user: user, tasker: tasker);
         }
@@ -660,5 +845,14 @@ class ProfileController {
       );
       return null;
     }
+  }
+
+  // Fetching document link from database
+  Future<String?> getDocumentLink(int documentId) async {
+    final response = await taskerService.getDocumentLink(documentId);
+    if (response.containsKey("data")) {
+      return response["data"] as String?;
+    }
+    return null;
   }
 }
