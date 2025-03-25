@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 
 import 'package:flutter_fe/view/business_acc/notif_screen.dart';
-import 'package:flutter_fe/view/business_acc/profile_screen.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:flutter_fe/view/profile/profile_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class NavUserScreen extends StatefulWidget implements PreferredSizeWidget {
@@ -46,8 +43,8 @@ class _NavUserScreenState extends State<NavUserScreen> {
         return;
       }
 
-      AuthenticatedUser? user = await _profileController.getAuthenticatedUser(
-          context, userId);
+      AuthenticatedUser? user =
+          await _profileController.getAuthenticatedUser(context, userId);
       debugPrint(user.toString());
 
       if (user == null) {
@@ -95,14 +92,7 @@ class _NavUserScreenState extends State<NavUserScreen> {
           Row(
             children: [
               GestureDetector(
-                onTap: () {
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //     builder: (context) => ProfileScreen(),
-                  //   ),
-                  // );
-                },
+                onTap: () {},
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(25),
                   child: Container(

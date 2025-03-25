@@ -40,13 +40,17 @@ class _PreSignUpTaskerState extends State<PreSignUpTasker> {
               SizedBox(height: screenHeight * 0.05),
 
               // SOLO TASKER BUTTON
-              Container(
+              SizedBox(
                 width: screenWidth * 0.8,
                 height: screenHeight * 0.22,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) {
-                      return SignUpSoloTaskerAcc(role: "Tasker", taskerGroup: "Solo Tasker",);
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
+                      return SignUpSoloTaskerAcc(
+                        role: "Tasker",
+                        taskerGroup: "Solo Tasker",
+                      );
                     }));
                   },
                   style: ElevatedButton.styleFrom(
@@ -81,7 +85,7 @@ class _PreSignUpTaskerState extends State<PreSignUpTasker> {
               SizedBox(height: screenHeight * 0.02),
 
               // GROUP TASKER BUTTON
-              Container(
+              SizedBox(
                 width: screenWidth * 0.8,
                 height: screenHeight * 0.22,
                 child: ElevatedButton(

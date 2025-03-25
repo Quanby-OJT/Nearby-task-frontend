@@ -9,13 +9,16 @@ export const authGuard: CanActivateFn = (route, state) => {
   const authservice = inject(AuthService);
 
   const sessionLocalStorage = session.getSession();
-  // const sessionID = typeof sessionData === 'string' ? sessionData.trim() : JSON.stringify(sessionData).trim();
-
-  // Get session data from session storage
   const sessionFromStorage = sessionStorage.getItem('session') || '';
 
-  // Clean both values
-  // const cleanedSessionID = sessionID.replace(/^"|"$/g, '').trim();
+  if(!sessionLocalStorage) {
+    setTimeout(() => {
+      router.navigate(['/auth/sign-in']);
+    }, 100);
+
+    return false;
+  }
+
   const cleanedStoredSessionID = sessionFromStorage.replace(/^"|"$/g, '').trim();
   const cleanedLocalStorage = sessionLocalStorage.replace(/^"|"$/g, '').trim();
   const cleanedLocalStorageTrim = JSON.parse(sessionLocalStorage);
@@ -36,7 +39,7 @@ export const authGuard: CanActivateFn = (route, state) => {
       authservice.logoutWithoutSession(finalCleanedLocalStorage).subscribe({
         next: () => {
           setTimeout(() => {
-            router.navigate(['/auth']);
+            router.navigate(['/auth/sign-in']);
           }, 100);
 
           return false;
@@ -45,7 +48,7 @@ export const authGuard: CanActivateFn = (route, state) => {
     }
 
     setTimeout(() => {
-      router.navigate(['/auth']);
+      router.navigate(['/auth/sign-in']);
     }, 100);
 
     return false;

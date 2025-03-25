@@ -35,11 +35,14 @@ class TaskDetailsService {
     } catch (e, stackTrace) {
       debugPrint("Message Retrieval Error: $e");
       debugPrint(stackTrace.toString());
-      return {"error": "An Error while retrieving your messages. Please Try Again."};
+      return {
+        "error": "An Error while retrieving your messages. Please Try Again."
+      };
     }
   }
 
-  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _postRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     final response = await http.post(Uri.parse("$apiUrl$endpoint"),
         headers: {
@@ -51,7 +54,8 @@ class TaskDetailsService {
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> _deleteRequest(
+      String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
       final request = http.Request("DELETE", Uri.parse('$apiUrl$endpoint'))
@@ -89,7 +93,7 @@ class TaskDetailsService {
   Future<Map<String, dynamic>> getAllTakenTasks() async {
     try {
       final userId = await storage.read('user_id');
-      final data = await _getRequest("/all-messages/${userId}");
+      final data = await _getRequest("/all-messages/$userId");
 
       return data;
     } catch (e, st) {
@@ -100,13 +104,14 @@ class TaskDetailsService {
   }
 
   //This is for client.
-  Future<Map<String, dynamic>> updateTaskStatus(int taskTakenId, String? newStatus) async {
-    try{
+  Future<Map<String, dynamic>> updateTaskStatus(
+      int taskTakenId, String? newStatus) async {
+    try {
       return await _postRequest(endpoint: "/update-status-client", body: {
         "task_id": taskTakenId,
         "status": newStatus,
       });
-    }catch(e, stackTrace){
+    } catch (e, stackTrace) {
       debugPrint(e.toString());
       debugPrint(stackTrace.toString());
       return {"error": "An Error Occured while updating task status."};

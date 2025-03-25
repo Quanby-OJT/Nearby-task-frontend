@@ -6,6 +6,7 @@ import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/sign_in/otp_screen.dart';
 import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:go_router/go_router.dart';
 
 class AuthenticationController {
   final TextEditingController emailController = TextEditingController();
@@ -70,7 +71,10 @@ class AuthenticationController {
         response.containsKey('role') &&
         response.containsKey('session')) {
       await storage.write('user_id', response['user_id']);
-      await storage.write('role',response['role']); //If the user is logged in to the app, this will be the determinant if where they will be assigned.
+      await storage.write(
+          'role',
+          response[
+              'role']); //If the user is logged in to the app, this will be the determinant if where they will be assigned.
       await storage.write('session', response['session']);
       if (response['role'] == "Client") {
         Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -115,6 +119,13 @@ class AuthenticationController {
 
       if (storedUserId == null) {
         debugPrint("No user ID found in storage");
+        // Even if no user ID, still navigate to welcome page
+        await storage.erase();
+
+        Navigator.push(context, MaterialPageRoute(builder: (context) {
+          return WelcomePageViewMain();
+        }));
+
         return;
       }
 
@@ -123,29 +134,43 @@ class AuthenticationController {
       // debugPrint(userIdString);
       // debugPrint("Session: ${await AuthService.getSessionToken()}");
       // debugPrint("Stored user ID for logout: $userIdString");
+      final sessionToken = await AuthService.getSessionToken();
 
-      final response = await ApiService.logout(
-          int.parse(userIdString), await AuthService.getSessionToken());
-      debugPrint("Logout response: $response");
+      debugPrint("User ID for logout: $userIdString");
+      debugPrint("Session token: $sessionToken");
 
-      if (response.containsKey('message')) {
-        await storage.erase();
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => WelcomePageViewMain()),
-          (route) => false,
-        );
-      } else {
-        String error = response['error'] ?? "Failed to Log Out the User.";
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error)),
-        );
+      // Then attempt to logout on the server (don't wait for this to complete)
+      try {
+        final response =
+            await ApiService.logout(int.parse(userIdString), sessionToken);
+        debugPrint("Logout response: $response");
+
+        if (response.containsKey("message")) {
+          await storage.erase();
+          Navigator.push(context, MaterialPageRoute(builder: (context) {
+            return WelcomePageViewMain();
+          }));
+        }
+      } catch (e) {
+        debugPrint("Server logout error: $e");
+        // Don't show this error to the user since they're already logged out locally
       }
     } catch (e, stackTrace) {
       debugPrint("Logout Error: $e");
       debugPrintStack(stackTrace: stackTrace);
+
+      // Ensure user is still logged out locally even if there's an error
+      if (e is Exception) {
+        await storage.erase();
+        Navigator.push(context, MaterialPageRoute(builder: (context) {
+          return WelcomePageViewMain();
+        }));
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("An Error Occurred While Logging Out.")),
+        SnackBar(
+            content: Text(
+                "An error occurred while logging out, but you have been logged out locally.")),
       );
     }
   }

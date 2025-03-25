@@ -25,7 +25,8 @@ class TaskController {
   final contactpriceController = TextEditingController();
   final storage = GetStorage();
 
-  Future<Map<String, dynamic>> postJob(String? specialization, String? urgency, String? period, String? workType) async {
+  Future<Map<String, dynamic>> postJob(String? specialization, String? urgency,
+      String? period, String? workType) async {
     try {
       int userId = storage.read('user_id');
       print('Submitting data...');
@@ -84,16 +85,17 @@ class TaskController {
   }
 
   //All Messages to client/tasker
-  Future<List<TaskAssignment>?> getAllAssignedTasks(BuildContext context, int userId) async {
+  Future<List<TaskAssignment>?> getAllAssignedTasks(
+      BuildContext context, int userId) async {
     final assignedTasks = await TaskDetailsService().getAllTakenTasks();
     debugPrint(assignedTasks.toString());
 
     if (assignedTasks.containsKey('data') && assignedTasks['data'] != null) {
       List<dynamic> dataList = assignedTasks['data'] as List<dynamic>;
       List<TaskAssignment> taskAssignments = dataList.map((item) {
-
         // Parse tasks from post_task
-        Map<String, dynamic> taskData = item['post_task'] as Map<String, dynamic>;
+        Map<String, dynamic> taskData =
+            item['post_task'] as Map<String, dynamic>;
         TaskModel task = TaskModel(
           title: taskData['task_title'] as String?,
           clientId: null,
@@ -102,12 +104,14 @@ class TaskController {
           location: null,
           period: null,
           duration: null,
-          urgency: taskData['urgent'] as String?, // Check if this field exists in your API
+          urgency: taskData['urgent']
+              as String?, // Check if this field exists in your API
           status: null,
           contactPrice: null,
           remarks: null,
           taskBeginDate: null,
-          id: taskData['task_id'], // Use taskTakenId here if it’s meant to be the task’s ID
+          id: taskData[
+              'task_id'], // Use taskTakenId here if it’s meant to be the task’s ID
         );
 
         Map<String, dynamic> clientData =
@@ -129,8 +133,11 @@ class TaskController {
         );
 
         // Parse tasker and its user
-        Map<String, dynamic> taskerData = item['tasker'] != null ? item['tasker'] as Map<String, dynamic> : {};
-        Map<String, dynamic> taskerUserData = taskerData['user'] as Map<String, dynamic>;
+        Map<String, dynamic> taskerData = item['tasker'] != null
+            ? item['tasker'] as Map<String, dynamic>
+            : {};
+        Map<String, dynamic> taskerUserData =
+            taskerData['user'] as Map<String, dynamic>;
         UserModel taskerUser = UserModel(
           firstName: taskerUserData['first_name'] as String? ?? '',
           middleName: taskerUserData['middle_name'] as String? ?? '',
@@ -149,7 +156,7 @@ class TaskController {
           wage: 0.0,
           payPeriod: '',
           birthDate: DateTime.now(),
-          phoneNumber: '',
+          phoneNumber: 0,
           group: false,
           user: taskerUser,
         );
@@ -178,17 +185,18 @@ class TaskController {
   }
 
   //Update Task Status in Conversation
-  Future<void> updateTaskStatus(BuildContext context, int taskTakenId, String? newStatus) async {
+  Future<void> updateTaskStatus(
+      BuildContext context, int taskTakenId, String? newStatus) async {
     try {
-      final response = await _taskDetailsService.updateTaskStatus(taskTakenId, newStatus);
+      final response =
+          await _taskDetailsService.updateTaskStatus(taskTakenId, newStatus);
 
       if (response.containsKey("message")) {
         debugPrint('Task status updated successfully');
       } else {
         debugPrint('Failed to update task status: ${response["error"]}');
       }
-    }
-    catch (e, stackTrace) {
+    } catch (e, stackTrace) {
       debugPrint('Error updating task status: $e');
       debugPrintStack(stackTrace: stackTrace);
     }

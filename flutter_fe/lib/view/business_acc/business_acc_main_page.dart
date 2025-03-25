@@ -4,7 +4,6 @@ import 'package:flutter_fe/view/business_acc/home_page.dart';
 import 'package:flutter_fe/view/profile/initial_profile_screen.dart';
 import 'package:flutter_fe/view/business_acc/job_post_page.dart';
 import 'package:flutter_fe/view/business_acc/likes_screen.dart';
-import 'package:flutter_fe/view/profile/profile_screen.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:flutter_fe/view/nav/user_navigation.dart';
 

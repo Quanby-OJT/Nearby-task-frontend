@@ -545,7 +545,7 @@ class _JobPostPageState extends State<JobPostPage> {
                         ),
                       ),
                       SizedBox(height: 10),
-                      Container(
+                      SizedBox(
                         height: 50,
                         width: double.infinity,
                         child: ElevatedButton(
@@ -569,7 +569,7 @@ class _JobPostPageState extends State<JobPostPage> {
                         ),
                       ),
                       SizedBox(height: 10),
-                      Container(
+                      SizedBox(
                         height: 50,
                         width: double.infinity,
                         child: ElevatedButton(
@@ -685,7 +685,7 @@ class _JobPostPageState extends State<JobPostPage> {
                       style:
                           TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   subtitle: Text(
-                    "📍 ${task!.location} \n • ₱ ${NumberFormat("#,##0.00", "en_US").format(task!.contactPrice!.roundToDouble())} \n • 🛠 ${task!.specialization}",
+                    "📍 ${task!.location} \n • ₱ ${NumberFormat("#,##0.00", "en_US").format(task.contactPrice!.roundToDouble())} \n • 🛠 ${task.specialization}",
                     style: TextStyle(fontSize: 14),
                   ),
                   trailing: Icon(Icons.arrow_forward_ios,

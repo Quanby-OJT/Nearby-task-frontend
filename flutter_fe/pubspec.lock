@@ -133,10 +133,10 @@ packages:
     dependency: "direct main"
     description:
       name: dropdown_search
-      sha256: c29b3e5147a82a06a4a08b3b574c51cb48cc17ad89893d53ee72a6f86643622e
+      sha256: "55106e8290acaa97ed15bea1fdad82c3cf0c248dd410e651f5a8ac6870f783ab"
       url: "https://pub.dev"
     source: hosted
-    version: "6.0.2"
+    version: "5.0.6"
   dropdown_textfield:
     dependency: "direct main"
     description:
@@ -181,10 +181,10 @@ packages:
     dependency: "direct main"
     description:
       name: file_picker
-      sha256: "8d938fd5c11dc81bf1acd4f7f0486c683fe9e79a0b13419e27730f9ce4d8a25b"
+      sha256: "7423298f08f6fc8cce05792bae329f9a93653fc9c08712831b1a55540127995d"
       url: "https://pub.dev"
     source: hosted
-    version: "9.2.1"
+    version: "9.0.2"
   file_selector_linux:
     dependency: transitive
     description:
@@ -420,10 +420,10 @@ packages:
     dependency: transitive
     description:
       name: image_picker_linux
-      sha256: "34a65f6740df08bbbeb0a1abd8e6d32107941fd4868f67a507b25601651022c9"
+      sha256: "4ed1d9bb36f7cd60aa6e6cd479779cc56a4cb4e4de8f49d487b1aaad831300fa"
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.1+2"
+    version: "0.2.1+1"
   image_picker_macos:
     dependency: transitive
     description:

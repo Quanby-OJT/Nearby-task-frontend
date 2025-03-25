@@ -12,7 +12,7 @@ void main() async {
 
 //TODO: Implement one hour session for the app where after 1 hour of inactivity, the app will automatically logout the user.
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {

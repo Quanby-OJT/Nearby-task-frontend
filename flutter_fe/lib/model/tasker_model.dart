@@ -13,7 +13,7 @@ class TaskerModel {
   final double wage;
   final String payPeriod;
   final DateTime birthDate;
-  final String phoneNumber;
+  final int phoneNumber;
   final bool? group;
   UserModel? user;
 
@@ -36,10 +36,10 @@ class TaskerModel {
 
   @override
   String toString() {
-    return "user: $user)";
+    return "Tasker(id: $id, bio: $bio, specialization: $specialization, user: $user)";
   }
 
-  //Factory to manage tasker data.
+  // Factory method to map JSON to TaskerModel
   factory TaskerModel.fromJson(Map<String, dynamic> json) {
     debugPrint("Received JSON: $json");
     return TaskerModel(
@@ -60,7 +60,7 @@ class TaskerModel {
       birthDate: json['tasker']['birthdate'] != null
           ? DateTime.parse(json['tasker']['birthdate'])
           : DateTime.now(),
-      phoneNumber: json['tasker']['phone_number'] ?? '',
+      phoneNumber: json['tasker']['contact_number'] ?? '',
       group: json['tasker']['group'] ?? false,
     );
   }
@@ -71,15 +71,19 @@ class TaskerModel {
       "bio": bio,
       "specialization": specialization,
       "skills": skills,
+
+      //Must be in another table
       "address": taskerAddress,
       "availability": availability,
       "tesda_documents_link": taskerDocuments,
       "social_media_links": socialMediaLinks,
+      // remove kasi nasa user na siya
       "contact_number": phoneNumber,
       "group": group,
       "wage_per_hour": wage,
       "pay_period": payPeriod,
-      "birth_date": birthDate.toIso8601String(),
+      "birthdate": birthDate.toIso8601String(),
+      "user": user?.toJson(),
     };
   }
 }

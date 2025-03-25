@@ -39,9 +39,9 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   }
 
   Future<void> loadInitialData() async {
-    final _task = await jobPostService.fetchTaskInformation(widget.taskTakenId ?? 0);
+    final task = await jobPostService.fetchTaskInformation(widget.taskTakenId ?? 0);
     setState(() {
-      task = _task;
+      this.task = task;
     });
     await loadConversationHistory();
   }

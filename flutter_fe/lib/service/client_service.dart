@@ -189,8 +189,8 @@ class ClientServices {
         };
       }
 
-      debugPrint("Client ID: " + userId);
-      debugPrint("Client ID: " + taskId.toString());
+      debugPrint("Client ID: $userId");
+      debugPrint("Client ID: $taskId");
 
       final response = await _deleteRequest(
           "/unlikeTask", {"client_id": int.parse(userId), "tasker_id": taskId});

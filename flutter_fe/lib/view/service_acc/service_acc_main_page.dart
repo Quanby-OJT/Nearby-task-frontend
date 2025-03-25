@@ -5,7 +5,6 @@ import 'package:flutter_fe/view/service_acc/home_page.dart';
 import 'package:flutter_fe/view/service_acc/like_screen.dart';
 import 'package:flutter_fe/view/service_acc/schedule_management_page.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
-import 'package:flutter_fe/view/nav/user_navigation.dart';
 
 class ServiceAccMain extends StatefulWidget {
   const ServiceAccMain({super.key});

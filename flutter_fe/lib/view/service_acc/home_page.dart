@@ -57,7 +57,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _saveLikedJob(TaskModel task) async {
     try {
-      debugPrint("Printing..." + task.toString());
+      debugPrint("Printing...$task");
       if (task.id == null) {
         print("Cannot save task: Task ID is null for task: ${task.title}");
         ScaffoldMessenger.of(context).showSnackBar(

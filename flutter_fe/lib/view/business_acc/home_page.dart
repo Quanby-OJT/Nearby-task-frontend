@@ -78,18 +78,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _saveLikedTasker(UserModel task) async {
     try {
-      debugPrint("Printing..." + task.toString());
-      if (task == null) {
-        print("Cannot like task: Task ID is null for task: ${task.firstName}");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Cannot like task: Invalid task ID"),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
-          ),
-        );
-        return;
-      }
+      debugPrint("Printing...$task");
 
       ClientServices clientServices = ClientServices();
 
@@ -180,11 +169,11 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: _fetchTasker,
-                    child: Text('Refresh'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFF0272B1),
                       foregroundColor: Colors.white,
                     ),
+                    child: Text('Refresh'),
                   ),
                 ],
               ),

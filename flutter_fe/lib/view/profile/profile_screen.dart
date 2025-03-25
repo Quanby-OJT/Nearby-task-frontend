@@ -14,6 +14,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_fe/controller/authentication_controller.dart';
+import 'package:flutter_fe/controller/profile_controller.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -78,6 +81,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _userController.availabilityController.text = _user?.tasker?.availability == true ? "I am available" : "I am not available";
         _userController.taskerAddressController.text = _user?.tasker?.taskerAddress ?? '';
         _userController.payPeriodController.text = _user?.tasker?.payPeriod ?? '';
+        _userController.contactNumberController.text = user?.tasker?.phoneNumber.toString() ?? '';
         if (_user?.tasker?.taskerDocuments != null) {
           debugPrint("Tasker Documents: ${_user!.tasker!.taskerDocuments}");
           tesdaDocuments = [_user!.tasker!.taskerDocuments!]; // Store as String (URL)
@@ -513,10 +517,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   ),
                             ],
                           ),
+                        ],
+                        ...[
                           _buildSection(
                             title: "Social Media Links",
                             children: [
-                              Text("To boost your profile to your desired clients, we want you to provide your Socials for your prospects to know you better."),
+                              Text("To boost your profile to your desired clients (taskers), we want you to provide your Socials for your prospects to know you better."),
                               const SizedBox(height: 20),
                               SizedBox(width: 5,),
                               Row(
@@ -524,11 +530,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   const Icon(FontAwesomeIcons.facebook),
                                   const SizedBox(width: 10), // Add spacing
                                   Expanded(
-                                    child: TextField(
-                                      controller: _userController.fbLinkController,
-                                      enabled: willEdit,
-                                      decoration: _inputDecoration(hintText: 'Enter Facebook link'),
-                                    )
+                                      child: TextField(
+                                        controller: _userController.fbLinkController,
+                                        enabled: willEdit,
+                                        decoration: _inputDecoration(hintText: 'Enter Facebook link'),
+                                      )
                                   ),
                                 ],
                               ),
@@ -538,11 +544,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   const Icon(FontAwesomeIcons.instagram),
                                   const SizedBox(width: 10),
                                   Expanded(
-                                    child: TextField(
-                                      controller: _userController.instaLinkController,
-                                      enabled: willEdit,
-                                      decoration: _inputDecoration(hintText: 'Enter Instagram link'),
-                                    )
+                                      child: TextField(
+                                        controller: _userController.instaLinkController,
+                                        enabled: willEdit,
+                                        decoration: _inputDecoration(hintText: 'Enter Instagram link'),
+                                      )
                                   ),
                                 ],
                               ),
@@ -552,11 +558,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   const Icon(FontAwesomeIcons.twitter),
                                   const SizedBox(width: 10),
                                   Expanded(
-                                    child: TextField(
-                                      controller: _userController.xLinkController,
-                                      enabled: willEdit,
-                                      decoration: _inputDecoration(hintText: 'Enter Twitter link'),
-                                    )
+                                      child: TextField(
+                                        controller: _userController.xLinkController,
+                                        enabled: willEdit,
+                                        decoration: _inputDecoration(hintText: 'Enter Twitter link'),
+                                      )
                                   ),
                                 ],
                               ),
