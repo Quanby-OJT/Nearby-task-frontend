@@ -13,7 +13,7 @@ class ReportController {
   Map<String, String> errors = {};
   String? imageUploadError;
   List<Map<String, dynamic>> taskers = [];
-  List<Map<String, dynamic>> clients = []; // New list for clients
+  List<Map<String, dynamic>> clients = [];
 
   Future<void> fetchTaskers() async {
     try {
