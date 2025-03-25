@@ -129,17 +129,30 @@ class ProfileService{
 
     // Add each TESDA file to the request
     debugPrint("Adding TESDA files...");
-    for (int i = 0; i < tesdaFiles.length; i++) {
-      File file = tesdaFiles[i];
-      String fileName = file.path.split('/').last;
-      request.files.add(
-        http.MultipartFile.fromBytes(
-          "documents", // Using "documents" as per your statement
-          await file.readAsBytes(),
-          filename: fileName,
-        ),
-      );
+    for (var file in tesdaFiles) {
+      if (file is String) {
+        if (file.startsWith("http")) {
+          debugPrint("Skipping remote file: $file"); // Skip URLs
+          continue;
+        } else {
+          file = File(file); // Convert path string to File
+        }
+      }
+
+      if (file is File) {
+        String fileName = file.path.split('/').last;
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            "documents", // Ensure this matches your backend key
+            await file.readAsBytes(),
+            filename: fileName,
+          ),
+        );
+      } else {
+        debugPrint("Skipping invalid file type: ${file.runtimeType}");
+      }
     }
+
 
     try {
       debugPrint("Request files: ${request.files.map((f) => '${f.field}: ${f.filename}').toList()}");
@@ -153,6 +166,18 @@ class ProfileService{
       return {"error": "Failed to upload files: $e"};
     }
   }
+
+  // Future<File> downloadFile(String url) async {
+  //   final response = await http.get(Uri.parse(url));
+  //   if (response.statusCode == 200) {
+  //     final tempDir = await getTemporaryDirectory();
+  //     final file = File('${tempDir.path}/${url.split('/').last}');
+  //     await file.writeAsBytes(response.bodyBytes);
+  //     return file;
+  //   } else {
+  //     throw Exception("Failed to download file: $url");
+  //   }
+  // }
 
   static Future<Map<String, dynamic>> updateClient(ClientModel client, UserModel user, File profileImage) async {
     debugPrint("Updating Client information...");

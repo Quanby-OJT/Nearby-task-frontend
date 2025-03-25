@@ -140,6 +140,7 @@ class TaskController {
           accStatus: '',
         );
         TaskerModel tasker = TaskerModel(
+          id: 0,
           bio: '',
           specialization: '',
           skills: '',

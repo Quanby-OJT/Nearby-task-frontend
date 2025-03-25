@@ -1,7 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_fe/model/user_model.dart';
 
 class TaskerModel {
-  final int? id;
+  final int id;
   final String bio;
   final String specialization;
   final String skills;
@@ -17,7 +18,7 @@ class TaskerModel {
   UserModel? user;
 
   TaskerModel({
-    this.id,
+    required this.id,
     required this.bio,
     this.group,
     required this.specialization,
@@ -40,31 +41,33 @@ class TaskerModel {
 
   //Factory to manage tasker data.
   factory TaskerModel.fromJson(Map<String, dynamic> json) {
+    debugPrint("Received JSON: $json");
     return TaskerModel(
-      id: json["tasker_id"] ?? 0,
-      bio: json['bio'] ?? '',
-      skills: json['skills'] ?? '',
-      availability: json['availability'] ?? false,
-      socialMediaLinks: json['social_media_links'] ?? [],
-      taskerAddress: json['address'] ?? '',
-      specialization: json['tasker_specialization'] != null
-          ? json['tasker_specialization']['specialization']
+      id: json['tasker']['tasker_id'] ?? 0,
+      bio: json['tasker']['bio'] ?? '',
+      skills: json['tasker']['skills'] ?? '',
+      availability: json['tasker']['availability'] ?? false,
+      socialMediaLinks: (json['tasker']['social_media_links'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
+      taskerAddress: json['tasker']['address'] ?? '',
+      specialization: json['tasker']['tasker_specialization'] != null
+          ? json['tasker']['tasker_specialization']['specialization']
           : '',
-      taskerDocuments: json['tasker_documents']['tesda_document_link'] ?? '',
-      wage: json['wage_per_hour'] != null ? json['wage_per_hour'].toDouble() : 0.0,
-      payPeriod: json['pay_period'] ?? "",
-      birthDate: json['birthdate'] != null
-          ? DateTime.parse(json['birth_date'])
+      taskerDocuments: json['tesda_document_link'] ?? '', // Fixed line
+      wage: json['tasker']['wage_per_hour'] != null ? json['tasker']['wage_per_hour'].toDouble() : 0.0,
+      payPeriod: json['tasker']['pay_period'] ?? "",
+      birthDate: json['tasker']['birthdate'] != null
+          ? DateTime.parse(json['tasker']['birthdate'])
           : DateTime.now(),
-      phoneNumber: json['phone_number'] ?? '',
-      group: json['group'] ?? false,
+      phoneNumber: json['tasker']['phone_number'] ?? '',
+      group: json['tasker']['group'] ?? false,
     );
   }
 
-
   Map<String, dynamic> toJson() {
     return {
-      "id": id,
+      "tasker_id": id,
       "bio": bio,
       "specialization": specialization,
       "skills": skills,

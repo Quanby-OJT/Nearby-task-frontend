@@ -13,6 +13,7 @@ import 'package:intl/intl.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -24,6 +25,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final ProfileController _userController = ProfileController();
   final GetStorage storage = GetStorage();
+  int taskerId = 0;
   AuthenticatedUser? _user;
   bool _isLoading = true;
   static String? role;
@@ -65,6 +67,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _user = user;
         _isLoading = false;
+        taskerId =  _user?.tasker?.id ?? 0;
         _userController.emailController.text = _user?.user.email ?? '';
         _userController.birthdateController.text = _user?.user.birthdate ?? '';
         _userController.prefsController.text = _user?.client?.preferences ?? '';
@@ -76,6 +79,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _userController.taskerAddressController.text = _user?.tasker?.taskerAddress ?? '';
         _userController.payPeriodController.text = _user?.tasker?.payPeriod ?? '';
         if (_user?.tasker?.taskerDocuments != null) {
+          debugPrint("Tasker Documents: ${_user!.tasker!.taskerDocuments}");
           tesdaDocuments = [_user!.tasker!.taskerDocuments!]; // Store as String (URL)
         }
 
@@ -124,39 +128,64 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget buildFilePreview(dynamic file, int index) {
-    if (file is File) {
-      // Local file case
-      String fileName = file.path.split('/').last;
-      String fileExtension = fileName.split('.').last.toLowerCase();
-      String fileType = fileExtension == 'pdf'
-          ? 'PDF'
-          : (['jpg', 'jpeg', 'png'].contains(fileExtension) ? 'Image' : 'Unknown');
+    debugPrint("File: " + file.toString());
 
-      double fileSizeInKb = file.lengthSync() / 1024;
-      String fileSize = fileSizeInKb < 1024
-          ? '${fileSizeInKb.toStringAsFixed(2)} KB'
-          : '${(fileSizeInKb / 1024).toStringAsFixed(2)} MB';
+    if (file is String && file.isNotEmpty) {
+      Uri? fileUri = Uri.tryParse(file);
+      if (fileUri != null && fileUri.hasAbsolutePath) {
+        String fileExtension = file.split('.').last.toLowerCase();
 
-      if (file.path.endsWith('.pdf')) {
-        return buildDocumentCard(fileName, fileSize, fileType);
-      } else {
-        return Image.file(file, width: 50, height: 50, fit: BoxFit.cover);
+        if (['jpg', 'jpeg', 'png'].contains(fileExtension)) {
+          // If the file is an image, display it
+          return Image.network(file, width: double.infinity, height: 100, fit: BoxFit.cover);
+        } else if (fileExtension == 'pdf') {
+          // If it's a PDF, show an icon + open it in browser
+          return InkWell(
+            onTap: () => _openFile(file), // Open in browser
+            child: Card(
+              color: Colors.white,
+              elevation: 3,
+              child: Flexible(
+                fit: FlexFit.loose,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min, // FIX: Prevent Row from expanding infinitely
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.all(10),
+                      child: Icon(Icons.picture_as_pdf, color: Colors.red, size: 40)
+                    ),
+                    Flexible( // FIX: Allow text to wrap instead of forcing width expansion
+                      fit: FlexFit.loose,
+                      child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Text(
+                          file.split('/').last,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                    if(willEdit)...[
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red, size: 50),
+                        onPressed: () {
+                          setState(() {
+                            tesdaDocuments.removeAt(index);
+                          });
+                        },
+                      ),
+                    ]
+                  ],
+                )
+                ),
+              ),
+            );
+        }
       }
-    } else if (file is String) {
-      // Remote URL case
-      String fileName = file.split('/').last;
-      String fileExtension = fileName.split('.').last.toLowerCase();
-
-      if (fileExtension == 'pdf') {
-        // For PDFs, display a placeholder or fetch metadata if available
-        return buildDocumentCard(fileName, 'Size unavailable', 'PDF');
-      } else {
-        // For images, use NetworkImage
-        return Image.network(file, width: 50, height: 50, fit: BoxFit.cover);
-      }
-    } else {
-      return const Text('Unsupported file type');
     }
+
+    return const Text('Unsupported file type');
   }
 
   Future<File> getDefaultProfileImage() async {
@@ -171,6 +200,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return tempFile;
   }
+
+  void openDocument(String url) async {
+    Uri uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      debugPrint('Could not open document: $url');
+    }
+  }
+
+  void _openFile(String url) async {
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } else {
+      debugPrint('Could not launch $url');
+    }
+  }
+
 
   //Main Page
   @override
@@ -206,9 +253,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         CircleAvatar(
                           radius: 70, // Larger for prominence
                           backgroundColor: Colors.grey[200],
-                          backgroundImage: profileImage != null
-                            ? FileImage(profileImage!)
-                              : const AssetImage('assets/images/image1.jpg') as ImageProvider,
+                          backgroundImage: NetworkImage(
+                            _isLoading ? '/assets/images/default-profile.jpg' : '${_user?.user.image}',
+                          ),
+                          // backgroundImage: profileImage != null
+                          //   ? FileImage(profileImage!)
+                          //     : const AssetImage('assets/images/default-profile.jpg') as ImageProvider,
+                        ),
+                        profileImage != null ? CircleAvatar(
+                            radius: 70,
+                            backgroundImage: FileImage(profileImage!)
+                        ) : CircleAvatar(
+                          radius: 70,
+                          backgroundImage: NetworkImage('${_user?.user.image}'),
                         ),
                         if (willEdit)
                           IconButton(
@@ -382,9 +439,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                 (String value) => DropdownMenuEntry(value: value, label: value),
                                           ).toList(),
                                         ),
-
-
-
                                       ),
                                     ],
                                   ),
@@ -420,37 +474,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       ),
                                     ),
                                     if (tesdaDocuments.isNotEmpty)
-                                      SizedBox(
-                                        height: 200,
-                                        child: ListView.builder(
-                                          scrollDirection: Axis.horizontal,
-                                          physics: const ClampingScrollPhysics(),
-                                          padding: const EdgeInsets.symmetric(vertical: 5),
-                                          itemBuilder: (context, index) => Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                                            child: Stack(
-                                              alignment: Alignment.centerRight,
-                                              children: [
-                                                buildFilePreview(tesdaDocuments[index], index),
-                                                IconButton(
-                                                  icon: const Icon(Icons.delete, color: Colors.red, size: 50),
-                                                  onPressed: () {
-                                                    setState(() {
-                                                      tesdaDocuments.removeAt(index);
-                                                    });
-                                                  },
-                                                ),
+                                      ConstrainedBox(
+                                        constraints: const BoxConstraints(maxHeight: 130),
+                                        child: SizedBox(
+                                          height: double.infinity,
+                                          child: ListView.builder(
+                                            scrollDirection: Axis.horizontal,
+                                            physics: const ClampingScrollPhysics(),
+                                            padding: const EdgeInsets.symmetric(vertical: 5),
+                                            itemBuilder: (context, index) => Padding(
+                                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  buildFilePreview(tesdaDocuments[index], index),
                                               ],
                                             ),
                                           ),
                                           itemCount: tesdaDocuments.length,
                                         ),
                                       ),
-                                  ],
+                                    )],
                                 )
                               else if (tesdaDocuments.isNotEmpty)
                                   SizedBox(
-                                    height: 200,
+                                    height: 80,
                                     child: ListView.builder(
                                       scrollDirection: Axis.horizontal,
                                       physics: const ClampingScrollPhysics(),
@@ -477,6 +525,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   const SizedBox(width: 10), // Add spacing
                                   Expanded(
                                     child: TextField(
+                                      controller: _userController.fbLinkController,
                                       enabled: willEdit,
                                       decoration: _inputDecoration(hintText: 'Enter Facebook link'),
                                     )
@@ -490,6 +539,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: TextField(
+                                      controller: _userController.instaLinkController,
                                       enabled: willEdit,
                                       decoration: _inputDecoration(hintText: 'Enter Instagram link'),
                                     )
@@ -503,6 +553,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: TextField(
+                                      controller: _userController.xLinkController,
                                       enabled: willEdit,
                                       decoration: _inputDecoration(hintText: 'Enter Twitter link'),
                                     )
@@ -531,7 +582,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   width: 120,
                   child: ElevatedButton(
                     onPressed: () {
+                      //This must be updated to utilize local cache via sqlite3.
                       setState(() => willEdit = !willEdit);
+                      _fetchUserData();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.grey[300],
@@ -549,13 +602,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         isSaving = true;
                         saveText = "Please Wait.";
                       });
-                      _userController.updateUser(
+                      await _userController.updateUser(
                         context,
+                        taskerId,
                         tesdaDocuments,
                         profileImage ?? await getDefaultProfileImage(),
                       );
 
-                       setState(() => isSaving = false);
+                       setState(() {
+                         isSaving = false;
+                         saveText = "Save";
+                         willEdit = false;
+                       });
                     } : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF0272B1),
@@ -627,10 +685,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       color: const Color(0xFFF1F4FF),
       elevation: 2,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
         child: SizedBox(
           width: 335,
-          height: 100,
+          height: 50,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -643,7 +701,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(fileName, style: const TextStyle(fontSize: 10), textAlign: TextAlign.start, overflow: TextOverflow.ellipsis, maxLines: 2),
-                    const SizedBox(height: 5,),
+                    const SizedBox(height: 5),
                     //File Details
                     Row(
                     mainAxisAlignment: MainAxisAlignment.start,

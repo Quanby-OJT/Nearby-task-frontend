@@ -19,23 +19,25 @@ class ProfileController {
   final TextEditingController confirmPasswordController = TextEditingController();
   final TextEditingController roleController = TextEditingController();
   final TextEditingController statusController = TextEditingController();
+  final TextEditingController fbLinkController = TextEditingController();
+  final TextEditingController instaLinkController = TextEditingController();
+  final TextEditingController xLinkController = TextEditingController();
+
 
 
   // Fetched user inputs End
 
-  //Tasker Text Controller
+  //Tasker Text
   final TextEditingController birthdateController = TextEditingController();
   final TextEditingController imageController = TextEditingController();
   final TextEditingController companyNameController = TextEditingController();
   final TextEditingController taskerGroupController = TextEditingController();
   final TextEditingController bioController = TextEditingController();
-  final TextEditingController specializationController =
-      TextEditingController();
+  final TextEditingController specializationController = TextEditingController();
   final TextEditingController skillsController = TextEditingController();
   final TextEditingController taskerAddressController = TextEditingController();
   final TextEditingController availabilityController = TextEditingController();
   final TextEditingController wageController = TextEditingController();
-  final TextEditingController socialMediaController = TextEditingController();
   final TextEditingController contactNumberController = TextEditingController();
   final TextEditingController genderController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
@@ -296,19 +298,27 @@ class ProfileController {
       return;
     }
 
+    List<String> socials = [
+      fbLinkController.text,
+      instaLinkController.text,
+      xLinkController.text
+    ];
+
     TaskerModel tasker = TaskerModel(
-        bio: bioController.text,
-        specialization: specialization,
-        skills: skillsController.text,
-        taskerAddress: taskerAddressController.text,
-        taskerDocuments: tesdaFile,
-        socialMediaLinks: [socialMediaController.text],
-        availability: false,
-        wage: double.tryParse(wageController.text) ?? 0,
-        group: false,
-        phoneNumber: contactNumberController.text,
-        payPeriod: "Hourly",
-        birthDate: DateTime.parse(birthdateController.text));
+      id: 0,
+      bio: bioController.text,
+      specialization: specialization,
+      skills: skillsController.text,
+      taskerAddress: taskerAddressController.text,
+      taskerDocuments: tesdaFile,
+      socialMediaLinks: socials,
+      availability: false,
+      wage: double.tryParse(wageController.text) ?? 0,
+      group: false,
+      phoneNumber: contactNumberController.text,
+      payPeriod: "Hourly",
+      birthDate: DateTime.parse(birthdateController.text)
+    );
 
     //Code to create tasker information.
     Map<String, dynamic> resultData =
@@ -337,9 +347,9 @@ class ProfileController {
         if (result.containsKey("client")) {
           ClientModel client = result["client"] as ClientModel;
           return AuthenticatedUser(user: user, client: client);
-        } else if (result.containsKey("tasker")) {
+        } else if (result.containsKey("tasker") && result["tasker"] != null) {
           TaskerModel tasker = result["tasker"] as TaskerModel;
-          debugPrint("Retrieved Data: " + tasker.toString());
+          debugPrint("Retrieved Tasker Data: $tasker");
           return AuthenticatedUser(user: user, tasker: tasker);
         }
       }
@@ -348,10 +358,11 @@ class ProfileController {
         SnackBar(content: Text(result["error"] ?? "Unknown error occurred.")),
       );
       return null;
-    } catch (e) {
-      print(e.toString());
+    } catch (e, stackTrace) {
+      debugPrint(e.toString());
+      debugPrintStack(stackTrace: stackTrace);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
+        SnackBar(content: Text("An Error Occured while displaying your data. Please try again.")),
       );
       return null;
     }
@@ -359,10 +370,13 @@ class ProfileController {
 
   Future<void> updateUser(
       BuildContext context,
+      int taskerId,
       List<dynamic> documentFile,
       File profileImage
     ) async{
     String role = await storage.read('role');
+    debugPrint("TESDA File: ${documentFile}");
+    debugPrint("Profile Image: ${profileImage}");
 
     UserModel user = UserModel(
       firstName: '',
@@ -373,6 +387,12 @@ class ProfileController {
       accStatus: '',
       gender: genderController.text
     );
+
+    List<String> socials = [
+      fbLinkController.text,
+      instaLinkController.text,
+      xLinkController.text
+    ];
 
     if(role == 'Client'){
       ClientModel client = ClientModel(
@@ -400,13 +420,17 @@ class ProfileController {
           .replaceAll('₱', '') // Remove currency symbol
           .replaceAll(',', ''); // Remove thousands separator
 
+
       TaskerModel tasker = TaskerModel(
+        id: taskerId,
         bio: bioController.text,
         group: false,
         specialization: specializationController.text,
         skills: skillsController.text,
         taskerAddress: taskerAddressController.text,
+        taskerDocuments: documentFile.toString(),
         availability: availabilityController.text == "I am available" ? true : false,
+        socialMediaLinks: socials,
         wage: double.parse(cleanedWage),
         payPeriod: payPeriodController.text,
         birthDate: DateTime.parse(birthdateController.text),
@@ -417,7 +441,7 @@ class ProfileController {
 
       if(resultData.containsKey("message")){
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(resultData['error'])),
+          SnackBar(content: Text(resultData['message'])),
         );
       }else if(resultData.containsKey("errors")){
         ScaffoldMessenger.of(context).showSnackBar(
