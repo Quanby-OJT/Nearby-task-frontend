@@ -17,7 +17,7 @@ class ReportService {
         Uri.parse("$apiUrl/reports"),
       );
 
-      request.headers['Authorization'] = "Bearer $token" ?? '';
+      request.headers['Authorization'] = "Bearer $token";
 
       // Add all fields from report.toJson() to request.fields
       final reportJson = report.toJson();
