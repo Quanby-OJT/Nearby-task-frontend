@@ -18,6 +18,14 @@ export class SessionLocalStorage {
     localStorage.setItem('session', JSON.stringify(value));
   }
 
+  setSessionToken(value: any): void {
+    localStorage.setItem('sessionToken', value);
+  }
+
+  getSessionToken(): string {
+    return localStorage.getItem('sessionToken') || '';
+  }
+
   getSession(): any {
     return localStorage.getItem('session');
   }
@@ -33,6 +41,10 @@ export class SessionLocalStorage {
   }
 
   getUserId(): any {
-    return this.user_id();
+    // return this.user_id();
+    console.log("User ID form storage: " + this.user_id());
+    console.log("User ID form: " + localStorage.getItem('user_id'));
+    return localStorage.getItem('user_id');
+   
   }
 }
