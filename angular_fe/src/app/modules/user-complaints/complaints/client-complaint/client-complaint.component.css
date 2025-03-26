@@ -1,0 +1,9 @@
+.client-swiper-wrapper {
+  display: flex;
+  width: 100%;
+}
+
+.client-swiper-card {
+ 
+  flex: 0 0 100%;
+}
