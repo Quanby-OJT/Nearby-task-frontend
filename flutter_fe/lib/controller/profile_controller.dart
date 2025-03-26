@@ -866,19 +866,25 @@ class ProfileController {
       debugPrint("Data fetch from profile controller: $result");
 
       if (result.containsKey("user")) {
+        // Parse User data
         UserModel user = result["user"] as UserModel;
         debugPrint("Retrieved Data: $user");
 
         if (result.containsKey("client")) {
-          //Client
-          ClientModel client = result["client"] as ClientModel;
+          // Parse Client data
+          ClientModel client = ClientModel.fromJson(result["client"]);
           debugPrint("User is a client and has client data: $client");
           return AuthenticatedUser(user: user, client: client);
-        } else if (result.containsKey("tasker") && result["tasker"] != null) {
+        }
+        else if (result.containsKey("tasker") && result["tasker"] != null) {
+          // Parse Tasker data
           TaskerModel tasker = result["tasker"] as TaskerModel;
           debugPrint("Retrieved Tasker Data: $tasker");
           return AuthenticatedUser(user: user, tasker: tasker);
         }
+
+        // Return just user if no client or tasker data
+        return AuthenticatedUser(user: user);
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -889,7 +895,7 @@ class ProfileController {
       debugPrint(e.toString());
       debugPrintStack(stackTrace: stackTrace);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("An Error Occured while displaying your data. Please try again.")),
+        SnackBar(content: Text("An error occurred while displaying your data. Please try again.")),
       );
       return null;
     }
@@ -908,63 +914,14 @@ class ProfileController {
       BuildContext context,
       int taskerId,
       List<dynamic> documentFile,
-      File profileImage
-    ) async{
+      File profileImage,
+      ) async {
+    // Check if the widget is still mounted before proceeding
+    if (!context.mounted) return;
+
     String role = await storage.read('role');
     debugPrint("TESDA File: ${documentFile}");
     debugPrint("Profile Image: ${profileImage}");
-
-    // String? bioError = validateBio(bioController.text);
-    // String? skillsError = validateSkills(skillsController.text);
-    // String? specializationError = validateSpecialization(specializationController.text);
-    // String? genderError = validateGender(genderController.text);
-    // String? contactError = validateContactNumber(contactNumberController.text);
-    // String? wageError = validateWage(wageController.text);
-    // String? payScheduleError = validatePaySchedule(payPeriodController.text);
-    // String? birthdateError = validateBirthdate(birthdateController.text);
-    //
-    // if (bioError != null ||
-    //     skillsError != null ||
-    //     specializationError != null ||
-    //     genderError != null ||
-    //     contactError != null ||
-    //     wageError != null ||
-    //     payScheduleError != null ||
-    //     birthdateError != null
-    // ){
-    //   ScaffoldMessenger.of(context).showMaterialBanner(
-    //     MaterialBanner(
-    //       actions: [
-    //         ///Eto na lang gamitin natin kapag magpapalabas ng mga error.
-    //         ///
-    //         /// -Ces
-    //         TextButton(
-    //           onPressed: () => ScaffoldMessenger.of(context).hideCurrentMaterialBanner(),
-    //           child: Text("Dismiss"),
-    //         ),
-    //       ],
-    //       content: Text(
-    //         bioError ??
-    //         skillsError ??
-    //         specializationError ??
-    //         genderError ??
-    //         contactError ??
-    //         wageError ??
-    //         payScheduleError ??
-    //         birthdateError ??
-    //         "Please fix the errors in the form",
-    //         style: GoogleFonts.openSans(
-    //           fontSize: 16,
-    //           fontWeight: FontWeight.w500,
-    //           color: Colors.white,
-    //         ),
-    //       ),
-    //       backgroundColor: Colors.red,
-    //     ),
-    //   );
-    //   return;
-    // }
-
 
     UserModel user = UserModel(
       firstName: '',
@@ -973,41 +930,44 @@ class ProfileController {
       email: '',
       role: role,
       accStatus: '',
-      gender: genderController.text
+      gender: genderController.text,
     );
 
     Map<String, String> socials = {
       "fb": fbLinkController.text,
       "ig": instaLinkController.text,
-      "tg": telegramLinkController.text
+      "tg": telegramLinkController.text,
     };
 
-    if(role == 'Client'){
+    if (role == 'Client') {
       ClientModel client = ClientModel(
         preferences: prefsController.text,
-        clientAddress: clientAddressController.text
+        clientAddress: clientAddressController.text,
       );
 
-      Map<String, dynamic> resultData = await ProfileService.updateClient(client, user, profileImage);
+      Map<String, dynamic> resultData =
+      await ProfileService.updateClient(client, user, profileImage);
 
-      if(resultData.containsKey("message")){
+      // Check if widget is still mounted before showing SnackBar
+      if (!context.mounted) return;
+
+      if (resultData.containsKey("message")) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(resultData['error'])),
         );
-      }else if(resultData.containsKey("errors")){
+      } else if (resultData.containsKey("errors")) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(resultData['errors'])),
         );
-      }else{
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(resultData['error'])),
         );
       }
-    }else if(role == 'Tasker'){
+    } else if (role == 'Tasker') {
       String cleanedWage = wageController.text
           .replaceAll('₱', '') // Remove currency symbol
           .replaceAll(',', ''); // Remove thousands separator
-
 
       TaskerModel tasker = TaskerModel(
         id: taskerId,
@@ -1025,9 +985,13 @@ class ProfileController {
         phoneNumber: int.parse(contactNumberController.text),
       );
 
-      Map<String, dynamic> resultData = await ProfileService.updateTasker(tasker, user, documentFile, profileImage);
+      Map<String, dynamic> resultData =
+      await ProfileService.updateTasker(tasker, user, documentFile, profileImage);
 
-      if(resultData.containsKey("message")){
+      // Check if widget is still mounted before showing MaterialBanner
+      if (!context.mounted) return;
+
+      if (resultData.containsKey("message")) {
         ScaffoldMessenger.of(context).showMaterialBanner(
           MaterialBanner(
             content: Text(
@@ -1046,11 +1010,12 @@ class ProfileController {
             ],
           ),
         );
-      }else{
+      } else {
         ScaffoldMessenger.of(context).showMaterialBanner(
           MaterialBanner(
             content: Text(
-              resultData['error'] ?? "An Error Occured while Updating Your Profile Information. Please Try Again.",
+              resultData['error'] ??
+                  "An Error Occurred while Updating Your Profile Information. Please Try Again.",
               style: GoogleFonts.openSans(
                 fontSize: 12,
                 color: Colors.white,

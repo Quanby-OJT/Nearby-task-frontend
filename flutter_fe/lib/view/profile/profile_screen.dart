@@ -610,7 +610,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     SizedBox(width: 10),
                                     Expanded(
                                         child: TextFormField(
-                                          controller: _userController.instaLinkController,
+                                          controller: _userController.telegramLinkController,
                                           enabled: willEdit,
                                           decoration: _inputDecoration(hintText: 'Enter Telegram link'),
                                         )

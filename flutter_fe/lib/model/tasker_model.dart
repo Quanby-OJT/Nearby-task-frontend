@@ -43,22 +43,22 @@ class TaskerModel {
   factory TaskerModel.fromJson(Map<String, dynamic> json) {
     debugPrint('JSON Data: $json');
     return TaskerModel(
-      id: json['tasker']['tasker_id'] ?? 0,
-      bio: json['tasker']['bio'] ?? '',
-      skills: json['tasker']['skills'] ?? '',
-      phoneNumber: json['tasker']['contact_number'] ?? '',
-      availability: json['tasker']['availability'] ?? false,
-      socialMediaLinks: (json['tasker']['social_media_links'] as Map<String, dynamic>)
+      id: json['tasker_id'] ?? 0,
+      bio: json['bio'] ?? '',
+      skills: json['skills'] ?? '',
+      phoneNumber: json['contact_number'] ?? '',
+      availability: json['availability'] ?? false,
+      socialMediaLinks: (json['social_media_links'] as Map<String, dynamic>)
           .map((key, value) => MapEntry(key, value as String)),
-      taskerAddress: json['tasker']['address'] ?? '',
-      specialization: json['tasker']['tasker_specialization']['specialization'] ?? '',
+      taskerAddress: json['address'] ?? '',
+      specialization: json['tasker_specialization']['specialization'] ?? '',
       taskerDocuments: json['tesda_document_link'] ?? '',
-      wage: json['tasker']['wage_per_hour'].toDouble() ?? 0.0,
-      payPeriod: json['tasker']['pay_period'] ?? "",
-      birthDate: json['tasker']['birthdate'] != null
-          ? DateTime.parse(json['tasker']['birthdate'])
+      wage: json['wage_per_hour'].toDouble() ?? 0.0,
+      payPeriod: json['pay_period'] ?? "",
+      birthDate: json['birthdate'] != null
+          ? DateTime.parse(json['birthdate'])
           : DateTime.now(),
-      group: json['tasker']['group'] ?? false,
+      group: json['group'] ?? false,
     );
   }
 
