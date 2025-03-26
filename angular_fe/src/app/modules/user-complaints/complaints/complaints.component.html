@@ -25,6 +25,7 @@
   </div>
 </div>
 
+<!-- If Moderator They Will See This Table Start-->
 <!-- Bottom Container First -->
 <div class="border-gray-200 w-full max-w-[1440px] mx-auto flex-col rounded-xl min-h-[400px] shadow-md">
   <!-- Main container with search, filter, table, and pagination -->
@@ -40,7 +41,7 @@
           </label>
         </div>
         <!-- Status filter dropdown -->
-        <select name="status" class="text-muted-foreground w-28 p-2 border rounded-md">
+        <select name="status" class="text-muted-foreground w-28! p-2 border rounded-md">
           <option value="">All Status</option>
           <option value="active">Online</option>
           <option value="disabled">Offline</option>
@@ -165,7 +166,10 @@
     </div>
   </div>
 </div>
+
+<!-- If Moderator They Will See This Table End-->
 <br>
+<!-- If Admin They Will See This Start--->
 <!-- Bottom Container Second -->
 <div class="border-gray-200 w-full max-w-[1440px] mx-auto flex-col rounded-xl min-h-[400px] shadow-md">
   <!-- Main container with search, filter, table, and pagination -->
@@ -177,11 +181,11 @@
         <!-- Search input -->
         <div class="flex-1 min-w-[200px] lg:min-w-[300px] xl:min-w-[400px]">
           <label class="relative w-full">
-            <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" placeholder="Admin Search Users" type="text" />
+            <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" placeholder="Admin Search Users" type="text"/>
           </label>
         </div>
         <!-- Status filter dropdown -->
-        <select name="status" class="text-muted-foreground w-28 p-2 border rounded-md">
+        <select name="status" class="text-muted-foreground w-28! p-2 border rounded-md">
           <option value="">All Status</option>
           <option value="active">Online</option>
           <option value="disabled">Offline</option>
@@ -306,3 +310,4 @@
     </div>
   </div>
 </div>
+<!-- If Admin They Will See This End--->

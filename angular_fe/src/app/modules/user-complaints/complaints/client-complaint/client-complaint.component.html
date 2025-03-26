@@ -1,12 +1,11 @@
 <div class="client-swiper-container w-[500px] mx-auto overflow-hidden rounded-2xl my-5">
   <div class="client-swiper-wrapper flex transition-transform duration-500 ease-in-out" #clientSwiperWrapper>
     <div *ngFor="let report of reports; let i = index" class="client-swiper-card flex-shrink-0 w-full p-5 bg-gray-200 rounded-lg min-h-[150px] shadow-sm">
-      <h2 class="text-center text-lg font-semibold mb-3">Client Report no.{{ i + 1 }}</h2>
+      <h2 class="text-center text-lg font-semibold mb-3 border border-b-blue-400">Client Report #{{ i + 1 }}</h2>
       <div class="flex justify-between items-center">
         <div class="text-left">
-          <p>Reporter: {{ report.reported_by }}</p>
-          <p>Violator: {{ report.reported_whom }}</p>
-          <p>Status: {{ report.status }}</p>
+          <p><strong>Reporter:</strong> {{ report.reporter.first_name }} {{ report.reporter.middle_name }} {{ report.reporter.last_name }}</p>
+          <p><strong>Violator:</strong> {{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.violator.last_name }}</p>
         </div>
         <div class="text-right">
           <a href="#" class="flex items-center text-blue-500 hover:opacity-70">
