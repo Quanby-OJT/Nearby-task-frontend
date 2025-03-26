@@ -30,6 +30,15 @@ class TaskController {
     try {
       int userId = storage.read('user_id');
       print('Submitting data...');
+
+      // Parse the duration as an integer
+      final durationText = jobTimeController.text.trim();
+      final durationInt = int.tryParse(durationText) ?? 0;
+
+      // Parse the price as an integer
+      final priceText = contactPriceController.text.trim();
+      final priceInt = int.tryParse(priceText) ?? 0;
+
       final task = TaskModel(
         id: 0,
         clientId: userId,
@@ -37,10 +46,10 @@ class TaskController {
         specialization: specialization,
         description: jobDescriptionController.text.trim(),
         location: jobLocationController.text.trim(),
-        duration: jobTimeController.text,
+        duration: durationInt.toString(), // Use the parsed integer value
         period: period,
         urgency: urgency,
-        contactPrice: int.tryParse(contactPriceController.text.trim()) ?? 0,
+        contactPrice: priceInt, // Use the parsed integer value
         remarks: jobRemarksController.text.trim(),
         taskBeginDate: jobTaskBeginDateController.text.trim(),
         workType: workType, // New field
@@ -75,6 +84,16 @@ class TaskController {
     return null;
   }
 
+  Future<List<TaskModel>> getCreatedTasksByClient(int clientId) async {
+    try {
+      return await _jobPostService.fetchCreatedTasksByClient(clientId);
+    } catch (e, stackTrace) {
+      debugPrint("Error fetching created tasks: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return [];
+    }
+  }
+
   Future<String> assignTask(int? taskId, int? clientId, int? taskerId) async {
     debugPrint("Assigning task...");
     final assignedTask =
@@ -82,6 +101,62 @@ class TaskController {
     return assignedTask.containsKey('message')
         ? assignedTask['message'].toString()
         : assignedTask['error'].toString();
+  }
+
+  // Method to update a task
+  Future<Map<String, dynamic>> updateTask(
+      int taskId, Map<String, dynamic> taskData) async {
+    try {
+      debugPrint("Updating task with ID: $taskId");
+      final result = await _jobPostService.updateTask(taskId, taskData);
+      return result;
+    } catch (e, stackTrace) {
+      debugPrint("Error updating task: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {'success': false, 'error': 'Failed to update task: $e'};
+    }
+  }
+
+  // Method to disable a task
+  Future<Map<String, dynamic>> disableTask(int taskId) async {
+    try {
+      debugPrint("Disabling task with ID: $taskId");
+
+      // First try to get valid statuses from the backend
+      List<String> validStatuses =
+          await _jobPostService.fetchValidTaskStatuses();
+      debugPrint("Valid task statuses: $validStatuses");
+
+      // Add some common variations just in case
+      if (!validStatuses.contains("CANCELLED")) validStatuses.add("CANCELLED");
+      if (!validStatuses.contains("cancelled")) validStatuses.add("cancelled");
+      if (!validStatuses.contains("INACTIVE")) validStatuses.add("INACTIVE");
+      if (!validStatuses.contains("inactive")) validStatuses.add("inactive");
+
+      // Try with different status values
+      Map<String, dynamic> result = {
+        'success': false,
+        'error': 'All status values failed'
+      };
+
+      for (String status in validStatuses) {
+        debugPrint("Trying with status '$status'");
+        result = await _jobPostService.disableTask(taskId, status);
+
+        // If successful or error is not related to enum, break the loop
+        if (result['success'] == true ||
+            (result['error'] != null &&
+                !result['error'].toString().contains("enum"))) {
+          break;
+        }
+      }
+
+      return result;
+    } catch (e, stackTrace) {
+      debugPrint("Error disabling task: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {'success': false, 'error': 'Failed to disable task: $e'};
+    }
   }
 
   //All Messages to client/tasker
@@ -110,8 +185,10 @@ class TaskController {
           contactPrice: null,
           remarks: null,
           taskBeginDate: null,
-          id: taskData[
-              'task_id'], // Use taskTakenId here if it’s meant to be the task’s ID
+
+          id: taskTakenId, // Use taskTakenId here if it's meant to be the task's ID
+
+          //id: taskData['task_id'], // Use taskTakenId here if it’s meant to be the task’s ID
         );
 
         Map<String, dynamic> clientData =
@@ -184,21 +261,32 @@ class TaskController {
     }
   }
 
-  //Update Task Status in Conversation
-  Future<void> updateTaskStatus(
-      BuildContext context, int taskTakenId, String? newStatus) async {
+  // Method to delete a task
+  Future<Map<String, dynamic>> deleteTask(int taskId) async {
     try {
-      final response =
-          await _taskDetailsService.updateTaskStatus(taskTakenId, newStatus);
-
-      if (response.containsKey("message")) {
-        debugPrint('Task status updated successfully');
-      } else {
-        debugPrint('Failed to update task status: ${response["error"]}');
-      }
+      debugPrint("Deleting task with ID: $taskId");
+      final result = await _jobPostService.deleteTask(taskId);
+      return result;
     } catch (e, stackTrace) {
-      debugPrint('Error updating task status: $e');
+      debugPrint("Error deleting task: $e");
       debugPrintStack(stackTrace: stackTrace);
-    }
-  }
+      return {'success': false, 'error': 'Failed to delete task: $e'};
+
+  //Update Task Status in Conversation
+//   Future<void> updateTaskStatus(BuildContext context, int taskTakenId, String? newStatus) async {
+//     try {
+//       final response = await _taskDetailsService.updateTaskStatus(taskTakenId, newStatus);
+
+//       if (response.containsKey("message")) {
+//         debugPrint('Task status updated successfully');
+//       } else {
+//         debugPrint('Failed to update task status: ${response["error"]}');
+//       }
+//     }
+//     catch (e, stackTrace) {
+//       debugPrint('Error updating task status: $e');
+//       debugPrintStack(stackTrace: stackTrace);
+
+//     }
+//   }
 }
