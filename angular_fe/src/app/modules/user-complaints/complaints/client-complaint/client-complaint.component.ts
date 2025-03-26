@@ -63,8 +63,8 @@ export class ClientComplaintComponent implements AfterViewInit {
     if (this.clientSwiperWrapper && this.clientSwiperWrapper.nativeElement) {
       const cardWidth = this.clientSwiperWrapper.nativeElement.querySelector('.client-swiper-card')?.offsetWidth || 0;
       this.clientSwiperWrapper.nativeElement.style.transition = 'none';
-      this.clientSwiperWrapper.nativeElement.offsetHeight; // Force reflow
-      this.clientSwiperWrapper.nativeElement.style.transition = 'transform 100ms ease-in-out';
+      this.clientSwiperWrapper.nativeElement.offsetHeight; 
+      this.clientSwiperWrapper.nativeElement.style.transition = 'transform 400ms ease-in-out';
       this.clientSwiperWrapper.nativeElement.style.transform = `translateX(-${this.currentIndex * cardWidth}px)`;
       this.cdr.detectChanges();
     }
