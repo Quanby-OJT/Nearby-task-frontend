@@ -186,7 +186,8 @@ class TaskController {
           remarks: null,
           taskBeginDate: null,
 
-          id: taskTakenId, // Use taskTakenId here if it's meant to be the task's ID
+          id: taskData[
+              'task_id'], // Use taskTakenId here if it's meant to be the task's ID
 
           //id: taskData['task_id'], // Use taskTakenId here if it’s meant to be the task’s ID
         );
@@ -271,22 +272,24 @@ class TaskController {
       debugPrint("Error deleting task: $e");
       debugPrintStack(stackTrace: stackTrace);
       return {'success': false, 'error': 'Failed to delete task: $e'};
+    }
+  }
 
   //Update Task Status in Conversation
-//   Future<void> updateTaskStatus(BuildContext context, int taskTakenId, String? newStatus) async {
-//     try {
-//       final response = await _taskDetailsService.updateTaskStatus(taskTakenId, newStatus);
+  Future<void> updateTaskStatus(
+      BuildContext context, int taskTakenId, String? newStatus) async {
+    try {
+      final response =
+          await _taskDetailsService.updateTaskStatus(taskTakenId, newStatus);
 
-//       if (response.containsKey("message")) {
-//         debugPrint('Task status updated successfully');
-//       } else {
-//         debugPrint('Failed to update task status: ${response["error"]}');
-//       }
-//     }
-//     catch (e, stackTrace) {
-//       debugPrint('Error updating task status: $e');
-//       debugPrintStack(stackTrace: stackTrace);
-
-//     }
-//   }
+      if (response.containsKey("message")) {
+        debugPrint('Task status updated successfully');
+      } else {
+        debugPrint('Failed to update task status: ${response["error"]}');
+      }
+    } catch (e, stackTrace) {
+      debugPrint('Error updating task status: $e');
+      debugPrintStack(stackTrace: stackTrace);
+    }
+  }
 }

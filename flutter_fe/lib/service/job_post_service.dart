@@ -8,7 +8,6 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:get_storage/get_storage.dart';
 
 class JobPostService {
-
   static const String apiUrl = "http://localhost:5000/connect";
 
   static final storage = GetStorage();
@@ -340,7 +339,7 @@ class JobPostService {
 
     debugPrint("$taskId $clientId $taskerId");
 
-    return _postRequest(endpoint: "$apiUrl/assign-task", body: {
+    return _postRequest(endpoint: "/assign-task", body: {
       "tasker_id": taskerId,
       "client_id": clientId,
       "task_id": taskId
