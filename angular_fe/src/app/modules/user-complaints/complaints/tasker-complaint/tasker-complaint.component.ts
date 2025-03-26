@@ -67,7 +67,7 @@ setupSwiper() {
    
       this.taskerSwiperWrapper.nativeElement.style.transition = 'none';
       this.taskerSwiperWrapper.nativeElement.offsetHeight;
-      this.taskerSwiperWrapper.nativeElement.style.transition = 'transform 400ms ease-in-out';
+      this.taskerSwiperWrapper.nativeElement.style.transition = 'transform 100ms ease-in-out';
       this.taskerSwiperWrapper.nativeElement.style.transform = `translateX(-${this.currentIndex * cardWidth}px)`;
       this.cdr.detectChanges();
     }
