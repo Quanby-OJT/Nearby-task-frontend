@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/service/api_service.dart';
+import 'package:flutter_fe/service/task_information.dart';
+import 'package:flutter_fe/service/task_information.dart';
 import 'package:get_storage/get_storage.dart';
 import '../model/conversation.dart';
 
@@ -16,7 +18,7 @@ class ConversationController {
       userId: userId,
       taskTakenId: taskTaken,
     );
-    Map<String, dynamic> messageSent = await ApiService.sendMessage(conversation);
+    Map<String, dynamic> messageSent = await TaskDetailsService.sendMessage(conversation);
 
     if (messageSent.containsKey('message')) {
       // Optionally notify success if needed
@@ -29,13 +31,13 @@ class ConversationController {
 
   Future<List<Conversation>> getMessages(BuildContext context, int taskTakenId) async {
     //debugPrint(taskTakenId.toString());
-    final messages = await ApiService.getMessages(taskTakenId);
+    final messages = await TaskDetailsService.getMessages(taskTakenId);
     debugPrint(messages.toString());
 
-    if (messages.containsKey("messages")) {
+    if (messages.containsKey("data")) {
 
       // Expecting a list of conversations from the API
-      List<dynamic> messageList = messages['messages'];
+      List<dynamic> messageList = messages['data'];
       List<Conversation> conversations = messageList
           .map((conversation) => Conversation.fromJson(conversation))
           .toList();

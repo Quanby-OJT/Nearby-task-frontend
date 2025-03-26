@@ -3,6 +3,8 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:intl/intl.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class TaskDetailsScreen extends StatefulWidget{
   final int taskId;
@@ -21,7 +23,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   bool _isLoading = true;
   String role = "";
   final storage = GetStorage();
-  List<String> taskClientStatus = ['In Negotiation', 'Interested', 'Confirmed', 'Rejected', 'Ongoing', 'Completed', 'Canceled', 'Pending'];//For Client Only
+  List<String> taskClientStatus = ['Available', 'Already Taken', 'Closed', 'On Hold', 'Reported'];//For Client Only
   List<String> taskTaskerStatus = ['In Negotiation', 'Interested', 'Confirmed', 'Rejected', 'Ongoing', 'Completed', 'Canceled', 'Pending'];//For Tasker Only
 
 
@@ -51,136 +53,74 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
-      appBar: AppBar(title: Text('Task Information')),
+      appBar: AppBar(
+        title: Text(
+          'Task Details',
+          style:
+          TextStyle(color: Color(0xFF0272B1), fontWeight: FontWeight.bold),
+        ),
+        iconTheme: IconThemeData(color: Color(0xFF0272B1)),
+      ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : _taskInformation == null
-          ? Center(child: Text('No task information available'))
-          : () {
-        final task = _taskInformation!; // Promote to non-nullable
-        return Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Card(
-            elevation: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  //_buildInfoRow("Title", task.title ?? "N/A"),
-                  Text(
-                    task.title ?? "Unable to Retrieve Your Task",
-                    style: TextStyle(
-                      fontSize: 30,
+          ? const Center(child: Text('No task information available'))
+          : SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Card(
+          elevation: 3,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Text(
+                    _taskInformation?.title ?? "Untitled Task",
+                    style: GoogleFonts.montserrat(
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
+                      color: Color(0xFF0272B1),
                     ),
+                    textAlign: TextAlign.center,
                   ),
-                  //_buildInfoRow("Description", task.description ?? "N/A"),
-                  Text(
-                    "Task Description",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    task.description ?? "Unable to Retrieve Your Task",
-                    style: TextStyle(
-                      fontSize: 15,
-                    )
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.location_pin,
-                            color: Colors.red
-                          ),
-                          Text(
-                              task.location ?? "N/A",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            )
-                          )
-                        ]
-                      ),
-                      // Text(
-                      //   " | ",
-                      //   style: TextStyle(
-                      //     fontSize: 14,
-                      //     fontWeight: FontWeight.bold,
-                      //   )
-                      // ),
-                      Text(
-                        "${task.duration} Needed ${task.period}"
-                      )
-                    ]
-                  ),
-                  //buildInfoRow("Location", task.location ?? "N/A"),
-                  _buildInfoRow(
-                      "NOTE",
-                      task.urgency.toString()
-                  ),
-                  _buildInfoRow(
-                      "Duration", "${task.duration} ${task.period}"
-                  ),
-                  _buildInfoRow("Task Status", "${task.status}"),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: DropdownButtonFormField(
-                      value: task.status,
-                      items: taskClientStatus.map((String item) {
-                        return DropdownMenuItem<String>(
-                          value: item,
-                          child: Text(item),
-                        );
-                      }).toList(),
-                      onChanged: (String? newStatus) {
-                        if(newStatus == null){
-                          debugPrint("Status is NULL");
-                          return;
-                        }
-                         // Handle the status change here
-                      print('Status changed to: $newStatus');
-                      // Optionally, update the task's status in your controller/service
-                      taskController.updateTaskStatus(context, widget.taskId, newStatus);
-                      },
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                    ),
-                  ),
-                  if (role == "Client")
-                    Center(
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          debugPrint("Depositing Money to Escrow");
-                          //Function to call database API
-                        },
-                        icon: Icon(Icons.account_balance_wallet, color: Colors.white,),
-                        label: Text("Deposit Amount", style: TextStyle(color: Colors.white)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green, // or any color you want
-                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          textStyle: TextStyle(fontSize: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
-                      )
-                    )
-                ],
-              ),
+                ),
+                Divider(height: 30),
+                _buildInfoRow(
+                    "Location", _taskInformation?.location ?? "N/A"),
+                _buildInfoRow("Specialization",
+                    _taskInformation?.specialization ?? "N/A"),
+                _buildInfoRow("Description",
+                    _taskInformation?.description ?? "N/A"),
+                _buildInfoRow("Contract Price", "₱ ${NumberFormat(
+                    "#,##0.00", "en_PH").format(
+                    _taskInformation?.contactPrice?.roundToDouble() ?? 0.00
+                )}"),
+                _buildInfoRow("Duration",
+                    _taskInformation?.duration?.toString() ?? "N/A"),
+                _buildInfoRow(
+                    "Period", _taskInformation?.period ?? "N/A"),
+                _buildInfoRow(
+                    "Urgency", _taskInformation?.urgency ?? "N/A"),
+                _buildInfoRow(
+                    "Work Type", _taskInformation?.workType ?? "N/A"),
+                _buildInfoRow("Start Date",
+                    _taskInformation?.taskBeginDate ?? "N/A"),
+                _buildInfoRow(
+                    "Status", _taskInformation?.status ?? "Active"),
+                _buildInfoRow(
+                    "Remarks", _taskInformation?.remarks ?? "N/A"),
+                const SizedBox(height: 20),
+              ],
             ),
           ),
-        );
-      }(),
+        ),
+      ),
     );
   }
 

@@ -431,6 +431,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
         ),
+        automaticallyImplyLeading: false,
       ),
       floatingActionButton: (taskAssignments != null &&
               taskAssignments!.isNotEmpty &&
