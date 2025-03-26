@@ -93,77 +93,86 @@ class ProfileService{
   /// Update Client/Tasker Information
   ///
   static Future<Map<String, dynamic>> updateTasker(TaskerModel tasker, UserModel user, List<dynamic> tesdaFiles, File profileImage) async {
-    debugPrint("Updating Tasker information...");
-    final userId = await getUserId();
-    if (userId == null) {
-      return {
-        'success': false,
-        'message': 'Please log in to like jobs',
-        'requiresLogin': true
-      };
-    }
+    try {
+      debugPrint("Updating Tasker information...");
+      final userId = await getUserId();
+      if (userId == null) {
+        return {
+          'success': false,
+          'message': 'Please log in to like jobs',
+          'requiresLogin': true
+        };
+      }
 
-    debugPrint(tasker.toJson().toString());
-    debugPrint(user.toJson().toString());
+      var request = http.MultipartRequest('PUT', Uri.parse('$apiUrl/user/tasker/$userId'));
+      request.headers['Authorization'] = 'Bearer $token';
+      request.headers['Content-Type'] = 'multipart/form-data';
 
-    // Create a multipart request for the PUT endpoint
-    var request = http.MultipartRequest('PUT', Uri.parse('$apiUrl/user/tasker/$userId'));
-    request.headers['Authorization'] = 'Bearer $token';
-    request.headers['Content-Type'] = 'multipart/form-data';
-
-    // Add tasker data as a JSON string in a form field
-    request.fields.addAll({
-      ...tasker.toJson().map((key, value) => MapEntry(key, value.toString())),
-      "user_id": await storage.read("user_id").toString()
-    });
-
-    // Add profile image
-    debugPrint("Adding profile image...");
-    request.files.add(
-      http.MultipartFile.fromBytes(
-        "image",
-        await profileImage.readAsBytes(),
-        filename: "profile_image.jpg",
-      ),
-    );
-
-    // Add each TESDA file to the request
-    debugPrint("Adding TESDA files...");
-    for (var file in tesdaFiles) {
-      if (file is String) {
-        if (file.startsWith("http")) {
-          debugPrint("Skipping remote file: $file"); // Skip URLs
-          continue;
+      // Convert tasker.toJson() to Map<String, String>
+      final taskerJson = tasker.toJson();
+      final taskerFields = <String, String>{};
+      taskerJson.forEach((key, value) {
+        if (key == 'social_media_links') {
+          // Explicitly encode as JSON string
+          taskerFields[key] = jsonEncode(value);
+          debugPrint("Encoded social_media_links: ${taskerFields[key]}");
         } else {
-          file = File(file); // Convert path string to File
+          taskerFields[key] = value.toString();
+        }
+      });
+
+      request.fields.addAll({
+        ...taskerFields,
+        "user_id": (await storage.read("user_id")).toString(),
+      });
+
+      // Add profile image
+      debugPrint("Adding profile image...");
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          "image",
+          await profileImage.readAsBytes(),
+          filename: "profile_image.jpg",
+        ),
+      );
+
+      // Add each TESDA file to the request
+      debugPrint("Adding TESDA files...");
+      for (var file in tesdaFiles) {
+        if (file is String) {
+          if (file.startsWith("http")) {
+            debugPrint("Skipping remote file: $file");
+            continue;
+          } else {
+            file = File(file);
+          }
+        }
+
+        if (file is File) {
+          String fileName = file.path.split('/').last;
+          request.files.add(
+            http.MultipartFile.fromBytes(
+              "documents",
+              await file.readAsBytes(),
+              filename: fileName,
+            ),
+          );
+        } else {
+          debugPrint("Skipping invalid file type: ${file.runtimeType}");
         }
       }
 
-      if (file is File) {
-        String fileName = file.path.split('/').last;
-        request.files.add(
-          http.MultipartFile.fromBytes(
-            "documents", // Ensure this matches your backend key
-            await file.readAsBytes(),
-            filename: fileName,
-          ),
-        );
-      } else {
-        debugPrint("Skipping invalid file type: ${file.runtimeType}");
-      }
-    }
-
-
-    try {
+      debugPrint("Request fields: ${request.fields}");
       debugPrint("Request files: ${request.files.map((f) => '${f.field}: ${f.filename}').toList()}");
       debugPrint("Sending request to: $apiUrl/user/tasker/$userId");
       final response = await request.send();
       final responseBody = await http.Response.fromStream(response);
       debugPrint("Response: ${responseBody.body}");
       return _handleResponse(responseBody);
-    } catch (e) {
-      debugPrint("Error uploading files: $e");
-      return {"error": "Failed to upload files: $e"};
+    } catch (e, stackTrace) {
+      debugPrint("$e");
+      debugPrint(stackTrace.toString());
+      return {"error": "An Error Occurred while Updating Your Profile Information. Please Try Again."};
     }
   }
 

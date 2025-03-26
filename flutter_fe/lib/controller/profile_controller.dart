@@ -5,6 +5,7 @@ import 'package:flutter_fe/service/profile_service.dart';
 import 'package:flutter_fe/service/tasker_service.dart';
 import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../model/user_model.dart';
 import '../service/api_service.dart';
 import '../model/tasker_model.dart';
@@ -22,7 +23,7 @@ class ProfileController {
   final TextEditingController statusController = TextEditingController();
   final TextEditingController fbLinkController = TextEditingController();
   final TextEditingController instaLinkController = TextEditingController();
-  final TextEditingController xLinkController = TextEditingController();
+  final TextEditingController telegramLinkController = TextEditingController();
 
 
 
@@ -787,8 +788,7 @@ class ProfileController {
     }
   }
 
-  Future<Map<String, dynamic>> updateTaskerNoImages(
-      BuildContext context, UserModel user) async {
+  Future<Map<String, dynamic>> updateTaskerNoImages(BuildContext context, UserModel user) async {
     try {
       // Validate fields
       String? contactError =
@@ -860,8 +860,7 @@ class ProfileController {
     }
   }
 
-  Future<AuthenticatedUser?> getAuthenticatedUser(
-      BuildContext context, int userId) async {
+  Future<AuthenticatedUser?> getAuthenticatedUser(BuildContext context, int userId) async {
     try {
       var result = await ApiService.fetchAuthenticatedUser(userId);
       debugPrint("Data fetch from profile controller: $result");
@@ -915,6 +914,58 @@ class ProfileController {
     debugPrint("TESDA File: ${documentFile}");
     debugPrint("Profile Image: ${profileImage}");
 
+    // String? bioError = validateBio(bioController.text);
+    // String? skillsError = validateSkills(skillsController.text);
+    // String? specializationError = validateSpecialization(specializationController.text);
+    // String? genderError = validateGender(genderController.text);
+    // String? contactError = validateContactNumber(contactNumberController.text);
+    // String? wageError = validateWage(wageController.text);
+    // String? payScheduleError = validatePaySchedule(payPeriodController.text);
+    // String? birthdateError = validateBirthdate(birthdateController.text);
+    //
+    // if (bioError != null ||
+    //     skillsError != null ||
+    //     specializationError != null ||
+    //     genderError != null ||
+    //     contactError != null ||
+    //     wageError != null ||
+    //     payScheduleError != null ||
+    //     birthdateError != null
+    // ){
+    //   ScaffoldMessenger.of(context).showMaterialBanner(
+    //     MaterialBanner(
+    //       actions: [
+    //         ///Eto na lang gamitin natin kapag magpapalabas ng mga error.
+    //         ///
+    //         /// -Ces
+    //         TextButton(
+    //           onPressed: () => ScaffoldMessenger.of(context).hideCurrentMaterialBanner(),
+    //           child: Text("Dismiss"),
+    //         ),
+    //       ],
+    //       content: Text(
+    //         bioError ??
+    //         skillsError ??
+    //         specializationError ??
+    //         genderError ??
+    //         contactError ??
+    //         wageError ??
+    //         payScheduleError ??
+    //         birthdateError ??
+    //         "Please fix the errors in the form",
+    //         style: GoogleFonts.openSans(
+    //           fontSize: 16,
+    //           fontWeight: FontWeight.w500,
+    //           color: Colors.white,
+    //         ),
+    //       ),
+    //       backgroundColor: Colors.red,
+    //     ),
+    //   );
+    //   return;
+    // }
+
+
     UserModel user = UserModel(
       firstName: '',
       middleName: '',
@@ -925,11 +976,11 @@ class ProfileController {
       gender: genderController.text
     );
 
-    List<String> socials = [
-      fbLinkController.text,
-      instaLinkController.text,
-      xLinkController.text
-    ];
+    Map<String, String> socials = {
+      "fb": fbLinkController.text,
+      "ig": instaLinkController.text,
+      "tg": telegramLinkController.text
+    };
 
     if(role == 'Client'){
       ClientModel client = ClientModel(
@@ -977,16 +1028,42 @@ class ProfileController {
       Map<String, dynamic> resultData = await ProfileService.updateTasker(tasker, user, documentFile, profileImage);
 
       if(resultData.containsKey("message")){
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(resultData['message'])),
-        );
-      }else if(resultData.containsKey("errors")){
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(resultData['errors'])),
+        ScaffoldMessenger.of(context).showMaterialBanner(
+          MaterialBanner(
+            content: Text(
+              resultData['message'],
+              style: GoogleFonts.openSans(
+                fontSize: 12,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: Colors.green,
+            actions: [
+              TextButton(
+                onPressed: () => ScaffoldMessenger.of(context).hideCurrentMaterialBanner(),
+                child: Text("Dismiss"),
+              ),
+            ],
+          ),
         );
       }else{
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(resultData['error'])),
+        ScaffoldMessenger.of(context).showMaterialBanner(
+          MaterialBanner(
+            content: Text(
+              resultData['error'] ?? "An Error Occured while Updating Your Profile Information. Please Try Again.",
+              style: GoogleFonts.openSans(
+                fontSize: 12,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: Colors.red,
+            actions: [
+              TextButton(
+                onPressed: () => ScaffoldMessenger.of(context).hideCurrentMaterialBanner(),
+                child: Text("Dismiss"),
+              ),
+            ],
+          ),
         );
       }
     }

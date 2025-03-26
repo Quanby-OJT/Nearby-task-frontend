@@ -517,8 +517,9 @@ class ApiService {
           return {"user": user, "client": client};
         } else if (data['user']['user_role'] == "Tasker") {
           debugPrint("User is a tasker and has tasker data: ${data['tasker']}");
-          TaskerModel tasker =
-              TaskerModel.fromJson(data['tasker'] as Map<String, dynamic>);
+          // Ensure data['tasker'] is not null and is a Map<String, dynamic>
+          TaskerModel tasker = TaskerModel.fromJson(
+              (data['tasker'] as Map?)?.cast<String, dynamic>() ?? {});
 
           debugPrint("User is a tasker and has tasker data: $tasker");
 

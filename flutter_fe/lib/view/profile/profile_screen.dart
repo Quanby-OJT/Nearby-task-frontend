@@ -32,13 +32,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool willEdit = false; // Start in edit mode by default
   List<String> specialization = [];
   List<String> gender = ["Male", "Female", "Non-Binary", "I don't Want to Say"];
-  List<String> availability = ['Set Your Availability', 'I am available', 'I am not available'];
+  List<String> availability = ['I am available', 'I am not available'];
   List<SpecializationModel> _specializations = [];
   List<String> payPeriods = ['Hourly', 'Daily', 'Weekly', 'Bi-Weekly', 'Monthly'];
   bool isSaving = false;
   File? profileImage;
   List<dynamic> tesdaDocuments = [];
   String saveText = "Save";
+  final updateTasker = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -91,6 +92,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _userController.wageController.text = '';
         }
         _userController.genderController.text = _user?.user.gender ?? '';
+        _userController.fbLinkController.text = _user?.tasker?.socialMediaLinks?["fb"] ?? '';
+        _userController.instaLinkController.text = _user?.tasker?.socialMediaLinks?["ig"] ?? '';
+        _userController.telegramLinkController.text = _user?.tasker?.socialMediaLinks?["tg"] ?? '';
       });
     } catch (e) {
       print("Error fetching user data: $e");
@@ -158,7 +162,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Flexible( // FIX: Allow text to wrap instead of forcing width expansion
                       fit: FlexFit.loose,
                       child: Padding(
-                        padding: const EdgeInsets.all(10),
+                        padding: const EdgeInsets.only(right: (10)),
                         child: Text(
                           file.split('/').last,
                           maxLines: 1,
@@ -237,401 +241,445 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
       ),
-      body: Column(
-        children: [
-          // Scrollable content
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Profile Picture Section
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    child: Stack(
-                      alignment: Alignment.bottomRight,
-                      children: [
-                        CircleAvatar(
-                          radius: 70, // Larger for prominence
-                          backgroundColor: Colors.grey[200],
-                          backgroundImage: NetworkImage(
-                            _isLoading ? '/assets/images/default-profile.jpg' : '${_user?.user.image}',
+      body: Expanded(
+        child: SingleChildScrollView(
+          child: Form(
+            key: updateTasker,
+            child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Profile Picture Section
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          CircleAvatar(
+                            radius: 70, // Larger for prominence
+                            backgroundColor: Colors.grey[200],
+                            backgroundImage: NetworkImage(
+                              _isLoading ? '/assets/images/default-profile.jpg' : '${_user?.user.image}',
+                            ),
+                            // backgroundImage: profileImage != null
+                            //   ? FileImage(profileImage!)
+                            //     : const AssetImage('assets/images/default-profile.jpg') as ImageProvider,
                           ),
-                          // backgroundImage: profileImage != null
-                          //   ? FileImage(profileImage!)
-                          //     : const AssetImage('assets/images/default-profile.jpg') as ImageProvider,
-                        ),
-                        profileImage != null ? CircleAvatar(
+                          profileImage != null ? CircleAvatar(
+                              radius: 70,
+                              backgroundImage: FileImage(profileImage!)
+                          ) : CircleAvatar(
                             radius: 70,
-                            backgroundImage: FileImage(profileImage!)
-                        ) : CircleAvatar(
-                          radius: 70,
-                          backgroundImage: NetworkImage('${_user?.user.image}'),
-                        ),
-                        if (willEdit)
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.white, size: 28),
-                            onPressed: () {
-                              // Logic to change profile picture
-                              pickProfilePicture();
-                            },
-                            padding: const EdgeInsets.all(0),
-                            style: IconButton.styleFrom(backgroundColor: const Color(0xFF0272B1)),
+                            backgroundImage: NetworkImage('${_user?.user.image}'),
                           ),
-                      ],
-                    ),
-                  ),
-
-                  // User Name (non-editable for now)
-                  Text(
-                    '${_user?.user.firstName ?? "User"} ${_user?.user.lastName ?? ""}',
-                    style: GoogleFonts.openSans(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Form Fields
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (role == "Client") ...[
-                          _buildSection(
-                            title: "About Me",
-                            children: [
-                              TextFormField(
-                                maxLines: 5,
-                                controller: _userController.prefsController,
-                                enabled: willEdit,
-                                decoration: _inputDecoration(hintText: "Write about yourself"),
-                              ),
-                            ],
-                          ),
-                          _buildSection(
-                            title: "My Address",
-                            children: [
-                              TextField(
-                                controller: _userController.clientAddressController,
-                                enabled: willEdit,
-                                decoration: _inputDecoration(hintText: "Enter your address"),
-                              ),
-                            ],
-                          ),
+                          if (willEdit)
+                            IconButton(
+                              icon: const Icon(Icons.edit, color: Colors.white, size: 28),
+                              onPressed: () {
+                                // Logic to change profile picture
+                                pickProfilePicture();
+                              },
+                              padding: const EdgeInsets.all(0),
+                              style: IconButton.styleFrom(backgroundColor: const Color(0xFF0272B1)),
+                            ),
                         ],
-                        if (role == "Tasker") ...[
-                          _buildSection(
-                            title: "Personal Details",
-                            children: [
-                              Text("This is how you describe yourself as a tasker. Give it your best shot to attract more clients and earn more."),
-                              const SizedBox(height: 20),
-                              DropdownMenu(
-                                width: double.infinity,
-                                enabled: willEdit,
-                                controller: _userController.genderController,
-                                leadingIcon: const Icon(Icons.person),
-                                label: const Text("Gender"),
-                                inputDecorationTheme: _dropdownDecoration(),
-                                onSelected: (String? gender) {
-                                  setState(() {
-                                    _userController.genderController.text = gender!;
-                                  });
-                                },
-                                dropdownMenuEntries: gender.map<DropdownMenuEntry<String>>(
-                                      (String value) => DropdownMenuEntry(value: value, label: value),
-                                ).toList(),
-                              ),
-                              const SizedBox(height: 20),
-                              TextFormField(
-                                maxLines: 5,
-                                controller: _userController.bioController,
-                                enabled: willEdit,
-                                decoration: _inputDecoration(hintText: "Write about yourself"),
-                              ),
-                              const SizedBox(height: 20),
-                              TextFormField(
-                                controller: _userController.contactNumberController,
-                                enabled: willEdit,
-                                keyboardType: TextInputType.phone,
-                                decoration: _inputDecoration(hintText: "Enter your contact number"),
-                              )
-                            ],
-                          ),
-                          _buildSection(
-                            title: "Professional Details",
-                            children: [
-                              Text(""),
-                              DropdownMenu(
-                                width: double.infinity,
-                                enabled: willEdit,
-                                controller: _userController.specializationController,
-                                leadingIcon: const Icon(Icons.cases_outlined),
-                                label: const Text("Specialization"),
-                                inputDecorationTheme: _dropdownDecoration(),
-                                onSelected: (String? spec) {
-                                  setState(() {
-                                    _userController.specializationController.text = spec!;
-                                  });
-                                },
-                                dropdownMenuEntries: specialization.map<DropdownMenuEntry<String>>(
-                                      (String value) => DropdownMenuEntry(value: value, label: value),
-                                ).toList(),
-                              ),
-                              const SizedBox(height: 20),
-                              TextFormField(
-                                maxLines: 3,
-                                controller: _userController.skillsController,
-                                enabled: willEdit,
-                                decoration: _inputDecoration(hintText: "List your skills"),
-                              ),
-                              const SizedBox(height: 20),
-                              TextField(
-                                controller: _userController.taskerAddressController,
-                                enabled: willEdit,
-                                decoration: _inputDecoration(hintText: "Enter your address"),
-                              ),
-                              const SizedBox(height: 20),
-                              DropdownMenu(
-                                width: double.infinity,
-                                enabled: willEdit,
-                                controller: _userController.availabilityController,
-                                leadingIcon: const Icon(Icons.event_available),
-                                label: const Text("Availability"),
-                                inputDecorationTheme: _dropdownDecoration(),
-                                onSelected: (String? spec) {
-                                  setState(() {
-                                    _userController.availabilityController.text = spec!;
-                                  });
-                                },
-                                dropdownMenuEntries: availability.map<DropdownMenuEntry<String>>(
-                                      (String value) => DropdownMenuEntry(value: value, label: value),
-                                ).toList(),
-                              ),
-                              const SizedBox(height: 20),
-                              //Tasker Rate and Period
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
+                      ),
+                    ),
+
+                    // User Name (non-editable for now)
+                    Text(
+                      '${_user?.user.firstName ?? "User"} ${_user?.user.lastName ?? ""}',
+                      style: GoogleFonts.openSans(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Form Fields
+                    Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (role == "Client") ...[
+                            _buildSection(
+                              title: "About Me",
+                              children: [
+                                TextFormField(
+                                  validator: (value) {
+                                    if(value == null || value.isEmpty){
+                                      return "Please enter your desired preferences";
+                                    }
+
+                                    return null;
+                                  },
+                                  maxLines: 5,
+                                  controller: _userController.prefsController,
+                                  enabled: willEdit,
+                                  decoration: _inputDecoration(hintText: "Write about yourself"),
+                                ),
+                              ],
+                            ),
+                            _buildSection(
+                              title: "My Address",
+                              children: [
+                                TextFormField(
+                                  controller: _userController.clientAddressController,
+                                  enabled: willEdit,
+                                  decoration: _inputDecoration(hintText: "Enter your address"),
+                                ),
+                              ],
+                            ),
+                          ],
+                          if (role == "Tasker") ...[
+                            _buildSection(
+                              title: "Personal Details",
+                              children: [
+                                Text("This is how you describe yourself as a tasker. Give it your best shot to attract more clients and earn more."),
+                                const SizedBox(height: 20),
+                                DropdownMenu(
+                                  width: double.infinity,
+                                  enabled: willEdit,
+                                  controller: _userController.genderController,
+                                  leadingIcon: const Icon(Icons.person),
+                                  label: const Text("Gender"),
+                                  inputDecorationTheme: _dropdownDecoration(),
+                                  onSelected: (String? gender) {
+                                    setState(() {
+                                      _userController.genderController.text = gender!;
+                                    });
+                                  },
+                                  dropdownMenuEntries: gender.map<DropdownMenuEntry<String>>(
+                                        (String value) => DropdownMenuEntry(value: value, label: value),
+                                  ).toList(),
+                                ),
+                                const SizedBox(height: 20),
+                                TextFormField(
+                                  validator: (value) {
+                                    if(value == null || value.isEmpty){
+                                      return "Please enter your Information.";
+                                    }
+
+                                    return null;
+                                  },
+                                  maxLines: 5,
+                                  controller: _userController.bioController,
+                                  enabled: willEdit,
+                                  decoration: _inputDecoration(hintText: "Write about yourself"),
+                                ),
+                                const SizedBox(height: 20),
+                                //Tasker's COntact Number
+                                TextFormField(
+                                  validator: (value) {
+                                    if(value == null || value.isEmpty){
+                                      return "Please enter your contact number";
+                                    }
+
+                                    return null;
+                                  },
+                                  controller: _userController.contactNumberController,
+                                  enabled: willEdit,
+                                  keyboardType: TextInputType.phone,
+                                  decoration: _inputDecoration(hintText: "Enter your contact number"),
+                                )
+                              ],
+                            ),
+                            _buildSection(
+                              title: "Professional Details",
+                              children: [
+                                Text(""),
+                                DropdownMenu(
+                                  width: double.infinity,
+                                  enabled: willEdit,
+                                  controller: _userController.specializationController,
+                                  label: const Text("Specialization"),
+                                  inputDecorationTheme: _dropdownDecoration(),
+                                  onSelected: (String? spec) {
+                                    setState(() {
+                                      _userController.specializationController.text = spec!;
+                                    });
+                                  },
+                                  dropdownMenuEntries: specialization.map<DropdownMenuEntry<String>>(
+                                        (String value) => DropdownMenuEntry(value: value, label: value),
+                                  ).toList(),
+                                ),
+                                const SizedBox(height: 20),
+                                TextFormField(
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Please enter your skills";
+                                    }
+                                    return null;
+                                  },
+                                  maxLines: 3,
+                                  controller: _userController.skillsController,
+                                  enabled: willEdit,
+                                  decoration: _inputDecoration(hintText: "List your skills"),
+                                ),
+                                const SizedBox(height: 20),
+                                //Tasker Address
+                                TextFormField(
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Please enter your address.";
+                                    }
+                                    return null;
+                                  },
+                                  controller: _userController.taskerAddressController,
+                                  enabled: willEdit,
+                                  decoration: _inputDecoration(hintText: "Enter your address"),
+                                ),
+                                const SizedBox(height: 20),
+                                DropdownMenu(
+                                  width: double.infinity,
+                                  enabled: willEdit,
+                                  controller: _userController.availabilityController,
+                                  leadingIcon: const Icon(Icons.event_available),
+                                  label: const Text("Availability"),
+                                  inputDecorationTheme: _dropdownDecoration(),
+                                  onSelected: (String? spec) {
+                                    setState(() {
+                                      _userController.availabilityController.text = spec!;
+                                    });
+                                  },
+                                  dropdownMenuEntries: availability.map<DropdownMenuEntry<String>>(
+                                        (String value) => DropdownMenuEntry(value: value, label: value),
+                                  ).toList(),
+                                ),
+                                const SizedBox(height: 20),
+                                //Tasker Rate and Period
+                                Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Expanded(
-                                        child: TextField(
-                                          inputFormatters: [
-                                            CurrencyTextInputFormatter.currency(locale: 'en_PH', symbol: '₱', decimalDigits: 2),
-                                          ],
-                                          controller: _userController.wageController,
-                                          enabled: willEdit,
-                                          keyboardType: TextInputType.number,
-                                          decoration: _inputDecoration(hintText: "Enter your rate"),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: TextFormField(
+                                              validator: (value) {
+                                                if (value == null || value.isEmpty) {
+                                                  return "Please enter your rate";
+                                                }
+                                                return null;
+                                              },
+                                              inputFormatters: [
+                                                CurrencyTextInputFormatter.currency(locale: 'en_PH', symbol: '₱', decimalDigits: 2),
+                                              ],
+                                              controller: _userController.wageController,
+                                              enabled: willEdit,
+                                              keyboardType: TextInputType.number,
+                                              decoration: _inputDecoration(hintText: "Enter your rate"),
+                                            ),
+                                          ),
+                                          Expanded(child:
+                                          DropdownMenu(
+                                            width: double.infinity,
+                                            enabled: willEdit,
+                                            controller: _userController.payPeriodController,
+                                            leadingIcon: const Icon(Icons.schedule),
+                                            inputDecorationTheme: _dropdownDecoration(),
+                                            onSelected: (String? period) {
+                                              setState(() {
+                                                _userController.payPeriodController.text = period!;
+                                              });
+                                            },
+                                            dropdownMenuEntries: payPeriods.map<DropdownMenuEntry<String>>(
+                                                  (String value) => DropdownMenuEntry(value: value, label: value),
+                                            ).toList(),
+                                          ),
+                                          ),
+                                        ],
+                                      ),
+                                    ]
+                                ),
+
+                              ],
+                            ),
+                            _buildSection(
+                              title: "My TESDA Documents",
+                              children: [
+                                if (tesdaDocuments.isEmpty && !willEdit)
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: Center(
+                                      child: Text(
+                                        "You don't have documents uploaded yet. \n\nYou MUST upload your documents before you can accept a job.",
+                                        style: GoogleFonts.openSans(
+                                          color: Colors.red,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  )
+                                else if (willEdit)
+                                  Column(
+                                    children: [
+                                      Center(
+                                        child: ElevatedButton(
+                                          onPressed: pickTESDADocuments,
+                                          child: Text('Upload Documents', style: GoogleFonts.openSans()),
                                         ),
                                       ),
-                                      Expanded(child:
-                                        DropdownMenu(
-                                          width: double.infinity,
-                                          enabled: willEdit,
-                                          controller: _userController.payPeriodController,
-                                          leadingIcon: const Icon(Icons.schedule),
-                                          inputDecorationTheme: _dropdownDecoration(),
-                                          onSelected: (String? period) {
-                                            setState(() {
-                                              _userController.payPeriodController.text = period!;
-                                            });
-                                          },
-                                          dropdownMenuEntries: payPeriods.map<DropdownMenuEntry<String>>(
-                                                (String value) => DropdownMenuEntry(value: value, label: value),
-                                          ).toList(),
-                                        ),
+                                      if (tesdaDocuments.isNotEmpty)
+                                        ConstrainedBox(
+                                          constraints: const BoxConstraints(maxHeight: 130),
+                                          child: SizedBox(
+                                            height: double.infinity,
+                                            child: ListView.builder(
+                                              scrollDirection: Axis.horizontal,
+                                              physics: const ClampingScrollPhysics(),
+                                              padding: const EdgeInsets.symmetric(vertical: 5),
+                                              itemBuilder: (context, index) => Padding(
+                                                padding: const EdgeInsets.symmetric(vertical: 3),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    buildFilePreview(tesdaDocuments[index], index),
+                                                  ],
+                                                ),
+                                              ),
+                                              itemCount: tesdaDocuments.length,
+                                            ),
+                                          ),
+                                        )],
+                                  )
+                                else if (tesdaDocuments.isNotEmpty)
+                                    SizedBox(
+                                      height: 80,
+                                      child: ListView.builder(
+                                        scrollDirection: Axis.horizontal,
+                                        physics: const ClampingScrollPhysics(),
+                                        itemCount: tesdaDocuments.length,
+                                        itemBuilder: (context, index) {
+                                          return Padding(
+                                            padding: const EdgeInsets.only(right: 10),
+                                            child: buildFilePreview(tesdaDocuments[index], index),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                              ],
+                            ),
+                          ],
+                          ...[
+                            _buildSection(
+                              title: "Social Media Links",
+                              children: [
+                                Text("To boost your profile to your desired clients (taskers), we want you to provide your Socials for your prospects to know you better."),
+                                const SizedBox(height: 20),
+                                SizedBox(width: 5),
+                                  //Facebook Link
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        FontAwesomeIcons.facebook,
+                                        color: Colors.blueAccent,
+                                      ),
+                                      SizedBox(width: 10),
+                                      Expanded(
+                                          child: TextFormField(
+                                            controller: _userController.fbLinkController,
+                                            enabled: willEdit,
+                                            decoration: _inputDecoration(hintText: 'Enter Facebook link'),
+                                          )
                                       ),
                                     ],
                                   ),
-                                ]
-                              ),
-
-                            ],
-                          ),
-                          _buildSection(
-                            title: "My TESDA Documents",
-                            children: [
-                              if (tesdaDocuments.isEmpty && !willEdit)
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: Center(
-                                    child: Text(
-                                      "You don't have documents uploaded yet. \n\nYou MUST upload your documents before you can accept a job.",
-                                      style: GoogleFonts.openSans(
-                                        color: Colors.red,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                )
-                              else if (willEdit)
-                                Column(
+                                const SizedBox(height: 20),
+                                //Instagram Link
+                                Row(
                                   children: [
-                                    Center(
-                                      child: ElevatedButton(
-                                        onPressed: pickTESDADocuments,
-                                        child: Text('Upload Documents', style: GoogleFonts.openSans()),
-                                      ),
+                                    FaIcon(
+                                      FontAwesomeIcons.instagram,
+                                      color: Colors.pinkAccent
                                     ),
-                                    if (tesdaDocuments.isNotEmpty)
-                                      ConstrainedBox(
-                                        constraints: const BoxConstraints(maxHeight: 130),
-                                        child: SizedBox(
-                                          height: double.infinity,
-                                          child: ListView.builder(
-                                            scrollDirection: Axis.horizontal,
-                                            physics: const ClampingScrollPhysics(),
-                                            padding: const EdgeInsets.symmetric(vertical: 5),
-                                            itemBuilder: (context, index) => Padding(
-                                              padding: const EdgeInsets.symmetric(horizontal: 10),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  buildFilePreview(tesdaDocuments[index], index),
-                                              ],
-                                            ),
-                                          ),
-                                          itemCount: tesdaDocuments.length,
-                                        ),
-                                      ),
-                                    )],
-                                )
-                              else if (tesdaDocuments.isNotEmpty)
-                                  SizedBox(
-                                    height: 80,
-                                    child: ListView.builder(
-                                      scrollDirection: Axis.horizontal,
-                                      physics: const ClampingScrollPhysics(),
-                                      itemCount: tesdaDocuments.length,
-                                      itemBuilder: (context, index) {
-                                        return Padding(
-                                          padding: const EdgeInsets.only(right: 10),
-                                          child: buildFilePreview(tesdaDocuments[index], index),
-                                        );
-                                      },
+                                      //color: GradientRotation(radians),
+                                    SizedBox(width: 10),
+                                    Expanded(
+                                        child: TextFormField(
+                                          controller: _userController.instaLinkController,
+                                          enabled: willEdit,
+                                          decoration: _inputDecoration(hintText: 'Enter Instagram link'),
+                                        )
                                     ),
-                                  ),
-                            ],
-                          ),
-                        ],
-                        ...[
-                          _buildSection(
-                            title: "Social Media Links",
-                            children: [
-                              Text("To boost your profile to your desired clients (taskers), we want you to provide your Socials for your prospects to know you better."),
-                              const SizedBox(height: 20),
-                              SizedBox(width: 5,),
-                              Row(
-                                children: [
-                                  const Icon(FontAwesomeIcons.facebook),
-                                  const SizedBox(width: 10), // Add spacing
-                                  Expanded(
-                                      child: TextField(
-                                        controller: _userController.fbLinkController,
-                                        enabled: willEdit,
-                                        decoration: _inputDecoration(hintText: 'Enter Facebook link'),
-                                      )
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Row(
-                                children: [
-                                  const Icon(FontAwesomeIcons.instagram),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                      child: TextField(
-                                        controller: _userController.instaLinkController,
-                                        enabled: willEdit,
-                                        decoration: _inputDecoration(hintText: 'Enter Instagram link'),
-                                      )
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Row(
-                                children: [
-                                  const Icon(FontAwesomeIcons.twitter),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                      child: TextField(
-                                        controller: _userController.xLinkController,
-                                        enabled: willEdit,
-                                        decoration: _inputDecoration(hintText: 'Enter Twitter link'),
-                                      )
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+                                Row(
+                                  children: [
+                                    FaIcon(
+                                      FontAwesomeIcons.telegram,
+                                      color: Colors.lightBlueAccent
+                                    ),
+                                    //color: GradientRotation(radians),
+                                    SizedBox(width: 10),
+                                    Expanded(
+                                        child: TextFormField(
+                                          controller: _userController.instaLinkController,
+                                          enabled: willEdit,
+                                          decoration: _inputDecoration(hintText: 'Enter Telegram link'),
+                                        )
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 100),
+                              ],
+                            )
+                          ]
                         ]
-                      ]
                     )
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              ),
-            ),
-          ),
-
-          // Action Buttons
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                SizedBox(
-                  width: 120,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      //This must be updated to utilize local cache via sqlite3.
-                      setState(() => willEdit = !willEdit);
-                      _fetchUserData();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[300],
-                      foregroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: Text(willEdit ? 'Cancel' : 'Edit Profile', style: GoogleFonts.openSans()),
-                  ),
-                ),
-                SizedBox(
-                  width: 160,
-                  child: ElevatedButton.icon(
-                    onPressed: (willEdit && !isSaving) ? () async {
-                      setState(() {
-                        isSaving = true;
-                        saveText = "Please Wait.";
-                      });
-                      await _userController.updateUser(
-                        context,
-                        taskerId,
-                        tesdaDocuments,
-                        profileImage ?? await getDefaultProfileImage(),
-                      );
-
-                       setState(() {
-                         isSaving = false;
-                         saveText = "Save";
-                         willEdit = false;
-                       });
-                    } : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0272B1),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    icon: const Icon(Icons.save, color: Colors.white),
-                    label: Text(saveText, style: GoogleFonts.openSans(color: Colors.white)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+                  ]
+              )
+          )
+        ),
       ),
+      bottomSheet: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: _buildActionButtons()
+        ),
+      ),
+
     );
+  }
+
+  List<Widget> _buildActionButtons() {
+    return [
+      SizedBox(
+        width: 120,
+        child: ElevatedButton(
+          onPressed: () {
+            setState(() => willEdit = !willEdit);
+            _fetchUserData();
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.grey[300],
+            foregroundColor: Colors.black,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+          child: Text(willEdit ? 'Cancel' : 'Edit Profile', style: GoogleFonts.openSans()),
+        ),
+      ),
+      SizedBox(
+        width: 160,
+        child: ElevatedButton.icon(
+          onPressed: (willEdit && !isSaving) ? () async {
+            setState(() {
+              isSaving = true;
+              saveText = "Please Wait.";
+            });
+
+            if(updateTasker.currentState!.validate()){
+              await _userController.updateUser(context, taskerId, tesdaDocuments, profileImage ?? await getDefaultProfileImage());
+            }
+            setState(() {
+              isSaving = false;
+              saveText = "Save";
+              willEdit = false;
+            });
+          } : null,
+          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0272B1), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+          icon: Icon(isSaving ? Icons.hourglass_empty : Icons.save, color: Colors.white),
+          label: Text(saveText, style: GoogleFonts.openSans(color: Colors.white)),
+        ),
+      )
+    ];
   }
 
   // Helper method for sectioned layout

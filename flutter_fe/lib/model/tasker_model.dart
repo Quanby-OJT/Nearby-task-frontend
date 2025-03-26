@@ -8,7 +8,7 @@ class TaskerModel {
   final String skills;
   final bool availability;
   final String? taskerDocuments;
-  final List<String>? socialMediaLinks;
+  final Map<String, String>? socialMediaLinks;
   final String taskerAddress;
   final double wage;
   final String payPeriod;
@@ -41,26 +41,23 @@ class TaskerModel {
 
   // Factory method to map JSON to TaskerModel
   factory TaskerModel.fromJson(Map<String, dynamic> json) {
-    debugPrint("Received JSON: $json");
+    debugPrint('JSON Data: $json');
     return TaskerModel(
       id: json['tasker']['tasker_id'] ?? 0,
       bio: json['tasker']['bio'] ?? '',
       skills: json['tasker']['skills'] ?? '',
+      phoneNumber: json['tasker']['contact_number'] ?? '',
       availability: json['tasker']['availability'] ?? false,
-      socialMediaLinks: (json['tasker']['social_media_links'] as List<dynamic>?)
-          ?.map((e) => e.toString())
-          .toList(),
+      socialMediaLinks: (json['tasker']['social_media_links'] as Map<String, dynamic>)
+          .map((key, value) => MapEntry(key, value as String)),
       taskerAddress: json['tasker']['address'] ?? '',
-      specialization: json['tasker']['tasker_specialization'] != null
-          ? json['tasker']['tasker_specialization']['specialization']
-          : '',
-      taskerDocuments: json['tesda_document_link'] ?? '', // Fixed line
-      wage: json['tasker']['wage_per_hour'] != null ? json['tasker']['wage_per_hour'].toDouble() : 0.0,
+      specialization: json['tasker']['tasker_specialization']['specialization'] ?? '',
+      taskerDocuments: json['tesda_document_link'] ?? '',
+      wage: json['tasker']['wage_per_hour'].toDouble() ?? 0.0,
       payPeriod: json['tasker']['pay_period'] ?? "",
       birthDate: json['tasker']['birthdate'] != null
           ? DateTime.parse(json['tasker']['birthdate'])
           : DateTime.now(),
-      phoneNumber: json['tasker']['contact_number'] ?? '',
       group: json['tasker']['group'] ?? false,
     );
   }
@@ -77,6 +74,7 @@ class TaskerModel {
       "availability": availability,
       "tesda_documents_link": taskerDocuments,
       "social_media_links": socialMediaLinks,
+
       // remove kasi nasa user na siya
       "contact_number": phoneNumber,
       "group": group,
