@@ -168,7 +168,6 @@ class TaskController {
     if (assignedTasks.containsKey('data') && assignedTasks['data'] != null) {
       List<dynamic> dataList = assignedTasks['data'] as List<dynamic>;
       List<TaskAssignment> taskAssignments = dataList.map((item) {
-
         // Parse tasks from post_task
         Map<String, dynamic> taskData =
             item['post_task'] as Map<String, dynamic>;
@@ -186,10 +185,10 @@ class TaskController {
           contactPrice: null,
           remarks: null,
           taskBeginDate: null,
+
           id: taskTakenId, // Use taskTakenId here if it's meant to be the task's ID
 
           //id: taskData['task_id'], // Use taskTakenId here if it’s meant to be the task’s ID
-
         );
 
         Map<String, dynamic> clientData =
@@ -261,7 +260,6 @@ class TaskController {
       return null;
     }
   }
-
 
   // Method to delete a task
   Future<Map<String, dynamic>> deleteTask(int taskId) async {

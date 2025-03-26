@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
+import 'package:flutter_fe/controller/profile_controller.dart';
+import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
+import 'package:flutter_fe/view/fill_up/fill_up_tasker.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
+import 'package:get_storage/get_storage.dart';
 
 class InitialProfileScreen extends StatefulWidget {
   const InitialProfileScreen({super.key});
@@ -11,11 +15,83 @@ class InitialProfileScreen extends StatefulWidget {
 }
 
 class _InitialProfileScreenState extends State<InitialProfileScreen> {
+  final ProfileController _userController = ProfileController();
   final AuthenticationController _authController = AuthenticationController();
+  final GetStorage storage = GetStorage();
+  AuthenticatedUser? _user;
+  String _fullName = 'Loading...';
+  String _role = 'Loading...';
+  String _image = '';
+
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserData();
+  }
+
+  Future<void> _fetchUserData() async {
+    try {
+      final dynamic userId = storage.read("user_id");
+
+      if (userId == null) {
+        setState(() {
+          _fullName = "Error...";
+          _role = "";
+          _image = "Unknown";
+          _isLoading = false;
+        });
+        return;
+      }
+
+      AuthenticatedUser? user =
+          await _userController.getAuthenticatedUser(context, userId);
+      debugPrint(user.toString());
+
+      if (user == null) {
+        setState(() {
+          _fullName = "User not found";
+          _role = "Error fetching user data";
+          _image = "Unknown";
+          _isLoading = false;
+        });
+        return;
+      }
+
+      setState(() {
+        _isLoading = false;
+        _user = user;
+
+        _fullName = [
+          _user?.user.firstName ?? '',
+          _user?.user.middleName ?? '',
+          _user?.user.lastName ?? '',
+        ].where((name) => name.isNotEmpty).join(' ');
+
+        _role = _user?.user.role ?? "Unknown";
+        _image = user.user.image ?? "Unknown";
+
+        _userController.firstNameController.text = _fullName;
+        _userController.roleController.text = _role;
+        _userController.imageController.text = _image;
+      });
+    } catch (e) {
+      print("Error fetching user data: $e");
+      setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         centerTitle: true,
         title: Text('Profile'),
         backgroundColor: Colors.white,
@@ -40,14 +116,14 @@ class _InitialProfileScreenState extends State<InitialProfileScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'William John Malik',
+                        _userController.firstNameController.text,
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
-                        'Client',
+                        _userController.roleController.text,
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey,
@@ -76,10 +152,16 @@ class _InitialProfileScreenState extends State<InitialProfileScreen> {
               title: Text('Verify Account'),
               trailing: Icon(Icons.chevron_right),
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  return FillUpClient();
-                }));
-                // Handle navigation to Settings
+                final userId = storage.read("user_id");
+                if (_userController.roleController.text == 'Client') {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return FillUpClient();
+                  }));
+                } else {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return FillUpTasker(userId: userId as int);
+                  }));
+                }
               },
             ),
             ListTile(
@@ -120,7 +202,6 @@ class _InitialProfileScreenState extends State<InitialProfileScreen> {
               trailing: Icon(Icons.chevron_right),
               onTap: () {
                 _authController.logout(context);
-                // Handle navigation to Community
               },
             ),
           ],

@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-class TaskDetailsScreen extends StatefulWidget{
+class TaskDetailsScreen extends StatefulWidget {
   final int taskTakenId;
 
   const TaskDetailsScreen({super.key, required this.taskTakenId});
@@ -34,7 +32,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
 
   Future<void> _fetchTaskDetails() async {
     try {
-      final response = await _jobPostService.fetchTaskInformation(widget.taskTakenId ?? 0);
+      final response =
+          await _jobPostService.fetchTaskInformation(widget.taskTakenId ?? 0);
       debugPrint("Response: $response");
       setState(() {
         _taskInformation = response;

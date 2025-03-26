@@ -560,7 +560,7 @@ class _JobPostPageState extends State<JobPostPage> {
                         ),
                       ),
                       SizedBox(height: 10),
-                      Container(
+                      SizedBox(
                         height: 50,
                         width: double.infinity,
                         child: ElevatedButton(
@@ -584,7 +584,7 @@ class _JobPostPageState extends State<JobPostPage> {
                         ),
                       ),
                       SizedBox(height: 10),
-                      Container(
+                      SizedBox(
                         height: 50,
                         width: double.infinity,
                         child: ElevatedButton(

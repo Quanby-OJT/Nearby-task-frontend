@@ -8,7 +8,8 @@ import 'package:app_links/app_links.dart';
 class SignUpSoloTaskerAcc extends StatefulWidget {
   final String role;
   final String taskerGroup;
-  const SignUpSoloTaskerAcc({super.key, required this.role, required this.taskerGroup});
+  const SignUpSoloTaskerAcc(
+      {super.key, required this.role, required this.taskerGroup});
 
   @override
   State<SignUpSoloTaskerAcc> createState() => _SignUpSoloTaskerAccState();
@@ -28,11 +29,11 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
   }
 
   Future<void> _initDeepLinkListener() async {
-    final _appLinks = AppLinks();
+    final appLinks = AppLinks();
 
     // Handle initial link (app opened via deep link)
     try {
-      final Uri? initialUri = await _appLinks.getInitialLink();
+      final Uri? initialUri = await appLinks.getInitialLink();
       if (initialUri != null) {
         _handleDeepLink(initialUri);
       }
@@ -43,8 +44,8 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
     }
 
     // Listen for links while app is running
-    _linkSubscription = _appLinks.uriLinkStream.listen(
-          (Uri? uri) {
+    _linkSubscription = appLinks.uriLinkStream.listen(
+      (Uri? uri) {
         if (uri != null) {
           _handleDeepLink(uri);
         }
@@ -71,7 +72,8 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
         });
 
         // Redirect to rules page
-        if (mounted) { // Check if widget is still mounted before navigation
+        if (mounted) {
+          // Check if widget is still mounted before navigation
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -134,23 +136,29 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
                   child: Column(
                     children: [
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10, horizontal: 20),
                         child: TextFormField(
                           controller: _controller.firstNameController,
                           cursorColor: Color(0xFF0272B1),
-                          validator: (value) => value!.isEmpty ? "Please Input Your First Name" : null,
+                          validator: (value) => value!.isEmpty
+                              ? "Please Input Your First Name"
+                              : null,
                           decoration: _inputDecoration('First Name'),
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10, horizontal: 20),
                         child: Row(
                           children: [
                             Expanded(
                               child: TextFormField(
                                 controller: _controller.middleNameController,
                                 cursorColor: Color(0xFF0272B1),
-                                validator: (value) => value!.isEmpty ? "Please Input Your Middle Name" : null,
+                                validator: (value) => value!.isEmpty
+                                    ? "Please Input Your Middle Name"
+                                    : null,
                                 decoration: _inputDecoration('Middle Name'),
                               ),
                             ),
@@ -159,7 +167,9 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
                               child: TextFormField(
                                 controller: _controller.lastNameController,
                                 cursorColor: Color(0xFF0272B1),
-                                validator: (value) => value!.isEmpty ? "Please Input Your Last Name" : null,
+                                validator: (value) => value!.isEmpty
+                                    ? "Please Input Your Last Name"
+                                    : null,
                                 decoration: _inputDecoration('Last Name'),
                               ),
                             ),
@@ -167,45 +177,58 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10, horizontal: 20),
                         child: TextFormField(
                           controller: _controller.emailController,
                           cursorColor: Color(0xFF0272B1),
-                          validator: (value) => value!.isEmpty ? "Please Input Your Valid Email" : null,
+                          validator: (value) => value!.isEmpty
+                              ? "Please Input Your Valid Email"
+                              : null,
                           decoration: _inputDecoration('Your Valid Email'),
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10, horizontal: 20),
                         child: TextFormField(
                           controller: _controller.passwordController,
                           obscureText: true,
                           cursorColor: Color(0xFF0272B1),
-                          validator: (value) => value!.length < 6 ? "Password must be at least 6 characters" : null,
+                          validator: (value) => value!.length < 6
+                              ? "Password must be at least 6 characters"
+                              : null,
                           decoration: _inputDecoration('Your Password'),
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10, horizontal: 20),
                         child: TextFormField(
                           controller: _controller.confirmPasswordController,
                           obscureText: true,
                           cursorColor: Color(0xFF0272B1),
-                          validator: (value) => value != _controller.passwordController.text ? "Passwords do not match" : null,
+                          validator: (value) =>
+                              value != _controller.passwordController.text
+                                  ? "Passwords do not match"
+                                  : null,
                           decoration: _inputDecoration('Confirmed Password'),
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10, horizontal: 20),
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Color(0xFF0272B1),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
                             padding: EdgeInsets.symmetric(horizontal: 30),
                           ),
                           onPressed: () {
                             _controller.registerUser(context).then((_) {
-                              setState(() => _status = "Please check your email to verify your account");
+                              setState(() => _status =
+                                  "Please check your email to verify your account");
                             });
                           },
                           child: Text(
@@ -220,11 +243,13 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => SignIn()));
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => SignIn()));
                 },
                 child: Text(
                   'Already have an account?',
-                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: Colors.black, fontWeight: FontWeight.bold),
                 ),
               ),
             ] else ...[
@@ -236,7 +261,6 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
                   textAlign: TextAlign.center,
                 ),
               ),
-
             ],
           ],
         ),

@@ -338,11 +338,7 @@ class JobPostService {
       };
     }
 
-    debugPrint(taskId.toString() +
-        " " +
-        clientId.toString() +
-        " " +
-        taskerId.toString());
+    debugPrint("$taskId $clientId $taskerId");
 
     return _postRequest(endpoint: "$apiUrl/assign-task", body: {
       "tasker_id": taskerId,
