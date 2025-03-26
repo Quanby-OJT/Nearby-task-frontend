@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
@@ -7,9 +8,9 @@ import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class TaskDetailsScreen extends StatefulWidget{
-  final int taskId;
+  final int taskTakenId;
 
-  const TaskDetailsScreen({super.key, required this.taskId});
+  const TaskDetailsScreen({super.key, required this.taskTakenId});
 
   @override
   State<TaskDetailsScreen> createState() => _TaskDetailsScreenState();
@@ -19,7 +20,7 @@ class TaskDetailsScreen extends StatefulWidget{
 class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   final JobPostService _jobPostService = JobPostService();
   final TaskController taskController = TaskController();
-  TaskModel? _taskInformation;
+  TaskAssignment? taskAssignment;
   bool _isLoading = true;
   String role = "";
   final storage = GetStorage();
@@ -35,12 +36,12 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
 
   Future<void> _fetchTaskDetails() async {
     role = await storage.read('role');
-    debugPrint(role);
+    debugPrint(widget.taskTakenId.toString());
     try {
-      final response = await _jobPostService.fetchTaskInformation(widget.taskId ?? 0);
+      final response = await _jobPostService.fetchAssignedTaskInformation(widget.taskTakenId ?? 0);
       debugPrint("Response: $response");
       setState(() {
-        _taskInformation = response;
+        taskAssignment = response;
         _isLoading = false;
       });
     } catch (e) {
@@ -65,7 +66,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _taskInformation == null
+          : taskAssignment == null
           ? const Center(child: Text('No task information available'))
           : SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -81,7 +82,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
               children: [
                 Center(
                   child: Text(
-                    _taskInformation?.title ?? "Untitled Task",
+                    taskAssignment?.task.title ?? "Untitled Task",
                     style: GoogleFonts.montserrat(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -92,29 +93,31 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                 ),
                 Divider(height: 30),
                 _buildInfoRow(
-                    "Location", _taskInformation?.location ?? "N/A"),
+                    "Location", taskAssignment?.task.location ?? "N/A"),
                 _buildInfoRow("Specialization",
-                    _taskInformation?.specialization ?? "N/A"),
+                    taskAssignment?.task.specialization ?? "N/A"),
                 _buildInfoRow("Description",
-                    _taskInformation?.description ?? "N/A"),
+                    taskAssignment?.task.description ?? "N/A"),
                 _buildInfoRow("Contract Price", "₱ ${NumberFormat(
                     "#,##0.00", "en_PH").format(
-                    _taskInformation?.contactPrice?.roundToDouble() ?? 0.00
+                    taskAssignment?.task.contactPrice?.roundToDouble() ?? 0.00
                 )}"),
                 _buildInfoRow("Duration",
-                    _taskInformation?.duration?.toString() ?? "N/A"),
+                    taskAssignment?.task.duration?.toString() ?? "N/A"),
                 _buildInfoRow(
-                    "Period", _taskInformation?.period ?? "N/A"),
+                    "Period", taskAssignment?.task.period ?? "N/A"),
                 _buildInfoRow(
-                    "Urgency", _taskInformation?.urgency ?? "N/A"),
+                    "Urgency", taskAssignment?.task.urgency ?? "N/A"),
                 _buildInfoRow(
-                    "Work Type", _taskInformation?.workType ?? "N/A"),
+                    "Work Type", taskAssignment?.task.workType ?? "N/A"),
                 _buildInfoRow("Start Date",
-                    _taskInformation?.taskBeginDate ?? "N/A"),
+                    taskAssignment?.task.taskBeginDate ?? "N/A"),
                 _buildInfoRow(
-                    "Status", _taskInformation?.status ?? "Active"),
+                    "Task Status", taskAssignment?.task.status ?? "Unknown Status"),
                 _buildInfoRow(
-                    "Remarks", _taskInformation?.remarks ?? "N/A"),
+                    "Tasker Status", taskAssignment?.taskStatus ?? "Unknown Status"),
+                _buildInfoRow(
+                    "Remarks", taskAssignment?.task.remarks ?? "N/A"),
                 const SizedBox(height: 20),
               ],
             ),

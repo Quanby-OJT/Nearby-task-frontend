@@ -6,6 +6,7 @@ import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/service_acc/task_information.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_fe/controller/task_controller.dart';
 
 class LikesScreen extends StatefulWidget {
   const LikesScreen({super.key});
@@ -438,6 +439,19 @@ class _LikesScreenState extends State<LikesScreen> {
                     ),
                   ),
                 ),
+                // Add Assign Task button
+                TextButton.icon(
+                  onPressed: () => _assignTask(task),
+                  icon: Icon(Icons.assignment_turned_in,
+                      color: Color(0xFF03045E)),
+                  label: Text(
+                    "Assign Task",
+                    style: GoogleFonts.montserrat(
+                      color: Color(0xFF03045E),
+                      fontSize: 10,
+                    ),
+                  ),
+                ),
               ],
             ),
           ],
@@ -542,6 +556,142 @@ class _LikesScreenState extends State<LikesScreen> {
         );
       }
     }
+  }
+
+  Future<void> _assignTask(UserModel tasker) async {
+    try {
+      // Fetch the client's created tasks to display in the dialog
+      List<TaskModel> clientTasks = await _fetchClientTasks();
+
+      if (clientTasks.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('You have no active tasks to assign.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+
+      // Show task selection dialog
+      final TaskModel? selectedTask = await showDialog<TaskModel>(
+        context: context,
+        builder: (context) => _buildTaskSelectionDialog(clientTasks),
+      );
+
+      if (selectedTask == null) return;
+
+      // Get client ID
+      final String? clientId = await clientServices.getUserId();
+      if (clientId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unable to identify client. Please log in again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Assign the task using the TaskController
+      final taskController = TaskController();
+      final result = await taskController.assignTask(
+        selectedTask.id,
+        int.parse(clientId),
+        tasker.id ?? 0,
+      );
+
+      // Show result
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result),
+          backgroundColor:
+              result.contains('success') || result.contains('Success')
+                  ? Colors.green
+                  : Colors.red,
+        ),
+      );
+    } catch (e) {
+      debugPrint("Error in _assignTask: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to assign task: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<List<TaskModel>> _fetchClientTasks() async {
+    try {
+      final taskController = TaskController();
+      final String? clientId = await clientServices.getUserId();
+      if (clientId == null) return [];
+
+      return await taskController.getCreatedTasksByClient(int.parse(clientId));
+    } catch (e) {
+      debugPrint("Error fetching client tasks: $e");
+      return [];
+    }
+  }
+
+  Widget _buildTaskSelectionDialog(List<TaskModel> tasks) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      title: Center(
+        child: Text(
+          'Select a Task to Assign',
+          style: GoogleFonts.montserrat(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF03045E),
+          ),
+        ),
+      ),
+      content: Container(
+        width: double.maxFinite,
+        height: 300,
+        child: ListView.builder(
+          shrinkWrap: true,
+          itemCount: tasks.length,
+          itemBuilder: (context, index) {
+            final task = tasks[index];
+            return ListTile(
+              title: Text(
+                task.title ?? 'Untitled Task',
+                style: GoogleFonts.montserrat(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              subtitle: Text(
+                task.description ?? 'No description',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.montserrat(fontSize: 12),
+              ),
+              trailing: Text(
+                '\$${task.contactPrice ?? 0}',
+                style: GoogleFonts.montserrat(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green,
+                ),
+              ),
+              onTap: () => Navigator.of(context).pop(task),
+            );
+          },
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(
+            'Cancel',
+            style: GoogleFonts.montserrat(color: Colors.red),
+          ),
+        ),
+      ],
+    );
   }
 
   void _viewJobDetails(UserModel job) {

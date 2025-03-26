@@ -32,7 +32,7 @@ class _TaskInformationState extends State<TaskInformation> {
       final response =
           await _jobPostService.fetchTaskInformation(widget.taskID ?? 0);
       setState(() {
-        _taskInformation = response;
+        _taskInformation = response?.task;
         _isLoading = false;
       });
     } catch (e) {
@@ -86,14 +86,14 @@ class _TaskInformationState extends State<TaskInformation> {
                                 if (_taskInformation != null) {
                                   taskController.assignTask(
                                     widget.taskID ?? 0,
-                                    _taskInformation!.clientId,
+                                    _taskInformation!.clientId ?? 0,
                                     userId,
                                   );
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          IndividualChatScreen(),
+                                          IndividualChatScreen(taskId: 0, taskTakenId: 0, taskTitle: _taskInformation!.title),
                                     ),
                                   );
                                 }

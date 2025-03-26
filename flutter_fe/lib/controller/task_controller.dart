@@ -96,7 +96,7 @@ class TaskController {
     }
   }
 
-  Future<String> assignTask(int? taskId, int? clientId, int? taskerId) async {
+  Future<String> assignTask(int taskId, int clientId, int taskerId) async {
     debugPrint("Assigning task...");
     final assignedTask =
     await _jobPostService.assignTask(taskId, clientId, taskerId);
@@ -190,7 +190,8 @@ class TaskController {
           remarks: null,
           taskBeginDate: null,
 
-          id: taskTakenId, // Use taskTakenId here if it's meant to be the task's ID
+          id: taskData[
+              'task_id'], // Use taskTakenId here if it's meant to be the task's ID
 
           //id: taskData['task_id'], // Use taskTakenId here if it’s meant to be the task’s ID
         );
@@ -250,8 +251,9 @@ class TaskController {
           tasker: tasker,
           task: task,
           taskTakenId: taskTakenId, // Use the root-level task_taken_id
+          taskStatus: item['task_status']
         );
-        debugPrint(assignment.toString()); // Verify the full object
+        debugPrint("Task Assignment: $assignment"); // Verify the full object
         return assignment;
       }).toList();
       return taskAssignments;
@@ -275,7 +277,6 @@ class TaskController {
       debugPrint("Error deleting task: $e");
       debugPrintStack(stackTrace: stackTrace);
       return {'success': false, 'error': 'Failed to delete task: $e'};
-
     }
   }
 

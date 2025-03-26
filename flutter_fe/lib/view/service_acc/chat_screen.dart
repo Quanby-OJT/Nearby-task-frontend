@@ -538,8 +538,11 @@ class _ChatScreenState extends State<ChatScreen> {
                           context,
                           MaterialPageRoute(
                               builder: (context) => IndividualChatScreen(
-                                  taskTitle: assignment.task.title,
-                                  taskTakenId: assignment.task.id ?? 0)),
+                                taskId: assignment.task.id,
+                                taskTitle: assignment.task.title,
+                                taskTakenId: assignment.taskTakenId ?? 0
+                              )
+                          ),
                         );
                       },
                     );

@@ -10,9 +10,9 @@ import 'package:get_storage/get_storage.dart';
 
 class IndividualChatScreen extends StatefulWidget {
   final String? taskTitle;
-  final int? taskTakenId;
-  final int? taskId;
-  const IndividualChatScreen({super.key, this.taskTitle, this.taskTakenId, this.taskId});
+  final int taskTakenId;
+  final int taskId;
+  const IndividualChatScreen({super.key, this.taskTitle, required this.taskTakenId, required this.taskId});
 
   @override
   State<IndividualChatScreen> createState() => _IndividualChatScreenState();
@@ -39,9 +39,9 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   }
 
   Future<void> loadInitialData() async {
-    final task = await jobPostService.fetchTaskInformation(widget.taskTakenId ?? 0);
+    final task = await jobPostService.fetchTaskInformation(widget.taskId);
     setState(() {
-      this.task = task;
+      this.task = task?.task;
     });
     await loadConversationHistory();
   }
@@ -95,12 +95,12 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                   /// NOTE: When retrieving task information, task_id must be used to retrieve task information
                   ///
                   onPressed: () {
-                    debugPrint(widget.taskId.toString());
+                    debugPrint(widget.taskTakenId.toString());
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => TaskDetailsScreen(
-                          taskId: widget.taskId ?? 0,
+                          taskTakenId: widget.taskTakenId,
                         ),
                       ),
                     );

@@ -126,17 +126,17 @@ class JobPostService {
     return [];
   }
 
-  Future<TaskModel?> fetchTaskInformation(int taskID) async {
+  Future<TaskAssignment?> fetchTaskInformation(int taskID) async {
     try {
       Map<String, dynamic> response = await _getRequest("/displayTask/$taskID");
-      debugPrint("Message Data Retrieved: ${response.toString()}");
+      //debugPrint("Assigned Task Information Retrieved: ${response.toString()}");
 
       // Check if response contains the "tasks" key and it's a Map
       if (response.containsKey("tasks") && response["tasks"] is Map) {
         Map<String, dynamic> taskData =
             response["tasks"] as Map<String, dynamic>;
         debugPrint("Mapped: ${taskData.toString()}");
-        return TaskModel.fromJson(taskData);
+        return TaskAssignment.fromJson(taskData);
       }
 
       // Return null if no tasks found or invalid format
@@ -145,6 +145,29 @@ class JobPostService {
     } catch (e) {
       debugPrint('Error fetching tasks: $e');
       debugPrintStack();
+      return null;
+    }
+  }
+
+  Future<TaskAssignment?> fetchAssignedTaskInformation(int taskTakenID) async {
+    try {
+      Map<String, dynamic> response = await _getRequest("/display-assigned-task/$taskTakenID");
+      debugPrint("Assigned Task Information Retrieved: ${response.toString()}");
+
+      // Check if response contains the "tasks" key and it's a Map
+      if (response.containsKey('success')) {
+        Map<String, dynamic> taskData =
+        response["task_information"] as Map<String, dynamic>;
+        debugPrint("Mapped: ${taskData.toString()}");
+        return TaskAssignment.fromJson(taskData);
+      }
+
+      // Return null if no tasks found or invalid format
+      debugPrint("No valid task data found in response");
+      return null;
+    } catch (e, stackTrace) {
+      debugPrint('Error fetching tasks: $e');
+      debugPrintStack(stackTrace: stackTrace);
       return null;
     }
   }
@@ -326,7 +349,7 @@ class JobPostService {
   Future<String?> getUserId() async => storage.read('user_id')?.toString();
 
   Future<Map<String, dynamic>> assignTask(
-      int? taskId, int? clientId, int? taskerId) async {
+      int taskId, int clientId, int taskerId) async {
     final userId = await getUserId();
     if (userId == null) {
       return {
@@ -338,7 +361,7 @@ class JobPostService {
 
     debugPrint("$taskId $clientId $taskerId");
 
-    return _postRequest(endpoint: "$apiUrl/assign-task", body: {
+    return _postRequest(endpoint: "/assign-task", body: {
       "tasker_id": taskerId,
       "client_id": clientId,
       "task_id": taskId
