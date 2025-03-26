@@ -200,7 +200,7 @@ class ProfileService{
     }
 
     // Create a multipart request for the PUT endpoint
-    var request = http.MultipartRequest('PUT', Uri.parse('$apiUrl/user/updateTasker'));
+    var request = http.MultipartRequest('PUT', Uri.parse('$apiUrl/user/client/$userId'));
     request.headers['Authorization'] = 'Bearer $token';
 
     // Add tasker data as a JSON string in a form field

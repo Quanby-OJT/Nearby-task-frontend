@@ -872,7 +872,7 @@ class ProfileController {
 
         if (result.containsKey("client")) {
           // Parse Client data
-          ClientModel client = ClientModel.fromJson(result["client"]);
+          ClientModel client = result["client"] as ClientModel;
           debugPrint("User is a client and has client data: $client");
           return AuthenticatedUser(user: user, client: client);
         }
@@ -953,7 +953,7 @@ class ProfileController {
 
       if (resultData.containsKey("message")) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(resultData['error'])),
+          SnackBar(content: Text(resultData['message'])),
         );
       } else if (resultData.containsKey("errors")) {
         ScaffoldMessenger.of(context).showSnackBar(
