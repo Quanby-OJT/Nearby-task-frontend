@@ -3,18 +3,18 @@ import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:flutter_fe/model/client_model.dart';
 
 class TaskAssignment{
-  final ClientModel client;
-  final TaskerModel tasker;
-  final TaskModel task;
+  final ClientModel? client;
+  final TaskerModel? tasker;
+  final TaskModel? task;
   final int? taskTakenId;
-  final String taskStatus;
+  final String? taskStatus;
 
   TaskAssignment({
-    required this.client,
-    required this.tasker,
-    required this.task,
+    this.client,
+    this.tasker,
+    this.task,
     this.taskTakenId,
-    required this.taskStatus
+    this.taskStatus
   });
 
   @override

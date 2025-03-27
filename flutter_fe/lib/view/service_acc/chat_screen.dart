@@ -4,6 +4,7 @@ import 'package:flutter_fe/controller/report_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dropdown_search/dropdown_search.dart';
@@ -515,17 +516,18 @@ class _ChatScreenState extends State<ChatScreen> {
                     final assignment = taskAssignments![index];
                     return ListTile(
                       title: Text(
-                        assignment.task.title ?? "Unknown Task",
+                        assignment.task?.title ?? "Unknown Task",
                         style: TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       subtitle: Row(children: [
                         Icon(
-                          Icons.cases,
-                          size: 20,
+                          FontAwesomeIcons.user,
+                          size: 15,
                         ),
+                        SizedBox(width: 5),
                         Text(
-                          "${assignment.tasker.user?.firstName ?? ''} ${assignment.tasker.user?.middleName ?? ''} ${assignment.tasker.user?.lastName ?? ''}",
+                          "${assignment.client?.user?.firstName ?? ''} ${assignment.client?.user?.middleName ?? ''} ${assignment.client?.user?.lastName ?? ''}",
                           style: TextStyle(fontSize: 14),
                         )
                       ]),
@@ -538,8 +540,8 @@ class _ChatScreenState extends State<ChatScreen> {
                           context,
                           MaterialPageRoute(
                               builder: (context) => IndividualChatScreen(
-                                taskId: assignment.task.id,
-                                taskTitle: assignment.task.title,
+                                taskId: assignment.task!.id,
+                                taskTitle: assignment.task?.title,
                                 taskTakenId: assignment.taskTakenId ?? 0
                               )
                           ),

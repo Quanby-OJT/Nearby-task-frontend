@@ -25,10 +25,10 @@ class _JobPostPageState extends State<JobPostPage> {
   String? _message;
   bool _isSuccess = false;
 
-  String? selectedTimePeriod;
-  String? selectedUrgency;
-  String? selectedSpecialization;
-  String? selectedWorkType; // New field for work_type
+  String selectedTimePeriod = "";
+  String selectedUrgency = "";
+  String selectedSpecialization = "";
+  String selectedWorkType = ""; // New field for work_type
   List<String> items = ['Day/s', 'Week/s', 'Month/s', 'Year/s'];
   List<String> urgency = ['Non-Urgent', 'Urgent'];
   List<String> workTypes = ['Solo', 'Group']; // Options for work_type dropdown
@@ -263,7 +263,7 @@ class _JobPostPageState extends State<JobPostPage> {
                     }).toList(),
                     onChanged: (newValue) {
                       setState(() {
-                        selectedSpecialization = newValue;
+                        selectedSpecialization = newValue!;
                       });
                     },
                   ),
@@ -379,7 +379,7 @@ class _JobPostPageState extends State<JobPostPage> {
                     }).toList(),
                     onChanged: (newValue) {
                       setState(() {
-                        selectedTimePeriod = newValue;
+                        selectedTimePeriod = newValue!;
                       });
                     },
                   ),
@@ -484,7 +484,7 @@ class _JobPostPageState extends State<JobPostPage> {
                     }).toList(),
                     onChanged: (newValue) {
                       setState(() {
-                        selectedUrgency = newValue;
+                        selectedUrgency = newValue!;
                       });
                     },
                   ),
@@ -519,7 +519,7 @@ class _JobPostPageState extends State<JobPostPage> {
                     }).toList(),
                     onChanged: (newValue) {
                       setState(() {
-                        selectedWorkType = newValue;
+                        selectedWorkType = newValue!;
                       });
                     },
                   ),
@@ -656,10 +656,10 @@ class _JobPostPageState extends State<JobPostPage> {
         controller.jobTaskBeginDateController.clear();
 
         setState(() {
-          selectedSpecialization = null;
-          selectedUrgency = null;
-          selectedTimePeriod = null;
-          selectedWorkType = null;
+          selectedSpecialization = '';
+          selectedUrgency = '';
+          selectedTimePeriod = '';
+          selectedWorkType = '';
         });
       } else {
         setState(() {

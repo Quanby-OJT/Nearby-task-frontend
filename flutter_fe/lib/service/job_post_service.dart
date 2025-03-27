@@ -136,15 +136,20 @@ class JobPostService {
         Map<String, dynamic> taskData =
             response["tasks"] as Map<String, dynamic>;
         debugPrint("Mapped: ${taskData.toString()}");
-        return TaskAssignment.fromJson(taskData);
+        return TaskAssignment(
+          client: null,
+          tasker: null,
+          task: TaskModel.fromJson(taskData),
+          taskStatus: taskData['task_status'],
+        );
       }
 
       // Return null if no tasks found or invalid format
       debugPrint("No valid task data found in response");
       return null;
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('Error fetching tasks: $e');
-      debugPrintStack();
+      debugPrintStack(stackTrace: stackTrace);
       return null;
     }
   }
@@ -154,15 +159,18 @@ class JobPostService {
       Map<String, dynamic> response = await _getRequest("/display-assigned-task/$taskTakenID");
       debugPrint("Assigned Task Information Retrieved: ${response.toString()}");
 
-      // Check if response contains the "tasks" key and it's a Map
-      if (response.containsKey('success')) {
-        Map<String, dynamic> taskData =
-        response["task_information"] as Map<String, dynamic>;
-        debugPrint("Mapped: ${taskData.toString()}");
-        return TaskAssignment.fromJson(taskData);
+      // Check if response is not empty and is a Map
+      if (response['success']) {
+        debugPrint("Mapped: ${response.toString()}");
+        return TaskAssignment(
+          client: null,
+          tasker: null,
+          task: TaskModel.fromJson(response['task_information']['post_task']),
+          taskStatus: response['task_information']['task_status'],
+        );
       }
 
-      // Return null if no tasks found or invalid format
+      // Return null if no valid data found
       debugPrint("No valid task data found in response");
       return null;
     } catch (e, stackTrace) {

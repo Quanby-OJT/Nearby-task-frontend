@@ -515,7 +515,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     final assignment = taskAssignments![index];
                     return ListTile(
                       title: Text(
-                        assignment.task.title ?? "Unknown Task",
+                        assignment.task?.title ?? "Unknown Task",
                         style: TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold),
                       ),
@@ -525,7 +525,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           size: 20,
                         ),
                         Text(
-                          "${assignment.tasker.user?.firstName ?? ''} ${assignment.tasker.user?.middleName ?? ''} ${assignment.tasker.user?.lastName ?? ''}",
+                          "${assignment.tasker?.user?.firstName ?? ''} ${assignment.tasker?.user?.middleName ?? ''} ${assignment.tasker?.user?.lastName ?? ''}",
                           style: TextStyle(fontSize: 14),
                         )
                       ]),
@@ -538,8 +538,8 @@ class _ChatScreenState extends State<ChatScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => IndividualChatScreen(
-                              taskId: assignment.task.id,
-                              taskTitle: assignment.task.title,
+                              taskId: assignment.task?.id ?? 0,
+                              taskTitle: assignment.task?.title,
                               taskTakenId: assignment.taskTakenId ?? 0
                             )
                           ),
