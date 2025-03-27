@@ -65,7 +65,9 @@
               <span [ngClass]="{'bg-green-500': report.status, 'bg-yellow-500': !report.status}" class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-yellow-500">{{ report.status ? 'Processed' : 'Pending' }}</span>
             </td>
             <td class="flex items-center justify-center pt-3 pb-0">
-              <img src="https://img.icons8.com/?size=100&id=cRLuJXPEgWhK&format=png&color=0000FF" alt="View Icon" class="w-5 h-5">
+              <button (click)="openModal(report.report_id)" class="p-0 border-none bg-transparent cursor-pointer">
+                <img src="https://img.icons8.com/?size=100&id=cRLuJXPEgWhK&format=png&color=0000FF" alt="View Icon" class="w-5 h-5">
+              </button>
             </td>
           </tr>
         </tbody>
