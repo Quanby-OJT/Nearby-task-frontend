@@ -64,8 +64,8 @@
             <td class="px-4 py-3 text-center">
               <span [ngClass]="{'bg-green-500': report.status, 'bg-yellow-500': !report.status}" class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-yellow-500">{{ report.status ? 'Processed' : 'Pending' }}</span>
             </td>
-            <td class="px-4 py-3 flex items-center border border-blue-500 rounded-xl justify-center">
-              <img src="https://img.icons8.com/?size=100&id=cRLuJXPEgWhK&format=png&color=0000FF" alt="View Icon" class="w-5 h-5 mr-2">
+            <td class="flex items-center justify-center pt-3 pb-0">
+              <img src="https://img.icons8.com/?size=100&id=cRLuJXPEgWhK&format=png&color=0000FF" alt="View Icon" class="w-5 h-5">
             </td>
           </tr>
         </tbody>
@@ -143,6 +143,8 @@
             <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Violator Role</th>
             <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Date</th>
             <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Status</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Handled By</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -155,6 +157,10 @@
             <td class="px-4 py-3 text-center">{{ report.created_at }}</td>
             <td class="px-4 py-3 text-center">
               <span [ngClass]="{'bg-green-500': report.status, 'bg-yellow-500': !report.status}" class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-yellow-500">{{ report.status ? 'Processed' : 'Pending' }}</span>
+            </td>
+            <td class="px-4 py-3 text-center"> Moderator Name</td>
+            <td class="flex items-center justify-center pt-3 pb-0">
+              <img src="https://img.icons8.com/?size=100&id=cRLuJXPEgWhK&format=png&color=0000FF" alt="View Icon" class="w-5 h-5">
             </td>
           </tr>
         </tbody>
