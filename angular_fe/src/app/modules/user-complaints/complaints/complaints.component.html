@@ -11,7 +11,7 @@
   <div class="flex w-full space-x-3">
     <div class="flex-1 min-w-[300px] w-[50%] max-h-[400px] border border-gray-200 bg-white rounded-xl p-6 shadow-md overflow-auto box-border">
       <strong class="text-lg font-semibold">Client Complaints</strong>
-      <app-client-complaint></app-client-complaint>
+      <app-client-complaint (reportSelected)="openModal($event)"></app-client-complaint>
     </div>
 
     <div class="flex-1 min-w-[300px] w-[50%] max-h-[400px] border border-gray-200 bg-white rounded-xl p-6 shadow-md overflow-auto box-border">
@@ -203,6 +203,52 @@
           </button>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for displaying report details -->
+<div *ngIf="isModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white p-8 rounded-lg max-w-3xl w-full shadow-xl">
+    <h2 class="text-2xl font-bold mb-6 text-gray-800">Report Details</h2>
+    <dl class="space-y-2">
+      <div class="flex">
+        <dt class="font-bold w-32">Report ID:</dt>
+        <dd>{{ selectedReport?.report_id }}</dd>
+      </div>
+      <div class="flex">
+        <dt class="font-bold w-32">Reporter:</dt>
+        <dd>{{ selectedReport?.reporter.first_name }} {{ selectedReport?.reporter.middle_name }} {{ selectedReport?.reporter.last_name }}</dd>
+      </div>
+      <div class="flex">
+        <dt class="font-bold w-32">Violator:</dt>
+        <dd>{{ selectedReport?.violator.first_name }} {{ selectedReport?.violator.middle_name }} {{ selectedReport?.violator.last_name }}</dd>
+      </div>
+      <div class="flex">
+        <dt class="font-bold w-32">Reason:</dt>
+        <dd>{{ selectedReport?.reason }}</dd>
+      </div>
+      <div class="flex">
+        <dt class="font-bold w-32">Status:</dt>
+        <dd>{{ selectedReport?.status ? 'Processed' : 'Pending' }}</dd>
+      </div>
+      <div class="flex">
+        <dt class="font-bold w-32">Created At:</dt>
+        <dd>{{ selectedReport?.created_at }}</dd>
+      </div>
+      <div class="flex">
+        <dt class="font-bold w-32">Updated At:</dt>
+        <dd>{{ selectedReport?.updated_at }}</dd>
+      </div>
+      <div *ngIf="selectedReport?.action_by" class="flex">
+        <dt class="font-bold w-32">Handled By:</dt>
+        <dd>{{ selectedReport?.action_by }}</dd>
+      </div>
+    </dl>
+    <div class="mt-8 flex justify-end space-x-4">
+      <button (click)="banUser(selectedReport?.report_id)" class="bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600">Ban</button>
+      <button (click)="unbanUser(selectedReport?.report_id)" class="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600">Unban</button>
+      <button (click)="closeModal()" class="bg-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-400">Cancel</button>
     </div>
   </div>
 </div>

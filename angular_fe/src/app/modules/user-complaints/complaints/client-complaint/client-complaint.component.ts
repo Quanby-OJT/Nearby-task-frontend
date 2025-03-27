@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, AfterViewInit, ElementRef, ViewChild, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, AfterViewInit, ElementRef, ViewChild, ChangeDetectorRef, HostListener, Output, EventEmitter } from '@angular/core';
 import { ReportService } from 'src/app/services/report.service';
 
 @Component({
@@ -16,6 +16,8 @@ export class ClientComplaintComponent implements AfterViewInit {
   totalCards = 0;
   autoSwipeInterval: any;
   reports: any[] = [];
+
+  @Output() reportSelected = new EventEmitter<number>();
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -88,5 +90,9 @@ export class ClientComplaintComponent implements AfterViewInit {
 
   ngOnDestroy() {
     this.stopAutoSwipe();
+  }
+
+  selectAction(reportId: number) { // Changed type to number since report_id is a number
+    this.reportSelected.emit(reportId); // Emit the report_id to the parent
   }
 }

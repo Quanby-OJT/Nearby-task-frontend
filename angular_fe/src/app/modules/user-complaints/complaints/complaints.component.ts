@@ -30,6 +30,10 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
   currentSearchText: string = '';
   currentStatusFilter: string = '';
 
+  // Modal properties
+  isModalOpen: boolean = false;
+  selectedReport: any = null;
+
   private reportsSubscription!: Subscription;
 
   constructor(
@@ -152,6 +156,65 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
     if (pageNum >= 1 && pageNum <= this.totalPages) {
       this.currentPage = pageNum;
       this.updatePage();
+    }
+  }
+
+  // Modal methods
+  openModal(reportId: number) {
+    this.selectedReport = this.reports.find(report => report.report_id === reportId);
+    this.isModalOpen = true;
+  }
+
+  closeModal() {
+    this.isModalOpen = false;
+    this.selectedReport = null;
+  }
+
+  banUser(reportId: number) {
+    if (reportId) {
+      this.reportService.updateReportStatus(reportId, true).subscribe({
+        next: (response) => {
+          if (response.success) {
+            // Update the local reports array
+            const reportIndex = this.reports.findIndex(r => r.report_id === reportId);
+            if (reportIndex !== -1) {
+              this.reports[reportIndex].status = true;
+              this.selectedReport.status = true;
+              this.applyFilters(); // Refresh the filtered reports
+            }
+            this.closeModal();
+          } else {
+            console.error('Failed to ban user:', response.message);
+          }
+        },
+        error: (err) => {
+          console.error('Error banning user:', err);
+        }
+      });
+    }
+  }
+
+  unbanUser(reportId: number) {
+    if (reportId) {
+      this.reportService.updateReportStatus(reportId, false).subscribe({
+        next: (response) => {
+          if (response.success) {
+            // Update the local reports array
+            const reportIndex = this.reports.findIndex(r => r.report_id === reportId);
+            if (reportIndex !== -1) {
+              this.reports[reportIndex].status = false;
+              this.selectedReport.status = false;
+              this.applyFilters(); // Refresh the filtered reports
+            }
+            this.closeModal();
+          } else {
+            console.error('Failed to unban user:', response.message);
+          }
+        },
+        error: (err) => {
+          console.error('Error unbanning user:', err);
+        }
+      });
     }
   }
 }
