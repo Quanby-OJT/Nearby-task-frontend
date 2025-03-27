@@ -1,26 +1,26 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_fe/model/user_model.dart';
 
 class TaskerModel {
-  final int? id;
+  final int id;
   final String bio;
   final String specialization;
   final String skills;
   final bool availability;
-  final int? taskerDocuments;
+  final String? taskerDocuments;
   final Map<String, String>? socialMediaLinks;
   final String taskerAddress;
   final double wage;
   final String payPeriod;
   final DateTime birthDate;
-  final String phoneNumber;
-  final bool group;
-  final String gender;
+  final int phoneNumber;
+  final bool? group;
   UserModel? user;
 
   TaskerModel({
-    this.id,
+    required this.id,
     required this.bio,
-    required this.group,
+    this.group,
     required this.specialization,
     required this.skills,
     required this.taskerAddress,
@@ -29,7 +29,6 @@ class TaskerModel {
     required this.payPeriod,
     required this.birthDate,
     required this.phoneNumber,
-    required this.gender,
     this.taskerDocuments,
     this.socialMediaLinks,
     this.user,
@@ -42,32 +41,30 @@ class TaskerModel {
 
   // Factory method to map JSON to TaskerModel
   factory TaskerModel.fromJson(Map<String, dynamic> json) {
+    debugPrint('JSON Data: $json');
     return TaskerModel(
-      id: json["tasker_id"] ?? 0, // Correct key for ID
+      id: json['tasker_id'] ?? 0,
       bio: json['bio'] ?? '',
       skills: json['skills'] ?? '',
+      phoneNumber: json['contact_number'] ?? '',
       availability: json['availability'] ?? false,
-      socialMediaLinks: json['social_media_links'] != null
-          ? Map<String, String>.from(json['social_media_links'])
-          : null,
+e
+      socialMediaLinks: (json['social_media_links'] as Map<String, dynamic>)
+          .map((key, value) => MapEntry(key, value as String)),
+
+   //   socialMediaLinks: json['social_media_links'] != null
+   //       ? Map<String, String>.from(json['social_media_links'])
+   //       : null,
+
       taskerAddress: json['address'] ?? '',
-      specialization:
-          json['specialization_id']?.toString() ?? '', // Use specialization_id
-      taskerDocuments:
-          json['tesda_documents_id'] ?? 0, // Adjusted for null safety
-      wage: (json['wage_per_hour'] is int)
-          ? json['wage_per_hour'].toDouble()
-          : double.tryParse(json['wage_per_hour'].toString()) ?? 0.0,
-      payPeriod: json['pay_period'] ?? "Hourly", // Added default value
+      specialization: json['tasker_specialization']['specialization'] ?? '',
+      taskerDocuments: json['tesda_document_link'] ?? '',
+      wage: json['wage_per_hour'].toDouble() ?? 0.0,
+      payPeriod: json['pay_period'] ?? "",
       birthDate: json['birthdate'] != null
-          ? DateTime.tryParse(json['birthdate']) ?? DateTime(2000, 1, 1)
-          : DateTime(2000, 1, 1), // Default fallback
-      phoneNumber: json['contact_number']?.toString() ?? '',
-      gender: json['gender'] ?? '',
+          ? DateTime.parse(json['birthdate'])
+          : DateTime.now(),
       group: json['group'] ?? false,
-      user: json['user'] != null
-          ? UserModel.fromJson(json['user'])
-          : null, // Ensure user object is correctly parsed
     );
   }
 
@@ -75,19 +72,22 @@ class TaskerModel {
     return {
       "tasker_id": id,
       "bio": bio,
-      "specialization_id": specialization,
-
-      // must/json in another table
+      "specialization": specialization,
       "skills": skills,
 
       //Must be in another table
       "address": taskerAddress,
       "availability": availability,
 
+      "tesda_documents_link": taskerDocuments,
+    //  "social_media_links": socialMediaLinks,
+
+
       // MUST in another table
-      "tesda_documents_id": taskerDocuments,
+     // "tesda_documents_id": taskerDocuments,
       "social_media_links": socialMediaLinks ?? {},
       "gender": gender,
+
 
       // remove kasi nasa user na siya
       "contact_number": phoneNumber,

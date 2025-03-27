@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:get_storage/get_storage.dart';
 
 class ReportService {
-  static const String apiUrl = "http://localhost:5000/connect";
+  static const String apiUrl = "http://10.0.2.2:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -17,7 +17,7 @@ class ReportService {
         Uri.parse("$apiUrl/reports"),
       );
 
-      request.headers['Authorization'] = "Bearer $token" ?? '';
+      request.headers['Authorization'] = "Bearer $token";
 
       // Add all fields from report.toJson() to request.fields
       final reportJson = report.toJson();

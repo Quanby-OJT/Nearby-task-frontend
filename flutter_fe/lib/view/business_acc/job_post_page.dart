@@ -10,6 +10,7 @@ import 'package:flutter_fe/view/business_acc/business_task_detail.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_fe/view/business_acc/task_details_screen.dart';
 
 class JobPostPage extends StatefulWidget {
   const JobPostPage({super.key});
@@ -82,7 +83,7 @@ class _JobPostPageState extends State<JobPostPage> {
     try {
       final userId = storage.read('user_id');
       if (userId != null) {
-        final tasks = await controller.getCreatedTasksByClient(userId);
+        final tasks = await controller.getJobsforClient(context, userId);
         setState(() {
           clientTasks = tasks;
         });
@@ -174,6 +175,7 @@ class _JobPostPageState extends State<JobPostPage> {
     });
   }
 
+  //Form for Task Creation.
   void _showCreateTaskModal() {
     showModalBottomSheet(
       enableDrag: true,
@@ -708,6 +710,7 @@ class _JobPostPageState extends State<JobPostPage> {
     }
   }
 
+  //Main Application Page
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -722,7 +725,7 @@ class _JobPostPageState extends State<JobPostPage> {
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
-          : clientTasks.isEmpty
+          : (clientTasks.isEmpty)
               ? Center(child: Text("No tasks available"))
               : ListView.builder(
                   itemCount: clientTasks.length,

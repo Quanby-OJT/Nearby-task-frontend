@@ -199,8 +199,8 @@ class _FillUpTaskerState extends State<FillUpTasker> {
               selectedSpecialization ?? '';
 
 // Fetch Document Link for tasker
-          final int documentId = user.tasker!.taskerDocuments ?? 0;
-          _fetchDocumentLink(documentId);
+//           final int documentId = user.tasker!.taskerDocuments ?? 0;
+//           _fetchDocumentLink(documentId);
         });
       }
     } catch (error, stackTrace) {

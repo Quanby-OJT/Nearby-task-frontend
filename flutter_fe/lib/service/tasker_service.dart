@@ -11,7 +11,7 @@ import 'package:flutter_fe/service/auth_service.dart';
 
 class TaskerService {
   final storage = GetStorage();
-  final String apiUrl = "http://localhost:5000/connect";
+  final String apiUrl = "http://10.0.2.2:5000/connect";
 
   Map<String, dynamic> _handleResponse(http.Response response) {
     debugPrint(response.body);

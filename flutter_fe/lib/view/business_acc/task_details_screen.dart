@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class TaskDetailsScreen extends StatefulWidget{
   final int taskId;
@@ -81,7 +83,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                   Text(
                     "Task Description",
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -126,10 +128,38 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                       "NOTE",
                       task.urgency.toString()
                   ),
-                  _buildInfoRow(
-                      "Duration", "${task.duration} ${task.period}"
+                  Row(
+                      children: [
+                        Text(
+                          "Current Task Status: ",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.grey,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            task.status!.toUpperCase(),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )
+                      ],
                   ),
-                  _buildInfoRow("Task Status", "${task.status}"),
+                  Text(
+                    "Update TASK STATUS to:",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: DropdownButtonFormField(
@@ -158,23 +188,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                       ),
                     ),
                   ),
-                  if (role == "Client")
-                    Center(
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          debugPrint("Depositing Money to Escrow");
-                          //Function to call database API
-                        },
-                        icon: Icon(Icons.account_balance_wallet, color: Colors.white,),
-                        label: Text("Deposit Amount", style: TextStyle(color: Colors.white)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green, // or any color you want
-                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          textStyle: TextStyle(fontSize: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
-                      )
-                    )
                 ],
               ),
             ),
