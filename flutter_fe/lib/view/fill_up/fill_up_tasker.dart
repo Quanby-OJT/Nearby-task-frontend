@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/user_model.dart';
+import 'package:flutter_fe/view/view_pdf/PDF_viewer.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
@@ -40,6 +41,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
   String _birthday = '';
   bool _isLoading = true;
   bool _imagesChanged = false;
+  bool _pdfChanged = false;
   String _wage = '';
   String _paySchedule = '';
   String _bio = '';
@@ -69,19 +71,6 @@ class _FillUpTaskerState extends State<FillUpTasker> {
     "Monthly"
   ];
 
-  // //TESDA Documents
-  // Future<void> _pickFile() async {
-  //   FilePickerResult? result = await FilePicker.platform
-  //       .pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
-
-  //   if (result != null) {
-  //     setState(() {
-  //       _selectedFile = File(result.files.single.path!);
-  //       _fileName = result.files.single.name;
-  //     });
-  //   }
-  // }
-
   Future<void> _pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -97,6 +86,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
         setState(() {
           _selectedFile = File(filePath);
           _fileName = result.files.single.name;
+          _pdfChanged = true;
         });
       } else {
         // Show an error if the selected file is not a PDF
@@ -173,11 +163,13 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                 specialization[index - 1]; // Subtract 1 for zero-based index
             _controller.specializationIdController.text =
                 (index + 1).toString();
+
+            debugPrint("Selected Specialization: $selectedSpecialization");
           } else {
-            selectedSpecialization = 'Not Found'; // Fallback value
+            selectedSpecialization = '1'; // Fallback value
           }
 
-          _existingProfileImageUrl = user!.user.image?.toString() ?? '';
+          _existingProfileImageUrl = user.user.image?.toString() ?? '';
 
           // Update text controllers
 
@@ -198,9 +190,20 @@ class _FillUpTaskerState extends State<FillUpTasker> {
           _controller.specializationController.text =
               selectedSpecialization ?? '';
 
+          for (int i = 0; i < specialization.length; i++) {
+            if (specialization[i] == selectedSpecialization) {
+              _specializationId = i + 1;
+              debugPrint("Specialization ID: $_specializationId");
+              break;
+            }
+          }
+
+          _controller.specializationIdController.text =
+              _specializationId.toString();
+
 // Fetch Document Link for tasker
-          final int documentId = user.tasker!.taskerDocuments ?? 0;
-          _fetchDocumentLink(documentId);
+          final int taskerId = user.tasker!.id!;
+          _fetchDocumentLink(taskerId);
         });
       }
     } catch (error, stackTrace) {
@@ -210,10 +213,11 @@ class _FillUpTaskerState extends State<FillUpTasker> {
   }
 
 // Fetch Document Link for tasker
-  Future<void> _fetchDocumentLink(int documentId) async {
+  Future<void> _fetchDocumentLink(int taskerId) async {
     try {
-      final documentLink = await _controller.getDocumentLink(documentId);
+      final documentLink = await _controller.getDocumentLink(taskerId);
       setState(() {
+        debugPrint('Document link: $documentLink');
         _existingPDFUrl = documentLink;
       });
     } catch (error, stackTrace) {
@@ -228,11 +232,29 @@ class _FillUpTaskerState extends State<FillUpTasker> {
     try {
       int userId = int.parse(storage.read('user_id').toString());
 
-      if (_existingPDFUrl != null && _existingProfileImageUrl != null) {
+      if (_existingPDFUrl != null &&
+          _existingProfileImageUrl != null &&
+          !_pdfChanged &&
+          !_imagesChanged) {
         await _controller.updateTaskerWithoutFile(context, userId);
-      } else if (_selectedFile != null && _selectedImage != null) {
+      } else if (_selectedFile != null &&
+          _selectedImage != null &&
+          _pdfChanged &&
+          _imagesChanged) {
         await _controller.updateTaskerWithFile(
             context, userId, _selectedFile!, _selectedImage!);
+      } else if (_existingProfileImageUrl != null &&
+          _selectedFile != null &&
+          _pdfChanged &&
+          !_imagesChanged) {
+        await _controller.updateTaskerWithOnlyPdfFile(
+            context, userId, _selectedFile!);
+      } else if (_selectedImage != null &&
+          _existingPDFUrl != null &&
+          !_pdfChanged &&
+          _imagesChanged) {
+        await _controller.updateTaskerWithOnlyProfileImage1st(
+            context, userId, _selectedImage!);
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -765,14 +787,13 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                         for (int i = 0; i < specialization.length; i++) {
                           if (specialization[i] == newValue) {
                             _specializationId = i + 1;
+                            debugPrint("Specialization ID: $_specializationId");
                             break;
                           }
                         }
 
                         _controller.specializationIdController.text =
                             _specializationId.toString();
-
-                        debugPrint("Specialization ID: $_specializationId");
                       });
                     },
                     validator: (value) =>
@@ -843,17 +864,25 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                                   size: 80, color: Colors.red)
                               : _existingPDFUrl != null &&
                                       _existingPDFUrl!.isNotEmpty
-                                  ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Image.network(
-                                        _existingPDFUrl!,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error,
-                                                stackTrace) =>
-                                            const Icon(Icons.insert_drive_file,
-                                                size: 80, color: Colors.grey),
-                                      ),
-                                    )
+                                  ? const Icon(Icons.picture_as_pdf,
+                                      size: 80, color: Colors.red)
+
+                                  // ElevatedButton.icon(
+                                  //     onPressed: () {
+                                  //       Navigator.push(
+                                  //         context,
+                                  //         MaterialPageRoute(
+                                  //           builder: (context) =>
+                                  //               PDFViewerScreen(
+                                  //             pdfUrl: _existingPDFUrl!,
+                                  //           ),
+                                  //         ),
+                                  //       );
+                                  //     },
+                                  //     icon: const Icon(Icons.picture_as_pdf,
+                                  //         size: 80, color: Colors.red),
+                                  //     label: const Text("View PDF"),
+                                  //   )
                                   : const Icon(Icons.insert_drive_file,
                                       size: 80, color: Colors.grey),
                         ),
