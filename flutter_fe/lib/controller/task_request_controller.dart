@@ -47,6 +47,34 @@ class TaskRequestController {
     }
   }
 
+  Future<void> depositAmountToEscrow(BuildContext context, double contractPrice) async{
+    try{
+      var response = await _requestService.depositEscrowPayment(contractPrice);
+
+      if(response.containsKey('message')){
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message']),
+          ),
+        );
+      }else{
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['error']),
+          ),
+        );
+      }
+    }catch(e, st){
+      debugPrint(e.toString());
+      debugPrintStack(stackTrace: st);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error depositing amount to escrow. Please try again.'),
+        ),
+      );
+    }
+  }
+
   Future<Map<String, dynamic>> declineRequest(int requestId) async {
     try {
       debugPrint("TaskRequestController: Declining request with ID $requestId");

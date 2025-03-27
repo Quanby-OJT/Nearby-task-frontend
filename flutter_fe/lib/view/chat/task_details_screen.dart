@@ -1,7 +1,6 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/controller/task_request_controller.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
-import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -22,6 +21,7 @@ class TaskDetailsScreen extends StatefulWidget{
 class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   final JobPostService _jobPostService = JobPostService();
   final TaskController taskController = TaskController();
+  final TaskRequestController taskRequestController = TaskRequestController();
   TaskAssignment? taskAssignment;
   bool _isLoading = true;
   String role = "";
@@ -36,7 +36,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     'Others (please specify)'
   ];
   bool rejectFormField = false;
-  bool depositPayment = false;
   final rejectTasker = GlobalKey<FormState>();
 
 
@@ -51,7 +50,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     role = await storage.read('role');
     debugPrint(widget.taskTakenId.toString());
     try {
-      final response = await _jobPostService.fetchAssignedTaskInformation(widget.taskTakenId ?? 0);
+      final response = await _jobPostService.fetchAssignedTaskInformation(widget.taskTakenId);
       debugPrint("Response: $response");
       setState(() {
         taskAssignment = response;
@@ -119,14 +118,14 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                   ),
                   _buildInfoRow(
                       FontAwesomeIcons.locationPin, Colors.red, taskAssignment?.task?.location ?? "N/A"),
-                  _buildInfoRow(FontAwesomeIcons.toolbox, Colors.blue, taskAssignment?.task?.specialization ?? "N/A"),
+                  _buildInfoRow(FontAwesomeIcons.gears, Colors.blue, taskAssignment?.task?.specialization ?? "N/A"),
                   _buildInfoRow(
                     FontAwesomeIcons.moneyBill,
                     Colors.green,
                     "₱ ${
                       NumberFormat(
                         "#,##0.00", "en_PH").format(
-                        taskAssignment?.task?.contactPrice?.roundToDouble() ?? 0.00
+                        taskAssignment?.task?.contactPrice.roundToDouble() ?? 0.00
                         )
                     }"
                   ),
@@ -137,7 +136,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                   _buildInfoRow(FontAwesomeIcons.calendarDay, Colors.red, taskAssignment?.task?.taskBeginDate ?? "N/A"),
                   if(role == "Tasker") ...[
                     _buildInfoRow(
-                        FontAwesomeIcons.chargingStation, Colors.black, taskAssignment?.task?.status ?? "Unknown Status"),
+                        FontAwesomeIcons.toolbox, Colors.black, taskAssignment?.task?.status ?? "Unknown Status"),
                   ],
                   _buildInfoRow(
                       FontAwesomeIcons.paperclip, Colors.brown, taskAssignment?.task?.remarks ?? "N/A"),
@@ -154,7 +153,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                         ),
                       ),
                       SizedBox(width: 50),
-                      Container(
+                      SizedBox(
                         width: 200, // Adjust width as needed
                         child: DropdownButtonFormField(
                           value: taskAssignment?.taskStatus, // Set an initial value if possible
@@ -169,16 +168,15 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                               //taskAssignment?.taskStatus = value.toString();
                               switch (value) {
                                 case "Rejected":
-                                  depositPayment = false;
                                   break;
                                 case "Canceled":
-                                  depositPayment = false;
                                   break;
                                 case "Confirmed":
-                                  depositPayment = true;
+                                  if(role == "Client") {
+                                    showEscrowPayment();
+                                  }
                                   break;
                                 case "Completed":
-                                  depositPayment = false;
                                   break;
                               }
                             });
@@ -206,7 +204,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
             size: 24,
             color: color,
           ),
-          SizedBox(width: 30),
+          SizedBox(width: 10),
           Expanded(
             child: Text(
                 value,
@@ -219,6 +217,58 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void showEscrowPayment(){
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context){
+        return SizedBox(
+          height: MediaQuery.of(context).size.height * 0.25,
+          child: Padding(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Text(
+                  "Please Deposit the Payment Before the Tasker can Start their Work.",
+                  style: GoogleFonts.roboto(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0272B1)
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () => taskRequestController.depositAmountToEscrow(context, taskAssignment?.task?.contactPrice.toDouble() ?? 0.00),
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                      child: Row(
+                      children: [
+                        Icon(
+                          FontAwesomeIcons.piggyBank,
+                          color: Colors.pinkAccent,
+                          size: 30,
+                        ),
+                        SizedBox(width: 20,),
+                        Text(
+                          "Deposit Amount",
+                          style: GoogleFonts.roboto(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.pinkAccent
+                          ),
+                        )
+                      ]
+                    )
+                  )
+                ),
+              ]
+            )
+          )
+        );
+      }
     );
   }
 }

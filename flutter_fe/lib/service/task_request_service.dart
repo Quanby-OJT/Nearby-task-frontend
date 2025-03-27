@@ -8,7 +8,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 
 class TaskRequestService {
-  static const String apiUrl = "http://localhost:5000/connect";
+  static const String apiUrl = "http://10.0.2.2:5000/connect";
   static final storage = GetStorage();
 
   Future<String?> getUserId() async => storage.read('user_id')?.toString();
@@ -368,6 +368,34 @@ class TaskRequestService {
         body: {
           'task_taken_id': requestId,
           'tasker_id': int.parse(userId),
+          'status': 'accepted'
+        },
+      );
+    } catch (e) {
+      debugPrint("Error accepting task request: $e");
+      return {
+        'success': false,
+        'message': 'Failed to accept request: $e',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> depositEscrowPayment(double contractPrice) async {
+    try {
+      final userId = await getUserId();
+      if (userId == null) {
+        return {
+          'success': false,
+          'message': 'Please log in to accept requests',
+        };
+      }
+      debugPrint("Depositing escrow payment with price: $contractPrice");
+
+      return await _postRequest(
+        endpoint: '/deposit-escrow-payment',
+        body: {
+          'client_id': int.parse(userId),
+          'contract_price': contractPrice,
           'status': 'accepted'
         },
       );

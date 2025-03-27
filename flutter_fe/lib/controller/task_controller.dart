@@ -193,7 +193,7 @@ class TaskController {
             location: '',
             period: '',
             duration: '',
-            urgency: taskData['urgent'] as String,
+            urgency: '',
             // Check if this field exists in your API
             status: '',
             contactPrice: 0,
