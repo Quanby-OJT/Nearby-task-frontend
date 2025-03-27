@@ -4,6 +4,7 @@ import 'package:flutter_fe/view/service_acc/chat_screen.dart';
 import 'package:flutter_fe/view/service_acc/home_page.dart';
 import 'package:flutter_fe/view/service_acc/like_screen.dart';
 import 'package:flutter_fe/view/service_acc/schedule_management_page.dart';
+import 'package:flutter_fe/view/service_acc/task_requests_screen.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 
 class ServiceAccMain extends StatefulWidget {
@@ -72,8 +73,8 @@ class _ServiceAccMainState extends State<ServiceAccMain> {
               text: 'Chat',
             ),
             GButton(
-              icon: Icons.list,
-              text: 'Request',
+              icon: Icons.favorite,
+              text: 'Likes',
             ),
             GButton(
               icon: Icons.person,

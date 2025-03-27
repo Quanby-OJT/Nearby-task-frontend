@@ -13,7 +13,6 @@ import '../model/tasker_model.dart';
 import '../model/client_model.dart';
 
 class ApiService {
-
   static const String apiUrl =
       "http://localhost:5000/connect"; // Adjust if needed
 
