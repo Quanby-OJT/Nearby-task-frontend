@@ -5,6 +5,7 @@ import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/nav/user_navigation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:intl/intl.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -219,7 +220,7 @@ class _HomePageState extends State<HomePage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  '₱${task.contactPrice ?? "--"}',
+                                  '\₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice!.roundToDouble())}',
                                   style: GoogleFonts.openSans(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,

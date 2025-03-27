@@ -42,7 +42,7 @@ class UserModel {
       email: json['email'] ?? '',
       password: json['hashed_password'] as String?, // Allow null values
       image: json['image_link'] ?? '', // Ensure it's not null
-      imageName: json['image_name'] as String?, // Allow null values
+      imageName: json['image_link'] as String?, // Allow null values
       role: json['user_role'] ?? '',
       accStatus: json['acc_status'] ?? '',
       contact: json['contact'] ?? '',

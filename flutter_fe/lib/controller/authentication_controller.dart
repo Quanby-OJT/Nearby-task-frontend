@@ -110,6 +110,12 @@ class AuthenticationController {
   Future<void> logout(BuildContext context) async {
     try {
       final storedUserId = storage.read('user_id');
+      // Navigator.pushAndRemoveUntil(
+      //   context,
+      //   MaterialPageRoute(builder: (context) => WelcomePageViewMain()),
+      //   (route) => false,
+      // );
+      // Ensure storedUserId is a valid String or int
 
       if (storedUserId == null) {
         debugPrint("No user ID found in storage");
@@ -125,6 +131,9 @@ class AuthenticationController {
 
       // Convert to String if needed
       final userIdString = storedUserId.toString();
+      // debugPrint(userIdString);
+      // debugPrint("Session: ${await AuthService.getSessionToken()}");
+      // debugPrint("Stored user ID for logout: $userIdString");
       final sessionToken = await AuthService.getSessionToken();
 
       debugPrint("User ID for logout: $userIdString");

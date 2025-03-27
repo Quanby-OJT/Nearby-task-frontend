@@ -69,16 +69,44 @@ class _FillUpTaskerState extends State<FillUpTasker> {
     "Monthly"
   ];
 
-  //TESDA Documents
-  Future<void> _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform
-        .pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
+  // //TESDA Documents
+  // Future<void> _pickFile() async {
+  //   FilePickerResult? result = await FilePicker.platform
+  //       .pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
 
-    if (result != null) {
-      setState(() {
-        _selectedFile = File(result.files.single.path!);
-        _fileName = result.files.single.name;
-      });
+  //   if (result != null) {
+  //     setState(() {
+  //       _selectedFile = File(result.files.single.path!);
+  //       _fileName = result.files.single.name;
+  //     });
+  //   }
+  // }
+
+  Future<void> _pickFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+
+    if (result != null && result.files.single.path != null) {
+      String filePath = result.files.single.path!;
+      String fileExtension =
+          filePath.split('.').last.toLowerCase(); // Extract file extension
+
+      if (fileExtension == 'pdf') {
+        setState(() {
+          _selectedFile = File(filePath);
+          _fileName = result.files.single.name;
+        });
+      } else {
+        // Show an error if the selected file is not a PDF
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Only PDF files are allowed.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -171,8 +199,8 @@ class _FillUpTaskerState extends State<FillUpTasker> {
               selectedSpecialization ?? '';
 
 // Fetch Document Link for tasker
-          final int documentId = user.tasker!.taskerDocuments ?? 0;
-          _fetchDocumentLink(documentId);
+//           final int documentId = user.tasker!.taskerDocuments ?? 0;
+//           _fetchDocumentLink(documentId);
         });
       }
     } catch (error, stackTrace) {
@@ -200,96 +228,16 @@ class _FillUpTaskerState extends State<FillUpTasker> {
     try {
       int userId = int.parse(storage.read('user_id').toString());
 
-      // Check if this is an update or a new creation
-      if (_existingPDFUrl != null &&
-          _existingProfileImageUrl != null &&
-          !_imagesChanged) {
-        // Update without changing images
-        await updateTaskerWithoutImages(userId);
+      if (_existingPDFUrl != null && _existingProfileImageUrl != null) {
+        await _controller.updateTaskerWithoutFile(context, userId);
       } else if (_selectedFile != null && _selectedImage != null) {
-        // Create new with images
-        await _controller.createTasker(
-          context,
-          userId,
-          _selectedFile!,
-          _selectedImage!,
-        );
-      } else {
-        // Images are required for new tasker profiles
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Please upload both a profile image and a document'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        await _controller.updateTaskerWithFile(
+            context, userId, _selectedFile!, _selectedImage!);
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  Future<void> updateTaskerWithoutImages(int userId) async {
-    try {
-      // Create user model with current data
-      UserModel user = UserModel(
-        id: userId,
-        firstName: _firstname,
-        middleName: _middlename,
-        lastName: _lastname,
-        email: _controller.emailController.text,
-        role: _controller.roleController.text,
-        birthdate: _controller.birthdateController.text,
-        contact: _controller.contactNumberController.text,
-        gender: selectedGender ?? '',
-        image: _existingProfileImageUrl,
-      );
-
-      // Show loading indicator
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        },
-      );
-
-      // Call API service to update tasker profile without images
-      Map<String, dynamic> result =
-          await _controller.updateTaskerNoImages(context, user);
-
-      // Close loading indicator
-      Navigator.pop(context);
-
-      if (result.containsKey("errors")) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result["errors"] ??
-                "Failed to update profile. Please try again."),
-            backgroundColor: Colors.red,
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result["message"] ?? "Profile updated successfully"),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        // Navigate to home page or refresh the current page
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error updating profile: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -510,6 +458,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                     onChanged: (String? newValue) {
                       setState(() {
                         selectedGender = newValue;
+                        _controller.genderController.text = newValue!;
                       });
                     },
                     validator: (value) =>

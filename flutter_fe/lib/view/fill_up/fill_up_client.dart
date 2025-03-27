@@ -138,7 +138,15 @@ class _FillUpClientState extends State<FillUpClient> {
         _image = user.user.image?.toString() ?? '';
         _birthday = user.user.birthdate ?? '';
         _isLoading = false;
-        selectedGender = user.user.gender;
+
+        // Ensure selectedGender is one of the valid options in genderOptions
+        String userGender = user.user.gender ?? 'Other';
+        if (genderOptions.contains(userGender)) {
+          selectedGender = userGender;
+        } else {
+          selectedGender = 'Other';
+        }
+
         // Existing profile picture
         _existingProfileImageUrl = user.user.image?.toString() ?? '';
 
@@ -492,68 +500,43 @@ class _FillUpClientState extends State<FillUpClient> {
                                 color: Color(0xFF0272B1), width: 2))),
                   ),
                 ),
-                // Padding(
-                //   padding: const EdgeInsets.only(bottom: 10),
-                //   child: DropdownButtonFormField<String>(
-                //     value: selectedGender,
-                //     validator: (value) => _controller.validateGender(value),
-                //     decoration: InputDecoration(
-                //       filled: true,
-                //       fillColor: Color(0xFFF1F4FF),
-                //       hintText: 'Select Gender',
-                //       hintStyle: TextStyle(color: Colors.grey),
-                //       enabledBorder: OutlineInputBorder(
-                //         borderSide:
-                //             BorderSide(color: Colors.transparent, width: 0),
-                //         borderRadius: BorderRadius.circular(10),
-                //       ),
-                //       focusedBorder: OutlineInputBorder(
-                //         borderRadius: BorderRadius.circular(10),
-                //         borderSide:
-                //             BorderSide(color: Color(0xFF0272B1), width: 2),
-                //       ),
-                //     ),
-                //     items: genderOptions.map((String gender) {
-                //       return DropdownMenuItem<String>(
-                //         value: gender,
-                //         child: Text(gender),
-                //       );
-                //     }).toList(),
-                //     onChanged: (String? newValue) {
-                //       setState(() {
-                //         selectedGender = newValue;
-                //         _controller.genderController.text = newValue ?? '';
-                //       });
-                //     },
-                //   ),
-                // ),
-
-                // Padding(
-                //   padding: EdgeInsets.only(bottom: 10.0),
-                //   child: DropdownButtonFormField<String>(
-                //     decoration: InputDecoration(
-                //       filled: true,
-                //       fillColor: Color(0xFFF1F4FF),
-                //       hintText: 'Select Your Gender...',
-                //       hintStyle: TextStyle(color: Colors.grey),
-                //       enabledBorder: OutlineInputBorder(
-                //           borderSide: BorderSide(color: Colors.transparent)),
-                //     ),
-                //     value: selectedGender,
-                //     items: genderOptions.map((String gender) {
-                //       return DropdownMenuItem<String>(
-                //         value: gender,
-                //         child: Text(gender),
-                //       );
-                //     }).toList(),
-                //     onChanged: (String? newValue) {
-                //       setState(() {
-                //         selectedGender = newValue;
-                //       });
-                //     },
-                //   ),
-                // ),
-
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: DropdownButtonFormField<String>(
+                    value: selectedGender,
+                    validator: (value) => _controller.validateGender(value),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Color(0xFFF1F4FF),
+                      hintText: 'Select Gender',
+                      hintStyle: TextStyle(color: Colors.grey),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: Colors.transparent, width: 0),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide:
+                            BorderSide(color: Color(0xFF0272B1), width: 2),
+                      ),
+                    ),
+                    items: genderOptions.map((String gender) {
+                      return DropdownMenuItem<String>(
+                        value: gender,
+                        child: Text(gender),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      if (newValue != null) {
+                        setState(() {
+                          selectedGender = newValue;
+                          _controller.genderController.text = newValue;
+                        });
+                      }
+                    },
+                  ),
+                ),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextFormField(
