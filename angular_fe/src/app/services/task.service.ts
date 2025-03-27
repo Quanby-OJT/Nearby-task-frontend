@@ -8,7 +8,7 @@ import { SessionLocalStorage } from 'src/services/sessionStorage';
   providedIn: 'root',
 })
 export class TaskService {
-  private apiUrl = `${environment.apiUrl}/connect`; // Use environment variable
+  private apiUrl = 'http://localhost:5000/connect';
 
   constructor(private http: HttpClient, private sessionStorage: SessionLocalStorage) {}
 
