@@ -79,7 +79,7 @@ export class ClientComplaintComponent implements AfterViewInit {
   }
 
   startAutoSwipe() {
-    this.autoSwipeInterval = setInterval(() => this.nextSlide(), 5000);
+    this.autoSwipeInterval = setInterval(() => this.nextSlide(), 3000);
   }
 
   stopAutoSwipe() {
