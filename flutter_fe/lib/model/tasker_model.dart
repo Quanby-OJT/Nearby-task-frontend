@@ -7,7 +7,7 @@ class TaskerModel {
   final String skills;
   final bool availability;
   final int? taskerDocuments;
-  final String? socialMediaLinks;
+  final Map<String, String>? socialMediaLinks;
   final String taskerAddress;
   final double wage;
   final String payPeriod;
@@ -47,7 +47,9 @@ class TaskerModel {
       bio: json['bio'] ?? '',
       skills: json['skills'] ?? '',
       availability: json['availability'] ?? false,
-      socialMediaLinks: json['social_media_links'] ?? '',
+      socialMediaLinks: json['social_media_links'] != null
+          ? Map<String, String>.from(json['social_media_links'])
+          : null,
       taskerAddress: json['address'] ?? '',
       specialization:
           json['specialization_id']?.toString() ?? '', // Use specialization_id
@@ -84,7 +86,7 @@ class TaskerModel {
 
       // MUST in another table
       "tesda_documents_id": taskerDocuments,
-      "social_media_links": socialMediaLinks,
+      "social_media_links": socialMediaLinks ?? {},
       "gender": gender,
 
       // remove kasi nasa user na siya
