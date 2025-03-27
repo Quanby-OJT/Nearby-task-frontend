@@ -631,10 +631,12 @@ class ProfileController {
     }
   }
 
-  Future<void> createTasker(BuildContext context, int userId, File documentFile, File profileImage) async {
+  // this is for tasker without profile and PDF
+  Future<Map<String, dynamic>> updateTaskerNoImages(
+      BuildContext context, UserModel user) async {
+
     try {
       // Validate fields
-
       String? contactError =
           validateContactNumber(contactNumberController.text);
       String? genderError = validateGender(genderController.text);
@@ -646,64 +648,10 @@ class ProfileController {
       String? bioError = validateBio(bioController.text);
       String? skillsError = validateSkills(skillsController.text);
       String? roleError = validateRole(roleController.text);
-      // if (birthdateController.text.isEmpty) {
-      //   ScaffoldMessenger.of(context).showSnackBar(
-      //     SnackBar(content: Text('Please enter your birthdate')),
-      //   );
-      //   return;
-      // }
-      // DateTime birthDate = DateTime.parse(birthdateController.text);
-      // DateTime eighteenYearsAgo =
-      // DateTime.now().subtract(Duration(days: 18 * 365));
-      // if (birthDate.isAfter(eighteenYearsAgo)) {
-      //   ScaffoldMessenger.of(context).showSnackBar(
-      //     SnackBar(
-      //         content: Text('You must be at least 18 years old to register')),
-      //   );
-      //   return;
-      // }
-      //
-      // List<String> socials = [
-      //   fbLinkController.text,
-      //   instaLinkController.text,
-      //   xLinkController.text
-      // ];
-      //
-      // TaskerModel tasker = TaskerModel(
-      //     id: 0,
-      //     bio: bioController.text,
-      //     specialization: specializationController.text,
-      //     skills: skillsController.text,
-      //     taskerAddress: taskerAddressController.text,
-      //     taskerDocuments: documentFile.path,
-      //     socialMediaLinks: socials,
-      //     availability: false,
-      //     wage: double.tryParse(wageController.text) ?? 0,
-      //     group: false,
-      //     phoneNumber: contactNumberController.text,
-      //     payPeriod: "Hourly",
-      //     birthDate: DateTime.parse(birthdateController.text)
-      // );
-      //
-      // //Code to create tasker information.
-      // Map<String, dynamic> resultData =
-      // await ApiService.createTasker(tasker, documentFile, profileImage);
-      //
-      // if (resultData.containsKey('message')) {
-      //   ScaffoldMessenger.of(context).showSnackBar(
-      //     SnackBar(content: Text(resultData['message'])),
-      //   );
-      // } else {
-      //   ScaffoldMessenger.of(context).showSnackBar(
-      //     SnackBar(
-      //       content: Text('Error: $e'),
-      //       backgroundColor: Colors.red,
-      //     ),
-      //   );
-      // }
+      String? specializationIdError =
+          validateSpecializationId(specializationIdController.text);
 
-      debugPrint(
-          "Validation errors: $contactError, $genderError, $birthdateError, $specializationError, $wageError, $payScheduleError, $roleError, $bioError, $skillsError");
+
       // Check if there are any validation errors
       if (contactError != null ||
           genderError != null ||
@@ -713,82 +661,100 @@ class ProfileController {
           payScheduleError != null ||
           bioError != null ||
           skillsError != null ||
-          roleError != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(contactError ??
-                genderError ??
-                birthdateError ??
-                specializationError ??
-                wageError ??
-                payScheduleError ??
-                roleError ??
-                bioError ??
-                skillsError ??
-                "Please fix the errors in the form"),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
+          roleError != null ||
+          specializationIdError != null) {
+        return {
+          "errors": contactError ??
+              genderError ??
+              birthdateError ??
+              specializationError ??
+              wageError ??
+              payScheduleError ??
+              roleError ??
+              bioError ??
+              skillsError ??
+              specializationIdError ??
+              "Please fix the errors in the form"
+        };
       }
 
-      // Create user model
-      UserModel user = UserModel(
-        id: userId,
-        firstName: firstNameController.text,
-        middleName: middleNameController.text.isNotEmpty
-            ? middleNameController.text
-            : null,
-        lastName: lastNameController.text,
-        email: emailController.text,
-        role: roleController.text,
-        birthdate: birthdateController.text,
-        contact: contactNumberController.text,
-        gender: genderController.text,
-      );
-
-      debugPrint("User model: $user");
-
-      // Show loading indicator
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
+      // Call API service to update user without images
+      Map<String, dynamic> result =
+          await ApiService.updateTaskerProfileNoImages(
+        user.id ?? 0, // Use 0 as fallback if id is null
+        {
+          "first_name": user.firstName,
+          "middle_name": user.middleName ?? '',
+          "last_name": user.lastName,
+          "email": user.email,
+          "user_role": user.role,
+          "contact": user.contact ?? '',
+          "gender": user.gender ?? '',
+          "birthdate": user.birthdate ?? '',
+          "specialization": specializationIdController.text,
+          "bio": bioController.text,
+          "skills": skillsController.text,
+          "wage_per_hour": wageController.text,
+          "pay_period": payPeriodController.text,
         },
       );
 
-      // Call API service to update user with both images
-      Map<String, dynamic> resultData = await taskerService.updateTaskerProfile(
-          user, profileImage, documentFile);
-
-      // Close loading indicator
-      Navigator.pop(context);
-
-      if (resultData.containsKey("errors")) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(resultData["errors"] ??
-                "Failed to update user with images. Please try again."),
-            backgroundColor: Colors.red,
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(resultData["message"] ?? "User updated successfully"),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
+      return result;
     } catch (e) {
-
+      return {"errors": "Error updating profile: $e"};
     }
   }
 
-  Future<Map<String, dynamic>> updateTaskerNoImages(BuildContext context, UserModel user) async {
+  Future<AuthenticatedUser?> getAuthenticatedUser(
+      BuildContext context, int userId) async {
+    try {
+      var result = await ApiService.fetchAuthenticatedUser(userId);
+      debugPrint("Data fetch from profile controller: $result");
+
+      if (result.containsKey("user")) {
+        UserModel user = result["user"] as UserModel;
+        debugPrint("Retrieved Data: $user");
+
+        if (result.containsKey("client")) {
+          //Client
+          ClientModel client = result["client"] as ClientModel;
+          debugPrint("User is a client and has client data: $client");
+          return AuthenticatedUser(user: user, client: client);
+        } else if (result.containsKey("tasker")) {
+          TaskerModel tasker = result["tasker"] as TaskerModel;
+          //Tasker
+          debugPrint("User is a tasker and has tasker data: $tasker $user");
+
+          return AuthenticatedUser(user: user, tasker: tasker);
+        }
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result["error"] ?? "Unknown error occurred.")),
+      );
+      return null;
+    } catch (e) {
+      print(e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+      return null;
+    }
+  }
+
+  // Fetching document link from database
+  Future<String?> getDocumentLink(int documentId) async {
+    final response = await taskerService.getDocumentLink(documentId);
+    if (response.containsKey("data")) {
+      return response["data"] as String?;
+    }
+    return null;
+  }
+
+  // this is for tasker with profile and PDF
+  Future<Map<String, dynamic>> updateTaskerWithFiles(
+      BuildContext context, UserModel user, File file, File image) async {
+
     try {
       // Validate fields
       String? contactError =
@@ -831,12 +797,10 @@ class ProfileController {
         };
       }
 
-      //convert specialization to ID
-
       // Call API service to update user without images
       Map<String, dynamic> result =
-          await ApiService.updateTaskerProfileNoImages(
-        user.id ?? 0, // Use 0 as fallback if id is null
+          await ApiService.updateTaskerProfileWithFiles(
+        user.id ?? 0, file, image, // Use 0 as fallback if id is null
         {
           "first_name": user.firstName,
           "middle_name": user.middleName ?? '',
@@ -860,54 +824,67 @@ class ProfileController {
     }
   }
 
-  Future<AuthenticatedUser?> getAuthenticatedUser(BuildContext context, int userId) async {
+  // This is for tasker without profile and PDF
+  Future<void> updateTaskerWithoutFile(BuildContext context, int userId) async {
     try {
-      var result = await ApiService.fetchAuthenticatedUser(userId);
-      debugPrint("Data fetch from profile controller: $result");
+      // Create user model with current data
+      UserModel user = UserModel(
+        id: userId,
+        firstName: firstNameController.text,
+        middleName: middleNameController.text,
+        lastName: lastNameController.text,
+        email: emailController.text,
+        role: roleController.text,
+        birthdate: birthdateController.text,
+        contact: contactNumberController.text,
+        gender: genderController.text,
+        image: imageController.text,
+      );
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        },
+      );
 
-      if (result.containsKey("user")) {
-        // Parse User data
-        UserModel user = result["user"] as UserModel;
-        debugPrint("Retrieved Data: $user");
+      // Call API service to update tasker profile without images
+      Map<String, dynamic> result = await updateTaskerNoImages(context, user);
 
-        if (result.containsKey("client")) {
-          // Parse Client data
-          ClientModel client = result["client"] as ClientModel;
-          debugPrint("User is a client and has client data: $client");
-          return AuthenticatedUser(user: user, client: client);
-        }
-        else if (result.containsKey("tasker") && result["tasker"] != null) {
-          // Parse Tasker data
-          TaskerModel tasker = result["tasker"] as TaskerModel;
-          debugPrint("Retrieved Tasker Data: $tasker");
-          return AuthenticatedUser(user: user, tasker: tasker);
-        }
+      // Close loading indicator
+      Navigator.pop(context);
 
-        // Return just user if no client or tasker data
-        return AuthenticatedUser(user: user);
+      if (result.containsKey("errors")) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result["errors"] ??
+                "Failed to update profile. Please try again."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result["message"] ?? "Profile updated successfully"),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Navigate to home page or refresh the current page
+        Navigator.pop(context);
       }
-
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result["error"] ?? "Unknown error occurred.")),
-      );
-      return null;
-    } catch (e, stackTrace) {
-      debugPrint(e.toString());
-      debugPrintStack(stackTrace: stackTrace);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("An error occurred while displaying your data. Please try again.")),
-      );
-      return null;
-    }
-  }
+        SnackBar(
+          content: Text('Error updating profile: $e'),
+          backgroundColor: Colors.red,
+        ),
 
-  // Fetching document link from database
-  Future<String?> getDocumentLink(int documentId) async {
-    final response = await taskerService.getDocumentLink(documentId);
-    if (response.containsKey("data")) {
-      return response["data"] as String?;
+      );
     }
-    return null;
   }
 
   Future<void> updateUser(

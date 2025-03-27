@@ -4,6 +4,7 @@ import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/nav/user_navigation.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/service_acc/task_information.dart';
+import 'package:flutter_fe/view/service_acc/task_requests_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:intl/intl.dart';
@@ -239,6 +240,18 @@ class _LikeScreenState extends State<LikeScreen> {
             child: _buildBody(),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => TaskRequestsScreen()),
+          );
+        },
+        backgroundColor: Colors.blue,
+        // icon: Icon(Icons.notifications, color: Colors.white),
+        label: Text('Requests', style: TextStyle(color: Colors.white)),
+        tooltip: 'Task Requests',
       ),
     );
   }

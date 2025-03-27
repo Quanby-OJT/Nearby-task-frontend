@@ -39,7 +39,6 @@ class TaskController {
       // Parse the price as an integer
       final priceText = contactPriceController.text.trim();
       final priceInt = int.tryParse(priceText) ?? 0;
-
       final task = TaskModel(
         id: 0,
         clientId: userId,
@@ -99,12 +98,21 @@ class TaskController {
   }
 
   Future<String> assignTask(int taskId, int clientId, int taskerId) async {
-    debugPrint("Assigning task...");
-    final assignedTask =
-    await _jobPostService.assignTask(taskId, clientId, taskerId);
-    return assignedTask.containsKey('message')
-        ? assignedTask['message'].toString()
-        : assignedTask['error'].toString();
+    debugPrint("Sending task request...");
+    final result = await _jobPostService.assignTask(taskId, clientId, taskerId);
+
+    debugPrint("Task assignment result: $result");
+
+    // If there's a "message" in the response, consider it a success
+    if (result.containsKey('message')) {
+      return result['message'] ??
+          "Task request sent successfully. Waiting for tasker to accept.";
+    } else if (result.containsKey('error')) {
+      return result['error'] ??
+          "Failed to send task request. Please try again.";
+    } else {
+      return "Task request sent. Please check your requests page for status.";
+    }
   }
 
   // Method to update a task
@@ -166,7 +174,7 @@ class TaskController {
   //All Messages to client/tasker
   Future<List<TaskAssignment>?> getAllAssignedTasks(BuildContext context,
       int userId) async {
-    try {
+    try{
       final assignedTasks = await TaskDetailsService().getAllTakenTasks();
       debugPrint(assignedTasks.toString());
 
@@ -176,24 +184,26 @@ class TaskController {
           // Parse tasks from post_task
           Map<String, dynamic> taskData =
           item['post_task'] as Map<String, dynamic>;
-          debugPrint("Task Data: $taskData");
           int taskTakenId = item['task_taken_id'];
           TaskModel task = TaskModel(
             title: taskData['task_title'] as String,
-            clientId: 0,
+            clientId: null,
             specialization: '',
             description: '',
             location: '',
             period: '',
             duration: '',
-            urgency: '',
+            urgency: taskData['urgent'] as String,
             // Check if this field exists in your API
             status: '',
             contactPrice: 0,
-            remarks: null,
+            remarks: '',
             taskBeginDate: '',
             workType: '',
-            id: taskData['task_id'],
+            id: taskData[
+                'task_id'], // Use taskTakenId here if it's meant to be the task's ID
+
+            //id: taskData['task_id'], // Use taskTakenId here if it's meant to be the task's ID
           );
 
           Map<String, dynamic> clientData =
@@ -244,27 +254,28 @@ class TaskController {
           );
 
 
-          // Create TaskAssignment with the correct taskTakenId
-          TaskAssignment assignment = TaskAssignment(
-              client: client,
-              tasker: tasker,
-              task: task,
-              taskTakenId: taskTakenId,
-              // Use the root-level task_taken_id
-              taskStatus: item['task_status']
+
+            // Create TaskAssignment with the correct taskTakenId
+            TaskAssignment assignment = TaskAssignment(
+                client: client,
+                tasker: tasker,
+                task: task,
+                taskTakenId: taskTakenId,
+                // Use the root-level task_taken_id
+                taskStatus: item['task_status']
+            );
+            debugPrint("Task Assignment: $assignment"); // Verify the full object
+            return assignment;
+          }).toList();
+          return taskAssignments;
+        }else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(assignedTasks['error'] ??
+                    "Something Went Wrong while Retrieving Your Tasks.")),
           );
-          debugPrint("Task Assignment: $assignment"); // Verify the full object
-          return assignment;
-        }).toList();
-        return taskAssignments;
-      }else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(assignedTasks['error'] ??
-                  "Something Went Wrong while Retrieving Your Tasks.")),
-        );
-        return null;
-      }
+          return null;
+        }
     } catch(e, st){
       debugPrint("Error fetching assigned tasks: $e");
       debugPrintStack(stackTrace: st);

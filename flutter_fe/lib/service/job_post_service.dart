@@ -367,12 +367,15 @@ class JobPostService {
       };
     }
 
-    debugPrint("$taskId $clientId $taskerId");
+    debugPrint("Sending task request...");
+    debugPrint("Task ID: $taskId, Client ID: $clientId, Tasker ID: $taskerId");
 
     return _postRequest(endpoint: "/assign-task", body: {
       "tasker_id": taskerId,
       "client_id": clientId,
-      "task_id": taskId
+      "task_id": taskId,
+      // Backend expects task_status field, not status
+      "task_status": "Pending"
     });
   }
 

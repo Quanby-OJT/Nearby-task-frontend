@@ -50,6 +50,11 @@ class TaskerModel {
       availability: json['availability'] ?? false,
       socialMediaLinks: (json['social_media_links'] as Map<String, dynamic>)
           .map((key, value) => MapEntry(key, value as String)),
+
+   //   socialMediaLinks: json['social_media_links'] != null
+   //       ? Map<String, String>.from(json['social_media_links'])
+   //       : null,
+
       taskerAddress: json['address'] ?? '',
       specialization: json['tasker_specialization']['specialization'] ?? '',
       taskerDocuments: json['tesda_document_link'] ?? '',
@@ -72,8 +77,15 @@ class TaskerModel {
       //Must be in another table
       "address": taskerAddress,
       "availability": availability,
+
       "tesda_documents_link": taskerDocuments,
-      "social_media_links": socialMediaLinks,
+    //  "social_media_links": socialMediaLinks,
+
+
+      // MUST in another table
+     // "tesda_documents_id": taskerDocuments,
+      "social_media_links": socialMediaLinks ?? {},
+
 
       // remove kasi nasa user na siya
       "contact_number": phoneNumber,
