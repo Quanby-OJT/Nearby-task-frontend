@@ -35,6 +35,82 @@ class ApiService {
     print('Updated Cookies: $_cookies'); // Debugging
   }
 
+  // Update tasker profile with PDF file
+  static Future<Map<String, dynamic>> updateTaskerWithFile(
+      UserModel user, File file) async {
+    try {
+      String token = await AuthService.getSessionToken();
+
+      var request = http.MultipartRequest(
+        "PUT",
+        Uri.parse("$apiUrl/update-tasker-with-file/${user.id}"),
+      );
+
+      request.headers.addAll({
+        "Authorization": "Bearer $token",
+        "Content-Type": "multipart/form-data",
+      });
+
+      request.fields.addAll({
+        "first_name": user.firstName,
+        "middle_name": user.middleName ?? '',
+        "last_name": user.lastName,
+        "email": user.email,
+        "user_role": user.role,
+        "acc_status": user.accStatus ?? '',
+        "birthday": user.birthdate ?? '',
+        "contact": user.contact ?? '',
+        "gender": user.gender ?? '',
+      });
+
+      // Add the ID image to the request
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          "file",
+          await file.readAsBytes(),
+          filename: "file.jpg",
+        ),
+      );
+
+      var response = await request.send();
+      var responseBody = await response.stream.bytesToString();
+
+      debugPrint('Response Status: ${response.statusCode}');
+      debugPrint('Response Body update id image: $responseBody');
+
+      final responseData = jsonDecode(responseBody);
+
+      if (response.statusCode == 200) {
+        return {
+          "message": responseData["message"] ??
+              "User information with ID image updated successfully!",
+          "user": responseData["user"]
+        };
+      } else if (response.statusCode == 400) {
+        String errorMessage = "";
+        if (responseData['errors'] is String) {
+          errorMessage = responseData['errors'];
+        } else if (responseData['errors'] is List) {
+          errorMessage = (responseData['errors'] as List)
+              .map((e) => e['msg'] ?? e.toString())
+              .join('\n');
+        }
+        return {
+          "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed."
+        };
+      } else {
+        return {
+          "errors": responseData["error"] ?? "An unexpected error occurred."
+        };
+      }
+    } catch (e) {
+      return {
+        "errors":
+            "An error occurred during updating user information with ID image: $e"
+      };
+    }
+  }
+
   static Future<Map<String, dynamic>> updateUser(UserModel user) async {
     try {
       final response = await _client.put(
@@ -59,20 +135,20 @@ class ApiService {
       debugPrint('Response Status: ${response.statusCode}');
       debugPrint('Response Body: ${response.body}');
 
-      final data = jsonDecode(response.body);
+      final responseData = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
         return {
-          "message":
-              data["message"] ?? "User information updated successfully!",
-          "user": data["user"]
+          "message": responseData["message"] ??
+              "User information updated successfully!",
+          "user": responseData["user"]
         };
       } else if (response.statusCode == 400) {
         String errorMessage = "";
-        if (data['errors'] is String) {
-          errorMessage = data['errors'];
-        } else if (data['errors'] is List) {
-          errorMessage = (data['errors'] as List)
+        if (responseData['errors'] is String) {
+          errorMessage = responseData['errors'];
+        } else if (responseData['errors'] is List) {
+          errorMessage = (responseData['errors'] as List)
               .map((e) => e['msg'] ?? e.toString())
               .join('\n');
         }
@@ -80,7 +156,9 @@ class ApiService {
           "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed."
         };
       } else {
-        return {"errors": data["error"] ?? "An unexpected error occurred."};
+        return {
+          "errors": responseData["error"] ?? "An unexpected error occurred."
+        };
       }
     } catch (e) {
       return {
@@ -89,9 +167,92 @@ class ApiService {
     }
   }
 
+// this is for tasker with files and pdf
+  static Future<Map<String, dynamic>> updateTaskerProfileWithFiles(
+      int userId, File file, File image, Map<String, dynamic> data) async {
+    try {
+      final token = await AuthService.getSessionToken();
+      final request = http.MultipartRequest(
+        "PUT",
+        Uri.parse("$apiUrl/update-tasker-with-file-profile/${userId}"),
+      );
+
+      request.headers.addAll({
+        "Authorization": "Bearer $token",
+        "Content-Type": "multipart/form-data",
+      });
+
+      // Convert dynamic values to strings
+      Map<String, String> stringData = {};
+      data.forEach((key, value) {
+        stringData[key] = value?.toString() ?? '';
+      });
+
+      request.fields.addAll(stringData);
+
+      // Add the profile image to the request
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          "file",
+          await file.readAsBytes(),
+          filename: "file.pdf",
+        ),
+      );
+
+      // Add the ID image to the request
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          "image",
+          await image.readAsBytes(),
+          filename: "image.jpg",
+        ),
+      );
+
+      var response = await request.send();
+      var responseBody = await response.stream.bytesToString();
+
+      debugPrint('Response Status: ${response.statusCode}');
+      debugPrint('Response Body: $responseBody');
+
+      final responseData = jsonDecode(responseBody);
+
+      if (response.statusCode == 200) {
+        return {
+          "message": responseData["message"] ??
+              "User information updated successfully!",
+          "user": responseData["user"]
+        };
+      } else if (response.statusCode == 400) {
+        String errorMessage = "";
+        if (responseData['errors'] is String) {
+          errorMessage = responseData['errors'];
+        } else if (responseData['errors'] is List) {
+          errorMessage = (responseData['errors'] as List)
+              .map((e) => e['msg'] ?? e.toString())
+              .join('\n');
+        }
+        return {
+          "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed."
+        };
+      } else {
+        return {
+          "errors": responseData["error"] ?? "An unexpected error occurred."
+        };
+      }
+    } catch (e) {
+      return {
+        "errors": "An error occurred during updating user information: $e"
+      };
+    }
+  }
+
+  // This is for the tasker updating user information without images and pdf
+
   static Future<Map<String, dynamic>> updateTaskerProfileNoImages(
       int userId, Map<String, dynamic> data) async {
     try {
+      debugPrint('Data: $data');
+      debugPrint('User Id from the controller: $userId');
       final token = await AuthService.getSessionToken();
       final response = await _client.put(
         Uri.parse("$apiUrl/update-tasker-profile/$userId"),
@@ -156,20 +317,20 @@ class ApiService {
       debugPrint('Response Status: ${response.statusCode}');
       debugPrint('Response Body updated: $responseBody');
 
-      final data = jsonDecode(responseBody);
+      final responseData = jsonDecode(responseBody);
 
       if (response.statusCode == 200) {
         return {
-          "message": data["message"] ??
+          "message": responseData["message"] ??
               "User information with profile image updated successfully!",
-          "user": data["user"]
+          "user": responseData["user"]
         };
       } else if (response.statusCode == 400) {
         String errorMessage = "";
-        if (data['errors'] is String) {
-          errorMessage = data['errors'];
-        } else if (data['errors'] is List) {
-          errorMessage = (data['errors'] as List)
+        if (responseData['errors'] is String) {
+          errorMessage = responseData['errors'];
+        } else if (responseData['errors'] is List) {
+          errorMessage = (responseData['errors'] as List)
               .map((e) => e['msg'] ?? e.toString())
               .join('\n');
         }
@@ -177,7 +338,9 @@ class ApiService {
           "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed."
         };
       } else {
-        return {"errors": data["error"] ?? "An unexpected error occurred."};
+        return {
+          "errors": responseData["error"] ?? "An unexpected error occurred."
+        };
       }
     } catch (e) {
       return {
@@ -229,20 +392,20 @@ class ApiService {
       debugPrint('Response Status: ${response.statusCode}');
       debugPrint('Response Body update id image: $responseBody');
 
-      final data = jsonDecode(responseBody);
+      final responseData = jsonDecode(responseBody);
 
       if (response.statusCode == 200) {
         return {
-          "message": data["message"] ??
+          "message": responseData["message"] ??
               "User information with ID image updated successfully!",
-          "user": data["user"]
+          "user": responseData["user"]
         };
       } else if (response.statusCode == 400) {
         String errorMessage = "";
-        if (data['errors'] is String) {
-          errorMessage = data['errors'];
-        } else if (data['errors'] is List) {
-          errorMessage = (data['errors'] as List)
+        if (responseData['errors'] is String) {
+          errorMessage = responseData['errors'];
+        } else if (responseData['errors'] is List) {
+          errorMessage = (responseData['errors'] as List)
               .map((e) => e['msg'] ?? e.toString())
               .join('\n');
         }
@@ -250,7 +413,9 @@ class ApiService {
           "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed."
         };
       } else {
-        return {"errors": data["error"] ?? "An unexpected error occurred."};
+        return {
+          "errors": responseData["error"] ?? "An unexpected error occurred."
+        };
       }
     } catch (e) {
       return {
@@ -310,22 +475,22 @@ class ApiService {
       debugPrint('Response Status: ${response.statusCode}');
       debugPrint('Response Body: $responseBody');
 
-      final data = jsonDecode(responseBody);
+      final responseData = jsonDecode(responseBody);
 
       if (response.statusCode == 200) {
         return {
-          "message": data["message"] ??
+          "message": responseData["message"] ??
               "User information with images updated successfully!",
-          "user": data["user"],
-          "profileImage": data["profileImage"],
-          "idImage": data["idImage"],
+          "user": responseData["user"],
+          "profileImage": responseData["profileImage"],
+          "idImage": responseData["idImage"],
         };
       } else if (response.statusCode == 400) {
         String errorMessage = "";
-        if (data['errors'] is String) {
-          errorMessage = data['errors'];
-        } else if (data['errors'] is List) {
-          errorMessage = (data['errors'] as List)
+        if (responseData['errors'] is String) {
+          errorMessage = responseData['errors'];
+        } else if (responseData['errors'] is List) {
+          errorMessage = (responseData['errors'] as List)
               .map((e) => e['msg'] ?? e.toString())
               .join('\n');
         }
@@ -333,7 +498,9 @@ class ApiService {
           "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed."
         };
       } else {
-        return {"errors": data["error"] ?? "An unexpected error occurred."};
+        return {
+          "errors": responseData["error"] ?? "An unexpected error occurred."
+        };
       }
     } catch (e) {
       debugPrint("Error updating user with images: $e");
@@ -364,19 +531,19 @@ class ApiService {
       debugPrint('Response Status: ${response.statusCode}');
       debugPrint('Response Body: ${response.body}');
 
-      final data = jsonDecode(response.body);
+      final responseData = jsonDecode(response.body);
 
       if (response.statusCode == 201) {
         return {
-          "message": data["message"] ??
+          "message": responseData["message"] ??
               "Registration successful! Please check your email to verify your account.",
-          "user": data["user"]
+          "user": responseData["user"]
         };
       } else if (response.statusCode == 400) {
-        if (data['errors'] is String) {
-          return {"errors": data['errors']};
-        } else if (data['errors'] is List) {
-          String errorMessage = (data['errors'] as List)
+        if (responseData['errors'] is String) {
+          return {"errors": responseData['errors']};
+        } else if (responseData['errors'] is List) {
+          String errorMessage = (responseData['errors'] as List)
               .map((e) => e['msg'] ?? e.toString())
               .join('\n');
           return {"errors": errorMessage};
@@ -384,7 +551,7 @@ class ApiService {
         return {"errors": "Registration failed. Please try again."};
       } else {
         return {
-          "errors": data["error"] ??
+          "errors": responseData["error"] ??
               "An error occurred during registration. Please try again."
         };
       }
@@ -402,19 +569,19 @@ class ApiService {
           body: json.encode({"token": token, "email": email}));
 
       debugPrint('Verify Response: ${response.statusCode} - ${response.body}');
-      final data = jsonDecode(response.body);
+      final responseData = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
         _updateCookies(response);
         return {
-          "message": data["message"] ?? "Email verified successfully",
-          "user_id": data["user_id"],
-          "session": data["session"]
+          "message": responseData["message"] ?? "Email verified successfully",
+          "user_id": responseData["user_id"],
+          "session": responseData["session"]
         };
       } else {
         return {
-          "error":
-              data["error"] ?? "Email verification failed. Please try again."
+          "error": responseData["error"] ??
+              "Email verification failed. Please try again."
         };
       }
     } catch (e) {
@@ -463,21 +630,22 @@ class ApiService {
 
       debugPrint("Status Code: ${response.statusCode}");
       var body = await response.stream.bytesToString();
-      var data = jsonDecode(body);
-      debugPrint("Response Data: $data");
+      var responseData = jsonDecode(body);
+      debugPrint("Response Data: $responseData");
 
       if (response.statusCode == 201) {
         return {
-          "message": data["message"] ??
+          "message": responseData["message"] ??
               "Profile Created Successfully. Please Wait for Our Team to Verify Your Account"
         };
       } else if (response.statusCode == 400) {
         return {
-          "error": data["errors"] ?? "Please Check Your inputs and try again"
+          "error":
+              responseData["errors"] ?? "Please Check Your inputs and try again"
         };
       } else {
         return {
-          "error": data["error"] ??
+          "error": responseData["error"] ??
               "Something went wrong when creating your profile. Please try again."
         };
       }
@@ -507,31 +675,35 @@ class ApiService {
           });
 
       debugPrint("Retreived Data from: ${response.body}");
-      var data = jsonDecode(response.body);
+      var responseData = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
         UserModel user =
-            UserModel.fromJson(data['user'] as Map<String, dynamic>);
-        if (data['user']['user_role'] == "Client") {
-          debugPrint("User is a client and has client data: ${data['client']}");
-          ClientModel client =
-              ClientModel.fromJson(data['client'] as Map<String, dynamic>);
+            UserModel.fromJson(responseData['user'] as Map<String, dynamic>);
+        if (responseData['user']['user_role'].toLowerCase() == "client") {
+          debugPrint(
+              "User is a client and has client data: ${responseData['client']}");
+          ClientModel client = ClientModel.fromJson(
+              responseData['client'] as Map<String, dynamic>);
           return {"user": user, "client": client};
-        } else if (data['user']['user_role'] == "Tasker") {
-          debugPrint("User is a tasker and has tasker data: ${data['tasker']}");
-          TaskerModel tasker =
-              TaskerModel.fromJson(data['tasker'] as Map<String, dynamic>);
+        } else if (responseData['user']['user_role'].toLowerCase() ==
+            "tasker") {
+          debugPrint(
+              "User is a tasker and has tasker data: ${responseData['tasker']}");
+          TaskerModel tasker = TaskerModel.fromJson(
+              responseData['tasker'] as Map<String, dynamic>);
 
           debugPrint("User is a tasker and has tasker data: $tasker");
 
           return {"user": user, "tasker": tasker};
         } else {
           return {
-            "error": data['error'] ?? "An Error Occured while retrieving data"
+            "error": responseData['error'] ??
+                "An Error Occured while retrieving data"
           };
         }
       } else {
-        return {"error": data['error'] ?? "Failed to fetch user data"};
+        return {"error": responseData['error'] ?? "Failed to fetch user data"};
       }
     } catch (e, stackTrace) {
       debugPrint(e.toString());
@@ -557,16 +729,17 @@ class ApiService {
 
       //_updateCookies(response);
 
-      var data = json.decode(response.body);
+      var responseData = json.decode(response.body);
 
       if (response.statusCode == 200) {
-        return {"user_id": data['user_id']};
-      } else if (response.statusCode == 400 && data.containsKey('errors')) {
-        List<dynamic> errors = data['errors'];
+        return {"user_id": responseData['user_id']};
+      } else if (response.statusCode == 400 &&
+          responseData.containsKey('errors')) {
+        List<dynamic> errors = responseData['errors'];
         String errorMessage = errors.map((e) => e['msg']).join('\n');
         return {"validation_error": errorMessage};
       } else {
-        return {"error": data['error'] ?? 'Authentication Failed'};
+        return {"error": responseData['error'] ?? 'Authentication Failed'};
       }
     } catch (e, stackTrace) {
       debugPrint('Error: $e');
@@ -585,17 +758,18 @@ class ApiService {
         }),
       );
 
-      var data = json.decode(response.body);
+      var responseData = json.decode(response.body);
 
       if (response.statusCode == 200) {
-        return {"message": data['message']};
-      } else if (response.statusCode == 400 && data.containsKey('errors')) {
+        return {"message": responseData['message']};
+      } else if (response.statusCode == 400 &&
+          responseData.containsKey('errors')) {
         // Handle validation errors from backend
-        List<dynamic> errors = data['errors'];
+        List<dynamic> errors = responseData['errors'];
         String validationMessage = errors.map((e) => e['message']).join("\n");
         return {"validation_error": validationMessage};
       } else {
-        return {"error": data['error'] ?? "OTP Generation Failed"};
+        return {"error": responseData['error'] ?? "OTP Generation Failed"};
       }
     } catch (e) {
       debugPrint('Error: $e');
@@ -617,9 +791,9 @@ class ApiService {
       //debugPrint('Sent Headers: ${_getHeaders()}'); // Debugging
       //_updateCookies(response); // 🔥 Store session cookies
 
-      var data = json.decode(response.body);
-      debugPrint('Decoded Data Type: ${data.runtimeType}');
-      debugPrint('Response Data: $data'); // Debugging
+      var responseData = json.decode(response.body);
+      debugPrint('Decoded Data Type: ${responseData.runtimeType}');
+      debugPrint('Response Data: $responseData'); // Debugging
 
       if (response.statusCode == 200) {
         // Extract session from cookies if not in response data
@@ -627,19 +801,20 @@ class ApiService {
         debugPrint('Session from cookies: $sessionFromCookies');
 
         return {
-          "user_id": data['user_id'],
-          "role": data['user_role'],
-          "session": data['session'] ?? sessionFromCookies ?? ""
+          "user_id": responseData['user_id'],
+          "role": responseData['user_role'],
+          "session": responseData['session'] ?? sessionFromCookies ?? ""
         };
-      } else if (response.statusCode == 400 && data.containsKey('errors')) {
-        List<dynamic> errors = data['errors'];
+      } else if (response.statusCode == 400 &&
+          responseData.containsKey('errors')) {
+        List<dynamic> errors = responseData['errors'];
         String validationMessage = errors.map((e) => e['msg']).join("\n");
         debugPrint(validationMessage);
         return {"validation_error": validationMessage};
       } else {
         return {
-          "error":
-              data['error'] ?? "OTP Authentication Failed. Please Try again."
+          "error": responseData['error'] ??
+              "OTP Authentication Failed. Please Try again."
         };
       }
     } catch (e, stackTrace) {
@@ -672,8 +847,8 @@ class ApiService {
         storage.erase();
         return {"message": "Logged out successfully"};
       } else {
-        var data = json.decode(response.body);
-        return {"error": data['error'] ?? "Failed to logout"};
+        var responseData = json.decode(response.body);
+        return {"error": responseData['error'] ?? "Failed to logout"};
       }
     } catch (e) {
       debugPrint('Logout Error: $e');
@@ -693,13 +868,16 @@ class ApiService {
           },
           body: jsonEncode(conversation.toJson()));
 
-      var data = jsonDecode(response.body);
+      var responseData = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        return {"message": data["message"] ?? "Successfully Sent the Message"};
+        return {
+          "message": responseData["message"] ?? "Successfully Sent the Message"
+        };
       } else if (response.statusCode == 400) {
         return {
-          "error": data["errors"] ?? "Please Check Your inputs and try again"
+          "error":
+              responseData["errors"] ?? "Please Check Your inputs and try again"
         };
       } else {
         // Handle unexpected response statuses
@@ -731,16 +909,18 @@ class ApiService {
 
       debugPrint("All Messages Data: ${response.body}");
 
-      var data = jsonDecode(response.body);
+      var responseData = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        if (data['data'] != null && data['data'] is List) {
-          return {"messages": data['data']}; // Return the list directly
+        if (responseData['data'] != null && responseData['data'] is List) {
+          return {"messages": responseData['data']}; // Return the list directly
         } else {
           return {}; // No messages found
         }
       } else {
-        return {"error": data['error'] ?? "Failed to retrieve messages"};
+        return {
+          "error": responseData['error'] ?? "Failed to retrieve messages"
+        };
       }
     } catch (e, st) {
       debugPrint(e.toString());
@@ -768,20 +948,20 @@ class ApiService {
       debugPrint('Response Status: ${response.statusCode}');
       debugPrint('Response Body: ${response.body}');
 
-      final data = jsonDecode(response.body);
+      final responseData = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
         return {
-          "message":
-              data["message"] ?? "Tasker information updated successfully!",
-          "tasker": data["tasker"]
+          "message": responseData["message"] ??
+              "Tasker information updated successfully!",
+          "tasker": responseData["tasker"]
         };
       } else if (response.statusCode == 400) {
         String errorMessage = "";
-        if (data['errors'] is String) {
-          errorMessage = data['errors'];
-        } else if (data['errors'] is List) {
-          errorMessage = (data['errors'] as List)
+        if (responseData['errors'] is String) {
+          errorMessage = responseData['errors'];
+        } else if (responseData['errors'] is List) {
+          errorMessage = (responseData['errors'] as List)
               .map((e) => e['msg'] ?? e.toString())
               .join('\n');
         }
@@ -789,7 +969,9 @@ class ApiService {
           "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed."
         };
       } else {
-        return {"errors": data["error"] ?? "An unexpected error occurred."};
+        return {
+          "errors": responseData["error"] ?? "An unexpected error occurred."
+        };
       }
     } catch (e) {
       return {
@@ -833,20 +1015,20 @@ class ApiService {
       debugPrint('Response Status: ${response.statusCode}');
       debugPrint('Response Body: $responseBody');
 
-      final data = jsonDecode(responseBody);
+      final responseData = jsonDecode(responseBody);
 
       if (response.statusCode == 200) {
         return {
-          "message": data["message"] ??
+          "message": responseData["message"] ??
               "Tasker information with profile image updated successfully!",
-          "tasker": data["tasker"]
+          "tasker": responseData["tasker"]
         };
       } else if (response.statusCode == 400) {
         String errorMessage = "";
-        if (data['errors'] is String) {
-          errorMessage = data['errors'];
-        } else if (data['errors'] is List) {
-          errorMessage = (data['errors'] as List)
+        if (responseData['errors'] is String) {
+          errorMessage = responseData['errors'];
+        } else if (responseData['errors'] is List) {
+          errorMessage = (responseData['errors'] as List)
               .map((e) => e['msg'] ?? e.toString())
               .join('\n');
         }
@@ -854,7 +1036,9 @@ class ApiService {
           "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed."
         };
       } else {
-        return {"errors": data["error"] ?? "An unexpected error occurred."};
+        return {
+          "errors": responseData["error"] ?? "An unexpected error occurred."
+        };
       }
     } catch (e) {
       return {
@@ -899,20 +1083,20 @@ class ApiService {
       debugPrint('Response Status: ${response.statusCode}');
       debugPrint('Response Body: $responseBody');
 
-      final data = jsonDecode(responseBody);
+      final responseData = jsonDecode(responseBody);
 
       if (response.statusCode == 200) {
         return {
-          "message": data["message"] ??
+          "message": responseData["message"] ??
               "Tasker information with document updated successfully!",
-          "tasker": data["tasker"]
+          "tasker": responseData["tasker"]
         };
       } else if (response.statusCode == 400) {
         String errorMessage = "";
-        if (data['errors'] is String) {
-          errorMessage = data['errors'];
-        } else if (data['errors'] is List) {
-          errorMessage = (data['errors'] as List)
+        if (responseData['errors'] is String) {
+          errorMessage = responseData['errors'];
+        } else if (responseData['errors'] is List) {
+          errorMessage = (responseData['errors'] as List)
               .map((e) => e['msg'] ?? e.toString())
               .join('\n');
         }
@@ -920,7 +1104,9 @@ class ApiService {
           "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed."
         };
       } else {
-        return {"errors": data["error"] ?? "An unexpected error occurred."};
+        return {
+          "errors": responseData["error"] ?? "An unexpected error occurred."
+        };
       }
     } catch (e) {
       return {
@@ -970,20 +1156,20 @@ class ApiService {
       debugPrint('Response Status: ${response.statusCode}');
       debugPrint('Response Body: $responseBody');
 
-      final data = jsonDecode(responseBody);
+      final responseData = jsonDecode(responseBody);
 
       if (response.statusCode == 200) {
         return {
-          "message": data["message"] ??
+          "message": responseData["message"] ??
               "Tasker information with files updated successfully!",
-          "tasker": data["tasker"]
+          "tasker": responseData["tasker"]
         };
       } else if (response.statusCode == 400) {
         String errorMessage = "";
-        if (data['errors'] is String) {
-          errorMessage = data['errors'];
-        } else if (data['errors'] is List) {
-          errorMessage = (data['errors'] as List)
+        if (responseData['errors'] is String) {
+          errorMessage = responseData['errors'];
+        } else if (responseData['errors'] is List) {
+          errorMessage = (responseData['errors'] as List)
               .map((e) => e['msg'] ?? e.toString())
               .join('\n');
         }
@@ -991,7 +1177,9 @@ class ApiService {
           "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed."
         };
       } else {
-        return {"errors": data["error"] ?? "An unexpected error occurred."};
+        return {
+          "errors": responseData["error"] ?? "An unexpected error occurred."
+        };
       }
     } catch (e) {
       return {
