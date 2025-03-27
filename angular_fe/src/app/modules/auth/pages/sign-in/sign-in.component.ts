@@ -67,6 +67,7 @@ export class SignInComponent implements OnInit {
         console.log('Session:', session);
         const userId = sessionData[session]?.user;
         this.sessionStorage.setSession(session);
+        this.sessionStorage.setSessionToken(response.sessionID);
         this.sessionStorage.setUserId(userId);
         this._router.navigate(['/dashboard']);
       },
@@ -79,13 +80,15 @@ export class SignInComponent implements OnInit {
   }
 
   logout(userID: Number) {
+    console.log('Logout successful', userID);
     this.authService.logout(userID).subscribe({
       next: (response) => {
         console.log('Log successful', response);
         sessionStorage.removeItem('session');
         localStorage.removeItem('user_id');
         localStorage.removeItem('session');
-        this._router.navigate(['/auth']);
+        localStorage.removeItem('sessionToken');
+        this._router.navigate(['/auth/sign-in']);
       },
       error: (error) => {
         console.log('Login error', error);

@@ -138,7 +138,15 @@ class _FillUpClientState extends State<FillUpClient> {
         _image = user.user.image?.toString() ?? '';
         _birthday = user.user.birthdate ?? '';
         _isLoading = false;
-        selectedGender = user.user.gender;
+
+        // Ensure selectedGender is one of the valid options in genderOptions
+        String userGender = user.user.gender ?? 'Other';
+        if (genderOptions.contains(userGender)) {
+          selectedGender = userGender;
+        } else {
+          selectedGender = 'Other';
+        }
+
         // Existing profile picture
         _existingProfileImageUrl = user.user.image?.toString() ?? '';
 
@@ -520,10 +528,12 @@ class _FillUpClientState extends State<FillUpClient> {
                       );
                     }).toList(),
                     onChanged: (String? newValue) {
-                      setState(() {
-                        selectedGender = newValue;
-                        _controller.genderController.text = newValue ?? '';
-                      });
+                      if (newValue != null) {
+                        setState(() {
+                          selectedGender = newValue;
+                          _controller.genderController.text = newValue;
+                        });
+                      }
                     },
                   ),
                 ),

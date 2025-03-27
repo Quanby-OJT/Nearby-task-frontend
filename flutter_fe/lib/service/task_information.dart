@@ -6,7 +6,7 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 
 class TaskDetailsService {
-  final String apiUrl = "http://localhost:5000/connect";
+  final String apiUrl = "http://10.0.2.2:5000/connect";
   final storage = GetStorage();
 
   Map<String, dynamic> _handleResponse(http.Response response) {
@@ -41,7 +41,8 @@ class TaskDetailsService {
     }
   }
 
-  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _postRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     final response = await http.post(Uri.parse("$apiUrl$endpoint"),
         headers: {
@@ -103,13 +104,14 @@ class TaskDetailsService {
   }
 
   //This is for client.
-  Future<Map<String, dynamic>> updateTaskStatus(int taskTakenId, String? newStatus) async {
-    try{
+  Future<Map<String, dynamic>> updateTaskStatus(
+      int taskTakenId, String? newStatus) async {
+    try {
       return await _postRequest(endpoint: "/update-status-client", body: {
         "task_id": taskTakenId,
         "status": newStatus,
       });
-    }catch(e, stackTrace){
+    } catch (e, stackTrace) {
       debugPrint(e.toString());
       debugPrint(stackTrace.toString());
       return {"error": "An Error Occured while updating task status."};

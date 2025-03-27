@@ -1,26 +1,26 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_fe/model/user_model.dart';
 
 class TaskerModel {
-  final int? id;
+  final int id;
   final String bio;
   final String specialization;
   final String skills;
   final bool availability;
   final String? taskerDocuments;
-  final String? socialMediaLinks;
+  final Map<String, String>? socialMediaLinks;
   final String taskerAddress;
   final double wage;
   final String payPeriod;
   final DateTime birthDate;
-  final String phoneNumber;
-  final bool group;
-  final String gender;
+  final int phoneNumber;
+  final bool? group;
   UserModel? user;
 
   TaskerModel({
-    this.id,
+    required this.id,
     required this.bio,
-    required this.group,
+    this.group,
     required this.specialization,
     required this.skills,
     required this.taskerAddress,
@@ -29,7 +29,6 @@ class TaskerModel {
     required this.payPeriod,
     required this.birthDate,
     required this.phoneNumber,
-    required this.gender,
     this.taskerDocuments,
     this.socialMediaLinks,
     this.user,
@@ -37,50 +36,66 @@ class TaskerModel {
 
   @override
   String toString() {
-    return "user: $user)";
+    return "Tasker(id: $id, bio: $bio, specialization: $specialization, user: $user)";
   }
 
-  //Factory to manage tasker data.
+  // Factory method to map JSON to TaskerModel
   factory TaskerModel.fromJson(Map<String, dynamic> json) {
+    debugPrint('JSON Data: $json');
     return TaskerModel(
-      id: json["id"] ?? 0,
+      id: json['tasker_id'] ?? 0,
       bio: json['bio'] ?? '',
       skills: json['skills'] ?? '',
+      phoneNumber: json['contact_number'] ?? '',
       availability: json['availability'] ?? false,
-      socialMediaLinks: json['social_media_links'] ?? '',
+e
+      socialMediaLinks: (json['social_media_links'] as Map<String, dynamic>)
+          .map((key, value) => MapEntry(key, value as String)),
+
+   //   socialMediaLinks: json['social_media_links'] != null
+   //       ? Map<String, String>.from(json['social_media_links'])
+   //       : null,
+
       taskerAddress: json['address'] ?? '',
-      specialization: json['tasker_specialization'] != null
-          ? json['tasker_specialization']['specialization']
-          : '',
-      taskerDocuments: json['tasker_documents'] ?? '',
-      wage: json['wage'] != null ? json['wage_per_hour'].toDouble() : 0.0,
+      specialization: json['tasker_specialization']['specialization'] ?? '',
+      taskerDocuments: json['tesda_document_link'] ?? '',
+      wage: json['wage_per_hour'].toDouble() ?? 0.0,
       payPeriod: json['pay_period'] ?? "",
-      birthDate: json['birth_date'] != null
-          ? DateTime.parse(json['birth_date'])
+      birthDate: json['birthdate'] != null
+          ? DateTime.parse(json['birthdate'])
           : DateTime.now(),
-      phoneNumber: json['phone_number'] ?? '',
-      gender: json['gender'] ?? '',
       group: json['group'] ?? false,
     );
   }
 
-
   Map<String, dynamic> toJson() {
     return {
-      "id": id,
+      "tasker_id": id,
       "bio": bio,
       "specialization": specialization,
       "skills": skills,
+
+      //Must be in another table
       "address": taskerAddress,
       "availability": availability,
+
       "tesda_documents_link": taskerDocuments,
-      "social_media_links": socialMediaLinks,
+    //  "social_media_links": socialMediaLinks,
+
+
+      // MUST in another table
+     // "tesda_documents_id": taskerDocuments,
+      "social_media_links": socialMediaLinks ?? {},
       "gender": gender,
+
+
+      // remove kasi nasa user na siya
       "contact_number": phoneNumber,
       "group": group,
       "wage_per_hour": wage,
       "pay_period": payPeriod,
-      "birth_date": birthDate.toIso8601String(),
+      "birthdate": birthDate.toIso8601String(),
+      "user": user?.toJson(),
     };
   }
 }
