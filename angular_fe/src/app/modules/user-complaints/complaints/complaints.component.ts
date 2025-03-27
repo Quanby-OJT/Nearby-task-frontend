@@ -175,12 +175,12 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
       this.reportService.updateReportStatus(reportId, true).subscribe({
         next: (response) => {
           if (response.success) {
-            // Update the local reports array
+        
             const reportIndex = this.reports.findIndex(r => r.report_id === reportId);
             if (reportIndex !== -1) {
               this.reports[reportIndex].status = true;
               this.selectedReport.status = true;
-              this.applyFilters(); // Refresh the filtered reports
+              this.applyFilters();
             }
             this.closeModal();
           } else {
@@ -199,12 +199,12 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
       this.reportService.updateReportStatus(reportId, false).subscribe({
         next: (response) => {
           if (response.success) {
-            // Update the local reports array
+           
             const reportIndex = this.reports.findIndex(r => r.report_id === reportId);
             if (reportIndex !== -1) {
               this.reports[reportIndex].status = false;
               this.selectedReport.status = false;
-              this.applyFilters(); // Refresh the filtered reports
+              this.applyFilters(); 
             }
             this.closeModal();
           } else {

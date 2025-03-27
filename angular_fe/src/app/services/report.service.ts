@@ -28,7 +28,13 @@ export class ReportService {
   }
 
   updateReportStatus(reportId: number, status: boolean): Observable<any> {
-    return this.http.patch(`${this.apiUrl}/reports/${reportId}`, { status }, {
+    const userId = this.sessionStorage.getUserId();
+    const parsedUserId = userId ? parseInt(userId, 10) : 0;
+    if(!parsedUserId || isNaN(parsedUserId)){
+      throw new Error('The Current Logged In User Has No Session!');
+    }
+    const moderatorId = {actionBy:parsedUserId }
+    return this.http.patch(`${this.apiUrl}/reports/${reportId}`, { status , reportId, moderatorId }, {
       headers: this.getHeader(),
       withCredentials: true
     });
