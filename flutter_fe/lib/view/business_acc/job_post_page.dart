@@ -2,10 +2,15 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_fe/controller/authentication_controller.dart';
+import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
+import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_model.dart';
+import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -20,6 +25,10 @@ class JobPostPage extends StatefulWidget {
 class _JobPostPageState extends State<JobPostPage> {
   final TaskController controller = TaskController();
   final JobPostService jobPostService = JobPostService();
+  final ClientServices _clientServices = ClientServices();
+  final AuthenticationController _authController = AuthenticationController();
+  final ProfileController _profileController = ProfileController();
+  final GetStorage storage = GetStorage();
   String? _message;
   bool _isSuccess = false;
 
@@ -36,7 +45,11 @@ class _JobPostPageState extends State<JobPostPage> {
 
   String? _selectedSkill;
   List<String> _skills = [];
-  final storage = GetStorage();
+  String? _existingProfileImageUrl;
+  String? _existingIDImageUrl;
+  AuthenticatedUser? _user;
+  bool _isLoading = true;
+  bool _showButton = false;
 
   @override
   void initState() {
@@ -44,6 +57,7 @@ class _JobPostPageState extends State<JobPostPage> {
     fetchSpecialization();
     _loadSkills();
     getAllJobsforClient();
+    _fetchUserIDImage();
   }
 
   Future<void> fetchSpecialization() async {
@@ -660,6 +674,84 @@ class _JobPostPageState extends State<JobPostPage> {
     }
   }
 
+  Future<void> _fetchUserIDImage() async {
+    try {
+      int userId = int.parse(storage.read('user_id').toString());
+      if (userId == null) {
+        debugPrint("User ID not found in storage po");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to load user image. Please try again."),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+
+      AuthenticatedUser? user =
+          await _profileController.getAuthenticatedUser(context, userId);
+      debugPrint(user.toString());
+
+      final response = await _clientServices.fetchUserIDImage(userId);
+
+      if (response['success']) {
+        setState(() {
+          _user = user;
+          _existingProfileImageUrl = user?.user.image;
+          _existingIDImageUrl = response['url'];
+          _isLoading = false;
+
+          debugPrint(
+              "Successfully loaded user image" + _existingProfileImageUrl!);
+          debugPrint("Successfully loaded ID image" + _existingIDImageUrl!);
+
+          if (_existingProfileImageUrl != null && _existingIDImageUrl != null) {
+            _showButton = true;
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint("Error fetching ID image: $e");
+    }
+  }
+
+  Widget missingInformation() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+            "Missing Information",
+            style: TextStyle(
+              color: Colors.red,
+              fontSize: 16,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FillUpClient()),
+              );
+              if (result == true) {
+                setState(() {
+                  _isLoading = true;
+                  _showButton = true;
+                });
+
+                await _fetchUserIDImage(); // Refresh user profile and ID image data
+              }
+            },
+            child: const Text('Upload Your Profile'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -672,36 +764,45 @@ class _JobPostPageState extends State<JobPostPage> {
               TextStyle(color: Color(0xFF0272B1), fontWeight: FontWeight.bold),
         ),
       ),
-      body: clientTasks.isEmpty
-          ? Center(child: Text("No tasks available"))
-          : ListView.builder(
-              itemCount: clientTasks.length,
-              itemBuilder: (context, index) {
-                final task = clientTasks[index];
-                return ListTile(
-                  title: Text(task?.title ?? "Untitled Task",
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  subtitle: Text(
-                    "📍 ${task!.location} \n • ₱ ${NumberFormat("#,##0.00", "en_US").format(task.contactPrice!.roundToDouble())} \n • 🛠 ${task.specialization}",
-                    style: TextStyle(fontSize: 14),
-                  ),
-                  trailing: Icon(Icons.arrow_forward_ios,
-                      size: 16, color: Colors.grey),
-                  onTap: () {},
-                );
-              },
-            ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showCreateTaskModal,
-        icon: Icon(Icons.add, size: 26),
-        label: Text("Had a New Task in Mind?",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.blueAccent,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
+      body: (_existingProfileImageUrl == null ||
+              _existingIDImageUrl == null ||
+              _existingIDImageUrl!.isEmpty ||
+              _existingProfileImageUrl!.isEmpty)
+          ? missingInformation()
+          : clientTasks.isEmpty
+              ? Center(child: Text("No tasks available"))
+              : ListView.builder(
+                  itemCount: clientTasks.length,
+                  itemBuilder: (context, index) {
+                    final task = clientTasks[index];
+                    return ListTile(
+                      title: Text(task?.title ?? "Untitled Task",
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold)),
+                      subtitle: Text(
+                        "📍 ${task!.location} \n • ₱ ${NumberFormat("#,##0.00", "en_US").format(task.contactPrice!.roundToDouble())} \n • 🛠 ${task.specialization}",
+                        style: TextStyle(fontSize: 14),
+                      ),
+                      trailing: Icon(Icons.arrow_forward_ios,
+                          size: 16, color: Colors.grey),
+                      onTap: () {},
+                    );
+                  },
+                ),
+
+      floatingActionButton: _showButton
+          ? FloatingActionButton.extended(
+              onPressed: _showCreateTaskModal,
+              icon: Icon(Icons.add, size: 26),
+              label: Text("Had a New Task in Mind?",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              backgroundColor: Colors.blueAccent,
+              foregroundColor: Colors.white,
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+            )
+          : null, // If _showButton is false, no button is shown
     );
   }
 }

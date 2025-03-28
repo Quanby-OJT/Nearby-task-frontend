@@ -4,13 +4,12 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/service/api_service.dart';
 import 'package:flutter_fe/service/auth_service.dart';
+import 'package:flutter_fe/service/client_service.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class FillUpClient extends StatefulWidget {
   const FillUpClient({super.key});
@@ -35,6 +34,8 @@ class _FillUpClientState extends State<FillUpClient> {
 
   final ProfileController _controller = ProfileController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  final ClientServices _clientServices = ClientServices();
 
   File? _selectedFile; // Store the selected file
   String? _fileName; // Store the selected file name
@@ -182,27 +183,11 @@ class _FillUpClientState extends State<FillUpClient> {
 
   Future<void> _fetchUserIDImage(int userId) async {
     try {
-      // This would be a call to get the ID image URL from your backend
-      // For now, we'll simulate it
-      final response = await http.get(
-        Uri.parse("${ApiService.apiUrl}/getUserDocuments/$userId?type=id"),
-        headers: {
-          "Authorization": "Bearer ${await AuthService.getSessionToken()}",
-          "Content-Type": "application/json"
-        },
-      );
-
-      debugPrint("API Response Status: ${response.statusCode}");
-      debugPrint("API Response Body from the fill up client: ${response.body}");
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['user'] != null && data['user']['document_url'] != null) {
-          setState(() {
-            _existingIDImageUrl = data['user']['document_url'];
-            debugPrint("Fetched ID image URL: $_existingIDImageUrl");
-          });
-        }
+      final response = await _clientServices.fetchUserIDImage(userId);
+      if (response['success']) {
+        setState(() {
+          _existingIDImageUrl = response['url'];
+        });
       }
     } catch (e) {
       debugPrint("Error fetching ID image: $e");
@@ -221,6 +206,8 @@ class _FillUpClientState extends State<FillUpClient> {
           _selectedImageID!,
         );
         // The method already shows success/error messages internally
+        Navigator.pop(
+            context, true); // Return true to indicate changes were made
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -247,6 +234,8 @@ class _FillUpClientState extends State<FillUpClient> {
           _selectedImage!,
         );
         // The method already shows success/error messages internally
+        Navigator.pop(
+            context, true); // Return true to indicate changes were made
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -269,6 +258,8 @@ class _FillUpClientState extends State<FillUpClient> {
           _selectedImageID!,
         );
         // The method already shows success/error messages internally
+        Navigator.pop(
+            context, true); // Return true to indicate changes were made
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -296,6 +287,7 @@ class _FillUpClientState extends State<FillUpClient> {
       debugPrint(
           "Unexpected image state - attempting to update user data only");
       await _controller.updateUserData(context, storage.read('user_id') as int);
+      Navigator.pop(context, true); // Return true to indicate changes were made
     }
   }
 
@@ -351,6 +343,8 @@ class _FillUpClientState extends State<FillUpClient> {
         await _saveUserWithImages();
       } else {
         await _controller.updateUserData(context, userId);
+        Navigator.pop(
+            context, true); // Return true to indicate changes were made
       }
 
       if (mounted) {

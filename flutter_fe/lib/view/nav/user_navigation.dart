@@ -73,7 +73,7 @@ class _NavUserScreenState extends State<NavUserScreen> {
         _profileController.imageController.text = _image;
       });
     } catch (e) {
-      print("Error fetching user data: $e");
+      debugPrint("Error fetching user data: $e");
       setState(() {
         _fullName = "User not found";
         _role = "Error fetching user data";
@@ -143,7 +143,7 @@ class _NavUserScreenState extends State<NavUserScreen> {
             children: [
               IconButton(
                 onPressed: () {
-                  print('Notifications clicked');
+                  debugPrint('Notifications clicked');
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -159,7 +159,7 @@ class _NavUserScreenState extends State<NavUserScreen> {
               ),
               GestureDetector(
                 onTap: () {
-                  print('click menu');
+                  debugPrint('click menu');
                 },
                 child: const Icon(
                   Icons.more_vert,
