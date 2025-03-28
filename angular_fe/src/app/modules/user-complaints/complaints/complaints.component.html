@@ -156,10 +156,10 @@
             <td class="px-4 py-3 text-center">{{ report.reporter.user_role }}</td>
             <td class="px-4 py-3 text-center">{{ report.violator.user_role }}</td>
             <td class="px-4 py-3 text-center">{{ report.created_at }}</td>
+            <td class="px-4 py-3 text-center"> {{ report.action_by ? report.actionBy.first_name + " " + report.actionBy.middle_name + " " + report.actionBy.last_name  : 'null' }} </td>
             <td class="px-4 py-3 text-center">
               <span [ngClass]="{'bg-green-500': report.status, 'bg-yellow-500': !report.status}" class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-yellow-500">{{ report.status ? 'Processed' : 'Pending' }}</span>
             </td>
-            <td class="px-4 py-3 text-center"> Moderator Name</td>
           </tr>
         </tbody>
       </table>

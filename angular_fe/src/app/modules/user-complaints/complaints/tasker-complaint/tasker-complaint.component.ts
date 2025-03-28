@@ -26,7 +26,7 @@ ngOnInit(){
   this.reportService.getReport().subscribe({
     next: (response) => {
       if (response.success) {
-        this.reports = response.reports;
+        this.reports = response.reports.filter((report: any) => report.reporter.user_role === 'Tasker');
         this.cdr.detectChanges();
         this.setupSwiper();
       } else {
