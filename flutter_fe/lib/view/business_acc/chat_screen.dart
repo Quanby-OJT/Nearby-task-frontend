@@ -410,6 +410,7 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+// In chat_screen.dart
   void _showReportHistoryModal() {
     showModalBottomSheet(
       context: context,
@@ -430,12 +431,43 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               SizedBox(height: 20),
               Expanded(
-                child: Center(
-                  child: Text(
-                    "No report history available yet.",
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                ),
+                child: reportController.reportHistory.isEmpty
+                    ? Center(
+                        child: Text(
+                          "No report history available yet.",
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: reportController.reportHistory.length,
+                        itemBuilder: (context, index) {
+                          final report = reportController.reportHistory[index];
+                          return Card(
+                            margin: EdgeInsets.symmetric(vertical: 5),
+                            child: ListTile(
+                              title: Text(
+                                "Report #${report.reportId ?? 'N/A'}",
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                      "Reason: ${report.reason ?? 'No reason provided'}"),
+                                  Text(
+                                      "Reported By: ${report.reportedBy ?? 'Unknown'}"),
+                                  Text(
+                                      "Reported Whom: ${report.reportedWhom ?? 'Unknown'}"),
+                                  Text(
+                                      "Created At: ${report.createdAt ?? 'N/A'}"),
+                                  Text(
+                                      "Status: ${report.status != null ? (report.status! ? 'Resolved' : 'Pending') : 'N/A'}"),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
               ),
             ],
           ),
