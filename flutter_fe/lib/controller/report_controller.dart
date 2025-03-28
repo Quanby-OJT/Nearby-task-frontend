@@ -14,7 +14,7 @@ class ReportController {
   String? imageUploadError;
   List<Map<String, dynamic>> taskers = [];
   List<Map<String, dynamic>> clients = [];
-  List<ReportModel> reportHistory = []; // Add list to store report history
+  List<ReportModel> reportHistory = [];
 
   Future<void> fetchTaskers() async {
     try {
@@ -80,15 +80,7 @@ class ReportController {
     }
   }
 
-  Future<void> fetchReportHistory(int userId) async {
-    try {
-      reportHistory = await _reportService.fetchReportHistory(userId);
-      debugPrint("Fetched ${reportHistory.length} reports for user $userId");
-    } catch (e) {
-      debugPrint("Error fetching report history: $e");
-      reportHistory = [];
-    }
-  }
+  Future<void> fetchReportHistory(int userId) async {}
 
   Future<void> pickImages(BuildContext context) async {
     const int maxImages = 5;
@@ -130,7 +122,6 @@ class ReportController {
       return;
     }
 
-    // Since we return early if reportedWhom is null, we can safely assert it's non-null here
     _submitReport(context, setModalState, reportedBy, reportedWhom!);
   }
 

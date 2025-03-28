@@ -430,57 +430,12 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               SizedBox(height: 20),
               Expanded(
-                child: reportController.reportHistory.isEmpty
-                    ? Center(
-                        child: Text(
-                          "No report history available yet.",
-                          style: TextStyle(fontSize: 16, color: Colors.grey),
-                        ),
-                      )
-                    : ListView.builder(
-                        itemCount: reportController.reportHistory.length,
-                        itemBuilder: (context, index) {
-                          final report = reportController.reportHistory[index];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    "Reported By: ${report.reportedBy ?? 'N/A'}",
-                                    style: TextStyle(fontSize: 14),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    "Reported Whom: ${report.reportedWhom ?? 'N/A'}",
-                                    style: TextStyle(fontSize: 14),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    "Reason: ${report.reason ?? 'N/A'}",
-                                    style: TextStyle(fontSize: 14),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    "Status: ${report.status != null ? (report.status! ? 'Resolved' : 'Pending') : 'N/A'}",
-                                    style: TextStyle(fontSize: 14),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    "Created At: ${report.createdAt != null ? report.createdAt!.substring(0, 10) : 'N/A'}",
-                                    style: TextStyle(fontSize: 14),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
+                child: Center(
+                  child: Text(
+                    "No report history available yet.",
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                ),
               ),
             ],
           ),

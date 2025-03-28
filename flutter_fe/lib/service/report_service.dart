@@ -97,39 +97,4 @@ class ReportService {
       return {'success': false, 'message': "Error: $e"};
     }
   }
-
-  Future<List<ReportModel>> fetchReportHistory(int userId) async {
-    try {
-      debugPrint("Fetching report history for user: $userId...");
-      final response = await http.get(
-        Uri.parse("$apiUrl/reports?reported_by=$userId"),
-        headers: {
-          'Authorization': "Bearer $token",
-        },
-      );
-
-      debugPrint("Report History API Response Status: ${response.statusCode}");
-      debugPrint("Report History API Response Body: ${response.body}");
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['success']) {
-          final List<dynamic> reportsJson = data['reports'];
-          final reports =
-              reportsJson.map((json) => ReportModel.fromJson(json)).toList();
-          debugPrint("Successfully fetched ${reports.length} reports");
-          return reports;
-        } else {
-          debugPrint("Failed to fetch report history: ${data['message']}");
-          return [];
-        }
-      } else {
-        debugPrint("Error fetching report history: ${response.statusCode}");
-        return [];
-      }
-    } catch (e) {
-      debugPrint("Exception while fetching report history: $e");
-      return [];
-    }
-  }
 }
