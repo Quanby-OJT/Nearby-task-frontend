@@ -410,7 +410,6 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-// In chat_screen.dart
   void _showReportHistoryModal() {
     showModalBottomSheet(
       context: context,
@@ -468,6 +467,29 @@ class _ChatScreenState extends State<ChatScreen> {
                           );
                         },
                       ),
+              ),
+              SizedBox(height: 10),
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Close the modal
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                  ),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
