@@ -14,6 +14,7 @@ class TaskerModel {
   final String payPeriod;
   final DateTime birthDate;
   final int phoneNumber;
+  final String gender;
   final bool? group;
   UserModel? user;
 
@@ -28,6 +29,7 @@ class TaskerModel {
     required this.wage,
     required this.payPeriod,
     required this.birthDate,
+    required this.gender,
     required this.phoneNumber,
     this.taskerDocuments,
     this.socialMediaLinks,
@@ -48,13 +50,12 @@ class TaskerModel {
       skills: json['skills'] ?? '',
       phoneNumber: json['contact_number'] ?? '',
       availability: json['availability'] ?? false,
-e
       socialMediaLinks: (json['social_media_links'] as Map<String, dynamic>)
           .map((key, value) => MapEntry(key, value as String)),
 
-   //   socialMediaLinks: json['social_media_links'] != null
-   //       ? Map<String, String>.from(json['social_media_links'])
-   //       : null,
+      //   socialMediaLinks: json['social_media_links'] != null
+      //       ? Map<String, String>.from(json['social_media_links'])
+      //       : null,
 
       taskerAddress: json['address'] ?? '',
       specialization: json['tasker_specialization']['specialization'] ?? '',
@@ -64,6 +65,7 @@ e
       birthDate: json['birthdate'] != null
           ? DateTime.parse(json['birthdate'])
           : DateTime.now(),
+      gender: json['gender'] ?? false,
       group: json['group'] ?? false,
     );
   }
@@ -80,14 +82,12 @@ e
       "availability": availability,
 
       "tesda_documents_link": taskerDocuments,
-    //  "social_media_links": socialMediaLinks,
-
+      //  "social_media_links": socialMediaLinks,
 
       // MUST in another table
-     // "tesda_documents_id": taskerDocuments,
+      // "tesda_documents_id": taskerDocuments,
       "social_media_links": socialMediaLinks ?? {},
       "gender": gender,
-
 
       // remove kasi nasa user na siya
       "contact_number": phoneNumber,

@@ -231,8 +231,8 @@ class _FillUpTaskerState extends State<FillUpTasker> {
       if (_existingPDFUrl != null && _existingProfileImageUrl != null) {
         await _controller.updateTaskerWithoutFile(context, userId);
       } else if (_selectedFile != null && _selectedImage != null) {
-        await _controller.updateTaskerWithFile(
-            context, userId, _selectedFile!, _selectedImage!);
+        await _controller.updateTaskerWithFiles(
+            context, userId as UserModel, _selectedFile!, _selectedImage!);
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

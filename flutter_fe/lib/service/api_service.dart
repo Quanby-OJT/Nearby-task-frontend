@@ -14,7 +14,7 @@ import '../model/client_model.dart';
 
 class ApiService {
   static const String apiUrl =
-      "http://10.0.2.2:5000/connect"; // Adjust if needed
+      "http://localhost:5000/connect"; // Adjust if needed
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
   static final Map<String, String> _cookies = {};
@@ -690,7 +690,6 @@ class ApiService {
               "User is a tasker and has tasker data: ${responseData['tasker']}");
           TaskerModel tasker = TaskerModel.fromJson(
               responseData['tasker'] as Map<String, dynamic>);
-
 
           debugPrint("User is a tasker and has tasker data: $tasker");
 

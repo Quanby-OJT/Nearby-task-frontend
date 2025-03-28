@@ -66,15 +66,15 @@ class TaskController {
     }
   }
 
-  Future<List<TaskModel?>> getJobsforClient(BuildContext context,
-      int clientId) async {
+  Future<List<TaskModel?>> getJobsforClient(
+      BuildContext context, int clientId) async {
     final clientTask = await _jobPostService.fetchJobsForClient(clientId);
     debugPrint(clientTask.toString());
 
     if (clientTask.containsKey('tasks')) {
       List<dynamic> tasksList = clientTask['tasks'];
       List<TaskModel> tasks =
-      tasksList.map((task) => TaskModel.fromJson(task)).toList();
+          tasksList.map((task) => TaskModel.fromJson(task)).toList();
       return tasks;
     }
 
@@ -99,15 +99,15 @@ class TaskController {
   Future<String> assignTask(int? taskId, int? clientId, int? taskerId) async {
     debugPrint("Assigning task...");
     final assignedTask =
-    await _jobPostService.assignTask(taskId, clientId, taskerId);
+        await _jobPostService.assignTask(taskId, clientId, taskerId);
     return assignedTask.containsKey('message')
         ? assignedTask['message'].toString()
         : assignedTask['error'].toString();
   }
 
   // Method to update a task
-  Future<Map<String, dynamic>> updateTask(int taskId,
-      Map<String, dynamic> taskData) async {
+  Future<Map<String, dynamic>> updateTask(
+      int taskId, Map<String, dynamic> taskData) async {
     try {
       debugPrint("Updating task with ID: $taskId");
       final result = await _jobPostService.updateTask(taskId, taskData);
@@ -126,7 +126,7 @@ class TaskController {
 
       // First try to get valid statuses from the backend
       List<String> validStatuses =
-      await _jobPostService.fetchValidTaskStatuses();
+          await _jobPostService.fetchValidTaskStatuses();
       debugPrint("Valid task statuses: $validStatuses");
 
       // Add some common variations just in case
@@ -162,8 +162,8 @@ class TaskController {
   }
 
   //All Messages to client/tasker
-  Future<List<TaskAssignment>?> getAllAssignedTasks(BuildContext context,
-      int userId) async {
+  Future<List<TaskAssignment>?> getAllAssignedTasks(
+      BuildContext context, int userId) async {
     final assignedTasks = await TaskDetailsService().getAllTakenTasks();
     debugPrint(assignedTasks.toString());
 
@@ -172,7 +172,7 @@ class TaskController {
       List<TaskAssignment> taskAssignments = dataList.map((item) {
         // Parse tasks from post_task
         Map<String, dynamic> taskData =
-        item['post_task'] as Map<String, dynamic>;
+            item['post_task'] as Map<String, dynamic>;
         int taskTakenId = item['task_taken_id'];
         TaskModel task = TaskModel(
           title: taskData['task_title'] as String?,
@@ -182,8 +182,7 @@ class TaskController {
           location: null,
           period: null,
           duration: null,
-          urgency: taskData['urgent']
-          as String?,
+          urgency: taskData['urgent'] as String?,
           // Check if this field exists in your API
           status: null,
           contactPrice: null,
@@ -197,9 +196,9 @@ class TaskController {
         );
 
         Map<String, dynamic> clientData =
-        item['clients'] as Map<String, dynamic>;
+            item['clients'] as Map<String, dynamic>;
         Map<String, dynamic> clientUserData =
-        clientData['user'] as Map<String, dynamic>;
+            clientData['user'] as Map<String, dynamic>;
         UserModel clientUser = UserModel(
           firstName: clientUserData['first_name'] as String? ?? '',
           middleName: clientUserData['middle_name'] as String? ?? '',
@@ -219,7 +218,7 @@ class TaskController {
             ? item['tasker'] as Map<String, dynamic>
             : {};
         Map<String, dynamic> taskerUserData =
-        taskerData['user'] as Map<String, dynamic>;
+            taskerData['user'] as Map<String, dynamic>;
         UserModel taskerUser = UserModel(
           firstName: taskerUserData['first_name'] as String? ?? '',
           middleName: taskerUserData['middle_name'] as String? ?? '',
@@ -232,6 +231,7 @@ class TaskController {
           id: 0,
           bio: '',
           specialization: '',
+          gender: '',
           skills: '',
           taskerAddress: '',
           availability: false,
@@ -242,8 +242,6 @@ class TaskController {
           group: false,
           user: taskerUser,
         );
-
-
 
         // Create TaskAssignment with the correct taskTakenId
         TaskAssignment assignment = TaskAssignment(
@@ -279,24 +277,21 @@ class TaskController {
     }
   }
 
-    }
-  }
-
 //Update Task Status in Conversation
-  Future<void> updateTaskStatus(BuildContext context, int taskTakenId, String? newStatus) async {
+  Future<void> updateTaskStatus(
+      BuildContext context, int taskTakenId, String? newStatus) async {
     try {
-      final response = await _taskDetailsService.updateTaskStatus(taskTakenId, newStatus);
+      final response =
+          await _taskDetailsService.updateTaskStatus(taskTakenId, newStatus);
 
       if (response.containsKey("message")) {
         debugPrint('Task status updated successfully');
       } else {
         debugPrint('Failed to update task status: ${response["error"]}');
       }
-    }
-    catch (e, stackTrace) {
+    } catch (e, stackTrace) {
       debugPrint('Error updating task status: $e');
       debugPrintStack(stackTrace: stackTrace);
-
     }
   }
 }
