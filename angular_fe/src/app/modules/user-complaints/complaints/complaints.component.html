@@ -16,7 +16,7 @@
 
     <div class="flex-1 min-w-[300px] w-[50%] max-h-[400px] border border-gray-200 bg-white rounded-xl p-6 shadow-md overflow-auto box-border">
       <strong class="text-lg font-semibold">Tasker Complaints</strong>
-      <app-tasker-complaint></app-tasker-complaint>
+      <app-tasker-complaint (reportSelected)="openModal($event)"></app-tasker-complaint>
     </div>
   </div>
 </div>

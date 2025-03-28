@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, AfterViewInit, ElementRef, ViewChild, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, AfterViewInit, ElementRef, ViewChild, ChangeDetectorRef, HostListener, Output, EventEmitter } from '@angular/core';
 import { ReportService } from 'src/app/services/report.service';
 
 @Component({
@@ -17,50 +17,51 @@ export class TaskerComplaintComponent implements AfterViewInit {
   autoSwipeInterval: any;
   reports: any[] = [];
 
+  // Added to emit the report ID to the parent component
+  @Output() reportSelected = new EventEmitter<number>();
+
   constructor(
     private cdr: ChangeDetectorRef,
     private reportService: ReportService
   ) {}
 
-ngOnInit(){
-  this.reportService.getReport().subscribe({
-    next: (response) => {
-      if (response.success) {
-        this.reports = response.reports.filter((report: any) => report.reporter.user_role === 'Tasker');
-        this.cdr.detectChanges();
-        this.setupSwiper();
-      } else {
-        console.error('Failed to getch reports: ', response.message);
-      }
-    },
-    error: (error) => {
-      console.error('Error fetching reports: ', error);
-    } 
-  })
-}
-
+  ngOnInit() {
+    this.reportService.getReport().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.reports = response.reports.filter((report: any) => report.reporter.user_role === 'Tasker');
+          this.cdr.detectChanges();
+          this.setupSwiper();
+        } else {
+          console.error('Failed to fetch reports: ', response.message); 
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching reports: ', error);
+      } 
+    });
+  }
 
   ngAfterViewInit() {
   }
 
-setupSwiper() {
-  setTimeout(() =>{
-    const cards = this.taskerSwiperWrapper.nativeElement.querySelectorAll('.tasker-swiper-card');
-    this.totalCards = cards.length;
-    this.updateSwiper();
-    this.startAutoSwipe();
+  setupSwiper() {
+    setTimeout(() => {
+      const cards = this.taskerSwiperWrapper.nativeElement.querySelectorAll('.tasker-swiper-card');
+      this.totalCards = cards.length;
+      this.updateSwiper();
+      this.startAutoSwipe();
 
-    this.taskerSwiperWrapper.nativeElement.addEventListener('mouseenter', () => this.stopAutoSwipe());
-    this.taskerSwiperWrapper.nativeElement.addEventListener('mouseleave', () => this.startAutoSwipe());
-
-  })
-}
+      this.taskerSwiperWrapper.nativeElement.addEventListener('mouseenter', () => this.stopAutoSwipe());
+      this.taskerSwiperWrapper.nativeElement.addEventListener('mouseleave', () => this.startAutoSwipe());
+    });
+  }
 
   @HostListener('window:resize', ['$event'])
   onResize(event: Event) {
     this.updateSwiper();
   }
-//tasker-swiper-card
+
   updateSwiper() {
     if (this.taskerSwiperWrapper && this.taskerSwiperWrapper.nativeElement) {
       const cardWidth = this.taskerSwiperWrapper.nativeElement.querySelector('.tasker-swiper-card')?.offsetWidth || 0;
@@ -91,5 +92,9 @@ setupSwiper() {
 
   ngOnDestroy() {
     this.stopAutoSwipe();
+  }
+
+  selectAction(reportId: number) {
+    this.reportSelected.emit(reportId);
   }
 }
