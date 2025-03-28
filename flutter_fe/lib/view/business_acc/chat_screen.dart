@@ -5,7 +5,6 @@ import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -29,14 +28,13 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     _fetchTaskAssignments();
     _fetchTaskers();
+    _fetchReportHistory(); // Fetch report history on initialization
   }
 
   Future<void> _fetchTaskAssignments() async {
     int userId = storage.read('user_id');
-
     List<TaskAssignment>? fetchedAssignments =
         await _taskController.getAllAssignedTasks(context, userId);
-
     if (mounted) {
       setState(() {
         taskAssignments = fetchedAssignments;
@@ -51,11 +49,16 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() {});
   }
 
+  Future<void> _fetchReportHistory() async {
+    int userId = storage.read('user_id');
+    await reportController.fetchReportHistory(userId);
+    setState(() {});
+  }
+
   void _showReportModal() {
     setState(() {
       _isModalOpen = true;
     });
-
     showModalBottomSheet(
       enableDrag: true,
       context: context,
@@ -365,11 +368,10 @@ class _ChatScreenState extends State<ChatScreen> {
                         SizedBox(width: 10),
                         ElevatedButton(
                           onPressed: () {
-                            int userId = storage
-                                .read('user_id'); // Current user's user_id
+                            int userId = storage.read('user_id');
                             int? reportedWhom = _selectedReportCategory != null
                                 ? int.tryParse(_selectedReportCategory!)
-                                : null; // Selected tasker's user_id
+                                : null;
                             reportController.validateAndSubmit(
                                 context, setModalState, userId, reportedWhom);
                             setState(() {
@@ -408,6 +410,85 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  void _showReportHistoryModal() {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.5,
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Report History",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.indigo,
+                  fontSize: 24,
+                ),
+              ),
+              SizedBox(height: 20),
+              Expanded(
+                child: reportController.reportHistory.isEmpty
+                    ? Center(
+                        child: Text(
+                          "No report history available yet.",
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: reportController.reportHistory.length,
+                        itemBuilder: (context, index) {
+                          final report = reportController.reportHistory[index];
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    "Reported By: ${report.reportedBy ?? 'N/A'}",
+                                    style: TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    "Reported Whom: ${report.reportedWhom ?? 'N/A'}",
+                                    style: TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    "Reason: ${report.reason ?? 'N/A'}",
+                                    style: TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    "Status: ${report.status != null ? (report.status! ? 'Resolved' : 'Pending') : 'N/A'}",
+                                    style: TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    "Created At: ${report.createdAt != null ? report.createdAt!.substring(0, 10) : 'N/A'}",
+                                    style: TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     reportController.reasonController.dispose();
@@ -421,32 +502,16 @@ class _ChatScreenState extends State<ChatScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: Center(
-          child: Text(
-            "NearByTask Conversation",
-            style: TextStyle(
-              color: Color(0xFF0272B1),
-              fontWeight: FontWeight.bold,
-              fontSize: 24,
-            ),
+        title: Text(
+          "NearByTask Conversation",
+          style: TextStyle(
+            color: Color(0xFF0272B1),
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
           ),
         ),
+        centerTitle: true,
       ),
-      floatingActionButton: (taskAssignments != null &&
-              taskAssignments!.isNotEmpty &&
-              !_isModalOpen)
-          ? FloatingActionButton(
-              onPressed: _showReportModal,
-              backgroundColor: Colors.redAccent,
-              elevation: 6,
-              tooltip: 'Report User',
-              child: Icon(
-                Icons.flag,
-                color: Colors.white,
-                size: 28,
-              ),
-            )
-          : null,
       body: isLoading
           ? Center(
               child: CircularProgressIndicator(),
@@ -489,9 +554,38 @@ class _ChatScreenState extends State<ChatScreen> {
                             child: Material(
                               color: Colors.redAccent,
                               shape: CircleBorder(),
-                              child: InkWell(
-                                onTap: _showReportModal,
-                                borderRadius: BorderRadius.circular(30),
+                              child: PopupMenuButton<String>(
+                                onSelected: (value) {
+                                  if (value == 'report_user') {
+                                    _showReportModal();
+                                  } else if (value == 'report_history') {
+                                    _showReportHistoryModal();
+                                  }
+                                },
+                                itemBuilder: (BuildContext context) => [
+                                  PopupMenuItem<String>(
+                                    value: 'report_user',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.report,
+                                            color: Colors.redAccent),
+                                        SizedBox(width: 10),
+                                        Text('Report User'),
+                                      ],
+                                    ),
+                                  ),
+                                  PopupMenuItem<String>(
+                                    value: 'report_history',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.history,
+                                            color: Colors.green),
+                                        SizedBox(width: 10),
+                                        Text('Report History'),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                                 child: Container(
                                   padding: EdgeInsets.all(12),
                                   child: Icon(

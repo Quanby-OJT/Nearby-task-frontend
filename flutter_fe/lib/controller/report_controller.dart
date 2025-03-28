@@ -14,6 +14,7 @@ class ReportController {
   String? imageUploadError;
   List<Map<String, dynamic>> taskers = [];
   List<Map<String, dynamic>> clients = [];
+  List<ReportModel> reportHistory = []; // Add list to store report history
 
   Future<void> fetchTaskers() async {
     try {
@@ -26,7 +27,7 @@ class ReportController {
       );
 
       debugPrint("Taskers API Response Status: ${response.statusCode}");
-      debugPrint("Taskers API Response Body: ${response.body}");
+      debugPrint("Task者在 API Response Body: ${response.body}");
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -76,6 +77,16 @@ class ReportController {
     } catch (e) {
       debugPrint("Exception while fetching clients: $e");
       clients = [];
+    }
+  }
+
+  Future<void> fetchReportHistory(int userId) async {
+    try {
+      reportHistory = await _reportService.fetchReportHistory(userId);
+      debugPrint("Fetched ${reportHistory.length} reports for user $userId");
+    } catch (e) {
+      debugPrint("Error fetching report history: $e");
+      reportHistory = [];
     }
   }
 
