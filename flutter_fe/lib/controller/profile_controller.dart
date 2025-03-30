@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/client_model.dart';
+import 'package:flutter_fe/model/document_model.dart';
 import 'package:flutter_fe/service/profile_service.dart';
 import 'package:flutter_fe/service/tasker_service.dart';
 import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
@@ -746,10 +747,10 @@ class ProfileController {
   }
 
   // Fetching document link from database
-  Future<String?> getDocumentLink(int documentId) async {
+  Future<DocumentInfo?> getDocumentLink(int documentId) async {
     final response = await taskerService.getDocumentLink(documentId);
     if (response.containsKey("data")) {
-      return response["data"] as String?;
+      return DocumentInfo.fromMap(response["data"] as Map<String, dynamic>);
     }
     return null;
   }
