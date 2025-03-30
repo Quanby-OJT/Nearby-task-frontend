@@ -98,7 +98,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => TaskDetailsScreen(
-                          taskTakenId: widget.taskId ?? 0,
+                          taskId: widget.taskId ?? 0,
                         ),
                       ),
                     );

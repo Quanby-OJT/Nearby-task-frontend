@@ -6,6 +6,7 @@ import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -21,11 +22,13 @@ class _ChatScreenState extends State<ChatScreen> {
   final ReportController reportController = ReportController();
   bool isLoading = true;
   bool _isModalOpen = false;
+  String? _selectedReportCategory;
 
   @override
   void initState() {
     super.initState();
     _fetchTaskAssignments();
+    _fetchClients();
   }
 
   Future<void> _fetchTaskAssignments() async {
@@ -39,6 +42,12 @@ class _ChatScreenState extends State<ChatScreen> {
         isLoading = false;
       });
     }
+  }
+
+  Future<void> _fetchClients() async {
+    await reportController.fetchClients(); // Fetch clients instead of taskers
+    debugPrint("Clients loaded in ChatScreen: ${reportController.clients}");
+    setState(() {});
   }
 
   void _showReportModal() {
@@ -77,7 +86,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  "Report User",
+                                  "Report Client",
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.indigo,
@@ -94,6 +103,57 @@ class _ChatScreenState extends State<ChatScreen> {
                                   ),
                                 ),
                               ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                left: 40, right: 40, top: 20),
+                            child: DropdownSearch<Map<String, dynamic>>(
+                              popupProps: PopupProps.menu(
+                                showSearchBox: true,
+                                searchFieldProps: TextFieldProps(
+                                  decoration: InputDecoration(
+                                    hintText: 'Search clients...',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              items: reportController
+                                  .clients, // Use clients instead of taskers
+                              dropdownDecoratorProps: DropDownDecoratorProps(
+                                dropdownSearchDecoration: InputDecoration(
+                                  labelText: 'Report Client *',
+                                  labelStyle:
+                                      TextStyle(color: Color(0xFF0272B1)),
+                                  filled: true,
+                                  fillColor: Color(0xFFF1F4FF),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Colors.transparent,
+                                      width: 0,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: BorderSide(
+                                        color: Color(0xFF0272B1), width: 2),
+                                  ),
+                                ),
+                              ),
+                              itemAsString: (Map<String, dynamic> client) =>
+                                  "${client['first_name']} ${client['middle_name'] ?? ''} ${client['last_name']}",
+                              onChanged: (Map<String, dynamic>? newValue) {
+                                setModalState(() {
+                                  _selectedReportCategory = newValue != null
+                                      ? newValue['user_id'].toString()
+                                      : null;
+                                });
+                              },
+                              validator: (value) =>
+                                  value == null ? 'Select a Client' : null,
                             ),
                           ),
                           Padding(
@@ -284,6 +344,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             reportController.clearForm();
                             setState(() {
                               _isModalOpen = false;
+                              _selectedReportCategory = null; // Reset dropdown
                             });
                           },
                           style: ElevatedButton.styleFrom(
@@ -305,8 +366,13 @@ class _ChatScreenState extends State<ChatScreen> {
                         SizedBox(width: 10),
                         ElevatedButton(
                           onPressed: () {
+                            int userId = storage
+                                .read('user_id'); // Current tasker's user_id
+                            int? reportedWhom = _selectedReportCategory != null
+                                ? int.tryParse(_selectedReportCategory!)
+                                : null; // Selected client's user_id
                             reportController.validateAndSubmit(
-                                context, setModalState);
+                                context, setModalState, userId, reportedWhom);
                             setState(() {
                               _isModalOpen = false;
                             });
@@ -346,6 +412,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() {
     reportController.reasonController.dispose();
+    _selectedReportCategory = null;
     super.dispose();
   }
 
@@ -373,7 +440,7 @@ class _ChatScreenState extends State<ChatScreen> {
               onPressed: _showReportModal,
               backgroundColor: Colors.redAccent,
               elevation: 6,
-              tooltip: 'Report User',
+              tooltip: 'Report Client',
               child: Icon(
                 Icons.flag,
                 color: Colors.white,
@@ -465,7 +532,6 @@ class _ChatScreenState extends State<ChatScreen> {
                       trailing: Icon(Icons.arrow_forward_ios,
                           size: 16, color: Colors.grey),
                       onTap: () {
-                        // Open Chat History
                         debugPrint(
                             "Task Id: " + assignment.taskTakenId.toString());
                         Navigator.push(

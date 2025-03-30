@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:get_storage/get_storage.dart';
 
 class ReportService {
-  static const String apiUrl = "http://localhost:5000/connect";
+  static const String apiUrl = "http://10.0.2.2:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -17,9 +17,15 @@ class ReportService {
         Uri.parse("$apiUrl/reports"),
       );
 
-      request.headers['Authorization'] = "Bearer $token" ?? '';
+      request.headers['Authorization'] = "Bearer $token";
 
-      request.fields['reason'] = report.reason ?? '';
+      // Add all fields from report.toJson() to request.fields
+      final reportJson = report.toJson();
+      request.fields['reason'] = reportJson['reason'] ?? '';
+      request.fields['reported_by'] =
+          reportJson['reported_by']?.toString() ?? '';
+      request.fields['reported_whom'] =
+          reportJson['reported_whom']?.toString() ?? '';
 
       if (report.images != null && report.images!.isNotEmpty) {
         for (var image in report.images!) {
@@ -41,7 +47,7 @@ class ReportService {
       }
 
       debugPrint(
-          "Data being sent to backend: reason=${report.reason}, images=${report.images?.length ?? 0}");
+          "Data being sent to backend: ${request.fields}, images=${report.images?.length ?? 0}");
 
       var response = await request.send();
       var responseBody = await http.Response.fromStream(response);

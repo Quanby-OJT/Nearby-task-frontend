@@ -43,7 +43,7 @@ dependencies:
   google_fonts:
   flip_card: ^0.7.0
   get_storage: ^2.1.1
-  dropdown_search: ^6.0.2
+  dropdown_search: ^5.0.6
   dropdown_textfield: ^1.2.0
   shared_preferences: ^2.5.2
   flutter_chat_ui: ^1.6.15
@@ -54,6 +54,10 @@ dependencies:
   get: ^4.7.2
   app_links: ^6.4.0
   flutter_pdfview: ^1.4.0
+  currency_text_input_formatter: ^2.2.9
+  font_awesome_flutter: ^10.8.0
+  url_launcher: ^6.1.14
+
 
 dev_dependencies:
   flutter_test:
@@ -88,6 +92,7 @@ flutter:
     - assets/images/icons8-worker-100-colored.png
     - assets/images/icons8-checklist-100-colored.png
     - assets/tesda_skills.json
+    - assets/images/default-profile.jpg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

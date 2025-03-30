@@ -1,46 +1,52 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/client_model.dart';
+import 'package:flutter_fe/service/profile_service.dart';
 import 'package:flutter_fe/service/tasker_service.dart';
 import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../model/user_model.dart';
 import '../service/api_service.dart';
 import '../model/tasker_model.dart';
 import '../model/auth_user.dart';
 
 class ProfileController {
+  //General Account Information
   final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController middleNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-      TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
   final TextEditingController roleController = TextEditingController();
   final TextEditingController statusController = TextEditingController();
-  final TextEditingController middleNameController = TextEditingController();
+  final TextEditingController fbLinkController = TextEditingController();
+  final TextEditingController instaLinkController = TextEditingController();
+  final TextEditingController telegramLinkController = TextEditingController();
+
+
+
+  // Fetched user inputs End
+
+  //Tasker Text
   final TextEditingController birthdateController = TextEditingController();
   final TextEditingController imageController = TextEditingController();
   final TextEditingController companyNameController = TextEditingController();
   final TextEditingController taskerGroupController = TextEditingController();
-  final TextEditingController specializationIdController =
-      TextEditingController();
-  final TaskerService taskerService = TaskerService();
-  // Fetched user inputs End
-
-  //Tasker Text Controller
   final TextEditingController bioController = TextEditingController();
-  final TextEditingController specializationController =
-      TextEditingController();
+  final TextEditingController specializationController = TextEditingController();
   final TextEditingController skillsController = TextEditingController();
   final TextEditingController taskerAddressController = TextEditingController();
   final TextEditingController availabilityController = TextEditingController();
   final TextEditingController wageController = TextEditingController();
-  final TextEditingController socialMediaController = TextEditingController();
   final TextEditingController contactNumberController = TextEditingController();
   final TextEditingController genderController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
   final TextEditingController payPeriodController = TextEditingController();
+  final TextEditingController specializationIdController = TextEditingController();
+
+  final TaskerService taskerService = TaskerService();
   final TextEditingController accStatusController = TextEditingController();
 
   //Client Text Controller
@@ -269,8 +275,7 @@ class ProfileController {
     }
   }
 
-  Future<void> updateUserWithImage(
-      BuildContext context, userId, File profileImage) async {
+  Future<void> updateUserWithImage(BuildContext context, userId, File profileImage) async {
     try {
       // Validate fields
       String? emailError = validateEmail(emailController.text);
@@ -339,8 +344,7 @@ class ProfileController {
     }
   }
 
-  Future<void> updateUserWithID(
-      BuildContext context, userId, File idImage) async {
+  Future<void> updateUserWithID(BuildContext context, userId, File idImage) async {
     try {
       // Validate fields
       String? emailError = validateEmail(emailController.text);
@@ -409,8 +413,7 @@ class ProfileController {
     }
   }
 
-  Future<void> updateUserWithBothImages(
-      BuildContext context, int userId, File profileImage, File idImage) async {
+  Future<void> updateUserWithBothImages(BuildContext context, int userId, File profileImage, File idImage) async {
     try {
       // Validate fields
       String? emailError = validateEmail(emailController.text);
@@ -613,8 +616,7 @@ class ProfileController {
     }
   }
 
-  Future<int> verifyEmail(
-      BuildContext context, String token, String email) async {
+  Future<int> verifyEmail(BuildContext context, String token, String email) async {
     try {
       final response = await ApiService.verifyEmail(token, email);
 
@@ -632,6 +634,7 @@ class ProfileController {
   // this is for tasker without profile and PDF
   Future<Map<String, dynamic>> updateTaskerNoImages(
       BuildContext context, UserModel user) async {
+
     try {
       // Validate fields
       String? contactError =
@@ -647,6 +650,7 @@ class ProfileController {
       String? roleError = validateRole(roleController.text);
       String? specializationIdError =
           validateSpecializationId(specializationIdController.text);
+
 
       // Check if there are any validation errors
       if (contactError != null ||
@@ -893,6 +897,7 @@ class ProfileController {
   // this is for tasker with profile and PDF
   Future<Map<String, dynamic>> updateTaskerWithFiles(
       BuildContext context, UserModel user, File file, File image) async {
+
     try {
       // Validate fields
       String? contactError =
@@ -907,7 +912,7 @@ class ProfileController {
       String? skillsError = validateSkills(skillsController.text);
       String? roleError = validateRole(roleController.text);
       String? specializationIdError =
-          validateSpecializationId(specializationIdController.text);
+          validateSpecializationId(specializationController.text);
 
       // Check if there are any validation errors
       if (contactError != null ||
@@ -948,7 +953,7 @@ class ProfileController {
           "contact": user.contact ?? '',
           "gender": user.gender ?? '',
           "birthdate": user.birthdate ?? '',
-          "specialization": specializationIdController.text,
+          "specialization": specializationController.text,
           "bio": bioController.text,
           "skills": skillsController.text,
           "wage_per_hour": wageController.text,
@@ -1078,9 +1083,8 @@ class ProfileController {
     } catch (e) {}
   }
 
-  // This is a tasker with pdf and profile
-  Future<void> updateTaskerWithFile(
-      BuildContext context, int userId, File file, File image) async {
+  Future<AuthenticatedUser?> getAuthenticatedUser(BuildContext context, int userId) async {
+
     try {
       // Create user model with current data
       UserModel user = UserModel(
@@ -1096,42 +1100,26 @@ class ProfileController {
         image: imageController.text,
       );
 
-      // Show loading indicator
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        },
-      );
+      if (result.containsKey("user")) {
+        // Parse User data
+        UserModel user = result["user"] as UserModel;
+        debugPrint("Retrieved Data: $user");
 
-      // Call API service to update tasker profile without images
-      Map<String, dynamic> result =
-          await updateTaskerWithFiles(context, user, file, image);
+        if (result.containsKey("client")) {
+          // Parse Client data
+          ClientModel client = result["client"] as ClientModel;
+          debugPrint("User is a client and has client data: $client");
+          return AuthenticatedUser(user: user, client: client);
+        }
+        else if (result.containsKey("tasker") && result["tasker"] != null) {
+          // Parse Tasker data
+          TaskerModel tasker = result["tasker"] as TaskerModel;
+          debugPrint("Retrieved Tasker Data: $tasker");
+          return AuthenticatedUser(user: user, tasker: tasker);
+        }
 
-      // Close loading indicator
-      Navigator.pop(context);
-
-      if (result.containsKey("errors")) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result["errors"] ??
-                "Failed to update profile. Please try again."),
-            backgroundColor: Colors.red,
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result["message"] ?? "Profile updated successfully"),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        // Navigate to home page or refresh the current page
-        Navigator.pop(context);
+        // Return just user if no client or tasker data
+        return AuthenticatedUser(user: user);
       }
     } catch (e) {}
   }
@@ -1152,7 +1140,6 @@ class ProfileController {
         gender: genderController.text,
         image: imageController.text,
       );
-
       // Show loading indicator
       showDialog(
         context: context,
@@ -1195,7 +1182,140 @@ class ProfileController {
           content: Text('Error updating profile: $e'),
           backgroundColor: Colors.red,
         ),
+
       );
+    }
+  }
+  // Fetching document link from database
+  Future<String?> getDocumentLink(int documentId) async {
+    final response = await taskerService.getDocumentLink(documentId);
+    if (response.containsKey("data")) {
+      return response["data"] as String?;
+    }
+    return null;
+  }
+
+  Future<void> updateUser(
+      BuildContext context,
+      int taskerId,
+      List<dynamic> documentFile,
+      File profileImage,
+      ) async {
+    // Check if the widget is still mounted before proceeding
+    if (!context.mounted) return;
+
+    String role = await storage.read('role');
+    debugPrint("TESDA File: ${documentFile}");
+    debugPrint("Profile Image: ${profileImage}");
+
+    UserModel user = UserModel(
+      firstName: '',
+      middleName: '',
+      lastName: '',
+      email: '',
+      role: role,
+      accStatus: '',
+      gender: genderController.text,
+    );
+
+    Map<String, String> socials = {
+      "fb": fbLinkController.text,
+      "ig": instaLinkController.text,
+      "tg": telegramLinkController.text,
+    };
+
+    if (role == 'Client') {
+      ClientModel client = ClientModel(
+        preferences: prefsController.text,
+        clientAddress: clientAddressController.text,
+      );
+
+      Map<String, dynamic> resultData =
+      await ProfileService.updateClient(client, user, profileImage);
+
+      // Check if widget is still mounted before showing SnackBar
+      if (!context.mounted) return;
+
+      if (resultData.containsKey("message")) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(resultData['message'])),
+        );
+      } else if (resultData.containsKey("errors")) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(resultData['errors'])),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(resultData['error'])),
+        );
+      }
+    } else if (role == 'Tasker') {
+      String cleanedWage = wageController.text
+          .replaceAll('₱', '') // Remove currency symbol
+          .replaceAll(',', ''); // Remove thousands separator
+
+      TaskerModel tasker = TaskerModel(
+        id: taskerId,
+        bio: bioController.text,
+        group: false,
+        specialization: specializationController.text,
+        skills: skillsController.text,
+        taskerAddress: taskerAddressController.text,
+        taskerDocuments: documentFile.toString(),
+        availability: availabilityController.text == "I am available" ? true : false,
+        socialMediaLinks: socials,
+        wage: double.parse(cleanedWage),
+        payPeriod: payPeriodController.text,
+        birthDate: DateTime.parse(birthdateController.text),
+        phoneNumber: int.parse(contactNumberController.text),
+      );
+
+      Map<String, dynamic> resultData =
+      await ProfileService.updateTasker(tasker, user, documentFile, profileImage);
+
+      // Check if widget is still mounted before showing MaterialBanner
+      if (!context.mounted) return;
+
+      if (resultData.containsKey("message")) {
+        ScaffoldMessenger.of(context).showMaterialBanner(
+          MaterialBanner(
+            content: Text(
+              resultData['message'],
+              style: GoogleFonts.openSans(
+                fontSize: 12,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: Colors.green,
+            actions: [
+              TextButton(
+                onPressed: () => ScaffoldMessenger.of(context).hideCurrentMaterialBanner(),
+                child: Text("Dismiss"),
+              ),
+            ],
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showMaterialBanner(
+          MaterialBanner(
+            content: Text(
+              resultData['error'] ??
+                  "An Error Occurred while Updating Your Profile Information. Please Try Again.",
+              style: GoogleFonts.openSans(
+                fontSize: 12,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: Colors.red,
+            actions: [
+              TextButton(
+                onPressed: () => ScaffoldMessenger.of(context).hideCurrentMaterialBanner(),
+                child: Text("Dismiss"),
+              ),
+            ],
+          ),
+        );
+      }
     }
   }
 }

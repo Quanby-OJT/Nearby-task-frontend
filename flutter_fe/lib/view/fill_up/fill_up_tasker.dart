@@ -202,8 +202,10 @@ class _FillUpTaskerState extends State<FillUpTasker> {
               _specializationId.toString();
 
 // Fetch Document Link for tasker
+
           final int taskerId = user.tasker!.id!;
           _fetchDocumentLink(taskerId);
+
         });
       }
     } catch (error, stackTrace) {
@@ -867,22 +869,6 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                                   ? const Icon(Icons.picture_as_pdf,
                                       size: 80, color: Colors.red)
 
-                                  // ElevatedButton.icon(
-                                  //     onPressed: () {
-                                  //       Navigator.push(
-                                  //         context,
-                                  //         MaterialPageRoute(
-                                  //           builder: (context) =>
-                                  //               PDFViewerScreen(
-                                  //             pdfUrl: _existingPDFUrl!,
-                                  //           ),
-                                  //         ),
-                                  //       );
-                                  //     },
-                                  //     icon: const Icon(Icons.picture_as_pdf,
-                                  //         size: 80, color: Colors.red),
-                                  //     label: const Text("View PDF"),
-                                  //   )
                                   : const Icon(Icons.insert_drive_file,
                                       size: 80, color: Colors.grey),
                         ),

@@ -12,9 +12,21 @@ import 'api_service.dart';
 
 class ClientServices {
   static const String apiUrl = "http://localhost:5000/connect";
+
   static final storage = GetStorage();
   static final token = storage.read('session');
   Future<String?> getUserId() async => storage.read('user_id')?.toString();
+
+  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
+    final response = await http.post(Uri.parse("$apiUrl$endpoint"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+        body: jsonEncode(body));
+
+    return _handleResponse(response);
+  }
 
   Future<Map<String, dynamic>> _getRequest(String endpoint) async {
     final token = await AuthService.getSessionToken();
@@ -54,6 +66,25 @@ class ClientServices {
     } catch (e) {
       debugPrint("Error parsing response: $e");
       return {"error": "Failed to parse response: $e"};
+    }
+  }
+
+  Future<Map<String, dynamic>> _putRequest({required String endpoint, required Map<String, dynamic> body}) async {
+    final token = await AuthService.getSessionToken();
+    try {
+      final response = await http.put(
+        Uri.parse('$apiUrl$endpoint'),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+          },
+        body: jsonEncode(body),
+      );
+      return _handleResponse(response);
+    } catch (e, stackTrace) {
+      debugPrint(e.toString());
+      debugPrint(stackTrace.toString());
+      return {"error": "Request failed. Please Try Again."};
     }
   }
 
@@ -179,8 +210,7 @@ class ClientServices {
     }
   }
 
-  Future<Map<String, dynamic>> _deleteRequest(
-      String endpoint, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
       final request = http.Request("DELETE", Uri.parse('$apiUrl$endpoint'))
@@ -225,7 +255,6 @@ class ClientServices {
       return [];
     }
   }
-
   Future<Map<String, dynamic>> _postRequest(
       {required String endpoint, required Map<String, dynamic> body}) async {
     final response = await http.post(Uri.parse("$apiUrl$endpoint"),

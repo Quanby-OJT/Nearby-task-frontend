@@ -4,10 +4,10 @@ import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:get_storage/get_storage.dart';
 
-class TaskDetailsScreen extends StatefulWidget {
-  final int taskTakenId;
+class TaskDetailsScreen extends StatefulWidget{
+  final int taskId;
 
-  const TaskDetailsScreen({super.key, required this.taskTakenId});
+  const TaskDetailsScreen({super.key, required this.taskId});
 
   @override
   State<TaskDetailsScreen> createState() => _TaskDetailsScreenState();
@@ -19,6 +19,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   final TaskController taskController = TaskController();
   TaskModel? _taskInformation;
   bool _isLoading = true;
+  String role = "";
   final storage = GetStorage();
   List<String> taskClientStatus = ['In Negotiation', 'Interested', 'Confirmed', 'Rejected', 'Ongoing', 'Completed', 'Canceled', 'Pending'];//For Client Only
   List<String> taskTaskerStatus = ['In Negotiation', 'Interested', 'Confirmed', 'Rejected', 'Ongoing', 'Completed', 'Canceled', 'Pending'];//For Tasker Only
@@ -31,9 +32,10 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   }
 
   Future<void> _fetchTaskDetails() async {
+    role = await storage.read('role');
+    debugPrint(role);
     try {
-      final response =
-          await _jobPostService.fetchTaskInformation(widget.taskTakenId ?? 0);
+      final response = await _jobPostService.fetchTaskInformation(widget.taskId ?? 0);
       debugPrint("Response: $response");
       setState(() {
         _taskInformation = response;
@@ -67,40 +69,112 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildInfoRow("Title", task.title ?? "N/A"),
+                  //_buildInfoRow("Title", task.title ?? "N/A"),
+                  Text(
+                    task.title ?? "Unable to Retrieve Your Task",
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  //_buildInfoRow("Description", task.description ?? "N/A"),
+                  Text(
+                    "Task Description",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    task.description ?? "Unable to Retrieve Your Task",
+                    style: TextStyle(
+                      fontSize: 15,
+                    )
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_pin,
+                            color: Colors.red
+                          ),
+                          Text(
+                              task.location ?? "N/A",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            )
+                          )
+                        ]
+                      ),
+                      // Text(
+                      //   " | ",
+                      //   style: TextStyle(
+                      //     fontSize: 14,
+                      //     fontWeight: FontWeight.bold,
+                      //   )
+                      // ),
+                      Text(
+                        "${task.duration} Needed ${task.period}"
+                      )
+                    ]
+                  ),
+                  //buildInfoRow("Location", task.location ?? "N/A"),
                   _buildInfoRow(
-                      "Description", task.description ?? "N/A"),
-                  _buildInfoRow("Location", task.location ?? "N/A"),
-                  _buildInfoRow(
-                      "Urgency",
+                      "NOTE",
                       task.urgency.toString()
                   ),
                   _buildInfoRow(
                       "Duration", "${task.duration} ${task.period}"
                   ),
                   _buildInfoRow("Task Status", "${task.status}"),
-                  DropdownButtonFormField(
-                    value: task.status,
-                    items: taskClientStatus.map((String item) {
-                      return DropdownMenuItem<String>(
-                        value: item,
-                        child: Text(item),
-                      );
-                    }).toList(),
-                    onChanged: (String? newStatus) {
-                      // Handle the status change here
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: DropdownButtonFormField(
+                      value: task.status,
+                      items: taskClientStatus.map((String item) {
+                        return DropdownMenuItem<String>(
+                          value: item,
+                          child: Text(item),
+                        );
+                      }).toList(),
+                      onChanged: (String? newStatus) {
+                        if(newStatus == null){
+                          debugPrint("Status is NULL");
+                          return;
+                        }
+                         // Handle the status change here
                       print('Status changed to: $newStatus');
                       // Optionally, update the task's status in your controller/service
-                      taskController.updateTaskStatus(context, widget.taskTakenId, newStatus);
-                    },
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
-                      filled: true,
-                      fillColor: Colors.white,
+                      taskController.updateTaskStatus(context, widget.taskId, newStatus);
+                      },
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16.0),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
                     ),
                   ),
-                  //_buildInfoRow("Status", task.status ?? "N/A"),
+                  if (role == "Client")
+                    Center(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          debugPrint("Depositing Money to Escrow");
+                          //Function to call database API
+                        },
+                        icon: Icon(Icons.account_balance_wallet, color: Colors.white,),
+                        label: Text("Deposit Amount", style: TextStyle(color: Colors.white)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green, // or any color you want
+                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          textStyle: TextStyle(fontSize: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      )
+                    )
                 ],
               ),
             ),
@@ -114,13 +188,23 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Text(
             "$label: ",
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(
+                fontWeight: FontWeight.bold,
+              fontSize: 20
+            ),
           ),
           Expanded(
-            child: Text(value, softWrap: true),
+            child: Text(
+                value,
+                style: TextStyle(
+                  fontSize: 16
+                ),
+                softWrap: true
+            ),
           ),
         ],
       ),

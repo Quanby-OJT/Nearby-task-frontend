@@ -7,6 +7,7 @@ import 'package:flutter_fe/service/auth_service.dart';
 
 class TaskDetailsService {
   final String apiUrl = "http://localhost:5000/connect";
+
   final storage = GetStorage();
 
   Map<String, dynamic> _handleResponse(http.Response response) {
