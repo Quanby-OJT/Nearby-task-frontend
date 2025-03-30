@@ -18,14 +18,13 @@ class ProfileController {
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
   final TextEditingController roleController = TextEditingController();
   final TextEditingController statusController = TextEditingController();
   final TextEditingController fbLinkController = TextEditingController();
   final TextEditingController instaLinkController = TextEditingController();
   final TextEditingController telegramLinkController = TextEditingController();
-
-
 
   // Fetched user inputs End
 
@@ -35,7 +34,8 @@ class ProfileController {
   final TextEditingController companyNameController = TextEditingController();
   final TextEditingController taskerGroupController = TextEditingController();
   final TextEditingController bioController = TextEditingController();
-  final TextEditingController specializationController = TextEditingController();
+  final TextEditingController specializationController =
+      TextEditingController();
   final TextEditingController skillsController = TextEditingController();
   final TextEditingController taskerAddressController = TextEditingController();
   final TextEditingController availabilityController = TextEditingController();
@@ -44,7 +44,8 @@ class ProfileController {
   final TextEditingController genderController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
   final TextEditingController payPeriodController = TextEditingController();
-  final TextEditingController specializationIdController = TextEditingController();
+  final TextEditingController specializationIdController =
+      TextEditingController();
 
   final TaskerService taskerService = TaskerService();
   final TextEditingController accStatusController = TextEditingController();
@@ -275,7 +276,8 @@ class ProfileController {
     }
   }
 
-  Future<void> updateUserWithImage(BuildContext context, userId, File profileImage) async {
+  Future<void> updateUserWithImage(
+      BuildContext context, userId, File profileImage) async {
     try {
       // Validate fields
       String? emailError = validateEmail(emailController.text);
@@ -344,7 +346,8 @@ class ProfileController {
     }
   }
 
-  Future<void> updateUserWithID(BuildContext context, userId, File idImage) async {
+  Future<void> updateUserWithID(
+      BuildContext context, userId, File idImage) async {
     try {
       // Validate fields
       String? emailError = validateEmail(emailController.text);
@@ -413,7 +416,8 @@ class ProfileController {
     }
   }
 
-  Future<void> updateUserWithBothImages(BuildContext context, int userId, File profileImage, File idImage) async {
+  Future<void> updateUserWithBothImages(
+      BuildContext context, int userId, File profileImage, File idImage) async {
     try {
       // Validate fields
       String? emailError = validateEmail(emailController.text);
@@ -616,7 +620,8 @@ class ProfileController {
     }
   }
 
-  Future<int> verifyEmail(BuildContext context, String token, String email) async {
+  Future<int> verifyEmail(
+      BuildContext context, String token, String email) async {
     try {
       final response = await ApiService.verifyEmail(token, email);
 
@@ -634,7 +639,6 @@ class ProfileController {
   // this is for tasker without profile and PDF
   Future<Map<String, dynamic>> updateTaskerNoImages(
       BuildContext context, UserModel user) async {
-
     try {
       // Validate fields
       String? contactError =
@@ -650,7 +654,6 @@ class ProfileController {
       String? roleError = validateRole(roleController.text);
       String? specializationIdError =
           validateSpecializationId(specializationIdController.text);
-
 
       // Check if there are any validation errors
       if (contactError != null ||
@@ -896,8 +899,7 @@ class ProfileController {
 
   // this is for tasker with profile and PDF
   Future<Map<String, dynamic>> updateTaskerWithFiles(
-      BuildContext context, UserModel user, File file, File image) async {
-
+      BuildContext context, int userId, File file, File image) async {
     try {
       // Validate fields
       String? contactError =
@@ -940,10 +942,34 @@ class ProfileController {
         };
       }
 
+      UserModel user = UserModel(
+        id: userId,
+        firstName: firstNameController.text,
+        middleName: middleNameController.text,
+        lastName: lastNameController.text,
+        email: emailController.text,
+        role: roleController.text,
+        birthdate: birthdateController.text,
+        contact: contactNumberController.text,
+        gender: genderController.text,
+        image: imageController.text,
+      );
+
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        },
+      );
+
       // Call API service to update user without images
       Map<String, dynamic> result =
           await ApiService.updateTaskerProfileWithFiles(
-        user.id ?? 0, file, image, // Use 0 as fallback if id is null
+        userId, file, image, // Use 0 as fallback if id is null
         {
           "first_name": user.firstName,
           "middle_name": user.middleName ?? '',
@@ -1083,47 +1109,6 @@ class ProfileController {
     } catch (e) {}
   }
 
-  Future<AuthenticatedUser?> getAuthenticatedUser(BuildContext context, int userId) async {
-
-    try {
-      // Create user model with current data
-      UserModel user = UserModel(
-        id: userId,
-        firstName: firstNameController.text,
-        middleName: middleNameController.text,
-        lastName: lastNameController.text,
-        email: emailController.text,
-        role: roleController.text,
-        birthdate: birthdateController.text,
-        contact: contactNumberController.text,
-        gender: genderController.text,
-        image: imageController.text,
-      );
-
-      if (result.containsKey("user")) {
-        // Parse User data
-        UserModel user = result["user"] as UserModel;
-        debugPrint("Retrieved Data: $user");
-
-        if (result.containsKey("client")) {
-          // Parse Client data
-          ClientModel client = result["client"] as ClientModel;
-          debugPrint("User is a client and has client data: $client");
-          return AuthenticatedUser(user: user, client: client);
-        }
-        else if (result.containsKey("tasker") && result["tasker"] != null) {
-          // Parse Tasker data
-          TaskerModel tasker = result["tasker"] as TaskerModel;
-          debugPrint("Retrieved Tasker Data: $tasker");
-          return AuthenticatedUser(user: user, tasker: tasker);
-        }
-
-        // Return just user if no client or tasker data
-        return AuthenticatedUser(user: user);
-      }
-    } catch (e) {}
-  }
-
   // This is for tasker without profile and PDF
   Future<void> updateTaskerWithoutFile(BuildContext context, int userId) async {
     try {
@@ -1182,25 +1167,16 @@ class ProfileController {
           content: Text('Error updating profile: $e'),
           backgroundColor: Colors.red,
         ),
-
       );
     }
   }
-  // Fetching document link from database
-  Future<String?> getDocumentLink(int documentId) async {
-    final response = await taskerService.getDocumentLink(documentId);
-    if (response.containsKey("data")) {
-      return response["data"] as String?;
-    }
-    return null;
-  }
 
   Future<void> updateUser(
-      BuildContext context,
-      int taskerId,
-      List<dynamic> documentFile,
-      File profileImage,
-      ) async {
+    BuildContext context,
+    int taskerId,
+    List<dynamic> documentFile,
+    File profileImage,
+  ) async {
     // Check if the widget is still mounted before proceeding
     if (!context.mounted) return;
 
@@ -1231,7 +1207,7 @@ class ProfileController {
       );
 
       Map<String, dynamic> resultData =
-      await ProfileService.updateClient(client, user, profileImage);
+          await ProfileService.updateClient(client, user, profileImage);
 
       // Check if widget is still mounted before showing SnackBar
       if (!context.mounted) return;
@@ -1262,7 +1238,8 @@ class ProfileController {
         skills: skillsController.text,
         taskerAddress: taskerAddressController.text,
         taskerDocuments: documentFile.toString(),
-        availability: availabilityController.text == "I am available" ? true : false,
+        availability:
+            availabilityController.text == "I am available" ? true : false,
         socialMediaLinks: socials,
         wage: double.parse(cleanedWage),
         payPeriod: payPeriodController.text,
@@ -1270,8 +1247,8 @@ class ProfileController {
         phoneNumber: int.parse(contactNumberController.text),
       );
 
-      Map<String, dynamic> resultData =
-      await ProfileService.updateTasker(tasker, user, documentFile, profileImage);
+      Map<String, dynamic> resultData = await ProfileService.updateTasker(
+          tasker, user, documentFile, profileImage);
 
       // Check if widget is still mounted before showing MaterialBanner
       if (!context.mounted) return;
@@ -1289,7 +1266,8 @@ class ProfileController {
             backgroundColor: Colors.green,
             actions: [
               TextButton(
-                onPressed: () => ScaffoldMessenger.of(context).hideCurrentMaterialBanner(),
+                onPressed: () =>
+                    ScaffoldMessenger.of(context).hideCurrentMaterialBanner(),
                 child: Text("Dismiss"),
               ),
             ],
@@ -1309,7 +1287,8 @@ class ProfileController {
             backgroundColor: Colors.red,
             actions: [
               TextButton(
-                onPressed: () => ScaffoldMessenger.of(context).hideCurrentMaterialBanner(),
+                onPressed: () =>
+                    ScaffoldMessenger.of(context).hideCurrentMaterialBanner(),
                 child: Text("Dismiss"),
               ),
             ],

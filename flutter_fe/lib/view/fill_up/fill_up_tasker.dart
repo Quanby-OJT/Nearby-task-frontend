@@ -205,7 +205,6 @@ class _FillUpTaskerState extends State<FillUpTasker> {
 
           final int taskerId = user.tasker!.id!;
           _fetchDocumentLink(taskerId);
-
         });
       }
     } catch (error, stackTrace) {
@@ -243,7 +242,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
           _selectedImage != null &&
           _pdfChanged &&
           _imagesChanged) {
-        await _controller.updateTaskerWithFile(
+        await _controller.updateTaskerWithFiles(
             context, userId, _selectedFile!, _selectedImage!);
       } else if (_existingProfileImageUrl != null &&
           _selectedFile != null &&
@@ -868,7 +867,6 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                                       _existingPDFUrl!.isNotEmpty
                                   ? const Icon(Icons.picture_as_pdf,
                                       size: 80, color: Colors.red)
-
                                   : const Icon(Icons.insert_drive_file,
                                       size: 80, color: Colors.grey),
                         ),

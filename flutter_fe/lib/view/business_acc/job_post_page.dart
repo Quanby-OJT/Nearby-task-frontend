@@ -10,12 +10,10 @@ import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
-import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/business_acc/business_task_detail.dart';
+import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_fe/view/business_acc/task_details_screen.dart';
 
 class JobPostPage extends StatefulWidget {
   const JobPostPage({super.key});
@@ -52,20 +50,15 @@ class _JobPostPageState extends State<JobPostPage> {
   AuthenticatedUser? _user;
   bool _isLoading = true;
   bool _showButton = false;
-  final storage = GetStorage();
-  bool _isLoading = false;
-
 
   @override
   void initState() {
     super.initState();
     fetchSpecialization();
     _loadSkills();
-    getAllJobsforClient();
     _fetchUserIDImage();
 
     fetchCreatedTasks();
-
   }
 
   Future<void> fetchSpecialization() async {
@@ -811,8 +804,8 @@ class _JobPostPageState extends State<JobPostPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        iconTheme: IconThemeData(color: Color(0xFF0272B1)),
-        title: Text(
+        iconTheme: const IconThemeData(color: Color(0xFF0272B1)),
+        title: const Text(
           'Your Tasks',
           textAlign: TextAlign.center,
           style:
@@ -825,41 +818,13 @@ class _JobPostPageState extends State<JobPostPage> {
               _existingProfileImageUrl!.isEmpty)
           ? missingInformation()
           : clientTasks.isEmpty
-              ? Center(child: Text("No tasks available"))
+              ? const Center(child: Text("No tasks available"))
               : ListView.builder(
                   itemCount: clientTasks.length,
                   itemBuilder: (context, index) {
                     final task = clientTasks[index];
-                    return ListTile(
-                      title: Text(task?.title ?? "Untitled Task",
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold)),
-                      subtitle: Text(
-                        "📍 ${task!.location} \n • ₱ ${NumberFormat("#,##0.00", "en_US").format(task.contactPrice!.roundToDouble())} \n • 🛠 ${task.specialization}",
-                        style: TextStyle(fontSize: 14),
-                      ),
-                      trailing: Icon(Icons.arrow_forward_ios,
-                          size: 16, color: Colors.grey),
-                      onTap: () {},
-                    );
-                  },
-                ),
-
-      floatingActionButton: _showButton
-          ? FloatingActionButton.extended(
-              onPressed: _showCreateTaskModal,
-              icon: Icon(Icons.add, size: 26),
-              label: Text("Had a New Task in Mind?",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              backgroundColor: Colors.blueAccent,
-              foregroundColor: Colors.white,
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-            )
-          : null, // If _showButton is false, no button is shown
                     if (task == null) {
-                      return SizedBox.shrink(); // Skip null tasks
+                      return const SizedBox.shrink(); // Skip null tasks
                     }
                     // Format the price safely
                     String priceDisplay = "N/A";
@@ -873,41 +838,49 @@ class _JobPostPageState extends State<JobPostPage> {
                     }
 
                     return Card(
-                      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                       elevation: 2,
                       child: ListTile(
-                        contentPadding: EdgeInsets.all(12),
-                        title: Text(task.title ?? "Untitled Task",
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold)),
+                        contentPadding: const EdgeInsets.all(12),
+                        title: Text(
+                          task.title ?? "Untitled Task",
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             Text(
                               "📍 ${task.location ?? 'Location not specified'}",
-                              style: TextStyle(fontSize: 14),
+                              style: const TextStyle(fontSize: 14),
                             ),
                             Text(
                               "• ₱ $priceDisplay",
-                              style: TextStyle(fontSize: 14),
+                              style: const TextStyle(fontSize: 14),
                             ),
                             Text(
                               "• 🛠 ${task.specialization ?? 'No specialization'}",
-                              style: TextStyle(fontSize: 14),
+                              style: const TextStyle(fontSize: 14),
                             ),
                             if (task.duration != null)
                               Text(
                                 "• ⏱ Duration: ${task.duration}",
-                                style: TextStyle(fontSize: 14),
+                                style: const TextStyle(fontSize: 14),
                               ),
                           ],
                         ),
-                        trailing: Icon(Icons.arrow_forward_ios,
-                            size: 16, color: Colors.grey),
+                        trailing: const Icon(
+                          Icons.arrow_forward_ios,
+                          size: 16,
+                          color: Colors.grey,
+                        ),
                         onTap: () {
-                          // Navigate to task details page
-                          _navigateToTaskDetail(task);
+                          _navigateToTaskDetail(
+                              task); // Navigate to task details
                         },
                       ),
                     );
@@ -921,21 +894,24 @@ class _JobPostPageState extends State<JobPostPage> {
             heroTag: "refreshBtn",
             mini: true,
             onPressed: fetchCreatedTasks,
-            child: Icon(Icons.refresh),
+            child: const Icon(Icons.refresh),
             backgroundColor: Colors.green,
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           FloatingActionButton.extended(
             heroTag: "addTaskBtn",
             onPressed: _showCreateTaskModal,
-            icon: Icon(Icons.add, size: 26),
-            label: Text("Had a New Task in Mind?",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            icon: const Icon(Icons.add, size: 26),
+            label: const Text(
+              "Had a New Task in Mind?",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             backgroundColor: Colors.blueAccent,
             foregroundColor: Colors.white,
             elevation: 4,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         ],
       ),
