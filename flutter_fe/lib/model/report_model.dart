@@ -5,15 +5,19 @@ class ReportModel {
   final List<XFile>? images;
   final int? reportedBy;
   final int? reportedWhom;
-  final int? reportId; // Added for report_id
-  final String? createdAt; // Added for created_at
-  final bool? status; // Added for status
+  final String? reportedByName; // Added for name of reported_by
+  final String? reportedWhomName; // Added for name of reported_whom
+  final int? reportId;
+  final String? createdAt;
+  final bool? status;
 
   ReportModel({
     this.reason,
     this.images,
     this.reportedBy,
     this.reportedWhom,
+    this.reportedByName,
+    this.reportedWhomName,
     this.reportId,
     this.createdAt,
     this.status,
@@ -41,6 +45,8 @@ class ReportModel {
           : null,
       reportedBy: json['reported_by'] as int?,
       reportedWhom: json['reported_whom'] as int?,
+      reportedByName: json['reported_by_name'] as String?,
+      reportedWhomName: json['reported_whom_name'] as String?,
       reportId: json['report_id'] as int?,
       createdAt: json['created_at'] as String?,
       status: json['status'] as bool?,

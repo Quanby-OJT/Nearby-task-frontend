@@ -28,7 +28,7 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     _fetchTaskAssignments();
     _fetchTaskers();
-    _fetchReportHistory(); // Fetch report history on initialization
+    _fetchReportHistory();
   }
 
   Future<void> _fetchTaskAssignments() async {
@@ -454,9 +454,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                   Text(
                                       "Reason: ${report.reason ?? 'No reason provided'}"),
                                   Text(
-                                      "Reported By: ${report.reportedBy ?? 'Unknown'}"),
+                                      "Reported By: ${report.reportedByName ?? 'Unknown'}"),
                                   Text(
-                                      "Reported Whom: ${report.reportedWhom ?? 'Unknown'}"),
+                                      "Reported Whom: ${report.reportedWhomName ?? 'Unknown'}"),
                                   Text(
                                       "Created At: ${report.createdAt ?? 'N/A'}"),
                                   Text(
@@ -473,7 +473,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 alignment: Alignment.centerRight,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(context); // Close the modal
+                    Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
