@@ -81,6 +81,7 @@ class _FillUpClientState extends State<FillUpClient> {
         _controller.emailController.text = user.user.email;
         _controller.contactNumberController.text = user.user.contact ?? '';
         _controller.birthdateController.text = user.user.birthdate ?? '';
+        _controller.roleController.text = user.user.role;
         selectedGender =
             genderOptions.contains(user.user.gender) ? user.user.gender : null;
         _controller.genderController.text = selectedGender ?? '';

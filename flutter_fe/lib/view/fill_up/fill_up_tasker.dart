@@ -73,8 +73,8 @@ class _FillUpTaskerState extends State<FillUpTasker> {
   bool get _allConditionsMet {
     return _generalFormKey.currentState?.validate() == true &&
         _profileFormKey.currentState?.validate() == true &&
-        (_selectedImage != null || _existingProfileImageUrl != null) &&
-        (_selectedFile != null || _existingPDFUrl != null) &&
+        (_existingProfileImageUrl != null) &&
+        (_existingPDFUrl != null) &&
         _documentValid;
   }
 

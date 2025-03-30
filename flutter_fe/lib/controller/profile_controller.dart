@@ -209,6 +209,7 @@ class ProfileController {
     String? contactError = validateContactNumber(contactNumberController.text);
     String? genderError = validateGender(genderController.text);
     String? birthdateError = validateBirthdate(birthdateController.text);
+    String? roleError = validateRole(roleController.text);
 
     // Check if there are any validation errors
     if (emailError != null ||
@@ -216,7 +217,8 @@ class ProfileController {
         lastNameError != null ||
         contactError != null ||
         genderError != null ||
-        birthdateError != null) {
+        birthdateError != null ||
+        roleError != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(emailError ??
@@ -225,6 +227,7 @@ class ProfileController {
               contactError ??
               genderError ??
               birthdateError ??
+              roleError ??
               "Please fix the errors in the form"),
           backgroundColor: Colors.red,
         ),
