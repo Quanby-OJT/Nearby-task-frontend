@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/controller/authentication_controller.dart';
+import 'package:flutter_fe/controller/profile_controller.dart';
+import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
+import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/service_acc/task_information.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/view/service_acc/task_requests_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -19,6 +24,10 @@ class LikesScreen extends StatefulWidget {
 class _LikesScreenState extends State<LikesScreen> {
   ClientServices clientServices = ClientServices();
   final TextEditingController _searchController = TextEditingController();
+  final ClientServices _clientServices = ClientServices();
+  final AuthenticationController _authController = AuthenticationController();
+  final ProfileController _profileController = ProfileController();
+  final GetStorage storage = GetStorage();
   bool _isLoading = true;
   List<UserModel> _likedTasks = [];
   List<UserModel> _filteredTasks = [];
@@ -26,11 +35,16 @@ class _LikesScreenState extends State<LikesScreen> {
   String? _errorMessage;
   int savedTasksCount = 0;
 
+  String? _existingProfileImageUrl;
+  String? _existingIDImageUrl;
+  AuthenticatedUser? _user;
+
   @override
   void initState() {
     super.initState();
     _loadLikedTasks();
     _searchController.addListener(_filterTaskFunction);
+    _fetchUserIDImage();
   }
 
   void _filterTaskFunction() {
@@ -167,6 +181,79 @@ class _LikesScreenState extends State<LikesScreen> {
     );
   }
 
+  Future<void> _fetchUserIDImage() async {
+    try {
+      int userId = int.parse(storage.read('user_id').toString());
+      if (userId == null) {
+        debugPrint("User ID not found in storage po");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to load user image. Please try again."),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+
+      AuthenticatedUser? user =
+          await _profileController.getAuthenticatedUser(context, userId);
+      debugPrint(user.toString());
+
+      final response = await _clientServices.fetchUserIDImage(userId);
+
+      if (response['success']) {
+        setState(() {
+          _user = user;
+          _existingProfileImageUrl = user?.user.image;
+          _existingIDImageUrl = response['url'];
+          _isLoading = false;
+
+          debugPrint(
+              "Successfully loaded user image" + _existingProfileImageUrl!);
+          debugPrint("Successfully loaded ID image" + _existingIDImageUrl!);
+        });
+      }
+    } catch (e) {
+      debugPrint("Error fetching ID image: $e");
+    }
+  }
+
+  Widget missingInformation() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+            "Missing Information",
+            style: TextStyle(
+              color: Colors.red,
+              fontSize: 16,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FillUpClient()),
+              );
+              if (result == true) {
+                setState(() {
+                  _isLoading = true;
+                });
+
+                await _fetchUserIDImage(); // Refresh user profile and ID image data
+              }
+            },
+            child: const Text('Upload Your Profile'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -248,6 +335,11 @@ class _LikesScreenState extends State<LikesScreen> {
       return const Center(
         child: CircularProgressIndicator(),
       );
+    } else if (_existingProfileImageUrl == null ||
+        _existingIDImageUrl == null ||
+        _existingProfileImageUrl!.isEmpty ||
+        _existingIDImageUrl!.isEmpty) {
+      return missingInformation();
     }
 
     if (_errorMessage != null) {

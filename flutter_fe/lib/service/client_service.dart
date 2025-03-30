@@ -8,6 +8,8 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:get_storage/get_storage.dart';
 
+import 'api_service.dart';
+
 class ClientServices {
   static const String apiUrl = "http://localhost:5000/connect";
 
@@ -251,6 +253,40 @@ class ClientServices {
     } catch (e) {
       debugPrint("Error fetching liked jobs: $e");
       return [];
+    }
+  }
+  Future<Map<String, dynamic>> _postRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
+    final response = await http.post(Uri.parse("$apiUrl$endpoint"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+        body: jsonEncode(body));
+
+    return _handleResponse(response);
+  }
+
+  Future<Map<String, dynamic>> fetchUserIDImage(int userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse("${ApiService.apiUrl}/getUserDocuments/$userId?type=id"),
+        headers: {
+          "Authorization": "Bearer ${await AuthService.getSessionToken()}",
+          "Content-Type": "application/json"
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['user'] != null && data['user']['document_url'] != null) {
+          return {'success': true, 'url': data['user']['document_url']};
+        }
+      }
+      return {'success': false, 'message': 'Image not found'};
+    } catch (e) {
+      debugPrint("Error fetching ID image: $e");
+      return {'success': false, 'message': 'Failed to fetch image'};
     }
   }
 }
