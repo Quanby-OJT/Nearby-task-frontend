@@ -4,6 +4,8 @@ import 'package:flutter_fe/service/task_request_service.dart';
 
 class TaskRequestController {
   final TaskRequestService _requestService = TaskRequestService();
+  final TextEditingController rejectionController = TextEditingController();
+  final TextEditingController otherReasonController = TextEditingController();
 
   Future<List<TaskRequest>> getTaskerRequests() async {
     try {
@@ -98,6 +100,26 @@ class TaskRequestController {
         'success': false,
         'message': 'Failed to decline request: $e',
       };
+    }
+  }
+
+  Future<String> rejectTasker(int requestId, String rejectOrCancel) async {
+    try {
+      debugPrint("TaskRequestController: Rejecting tasker with ID $requestId");
+      String rejectionReason = rejectionController.text;
+      var response = await _requestService.rejectTaskerOrCancelTask(requestId, rejectOrCancel, rejectionReason);
+
+      if(response.containsKey("message")){
+        return response["message"];
+      }else if(response.containsKey("error")){
+        return response["error"];
+      }else{
+        return "Unknown Error";
+      }
+    }catch(e, stackTrace){
+      debugPrint("Error in TaskRequestController.rejectTasker: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return "An Error Occured. Please Try Again.";
     }
   }
 }

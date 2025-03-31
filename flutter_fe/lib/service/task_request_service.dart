@@ -111,6 +111,25 @@ class TaskRequestService {
     }
   }
 
+  Future<Map<String, dynamic>> _putRequest({required String endpoint, required Map<String, dynamic> body}) async {
+    final token = await AuthService.getSessionToken();
+    try {
+      final response = await http.put(
+        Uri.parse('$apiUrl$endpoint'),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+        body: jsonEncode(body),
+      );
+      return _handleResponse(response);
+    } catch (e, stackTrace) {
+      debugPrint(e.toString());
+      debugPrint(stackTrace.toString());
+      return {"error": "Request failed. Please Try Again."};
+    }
+  }
+
   // Get all task requests for the tasker from task_taken table
   Future<List<TaskRequest>> getTaskerRequests() async {
     try {
@@ -260,6 +279,7 @@ class TaskRequestService {
       // which references the post_task table
       if (item.containsKey('task') && item['task'] is Map) {
         final taskData = item['task'];
+        debugPrint("Task data: $taskData");
 
         return TaskModel(
             id: taskId, // Use the task_id from the root level
@@ -292,8 +312,9 @@ class TaskRequestService {
         taskBeginDate: '',
         workType: ''
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint("Error creating TaskModel: $e");
+      debugPrintStack(stackTrace: stackTrace);
       // Return minimal task model
       return TaskModel(
         id: taskId,
@@ -368,7 +389,7 @@ class TaskRequestService {
         body: {
           'task_taken_id': requestId,
           'tasker_id': int.parse(userId),
-          'status': 'accepted'
+          'status': 'Confirmed'
         },
       );
     } catch (e) {
@@ -386,7 +407,7 @@ class TaskRequestService {
       if (userId == null) {
         return {
           'success': false,
-          'message': 'Please log in to accept requests',
+          'error': 'Please log in to deposit payments.',
         };
       }
       debugPrint("Depositing escrow payment with price: $contractPrice");
@@ -397,14 +418,14 @@ class TaskRequestService {
           'task_taken_id': taskTakenId,
           'client_id': int.parse(userId),
           'amount': contractPrice,
-          'status': 'accepted'
+          'status': 'Accepted'
         },
       );
     } catch (e) {
       debugPrint("Error accepting task request: $e");
       return {
         'success': false,
-        'message': 'Failed to accept request: $e',
+        'error': 'Failed to accept request: $e',
       };
     }
   }
@@ -426,7 +447,7 @@ class TaskRequestService {
         body: {
           'task_taken_id': requestId,
           'tasker_id': int.parse(userId),
-          'status': 'declined'
+          'status': 'Declined'
         },
       );
     } catch (e) {
@@ -434,6 +455,25 @@ class TaskRequestService {
       return {
         'success': false,
         'message': 'Failed to decline request: $e',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> rejectTaskerOrCancelTask(int requestId, String rejectOrCancel, String rejectionReason) async {
+    try{
+      return await _putRequest(
+        endpoint: "/update-status-tasker/$requestId",
+        body: {
+          "task_status": rejectOrCancel,
+          "reason_for_rejection_or_cancellation": rejectionReason
+        }
+      );
+    }catch(e, stackTrace) {
+      debugPrint("Error rejecting tasker: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {
+        'success': false,
+        'message': 'Failed to reject the tasker. Please Try Again.'
       };
     }
   }

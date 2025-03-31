@@ -26,8 +26,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   bool _isLoading = true;
   String role = "";
   final storage = GetStorage();
-  List<String> taskTaskerStatus = ['Interested', 'Confirmed', 'Rejected', 'Ongoing', 'Completed', 'Canceled', 'Pending'];//For Tasker Only
-  List<String> taskClientStatus = ['In Negotiation', 'Confirmed', 'Rejected', 'Canceled', 'Pending'];//For Tasker Only
+  List<String> taskTaskerStatus = ['Interested', 'Confirmed', 'Rejected', 'Ongoing', 'Completed', 'Cancelled', 'Pending'];//For Tasker Only
+  List<String> taskClientStatus = ['In Negotiation', 'Confirmed', 'Rejected', 'Cancelled', 'Pending'];//For Client Only
   List<String> rejectionReasons = [
     'Tasker is not available',
     'I had other concerns that needed more attention',
@@ -37,6 +37,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   ];
   bool rejectFormField = false;
   final rejectTasker = GlobalKey<FormState>();
+  String rejectionReason = "";
+  bool processingData = false;
 
 
 
@@ -157,19 +159,21 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                         width: 200, // Adjust width as needed
                         child: DropdownButtonFormField(
                           value: taskAssignment?.taskStatus, // Set an initial value if possible
-                          items: taskTaskerStatus.map((status) {
+                          items: taskClientStatus.map((status) {
                             return DropdownMenuItem(
                               value: status,
                               child: Text(status),
                             );
                           }).toList(),
                           onChanged: (String? value) {
-                            setState(() {
                               //taskAssignment?.taskStatus = value.toString();
                               switch (value) {
                                 case "Rejected":
+                                  if(role == "Client") showRejectionOrCancellationForm("Rejected");
                                   break;
-                                case "Canceled":
+                                case "Cancelled":
+                                  if(role == "Client") showRejectionOrCancellationForm("Cancelled");
+
                                   break;
                                 case "Confirmed":
                                   if(role == "Client") {
@@ -178,9 +182,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                   break;
                                 case "Completed":
                                   break;
-                              }
-                            });
-                          },
+                            }
+                          }
                         ),
                       ),
                     ],
@@ -221,52 +224,201 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   }
 
   void showEscrowPayment(){
-    showModalBottomSheet(
+    showDialog(
       context: context,
       builder: (BuildContext context){
-        return SizedBox(
-          height: MediaQuery.of(context).size.height * 0.25,
-          child: Padding(
-            padding: EdgeInsets.all(20),
+        return AlertDialog(
+          title: Text(
+            "Deposit the Payment First.",
+            style: GoogleFonts.roboto(
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0272B1)
+            ),
+            textAlign: TextAlign.center,
+          ),
+          content: Text(processingData ? "" : "In order for the tasker to continue their task, you need to deposit first your negotiated and agreed contract price."),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                taskRequestController.depositAmountToEscrow(context,
+                    taskAssignment?.task?.contactPrice.toDouble() ?? 0.00,
+                    taskAssignment?.taskTakenId ?? 0);
+                processingData = true;
+
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                  child: Row(
+                  children: [
+                    Icon(
+                      FontAwesomeIcons.moneyBillTransfer,
+                      color: Colors.green,
+                      size: 20,
+                    ),
+                    SizedBox(width: 20,),
+                    Text(
+                      "Deposit Amount",
+                      style: GoogleFonts.roboto(
+                        fontSize: 14,
+                        color: Colors.green
+                      ),
+                    )
+                  ]
+                )
+              )
+            ),
+            TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Row(
+                        children: [
+                          Icon(
+                            FontAwesomeIcons.ban,
+                            color: Colors.red,
+                            size: 20,
+                          ),
+                          SizedBox(width: 20,),
+                          Text(
+                            "Cancel",
+                            style: GoogleFonts.roboto(
+                                fontSize: 14,
+                                color: Colors.red
+                            ),
+                          )
+                        ]
+                    )
+                )
+            ),
+          ]
+        );
+      }
+    );
+  }
+
+  void showRejectionOrCancellationForm(String status){
+    showDialog(
+      context: context,
+      builder: (BuildContext context){
+        return AlertDialog(
+          title: Text(
+            "You are going to ${status == "Rejected" ? "Reject a Tasker" : "Cancel your Task."}",
+            style: GoogleFonts.roboto(
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0272B1)
+            ),
+          ),
+          content: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.3,
+            width: 250,
             child: Column(
-              children: [
-                Text(
-                  "Please Deposit the Payment Before the Tasker can Start their Work.",
-                  style: GoogleFonts.roboto(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0272B1)
-                  ),
-                  textAlign: TextAlign.center,
+              children: <Widget>[
+                SizedBox(height: 10),
+                Text("Why are you rejecting a Tasker/Cancelling a Task?"),
+                SizedBox(height: 10),
+                DropdownMenu(
+                  hintText: "Please select a reason",
+                  dropdownMenuEntries: rejectionReasons.map((rejectionReason) {
+                    return DropdownMenuEntry(
+                      value: rejectionReason,
+                      label: rejectionReason,
+                    );
+                  }).toList(),
+                  onSelected: (String? value) {
+                    debugPrint(value);
+                    if (value == 'Others (please specify)') {
+                      setState(() {
+                        rejectFormField = true;
+                      });
+                    }else{
+                      setState(() {
+                        rejectFormField = false;
+                      });
+                    }
+                  },
+                  controller: taskRequestController.rejectionController,
                 ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () => taskRequestController.depositAmountToEscrow(context, taskAssignment?.task?.contactPrice.toDouble() ?? 0.00, taskAssignment?.taskTakenId ?? 0),
+                SizedBox(height: 10),
+                TextField(
+                  maxLines: 4,
+                  enabled: rejectFormField,
+                  decoration: InputDecoration(
+                    labelText: "Others (please specify)",
+                    border: OutlineInputBorder(),
+                    ),
+                  controller: taskRequestController.otherReasonController,
+                ),
+              ]
+            )
+          ),
+          actions: <Widget> [
+            StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+                return TextButton(
+                  onPressed: processingData ? null : () async{
+                    setState(() => processingData = true);
+                    String rejectOrCancel = await taskRequestController.rejectTasker(widget.taskTakenId, status);
+                    setState(() => processingData = false);
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(rejectOrCancel),
+                      ),
+                    );
+                  },
                   child: Padding(
                     padding: const EdgeInsets.all(10.0),
-                      child: Row(
+                    child: Row(
                       children: [
                         Icon(
-                          FontAwesomeIcons.piggyBank,
-                          color: Colors.pinkAccent,
-                          size: 30,
+                          FontAwesomeIcons.share,
+                          color: Colors.green,
+                          size: 20,
                         ),
                         SizedBox(width: 20,),
                         Text(
-                          "Deposit Amount",
+                          processingData ? "Please Wait..." : "Send Rejection Notice",
                           style: GoogleFonts.roboto(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.pinkAccent
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: processingData ? Colors.black38 : Colors.green
                           ),
                         )
                       ]
                     )
                   )
-                ),
-              ]
-            )
-          )
+                );
+              }
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Row(
+                  children: [
+                    Icon(
+                      FontAwesomeIcons.ban,
+                      color: Colors.red,
+                      size: 20,
+                    ),
+                    SizedBox(width: 20,),
+                    Text(
+                      "Cancel",
+                      style: GoogleFonts.roboto(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red
+                      ),
+                    )
+                  ]
+                )
+              )
+            ),
+          ]
         );
       }
     );
