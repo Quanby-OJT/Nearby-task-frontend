@@ -29,13 +29,15 @@
     <span
       class="rounded-lg py-1 px-4"
       [ngClass]="{
-        'bg-blue-500': user.acc_status === 'review',
-        'bg-green-500': user.acc_status === 'verified',
-        'bg-red-500': user.acc_status === 'blocked',
-        'bg-yellow-500': user.acc_status === 'rejected'
+        'bg-blue-500': user.acc_status === 'Review',
+        'bg-green-500': user.acc_status === 'Active',
+        'bg-red-400': user.acc_status === 'Deactivate',
+        'bg-red-700': user.acc_status === 'Block',
+        'bg-yellow-300': user.acc_status === 'Suspend',
+        'bg-yellow-500': user.acc_status === 'Pending'
       }"
-      [class.cursor-pointer]="user.acc_status === 'review'"
-      (click)="user.acc_status === 'review' ? navigateToReviewUser(user.user_id) : null">
+      [class.cursor-pointer]="user.acc_status === 'Review'"
+      (click)="user.acc_status === 'Review' ? navigateToReviewUser(user.user_id) : null">
       {{ user.acc_status }}
     </span>
   </td>

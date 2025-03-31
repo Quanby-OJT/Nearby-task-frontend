@@ -43,7 +43,7 @@ export class TaskComponent implements OnInit {
   fetchTasks(): void {
     this.taskService.getTasks().subscribe(
       (response) => {
-        console.log('Fetched tasks:', response.tasks); // Debug
+        console.log('Fetched tasks:', response.tasks); 
         this.tasks = response.tasks;
         this.filteredTasks = response.tasks;
         this.updatePagination();

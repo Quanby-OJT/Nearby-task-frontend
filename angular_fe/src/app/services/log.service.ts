@@ -8,23 +8,26 @@ import { SessionLocalStorage } from 'src/services/sessionStorage';
   providedIn: 'root',
 })
 export class UserLogService {
-  // URL where the logs come from
-  private apiUrl = `${environment.apiUrl}/connect`;
+  
+  private apiUrl = 'http://localhost:5000/connect';
+  
+  constructor(
+    private http: HttpClient,
+    private sessionStorage: SessionLocalStorage
+  ) {}
 
-  constructor(private http: HttpClient, private sessionStorage: SessionLocalStorage) {}
 
-  private getHeaders(): HttpHeaders {
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${this.sessionStorage.getSessionToken()}`
-    });
+  private getHeader(): HttpHeaders {
+      return new HttpHeaders({
+        'Authorization': `Bearer ${this.sessionStorage.getSessionToken()}`
+      })
   }
 
   // Get the logs from the backend server
   getUserLogs(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/displayLogs`, { 
-      headers: this.getHeaders(),
-      withCredentials: true // This enables sending cookies with the request
+    return this.http.get<any>(`${this.apiUrl}/displayLogs`, {
+      headers: this.getHeader(),
+      withCredentials: true
     });
   }
 }
