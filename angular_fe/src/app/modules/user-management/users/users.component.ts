@@ -144,58 +144,77 @@ export class UsersComponent implements OnInit {
 
   get filteredUsers(): any[] {
     const search = this.filterService.searchField().toLowerCase() || '';
-    console.log('Search Value:', search);
     const account = this.filterService.statusField();
     const status = this.filterService.onlineField();
     const role = this.filterService.roleField();
     this.PaginationUsers = this.filterService.currentUsers();
-    console.log('Current Users:', this.PaginationUsers);
 
-    return this.PaginationUsers.filter(
-      (user) =>
-        user.first_name.toLowerCase().includes(search) ||
-        user.last_name.toLowerCase().includes(search) ||
-        user.email.toLowerCase().includes(search),
-    )
-      .filter((user) => {
-        if (!account) return true;
-        switch (account) {
-          case '1':
-            return user.acc_status === 'verified';
-          case '2':
-            return user.acc_status === 'review';
-          case '3':
-            return user.acc_status === 'rejected';
-          case '4':
-            return user.acc_status === 'blocked';
-          default:
-            return true;
-        }
-      })
-      .filter((user) => {
-        if (!role) return true;
-        switch (role) {
-          case '1':
-            return user.user_role === 'client';
-          case '2':
-            return user.user_role === 'tasker';
-          case '3':
-            return user.user_role === 'moderator';
-          default:
-            return true;
-        }
-      })
-      .filter((user) => {
-        if (!status) return true;
-        switch (status) {
-          case '1':
-            return user.status === true;
-          case '2':
-            return user.status === false;
-          default:
-            return true;
-        }
-      });
+    // Apply search filter on full name
+    let filtered = this.PaginationUsers.filter((user) => {
+      // Create full name by concatenating first_name, middle_name, and last_name
+      const firstName = String(user.first_name || '').toLowerCase();
+      const middleName = String(user.middle_name || '').toLowerCase();
+      const lastName = String(user.last_name || '').toLowerCase();
+      const fullName = [firstName, middleName, lastName]
+        .filter((name) => name) // Remove empty strings
+        .join(' ');
+
+      // Split search terms to allow matching individual words
+      const searchTerms = search.split(/\s+/).filter((term) => term);
+
+      // Check if all search terms are present in the full name or email
+      return (
+        searchTerms.every((term) => fullName.includes(term)) ||
+        (user.email || '').toLowerCase().includes(search)
+      );
+    });
+
+    // Apply account status filter
+    filtered = filtered.filter((user) => {
+      if (!account) return true;
+      switch (account) {
+        case '1':
+          return user.acc_status === 'verified';
+        case '2':
+          return user.acc_status === 'review';
+        case '3':
+          return user.acc_status === 'rejected';
+        case '4':
+          return user.acc_status === 'blocked';
+        default:
+          return true;
+      }
+    });
+
+    // Apply role filter
+    filtered = filtered.filter((user) => {
+      if (!role) return true;
+      switch (role) {
+        case '1':
+          return user.user_role === 'client';
+        case '2':
+          return user.user_role === 'tasker';
+        case '3':
+          return user.user_role === 'moderator';
+        default:
+          return true;
+      }
+    });
+
+    // Apply online status filter
+    filtered = filtered.filter((user) => {
+      if (!status) return true;
+      switch (status) {
+        case '1':
+          return user.status === true;
+        case '2':
+          return user.status === false;
+        default:
+          return true;
+      }
+    });
+
+    return filtered;
   }
 
   toggleUsers(checked: boolean): void {
