@@ -87,7 +87,6 @@ class TaskerModel {
       // MUST in another table
       // "tesda_documents_id": taskerDocuments,
       "social_media_links": socialMediaLinks ?? {},
-      "gender": gender,
 
       // remove kasi nasa user na siya
       "contact_number": phoneNumber,

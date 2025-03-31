@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/client_model.dart';
+import 'package:flutter_fe/model/document_model.dart';
 import 'package:flutter_fe/service/profile_service.dart';
 import 'package:flutter_fe/service/tasker_service.dart';
 import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
@@ -208,6 +209,7 @@ class ProfileController {
     String? contactError = validateContactNumber(contactNumberController.text);
     String? genderError = validateGender(genderController.text);
     String? birthdateError = validateBirthdate(birthdateController.text);
+    String? roleError = validateRole(roleController.text);
 
     // Check if there are any validation errors
     if (emailError != null ||
@@ -215,7 +217,8 @@ class ProfileController {
         lastNameError != null ||
         contactError != null ||
         genderError != null ||
-        birthdateError != null) {
+        birthdateError != null ||
+        roleError != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(emailError ??
@@ -224,6 +227,7 @@ class ProfileController {
               contactError ??
               genderError ??
               birthdateError ??
+              roleError ??
               "Please fix the errors in the form"),
           backgroundColor: Colors.red,
         ),
@@ -746,17 +750,160 @@ class ProfileController {
   }
 
   // Fetching document link from database
-  Future<String?> getDocumentLink(int documentId) async {
+  Future<DocumentInfo?> getDocumentLink(int documentId) async {
     final response = await taskerService.getDocumentLink(documentId);
     if (response.containsKey("data")) {
-      return response["data"] as String?;
+      return DocumentInfo.fromMap(response["data"] as Map<String, dynamic>);
     }
     return null;
   }
 
+  // this is for tasker with only Profile image
+  Future<Map<String, dynamic>> updateTaskerWithOnlyProfileImage2nd(
+      BuildContext context, UserModel user, File image) async {
+    try {
+      // Validate fields
+      String? contactError =
+          validateContactNumber(contactNumberController.text);
+      String? genderError = validateGender(genderController.text);
+      String? birthdateError = validateBirthdate(birthdateController.text);
+      String? specializationError =
+          validateSpecialization(specializationController.text);
+      String? wageError = validateWage(wageController.text);
+      String? payScheduleError = validatePaySchedule(payPeriodController.text);
+      String? bioError = validateBio(bioController.text);
+      String? skillsError = validateSkills(skillsController.text);
+      String? roleError = validateRole(roleController.text);
+      String? specializationIdError =
+          validateSpecializationId(specializationIdController.text);
+
+      // Check if there are any validation errors
+      if (contactError != null ||
+          genderError != null ||
+          birthdateError != null ||
+          specializationError != null ||
+          wageError != null ||
+          payScheduleError != null ||
+          bioError != null ||
+          skillsError != null ||
+          roleError != null ||
+          specializationIdError != null) {
+        return {
+          "errors": contactError ??
+              genderError ??
+              birthdateError ??
+              specializationError ??
+              wageError ??
+              payScheduleError ??
+              roleError ??
+              bioError ??
+              skillsError ??
+              specializationIdError ??
+              "Please fix the errors in the form"
+        };
+      }
+
+      // Call API service to update user without images
+      Map<String, dynamic> result =
+          await ApiService.updateTaskerProfileWithImageTobackend(
+        user.id ?? 0, image, // Use 0 as fallback if id is null
+        {
+          "first_name": user.firstName,
+          "middle_name": user.middleName ?? '',
+          "last_name": user.lastName,
+          "email": user.email,
+          "user_role": user.role,
+          "contact": user.contact ?? '',
+          "gender": user.gender ?? '',
+          "birthdate": user.birthdate ?? '',
+          "specialization": specializationIdController.text,
+          "bio": bioController.text,
+          "skills": skillsController.text,
+          "wage_per_hour": wageController.text,
+          "pay_period": payPeriodController.text,
+        },
+      );
+
+      return result;
+    } catch (e) {
+      return {"errors": "Error updating profile: $e"};
+    }
+  }
+
+  // this is for tasker with only PDF
+  Future<Map<String, dynamic>> updateTaskerOnlyPdf(
+      BuildContext context, UserModel user, File file) async {
+    try {
+      // Validate fields
+      String? contactError =
+          validateContactNumber(contactNumberController.text);
+      String? genderError = validateGender(genderController.text);
+      String? birthdateError = validateBirthdate(birthdateController.text);
+      String? specializationError =
+          validateSpecialization(specializationController.text);
+      String? wageError = validateWage(wageController.text);
+      String? payScheduleError = validatePaySchedule(payPeriodController.text);
+      String? bioError = validateBio(bioController.text);
+      String? skillsError = validateSkills(skillsController.text);
+      String? roleError = validateRole(roleController.text);
+      String? specializationIdError =
+          validateSpecializationId(specializationIdController.text);
+
+      // Check if there are any validation errors
+      if (contactError != null ||
+          genderError != null ||
+          birthdateError != null ||
+          specializationError != null ||
+          wageError != null ||
+          payScheduleError != null ||
+          bioError != null ||
+          skillsError != null ||
+          roleError != null ||
+          specializationIdError != null) {
+        return {
+          "errors": contactError ??
+              genderError ??
+              birthdateError ??
+              specializationError ??
+              wageError ??
+              payScheduleError ??
+              roleError ??
+              bioError ??
+              skillsError ??
+              specializationIdError ??
+              "Please fix the errors in the form"
+        };
+      }
+
+      // Call API service to update user without images
+      Map<String, dynamic> result = await ApiService.updateTaskerProfileWithPdf(
+        user.id ?? 0, file, // Use 0 as fallback if id is null
+        {
+          "first_name": user.firstName,
+          "middle_name": user.middleName ?? '',
+          "last_name": user.lastName,
+          "email": user.email,
+          "user_role": user.role,
+          "contact": user.contact ?? '',
+          "gender": user.gender ?? '',
+          "birthdate": user.birthdate ?? '',
+          "specialization": specializationIdController.text,
+          "bio": bioController.text,
+          "skills": skillsController.text,
+          "wage_per_hour": wageController.text,
+          "pay_period": payPeriodController.text,
+        },
+      );
+
+      return result;
+    } catch (e) {
+      return {"errors": "Error updating profile: $e"};
+    }
+  }
+
   // this is for tasker with profile and PDF
   Future<Map<String, dynamic>> updateTaskerWithFiles(
-      BuildContext context, UserModel user, File file, File image) async {
+      BuildContext context, int userId, File file, File image) async {
     try {
       // Validate fields
       String? contactError =
@@ -799,10 +946,34 @@ class ProfileController {
         };
       }
 
+      UserModel user = UserModel(
+        id: userId,
+        firstName: firstNameController.text,
+        middleName: middleNameController.text,
+        lastName: lastNameController.text,
+        email: emailController.text,
+        role: roleController.text,
+        birthdate: birthdateController.text,
+        contact: contactNumberController.text,
+        gender: genderController.text,
+        image: imageController.text,
+      );
+
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        },
+      );
+
       // Call API service to update user without images
       Map<String, dynamic> result =
           await ApiService.updateTaskerProfileWithFiles(
-        user.id ?? 0, file, image, // Use 0 as fallback if id is null
+        userId, file, image, // Use 0 as fallback if id is null
         {
           "first_name": user.firstName,
           "middle_name": user.middleName ?? '',
@@ -824,6 +995,122 @@ class ProfileController {
     } catch (e) {
       return {"errors": "Error updating profile: $e"};
     }
+  }
+
+  // This is a tasker with pdf and profile
+  Future<void> updateTaskerWithOnlyProfileImage1st(
+      BuildContext context, int userId, File image) async {
+    try {
+      // Create user model with current data
+      UserModel user = UserModel(
+        id: userId,
+        firstName: firstNameController.text,
+        middleName: middleNameController.text,
+        lastName: lastNameController.text,
+        email: emailController.text,
+        role: roleController.text,
+        birthdate: birthdateController.text,
+        contact: contactNumberController.text,
+        gender: genderController.text,
+        image: imageController.text,
+      );
+
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        },
+      );
+
+      // Call API service to update tasker profile without images
+      Map<String, dynamic> result =
+          await updateTaskerWithOnlyProfileImage2nd(context, user, image);
+
+      // Close loading indicator
+      Navigator.pop(context);
+
+      if (result.containsKey("errors")) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result["errors"] ??
+                "Failed to update profile. Please try again."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result["message"] ?? "Profile updated successfully"),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Navigate to home page or refresh the current page
+        Navigator.pop(context);
+      }
+    } catch (e) {}
+  }
+
+  // This is for tasker with only PDf file
+  Future<void> updateTaskerWithOnlyPdfFile(
+      BuildContext context, int userId, File file) async {
+    try {
+      // Create user model with current data
+      UserModel user = UserModel(
+        id: userId,
+        firstName: firstNameController.text,
+        middleName: middleNameController.text,
+        lastName: lastNameController.text,
+        email: emailController.text,
+        role: roleController.text,
+        birthdate: birthdateController.text,
+        contact: contactNumberController.text,
+        gender: genderController.text,
+        image: imageController.text,
+      );
+
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        },
+      );
+
+      // Call API service to update tasker profile without images
+      Map<String, dynamic> result =
+          await updateTaskerOnlyPdf(context, user, file);
+
+      // Close loading indicator
+      Navigator.pop(context);
+
+      if (result.containsKey("errors")) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result["errors"] ??
+                "Failed to update profile. Please try again."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result["message"] ?? "Profile updated successfully"),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Navigate to home page or refresh the current page
+        Navigator.pop(context);
+      }
+    } catch (e) {}
   }
 
   // This is for tasker without profile and PDF

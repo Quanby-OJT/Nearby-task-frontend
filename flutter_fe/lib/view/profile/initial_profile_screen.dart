@@ -22,7 +22,6 @@ class _InitialProfileScreenState extends State<InitialProfileScreen> {
   AuthenticatedUser? _user;
   bool isLoading = true;
 
-
   @override
   void initState() {
     // TODO: implement initState
@@ -33,18 +32,20 @@ class _InitialProfileScreenState extends State<InitialProfileScreen> {
   Future<void> _fetchUserData() async {
     try {
       int userId = storage.read("user_id");
-      AuthenticatedUser? user = await _profileController.getAuthenticatedUser(context, userId);
+      AuthenticatedUser? user =
+          await _profileController.getAuthenticatedUser(context, userId);
       debugPrint(user.toString());
       setState(() {
         isLoading = false;
         _user = user;
       });
-    }catch(e, stackTrace){
+    } catch (e, stackTrace) {
       debugPrint("Error fetching user data: $e");
       debugPrintStack(stackTrace: stackTrace);
       setState(() => _user = null);
     }
   }
+
   String _fullName = 'Loading...';
   String _role = 'Loading...';
   String _image = '';
@@ -77,7 +78,9 @@ class _InitialProfileScreenState extends State<InitialProfileScreen> {
                   CircleAvatar(
                     radius: 30,
                     backgroundImage: NetworkImage(
-                      isLoading ? '/assets/images/default-profile.jpg' : '${_user?.user.image}', // Replace with actual profile image URL
+                      isLoading
+                          ? '/assets/images/default-profile.jpg'
+                          : '${_user?.user.image}', // Replace with actual profile image URL
                     ),
                   ),
                   SizedBox(width: 16.0),
@@ -85,7 +88,9 @@ class _InitialProfileScreenState extends State<InitialProfileScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        isLoading ? "Loading..." : "${_user?.user.firstName} ${_user?.user.lastName}",
+                        isLoading
+                            ? "Loading..."
+                            : "${_user?.user.firstName} ${_user?.user.lastName}",
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -122,7 +127,7 @@ class _InitialProfileScreenState extends State<InitialProfileScreen> {
               trailing: Icon(Icons.chevron_right),
               onTap: () {
                 final userId = storage.read("user_id");
-                if (_userController.roleController.text == 'Client') {
+                if (_user?.user.role.toLowerCase() == 'client') {
                   Navigator.push(context, MaterialPageRoute(builder: (context) {
                     return FillUpClient();
                   }));
