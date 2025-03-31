@@ -241,7 +241,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: () => taskRequestController.depositAmountToEscrow(context, taskAssignment?.task?.contactPrice.toDouble() ?? 0.00),
+                  onPressed: () => taskRequestController.depositAmountToEscrow(context, taskAssignment?.task?.contactPrice.toDouble() ?? 0.00, taskAssignment?.taskTakenId ?? 0),
                   child: Padding(
                     padding: const EdgeInsets.all(10.0),
                       child: Row(

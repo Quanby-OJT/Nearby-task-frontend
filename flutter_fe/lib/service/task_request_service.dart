@@ -380,7 +380,7 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> depositEscrowPayment(double contractPrice) async {
+  Future<Map<String, dynamic>> depositEscrowPayment(double contractPrice, int taskTakenId) async {
     try {
       final userId = await getUserId();
       if (userId == null) {
@@ -394,8 +394,9 @@ class TaskRequestService {
       return await _postRequest(
         endpoint: '/deposit-escrow-payment',
         body: {
+          'task_taken_id': taskTakenId,
           'client_id': int.parse(userId),
-          'contract_price': contractPrice,
+          'amount': contractPrice,
           'status': 'accepted'
         },
       );

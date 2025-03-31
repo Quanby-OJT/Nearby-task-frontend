@@ -47,9 +47,20 @@ class TaskRequestController {
     }
   }
 
-  Future<void> depositAmountToEscrow(BuildContext context, double contractPrice) async{
+  Future<void> depositAmountToEscrow(BuildContext context, double contractPrice, int taskTakenId) async{
     try{
-      var response = await _requestService.depositEscrowPayment(contractPrice);
+      debugPrint("TaskRequestController: Depositing amount to escrow");
+      debugPrint("TaskRequestController: Contract Price: $contractPrice");
+      debugPrint("TaskRequestController: Task Taken ID: $taskTakenId");
+      if(contractPrice <= 0 || taskTakenId <= 0){
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error while Processing Your Payment. Please Try Again."),
+          ),
+        );
+        return;
+      }
+      var response = await _requestService.depositEscrowPayment(contractPrice, taskTakenId);
 
       if(response.containsKey('message')){
         ScaffoldMessenger.of(context).showSnackBar(

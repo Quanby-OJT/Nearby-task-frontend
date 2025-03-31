@@ -167,6 +167,7 @@ class JobPostService {
           tasker: null,
           task: TaskModel.fromJson(response['task_information']['post_task']),
           taskStatus: response['task_information']['task_status'],
+          taskTakenId: response['task_information']['task_taken_id']
         );
       }
 
