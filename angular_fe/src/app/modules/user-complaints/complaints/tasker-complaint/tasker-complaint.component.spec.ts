@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ComplainCardComponent } from './complain-card.component';
+import { TaskerComplaintComponent } from './tasker-complaint.component';
 
-describe('ComplainCardComponent', () => {
-  let component: ComplainCardComponent;
-  let fixture: ComponentFixture<ComplainCardComponent>;
+describe('TaskerComplaintComponent', () => {
+  let component: TaskerComplaintComponent;
+  let fixture: ComponentFixture<TaskerComplaintComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ComplainCardComponent]
+      imports: [TaskerComplaintComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(ComplainCardComponent);
+    fixture = TestBed.createComponent(TaskerComplaintComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

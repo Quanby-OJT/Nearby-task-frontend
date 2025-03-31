@@ -30,6 +30,7 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     _fetchTaskAssignments();
     _fetchClients();
+    _fetchReportHistory(); // Added to fetch report history on initialization
   }
 
   Future<void> _fetchTaskAssignments() async {
@@ -48,6 +49,12 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _fetchClients() async {
     await reportController.fetchClients(); // Fetch clients instead of taskers
     debugPrint("Clients loaded in ChatScreen: ${reportController.clients}");
+    setState(() {});
+  }
+
+  Future<void> _fetchReportHistory() async {
+    int userId = storage.read('user_id');
+    await reportController.fetchReportHistory(userId);
     setState(() {});
   }
 
@@ -121,8 +128,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   ),
                                 ),
                               ),
-                              items: reportController
-                                  .clients, // Use clients instead of taskers
+                              items: reportController.clients,
                               dropdownDecoratorProps: DropDownDecoratorProps(
                                 dropdownSearchDecoration: InputDecoration(
                                   labelText: 'Report Client *',
@@ -410,6 +416,94 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  void _showReportHistoryModal() {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.5,
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Report History",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.indigo,
+                  fontSize: 24,
+                ),
+              ),
+              SizedBox(height: 20),
+              Expanded(
+                child: reportController.reportHistory.isEmpty
+                    ? Center(
+                        child: Text(
+                          "No report history available yet.",
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: reportController.reportHistory.length,
+                        itemBuilder: (context, index) {
+                          final report = reportController.reportHistory[index];
+                          return Card(
+                            margin: EdgeInsets.symmetric(vertical: 5),
+                            child: ListTile(
+                              title: Text(
+                                "Report #${report.reportId ?? 'N/A'}",
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                      "Reason: ${report.reason ?? 'No reason provided'}"),
+                                  Text(
+                                      "Reported By: ${report.reportedByName ?? 'Unknown'}"),
+                                  Text(
+                                      "Reported Whom: ${report.reportedWhomName ?? 'Unknown'}"),
+                                  Text(
+                                      "Created At: ${report.createdAt ?? 'N/A'}"),
+                                  Text(
+                                      "Status: ${report.status != null ? (report.status! ? 'Resolved' : 'Pending') : 'N/A'}"),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+              SizedBox(height: 10),
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                  ),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     reportController.reasonController.dispose();
@@ -438,14 +532,47 @@ class _ChatScreenState extends State<ChatScreen> {
               taskAssignments!.isNotEmpty &&
               !_isModalOpen)
           ? FloatingActionButton(
-              onPressed: _showReportModal,
+              onPressed: () {
+                // This will be replaced by the dropdown menu
+              },
               backgroundColor: Colors.redAccent,
               elevation: 6,
-              tooltip: 'Report Client',
-              child: Icon(
-                Icons.flag,
-                color: Colors.white,
-                size: 28,
+              tooltip: 'Report Options',
+              child: PopupMenuButton<String>(
+                onSelected: (value) {
+                  if (value == 'report_client') {
+                    _showReportModal();
+                  } else if (value == 'report_history') {
+                    _showReportHistoryModal();
+                  }
+                },
+                itemBuilder: (BuildContext context) => [
+                  PopupMenuItem<String>(
+                    value: 'report_client',
+                    child: Row(
+                      children: [
+                        Icon(Icons.report, color: Colors.redAccent),
+                        SizedBox(width: 10),
+                        Text('Report Client'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem<String>(
+                    value: 'report_history',
+                    child: Row(
+                      children: [
+                        Icon(Icons.history, color: Colors.green),
+                        SizedBox(width: 10),
+                        Text('Report History'),
+                      ],
+                    ),
+                  ),
+                ],
+                child: Icon(
+                  Icons.flag,
+                  color: Colors.white,
+                  size: 28,
+                ),
               ),
             )
           : null,
@@ -491,9 +618,38 @@ class _ChatScreenState extends State<ChatScreen> {
                             child: Material(
                               color: Colors.redAccent,
                               shape: CircleBorder(),
-                              child: InkWell(
-                                onTap: _showReportModal,
-                                borderRadius: BorderRadius.circular(30),
+                              child: PopupMenuButton<String>(
+                                onSelected: (value) {
+                                  if (value == 'report_client') {
+                                    _showReportModal();
+                                  } else if (value == 'report_history') {
+                                    _showReportHistoryModal();
+                                  }
+                                },
+                                itemBuilder: (BuildContext context) => [
+                                  PopupMenuItem<String>(
+                                    value: 'report_client',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.report,
+                                            color: Colors.redAccent),
+                                        SizedBox(width: 10),
+                                        Text('Report Client'),
+                                      ],
+                                    ),
+                                  ),
+                                  PopupMenuItem<String>(
+                                    value: 'report_history',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.history,
+                                            color: Colors.green),
+                                        SizedBox(width: 10),
+                                        Text('Report History'),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                                 child: Container(
                                   padding: EdgeInsets.all(12),
                                   child: Icon(

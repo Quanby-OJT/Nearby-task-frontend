@@ -98,21 +98,12 @@ class TaskController {
   }
 
   Future<String> assignTask(int taskId, int clientId, int taskerId) async {
-    debugPrint("Sending task request...");
-    final result = await _jobPostService.assignTask(taskId, clientId, taskerId);
-
-    debugPrint("Task assignment result: $result");
-
-    // If there's a "message" in the response, consider it a success
-    if (result.containsKey('message')) {
-      return result['message'] ??
-          "Task request sent successfully. Waiting for tasker to accept.";
-    } else if (result.containsKey('error')) {
-      return result['error'] ??
-          "Failed to send task request. Please try again.";
-    } else {
-      return "Task request sent. Please check your requests page for status.";
-    }
+    debugPrint("Assigning task...");
+    final assignedTask =
+        await _jobPostService.assignTask(taskId, clientId, taskerId);
+    return assignedTask.containsKey('message')
+        ? assignedTask['message'].toString()
+        : assignedTask['error'].toString();
   }
 
   // Method to update a task
@@ -240,6 +231,7 @@ class TaskController {
           id: 0,
           bio: '',
           specialization: '',
+          gender: '',
           skills: '',
           taskerAddress: '',
           availability: false,
