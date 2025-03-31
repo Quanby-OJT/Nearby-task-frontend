@@ -1,9 +1,15 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/controller/authentication_controller.dart';
+import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/report_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
+import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
+import 'package:flutter_fe/model/user_model.dart';
+import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
+import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dropdown_search/dropdown_search.dart';
@@ -20,7 +26,21 @@ class _ChatScreenState extends State<ChatScreen> {
   final GetStorage storage = GetStorage();
   final TaskController _taskController = TaskController();
   final ReportController reportController = ReportController();
-  bool isLoading = true;
+
+  final ProfileController _profileController = ProfileController();
+  final ClientServices _clientServices = ClientServices();
+  final AuthenticationController _authController = AuthenticationController();
+  List<UserModel> tasker = [];
+  String? _errorMessage;
+  int? cardNumber = 0;
+  bool _isUploadDialogShown = false;
+  bool _showButton = false;
+  bool _isLoading = true;
+
+  AuthenticatedUser? _user;
+  String? _existingProfileImageUrl;
+  String? _existingIDImageUrl;
+  bool _documentValid = false;
   bool _isModalOpen = false;
   String? _selectedReportCategory;
 
@@ -29,6 +49,7 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     _fetchTaskAssignments();
     _fetchTaskers();
+    _fetchUserIDImage();
   }
 
   Future<void> _fetchTaskAssignments() async {
@@ -40,7 +61,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (mounted) {
       setState(() {
         taskAssignments = fetchedAssignments;
-        isLoading = false;
+        _isLoading = false;
       });
     }
   }
@@ -369,7 +390,17 @@ class _ChatScreenState extends State<ChatScreen> {
                                 .read('user_id'); // Current user's user_id
                             int? reportedWhom = _selectedReportCategory != null
                                 ? int.tryParse(_selectedReportCategory!)
-                                : null; // Selected tasker's user_id
+                                : null;
+                            if (_existingProfileImageUrl == null ||
+                                _existingIDImageUrl == null ||
+                                _existingProfileImageUrl!.isEmpty ||
+                                _existingIDImageUrl!.isEmpty ||
+                                !_documentValid) {
+                              _showWarningDialog();
+                              debugPrint("Image validation failed");
+                              return;
+                            }
+                            // Selected tasker's user_id
                             reportController.validateAndSubmit(
                                 context, setModalState, userId, reportedWhom);
                             setState(() {
@@ -408,6 +439,85 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  Future<void> _fetchUserIDImage() async {
+    try {
+      int userId = int.parse(storage.read('user_id').toString());
+      if (userId == null) {
+        debugPrint("User ID not found in storage po");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to load user image. Please try again."),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+
+      AuthenticatedUser? user =
+          await _profileController.getAuthenticatedUser(context, userId);
+      debugPrint(user.toString());
+
+      final response = await _clientServices.fetchUserIDImage(userId);
+
+      if (response['success']) {
+        setState(() {
+          _user = user;
+          _existingProfileImageUrl = user?.user.image;
+          _existingIDImageUrl = response['url'];
+          _documentValid = response['status'];
+        });
+      }
+    } catch (e) {
+      debugPrint("Error fetching ID image: $e");
+    }
+  }
+
+  void _showWarningDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevent dismissing by tapping outside
+      builder: (context) => AlertDialog(
+        title: const Text("Account Verification"),
+        content: const Text(
+            "Upload your Profile and ID images to complete your account. Verification will follow."),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FillUpClient()),
+              );
+              if (result == true) {
+                setState(() {
+                  _isLoading = true;
+                  // Keep the flag true since we're refreshing data
+                });
+
+                await _fetchUserIDImage(); // Refresh user profile and ID image data
+              } else {
+                setState(() {
+                  _isUploadDialogShown = false;
+                });
+              }
+            },
+            child: const Text("Verify Account"),
+          ),
+          TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                // Reset the flag when user cancels
+                setState(() {
+                  _isUploadDialogShown = false;
+                });
+              },
+              child: Text('Cancel')),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     reportController.reasonController.dispose();
@@ -436,7 +546,9 @@ class _ChatScreenState extends State<ChatScreen> {
               taskAssignments!.isNotEmpty &&
               !_isModalOpen)
           ? FloatingActionButton(
-              onPressed: _showReportModal,
+              onPressed: () {
+                _showReportModal();
+              },
               backgroundColor: Colors.redAccent,
               elevation: 6,
               tooltip: 'Report User',
@@ -447,7 +559,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             )
           : null,
-      body: isLoading
+      body: _isLoading
           ? Center(
               child: CircularProgressIndicator(),
             )

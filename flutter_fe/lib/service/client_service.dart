@@ -272,7 +272,11 @@ class ClientServices {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['user'] != null && data['user']['document_url'] != null) {
-          return {'success': true, 'url': data['user']['document_url']};
+          return {
+            'success': true,
+            'url': data['user']['document_url'],
+            'status': data['user']['is_valid']
+          };
         }
       }
       return {'success': false, 'message': 'Image not found'};

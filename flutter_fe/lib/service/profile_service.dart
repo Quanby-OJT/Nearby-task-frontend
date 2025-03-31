@@ -8,14 +8,15 @@ import 'package:flutter_fe/model/client_model.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'dart:io';
 
-
-class ProfileService{
-  static const String apiUrl = "http://10.0.2.2:5000/connect";
+class ProfileService {
+  static const String apiUrl = "http://localhost:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
-  static Future<String?> getUserId() async => storage.read('user_id')?.toString();
+  static Future<String?> getUserId() async =>
+      storage.read('user_id')?.toString();
 
-  static Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  static Future<Map<String, dynamic>> _postRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final response = await http.post(Uri.parse("$apiUrl$endpoint"),
         headers: {
           "Authorization": "Bearer $token",
@@ -31,7 +32,7 @@ class ProfileService{
     try {
       // Ensure endpoint starts with a slash if not already
       String formattedEndpoint =
-      endpoint.startsWith('/') ? endpoint : '/$endpoint';
+          endpoint.startsWith('/') ? endpoint : '/$endpoint';
       debugPrint('Making GET request to: $apiUrl$formattedEndpoint');
       debugPrint('Using token: $token');
 
@@ -58,9 +59,12 @@ class ProfileService{
       final responseBody = jsonDecode(response.body);
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return responseBody;
-      } else if(response.statusCode == 400){
-        return {"errors": responseBody["errors"] ?? "Please Check Your Inputs and try again."};
-      }else{
+      } else if (response.statusCode == 400) {
+        return {
+          "errors": responseBody["errors"] ??
+              "Please Check Your Inputs and try again."
+        };
+      } else {
         debugPrint("API Error Response: $responseBody");
         return {"error": responseBody["error"] ?? "Unknown error"};
       }
@@ -70,7 +74,8 @@ class ProfileService{
     }
   }
 
-  static Future<Map<String, dynamic>> _putRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  static Future<Map<String, dynamic>> _putRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.put(
@@ -92,7 +97,8 @@ class ProfileService{
   ///
   /// Update Client/Tasker Information
   ///
-  static Future<Map<String, dynamic>> updateTasker(TaskerModel tasker, UserModel user, List<dynamic> tesdaFiles, File profileImage) async {
+  static Future<Map<String, dynamic>> updateTasker(TaskerModel tasker,
+      UserModel user, List<dynamic> tesdaFiles, File profileImage) async {
     try {
       debugPrint("Updating Tasker information...");
       final userId = await getUserId();
@@ -104,7 +110,8 @@ class ProfileService{
         };
       }
 
-      var request = http.MultipartRequest('PUT', Uri.parse('$apiUrl/user/tasker/$userId'));
+      var request = http.MultipartRequest(
+          'PUT', Uri.parse('$apiUrl/user/tasker/$userId'));
       request.headers['Authorization'] = 'Bearer $token';
       request.headers['Content-Type'] = 'multipart/form-data';
 
@@ -163,7 +170,8 @@ class ProfileService{
       }
 
       debugPrint("Request fields: ${request.fields}");
-      debugPrint("Request files: ${request.files.map((f) => '${f.field}: ${f.filename}').toList()}");
+      debugPrint(
+          "Request files: ${request.files.map((f) => '${f.field}: ${f.filename}').toList()}");
       debugPrint("Sending request to: $apiUrl/user/tasker/$userId");
       final response = await request.send();
       final responseBody = await http.Response.fromStream(response);
@@ -172,7 +180,10 @@ class ProfileService{
     } catch (e, stackTrace) {
       debugPrint("$e");
       debugPrint(stackTrace.toString());
-      return {"error": "An Error Occurred while Updating Your Profile Information. Please Try Again."};
+      return {
+        "error":
+            "An Error Occurred while Updating Your Profile Information. Please Try Again."
+      };
     }
   }
 
@@ -188,7 +199,8 @@ class ProfileService{
   //   }
   // }
 
-  static Future<Map<String, dynamic>> updateClient(ClientModel client, UserModel user, File profileImage) async {
+  static Future<Map<String, dynamic>> updateClient(
+      ClientModel client, UserModel user, File profileImage) async {
     debugPrint("Updating Client information...");
     final userId = await getUserId();
     if (userId == null) {
@@ -200,7 +212,8 @@ class ProfileService{
     }
 
     // Create a multipart request for the PUT endpoint
-    var request = http.MultipartRequest('PUT', Uri.parse('$apiUrl/user/client/$userId'));
+    var request =
+        http.MultipartRequest('PUT', Uri.parse('$apiUrl/user/client/$userId'));
     request.headers['Authorization'] = 'Bearer $token';
 
     // Add tasker data as a JSON string in a form field

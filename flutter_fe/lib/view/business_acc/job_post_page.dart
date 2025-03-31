@@ -50,6 +50,8 @@ class _JobPostPageState extends State<JobPostPage> {
   AuthenticatedUser? _user;
   bool _isLoading = true;
   bool _showButton = false;
+  bool _isUploadDialogShown = false;
+  bool _documentValid = false;
 
   @override
   void initState() {
@@ -579,6 +581,14 @@ class _JobPostPageState extends State<JobPostPage> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
+                            if (_existingProfileImageUrl == null ||
+                                _existingIDImageUrl == null ||
+                                _existingProfileImageUrl!.isEmpty ||
+                                _existingIDImageUrl!.isEmpty ||
+                                !_documentValid) {
+                              _showWarningDialog();
+                              return;
+                            }
                             setState(() => _message = "");
                             _validateAndSubmit();
                           },
@@ -603,6 +613,14 @@ class _JobPostPageState extends State<JobPostPage> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
+                            if (_existingProfileImageUrl == null ||
+                                _existingIDImageUrl == null ||
+                                _existingProfileImageUrl!.isEmpty ||
+                                _existingIDImageUrl!.isEmpty ||
+                                !_documentValid) {
+                              _showWarningDialog();
+                              return;
+                            }
                             Navigator.pop(context);
                             setState(() {
                               _message = "";
@@ -735,6 +753,7 @@ class _JobPostPageState extends State<JobPostPage> {
           _user = user;
           _existingProfileImageUrl = user?.user.image;
           _existingIDImageUrl = response['url'];
+          _documentValid = response['status'];
           _isLoading = false;
 
           debugPrint(
@@ -751,42 +770,6 @@ class _JobPostPageState extends State<JobPostPage> {
     }
   }
 
-  Widget missingInformation() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text(
-            "Missing Information",
-            style: TextStyle(
-              color: Colors.red,
-              fontSize: 16,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () async {
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const FillUpClient()),
-              );
-              if (result == true) {
-                setState(() {
-                  _isLoading = true;
-                  _showButton = true;
-                });
-
-                await _fetchUserIDImage(); // Refresh user profile and ID image data
-              }
-            },
-            child: const Text('Upload Your Profile'),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _navigateToTaskDetail(TaskModel task) async {
     final result = await Navigator.push(
       context,
@@ -798,6 +781,51 @@ class _JobPostPageState extends State<JobPostPage> {
       // Task was updated or disabled, refresh the task list
       await fetchCreatedTasks();
     }
+  }
+
+  void _showWarningDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevent dismissing by tapping outside
+      builder: (context) => AlertDialog(
+        title: const Text("Account Verification"),
+        content: const Text(
+            "Upload your Profile and ID images to complete your account. Verification will follow."),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FillUpClient()),
+              );
+              if (result == true) {
+                setState(() {
+                  _isLoading = true;
+                  // Keep the flag true since we're refreshing data
+                });
+
+                await _fetchUserIDImage(); // Refresh user profile and ID image data
+              } else {
+                setState(() {
+                  _isUploadDialogShown = false;
+                });
+              }
+            },
+            child: const Text("Verify Account"),
+          ),
+          TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                // Reset the flag when user cancels
+                setState(() {
+                  _isUploadDialogShown = false;
+                });
+              },
+              child: Text('Cancel')),
+        ],
+      ),
+    );
   }
 
   @override
@@ -812,80 +840,74 @@ class _JobPostPageState extends State<JobPostPage> {
               TextStyle(color: Color(0xFF0272B1), fontWeight: FontWeight.bold),
         ),
       ),
-      body: (_existingProfileImageUrl == null ||
-              _existingIDImageUrl == null ||
-              _existingIDImageUrl!.isEmpty ||
-              _existingProfileImageUrl!.isEmpty)
-          ? missingInformation()
-          : clientTasks.isEmpty
-              ? const Center(child: Text("No tasks available"))
-              : ListView.builder(
-                  itemCount: clientTasks.length,
-                  itemBuilder: (context, index) {
-                    final task = clientTasks[index];
-                    if (task == null) {
-                      return const SizedBox.shrink(); // Skip null tasks
-                    }
-                    // Format the price safely
-                    String priceDisplay = "N/A";
-                    if (task.contactPrice != null) {
-                      try {
-                        priceDisplay = NumberFormat("#,##0.00", "en_US")
-                            .format(task.contactPrice!.roundToDouble());
-                      } catch (e) {
-                        priceDisplay = task.contactPrice.toString();
-                      }
-                    }
+      body: clientTasks.isEmpty
+          ? const Center(child: Text("No tasks available"))
+          : ListView.builder(
+              itemCount: clientTasks.length,
+              itemBuilder: (context, index) {
+                final task = clientTasks[index];
+                if (task == null) {
+                  return const SizedBox.shrink(); // Skip null tasks
+                }
+                // Format the price safely
+                String priceDisplay = "N/A";
+                if (task.contactPrice != null) {
+                  try {
+                    priceDisplay = NumberFormat("#,##0.00", "en_US")
+                        .format(task.contactPrice!.roundToDouble());
+                  } catch (e) {
+                    priceDisplay = task.contactPrice.toString();
+                  }
+                }
 
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      elevation: 2,
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(12),
-                        title: Text(
-                          task.title ?? "Untitled Task",
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 4),
-                            Text(
-                              "📍 ${task.location ?? 'Location not specified'}",
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                            Text(
-                              "• ₱ $priceDisplay",
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                            Text(
-                              "• 🛠 ${task.specialization ?? 'No specialization'}",
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                            if (task.duration != null)
-                              Text(
-                                "• ⏱ Duration: ${task.duration}",
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                          ],
-                        ),
-                        trailing: const Icon(
-                          Icons.arrow_forward_ios,
-                          size: 16,
-                          color: Colors.grey,
-                        ),
-                        onTap: () {
-                          _navigateToTaskDetail(
-                              task); // Navigate to task details
-                        },
+                return Card(
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  elevation: 2,
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(12),
+                    title: Text(
+                      task.title ?? "Untitled Task",
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
-                    );
-                  },
-                ),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 4),
+                        Text(
+                          "📍 ${task.location ?? 'Location not specified'}",
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        Text(
+                          "• ₱ $priceDisplay",
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        Text(
+                          "• 🛠 ${task.specialization ?? 'No specialization'}",
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        if (task.duration != null)
+                          Text(
+                            "• ⏱ Duration: ${task.duration}",
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                      ],
+                    ),
+                    trailing: const Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16,
+                      color: Colors.grey,
+                    ),
+                    onTap: () {
+                      _navigateToTaskDetail(task); // Navigate to task details
+                    },
+                  ),
+                );
+              },
+            ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.end,
