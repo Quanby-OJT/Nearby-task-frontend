@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/user_model.dart';
+import 'package:flutter_fe/view/view_pdf/PDF_viewer.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
@@ -21,16 +22,21 @@ class FillUpTasker extends StatefulWidget {
 class _FillUpTaskerState extends State<FillUpTasker> {
   int currentStep = 0;
 
+  // Completion flags for each step
+  bool _isGeneralComplete = false;
+  bool _isProfileComplete = false;
+  bool _isCertsComplete = false;
+
   final ProfileController _controller = ProfileController();
   final JobPostService jobPostService = JobPostService();
   final GetStorage storage = GetStorage();
-  final bool _isSuccess = false;
-  File? _selectedFile; // Store the selected file
-  String? _fileName; // Store the selected file name
-  File? _selectedImage; // Store the selected image
-  String? _imageName; // Store the selected image name
+  File? _selectedFile;
+  String? _fileName;
+  File? _selectedImage;
+  String? _imageName;
   String? selectedGender;
   int _specializationId = 0;
+  bool _documentValid = false;
   String _firstname = '';
   String _lastname = '';
   String? _middlename = '';
@@ -40,27 +46,21 @@ class _FillUpTaskerState extends State<FillUpTasker> {
   String _birthday = '';
   bool _isLoading = true;
   bool _imagesChanged = false;
+  bool _pdfChanged = false;
   String _wage = '';
   String _paySchedule = '';
   String _bio = '';
   String _skills = '';
 
-  String? _imageNameID; // Store the selected ID image name
-  String? _existingProfileImageUrl; // Store existing profile image URL
-  String? _existingPDFUrl; // Store existing ID image URL
+  String? _existingProfileImageUrl;
+  String? _existingPDFUrl;
   final _generalFormKey = GlobalKey<FormState>();
   final _profileFormKey = GlobalKey<FormState>();
   final _certsFormKey = GlobalKey<FormState>();
 
-  List<String> genderOptions = [
-    "Male",
-    "Female",
-    "Non-Binary",
-    "I don't Want to Say"
-  ];
+  final List<String> genderOptions = ['Male', 'Female', 'Other'];
   List<String> specialization = [];
   String? selectedSpecialization;
-  List<String> taskerGroup = ["Solo Tasker", "Agency"];
   List<String> payPeriod = [
     "Hourly",
     "Daily",
@@ -69,18 +69,14 @@ class _FillUpTaskerState extends State<FillUpTasker> {
     "Monthly"
   ];
 
-  // //TESDA Documents
-  // Future<void> _pickFile() async {
-  //   FilePickerResult? result = await FilePicker.platform
-  //       .pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
-
-  //   if (result != null) {
-  //     setState(() {
-  //       _selectedFile = File(result.files.single.path!);
-  //       _fileName = result.files.single.name;
-  //     });
-  //   }
-  // }
+  // Check if all conditions are met to mark all steps as complete
+  bool get _allConditionsMet {
+    return _generalFormKey.currentState?.validate() == true &&
+        _profileFormKey.currentState?.validate() == true &&
+        (_existingProfileImageUrl != null) &&
+        (_existingPDFUrl != null) &&
+        _documentValid;
+  }
 
   Future<void> _pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -90,16 +86,15 @@ class _FillUpTaskerState extends State<FillUpTasker> {
 
     if (result != null && result.files.single.path != null) {
       String filePath = result.files.single.path!;
-      String fileExtension =
-          filePath.split('.').last.toLowerCase(); // Extract file extension
+      String fileExtension = filePath.split('.').last.toLowerCase();
 
       if (fileExtension == 'pdf') {
         setState(() {
           _selectedFile = File(filePath);
           _fileName = result.files.single.name;
+          _pdfChanged = true;
         });
       } else {
-        // Show an error if the selected file is not a PDF
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Only PDF files are allowed.'),
@@ -114,7 +109,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
     final ImagePicker picker = ImagePicker();
     final XFile? pickedFile = await picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 80, // Reduce image quality to save bandwidth
+      imageQuality: 80,
     );
 
     if (pickedFile != null) {
@@ -122,7 +117,6 @@ class _FillUpTaskerState extends State<FillUpTasker> {
         _selectedImage = File(pickedFile.path);
         _imageName = pickedFile.name;
         _imagesChanged = true;
-        debugPrint(_imageName!);
       });
     }
   }
@@ -136,11 +130,8 @@ class _FillUpTaskerState extends State<FillUpTasker> {
   Future<void> fetchSpecialization() async {
     try {
       int userId = int.parse(storage.read('user_id').toString());
-
       AuthenticatedUser? user =
           await _controller.getAuthenticatedUser(context, userId);
-      debugPrint("Fetched user data from the fill up task: ${user.toString()}");
-
       List<SpecializationModel> fetchedSpecializations =
           await jobPostService.getSpecializations();
 
@@ -150,7 +141,6 @@ class _FillUpTaskerState extends State<FillUpTasker> {
       });
 
       if (user?.tasker != null) {
-        debugPrint("Fetched user data in mt table : ${user.toString()}");
         setState(() {
           _firstname = user!.user.firstName;
           _lastname = user.user.lastName;
@@ -162,200 +152,217 @@ class _FillUpTaskerState extends State<FillUpTasker> {
           _image = user.user.image?.toString() ?? '';
           _birthday = user.user.birthdate ?? '';
           _isLoading = false;
-          selectedGender = user.user.gender;
+          selectedGender = genderOptions.contains(user.user.gender)
+              ? user.user.gender
+              : 'Other';
           _bio = user.tasker!.bio;
           _skills = user.tasker!.skills;
-          int index = int.tryParse(user.tasker!.specialization) ?? -1;
-
-          // Check if the index is within bounds
-          if (index >= 0 && index <= specialization.length) {
-            selectedSpecialization =
-                specialization[index - 1]; // Subtract 1 for zero-based index
-            _controller.specializationIdController.text =
-                (index + 1).toString();
-          } else {
-            selectedSpecialization = 'Not Found'; // Fallback value
-          }
-
-          _existingProfileImageUrl = user!.user.image?.toString() ?? '';
-
-          // Update text controllers
-
+          String userSpec = user.tasker!.specialization;
+          selectedSpecialization =
+              specialization.contains(userSpec) ? userSpec : null;
+          _specializationId = specialization.indexOf(userSpec) + 1;
+          _controller.specializationIdController.text =
+              _specializationId.toString();
+          _existingProfileImageUrl = user.user.image?.toString() ?? '';
           _controller.emailController.text = user.user.email;
           _controller.firstNameController.text = _firstname;
           _controller.middleNameController.text = _middlename ?? '';
           _controller.lastNameController.text = _lastname;
           _controller.roleController.text = _role;
-
           _controller.contactNumberController.text = _contact;
           _controller.imageController.text = _image;
           _controller.birthdateController.text = _birthday;
           _controller.genderController.text = selectedGender ?? '';
-          _controller.wageController.text = _wage ?? '0.00';
+          _controller.wageController.text = _wage;
           _controller.payPeriodController.text = _paySchedule;
           _controller.bioController.text = _bio;
           _controller.skillsController.text = _skills;
           _controller.specializationController.text =
               selectedSpecialization ?? '';
-
-// Fetch Document Link for tasker
-//           final int documentId = user.tasker!.taskerDocuments ?? 0;
-//           _fetchDocumentLink(documentId);
+          _fetchDocumentLink(user.tasker!.id!);
         });
       }
-    } catch (error, stackTrace) {
+    } catch (error) {
       debugPrint('Error fetching specializations: $error');
-      debugPrintStack(stackTrace: stackTrace);
     }
   }
 
-// Fetch Document Link for tasker
-  Future<void> _fetchDocumentLink(int documentId) async {
+  Future<void> _fetchDocumentLink(int taskerId) async {
     try {
-      final documentLink = await _controller.getDocumentLink(documentId);
+      final documentLink = await _controller.getDocumentLink(taskerId);
       setState(() {
-        _existingPDFUrl = documentLink;
+        _existingPDFUrl = documentLink?.tesdaDocumentLink;
+        _documentValid = documentLink?.valid ?? false;
       });
-    } catch (error, stackTrace) {
+    } catch (error) {
       debugPrint('Error fetching document link: $error');
-      debugPrintStack(stackTrace: stackTrace);
     }
   }
 
-  //May error ang code na ito.
-  // Future<void> saveTaskerWithImages() async {
-  //   // Validate birthdate
-  //
-  //   try {
-  //     int userId = storage.read('user_id');
-  //
-  //     if (_existingPDFUrl != null && _existingProfileImageUrl != null) {
-  //       await _controller.updateTaskerWithoutFile(context, userId);
-  //     } else if (_selectedFile != null && _selectedImage != null) {
-  //       await _controller.updateTaskerWithFiles(
-  //           context, userId, _selectedFile!, _selectedImage!);
-  //     }
-  //   } catch (e) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text('Error: $e'),
-  //         backgroundColor: Colors.red,
-  //       ),
-  //     );
-  //   }
-  // }
+  Future<void> saveTaskerWithImages() async {
+    try {
+      int userId = int.parse(storage.read('user_id').toString());
+      if (_existingPDFUrl != null &&
+          _existingProfileImageUrl != null &&
+          !_pdfChanged &&
+          !_imagesChanged) {
+        await _controller.updateTaskerWithoutFile(context, userId);
+      } else if (_selectedFile != null &&
+          _selectedImage != null &&
+          _pdfChanged &&
+          _imagesChanged) {
+        await _controller.updateTaskerWithFiles(
+            context, userId, _selectedFile!, _selectedImage!);
+      } else if (_existingProfileImageUrl != null &&
+          _selectedFile != null &&
+          _pdfChanged &&
+          !_imagesChanged) {
+        await _controller.updateTaskerWithOnlyPdfFile(
+            context, userId, _selectedFile!);
+      } else if (_selectedImage != null &&
+          _existingPDFUrl != null &&
+          !_pdfChanged &&
+          _imagesChanged) {
+        await _controller.updateTaskerWithOnlyProfileImage1st(
+            context, userId, _selectedImage!);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-        ),
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              Text(
-                'Complete your service account',
+      appBar: AppBar(backgroundColor: Colors.transparent),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Text(
+              'Complete your service account',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: const Color(0xFF0272B1),
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(
+                  left: 80, right: 80, top: 10, bottom: 10),
+              child: Text(
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                    color: const Color(0xFF0272B1),
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold),
+                "Provide service right away, create an account now!",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
-              Padding(
-                padding: const EdgeInsets.only(
-                    left: 80, right: 80, top: 10, bottom: 10),
-                child: Text(
-                  textAlign: TextAlign.center,
-                  "Provide service right away, create an account now!",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+            SizedBox(
+              height: 550,
+              child: Theme(
+                data: Theme.of(context).copyWith(
+                  colorScheme: ColorScheme.light(primary: Color(0xFF0272B1)),
                 ),
-              ),
-              SizedBox(
-                height: 550,
-                child: Theme(
-                  data: Theme.of(context).copyWith(
-                      colorScheme:
-                          ColorScheme.light(primary: Color(0xFF0272B1))),
-                  child: Stepper(
-                    type: StepperType.horizontal,
-                    steps: getSteps(),
-                    currentStep: currentStep,
-                    onStepContinue: () {
-                      final isLastStep = currentStep == getSteps().length - 1;
-
-                      if (isLastStep) {
-                        // saveTaskerWithImages();
-                      } else {
+                child: Stepper(
+                  type: StepperType.horizontal,
+                  steps: getSteps(),
+                  currentStep: currentStep,
+                  onStepContinue: () {
+                    if (currentStep == 0) {
+                      if (_generalFormKey.currentState!.validate()) {
                         setState(() {
+                          _isGeneralComplete = true;
                           currentStep += 1;
                         });
                       }
-                    },
-                    onStepTapped: (step) => setState(() => currentStep = step),
-                    onStepCancel: () {
-                      currentStep == 0
-                          ? null
-                          : setState(() {
-                              currentStep -= 1;
-                            });
-                    },
-                    controlsBuilder:
-                        (BuildContext context, ControlsDetails details) {
-                      final isLastStep = currentStep == getSteps().length - 1;
-                      return Row(
-                        children: [
-                          if (currentStep != 0)
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFF0272B1),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                              onPressed: details.onStepCancel,
-                              child: Text(
-                                'Back',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          const SizedBox(width: 10),
+                    } else if (currentStep == 1) {
+                      if (_profileFormKey.currentState!.validate() &&
+                          (_selectedImage != null ||
+                              _existingProfileImageUrl != null)) {
+                        setState(() {
+                          _isProfileComplete = true;
+                          currentStep += 1;
+                        });
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text('Please select a profile picture')),
+                        );
+                      }
+                    } else if (currentStep == 2) {
+                      if (_documentValid || _selectedFile != null) {
+                        setState(() {
+                          _isCertsComplete = true;
+                        });
+                        saveTaskerWithImages();
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text('Please upload a PDF document')),
+                        );
+                      }
+                    }
+                  },
+                  onStepTapped: (step) => setState(() => currentStep = step),
+                  onStepCancel: () {
+                    if (currentStep > 0) {
+                      setState(() => currentStep -= 1);
+                    }
+                  },
+                  controlsBuilder:
+                      (BuildContext context, ControlsDetails details) {
+                    final isLastStep = currentStep == getSteps().length - 1;
+                    return Row(
+                      children: [
+                        if (currentStep != 0)
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Color(0xFF0272B1),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
+                                  borderRadius: BorderRadius.circular(10)),
                             ),
-                            onPressed: details.onStepContinue,
-                            child: isLastStep
-                                ? const Text('Submit',
-                                    style: TextStyle(color: Colors.white))
-                                : const Text('Next',
-                                    style: TextStyle(color: Colors.white)),
+                            onPressed: details.onStepCancel,
+                            child: Text('Back',
+                                style: TextStyle(color: Colors.white)),
                           ),
-                        ],
-                      );
-                    },
-                  ),
+                        const SizedBox(width: 10),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFF0272B1),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                          ),
+                          onPressed: details.onStepContinue,
+                          child: isLastStep
+                              ? const Text('Submit',
+                                  style: TextStyle(color: Colors.white))
+                              : const Text('Next',
+                                  style: TextStyle(color: Colors.white)),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
-            ],
-          ),
-        ));
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   List<Step> getSteps() => [
-        // Step 0: General
         Step(
-          state: currentStep > 0 ? StepState.complete : StepState.indexed,
+          state: _allConditionsMet || _isGeneralComplete
+              ? StepState.complete
+              : StepState.indexed,
           isActive: currentStep >= 0,
           title: const Text('General'),
           content: Form(
-            key: _generalFormKey, // Form key for validation
+            key: _generalFormKey,
             child: Column(
               children: [
-                // Wage
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextFormField(
@@ -371,21 +378,17 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                       hintText: 'How Much Would You Want to be Paid?',
                       hintStyle: const TextStyle(color: Colors.grey),
                       enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(
-                            color: Colors.transparent, width: 0),
+                        borderSide: const BorderSide(color: Colors.transparent),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: const BorderSide(
-                          color: Color(0xFF0272B1),
-                          width: 2,
-                        ),
+                            color: Color(0xFF0272B1), width: 2),
                       ),
                     ),
                   ),
                 ),
-                // Pay Period
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: DropdownButtonFormField<String>(
@@ -401,34 +404,23 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: const BorderSide(
-                          color: Color(0xFF0272B1),
-                          width: 2,
-                        ),
+                            color: Color(0xFF0272B1), width: 2),
                       ),
                     ),
                     value: _controller.payPeriodController.text.isNotEmpty
                         ? _controller.payPeriodController.text
                         : null,
-                    items: payPeriod.map((String period) {
-                      return DropdownMenuItem<String>(
-                        value: period,
-                        child: Text(period),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _controller.payPeriodController.text = newValue!;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please select a pay period';
-                      }
-                      return null;
-                    },
+                    items: payPeriod
+                        .map((String period) => DropdownMenuItem<String>(
+                            value: period, child: Text(period)))
+                        .toList(),
+                    onChanged: (String? newValue) => setState(
+                        () => _controller.payPeriodController.text = newValue!),
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Please select a pay period'
+                        : null,
                   ),
                 ),
-                // Gender
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10.0),
                   child: DropdownButtonFormField<String>(
@@ -444,58 +436,45 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: const BorderSide(
-                          color: Color(0xFF0272B1),
-                          width: 2,
-                        ),
+                            color: Color(0xFF0272B1), width: 2),
                       ),
                     ),
                     value: selectedGender,
-                    items: genderOptions.map((String gender) {
-                      return DropdownMenuItem<String>(
-                        value: gender,
-                        child: Text(gender),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        selectedGender = newValue;
-                        _controller.genderController.text = newValue!;
-                      });
-                    },
+                    items: genderOptions
+                        .map((String gender) => DropdownMenuItem<String>(
+                            value: gender, child: Text(gender)))
+                        .toList(),
+                    onChanged: (String? newValue) => setState(() {
+                      selectedGender = newValue;
+                      _controller.genderController.text = newValue!;
+                    }),
                     validator: (value) =>
                         value == null ? 'Please select a gender' : null,
                   ),
                 ),
-                // Contact Number
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextFormField(
                     controller: _controller.contactNumberController,
                     cursorColor: const Color(0xFF0272B1),
-                    validator: (value) =>
-                        _controller.validateContactNumber(value),
+                    validator: _controller.validateContactNumber,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: const Color(0xFFF1F4FF),
                       hintText: 'Contact Number',
                       hintStyle: const TextStyle(color: Colors.grey),
                       enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(
-                            color: Colors.transparent, width: 0),
+                        borderSide: const BorderSide(color: Colors.transparent),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: const BorderSide(
-                          color: Color(0xFF0272B1),
-                          width: 2,
-                        ),
+                            color: Color(0xFF0272B1), width: 2),
                       ),
                     ),
                   ),
                 ),
-
-                // Birthdate
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextField(
@@ -516,7 +495,6 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                       }
                     },
                     decoration: InputDecoration(
-                      labelStyle: const TextStyle(color: Color(0xFF0272B1)),
                       filled: true,
                       fillColor: const Color(0xFFF1F4FF),
                       hintText: 'Birth date',
@@ -524,16 +502,13 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                       suffixIcon: const Icon(Icons.calendar_today,
                           color: Color(0xFF0272B1)),
                       enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(
-                            color: Colors.transparent, width: 0),
+                        borderSide: const BorderSide(color: Colors.transparent),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: const BorderSide(
-                          color: Color(0xFF0272B1),
-                          width: 2,
-                        ),
+                            color: Color(0xFF0272B1), width: 2),
                       ),
                     ),
                   ),
@@ -542,13 +517,14 @@ class _FillUpTaskerState extends State<FillUpTasker> {
             ),
           ),
         ),
-        // Step 1: Profile
         Step(
-          state: currentStep > 1 ? StepState.complete : StepState.indexed,
+          state: _allConditionsMet || _isProfileComplete
+              ? StepState.complete
+              : StepState.indexed,
           isActive: currentStep >= 1,
           title: const Text('Profile'),
           content: Form(
-            key: _profileFormKey, // Form key for validation
+            key: _profileFormKey,
             child: Column(
               children: [
                 if (_selectedImage != null || _existingProfileImageUrl != null)
@@ -561,9 +537,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                           child: Text(
                             'Choose a profile picture',
                             style: GoogleFonts.openSans(
-                              fontSize: 20,
-                              color: const Color(0xFF0272B1),
-                            ),
+                                fontSize: 20, color: const Color(0xFF0272B1)),
                           ),
                         ),
                         Container(
@@ -574,10 +548,9 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2))
                             ],
                           ),
                           child: Column(
@@ -592,10 +565,9 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                                       color: const Color(0xFF0272B1), width: 3),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withOpacity(0.2),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 4),
-                                    ),
+                                        color: Colors.black.withOpacity(0.2),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4))
                                   ],
                                 ),
                                 child: ClipRRect(
@@ -608,38 +580,11 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                                                   .isNotEmpty
                                           ? Image.network(
                                               _existingProfileImageUrl!,
-                                              fit: BoxFit.cover,
-                                              loadingBuilder: (context, child,
-                                                  loadingProgress) {
-                                                if (loadingProgress == null)
-                                                  return child;
-                                                return Center(
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                    value: loadingProgress
-                                                                .expectedTotalBytes !=
-                                                            null
-                                                        ? loadingProgress
-                                                                .cumulativeBytesLoaded /
-                                                            loadingProgress
-                                                                .expectedTotalBytes!
-                                                        : null,
-                                                  ),
-                                                );
-                                              },
-                                              errorBuilder:
-                                                  (context, error, stackTrace) {
-                                                return const Center(
-                                                  child: Icon(Icons.person,
-                                                      size: 80,
-                                                      color: Colors.grey),
-                                                );
-                                              },
-                                            )
+                                              fit: BoxFit.cover)
                                           : const Center(
                                               child: Icon(Icons.person,
-                                                  size: 80, color: Colors.grey),
-                                            ),
+                                                  size: 80,
+                                                  color: Colors.grey)),
                                 ),
                               ),
                               const SizedBox(height: 20),
@@ -654,20 +599,16 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 20, vertical: 12),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
+                                      borderRadius: BorderRadius.circular(8)),
                                 ),
                               ),
                               if (_imageName != null)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 8.0),
-                                  child: Text(
-                                    "Name: ${_imageName ?? ''}",
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontStyle: FontStyle.italic,
-                                    ),
-                                  ),
+                                  child: Text("Name: $_imageName",
+                                      style: TextStyle(
+                                          color: Colors.grey[600],
+                                          fontStyle: FontStyle.italic)),
                                 ),
                             ],
                           ),
@@ -675,7 +616,6 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                       ],
                     ),
                   ),
-                // Bio
                 Padding(
                   padding: const EdgeInsets.only(top: 10, bottom: 10),
                   child: TextFormField(
@@ -691,8 +631,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                       hintText: 'How do you describe yourself as a Worker?',
                       hintStyle: const TextStyle(color: Colors.grey),
                       enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(
-                            color: Colors.transparent, width: 0),
+                        borderSide: const BorderSide(color: Colors.transparent),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       focusedBorder: OutlineInputBorder(
@@ -703,7 +642,6 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                     ),
                   ),
                 ),
-                // Skills
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextFormField(
@@ -719,8 +657,7 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                           'Enumerate what Skills Do you possessed at this moment.',
                       hintStyle: const TextStyle(color: Colors.grey),
                       enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(
-                            color: Colors.transparent, width: 0),
+                        borderSide: const BorderSide(color: Colors.transparent),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       focusedBorder: OutlineInputBorder(
@@ -750,32 +687,17 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                             color: Color(0xFF0272B1), width: 2),
                       ),
                     ),
-                    items: specialization.map((String spec) {
-                      return DropdownMenuItem<String>(
-                        value: spec,
-                        child: Text(
-                          spec,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (newValue) {
-                      setState(() {
-                        selectedSpecialization = newValue;
-
-                        for (int i = 0; i < specialization.length; i++) {
-                          if (specialization[i] == newValue) {
-                            _specializationId = i + 1;
-                            break;
-                          }
-                        }
-
-                        _controller.specializationIdController.text =
-                            _specializationId.toString();
-
-                        debugPrint("Specialization ID: $_specializationId");
-                      });
-                    },
+                    items: specialization
+                        .map((String spec) => DropdownMenuItem<String>(
+                            value: spec,
+                            child: Text(spec, overflow: TextOverflow.ellipsis)))
+                        .toList(),
+                    onChanged: (newValue) => setState(() {
+                      selectedSpecialization = newValue;
+                      _specializationId = specialization.indexOf(newValue!) + 1;
+                      _controller.specializationIdController.text =
+                          _specializationId.toString();
+                    }),
                     validator: (value) =>
                         value == null ? 'Please select a specialization' : null,
                   ),
@@ -784,8 +706,10 @@ class _FillUpTaskerState extends State<FillUpTasker> {
             ),
           ),
         ),
-        // Step 2: Certs
         Step(
+          state: _allConditionsMet || _isCertsComplete
+              ? StepState.complete
+              : StepState.indexed,
           isActive: currentStep >= 2,
           title: const Text('Certs'),
           content: Form(
@@ -799,10 +723,9 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                     child: Text(
                       'Upload a PDF File',
                       style: GoogleFonts.openSans(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF0272B1),
-                      ),
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF0272B1)),
                     ),
                   ),
                   Container(
@@ -813,10 +736,9 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2))
                       ],
                     ),
                     child: Column(
@@ -828,15 +750,12 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                             color: Colors.grey[300],
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: const Color(0xFF0272B1),
-                              width: 3,
-                            ),
+                                color: const Color(0xFF0272B1), width: 3),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4))
                             ],
                           ),
                           child: _selectedFile != null
@@ -844,23 +763,16 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                                   size: 80, color: Colors.red)
                               : _existingPDFUrl != null &&
                                       _existingPDFUrl!.isNotEmpty
-                                  ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Image.network(
-                                        _existingPDFUrl!,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error,
-                                                stackTrace) =>
-                                            const Icon(Icons.insert_drive_file,
-                                                size: 80, color: Colors.grey),
-                                      ),
-                                    )
+                                  ? const Icon(Icons.picture_as_pdf,
+                                      size: 80, color: Colors.red)
                                   : const Icon(Icons.insert_drive_file,
                                       size: 80, color: Colors.grey),
                         ),
                         const SizedBox(height: 20),
                         ElevatedButton.icon(
-                          onPressed: _pickFile,
+                          onPressed: _documentValid
+                              ? null
+                              : _pickFile, // Disable if _documentValid is true
                           icon: const Icon(Icons.upload_file,
                               color: Colors.white),
                           label: const Text("Select PDF"),
@@ -870,20 +782,17 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 20, vertical: 12),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                                borderRadius: BorderRadius.circular(8)),
                           ),
                         ),
-                        if (_fileName != null) ...[
-                          const SizedBox(height: 10),
-                          Text(
-                            "Selected File: $_fileName",
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontStyle: FontStyle.italic,
-                            ),
+                        if (_fileName != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: Text("Selected File: $_fileName",
+                                style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontStyle: FontStyle.italic)),
                           ),
-                        ],
                       ],
                     ),
                   ),

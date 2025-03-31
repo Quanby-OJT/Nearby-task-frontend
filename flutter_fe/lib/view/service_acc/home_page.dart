@@ -3,6 +3,7 @@ import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/nav/user_navigation.dart';
+import 'package:flutter_fe/view/fill_up/fill_up_client.dart'; 
 import 'package:google_fonts/google_fonts.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:intl/intl.dart';
@@ -26,6 +27,7 @@ class _HomePageState extends State<HomePage> {
   ];
   List<String> selectedCategories = [];
   bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -107,6 +109,38 @@ class _HomePageState extends State<HomePage> {
         ),
       );
     }
+  }
+
+  void _showWarningDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevent dismissing by tapping outside
+      builder: (context) => AlertDialog(
+        title: const Text("Missing Information"),
+        content: const Text("Please upload both Profile and ID images."),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context); // Close the dialog
+              // Navigate to FillUpClient and wait for result
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FillUpClient()),
+              );
+              
+              // If we returned with a result indicating changes were made
+              if (result == true) {
+                // Refresh the data in the current page
+                setState(() {
+                  _fetchTasks(); // Refresh tasks or any other data that depends on user profile
+                });
+              }
+            },
+            child: const Text("Go to Upload Page"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

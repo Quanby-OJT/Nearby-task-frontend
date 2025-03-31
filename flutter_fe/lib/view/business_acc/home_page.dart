@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flip_card/flip_card.dart';
+import 'package:flutter_fe/controller/authentication_controller.dart';
+import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
+import 'package:flutter_fe/service/auth_service.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
+import 'package:flutter_fe/view/error/missing_information.dart';
+import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/nav/user_navigation.dart';
+import 'package:get_storage/get_storage.dart';
+
+import '../../controller/profile_controller.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -15,17 +23,28 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final ProfileController _profileController = ProfileController();
+  final GetStorage storage = GetStorage();
   final CardSwiperController controller = CardSwiperController();
+  final ClientServices _clientServices = ClientServices();
+  final AuthenticationController _authController = AuthenticationController();
   List<UserModel> tasker = [];
   String? _errorMessage;
   int? cardNumber = 0;
 
+  AuthenticatedUser? _user;
+  String? _existingProfileImageUrl;
+  String? _existingIDImageUrl;
+
   bool _isLoading = true;
+  bool _isUploadDialogShown = false;
+  bool _showButton = false;
 
   @override
   void initState() {
     super.initState();
     _fetchTasker();
+    _fetchUserIDImage();
   }
 
   Future<void> _fetchTasker() async {
@@ -117,6 +136,140 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _fetchUserIDImage() async {
+    try {
+      int userId = int.parse(storage.read('user_id').toString());
+      if (userId == null) {
+        debugPrint("User ID not found in storage po");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to load user image. Please try again."),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+
+      AuthenticatedUser? user =
+          await _profileController.getAuthenticatedUser(context, userId);
+      debugPrint(user.toString());
+
+      final response = await _clientServices.fetchUserIDImage(userId);
+
+      if (response['success']) {
+        setState(() {
+          _user = user;
+          _existingProfileImageUrl = user?.user.image;
+          _existingIDImageUrl = response['url'];
+          _isLoading = false;
+
+          debugPrint(
+              "Successfully loaded user image" + _existingProfileImageUrl!);
+          debugPrint("Successfully loaded ID image" + _existingIDImageUrl!);
+
+          if (_existingProfileImageUrl != null && _existingIDImageUrl != null) {
+            _showButton = true;
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint("Error fetching ID image: $e");
+    }
+  }
+
+  // void _showWarningDialog() {
+  //   showDialog(
+  //     context: context,
+  //     barrierDismissible: false, // Prevent dismissing by tapping outside
+  //     builder: (context) => AlertDialog(
+  //       title: const Text("Missing Information"),
+  //       content: const Text("Please upload both Profile and ID images."),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () async {
+  //             Navigator.pop(context);
+  //             final result = await Navigator.push(
+  //               context,
+  //               MaterialPageRoute(builder: (context) => const FillUpClient()),
+  //             );
+  //             if (result == true) {
+  //               setState(() {
+  //                 _isLoading = true;
+  //                 // Keep the flag true since we're refreshing data
+  //               });
+
+  //               await _fetchUserIDImage(); // Refresh user profile and ID image data
+  //               await _fetchTasker(); // Refresh tasker data if needed
+  //             } else {
+  //               // If user didn't make changes, reset the flag so dialog can show again
+  //               setState(() {
+  //                 _isUploadDialogShown = false;
+  //               });
+  //             }
+  //           },
+  //           child: const Text("Go to Upload Page"),
+  //         ),
+  //         TextButton(
+  //             onPressed: () {
+  //               Navigator.pop(context);
+  //               // Reset the flag when user cancels
+  //               setState(() {
+  //                 _isUploadDialogShown = false;
+  //               });
+  //             },
+  //             child: TextButton(
+  //                 onPressed: () {
+  //                   Navigator.pop(context);
+  //                   _authController.logout(context);
+  //                 },
+  //                 child: Text('Logout'))),
+  //       ],
+  //     ),
+  //   );
+  // }
+
+  Widget missingInformation() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+            "Missing Information",
+            style: TextStyle(
+              color: Colors.red,
+              fontSize: 16,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton(
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FillUpClient()),
+              );
+              if (result == true) {
+                setState(() {
+                  _isLoading = true;
+                  _showButton = true;
+                });
+
+                await _fetchUserIDImage(); // Refresh user profile and ID image data
+                await _fetchTasker(); // Refresh tasker data if needed
+              } else {
+                // Handle the case when the user doesn't want to upload
+                // You might want to show a message or take other actions
+                _showButton = false;
+              }
+            },
+            child: const Text('Upload Your Profile'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -126,6 +279,11 @@ class _HomePageState extends State<HomePage> {
         children: [
           if (_isLoading)
             const Center(child: CircularProgressIndicator())
+          else if (_existingProfileImageUrl == null ||
+              _existingIDImageUrl == null ||
+              _existingProfileImageUrl!.isEmpty ||
+              _existingIDImageUrl!.isEmpty)
+            missingInformation()
           else if (_errorMessage != null)
             Center(
                 child: Column(
@@ -379,54 +537,55 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      controller.swipe(CardSwiperDirection.left);
-                    },
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
+          if (_showButton)
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        controller.swipe(CardSwiperDirection.left);
+                      },
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          shape: CircleBorder(),
+                          fixedSize: Size(60, 60),
+                          padding: EdgeInsets.zero),
+                      child: Center(
+                        child: Icon(
+                          Icons.close,
+                          color: Colors.white,
+                          weight: 4,
+                          size: 30,
+                        ),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        controller.swipe(CardSwiperDirection.right);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
                         shape: CircleBorder(),
                         fixedSize: Size(60, 60),
-                        padding: EdgeInsets.zero),
-                    child: Center(
-                      child: Icon(
-                        Icons.close,
-                        color: Colors.white,
-                        weight: 4,
-                        size: 30,
+                        padding: EdgeInsets.zero, // Remove default padding
+                      ),
+                      child: Center(
+                        // Use Center instead of Align
+                        child: Icon(
+                          Icons.favorite,
+                          color: Colors.white,
+                          size: 30,
+                        ),
                       ),
                     ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      controller.swipe(CardSwiperDirection.right);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      shape: CircleBorder(),
-                      fixedSize: Size(60, 60),
-                      padding: EdgeInsets.zero, // Remove default padding
-                    ),
-                    child: Center(
-                      // Use Center instead of Align
-                      child: Icon(
-                        Icons.favorite,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
         ],
       ),
     );

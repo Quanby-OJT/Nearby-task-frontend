@@ -165,7 +165,147 @@ class ApiService {
     }
   }
 
+// this is for tasker with only pdf
+  static Future<Map<String, dynamic>> updateTaskerProfileWithPdf(
+      int userId, File file, Map<String, dynamic> data) async {
+    try {
+      final token = await AuthService.getSessionToken();
+      final request = http.MultipartRequest(
+        "PUT",
+        Uri.parse("$apiUrl/update-tasker-with-pdf/$userId"),
+      );
+
+      request.headers.addAll({
+        "Authorization": "Bearer $token",
+        "Content-Type": "multipart/form-data",
+      });
+
+      // Convert dynamic values to strings
+      Map<String, String> stringData = {};
+      data.forEach((key, value) {
+        stringData[key] = value?.toString() ?? '';
+      });
+
+      request.fields.addAll(stringData);
+
+      // Add the profile image to the request
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          "file",
+          await file.readAsBytes(),
+          filename: "file.pdf",
+        ),
+      );
+
+      var response = await request.send();
+      var responseBody = await response.stream.bytesToString();
+
+      debugPrint('Response Status: ${response.statusCode}');
+      debugPrint('Response Body: $responseBody');
+
+      final responseData = jsonDecode(responseBody);
+
+      if (response.statusCode == 200) {
+        return {
+          "message": responseData["message"] ??
+              "User information updated successfully!",
+          "user": responseData["user"]
+        };
+      } else if (response.statusCode == 400) {
+        String errorMessage = "";
+        if (responseData['errors'] is String) {
+          errorMessage = responseData['errors'];
+        } else if (responseData['errors'] is List) {
+          errorMessage = (responseData['errors'] as List)
+              .map((e) => e['msg'] ?? e.toString())
+              .join('\n');
+        }
+        return {
+          "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed."
+        };
+      } else {
+        return {
+          "errors": responseData["error"] ?? "An unexpected error occurred."
+        };
+      }
+    } catch (e) {
+      return {
+        "errors": "An error occurred during updating user information: $e"
+      };
+    }
+  }
+
 // this is for tasker with files and pdf
+  static Future<Map<String, dynamic>> updateTaskerProfileWithImageTobackend(
+      int userId, File image, Map<String, dynamic> data) async {
+    try {
+      final token = await AuthService.getSessionToken();
+      final request = http.MultipartRequest(
+        "PUT",
+        Uri.parse("$apiUrl/update-tasker-with-image-profile/${userId}"),
+      );
+
+      request.headers.addAll({
+        "Authorization": "Bearer $token",
+        "Content-Type": "multipart/form-data",
+      });
+
+      // Convert dynamic values to strings
+      Map<String, String> stringData = {};
+      data.forEach((key, value) {
+        stringData[key] = value?.toString() ?? '';
+      });
+
+      request.fields.addAll(stringData);
+
+      // Add the ID image to the request
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          "image",
+          await image.readAsBytes(),
+          filename: "image.jpg",
+        ),
+      );
+
+      var response = await request.send();
+      var responseBody = await response.stream.bytesToString();
+
+      debugPrint('Response Status: ${response.statusCode}');
+      debugPrint('Response Body: $responseBody');
+
+      final responseData = jsonDecode(responseBody);
+
+      if (response.statusCode == 200) {
+        return {
+          "message": responseData["message"] ??
+              "User information updated successfully!",
+          "user": responseData["user"]
+        };
+      } else if (response.statusCode == 400) {
+        String errorMessage = "";
+        if (responseData['errors'] is String) {
+          errorMessage = responseData['errors'];
+        } else if (responseData['errors'] is List) {
+          errorMessage = (responseData['errors'] as List)
+              .map((e) => e['msg'] ?? e.toString())
+              .join('\n');
+        }
+        return {
+          "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed."
+        };
+      } else {
+        return {
+          "errors": responseData["error"] ?? "An unexpected error occurred."
+        };
+      }
+    } catch (e) {
+      return {
+        "errors": "An error occurred during updating user information: $e"
+      };
+    }
+  }
+
+// this is for tasker with files and image
   static Future<Map<String, dynamic>> updateTaskerProfileWithFiles(
       int userId, File file, File image, Map<String, dynamic> data) async {
     try {
@@ -690,7 +830,6 @@ class ApiService {
               "User is a tasker and has tasker data: ${responseData['tasker']}");
           TaskerModel tasker = TaskerModel.fromJson(
               responseData['tasker'] as Map<String, dynamic>);
-
 
           debugPrint("User is a tasker and has tasker data: $tasker");
 

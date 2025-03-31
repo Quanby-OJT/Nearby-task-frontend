@@ -118,6 +118,8 @@ class JobPostService {
 
   Future<List<SpecializationModel>> getSpecializations() async {
     final response = await _getRequest("/get-specializations");
+
+    debugPrint("Specializations Response: ${response.toString()}");
     if (response["specializations"] != null) {
       return (response["specializations"] as List)
           .map((item) => SpecializationModel.fromJson(item))
