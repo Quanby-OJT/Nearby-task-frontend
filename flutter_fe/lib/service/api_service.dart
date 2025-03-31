@@ -674,7 +674,7 @@ class ApiService {
       if (response.statusCode == 201) {
         return {
           "message": responseData["message"] ??
-              "Registration successful! Please check your email to verify your account.",
+              "Registration successful! This email will be used to get your login code.",
           "user": responseData["user"]
         };
       } else if (response.statusCode == 400) {

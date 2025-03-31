@@ -231,7 +231,6 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      // appBar: NavUserScreen(),
       body: Stack(
         children: [
           if (_isLoading)

@@ -668,6 +668,7 @@ class _JobPostPageState extends State<JobPostPage> {
       debugPrint(result.toString());
 
       if (result['success']) {
+        Navigator.pop(context);
         setState(() {
           _message = result['message'] ?? "Successfully Posted Task.";
           _isSuccess = true;
@@ -832,6 +833,7 @@ class _JobPostPageState extends State<JobPostPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         iconTheme: const IconThemeData(color: Color(0xFF0272B1)),
         title: const Text(
           'Your Tasks',
