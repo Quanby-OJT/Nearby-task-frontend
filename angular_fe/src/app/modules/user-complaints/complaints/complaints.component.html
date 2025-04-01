@@ -1,133 +1,84 @@
-<!-- Header page navigation -->
 <div class="mb-4 flex justify-between w-full max-w-[1440px] mx-auto px-4">
-    <div>
-      <h3 class="text-foreground font-semibold">User Complains</h3>
-      <div class="text-muted-foreground text-xs font-medium">
-        <a href="#" class="hover:text-primary">Dashboards > User Complains</a>
-      </div>
+  <div>
+    <h3 class="text-foreground font-semibold">User Complaints</h3>
+    <div class="text-muted-foreground text-xs font-medium">
+      <a href="#" class="hover:text-primary">Dashboards > User Complaints</a>
     </div>
+  </div>
 </div>
 
-<!-- Top Container -->
 <div class="flex w-full max-w-[1440px] mx-auto flex-col pb-3">
-    <div class="inline-flex w-full gap-3 flex-wrap">
-      <!-- Top Right Container -->
-      <div class="flex-1 min-w-[300px] max-w-[50%] max-h-[400px] border border-muted-200 bg-white rounded-xl p-6 shadow-md overflow-auto">
-        <strong>Processed by Moderator</strong>
-        <app-complain-card></app-complain-card>
-      </div>
-      <!-- Top Left Container -->
-      <div class="place-items-start flex-1 min-w-[300px] max-w-[50%] max-h-[400px] border border-muted-200 bg-white rounded-xl p-6 shadow-md overflow-auto">
-        <strong>Approved by Admin</strong>
-        <app-complain-card-resolve></app-complain-card-resolve>
-      </div>
+  <div class="flex w-full space-x-3">
+    <div class="flex-1 min-w-[300px] w-[50%] max-h-[400px] border border-gray-200 bg-white rounded-xl p-6 shadow-md overflow-auto box-border">
+      <strong class="text-lg font-semibold">Client Complaints</strong>
+      <app-client-complaint (reportSelected)="openModal($event)"></app-client-complaint>
     </div>
+
+    <div class="flex-1 min-w-[300px] w-[50%] max-h-[400px] border border-gray-200 bg-white rounded-xl p-6 shadow-md overflow-auto box-border">
+      <strong class="text-lg font-semibold">Tasker Complaints</strong>
+      <app-tasker-complaint (reportSelected)="openModal($event)"></app-tasker-complaint>
+    </div>
+  </div>
 </div>
 
-<!-- Bottom Container -->
-<div class="border-muted-200  w-full max-w-[1440px] mx-auto flex-col rounded-xl min-h-[400px] shadow-md">
-  
-  <!-- Main container with search, filter, table, and pagination -->
-  <div class="border-muted-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
-    <!-- Search and Filter Section -->
+<div class="border-gray-200 w-full max-w-[1440px] mx-auto flex-col rounded-xl min-h-[400px] shadow-md">
+  <div class="border-gray-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
     <div class="flex flex-wrap items-center justify-between gap-2 py-3 px-5">
       <div class="text-muted-foreground text-sm font-medium"></div>
       <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-        <!-- Search input -->
         <div class="flex-1 min-w-[200px] lg:min-w-[300px] xl:min-w-[400px]">
           <label class="relative w-full">
-            <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" placeholder="Search users logs" type="text" />
+            <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" placeholder="Moderator Search Users" type="text" (input)="searchReports($event)" />
           </label>
         </div>
-        <!-- Status filter dropdown -->
-        <select name="status" class="text-muted-foreground w-28! p-2 border rounded-md">
+        <select name="status" class="text-muted-foreground w-28! p-2 border rounded-md" (change)="filterReports($event)">
           <option value="">All Status</option>
-          <option value="active">Online</option>
-          <option value="disabled">Offline</option>
+          <option value="pending">Pending</option>
+          <option value="processed">Processed</option>
         </select>
       </div>
     </div>
-  
-    <!-- Table to display logs -->
+
     <div class="overflow-x-auto w-full">
       <table class="w-full border-collapse border-0 text-left text-sm">
         <thead class="border-b">
           <tr class="bg-gray-100">
             <th class="px-4 py-2 w-[80px] lg:w-[100px]">No</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">User Name</th>
-            <th class="px-4 py-2 text-center min-w-[140px] lg:min-w-[300px] xl:min-w-[250px]">User Role</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Time Start</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Time End</th>
+            <th class="px-4 py-2 text-center min-w-[140px] lg:min-w-[300px] xl:min-w-[250px]">Reporter Name</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Violator Name</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Reporter Role</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Violator Role</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Date</th>
             <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Status</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Action</th>
           </tr>
         </thead>
         <tbody>
-          <!-- Record 1 -->
-          <tr class="border-b">
-            <td class="px-4 py-3 text-center">1</td>
-            <td class="px-4 py-3 text-center">John Doe</td>
-            <td class="px-4 py-3 text-center">Admin</td>
-            <td class="px-4 py-3 text-center">10:00 AM</td>
-            <td class="px-4 py-3 text-center">12:00 PM</td>
+          <tr *ngFor="let report of displayReports; let i = index" class="border-b">
+            <td class="px-4 py-3 text-center">{{ i + 1 }}</td>
+            <td class="px-4 py-3 text-center">{{ report.reporter.first_name }} {{ report.reporter.middle_name }} {{ report.reporter.last_name }}</td>
+            <td class="px-4 py-3 text-center">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.violator.last_name }}</td>
+            <td class="px-4 py-3 text-center">{{ report.reporter.user_role }}</td>
+            <td class="px-4 py-3 text-center">{{ report.violator.user_role }}</td>
+            <td class="px-4 py-3 text-center">{{ report.created_at }}</td>
             <td class="px-4 py-3 text-center">
-              <span class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-green-500">Online</span>
+              <span [ngClass]="{'bg-green-500': report.status, 'bg-yellow-500': !report.status}" class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-yellow-500">{{ report.status ? 'Processed' : 'Pending' }}</span>
             </td>
-          </tr>
-          <!-- Record 2 -->
-          <tr class="border-b">
-            <td class="px-4 py-3 text-center">2</td>
-            <td class="px-4 py-3 text-center">Jane Smith</td>
-            <td class="px-4 py-3 text-center">Moderator</td>
-            <td class="px-4 py-3 text-center">09:30 AM</td>
-            <td class="px-4 py-3 text-center">11:30 AM</td>
-            <td class="px-4 py-3 text-center">
-              <span class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-red-500">Offline</span>
-            </td>
-          </tr>
-          <!-- Record 3 -->
-          <tr class="border-b">
-            <td class="px-4 py-3 text-center">3</td>
-            <td class="px-4 py-3 text-center">Mike Johnson</td>
-            <td class="px-4 py-3 text-center">User</td>
-            <td class="px-4 py-3 text-center">08:45 AM</td>
-            <td class="px-4 py-3 text-center">10:45 AM</td>
-            <td class="px-4 py-3 text-center">
-              <span class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-green-500">Online</span>
-            </td>
-          </tr>
-          <!-- Record 4 -->
-          <tr class="border-b">
-            <td class="px-4 py-3 text-center">4</td>
-            <td class="px-4 py-3 text-center">Sarah Williams</td>
-            <td class="px-4 py-3 text-center">Editor</td>
-            <td class="px-4 py-3 text-center">11:00 AM</td>
-            <td class="px-4 py-3 text-center">01:00 PM</td>
-            <td class="px-4 py-3 text-center">
-              <span class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-red-500">Offline</span>
-            </td>
-          </tr>
-          <!-- Record 5 -->
-          <tr class="border-b">
-            <td class="px-4 py-3 text-center">5</td>
-            <td class="px-4 py-3 text-center">Robert Brown</td>
-            <td class="px-4 py-3 text-center">Admin</td>
-            <td class="px-4 py-3 text-center">07:30 AM</td>
-            <td class="px-4 py-3 text-center">09:30 AM</td>
-            <td class="px-4 py-3 text-center">
-              <span class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-green-500">Online</span>
+            <td class="flex items-center justify-center pt-3 pb-0">
+              <button (click)="openModal(report.report_id)" class="p-0 border-none bg-transparent cursor-pointer">
+                <img src="https://img.icons8.com/?size=100&id=cRLuJXPEgWhK&format=png&color=0000FF" alt="View Icon" class="w-5 h-5">
+              </button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-  
-    <!-- Pagination Section -->
-    <div class="flex justify-between items-center bg-white w-full">
-      <!-- Logs per page selector -->
+
+    <div class="flex justify-between items-center bg-white w-100%">
       <div class="text-muted-foreground flex items-center justify-between py-3 px-5 text-xs">
         <div class="flex items-center gap-2">
           Show
-          <select class="w-[140px] p-2 border rounded-md">
+          <select class="w-35 p-5 border rounded-md" (change)="changeReportsPerPage($event)">
             <option value="10" selected>10</option>
             <option value="20">20</option>
             <option value="30">30</option>
@@ -136,32 +87,166 @@
           per page
         </div>
       </div>
-  
-      <!-- Pagination controls -->
+
       <div class="flex items-center justify-end gap-4 sticky bottom-0 left-0 right-0 bg-white p-2">
-        <!-- Show current range of logs -->
         <span class="text-sm border w-32 text-center">
-          1 - 5 of 5
+          {{ startIndex }} - {{ endIndex }} of {{ filteredReports.length }}
         </span>
-  
-        <!-- Pagination buttons -->
+
         <div class="inline-flex items-center gap-2">
-          <!-- Previous page button -->
-          <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300">
+          <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 disabled:opacity-50" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
             ◀
           </button>
-  
-          <!-- Page number buttons -->
-          <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-sm bg-primary text-white">
-            1
-          </button>
-  
-          <!-- Next page button -->
-          <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300">
+
+          <ng-container *ngFor="let page of paginationButtons">
+            <button *ngIf="page !== '...'" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-sm" [ngClass]="{'bg-primary text-white': currentPage === page}" (click)="goToPage(page)">
+              {{ page }}
+            </button>
+            <span *ngIf="page === '...'" class="text-gray-500">...</span>
+          </ng-container>
+
+          <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
             ▶
           </button>
         </div>
       </div>
     </div>
-  </div>  
+  </div>
+</div>
+
+<br>
+
+<div class="border-gray-200 w-full max-w-[1440px] mx-auto flex-col rounded-xl min-h-[400px] shadow-md">
+  <div class="border-gray-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
+    <div class="flex flex-wrap items-center justify-between gap-2 py-3 px-5">
+      <div class="text-muted-foreground text-sm font-medium"></div>
+      <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+        <div class="flex-1 min-w-[200px] lg:min-w-[300px] xl:min-w-[400px]">
+          <label class="relative w-full">
+            <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" placeholder="Admin Search Users" type="text" (input)="searchReports($event)" />
+          </label>
+        </div>
+        <select name="status" class="text-muted-foreground w-28! p-2 border rounded-md" (change)="filterReports($event)">
+          <option value="">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="processed">Processed</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto w-full">
+      <table class="w-full border-collapse border-0 text-left text-sm">
+        <thead class="border-b">
+          <tr class="bg-gray-100">
+            <th class="px-4 py-2 w-[80px] lg:w-[100px]">No</th>
+            <th class="px-4 py-2 text-center min-w-[140px] lg:min-w-[300px] xl:min-w-[250px]">Reporter Name</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Violator Name</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Reporter Role</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Violator Role</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Date</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Status</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Handled By</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let report of displayReports; let i = index" class="border-b">
+            <td class="px-4 py-3 text-center">{{ i + 1 }}</td>
+            <td class="px-4 py-3 text-center">{{ report.reporter.first_name }} {{ report.reporter.middle_name }} {{ report.reporter.last_name }}</td>
+            <td class="px-4 py-3 text-center">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.violator.last_name }}</td>
+            <td class="px-4 py-3 text-center">{{ report.reporter.user_role }}</td>
+            <td class="px-4 py-3 text-center">{{ report.violator.user_role }}</td>
+            <td class="px-4 py-3 text-center">{{ report.created_at }}</td>
+            <td class="px-4 py-3 text-center"> {{ report.action_by ? report.actionBy.first_name + " " + report.actionBy.middle_name + " " + report.actionBy.last_name  : 'null' }} </td>
+            <td class="px-4 py-3 text-center">
+              <span [ngClass]="{'bg-green-500': report.status, 'bg-yellow-500': !report.status}" class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-yellow-500">{{ report.status ? 'Processed' : 'Pending' }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex justify-between items-center bg-white w-100%">
+      <div class="text-muted-foreground flex items-center justify-between py-3 px-5 text-xs">
+        <div class="flex items-center gap-2">
+          Show
+          <select class="w-35 p-5 border rounded-md" (change)="changeReportsPerPage($event)">
+            <option value="10" selected>10</option>
+            <option value="20">20</option>
+            <option value="30">30</option>
+            <option value="50">50</option>
+          </select>
+          per page
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-4 sticky bottom-0 left-0 right-0 bg-white p-2">
+        <span class="text-sm border w-32 text-center">
+          {{ startIndex }} - {{ endIndex }} of {{ filteredReports.length }}
+        </span>
+
+        <div class="inline-flex items-center gap-2">
+          <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 disabled:opacity-50" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+            ◀
+          </button>
+
+          <ng-container *ngFor="let page of paginationButtons">
+            <button *ngIf="page !== '...'" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-sm" [ngClass]="{'bg-primary text-white': currentPage === page}" (click)="goToPage(page)">
+              {{ page }}
+            </button>
+            <span *ngIf="page === '...'" class="text-gray-500">...</span>
+          </ng-container>
+
+          <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+            ▶
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for displaying report details -->
+<div *ngIf="isModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white p-8 rounded-lg max-w-3xl w-full shadow-xl">
+    <h2 class="text-2xl font-bold mb-6 text-gray-800">Report Details</h2>
+    <dl class="space-y-2">
+      <div class="flex">
+        <dt class="font-bold w-32">Report ID:</dt>
+        <dd>{{ selectedReport?.report_id }}</dd>
+      </div>
+      <div class="flex">
+        <dt class="font-bold w-32">Reporter:</dt>
+        <dd>{{ selectedReport?.reporter.first_name }} {{ selectedReport?.reporter.middle_name }} {{ selectedReport?.reporter.last_name }}</dd>
+      </div>
+      <div class="flex">
+        <dt class="font-bold w-32">Violator:</dt>
+        <dd>{{ selectedReport?.violator.first_name }} {{ selectedReport?.violator.middle_name }} {{ selectedReport?.violator.last_name }}</dd>
+      </div>
+      <div class="flex">
+        <dt class="font-bold w-32">Reason:</dt>
+        <dd>{{ selectedReport?.reason }}</dd>
+      </div>
+      <div class="flex">
+        <dt class="font-bold w-32">Status:</dt>
+        <dd>{{ selectedReport?.status ? 'Processed' : 'Pending' }}</dd>
+      </div>
+      <div class="flex">
+        <dt class="font-bold w-32">Created At:</dt>
+        <dd>{{ selectedReport?.created_at }}</dd>
+      </div>
+      <div class="flex">
+        <dt class="font-bold w-32">Updated At:</dt>
+        <dd>{{ selectedReport?.updated_at }}</dd>
+      </div>
+      <div *ngIf="selectedReport?.action_by" class="flex">
+        <dt class="font-bold w-32">Handled By:</dt>
+        <dd>{{ selectedReport?.action_by }}</dd>
+      </div>
+    </dl>
+    <div class="mt-8 flex justify-end space-x-4">
+      <button (click)="banUser(selectedReport?.report_id)" class="bg-red-500 text-white px-6 py-2 rounded-md hover:bg-red-600">Ban</button>
+      <button (click)="unbanUser(selectedReport?.report_id)" class="bg-green-500 text-white px-6 py-2 rounded-md hover:bg-green-600">Unban</button>
+      <button (click)="closeModal()" class="bg-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-400">Cancel</button>
+    </div>
+  </div>
 </div>

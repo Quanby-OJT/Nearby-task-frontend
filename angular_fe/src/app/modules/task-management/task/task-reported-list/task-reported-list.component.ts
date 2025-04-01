@@ -25,7 +25,9 @@ export class TaskReportedListComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.taskService.getTaskById(id).subscribe({
-        next: (task) => this.task = task,
+        next: (response) => {
+          this.task = response.tasks;
+        },
         error: (err) => {
           console.error('Error fetching task:', err);
           this.router.navigate(['/error']);
@@ -45,7 +47,7 @@ export class TaskReportedListComponent implements OnInit {
       next: () => {
         console.log('Task disabled successfully');
         this.task.status = 'disabled';
-        this.cdr.detectChanges(); // Force UI update
+        this.cdr.detectChanges(); 
       },
       error: (err) => console.error('Error disabling task:', err)
     });

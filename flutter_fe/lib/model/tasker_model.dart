@@ -14,6 +14,7 @@ class TaskerModel {
   final String payPeriod;
   final DateTime birthDate;
   final int phoneNumber;
+  final String gender;
   final bool? group;
   UserModel? user;
 
@@ -28,6 +29,7 @@ class TaskerModel {
     required this.wage,
     required this.payPeriod,
     required this.birthDate,
+    required this.gender,
     required this.phoneNumber,
     this.taskerDocuments,
     this.socialMediaLinks,
@@ -63,6 +65,7 @@ class TaskerModel {
       birthDate: json['birthdate'] != null
           ? DateTime.parse(json['birthdate'])
           : DateTime.now(),
+      gender: json['gender'] ?? false,
       group: json['group'] ?? false,
     );
   }

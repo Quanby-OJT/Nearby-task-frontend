@@ -1,14 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from 'src/environments/environment'; // Use environment API URL
 import { SessionLocalStorage } from 'src/services/sessionStorage';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TaskService {
-  private apiUrl = `${environment.apiUrl}/connect`; // Use environment variable
+  private apiUrl = 'http://localhost:5000/connect';
 
   constructor(private http: HttpClient, private sessionStorage: SessionLocalStorage) {}
 

@@ -13,7 +13,8 @@ class ReportController {
   Map<String, String> errors = {};
   String? imageUploadError;
   List<Map<String, dynamic>> taskers = [];
-  List<Map<String, dynamic>> clients = []; // New list for clients
+  List<Map<String, dynamic>> clients = [];
+  List<ReportModel> reportHistory = [];
 
   Future<void> fetchTaskers() async {
     try {
@@ -26,7 +27,7 @@ class ReportController {
       );
 
       debugPrint("Taskers API Response Status: ${response.statusCode}");
-      debugPrint("Taskers API Response Body: ${response.body}");
+      debugPrint("Task者在 API Response Body: ${response.body}");
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -79,6 +80,41 @@ class ReportController {
     }
   }
 
+  // In report_controller.dart
+  Future<void> fetchReportHistory(int userId) async {
+    try {
+      debugPrint("Fetching report history for user: $userId");
+      final response = await http.get(
+        Uri.parse("${ReportService.apiUrl}/reportHistory?userId=$userId"),
+        headers: {
+          'Authorization': "Bearer ${ReportService.token}",
+        },
+      );
+
+      debugPrint("Report History API Response Status: ${response.statusCode}");
+      debugPrint("Report History API Response Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success']) {
+          reportHistory = (data['reports'] as List)
+              .map((report) => ReportModel.fromJson(report))
+              .toList();
+          debugPrint("Successfully fetched ${reportHistory.length} reports");
+        } else {
+          debugPrint("Failed to fetch report history: ${data['message']}");
+          reportHistory = [];
+        }
+      } else {
+        debugPrint("Error fetching report history: ${response.statusCode}");
+        reportHistory = [];
+      }
+    } catch (e) {
+      debugPrint("Exception while fetching report history: $e");
+      reportHistory = [];
+    }
+  }
+
   Future<void> pickImages(BuildContext context) async {
     const int maxImages = 5;
     final ImagePicker picker = ImagePicker();
@@ -119,7 +155,6 @@ class ReportController {
       return;
     }
 
-    // Since we return early if reportedWhom is null, we can safely assert it's non-null here
     _submitReport(context, setModalState, reportedBy, reportedWhom!);
   }
 
