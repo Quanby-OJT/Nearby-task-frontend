@@ -49,7 +49,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _fetchTaskAssignments();
     _fetchTaskers();
     _fetchUserIDImage();
-    _fetchReportHistory()
+    _fetchReportHistory();
   }
 
   Future<void> _fetchTaskAssignments() async {
@@ -517,6 +517,9 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Text('Cancel')),
         ],
       ),
+    );
+  }
+
   void _showReportHistoryModal() {
     showModalBottomSheet(
       context: context,
