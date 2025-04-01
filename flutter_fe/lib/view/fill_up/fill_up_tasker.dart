@@ -769,6 +769,22 @@ class _FillUpTaskerState extends State<FillUpTasker> {
                                       size: 80, color: Colors.grey),
                         ),
                         const SizedBox(height: 20),
+                        Text(
+                          _pdfChanged
+                              ? 'Wait for 10 minutes to validate your document'
+                              : _documentValid
+                                  ? 'Your document has been validated'
+                                  : 'Your document has not been validated',
+                          style: TextStyle(
+                            color: _pdfChanged
+                                ? Colors.red[600]
+                                : _documentValid
+                                    ? Colors.green[600]
+                                    : Colors.red[600],
+                            fontStyle: FontStyle.normal,
+                          ),
+                        ),
+                        SizedBox(height: 10),
                         ElevatedButton.icon(
                           onPressed: _documentValid
                               ? null

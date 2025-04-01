@@ -74,16 +74,7 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
           _status = "Email verified! Welcome, $email";
         });
 
-        // Redirect to rules page
-        if (mounted) {
-          // Check if widget is still mounted before navigation
-          // Navigator.pushReplacement(
-          //   context,
-          //   MaterialPageRoute(
-          //     builder: (context) => NearbyTaskRules(userId: userId),
-          //   ),
-          // );
-        }
+        if (mounted) {}
       } else {
         setState(() => _status = "Email verification failed");
       }
@@ -213,7 +204,7 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                                 setState(() {
                                   _isLoading = false;
                                   _status =
-                                      "Please check your email to verify your account";
+                                      "Log in to the NearByTask to verify your account using a 6-digit verification code.";
                                 });
                               }
                             },

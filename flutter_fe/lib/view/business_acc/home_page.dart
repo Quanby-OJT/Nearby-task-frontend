@@ -35,6 +35,7 @@ class _HomePageState extends State<HomePage> {
   AuthenticatedUser? _user;
   String? _existingProfileImageUrl;
   String? _existingIDImageUrl;
+  bool _documentValid = false;
 
   bool _isLoading = true;
   bool _isUploadDialogShown = false;
@@ -162,6 +163,8 @@ class _HomePageState extends State<HomePage> {
           _user = user;
           _existingProfileImageUrl = user?.user.image;
           _existingIDImageUrl = response['url'];
+          _documentValid = response['status'];
+
           _isLoading = false;
 
           debugPrint(
@@ -178,73 +181,18 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // void _showWarningDialog() {
-  //   showDialog(
-  //     context: context,
-  //     barrierDismissible: false, // Prevent dismissing by tapping outside
-  //     builder: (context) => AlertDialog(
-  //       title: const Text("Missing Information"),
-  //       content: const Text("Please upload both Profile and ID images."),
-  //       actions: [
-  //         TextButton(
-  //           onPressed: () async {
-  //             Navigator.pop(context);
-  //             final result = await Navigator.push(
-  //               context,
-  //               MaterialPageRoute(builder: (context) => const FillUpClient()),
-  //             );
-  //             if (result == true) {
-  //               setState(() {
-  //                 _isLoading = true;
-  //                 // Keep the flag true since we're refreshing data
-  //               });
-
-  //               await _fetchUserIDImage(); // Refresh user profile and ID image data
-  //               await _fetchTasker(); // Refresh tasker data if needed
-  //             } else {
-  //               // If user didn't make changes, reset the flag so dialog can show again
-  //               setState(() {
-  //                 _isUploadDialogShown = false;
-  //               });
-  //             }
-  //           },
-  //           child: const Text("Go to Upload Page"),
-  //         ),
-  //         TextButton(
-  //             onPressed: () {
-  //               Navigator.pop(context);
-  //               // Reset the flag when user cancels
-  //               setState(() {
-  //                 _isUploadDialogShown = false;
-  //               });
-  //             },
-  //             child: TextButton(
-  //                 onPressed: () {
-  //                   Navigator.pop(context);
-  //                   _authController.logout(context);
-  //                 },
-  //                 child: Text('Logout'))),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  Widget missingInformation() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text(
-            "Missing Information",
-            style: TextStyle(
-              color: Colors.red,
-              fontSize: 16,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 10),
-          ElevatedButton(
+  void _showWarningDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Prevent dismissing by tapping outside
+      builder: (context) => AlertDialog(
+        title: const Text("Account Verification"),
+        content: const Text(
+            "Upload your Profile and ID images to complete your account. Verification will follow."),
+        actions: [
+          TextButton(
             onPressed: () async {
+              Navigator.pop(context);
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const FillUpClient()),
@@ -252,19 +200,28 @@ class _HomePageState extends State<HomePage> {
               if (result == true) {
                 setState(() {
                   _isLoading = true;
-                  _showButton = true;
+                  // Keep the flag true since we're refreshing data
                 });
 
                 await _fetchUserIDImage(); // Refresh user profile and ID image data
                 await _fetchTasker(); // Refresh tasker data if needed
               } else {
-                // Handle the case when the user doesn't want to upload
-                // You might want to show a message or take other actions
-                _showButton = false;
+                setState(() {
+                  _isUploadDialogShown = false;
+                });
               }
             },
-            child: const Text('Upload Your Profile'),
+            child: const Text("Verify Account"),
           ),
+          TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                // Reset the flag when user cancels
+                setState(() {
+                  _isUploadDialogShown = false;
+                });
+              },
+              child: Text('Cancel')),
         ],
       ),
     );
@@ -274,16 +231,10 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      // appBar: NavUserScreen(),
       body: Stack(
         children: [
           if (_isLoading)
             const Center(child: CircularProgressIndicator())
-          else if (_existingProfileImageUrl == null ||
-              _existingIDImageUrl == null ||
-              _existingProfileImageUrl!.isEmpty ||
-              _existingIDImageUrl!.isEmpty)
-            missingInformation()
           else if (_errorMessage != null)
             Center(
                 child: Column(
@@ -372,6 +323,15 @@ class _HomePageState extends State<HomePage> {
                       } else if (swipeDirection == CardSwiperDirection.right) {
                         debugPrint(
                             "Swiped Right (Liked) for tasker: ${tasker[previousIndex].firstName}");
+
+                        if (_existingProfileImageUrl == null ||
+                            _existingIDImageUrl == null ||
+                            _existingProfileImageUrl!.isEmpty ||
+                            _existingIDImageUrl!.isEmpty ||
+                            !_documentValid) {
+                          _showWarningDialog();
+                          return false;
+                        }
                         _saveLikedTasker(tasker[previousIndex]);
                         _cardCounter();
                       }
@@ -482,14 +442,24 @@ class _HomePageState extends State<HomePage> {
                                     Center(
                                       child: ElevatedButton.icon(
                                         onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  TaskerProfilePage(
-                                                      tasker: task),
-                                            ),
-                                          );
+                                          if (_existingProfileImageUrl ==
+                                                  null ||
+                                              _existingIDImageUrl == null ||
+                                              _existingProfileImageUrl!
+                                                  .isEmpty ||
+                                              _existingIDImageUrl!.isEmpty ||
+                                              !_documentValid) {
+                                            _showWarningDialog();
+                                          } else {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    TaskerProfilePage(
+                                                        tasker: task),
+                                              ),
+                                            );
+                                          }
                                         },
                                         icon: Icon(Icons.person,
                                             color: Colors.white),
