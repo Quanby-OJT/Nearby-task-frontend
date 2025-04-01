@@ -29,18 +29,22 @@
     <span
       class="rounded-lg py-1 px-4"
       [ngClass]="{
+        'bg-black': user.acc_status === 'not-odd:ull',
         'bg-blue-500': user.acc_status === 'Review',
         'bg-green-500': user.acc_status === 'Active',
         'bg-red-400': user.acc_status === 'Deactivate',
         'bg-red-700': user.acc_status === 'Block',
         'bg-yellow-300': user.acc_status === 'Suspend',
-        'bg-yellow-500': user.acc_status === 'Pending'
+        'bg-yellow-500': user.acc_status === 'Pending',
       }"
       [class.cursor-pointer]="user.acc_status === 'Review'"
+      
       (click)="user.acc_status === 'Review' ? navigateToReviewUser(user.user_id) : null">
-      {{ user.acc_status }}
+      {{ user.acc_status ? user.acc_status : "Null" }}
     </span>
   </td>
+
+
   <td class="border-muted/20 rounded-md border-b px-4 py-3 text-[0.85rem] font-semibold text-white">
     <span
       class="rounded-lg py-1 px-4"
