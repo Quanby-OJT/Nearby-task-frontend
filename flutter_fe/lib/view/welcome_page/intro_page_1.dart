@@ -16,13 +16,27 @@ class IntroPage1 extends StatelessWidget {
               width: 300, height: 300, fit: BoxFit.fitWidth),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 50.0),
-            child: Text(
-              textAlign: TextAlign.center,
-              'Welcome to NearByTask',
-              style: GoogleFonts.openSans(
-                  fontSize: 20,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w400),
+            child: Column(
+              children: [
+                Text(
+                  textAlign: TextAlign.center,
+                  'Welcome to NearbyTask',
+                  style: GoogleFonts.montserrat(
+                      fontSize: 24,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w300),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  textAlign: TextAlign.center,
+                  'Find Tasks Near You with NearbyTask!',
+                  style: GoogleFonts.montserrat(
+                      fontSize: 12,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w300),
+                ),
+                SizedBox(height: 10),
+              ],
             ),
           ),
         ],

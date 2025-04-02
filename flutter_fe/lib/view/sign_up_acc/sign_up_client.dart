@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:app_links/app_links.dart';
 import 'package:app_links/app_links.dart';
 import 'package:flutter_fe/view/fill_up/nearby_task_rules.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SignUpClientAcc extends StatefulWidget {
   final String role;
@@ -21,8 +22,22 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
 
   bool _isVerified = false;
   bool _isLoading = false;
+  bool _obsecureTextPassword = true;
+  bool _obsecureTextConfirmPassword = true;
   final _formKey = GlobalKey<FormState>();
   StreamSubscription<Uri>? _linkSubscription;
+
+  void _toggleObscureTextPassword() {
+    setState(() {
+      _obsecureTextPassword = !_obsecureTextPassword;
+    });
+  }
+
+  void _toggleObscureTextConfirmPassword() {
+    setState(() {
+      _obsecureTextConfirmPassword = !_obsecureTextConfirmPassword;
+    });
+  }
 
   @override
   void initState() {
@@ -112,19 +127,23 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
               ),
               SizedBox(height: 20),
               Text(
-                'Create a New Client Account',
-                style: TextStyle(
-                    color: const Color(0xFF0272B1),
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold),
+                ' Client Account',
+                style: GoogleFonts.montserrat(
+                  color: const Color(0xFF03045E),
+                  fontSize: 30,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                 child: Text(
-                  "With ONE SWIPE, You can Find a New Tasker in a MATTER OF SECONDS.",
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 18),
+                  "With ONE SWIPE\n You can Find a New Tasker in a MATTER OF SECONDS.	",
+                  style: GoogleFonts.montserrat(
+                    color: Colors.black,
+                    fontSize: 12,
+                  ),
                 ),
               ),
               if (_status.isNotEmpty)
@@ -132,9 +151,11 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
                     _status,
-                    style: TextStyle(
-                      color: _isVerified ? Colors.green : Colors.blue,
-                      fontWeight: FontWeight.bold,
+                    style: GoogleFonts.montserrat(
+                      color:
+                          _isVerified ? Colors.green : const Color(0xff03045E),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -171,49 +192,77 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                     TextFormField(
                       controller: _controller.passwordController,
                       validator: _controller.validatePassword,
-                      obscureText: true,
-                      decoration: _getInputDecoration('Password'),
+                      obscureText: _obsecureTextPassword,
+                      decoration: _getInputDecoration('Password').copyWith(
+                        suffixIcon: Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: IconButton(
+                            icon: Icon(
+                              _obsecureTextPassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: Color(0xFF0272B1),
+                            ),
+                            onPressed: _toggleObscureTextPassword,
+                          ),
+                        ),
+                      ),
                     ),
                     SizedBox(height: 10),
                     TextFormField(
                       controller: _controller.confirmPasswordController,
                       validator: _controller.validateConfirmPassword,
-                      obscureText: true,
-                      decoration: _getInputDecoration('Confirm Password'),
-                    ),
-                    SizedBox(height: 20),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF0272B1),
-                        minimumSize: Size(double.infinity, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                      obscureText: _obsecureTextConfirmPassword,
+                      decoration:
+                          _getInputDecoration('Confirm Password').copyWith(
+                        suffixIcon: Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: IconButton(
+                            icon: Icon(
+                              _obsecureTextConfirmPassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: Color(0xFF0272B1),
+                            ),
+                            onPressed: _toggleObscureTextConfirmPassword,
+                          ),
                         ),
                       ),
-                      onPressed: _isLoading
-                          ? null
-                          : () async {
-                              if (_formKey.currentState!.validate()) {
-                                setState(() {
-                                  _isLoading = true;
-                                  _status = "Creating your account...";
-                                });
+                    ),
+                    SizedBox(height: 20),
+                    Container(
+                      height: 50,
+                      width: double.infinity,
+                      child: ElevatedButton(
+                          onPressed: _isLoading
+                              ? null
+                              : () async {
+                                  if (_formKey.currentState!.validate()) {
+                                    setState(() {
+                                      _isLoading = true;
+                                      _status = "Creating your account...";
+                                    });
 
-                                await _controller.registerUser(context);
+                                    await _controller.registerUser(context);
 
-                                setState(() {
-                                  _isLoading = false;
-                                  _status =
-                                      "First login will verify your account";
-                                });
-                              }
-                            },
-                      child: _isLoading
-                          ? CircularProgressIndicator(color: Colors.white)
-                          : Text(
-                              'Create New Client Account',
-                              style: TextStyle(fontSize: 18),
-                            ),
+                                    setState(() {
+                                      _isLoading = false;
+                                      _status =
+                                          "First login will verify your account";
+                                    });
+                                  }
+                                },
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xFF03045E),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10))),
+                          child: Text(
+                            'Sign Up',
+                            style: GoogleFonts.montserrat(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14),
+                          )),
                     ),
                     SizedBox(height: 10),
                     TextButton(
@@ -221,9 +270,10 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                           Navigator.pushReplacementNamed(context, '/signin'),
                       child: Text(
                         'Already have an account? Sign In',
-                        style: TextStyle(
-                          color: Color(0xFF0272B1),
-                          fontWeight: FontWeight.bold,
+                        style: GoogleFonts.montserrat(
+                          color: Color(0xFF03045E),
+                          fontWeight: FontWeight.w300,
+                          fontSize: 14,
                         ),
                       ),
                     ),
