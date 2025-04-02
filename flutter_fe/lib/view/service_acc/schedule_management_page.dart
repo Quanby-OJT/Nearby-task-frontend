@@ -1,4 +1,3 @@
-// calendar_availability_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/view/nav/user_navigation.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -11,7 +10,7 @@ class ScheduleManagement extends StatefulWidget {
 }
 
 class _ScheduleManagementState extends State<ScheduleManagement> {
-  CalendarFormat _calendarFormat = CalendarFormat.week;
+  CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   final Map<DateTime, List<TimeSlot>> _availabilitySlots = {};
@@ -19,27 +18,6 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   automaticallyImplyLeading: false,
-      //   title: Text(
-      //     'Set Schedule',
-      //     style:
-      //         TextStyle(color: Color(0xFF0272B1), fontWeight: FontWeight.bold),
-      //   ),
-      //   backgroundColor: Colors.transparent,
-      //   actions: [
-      //     IconButton(
-      //       icon: Icon(Icons.calendar_view_month),
-      //       onPressed: () {
-      //         setState(() {
-      //           _calendarFormat = _calendarFormat == CalendarFormat.month
-      //               ? CalendarFormat.week
-      //               : CalendarFormat.month;
-      //         });
-      //       },
-      //     ),
-      //   ],
-      // ),
       appBar: NavUserScreen(),
       body: Column(
         children: [
@@ -121,9 +99,25 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      IconButton(
+                      PopupMenuButton<String>(
                         icon: Icon(Icons.copy),
-                        onPressed: () => _copySlotToNextWeeks(slot),
+                        onSelected: (String value) {
+                          if (value == 'weeks') {
+                            _copySlotToNextWeeks(slot);
+                          } else if (value == 'days') {
+                            _copySlotToSpecificDay(slot);
+                          }
+                        },
+                        itemBuilder: (BuildContext context) => [
+                          PopupMenuItem<String>(
+                            value: 'weeks',
+                            child: Text('Copy to future weeks'),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'days',
+                            child: Text('Copy to specific day'),
+                          ),
+                        ],
                       ),
                       IconButton(
                         icon: Icon(Icons.delete),
@@ -226,6 +220,42 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
           ),
         );
       }
+    });
+  }
+
+  Future<void> _copySlotToSpecificDay(TimeSlot slot) async {
+    // Use a simple date picker that returns a single date
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedDay!.add(Duration(days: 1)),
+      firstDate: _selectedDay!.add(Duration(days: 1)),
+      lastDate: _selectedDay!.add(Duration(days: 365)),
+    );
+
+    if (pickedDate == null) return;
+
+    setState(() {
+      final dateKey =
+          DateTime(pickedDate.year, pickedDate.month, pickedDate.day);
+
+      if (!_availabilitySlots.containsKey(dateKey)) {
+        _availabilitySlots[dateKey] = [];
+      }
+
+      _availabilitySlots[dateKey]!.add(
+        TimeSlot(
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          isAvailable: true,
+        ),
+      );
+
+      // Sort slots by start time
+      _availabilitySlots[dateKey]!.sort((a, b) {
+        final aMinutes = a.startTime.hour * 60 + a.startTime.minute;
+        final bMinutes = b.startTime.hour * 60 + b.startTime.minute;
+        return aMinutes.compareTo(bMinutes);
+      });
     });
   }
 
