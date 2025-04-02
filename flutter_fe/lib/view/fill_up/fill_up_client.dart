@@ -30,6 +30,8 @@ class _FillUpClientState extends State<FillUpClient> {
   String? _imageNameID; // Store the ID image name
   String? _existingProfileImageUrl; // Store existing profile image URL
   String? _existingIDImageUrl; // Store existing ID image URL
+  bool _documentValid = false;
+  bool _IDChanged = false;
 
   final List<String> genderOptions = ['Male', 'Female', 'Other'];
   final ImagePicker _picker = ImagePicker();
@@ -56,6 +58,7 @@ class _FillUpClientState extends State<FillUpClient> {
       setState(() {
         _selectedImageID = File(pickedFile.path);
         _imageNameID = pickedFile.name;
+        _IDChanged = true;
       });
     }
   }
@@ -103,7 +106,11 @@ class _FillUpClientState extends State<FillUpClient> {
     try {
       final response = await _clientServices.fetchUserIDImage(userId);
       if (response['success']) {
-        setState(() => _existingIDImageUrl = response['url']);
+        setState(() {
+          _existingIDImageUrl = response['url'];
+          _documentValid = response['status'];
+          _IDChanged = false;
+        });
       }
     } catch (e) {
       debugPrint("Error fetching ID image: $e");
@@ -531,8 +538,8 @@ class _FillUpClientState extends State<FillUpClient> {
                   padding: const EdgeInsets.only(bottom: 20),
                   child: Text(
                     'Upload your ID for verification',
-                    style: GoogleFonts.openSans(
-                        fontSize: 20, color: Color(0xFF0272B1)),
+                    style: GoogleFonts.montserrat(
+                        fontSize: 15, color: Color(0xFF0272B1)),
                   ),
                 ),
                 Container(
@@ -579,10 +586,30 @@ class _FillUpClientState extends State<FillUpClient> {
                         ),
                       ),
                       SizedBox(height: 20),
+                      Text(
+                        _IDChanged
+                            ? 'Wait for 10 minutes to validate your ID'
+                            : _documentValid
+                                ? 'Your ID has been validated'
+                                : 'Your ID has not been validated',
+                        style: TextStyle(
+                          color: _IDChanged
+                              ? Colors.red[600]
+                              : _documentValid
+                                  ? Colors.green[600]
+                                  : Colors.red[600],
+                          fontStyle: FontStyle.normal,
+                        ),
+                      ),
+                      SizedBox(height: 10),
                       ElevatedButton.icon(
                         onPressed: _pickImageID,
                         icon: Icon(Icons.edit, color: Colors.white),
-                        label: Text("Change ID Image"),
+                        label: Text("Change ID",
+                            style: GoogleFonts.montserrat(
+                                fontSize: 15,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold)),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFF0272B1),
                           foregroundColor: Colors.white,

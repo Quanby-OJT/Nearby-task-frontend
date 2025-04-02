@@ -70,45 +70,6 @@ class _InitialProfileScreenState extends State<InitialProfileScreen> {
         color: Colors.white,
         child: ListView(
           children: [
-            // Profile Section
-            Container(
-              padding: EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundImage: NetworkImage(
-                      isLoading
-                          ? '/assets/images/default-profile.jpg'
-                          : '${_user?.user.image}', // Replace with actual profile image URL
-                    ),
-                  ),
-                  SizedBox(width: 16.0),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        isLoading
-                            ? "Loading..."
-                            : "${_user?.user.firstName} ${_user?.user.lastName}",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        storage.read('role'),
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Divider(),
             // Menu Items
             ListTile(
               leading: Icon(Icons.person),

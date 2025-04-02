@@ -595,7 +595,7 @@ class ProfileController {
             builder: (context) => AlertDialog(
                   title: Text("Registration Successful"),
                   content: Text(resultData["message"] ??
-                      "Registration successful! Please check your email to verify your account."),
+                      "Registration successful! Use a valid email to get your login code."),
                   actions: [
                     TextButton(
                       child: Text("OK"),
