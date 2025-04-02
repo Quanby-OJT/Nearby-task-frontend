@@ -1,14 +1,14 @@
 <ng-container>
-  <td class="border-muted/20 border-b px-4 py-5 text-center text-[0.85rem]">
+  <!-- <td class="border-muted/20 border-b px-4 py-5 text-center text-[0.85rem]">
     <input
       [(ngModel)]="user.selected"
       class="checkbox checkbox-sm"
       data-datatable-row-check="true"
       type="checkbox"
       value="28" />
-  </td>
-  <td class="border-muted/20 border-b px-4 py-3 text-[0.85rem]">{{ user.user_id }}</td>
-  <td class="border-muted/20 border-b px-4 py-3 text-[0.85rem]">
+  </td> -->
+  <td class="border-muted/20 border-b px-6 py-3 text-[0.85rem]">{{ user.user_id }}</td>
+  <td class="border-muted/20 border-b px-6 py-3 text-[0.85rem]">
     <div class="flex items-center gap-2.5">
       <img alt="user avatar" class="h-9 w-9 shrink-0 rounded-full" src="{{ user.image_link }}" />
       <div class="flex flex-col">
@@ -21,11 +21,11 @@
       </div>
     </div>
   </td>
-  <td class="border-muted/20 border-b px-4 py-3 text-[0.85rem]">{{ user.user_role }}</td>
-  <td class="border-muted/20 border-b px-4 py-3 text-[0.85rem]">
+  <td class="border-muted/20 border-b px-6 py-3 text-[0.85rem]">{{ user.user_role }}</td>
+  <td class="border-muted/20 border-b px-6 py-3 text-[0.85rem]">
     {{ user.email }}
   </td>
-  <td class="border-muted/20 rounded-md border-b px-4 py-3 text-[0.85rem] font-semibold text-white">
+  <td class="border-muted/20 rounded-md border-b px-6 py-3 text-[0.85rem] font-semibold text-white">
     <span
       class="rounded-lg py-1 px-4"
       [ngClass]="{
@@ -35,17 +35,12 @@
         'bg-red-400': user.acc_status === 'Deactivate',
         'bg-red-700': user.acc_status === 'Block',
         'bg-yellow-300': user.acc_status === 'Suspend',
-        'bg-yellow-500': user.acc_status === 'Pending',
-      }"
-      [class.cursor-pointer]="user.acc_status === 'Review'"
-      
-      (click)="user.acc_status === 'Review' ? navigateToReviewUser(user.user_id) : null">
+        'bg-yellow-500': user.acc_status === 'Pending'
+      }">
       {{ user.acc_status ? user.acc_status : "Null" }}
     </span>
   </td>
-
-
-  <td class="border-muted/20 rounded-md border-b px-4 py-3 text-[0.85rem] font-semibold text-white">
+  <td class="border-muted/20 rounded-md border-b px-6 py-3 text-[0.85rem] font-semibold text-white">
     <span
       class="rounded-lg py-1 px-4"
       [ngClass]="{
@@ -55,17 +50,23 @@
       {{ user.status ? 'Online' : 'Offline' }}
     </span>
   </td>
-  <td class="border-muted/20 border-b px-4 py-3 text-[0.85rem]">
-    <div class="grid grid-cols-2 gap-5">
+  <td class="border-muted/20 border-b px-6 py-3 text-[0.85rem]">
+    <div class="flex items-center gap-2">
       <button
         class="text-muted-foreground hover:bg-card hover:text-foreground flex h-7 w-7 cursor-pointer items-center justify-center rounded-md"
         (click)="updateUser(user.user_id)">
-        <svg-icon src="./assets/icons/heroicons/outline/edit-icon.svg" [svgClass]="'h-5 w-5'"> </svg-icon>
+        <svg-icon src="./assets/icons/heroicons/outline/edit-icon.svg" [svgClass]="'h-5 w-5'"></svg-icon>
       </button>
       <button
         class="text-muted-foreground hover:bg-card hover:text-foreground flex h-7 w-7 cursor-pointer items-center justify-center rounded-md"
         (click)="deleteUser(user.user_id)">
-        <svg-icon src="./assets/icons/heroicons/outline/trash-icon.svg" [svgClass]="'h-5 w-5'"> </svg-icon>
+        <svg-icon src="./assets/icons/heroicons/outline/trash-icon.svg" [svgClass]="'h-5 w-5'"></svg-icon>
+      </button>
+      <button
+      *ngIf="user.acc_status === 'Review'"
+        class="text-muted-foreground hover:bg-card hover:text-foreground flex h-7 w-7 cursor-pointer items-center justify-center rounded-md"
+        (click)="navigateToReviewUser(user.user_id)">
+        <img src="https://img.icons8.com/?size=100&id=5vIes7nAVj0R&format=png&color=000000" class="h-5 w-5">
       </button>
     </div>
   </td>

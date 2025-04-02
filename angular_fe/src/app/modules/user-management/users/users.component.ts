@@ -174,13 +174,21 @@ export class UsersComponent implements OnInit {
       if (!account) return true;
       switch (account) {
         case '1':
-          return user.acc_status === 'verified';
+          return user.acc_status === 'Pending';
         case '2':
-          return user.acc_status === 'review';
+          return user.acc_status === 'Active';
         case '3':
-          return user.acc_status === 'rejected';
+          return user.acc_status === 'Warn';
         case '4':
-          return user.acc_status === 'blocked';
+          return user.acc_status === 'Suspend';
+        case '5':
+          return user.acc_status === 'Ban';
+        case '6':
+          return user.acc_status === 'Block';
+        case '7':
+          return user.acc_status === 'Deactivate';
+        case '8':
+          return user.acc_status === 'Review';
         default:
           return true;
       }
@@ -191,11 +199,11 @@ export class UsersComponent implements OnInit {
       if (!role) return true;
       switch (role) {
         case '1':
-          return user.user_role === 'client';
+          return user.user_role === 'Client';
         case '2':
-          return user.user_role === 'tasker';
+          return user.user_role === 'Tasker';
         case '3':
-          return user.user_role === 'moderator';
+          return user.user_role === 'Moderator';
         default:
           return true;
       }

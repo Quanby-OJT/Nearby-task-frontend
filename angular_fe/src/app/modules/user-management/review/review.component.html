@@ -107,9 +107,9 @@
                   [ngClass]="{ 'border-red-500': submitted && f['userRole'].errors }"
                   required>
                   <option value="" disabled selected>Select User Role</option>
-                  <option value="client">Client</option>
-                  <option value="moderator">Moderator</option>
-                  <option value="tasker">Tasker</option>
+                  <option value="Client">Client</option>
+                  <option value="Moderator">Moderator</option>
+                  <option value="Tasker">Tasker</option>
                 </select>
               </div>
             </div>
@@ -123,10 +123,10 @@
                   [ngClass]="{ 'border-red-500': submitted && f['status'].errors }"
                   required>
                   <option value="" disabled selected>Select User status</option>
-                  <option value="verified">Verified</option>
-                  <option value="review">Review</option>
-                  <option value="blocked">Blocked</option>
-                  <option value="rejected">Rejected</option>
+                  <option value="Verified">Verified</option>
+                  <option value="Review">Review</option>
+                  <option value="Blocked">Blocked</option>
+                  <option value="Rejected">Rejected</option>
                 </select>
               </div>
               <div *ngIf="submitted && f['status'].errors" class="pt-1 text-xs text-red-500">
