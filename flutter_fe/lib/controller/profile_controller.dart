@@ -1238,7 +1238,6 @@ class ProfileController {
         id: taskerId,
         bio: bioController.text,
         group: false,
-        gender: genderController.text,
         specialization: specializationController.text,
         skills: skillsController.text,
         taskerAddress: taskerAddressController.text,
@@ -1248,8 +1247,6 @@ class ProfileController {
         socialMediaLinks: socials,
         wage: double.parse(cleanedWage),
         payPeriod: payPeriodController.text,
-        birthDate: DateTime.parse(birthdateController.text),
-        phoneNumber: int.parse(contactNumberController.text),
       );
 
       Map<String, dynamic> resultData = await ProfileService.updateTasker(

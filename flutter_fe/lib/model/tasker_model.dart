@@ -12,9 +12,6 @@ class TaskerModel {
   final String taskerAddress;
   final double wage;
   final String payPeriod;
-  final DateTime birthDate;
-  final int phoneNumber;
-  final String gender;
   final bool? group;
   UserModel? user;
 
@@ -28,9 +25,6 @@ class TaskerModel {
     required this.availability,
     required this.wage,
     required this.payPeriod,
-    required this.birthDate,
-    required this.gender,
-    required this.phoneNumber,
     this.taskerDocuments,
     this.socialMediaLinks,
     this.user,
@@ -48,24 +42,15 @@ class TaskerModel {
       id: json['tasker_id'] ?? 0,
       bio: json['bio'] ?? '',
       skills: json['skills'] ?? '',
-      phoneNumber: json['contact_number'] ?? '',
       availability: json['availability'] ?? false,
-      socialMediaLinks: (json['social_media_links'] as Map<String, dynamic>)
-          .map((key, value) => MapEntry(key, value as String)),
-
-      //   socialMediaLinks: json['social_media_links'] != null
-      //       ? Map<String, String>.from(json['social_media_links'])
-      //       : null,
-
+      socialMediaLinks: json['social_media_links'] != null
+          ? Map<String, String>.from(json['social_media_links'])
+          : null,
       taskerAddress: json['address'] ?? '',
       specialization: json['tasker_specialization']['specialization'] ?? '',
       taskerDocuments: json['tesda_document_link'] ?? '',
       wage: json['wage_per_hour'].toDouble() ?? 0.0,
       payPeriod: json['pay_period'] ?? "",
-      birthDate: json['birthdate'] != null
-          ? DateTime.parse(json['birthdate'])
-          : DateTime.now(),
-      gender: json['gender'] ?? false,
       group: json['group'] ?? false,
     );
   }
@@ -89,11 +74,9 @@ class TaskerModel {
       "social_media_links": socialMediaLinks ?? {},
 
       // remove kasi nasa user na siya
-      "contact_number": phoneNumber,
       "group": group,
       "wage_per_hour": wage,
       "pay_period": payPeriod,
-      "birthdate": birthDate.toIso8601String(),
       "user": user?.toJson(),
     };
   }

@@ -204,7 +204,7 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                                 setState(() {
                                   _isLoading = false;
                                   _status =
-                                      "Log in to the NearByTask to verify your account using a 6-digit verification code.";
+                                      "First login will verify your account";
                                 });
                               }
                             },
