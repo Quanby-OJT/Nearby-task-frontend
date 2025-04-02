@@ -7,6 +7,8 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:get_storage/get_storage.dart';
 
+import '../model/tasker_model.dart';
+
 class JobPostService {
   static const String apiUrl = "http://10.0.2.2:5000/connect";
   static final storage = GetStorage();
@@ -143,6 +145,7 @@ class JobPostService {
           tasker: null,
           task: TaskModel.fromJson(taskData),
           taskStatus: taskData['task_status'],
+          taskTakenId: taskData['task_taken_id']
         );
       }
 
@@ -166,10 +169,20 @@ class JobPostService {
         debugPrint("Mapped: ${response.toString()}");
         return TaskAssignment(
           client: null,
-          tasker: null,
+          tasker: TaskerModel.fromJson(response['task_information']['tasker']),
           task: TaskModel.fromJson(response['task_information']['post_task']),
           taskStatus: response['task_information']['task_status'],
-          taskTakenId: response['task_information']['task_taken_id']
+          taskTakenId: response['task_information']['task_taken_id'],
+          taskStatusReason: response['task_information']['reason_for_rejection_or_cancellation']
+        );
+      }else if(response.containsKey("error")){
+        debugPrint("Mapped: ${response.toString()}");
+        return TaskAssignment(
+          client: null,
+          tasker: null,
+          task: null,
+          taskStatus: "Unknown",
+          taskTakenId: 0
         );
       }
 

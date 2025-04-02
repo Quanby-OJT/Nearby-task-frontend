@@ -231,7 +231,6 @@ class TaskController {
           id: 0,
           bio: '',
           specialization: '',
-          gender: '',
           skills: '',
           taskerAddress: '',
           availability: false,
@@ -249,6 +248,7 @@ class TaskController {
           tasker: tasker,
           task: task,
           taskTakenId: taskTakenId, // Use the root-level task_taken_id
+          taskStatus: item['task_status'] as String,
         );
         debugPrint(assignment.toString()); // Verify the full object
         return assignment;

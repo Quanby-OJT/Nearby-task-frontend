@@ -14,7 +14,6 @@ class TaskerModel {
   final String payPeriod;
   final DateTime birthDate;
   final int phoneNumber;
-  final String gender;
   final bool? group;
   UserModel? user;
 
@@ -29,7 +28,6 @@ class TaskerModel {
     required this.wage,
     required this.payPeriod,
     required this.birthDate,
-    required this.gender,
     required this.phoneNumber,
     this.taskerDocuments,
     this.socialMediaLinks,
@@ -43,12 +41,12 @@ class TaskerModel {
 
   // Factory method to map JSON to TaskerModel
   factory TaskerModel.fromJson(Map<String, dynamic> json) {
-    debugPrint('JSON Data: $json');
+    //debugPrint('JSON Data: $json');
     return TaskerModel(
       id: json['tasker_id'] ?? 0,
       bio: json['bio'] ?? '',
       skills: json['skills'] ?? '',
-      phoneNumber: json['contact_number'] ?? '',
+      phoneNumber: json['contact_number'],
       availability: json['availability'] ?? false,
       socialMediaLinks: (json['social_media_links'] as Map<String, dynamic>)
           .map((key, value) => MapEntry(key, value as String)),
@@ -65,8 +63,8 @@ class TaskerModel {
       birthDate: json['birthdate'] != null
           ? DateTime.parse(json['birthdate'])
           : DateTime.now(),
-      gender: json['gender'] ?? false,
       group: json['group'] ?? false,
+      user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
     );
   }
 
@@ -76,16 +74,9 @@ class TaskerModel {
       "bio": bio,
       "specialization": specialization,
       "skills": skills,
-
-      //Must be in another table
       "address": taskerAddress,
       "availability": availability,
-
       "tesda_documents_link": taskerDocuments,
-      //  "social_media_links": socialMediaLinks,
-
-      // MUST in another table
-      // "tesda_documents_id": taskerDocuments,
       "social_media_links": socialMediaLinks ?? {},
 
 

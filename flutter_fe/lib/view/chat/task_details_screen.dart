@@ -27,7 +27,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   String role = "";
   final storage = GetStorage();
   List<String> taskTaskerStatus = ['Interested', 'Confirmed', 'Rejected', 'Ongoing', 'Completed', 'Cancelled', 'Pending'];//For Tasker Only
-  List<String> taskClientStatus = ['In Negotiation', 'Confirmed', 'Rejected', 'Cancelled', 'Pending'];//For Client Only
+  List<String> taskClientStatus = ['Negotiate with them', 'Confirm Tasker', 'Reject Tasker', 'Cancel the Task'];//For Client Only
   List<String> rejectionReasons = [
     'Tasker is not available',
     'I had other concerns that needed more attention',
@@ -39,6 +39,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   final rejectTasker = GlobalKey<FormState>();
   String rejectionReason = "";
   bool processingData = false;
+  List<String> skills = [];
+  String selectedTaskStatus = "";
 
 
 
@@ -56,6 +58,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
       debugPrint("Response: $response");
       setState(() {
         taskAssignment = response;
+        selectedTaskStatus = taskStatus();
+        skills = taskAssignment?.tasker?.skills.split(',') ?? [];
         _isLoading = false;
       });
     } catch (e) {
@@ -66,6 +70,26 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     }
   }
 
+  String taskStatus() {
+    switch(taskAssignment?.taskStatus){
+      case "Rejected":
+        return "Reject the Tasker";
+      case "Cancelled":
+        return "Cancel the Task";
+        case "Confirmed":
+        return "Confirm Tasker";
+      case "Ongoing":
+        return "Ongoing";
+      case "Completed":
+        return "Completed";
+      case "Pending":
+        return "Waiting for Client";
+      default:
+        return "Unknown";
+    }
+  }
+
+  //Main Application
   @override
   Widget build(BuildContext context) {
 
@@ -81,122 +105,257 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : taskAssignment == null
-          ? const Center(child: Text('No task information available'))
-          : SizedBox(
-              height: MediaQuery.of(context).size.height,
-              child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Text(
-                      taskAssignment?.task?.title ?? "Untitled Task",
-                      style: GoogleFonts.montserrat(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0272B1),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Divider(height: 30),
-                  //About the Task
-                  Text(
-                    "About the Task",
-                    style: GoogleFonts.roboto(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0272B1)
-                    ),
-                  ),
-                  Text(
-                    taskAssignment?.task?.description ?? "N/A",
-                    style: TextStyle(
-                      fontSize: 16,
-                    ),
-                    softWrap: true,
-                    textAlign: TextAlign.justify,
-                  ),
-                  _buildInfoRow(
-                      FontAwesomeIcons.locationPin, Colors.red, taskAssignment?.task?.location ?? "N/A"),
-                  _buildInfoRow(FontAwesomeIcons.gears, Colors.blue, taskAssignment?.task?.specialization ?? "N/A"),
-                  _buildInfoRow(
-                    FontAwesomeIcons.moneyBill,
-                    Colors.green,
-                    "₱ ${
-                      NumberFormat(
-                        "#,##0.00", "en_PH").format(
-                        taskAssignment?.task?.contactPrice.roundToDouble() ?? 0.00
-                        )
-                    }"
-                  ),
-                  Divider(height: 30),
-                  _buildInfoRow(FontAwesomeIcons.calendar, Colors.red, "${taskAssignment?.task?.duration} ${taskAssignment?.task?.period}"),
-                  _buildInfoRow(FontAwesomeIcons.clock, Colors.redAccent, taskAssignment?.task?.urgency ?? "N/A"),
-                  _buildInfoRow(FontAwesomeIcons.userGroup, Colors.black45, taskAssignment?.task?.workType ?? "N/A"),
-                  _buildInfoRow(FontAwesomeIcons.calendarDay, Colors.red, taskAssignment?.task?.taskBeginDate ?? "N/A"),
-                  if(role == "Tasker") ...[
-                    _buildInfoRow(
-                        FontAwesomeIcons.toolbox, Colors.black, taskAssignment?.task?.status ?? "Unknown Status"),
-                  ],
-                  _buildInfoRow(
-                      FontAwesomeIcons.paperclip, Colors.brown, taskAssignment?.task?.remarks ?? "N/A"),
-                  Divider(height: 30),
-                  // _buildInfoRow(
-                  //     "Tasker Status", taskAssignment?.taskStatus ?? "Unknown Status"),
-                  Row(
-                    children: [
-                      Text(
-                        "Tasker Status",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                        ),
-                      ),
-                      SizedBox(width: 50),
-                      SizedBox(
-                        width: 200, // Adjust width as needed
-                        child: DropdownButtonFormField(
-                          value: taskAssignment?.taskStatus, // Set an initial value if possible
-                          items: taskClientStatus.map((status) {
-                            return DropdownMenuItem(
-                              value: status,
-                              child: Text(status),
-                            );
-                          }).toList(),
-                          onChanged: (String? value) {
-                              //taskAssignment?.taskStatus = value.toString();
-                              switch (value) {
-                                case "Rejected":
-                                  if(role == "Client") showRejectionOrCancellationForm("Rejected");
-                                  break;
-                                case "Cancelled":
-                                  if(role == "Client") showRejectionOrCancellationForm("Cancelled");
-
-                                  break;
-                                case "Confirmed":
-                                  if(role == "Client") {
-                                    showEscrowPayment();
-                                  }
-                                  break;
-                                case "Completed":
-                                  break;
-                            }
-                          }
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              ),
-            ),
-          ),
+          ? const Center(child: Text('No task information available. Please Try Again.'))
+          : role == "Tasker" ? _buildClientDetails() : _buildTaskerDetails()
     );
   }
 
-  Widget _buildInfoRow(IconData label, Color color, String value) {
+  //To be viewed by Client
+  Widget _buildTaskerDetails(){
+    return SizedBox(
+      height: MediaQuery.of(context).size.height,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Text(
+                "About the Tasker",
+                style: GoogleFonts.montserrat(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0272B1),
+                ),
+              )
+            ),
+            Divider(height:30),
+            _buildInfoRow(FontAwesomeIcons.user, Colors.black, "${taskAssignment?.tasker?.user?.firstName} ${taskAssignment?.tasker?.user?.middleName ?? ''} ${taskAssignment?.tasker?.user?.lastName}" ?? "N/A"),
+            _buildInfoRow(FontAwesomeIcons.phone, Colors.blue, taskAssignment?.tasker?.phoneNumber.toString() ?? "N/A"),
+            _buildInfoRow(FontAwesomeIcons.envelope, Color(0XFFE04556), taskAssignment?.tasker?.user?.email ?? "N/A"),
+            _buildInfoRow(FontAwesomeIcons.locationPin, Color(0XFFE04556), taskAssignment?.tasker?.taskerAddress ?? "N/A"),
+            Divider(height: 30),
+            Text(
+              "About Me",
+              style: GoogleFonts.roboto(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0XFF03045E)
+              ),
+            ),
+            Text(
+              taskAssignment?.tasker?.bio ?? "N/A",
+              style: TextStyle(
+                fontSize: 16,
+              ),
+            ),
+            _buildInfoRow(FontAwesomeIcons.toolbox, Color(0XFF3C28CC), taskAssignment?.tasker?.specialization ?? "N/A"),
+            Text(
+              "Skills",
+              style: GoogleFonts.roboto(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0XFF03045E)
+              ),
+            ),
+            skills.isEmpty
+            ? Text(
+                "N/A",
+                style: TextStyle(fontSize: 16)
+              )
+            : Wrap(
+              spacing: 8.0,
+              runSpacing: 4.0,
+              children: skills.map((skill) => Chip(
+                label: Text(
+                  skill,
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                backgroundColor: Color(0XFF03045E)
+              )).toList(),
+            ),
+            Divider(height: 30),
+            Text(
+              "What will you do to the tasker?",
+              style: GoogleFonts.roboto(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                color: Color(0XFF03045E)
+              ),
+            ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Wrap(
+                spacing: 8.0,
+                runSpacing: 4.0,
+                children: taskClientStatus.map((status) => ChoiceChip(
+                  label: Text(
+                    status,
+                    style: TextStyle(
+                      fontSize: 14,
+                    ),
+                  ),
+                  selected: selectedTaskStatus == status,
+                  onSelected: (bool selected) {
+                    if (selected) {
+                      setState(() {
+                        selectedTaskStatus = status;
+                      });
+                      _handleTaskStatusChange(status);
+                    }
+                  },
+                  labelPadding: EdgeInsets.symmetric(horizontal: 12), // Adjust padding
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20), // Adjust border radius
+                  ),
+                )).toList(),
+              ),
+            ),
+            const SizedBox(height: 20),
+          ]
+        ),
+      )
+    );
+  }
+
+  //To be Viewed by Tasker
+  Widget _buildClientDetails() {
+    return SizedBox(
+      height: MediaQuery.of(context).size.height,
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Text(
+                taskAssignment?.task?.title ?? "Untitled Task",
+                style: GoogleFonts.montserrat(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0272B1),
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            Divider(height: 30),
+            //About the Task
+            Text(
+              "About the Task",
+              style: GoogleFonts.roboto(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0272B1)
+              ),
+            ),
+            Text(
+              taskAssignment?.task?.description ?? "N/A",
+              style: TextStyle(
+                fontSize: 16,
+              ),
+              softWrap: true,
+              textAlign: TextAlign.justify,
+            ),
+            _buildInfoRow(
+                FontAwesomeIcons.locationPin, Colors.red, taskAssignment?.task?.location ?? "N/A"),
+            _buildInfoRow(FontAwesomeIcons.gears, Colors.blue, taskAssignment?.task?.specialization ?? "N/A"),
+            _buildInfoRow(
+                FontAwesomeIcons.moneyBill,
+                Colors.green,
+                "₱ ${
+                    NumberFormat(
+                        "#,##0.00", "en_PH").format(
+                        taskAssignment?.task?.contactPrice.roundToDouble() ?? 0.00
+                    )
+                }"
+            ),
+            Divider(height: 30),
+            _buildInfoRow(FontAwesomeIcons.calendar, Colors.red, "${taskAssignment?.task?.duration} ${taskAssignment?.task?.period}"),
+            _buildInfoRow(FontAwesomeIcons.clock, Colors.redAccent, taskAssignment?.task?.urgency ?? "N/A"),
+            _buildInfoRow(FontAwesomeIcons.userGroup, Colors.black45, taskAssignment?.task?.workType ?? "N/A"),
+            _buildInfoRow(FontAwesomeIcons.calendarDay, Colors.red, taskAssignment?.task?.taskBeginDate ?? "N/A"),
+            if(role == "Tasker") ...[
+              _buildInfoRow(
+                  FontAwesomeIcons.toolbox, Colors.black, taskAssignment?.task?.status ?? "Unknown Status"),
+            ],
+            _buildInfoRow(
+                FontAwesomeIcons.paperclip, Colors.brown, taskAssignment?.task?.remarks ?? "N/A"),
+            Divider(height: 30),
+            // _buildInfoRow(
+                //     "Tasker Status", taskAssignment?.taskStatus ?? "Unknown Status"),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text("Your Application Status: ", style: TextStyle(fontSize: 16)),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: badgeColor(taskAssignment?.taskStatus ?? "Unknown"), // Example background color
+                    borderRadius: BorderRadius.circular(20), // Rounded edges for oblong shape
+                  ),
+                  child: Text(
+                    taskAssignment?.taskStatus ?? "Unknown",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+            if(taskAssignment?.taskStatus == "Rejected") ...[
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      "Your Client's Reason: ",
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                  Flexible(
+                    child: Text(taskAssignment?.taskStatusReason ?? "N/A",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                ]
+              ),
+              const SizedBox(height: 30),
+            ]
+            else if(taskAssignment?.taskStatus == "Cancelled") ...[
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      "Your Client's Reason: ", style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                  Flexible(
+                    child: Text(taskAssignment?.taskStatusReason ?? "N/A",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                ]
+              ),
+            ]
+          ]
+        ),
+      ),
+    );
+  }
+  
+  Color badgeColor(String status){
+    switch(status){
+      case "Rejected":
+        return Colors.red;
+      case "Cancelled":
+        return Colors.red.shade600;
+      case "Confirmed":
+        return Colors.green.shade300;
+        case "Ongoing":
+        return Colors.orange;
+      case "Completed":
+        return Colors.green.shade600;
+      default:
+        return Colors.grey;
+    } 
+  }
+
+  Widget _buildInfoRow(IconData? label, Color color, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -221,6 +380,27 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
         ],
       ),
     );
+  }
+
+  String _handleTaskStatusChange(String newStatus) {
+    // setState(() {
+    //   taskAssignment?.taskStatus = newStatus;
+    // });
+    switch (newStatus) {
+      case "Reject Tasker":
+        showRejectionOrCancellationForm("Rejected");
+        return "Rejected";
+      case "Cancel the Task":
+        showRejectionOrCancellationForm("Cancelled");
+        return "Cancelled";
+      case "Confirm Tasker":
+        showEscrowPayment();
+        return "Confirmed";
+      case "Completed":
+        //TODO: implement this later for Client
+        return "Completed";
+    }
+    return "";
   }
 
   void showEscrowPayment(){
