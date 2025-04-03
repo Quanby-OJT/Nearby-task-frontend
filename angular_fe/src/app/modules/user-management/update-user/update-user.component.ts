@@ -79,7 +79,7 @@ export class UpdateUserComponent {
               : '',
             userRole: this.userData.user_role || '', 
             email: this.userData.email || '',
-            status: this.userData.acc_status || 'Pending',
+            status: this.userData.acc_status || '',
           });
           this.profileImage = this.userData.image_link || null;
           console.log('Form Value After Patch:', this.form.value);
