@@ -45,13 +45,9 @@ class TaskerModel {
       bio: json['bio'] ?? '',
       skills: json['skills'] ?? '',
       availability: json['availability'] ?? false,
-      socialMediaLinks: (json['social_media_links'] as Map<String, dynamic>)
-          .map((key, value) => MapEntry(key, value as String)),
-
-      //   socialMediaLinks: json['social_media_links'] != null
-      //       ? Map<String, String>.from(json['social_media_links'])
-      //       : null,
-
+      socialMediaLinks: json['social_media_links'] != null
+          ? Map<String, String>.from(json['social_media_links'])
+          : null,
       taskerAddress: json['address'] ?? '',
       specialization: json['tasker_specialization']['specialization'] ?? '',
       taskerDocuments: json['tesda_document_link'] ?? '',
@@ -81,7 +77,6 @@ class TaskerModel {
       "group": group,
       "wage_per_hour": wage,
       "pay_period": payPeriod,
-      "birthdate": birthDate.toIso8601String(),
       "user": user?.toJson(),
     };
   }
