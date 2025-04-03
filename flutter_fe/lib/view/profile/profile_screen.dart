@@ -91,8 +91,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _user?.tasker?.availability == true
                 ? "I am available"
                 : "I am not available";
-        _userController.taskerAddressController.text =
-            _user?.tasker?.taskerAddress ?? '';
+        _userController.taskerAddressController.text = '';
         _userController.payPeriodController.text =
             _user?.tasker?.payPeriod ?? '';
         _userController.genderController.text = _user?.user.gender ?? '';

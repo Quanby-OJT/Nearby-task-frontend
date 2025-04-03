@@ -9,7 +9,7 @@ class TaskerModel {
   final bool availability;
   final String? taskerDocuments;
   final Map<String, String>? socialMediaLinks;
-  final String taskerAddress;
+  final Map<String, dynamic> taskerAddress;
   final double wage;
   final String payPeriod;
   final DateTime birthDate;

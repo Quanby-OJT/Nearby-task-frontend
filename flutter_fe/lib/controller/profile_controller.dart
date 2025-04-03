@@ -1235,13 +1235,23 @@ class ProfileController {
           .replaceAll('₱', '') // Remove currency symbol
           .replaceAll(',', ''); // Remove thousands separator
 
+      Map<String, String> address = Map.fromEntries(addressController.text
+          .split(',')
+          .map((part) => part.trim().split(','))
+          .where((parts) => parts.length == 2)
+          .map((parts) => MapEntry(parts[0].trim(), parts[1].trim())));
+      // Example of the address structure
+      // {
+      //   "city": "Municipality", "country": "Philippines", "barangay": "Barangay", "province": "Province", "postal_code": "0912", "street_address": "Street"
+      // }
+
       TaskerModel tasker = TaskerModel(
         id: taskerId,
         bio: bioController.text,
         group: false,
         specialization: specializationController.text,
         skills: skillsController.text,
-        taskerAddress: taskerAddressController.text,
+        taskerAddress: address,
         taskerDocuments: documentFile.toString(),
         availability:
             availabilityController.text == "I am available" ? true : false,
