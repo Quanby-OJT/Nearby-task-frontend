@@ -5,6 +5,7 @@ import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_tasker.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
+import 'package:flutter_fe/view/service_acc/fill_up.dart';
 import 'package:get_storage/get_storage.dart';
 
 class InitialProfileScreen extends StatefulWidget {
@@ -94,7 +95,7 @@ class _InitialProfileScreenState extends State<InitialProfileScreen> {
                   }));
                 } else {
                   Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return FillUpTasker(userId: userId as int);
+                    return FillUpTaskerLogin(userId: userId as int);
                   }));
                 }
               },
@@ -127,9 +128,7 @@ class _InitialProfileScreenState extends State<InitialProfileScreen> {
               leading: Icon(Icons.book),
               title: Text('Our Handbook'),
               trailing: Icon(Icons.chevron_right),
-              onTap: () {
-                // Handle navigation to Handbook
-              },
+              onTap: () {},
             ),
             ListTile(
               leading: Icon(Icons.logout),

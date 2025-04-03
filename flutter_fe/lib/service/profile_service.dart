@@ -187,18 +187,6 @@ class ProfileService {
     }
   }
 
-  // Future<File> downloadFile(String url) async {
-  //   final response = await http.get(Uri.parse(url));
-  //   if (response.statusCode == 200) {
-  //     final tempDir = await getTemporaryDirectory();
-  //     final file = File('${tempDir.path}/${url.split('/').last}');
-  //     await file.writeAsBytes(response.bodyBytes);
-  //     return file;
-  //   } else {
-  //     throw Exception("Failed to download file: $url");
-  //   }
-  // }
-
   static Future<Map<String, dynamic>> updateClient(
       ClientModel client, UserModel user, File profileImage) async {
     debugPrint("Updating Client information...");

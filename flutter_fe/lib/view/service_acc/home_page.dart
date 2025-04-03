@@ -3,7 +3,7 @@ import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/nav/user_navigation.dart';
-import 'package:flutter_fe/view/fill_up/fill_up_client.dart'; 
+import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:intl/intl.dart';
@@ -127,7 +127,7 @@ class _HomePageState extends State<HomePage> {
                 context,
                 MaterialPageRoute(builder: (context) => const FillUpClient()),
               );
-              
+
               // If we returned with a result indicating changes were made
               if (result == true) {
                 // Refresh the data in the current page
@@ -243,7 +243,7 @@ class _HomePageState extends State<HomePage> {
                         child: Card(
                           elevation: 4,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(50),
+                            borderRadius: BorderRadius.circular(15),
                           ),
                           child: Padding(
                             padding: const EdgeInsets.only(

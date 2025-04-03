@@ -4,14 +4,20 @@ import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/api_service.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/service/profile_service.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 
+import '../model/address.dart';
+import '../model/tasker_model.dart';
+
 class TaskerService {
   final storage = GetStorage();
   final String apiUrl = "http://localhost:5000/connect";
+
+  final ProfileService _profileService = ProfileService();
 
   Map<String, dynamic> _handleResponse(http.Response response) {
     debugPrint(response.body);
@@ -53,6 +59,115 @@ class TaskerService {
       return _handleResponse(response);
     } catch (e) {
       return {"error": "Failed to fetch document link: $e"};
+    }
+  }
+
+  Future<Map<String, dynamic>> updateTaskerInfoWithFiles(
+      TaskerModel tasker, AddressModel address, File? file, File? image) async {
+    try {
+      String? token = await AuthService.getSessionToken();
+      if (token == null) {
+        return {"errors": "Authentication token not found"};
+      }
+
+      var request = http.MultipartRequest(
+        "PUT",
+        Uri.parse("$apiUrl/update-tasker-login-with-file/${tasker.id}"),
+      );
+
+      request.headers.addAll({
+        "Authorization": "Bearer $token",
+        "Content-Type": "multipart/form-data",
+      });
+
+      // Add fields with null-safe defaults, matching backend expectations
+      request.fields.addAll({
+        "user_id": tasker.id.toString(),
+        "tasker_id":
+            tasker.id.toString(), // Assuming tasker.id is used for both
+        "first_name": tasker.user?.firstName ?? '',
+        "middle_name": tasker.user?.middleName ?? '',
+        "last_name": tasker.user?.lastName ?? '',
+        "email": tasker.user?.email ?? '',
+        "gender": tasker.user?.gender ?? '',
+        "contact": tasker.user?.contact ?? '',
+        "birthdate": tasker.user?.birthdate ?? '',
+        "bio": tasker.bio ?? '',
+        "specialization": tasker.specialization ?? '',
+        "pay_period": tasker.payPeriod ?? '',
+        "skills": tasker.skills ?? '',
+        "availability": tasker.availability.toString(),
+        "wage_per_hour": tasker.wage.toString(),
+        "street_address": address.streetAddress ?? '',
+        "barangay": address.barangay ?? '',
+        "city": address.city ?? '',
+        "province": address.province ?? '',
+        "postal_code": address.postalCode ?? '',
+        "country": address.country ?? '',
+        // Add social_media_links if needed
+        "social_media_links": '{}',
+      });
+
+      debugPrint('Request fields: ${request.fields}');
+
+      // Add profile image (named "image" to match backend)
+      if (image != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            "image", // Match backend field name
+            image.path,
+            filename:
+                "profile_image_${DateTime.now().millisecondsSinceEpoch}.jpg",
+          ),
+        );
+      }
+
+      // Add document file (named "document" to match backend)
+      if (file != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            "documents", // Match backend field name
+            file.path,
+            filename: "document_${DateTime.now().millisecondsSinceEpoch}.pdf",
+          ),
+        );
+      }
+
+      debugPrint('Request files: ${request.files}');
+
+      var response = await request.send();
+      var responseBody = await response.stream.bytesToString();
+      final data = jsonDecode(responseBody);
+
+      debugPrint('Response Status: ${response.statusCode}');
+      debugPrint('Response Body: $responseBody');
+
+      if (response.statusCode == 200) {
+        return {
+          "message":
+              data["message"] ?? "Tasker information updated successfully!",
+          "profile_picture": data["profile_picture"],
+          "tesda_document_link": data["tesda_document_link"],
+        };
+      } else if (response.statusCode == 400) {
+        String errorMessage = "";
+        if (data['error'] is String) {
+          errorMessage = data['error'];
+        } else if (data['error'] is Map) {
+          errorMessage = data['error']['message'] ?? "Invalid data provided.";
+        }
+        return {
+          "errors":
+              errorMessage.isNotEmpty ? errorMessage : "Invalid data provided."
+        };
+      } else {
+        return {
+          "errors": data["error"] ?? "An unexpected server error occurred."
+        };
+      }
+    } catch (e) {
+      debugPrint("Error updating tasker with files: $e");
+      return {"errors": "Failed to update tasker information: ${e.toString()}"};
     }
   }
 
