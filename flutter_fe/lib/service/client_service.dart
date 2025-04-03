@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -269,17 +271,41 @@ class ClientServices {
         },
       );
 
+      debugPrint("API Response Status: ${response.statusCode}");
+      debugPrint(
+          "API Response for /getUserDocuments/$userId: ${response.body}");
+
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['user'] != null && data['user']['document_url'] != null) {
-          return {
-            'success': true,
-            'url': data['user']['document_url'],
-            'status': data['user']['is_valid']
-          };
+        final Map<String, dynamic> data = jsonDecode(response.body);
+
+        if (data.containsKey('user') && data['user'] != null) {
+          final user = data['user'];
+
+          if (user.containsKey('document_url') &&
+              user['document_url'] != null) {
+            return {
+              'success': true,
+              'url': user['document_url'],
+              'status': user['is_valid'] ?? false,
+            };
+          } else if (user.containsKey('tesda_document_link') &&
+              user['tesda_document_link'] != null) {
+            return {
+              'success': true,
+              'url': user['tesda_document_link'],
+              'status': user['valid'] ?? false,
+            };
+          }
         }
+
+        return {'success': false, 'message': 'Image not found'};
+      } else {
+        return {
+          'success': false,
+          'message':
+              'Failed to fetch image. Status code: ${response.statusCode}'
+        };
       }
-      return {'success': false, 'message': 'Image not found'};
     } catch (e) {
       debugPrint("Error fetching ID image: $e");
       return {'success': false, 'message': 'Failed to fetch image'};
