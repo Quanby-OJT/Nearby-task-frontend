@@ -12,7 +12,6 @@ export class UserAccountService {
 
   constructor(private http: HttpClient, private sessionStorage: SessionLocalStorage) {}
 
-
   private getHeaders(): HttpHeaders {
     return new HttpHeaders({
       'Authorization': `Bearer ${this.sessionStorage.getSessionToken()}`
@@ -21,6 +20,14 @@ export class UserAccountService {
 
   insertUserAccount(userData: FormData): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/userAdd`, userData, {
+      headers: this.getHeaders(),
+      withCredentials: true // This enables sending cookies with the request
+    });
+  }
+
+  // New method for adding authority users (Admin/Moderator)
+  insertAuthorityUser(userData: FormData): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/authorityAdd`, userData, {
       headers: this.getHeaders(),
       withCredentials: true // This enables sending cookies with the request
     });
