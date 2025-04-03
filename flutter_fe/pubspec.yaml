@@ -57,7 +57,7 @@ dependencies:
   currency_text_input_formatter: ^2.2.9
   font_awesome_flutter: ^10.8.0
   url_launcher: ^6.1.14
-
+  flutter_svg: ^2.0.17
 
 dev_dependencies:
   flutter_test:
@@ -93,6 +93,7 @@ flutter:
     - assets/images/icons8-checklist-100-colored.png
     - assets/tesda_skills.json
     - assets/images/default-profile.jpg
+    - assets/svg/logo.svg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

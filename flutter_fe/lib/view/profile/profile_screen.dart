@@ -91,8 +91,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _user?.tasker?.availability == true
                 ? "I am available"
                 : "I am not available";
-        _userController.taskerAddressController.text =
-            _user?.tasker?.taskerAddress ?? '';
+
         _userController.payPeriodController.text =
             _user?.tasker?.payPeriod ?? '';
         _userController.genderController.text = _user?.user.gender ?? '';
@@ -126,6 +125,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _user?.tasker?.socialMediaLinks?["ig"] ?? '';
         _userController.telegramLinkController.text =
             _user?.tasker?.socialMediaLinks?["tg"] ?? '';
+
+        _userController.streetAddressController.text =
+            _user?.tasker?.address?['street_address'] ?? '';
+        _userController.barangayController.text =
+            _user?.tasker?.address?['barangay'] ?? '';
+        _userController.cityController.text =
+            _user?.tasker?.address?['city'] ?? '';
+        _userController.provinceController.text =
+            _user?.tasker?.address?['province'] ?? '';
+        _userController.postalCodeController.text =
+            _user?.tasker?.address?['postal_code'] ?? '';
+        _userController.countryController.text =
+            _user?.tasker?.address?['country'] ?? '';
       });
     } catch (e) {
       print("Error fetching user data: $e");
