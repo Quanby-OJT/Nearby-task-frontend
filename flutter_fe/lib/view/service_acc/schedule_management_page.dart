@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/model/tasker_scheduler.dart';
 import 'package:flutter_fe/view/nav/user_navigation.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:flutter_fe/controller/tasker_scheduler_controller.dart';
 
 class ScheduleManagement extends StatefulWidget {
   const ScheduleManagement({super.key});
@@ -12,21 +14,52 @@ class ScheduleManagement extends StatefulWidget {
 class _ScheduleManagementState extends State<ScheduleManagement> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedFromDate;
+  DateTime? _selectedToDate;
   DateTime? _selectedDay;
+  final TaskerSchedulerController _taskerSchedulerController =
+      TaskerSchedulerController();
   final Map<DateTime, List<TimeSlot>> _availabilitySlots = {};
 
+  @override
+  void initState() {
+    super.initState();
+    _loadSchedule();
+  }
+
+  Future<void> _loadSchedule() async {
+    Map<DateTime, List<TimeSlot>> schedule =
+        await _taskerSchedulerController.getTaskerSchedule();
+    if (schedule != null) {
+      _availabilitySlots.addAll(schedule.map((key, value) => MapEntry(
+            key,
+            value
+                .map((slot) => TimeSlot(
+                      startTime: slot.startTime,
+                      endTime: slot.endTime,
+                      isAvailable: slot.isAvailable,
+                    ))
+                .toList(),
+          )));
+      setState(() {}); // Update UI after loading data
+    }
+  }
+  //Main Screen
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: NavUserScreen(),
       body: Column(
         children: [
+          //Main Calendar
           TableCalendar(
             firstDay: DateTime.now(),
             lastDay: DateTime.now().add(Duration(days: 365)),
             focusedDay: _focusedDay,
             selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
             calendarFormat: _calendarFormat,
+            rangeStartDay: _selectedFromDate,
+            rangeEndDay: _selectedToDate,
             onFormatChanged: (format) {
               setState(() {
                 _calendarFormat = format;
@@ -38,6 +71,13 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
                 _focusedDay = focusedDay;
               });
             },
+            onRangeSelected: (start, end, focusedDay) {
+              setState(() {
+                _selectedFromDate = start;
+                _selectedToDate = end;
+                _focusedDay = focusedDay;
+              });
+            },
             calendarStyle: CalendarStyle(
               markerDecoration: BoxDecoration(
                 color: Colors.blue,
@@ -46,7 +86,7 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
             ),
             eventLoader: (day) {
               return _availabilitySlots[
-                      DateTime(day.year, day.month, day.day)] ??
+                          DateTime(day.year, day.month, day.day)] ??
                   [];
             },
           ),
@@ -55,6 +95,38 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
                 ? Center(child: Text('Select a day to set availability'))
                 : _buildTimeSlots(),
           ),
+          ElevatedButton(
+            onPressed: () async {
+              if (_availabilitySlots.isNotEmpty) {
+                String result = await _taskerSchedulerController
+                    .setTaskerSchedule(_availabilitySlots);
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(result),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("No availability slots selected"),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+              }
+            },
+            style: ButtonStyle( // Assuming ButtonStyle is correctly defined
+              backgroundColor: WidgetStateProperty.all<Color>(Color(0XFF170A66)),
+            ),
+            child: Text(
+              "Set Schedule",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          SizedBox(height: 20)
         ],
       ),
       floatingActionButton: _selectedDay == null
@@ -79,7 +151,7 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
         Padding(
           padding: EdgeInsets.all(16.0),
           child: Text(
-            'Availability for ${_selectedDay!.toString().split(' ')[0]}',
+            'Availability for ${getMonthName(_selectedDay!.month)} ${_selectedDay!.day}, ${_selectedDay!.year}',
             style: Theme.of(context).textTheme.titleLarge,
           ),
         ),
@@ -263,6 +335,31 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
     final hour = time.hour.toString().padLeft(2, '0');
     final minute = time.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
+  }
+
+  String getMonthName(int month) {
+    switch (month) {
+      case 1:
+        return 'January';
+      case 2:
+        return 'February';
+      case 3:
+        return 'March';
+      case 4:
+        return 'April';
+      case 5:
+        return 'May';
+      case 6:
+        return 'June';
+      case 7:
+        return 'July';
+      case 8:
+        return 'August';
+      case 9:
+        return 'September';
+      default:
+        return 'December';
+    }
   }
 }
 

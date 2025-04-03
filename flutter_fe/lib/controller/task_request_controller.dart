@@ -70,6 +70,8 @@ class TaskRequestController {
             content: Text(response['message']),
           ),
         );
+        //TODO: Redirect the user to the Escrow Website
+
       }else{
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

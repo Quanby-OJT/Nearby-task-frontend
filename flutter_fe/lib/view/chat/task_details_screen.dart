@@ -131,7 +131,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
             ),
             Divider(height:30),
             _buildInfoRow(FontAwesomeIcons.user, Colors.black, "${taskAssignment?.tasker?.user?.firstName} ${taskAssignment?.tasker?.user?.middleName ?? ''} ${taskAssignment?.tasker?.user?.lastName}" ?? "N/A"),
-            _buildInfoRow(FontAwesomeIcons.phone, Colors.blue, taskAssignment?.tasker?.phoneNumber.toString() ?? "N/A"),
+            _buildInfoRow(FontAwesomeIcons.phone, Colors.blue, taskAssignment?.tasker?.user?.contact.toString() ?? "N/A"),
             _buildInfoRow(FontAwesomeIcons.envelope, Color(0XFFE04556), taskAssignment?.tasker?.user?.email ?? "N/A"),
             _buildInfoRow(FontAwesomeIcons.locationPin, Color(0XFFE04556), taskAssignment?.tasker?.taskerAddress ?? "N/A"),
             Divider(height: 30),

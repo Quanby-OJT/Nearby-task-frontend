@@ -13,7 +13,6 @@ class TaskerModel {
   final double wage;
   final String payPeriod;
   final DateTime birthDate;
-  final int phoneNumber;
   final bool? group;
   UserModel? user;
 
@@ -28,7 +27,6 @@ class TaskerModel {
     required this.wage,
     required this.payPeriod,
     required this.birthDate,
-    required this.phoneNumber,
     this.taskerDocuments,
     this.socialMediaLinks,
     this.user,
@@ -46,7 +44,6 @@ class TaskerModel {
       id: json['tasker_id'] ?? 0,
       bio: json['bio'] ?? '',
       skills: json['skills'] ?? '',
-      phoneNumber: json['contact_number'],
       availability: json['availability'] ?? false,
       socialMediaLinks: (json['social_media_links'] as Map<String, dynamic>)
           .map((key, value) => MapEntry(key, value as String)),
@@ -81,7 +78,6 @@ class TaskerModel {
 
 
       // remove kasi nasa user na siya
-      "contact_number": phoneNumber,
       "group": group,
       "wage_per_hour": wage,
       "pay_period": payPeriod,

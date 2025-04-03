@@ -1249,7 +1249,6 @@ class ProfileController {
         wage: double.parse(cleanedWage),
         payPeriod: payPeriodController.text,
         birthDate: DateTime.parse(birthdateController.text),
-        phoneNumber: int.parse(contactNumberController.text),
       );
 
       Map<String, dynamic> resultData = await ProfileService.updateTasker(

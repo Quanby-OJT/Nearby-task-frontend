@@ -79,7 +79,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _userController.availabilityController.text = _user?.tasker?.availability == true ? "I am available" : "I am not available";
         _userController.taskerAddressController.text = _user?.tasker?.taskerAddress ?? '';
         _userController.payPeriodController.text = _user?.tasker?.payPeriod ?? '';
-        _userController.contactNumberController.text = user?.tasker?.phoneNumber.toString() ?? '';
+        _userController.contactNumberController.text = user?.tasker?.user?.contact.toString() ?? '';
         if (_user?.tasker?.taskerDocuments != null) {
           debugPrint("Tasker Documents: ${_user!.tasker!.taskerDocuments}");
           tesdaDocuments = [_user!.tasker!.taskerDocuments!]; // Store as String (URL)
