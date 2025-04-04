@@ -9,7 +9,7 @@ import 'package:flutter_fe/model/tasker_model.dart';
 import 'dart:io';
 
 class ProfileService {
-  static const String apiUrl = "http://localhost:5000/connect";
+  static const String apiUrl = "http://10.0.2.2:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
   static Future<String?> getUserId() async =>
@@ -186,18 +186,6 @@ class ProfileService {
       };
     }
   }
-
-  // Future<File> downloadFile(String url) async {
-  //   final response = await http.get(Uri.parse(url));
-  //   if (response.statusCode == 200) {
-  //     final tempDir = await getTemporaryDirectory();
-  //     final file = File('${tempDir.path}/${url.split('/').last}');
-  //     await file.writeAsBytes(response.bodyBytes);
-  //     return file;
-  //   } else {
-  //     throw Exception("Failed to download file: $url");
-  //   }
-  // }
 
   static Future<Map<String, dynamic>> updateClient(
       ClientModel client, UserModel user, File profileImage) async {

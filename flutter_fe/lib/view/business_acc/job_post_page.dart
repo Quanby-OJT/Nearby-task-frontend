@@ -65,11 +65,10 @@ class _JobPostPageState extends State<JobPostPage> {
 
   Future<void> fetchSpecialization() async {
     try {
-      List<SpecializationModel> fetchedSpecializations =
-          await jobPostService.getSpecializations();
+      List<SpecializationModel> fetchedSpecializations = await jobPostService.getSpecializations();
       setState(() {
-        specialization =
-            fetchedSpecializations.map((spec) => spec.specialization).toList();
+        specialization = fetchedSpecializations.map((spec) => spec.specialization).toList();
+        debugPrint("Specializations: $specialization");
       });
     } catch (error) {
       print('Error fetching specializations: $error');

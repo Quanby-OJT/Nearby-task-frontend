@@ -232,7 +232,6 @@ class TaskController {
           bio: '',
           specialization: '',
           skills: '',
-          taskerAddress: {},
           availability: false,
           wage: 0.0,
           payPeriod: '',

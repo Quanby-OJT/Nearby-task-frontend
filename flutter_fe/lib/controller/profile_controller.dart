@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/model/address.dart';
 import 'package:flutter_fe/model/client_model.dart';
 import 'package:flutter_fe/model/document_model.dart';
 import 'package:flutter_fe/service/profile_service.dart';
@@ -48,6 +50,14 @@ class ProfileController {
   final TextEditingController payPeriodController = TextEditingController();
   final TextEditingController specializationIdController =
       TextEditingController();
+
+  // Address controllers
+  final TextEditingController streetAddressController = TextEditingController();
+  final TextEditingController barangayController = TextEditingController();
+  final TextEditingController cityController = TextEditingController();
+  final TextEditingController provinceController = TextEditingController();
+  final TextEditingController postalCodeController = TextEditingController();
+  final TextEditingController countryController = TextEditingController();
 
   final TaskerService taskerService = TaskerService();
   final TextEditingController accStatusController = TextEditingController();
@@ -1114,6 +1124,95 @@ class ProfileController {
     } catch (e) {}
   }
 
+  Future<void> updateTaskerInfo(
+      BuildContext context, int userId, File file, File image) async {
+    // Create user model with current data
+
+    try {
+      // Create user model with current data
+      UserModel user = UserModel(
+        firstName: firstNameController.text.trim(),
+        middleName: middleNameController.text.trim(),
+        lastName: lastNameController.text.trim(),
+        email: emailController.text.trim(),
+        role: roleController.text.trim(),
+        birthdate: birthdateController.text.trim(),
+        contact: contactNumberController.text.trim(),
+        gender: genderController.text.trim(),
+      );
+
+      TaskerModel tasker = TaskerModel(
+        id: userId,
+        bio: bioController.text.trim(),
+        specialization: specializationIdController.text.trim(),
+        skills: skillsController.text.trim(),
+        availability: availabilityController.text.trim() == 'true',
+        wage: double.tryParse(wageController.text.trim()) ?? 0.0,
+        payPeriod: payPeriodController.text.trim(),
+        group: taskerGroupController.text.trim() == 'true',
+        birthDate: DateTime.parse(birthdateController.text),
+        user: user,
+      );
+
+      AddressModel address = AddressModel(
+        id: userId,
+        streetAddress: streetAddressController.text.trim(),
+        barangay: barangayController.text.trim(),
+        city: cityController.text.trim(),
+        province: provinceController.text.trim(),
+        postalCode: postalCodeController.text.trim(),
+        country: countryController.text.trim(),
+      );
+
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        },
+      );
+
+      Map<String, dynamic> result = await taskerService
+          .updateTaskerInfoWithFiles(tasker, address, file, image);
+
+      // Close loading dialog
+      Navigator.pop(context);
+
+      if (result.containsKey("errors")) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result["errors"]),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result["message"]),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+        // Navigate back or refresh
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      // Ensure loading dialog is closed in case of exception
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error updating profile: ${e.toString()}'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
   // This is for tasker without profile and PDF
   Future<void> updateTaskerWithoutFile(BuildContext context, int userId) async {
     try {
@@ -1235,15 +1334,14 @@ class ProfileController {
           .replaceAll('₱', '') // Remove currency symbol
           .replaceAll(',', ''); // Remove thousands separator
 
-      Map<String, String> address = Map.fromEntries(addressController.text
-          .split(',')
-          .map((part) => part.trim().split(','))
-          .where((parts) => parts.length == 2)
-          .map((parts) => MapEntry(parts[0].trim(), parts[1].trim())));
-      // Example of the address structure
-      // {
-      //   "city": "Municipality", "country": "Philippines", "barangay": "Barangay", "province": "Province", "postal_code": "0912", "street_address": "Street"
-      // }
+      Map<String, String> address = {
+        "street_address": streetAddressController.text,
+        "barangay": barangayController.text,
+        "city": cityController.text,
+        "province": provinceController.text,
+        "postal_code": postalCodeController.text,
+        "country": countryController.text,
+      };
 
       TaskerModel tasker = TaskerModel(
         id: taskerId,
@@ -1251,7 +1349,7 @@ class ProfileController {
         group: false,
         specialization: specializationController.text,
         skills: skillsController.text,
-        taskerAddress: address,
+        address: address,
         taskerDocuments: documentFile.toString(),
         availability:
             availabilityController.text == "I am available" ? true : false,

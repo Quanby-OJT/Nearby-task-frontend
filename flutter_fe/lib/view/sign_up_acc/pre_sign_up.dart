@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/view/sign_up_acc/sign_up_client.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/view/sign_up_acc/sign_up_solo_tasker.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class PreSignUp extends StatefulWidget {
   const PreSignUp({super.key});
@@ -17,10 +18,10 @@ class _PreSignUpState extends State<PreSignUp> {
     double screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0272B1),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: SingleChildScrollView(
         child: Center(
@@ -28,21 +29,30 @@ class _PreSignUpState extends State<PreSignUp> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(height: screenHeight * 0.05), // 5% of screen height
-              Text(
-                'NearByTask',
-                style: GoogleFonts.openSans(
-                  color: Colors.white,
-                  fontSize: screenWidth * 0.08, // Responsive font size
-                  fontWeight: FontWeight.bold,
-                ),
+              SvgPicture.asset(
+                'assets/svg/logo.svg',
+                width: 150,
+                height: 150,
               ),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
                 child: Text(
-                  'Be PAID for Tasks Done through a TASKER ACCOUNT or Find an expert to have your task completed with a CLIENT ACCOUNT. \n\n To Begin, please select one of the two accounts you want to create:',
-                  style: GoogleFonts.openSans(
-                    color: Colors.white,
-                    fontSize: screenWidth * 0.035, // Responsive text
+                  'Create a Tasker Account to earn money by completing tasks, or a Client Account to hire experts for your needs',
+                  style: GoogleFonts.montserrat(
+                    color: Colors.black,
+                    fontSize: screenWidth * 0.025, // Responsive text
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              SizedBox(height: screenHeight * 0.05),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
+                child: Text(
+                  'Choose your account to get started!',
+                  style: GoogleFonts.montserrat(
+                    color: Colors.black,
+                    fontSize: screenWidth * 0.025, // Responsive text
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -52,7 +62,6 @@ class _PreSignUpState extends State<PreSignUp> {
               // TASKER BUTTON
               SizedBox(
                 width: screenWidth * 0.8,
-                height: screenHeight * 0.22,
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.push(context,
@@ -62,40 +71,41 @@ class _PreSignUpState extends State<PreSignUp> {
                     }));
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0272B1),
+                    backgroundColor: const Color(0xFF03045E),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                       side: BorderSide(color: Colors.white),
                     ),
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        'assets/images/icons8-worker-100.png',
-                        height: screenWidth * 0.2, // Responsive image
-                        width: screenWidth * 0.2,
-                      ),
-                      SizedBox(height: screenHeight * 0.02),
-                      Text(
-                        'TASKER ACCOUNT',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: screenWidth * 0.045,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/images/icons8-worker-100.png',
+                          height: screenWidth * 0.2, // Responsive image
+                          width: screenWidth * 0.2,
                         ),
-                      ),
-                    ],
+                        SizedBox(height: screenHeight * 0.02),
+                        Text(
+                          'TASKER ACCOUNT',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: screenWidth * 0.045,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
 
               SizedBox(height: screenHeight * 0.02),
-
               // CLIENT BUTTON
               SizedBox(
                 width: screenWidth * 0.8,
-                height: screenHeight * 0.22,
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.push(context,
@@ -104,33 +114,37 @@ class _PreSignUpState extends State<PreSignUp> {
                     }));
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0272B1),
+                    backgroundColor: const Color(0xFF03045E),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                       side: BorderSide(color: Colors.white),
                     ),
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        'assets/images/icons8-checklist-100.png',
-                        height: screenWidth * 0.2,
-                        width: screenWidth * 0.2,
-                      ),
-                      SizedBox(height: screenHeight * 0.02),
-                      Text(
-                        'CLIENT ACCOUNT',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: screenWidth * 0.045,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'assets/images/icons8-checklist-100.png',
+                          height: screenWidth * 0.2,
+                          width: screenWidth * 0.2,
                         ),
-                      ),
-                    ],
+                        SizedBox(height: screenHeight * 0.02),
+                        Text(
+                          'CLIENT ACCOUNT',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: screenWidth * 0.045,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
+              SizedBox(height: screenHeight * 0.05),
             ],
           ),
         ),

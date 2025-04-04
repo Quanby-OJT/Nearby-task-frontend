@@ -7,6 +7,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class TaskDetailsScreen extends StatefulWidget{
   final int taskTakenId;
@@ -421,7 +422,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                taskRequestController.depositAmountToEscrow(context,
+                taskRequestController.depositAmountToEscrow(
                     taskAssignment?.task?.contactPrice.toDouble() ?? 0.00,
                     taskAssignment?.taskTakenId ?? 0);
                 processingData = true;

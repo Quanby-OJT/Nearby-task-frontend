@@ -9,7 +9,7 @@ class TaskerModel {
   final bool availability;
   final String? taskerDocuments;
   final Map<String, String>? socialMediaLinks;
-  final Map<String, dynamic> taskerAddress;
+  final Map<String, String>? address;
   final double wage;
   final String payPeriod;
   final DateTime birthDate;
@@ -22,8 +22,8 @@ class TaskerModel {
     this.group,
     required this.specialization,
     required this.skills,
-    required this.taskerAddress,
     required this.availability,
+    this.address,
     required this.wage,
     required this.payPeriod,
     required this.birthDate,
@@ -48,7 +48,9 @@ class TaskerModel {
       socialMediaLinks: json['social_media_links'] != null
           ? Map<String, String>.from(json['social_media_links'])
           : null,
-      taskerAddress: json['address'] ?? '',
+      address: json['address'] != null
+          ? Map<String, String>.from(json['address'])
+          : null,
       specialization: json['tasker_specialization']['specialization'] ?? '',
       taskerDocuments: json['tesda_document_link'] ?? '',
       wage: json['wage_per_hour'].toDouble() ?? 0.0,
@@ -67,10 +69,12 @@ class TaskerModel {
       "bio": bio,
       "specialization": specialization,
       "skills": skills,
-      "address": taskerAddress,
+
+      //Must be in another table
       "availability": availability,
       "tesda_documents_link": taskerDocuments,
       "social_media_links": socialMediaLinks ?? {},
+      "address": address ?? {},
 
 
       // remove kasi nasa user na siya

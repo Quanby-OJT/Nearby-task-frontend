@@ -49,44 +49,25 @@ class TaskRequestController {
     }
   }
 
-  Future<void> depositAmountToEscrow(BuildContext context, double contractPrice, int taskTakenId) async{
+  Future<Map<String, dynamic>> depositAmountToEscrow(double contractPrice, int taskTakenId) async{
     try{
-      debugPrint("TaskRequestController: Depositing amount to escrow");
-      debugPrint("TaskRequestController: Contract Price: $contractPrice");
-      debugPrint("TaskRequestController: Task Taken ID: $taskTakenId");
+      // debugPrint("TaskRequestController: Depositing amount to escrow");
+      // debugPrint("TaskRequestController: Contract Price: $contractPrice");
+      // debugPrint("TaskRequestController: Task Taken ID: $taskTakenId");
       if(contractPrice <= 0 || taskTakenId <= 0){
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Error while Processing Your Payment. Please Try Again."),
-          ),
-        );
-        return;
+        return {"error": "Error while Processing Your Payment. Please Try Again."};
       }
       var response = await _requestService.depositEscrowPayment(contractPrice, taskTakenId);
 
       if(response.containsKey('message')){
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response['message']),
-          ),
-        );
-        //TODO: Redirect the user to the Escrow Website
-
+           return {"message": response['message'], "payment_url": response['payment_url']};
       }else{
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response['error']),
-          ),
-        );
+        return {"error": response['error']};
       }
     }catch(e, st){
       debugPrint(e.toString());
       debugPrintStack(stackTrace: st);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error depositing amount to escrow. Please try again.'),
-        ),
-      );
+      return {"error": 'Error depositing amount to escrow. Please try again.'};
     }
   }
 
