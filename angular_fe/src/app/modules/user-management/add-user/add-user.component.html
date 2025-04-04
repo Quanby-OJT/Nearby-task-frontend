@@ -18,9 +18,10 @@
       <div class="grid grid-cols-3 gap-5 p-5">
         <div class="mx-auto w-full max-w-xs">
           <div class="overflow-hidden rounded-lg bg-white shadow-md">
-            <div class="h-50 flex w-full items-center justify-center bg-gray-100">
+            <div class="h-48 flex w-full items-center justify-center bg-gray-100">
               <img
-                [src]="imagePreview || 'https://via.placeholder.com/150'"
+                [src]="imagePreview || 'https://community.softr.io/uploads/db9110/original/2X/7/74e6e7e382d0ff5d7773ca9a87e6f6f8817a68a6.jpeg'"
+                (error)="imagePreview = null" 
                 alt="Uploaded Image"
                 class="h-full w-full object-cover" />
             </div>
@@ -35,7 +36,6 @@
                 id="profileImage"
                 class="mt-2 block w-full cursor-pointer rounded-lg border border-gray-300 p-2 text-sm text-gray-900 focus:outline-none"
                 (change)="onFileChange($event)"
-                formControlName="profileImage"
                 accept="image/*" />
               <div *ngIf="submitted && f['profileImage'].errors" class="px-1 pt-1 text-center text-xs text-red-500">
                 <div *ngIf="f['profileImage'].errors['required']" class="px-1 pt-1 text-xs text-red-500">

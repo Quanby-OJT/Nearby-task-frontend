@@ -143,14 +143,14 @@
           <!-- Submit Button -->
           <div class="">
             <div class="mb-5">
-              <!-- Show the download button only if a document URL is available -->
+              <!-- Show Document if May Document -->
               <a *ngIf="documentUrl"
                 [href]="documentUrl"
                 [download]="documentName"
                 class="bg-main-color block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                 Download Documents
               </a>
-              <!-- Show a message if no document is available -->
+              <!-- Show No Document pag wala -->
               <button *ngIf="!documentUrl"
                 type="button"
                 disabled

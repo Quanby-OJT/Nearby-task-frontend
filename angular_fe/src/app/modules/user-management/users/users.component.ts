@@ -16,6 +16,7 @@ import { ReviewComponent } from '../review/review.component';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { NgIf } from '@angular/common';
+import { saveAs } from 'file-saver'; // Import file-saver
 
 @Component({
   selector: 'app-users',
@@ -74,6 +75,32 @@ export class UsersComponent implements OnInit {
     this.setUserSize();
   }
 
+  exportCSV() {
+    // Define the CSV headers (same as PDF)
+    const headers = ['Fullname', 'Role', 'Email', 'Account', 'Status'];
+
+    // Map the filteredUsers to CSV rows (same data structure as PDF)
+    const rows = this.filteredUsers.map((item) => [
+      `"${item.first_name} ${item.middle_name === null ? '' : item.middle_name} ${item.last_name}"`, // Wrap in quotes to handle spaces
+      item.user_role,
+      item.email,
+      item.acc_status,
+      item.status,
+    ]);
+
+    // Combine headers and rows into a CSV string
+    const csvContent = [
+      headers.join(','), // Header row
+      ...rows.map((row) => row.join(',')) // Data rows
+    ].join('\n');
+
+    // Create a Blob with the CSV content
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+    // Use file-saver to download the CSV file
+    saveAs(blob, 'UserAccounts.csv');
+  }
+
   exportPDF() {
     const doc = new jsPDF({
       orientation: 'portrait',
@@ -81,19 +108,11 @@ export class UsersComponent implements OnInit {
       format: 'a4',
     });
 
-    const title = 'Users Report';
-
-    const img = new Image();
-    img.src = 'assets/image/sample.png'; // Replace with your image source
-    doc.addImage(img, 'png', 10, 10, 50, 50); // x, y, width, height
-    doc.line(10, 70, 200, 70); // x1, y1, x2, y2
-    img.onload = () => {
-      doc.addImage(img, 'PNG', 30, 20, 100, 100);
-    };
+    const title = 'Users Account';
 
     // Add Title
     doc.setFontSize(20);
-    doc.text(title, 170, 45); //w and h
+    doc.text(title, 170, 45); // w and h
 
     // Define Table Columns & Rows
     const columns = ['Fullname', 'Role', 'Email', 'Account', 'Status'];
@@ -116,7 +135,7 @@ export class UsersComponent implements OnInit {
     });
 
     // Save PDF
-    doc.save('User_table.pdf');
+    doc.save('UserAccounts.pdf');
   }
 
   setUserSize(): void {

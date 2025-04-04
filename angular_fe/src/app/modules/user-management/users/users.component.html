@@ -12,10 +12,14 @@
     <div class="flex space-x-4">
       <button
         class="bg-muted text-muted-foreground hover:text-foreground flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold"
-        (click)="exportPDF()">
-        Import CSV
+        (click)="exportCSV()">
+        Export CSV
       </button>
-
+      <button
+        class="bg-muted text-muted-foreground hover:text-foreground flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold"
+        (click)="exportPDF()">
+        Export PDF
+      </button>
       <app-button full impact="bold" shape="rounded" size="medium" (click)="navigateToAddUser()">Add User</app-button>
     </div>
   </div>
