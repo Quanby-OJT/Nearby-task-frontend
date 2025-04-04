@@ -4,6 +4,12 @@ import { catchError, Observable, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { SessionLocalStorage } from 'src/services/sessionStorage';
 
+// Interface for document response
+interface DocumentResponse {
+  url: string;
+  filename: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -80,5 +86,13 @@ export class UserAccountService {
           return throwError(() => new Error(error?.error?.message || 'Unknown API Error'));
         }),
       );
+  }
+
+  // Added method to fetch document details
+  getUserDocument(userId: number): Observable<DocumentResponse> {
+    return this.http.get<DocumentResponse>(`${this.apiUrl}/getUserDocument/${userId}`, {
+      headers: this.getHeaders(),
+      withCredentials: true,
+    });
   }
 }

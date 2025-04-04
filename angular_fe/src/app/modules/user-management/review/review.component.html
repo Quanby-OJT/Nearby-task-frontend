@@ -122,12 +122,16 @@
                   class="peer block w-full rounded border px-3 py-2"
                   formControlName="status"
                   [ngClass]="{ 'border-red-500': submitted && f['status'].errors }"
-                  required>
+                  required> 
                   <option value="" disabled selected>Select User status</option>
-                  <option value="Verified">Verified</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Active">Active</option>
+                  <option value="Warn">Warn</option>
+                  <option value="Suspend">Suspend</option>
+                  <option value="Ban">Ban</option>
+                  <option value="Block">Block</option>
+                  <option value="Deactivate">Deactivated</option>
                   <option value="Review">Review</option>
-                  <option value="Blocked">Blocked</option>
-                  <option value="Rejected">Rejected</option>
                 </select>
               </div>
               <div *ngIf="submitted && f['status'].errors" class="pt-1 text-xs text-red-500">
@@ -139,13 +143,9 @@
           <!-- Submit Button -->
           <div class="">
             <div class="mb-5">
-              <a href="" target="_blank">
-                <button
-                  class="bg-main-color block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                  type="button">
-                  Click To Review Document
-                </button></a
-              >
+              <a [href]="documentUrl || ''" [attr.download]="documentName || null" target="_blank" class="bg-main-color block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                Click To Review Document
+              </a>
             </div>
             <app-button full impact="bold" shape="rounded" size="medium">Update User</app-button>
           </div>

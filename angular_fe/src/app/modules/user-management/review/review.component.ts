@@ -24,6 +24,8 @@ export class ReviewComponent {
   userData: any = null;
   first_name: string = '';
   profileImage: string | null = null;
+  documentUrl: string | null = null; 
+  documentName: string | null = null; 
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -55,6 +57,7 @@ export class ReviewComponent {
       bday: ['', Validators.required],
     });
   }
+
   loadUserData(): void {
     const userId = Number(this.userId);
 
@@ -71,6 +74,19 @@ export class ReviewComponent {
           status: response.user.acc_status,
         });
         this.profileImage = response.user.image_link;
+
+        // Fetch document details
+        this.userAccountService.getUserDocument(userId).subscribe({
+          next: (doc) => {
+            this.documentUrl = doc.url;
+            this.documentName = doc.filename;
+          },
+          error: (err) => {
+            console.error('Error fetching document:', err);
+            this.documentUrl = null; // Ensure button does nothing if fetch fails
+            this.documentName = null;
+          },
+        });
       },
       error: (error: any) => {
         console.error('Error fetching user data:', error);

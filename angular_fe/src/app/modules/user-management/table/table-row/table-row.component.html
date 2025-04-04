@@ -26,6 +26,7 @@
     {{ user.email }}
   </td>
   <td class="border-muted/20 rounded-md border-b px-6 py-3 text-[0.85rem] font-semibold text-white">
+   
     <span
       class="rounded-lg py-1 px-4"
       [ngClass]="{
@@ -34,8 +35,10 @@
         'bg-green-500': user.acc_status === 'Active',
         'bg-red-400': user.acc_status === 'Deactivate',
         'bg-red-700': user.acc_status === 'Block',
-        'bg-yellow-300': user.acc_status === 'Suspend',
-        'bg-yellow-500': user.acc_status === 'Pending'
+        'bg-red-900': user.acc_status === 'Ban',
+        'bg-red-300': user.acc_status === 'Suspend',
+        'bg-yellow-300': user.acc_status === 'Pending',
+        'bg-yellow-500': user.acc_status === 'Warn'
       }">
       {{ user.acc_status ? user.acc_status : "Null" }}
     </span>
