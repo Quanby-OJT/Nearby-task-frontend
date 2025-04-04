@@ -42,6 +42,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   bool processingData = false;
   List<String> skills = [];
   String selectedTaskStatus = "";
+  String address = "";
 
 
 
@@ -62,6 +63,23 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
         selectedTaskStatus = taskStatus();
         skills = taskAssignment?.tasker?.skills.split(',') ?? [];
         _isLoading = false;
+
+        // Check if address exists and format it
+        if (taskAssignment?.tasker?.address != null) {
+          final addressMap = taskAssignment?.tasker?.address!;
+
+          // Format the address string using map key access
+          address = [
+            addressMap?["street"] ?? "",
+            addressMap?["barangay"] ?? "",
+            addressMap?["city"] ?? "",
+            addressMap?["province"] ?? "",
+            addressMap?["country"] ?? "",
+            addressMap?["postal_code"] ?? ""
+          ].where((element) => element.isNotEmpty).join(", ");
+        } else {
+          address = "N/A";
+        }
       });
     } catch (e) {
       debugPrint("Error fetching task details: $e");
@@ -89,6 +107,33 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
         return "Unknown";
     }
   }
+
+  Future<void> redirectToEscrow(String paymentUrl) async {
+    final Uri url = Uri.parse(paymentUrl);
+
+    debugPrint("Attempting to launch: $url");
+
+    try{
+      if (!await canLaunchUrl(url)) {
+        debugPrint("Cannot launch URL: $url");
+        throw 'Could not launch $paymentUrl';
+      }
+
+      bool launched =
+          await launchUrl(url, mode: LaunchMode.externalApplication);
+
+      if (!launched) {
+        debugPrint("launchUrl() failed.");
+        throw 'Could not launch $paymentUrl';
+      }
+    }catch(e, stackTrace){
+      debugPrint(e.toString());
+      debugPrintStack(stackTrace: stackTrace);
+    }
+
+    debugPrint("URL Launched Successfully!");
+  }
+
 
   //Main Application
   @override
@@ -134,7 +179,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
             _buildInfoRow(FontAwesomeIcons.user, Colors.black, "${taskAssignment?.tasker?.user?.firstName} ${taskAssignment?.tasker?.user?.middleName ?? ''} ${taskAssignment?.tasker?.user?.lastName}" ?? "N/A"),
             _buildInfoRow(FontAwesomeIcons.phone, Colors.blue, taskAssignment?.tasker?.user?.contact.toString() ?? "N/A"),
             _buildInfoRow(FontAwesomeIcons.envelope, Color(0XFFE04556), taskAssignment?.tasker?.user?.email ?? "N/A"),
-            _buildInfoRow(FontAwesomeIcons.locationPin, Color(0XFFE04556), 'Location Placeholder'),
+            _buildInfoRow(FontAwesomeIcons.locationPin, Color(0XFFE04556), address ?? "N/A"),
             Divider(height: 30),
             Text(
               "About Me",
@@ -421,12 +466,41 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
           content: Text(processingData ? "" : "In order for the tasker to continue their task, you need to deposit first your negotiated and agreed contract price."),
           actions: <Widget>[
             TextButton(
-              onPressed: () {
-                taskRequestController.depositAmountToEscrow(
+              onPressed: () async {
+                Map<String, dynamic> result = await taskRequestController.depositAmountToEscrow(
                     taskAssignment?.task?.contactPrice.toDouble() ?? 0.00,
                     taskAssignment?.taskTakenId ?? 0);
                 processingData = true;
-
+                if(result.containsKey("message")){
+                  ScaffoldMessenger.of(context).showMaterialBanner(
+                    MaterialBanner(
+                      content: result['message'],
+                      actions: [
+                        TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Text("Dismiss")
+                        )
+                      ],
+                    ),
+                  );
+                  if(result.containsKey("payment_url")){
+                    redirectToEscrow(result["payment_url"]);
+                  }
+                }else if(result.containsKey("error")){
+                  ScaffoldMessenger.of(context).showMaterialBanner(
+                    MaterialBanner(
+                      content: result['error'],
+                      actions:[
+                        TextButton(
+                        onPressed: () {
+                          Navigator.of(context).dispose();
+                          },
+                          child: Text("Dismiss")
+                        )
+                      ]
+                    ),
+                  );
+                }
               },
               child: Padding(
                 padding: const EdgeInsets.all(10.0),
