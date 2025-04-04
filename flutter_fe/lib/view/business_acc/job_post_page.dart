@@ -12,7 +12,9 @@ import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/business_acc/business_task_detail.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class JobPostPage extends StatefulWidget {
@@ -32,10 +34,10 @@ class _JobPostPageState extends State<JobPostPage> {
   String? _message;
   bool _isSuccess = false;
 
-  String selectedTimePeriod = "";
-  String selectedUrgency = "";
-  String selectedSpecialization = "";
-  String selectedWorkType = ""; // New field for work_type
+  String? selectedTimePeriod;
+  String? selectedUrgency;
+  String? selectedSpecialization;
+  String selectedWorkType = "Solo"; // New field for work_type
   List<String> items = ['Day/s', 'Week/s', 'Month/s', 'Year/s'];
   List<String> urgency = ['Non-Urgent', 'Urgent'];
   List<String> workTypes = ['Solo', 'Group']; // Options for work_type dropdown
@@ -662,8 +664,8 @@ class _JobPostPageState extends State<JobPostPage> {
 
     selectedUrgency == "Urgent";
     try {
-      final result = await controller.postJob(selectedSpecialization,
-          selectedUrgency, selectedTimePeriod, selectedWorkType);
+      final result = await controller.postJob(selectedSpecialization ?? "",
+          selectedUrgency ?? "", selectedTimePeriod ?? "", selectedWorkType ?? "");
       debugPrint(result.toString());
 
       if (result['success']) {
@@ -730,7 +732,7 @@ class _JobPostPageState extends State<JobPostPage> {
   Future<void> _fetchUserIDImage() async {
     try {
       int userId = int.parse(storage.read('user_id').toString());
-      if (userId == null) {
+      if (userId == 0) {
         debugPrint("User ID not found in storage po");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -878,22 +880,18 @@ class _JobPostPageState extends State<JobPostPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 4),
-                        Text(
-                          "📍 ${task.location ?? 'Location not specified'}",
-                          style: const TextStyle(fontSize: 14),
+                        _buildInfoRow(
+                          FontAwesomeIcons.locationPin, Colors.redAccent, task.location,
                         ),
-                        Text(
-                          "• ₱ $priceDisplay",
-                          style: const TextStyle(fontSize: 14),
+                        _buildInfoRow(
+                          FontAwesomeIcons.pesoSign, Colors.green, "$priceDisplay",
                         ),
-                        Text(
-                          "• 🛠 ${task.specialization ?? 'No specialization'}",
-                          style: const TextStyle(fontSize: 14),
+                        _buildInfoRow(
+                          FontAwesomeIcons.cartFlatbedSuitcase, Colors.blue, "${task.specialization}",
                         ),
                         if (task.duration != null)
-                          Text(
-                            "• ⏱ Duration: ${task.duration}",
-                            style: const TextStyle(fontSize: 14),
+                          _buildInfoRow(
+                            FontAwesomeIcons.clock, Colors.orange, "Duration: ${task.duration} ${task.period}",
                           ),
                       ],
                     ),
@@ -938,6 +936,25 @@ class _JobPostPageState extends State<JobPostPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, Color color, String label) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          color: color,
+        ),
+        SizedBox(width: 10),
+        Text(
+          label,
+          style: GoogleFonts.openSans(
+            fontSize: 16,
+            color: Colors.black,
+          ),
+        )
+      ]
     );
   }
 }
