@@ -5,7 +5,7 @@
       <a href="" class="hover:text-primary">Dashboards > User Management > Review User</a>
     </div>
   </div>
-  <!-- Submit Button -->
+  <!-- Back Button -->
   <div class="">
     <app-button full impact="bold" shape="rounded" size="medium" (click)="navigateToUsermanagement()">Back</app-button>
   </div>
@@ -72,7 +72,7 @@
           </div>
 
           <div class="form__group mb-5">
-            <!-- Last Name  -->
+            <!-- Birthdate -->
             <div class="relative">
               <input
                 type="date"
@@ -85,7 +85,7 @@
           </div>
 
           <div class="form__group mb-5">
-            <!-- Last Name  -->
+            <!-- Email -->
             <div class="relative">
               <input
                 type="email"
@@ -143,9 +143,20 @@
           <!-- Submit Button -->
           <div class="">
             <div class="mb-5">
-              <a [href]="documentUrl || ''" [attr.download]="documentName || null" target="_blank" class="bg-main-color block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                Click To Review Document
+              <!-- Show the download button only if a document URL is available -->
+              <a *ngIf="documentUrl"
+                [href]="documentUrl"
+                [download]="documentName"
+                class="bg-main-color block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                Download Documents
               </a>
+              <!-- Show a message if no document is available -->
+              <button *ngIf="!documentUrl"
+                type="button"
+                disabled
+                class="bg-gray-400 block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white cursor-not-allowed">
+                No Documents Available
+              </button>
             </div>
             <app-button full impact="bold" shape="rounded" size="medium">Update User</app-button>
           </div>
