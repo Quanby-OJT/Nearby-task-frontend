@@ -1,12 +1,4 @@
 <ng-container>
-  <!-- <td class="border-muted/20 border-b px-4 py-5 text-center text-[0.85rem]">
-    <input
-      [(ngModel)]="user.selected"
-      class="checkbox checkbox-sm"
-      data-datatable-row-check="true"
-      type="checkbox"
-      value="28" />
-  </td> -->
   <td class="border-muted/20 border-b px-6 py-3 text-[0.85rem]">{{ user.user_id }}</td>
   <td class="border-muted/20 border-b px-6 py-3 text-[0.85rem]">
     <div class="flex items-center gap-2.5">
@@ -26,7 +18,6 @@
     {{ user.email }}
   </td>
   <td class="border-muted/20 rounded-md border-b px-6 py-3 text-[0.85rem] font-semibold text-white">
-   
     <span
       class="rounded-lg py-1 px-4"
       [ngClass]="{
@@ -66,7 +57,7 @@
         <svg-icon src="./assets/icons/heroicons/outline/trash-icon.svg" [svgClass]="'h-5 w-5'"></svg-icon>
       </button>
       <button
-      *ngIf="user.acc_status === 'Review'"
+        *ngIf="user.acc_status === 'Review'"
         class="text-muted-foreground hover:bg-card hover:text-foreground flex h-7 w-7 cursor-pointer items-center justify-center rounded-md"
         (click)="navigateToReviewUser(user.user_id)">
         <img src="https://img.icons8.com/?size=100&id=5vIes7nAVj0R&format=png&color=000000" class="h-5 w-5">

@@ -12,8 +12,9 @@ import { UsersComponent } from '../../users/users.component';
 export class UserTableFooterComponent {
   constructor(public filterService: UserTableFilterService, public userSize: UsersComponent) {}
 
+  // Use filteredUsers.length instead of UserSize
   get UserSize(): number {
-    return this.userSize.UserSize;
+    return this.userSize.filteredUsers.length;
   }
 
   onPageSizeChange(value: Event) {
@@ -32,15 +33,17 @@ export class UserTableFooterComponent {
   }
 
   get totalPages(): number {
-    return Math.ceil(this.UserSize / this.pageSize);
+    return Math.ceil(this.UserSize / this.pageSize) || 1; // Ensure at least 1 page
   }
 
   get startIndex(): number {
-    return (this.currentPage - 1) * this.pageSize + 1;
+    const start = (this.currentPage - 1) * this.pageSize + 1;
+    return this.UserSize > 0 ? start : 0; // Handle empty case
   }
 
   get endIndex(): number {
-    return Math.min(this.currentPage * this.pageSize, this.UserSize);
+    const end = Math.min(this.currentPage * this.pageSize, this.UserSize);
+    return this.UserSize > 0 ? end : 0; // Handle empty case
   }
 
   onNextPage(): void {
@@ -59,10 +62,6 @@ export class UserTableFooterComponent {
     if (page >= 1 && page <= this.totalPages) {
       this.filterService.currentPageField.set(page);
     }
-  }
-
-  isNumber(value: any): boolean {
-    return typeof value === 'number';
   }
 
   getVisiblePages(): (number | '...')[] {

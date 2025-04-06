@@ -16,7 +16,7 @@ import { ReviewComponent } from '../review/review.component';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { NgIf } from '@angular/common';
-import { saveAs } from 'file-saver'; // Import file-saver
+import { saveAs } from 'file-saver';
 
 @Component({
   selector: 'app-users',
@@ -46,28 +46,18 @@ export class UsersComponent implements OnInit {
 
   constructor(
     private http: HttpClient,
-    private filterService: UserTableFilterService,
+    public filterService: UserTableFilterService, // Changed from private to public
     private router: Router,
     private useraccount: UserAccountService,
   ) {
     effect(() => {
       const currentPage = this.filterService.currentPageField();
       const pageSize = this.filterService.pageSizeField();
-      this.loadUsers(currentPage, pageSize);
+      const startIndex = (currentPage - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const paginatedUsers = this.filteredUsers.slice(startIndex, endIndex);
+      this.filterService.setCurrentUsers(paginatedUsers);
     });
-  }
-
-  loadUsers(page: number, pageSize: number) {
-    this.useraccount.getUsers(page, pageSize).subscribe(
-      (response) => {
-        console.log('Fetched Users:', response.users);
-        this.filterService.setCurrentUsers(response.users || []);
-        this.filterService.userSizeField.set(response.total || 0);
-      },
-      (error) => {
-        console.error('Load Users Error:', error);
-      },
-    );
   }
 
   ngOnInit(): void {
@@ -76,28 +66,16 @@ export class UsersComponent implements OnInit {
   }
 
   exportCSV() {
-    // Define the CSV headers (same as PDF)
     const headers = ['Fullname', 'Role', 'Email', 'Account', 'Status'];
-
-    // Map the filteredUsers to CSV rows (same data structure as PDF)
     const rows = this.filteredUsers.map((item) => [
-      `"${item.first_name} ${item.middle_name === null ? '' : item.middle_name} ${item.last_name}"`, // Wrap in quotes to handle spaces
+      `"${item.first_name} ${item.middle_name === null ? '' : item.middle_name} ${item.last_name}"`,
       item.user_role,
       item.email,
       item.acc_status,
       item.status,
     ]);
-
-    // Combine headers and rows into a CSV string
-    const csvContent = [
-      headers.join(','), // Header row
-      ...rows.map((row) => row.join(',')) // Data rows
-    ].join('\n');
-
-    // Create a Blob with the CSV content
+    const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-
-    // Use file-saver to download the CSV file
     saveAs(blob, 'UserAccounts.csv');
   }
 
@@ -109,12 +87,8 @@ export class UsersComponent implements OnInit {
     });
 
     const title = 'Users Account';
-
-    // Add Title
     doc.setFontSize(20);
-    doc.text(title, 170, 45); // w and h
-
-    // Define Table Columns & Rows
+    doc.text(title, 170, 45);
     const columns = ['Fullname', 'Role', 'Email', 'Account', 'Status'];
     const rows = this.filteredUsers.map((item) => [
       item.first_name + ' ' + (item.middle_name === null ? '' : item.middle_name) + ' ' + item.last_name,
@@ -123,23 +97,19 @@ export class UsersComponent implements OnInit {
       item.acc_status,
       item.status,
     ]);
-
-    // Generate Table
     autoTable(doc, {
-      startY: 100, // Start table below the title
+      startY: 100,
       head: [columns],
       body: rows,
       theme: 'grid',
       styles: { fontSize: 8, cellPadding: 5, textColor: 'black' },
       headStyles: { fillColor: [60, 33, 146], textColor: 'white' },
     });
-
-    // Save PDF
     doc.save('UserAccounts.pdf');
   }
 
   setUserSize(): void {
-    this.useraccount.getUsers(1, 10).subscribe((users) => {
+    this.useraccount.getAllUsers().subscribe((response) => {
       this.filterService.setUsers(this.users);
     });
   }
@@ -153,6 +123,8 @@ export class UsersComponent implements OnInit {
       (response: any) => {
         this.users = response.users;
         this.filterService.setUsers(this.users);
+        const pageSize = this.filterService.pageSizeField();
+        this.filterService.setCurrentUsers(this.filteredUsers.slice(0, pageSize));
       },
       (error: any) => {
         console.error('Error fetching users:', error);
@@ -166,29 +138,21 @@ export class UsersComponent implements OnInit {
     const account = this.filterService.statusField();
     const status = this.filterService.onlineField();
     const role = this.filterService.roleField();
-    this.PaginationUsers = this.filterService.currentUsers();
 
-    // Apply search filter on full name
-    let filtered = this.PaginationUsers.filter((user) => {
-      // Create full name by concatenating first_name, middle_name, and last_name
+    let filtered = this.users.filter((user) => {
       const firstName = String(user.first_name || '').toLowerCase();
       const middleName = String(user.middle_name || '').toLowerCase();
       const lastName = String(user.last_name || '').toLowerCase();
       const fullName = [firstName, middleName, lastName]
-        .filter((name) => name) // Remove empty strings
+        .filter((name) => name)
         .join(' ');
-
-      // Split search terms to allow matching individual words
       const searchTerms = search.split(/\s+/).filter((term) => term);
-
-      // Check if all search terms are present in the full name or email
       return (
         searchTerms.every((term) => fullName.includes(term)) ||
         (user.email || '').toLowerCase().includes(search)
       );
     });
 
-    // Apply account status filter
     filtered = filtered.filter((user) => {
       if (!account) return true;
       switch (account) {
@@ -213,7 +177,6 @@ export class UsersComponent implements OnInit {
       }
     });
 
-    // Apply role filter
     filtered = filtered.filter((user) => {
       if (!role) return true;
       switch (role) {
@@ -228,7 +191,6 @@ export class UsersComponent implements OnInit {
       }
     });
 
-    // Apply online status filter
     filtered = filtered.filter((user) => {
       if (!status) return true;
       switch (status) {
