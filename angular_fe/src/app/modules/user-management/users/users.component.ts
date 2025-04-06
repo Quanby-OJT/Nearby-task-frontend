@@ -46,16 +46,24 @@ export class UsersComponent implements OnInit {
 
   constructor(
     private http: HttpClient,
-    public filterService: UserTableFilterService, // Changed from private to public
+    public filterService: UserTableFilterService,
     private router: Router,
     private useraccount: UserAccountService,
   ) {
     effect(() => {
       const currentPage = this.filterService.currentPageField();
       const pageSize = this.filterService.pageSizeField();
+      const filteredUsers = this.filteredUsers;
+      const totalFilteredUsers = filteredUsers.length;
+      const totalPages = Math.ceil(totalFilteredUsers / pageSize) || 1;
+
+      if (currentPage > totalPages) {
+        this.filterService.currentPageField.set(totalPages);
+      }
+
       const startIndex = (currentPage - 1) * pageSize;
       const endIndex = startIndex + pageSize;
-      const paginatedUsers = this.filteredUsers.slice(startIndex, endIndex);
+      const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
       this.filterService.setCurrentUsers(paginatedUsers);
     });
   }
@@ -115,7 +123,7 @@ export class UsersComponent implements OnInit {
   }
 
   get UserSize(): number {
-    return this.users.length;
+    return this.filteredUsers.length;
   }
 
   fetchUsers(): void {
@@ -186,6 +194,8 @@ export class UsersComponent implements OnInit {
           return user.user_role === 'Tasker';
         case '3':
           return user.user_role === 'Moderator';
+        case '4':
+          return user.user_role === 'Admin';
         default:
           return true;
       }

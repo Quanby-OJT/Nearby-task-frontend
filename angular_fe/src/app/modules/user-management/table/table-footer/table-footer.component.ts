@@ -12,7 +12,6 @@ import { UsersComponent } from '../../users/users.component';
 export class UserTableFooterComponent {
   constructor(public filterService: UserTableFilterService, public userSize: UsersComponent) {}
 
-  // Use filteredUsers.length instead of UserSize
   get UserSize(): number {
     return this.userSize.filteredUsers.length;
   }
@@ -20,7 +19,6 @@ export class UserTableFooterComponent {
   onPageSizeChange(value: Event) {
     const newSize = parseInt((value.target as HTMLSelectElement).value);
     this.filterService.pageSizeField.set(newSize);
-    // Reset to first page when changing page size
     this.filterService.currentPageField.set(1);
   }
 
@@ -33,17 +31,17 @@ export class UserTableFooterComponent {
   }
 
   get totalPages(): number {
-    return Math.ceil(this.UserSize / this.pageSize) || 1; // Ensure at least 1 page
+    return Math.ceil(this.UserSize / this.pageSize) || 1;
   }
 
   get startIndex(): number {
     const start = (this.currentPage - 1) * this.pageSize + 1;
-    return this.UserSize > 0 ? start : 0; // Handle empty case
+    return this.UserSize > 0 ? start : 0;
   }
 
   get endIndex(): number {
     const end = Math.min(this.currentPage * this.pageSize, this.UserSize);
-    return this.UserSize > 0 ? end : 0; // Handle empty case
+    return this.UserSize > 0 ? end : 0;
   }
 
   onNextPage(): void {

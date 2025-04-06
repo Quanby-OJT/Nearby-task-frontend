@@ -25,8 +25,8 @@ export class ReviewComponent {
   userData: any = null;
   first_name: string = '';
   profileImage: string | null = null;
-  documentUrl: string | null = null; // New property to store the document URL
-  documentName: string | null = null; // New property to store the document name
+  documentUrl: string | null = null; 
+  documentName: string | null = null; 
 
   constructor(
     private _formBuilder: FormBuilder,
