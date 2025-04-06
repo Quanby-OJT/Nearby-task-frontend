@@ -6,6 +6,7 @@ import { UserAccountService } from 'src/app/services/userAccount';
 import { ButtonComponent } from 'src/app/shared/components/button/button.component';
 import { DataService } from 'src/services/dataStorage';
 import Swal from 'sweetalert2';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-update-user',
@@ -24,6 +25,7 @@ export class UpdateUserComponent {
   userData: any = null;
   first_name: string = '';
   profileImage: string | null = null;
+  isLoading: boolean = true;
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -31,16 +33,17 @@ export class UpdateUserComponent {
     private router: Router,
     private route: ActivatedRoute,
     private dataService: DataService,
+    private cdRef: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.formValidation();
     this.userId = this.dataService.getUserID();
-    if (this.userId === 0) {
+    if (!this.userId || this.userId === 0) {
       this.router.navigate(['user-management']);
-    } else if (this.userId) {
+    } else {
       this.loadUserData();
-      console.log(this.userId);
+      console.log('User ID:', this.userId);
     }
   }
 
@@ -51,29 +54,54 @@ export class UpdateUserComponent {
       lastName: ['', Validators.required],
       status: ['', Validators.required],
       userRole: ['', Validators.required],
-      email: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
       bday: ['', Validators.required],
     });
   }
+
   loadUserData(): void {
+    this.isLoading = true;
     const userId = Number(this.userId);
 
     this.userAccountService.getUserById(userId).subscribe({
       next: (response: any) => {
-        this.userData = response.user;
-        this.form.patchValue({
-          firstName: response.user.first_name,
-          middleName: response.user.middle_name,
-          lastName: response.user.last_name,
-          bday: response.user.birthdate,
-          userRole: response.user.user_role,
-          email: response.user.email,
-          status: response.user.acc_status,
-        });
-        this.profileImage = response.user.image_link;
+        console.log('Raw Backend Response:', response);
+        this.userData = response.user || response;
+        console.log('Processed User Data:', this.userData);
+
+        if (this.userData) {
+          this.form.patchValue({
+            firstName: this.userData.first_name || '',
+            middleName: this.userData.middle_name || '',
+            lastName: this.userData.last_name || '',
+            bday: this.userData.birthdate
+              ? new Date(this.userData.birthdate).toISOString().split('T')[0]
+              : '',
+            userRole: this.userData.user_role || '', 
+            email: this.userData.email || '',
+            status: this.userData.acc_status || '',
+          });
+          this.profileImage = this.userData.image_link || null;
+          console.log('Form Value After Patch:', this.form.value);
+        } else {
+          console.warn('No user data found in response');
+          Swal.fire({
+            icon: 'warning',
+            title: 'No Data',
+            text: 'User data not found for this ID.',
+          });
+        }
+        this.isLoading = false;
+        this.cdRef.detectChanges();
       },
       error: (error: any) => {
         console.error('Error fetching user data:', error);
+        this.isLoading = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to load user data: ' + (error.message || 'Unknown error'),
+        });
       },
     });
   }
@@ -83,7 +111,6 @@ export class UpdateUserComponent {
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
       this.imagePreview = file;
-
       const reader = new FileReader();
       reader.onload = () => {
         this.imageUrl = reader.result as string;
@@ -109,7 +136,6 @@ export class UpdateUserComponent {
     }
 
     const userId = Number(this.userId);
-    const email = this.form.value.email;
     this.updateUserAccount(userId);
   }
 
@@ -137,14 +163,13 @@ export class UpdateUserComponent {
           this.router.navigate(['user-management']);
         });
       },
-
       (error) => {
         Swal.fire({
           icon: 'error',
           title: 'Update Failed',
-          text: error.error?.error,
+          text: error.error?.error || 'An error occurred while updating the user.',
         });
-      },
+      }
     );
   }
 

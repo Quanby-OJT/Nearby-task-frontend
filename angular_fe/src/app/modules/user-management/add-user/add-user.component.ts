@@ -1,7 +1,7 @@
 import { UserAccountService } from './../../../services/userAccount';
 import { NgClass, NgIf } from '@angular/common';
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterOutlet } from '@angular/router';
 import { ButtonComponent } from 'src/app/shared/components/button/button.component';
 import Swal from 'sweetalert2';
@@ -15,14 +15,15 @@ import Swal from 'sweetalert2';
 export class AddUserComponent {
   form!: FormGroup;
   submitted = false;
-  imagePreview: File | null = null;
+  imagePreview: string | null = null;
+  selectedFile: File | null = null; // Store the selected file for submission
   duplicateEmailError: any = null;
   success_message: any = null;
 
   constructor(
     private _formBuilder: FormBuilder,
     private UserAccountService: UserAccountService,
-    private router: Router,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -36,16 +37,92 @@ export class AddUserComponent {
       lastName: ['', Validators.required],
       status: ['', Validators.required],
       userRole: ['', Validators.required],
-      email: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
       bday: ['', Validators.required],
-      profileImage: ['', Validators.required],
+      profileImage: [null, Validators.required], // Changed to null initial value
+      contact: ['', Validators.required],
+      gender: ['', Validators.required],
+      password: ['', Validators.required],
+      confirmPassword: ['', Validators.required]
+    }, {
+      validators: this.mustMatch('password', 'confirmPassword')
     });
+  }
+
+  // Custom validator to check if password and confirmPassword match
+  mustMatch(password: string, confirmPassword: string) {
+    return (formGroup: AbstractControl): ValidationErrors | null => {
+      const passwordControl = formGroup.get(password);
+      const confirmPasswordControl = formGroup.get(confirmPassword);
+
+      if (!passwordControl || !confirmPasswordControl) {
+        return null;
+      }
+
+      if (confirmPasswordControl.errors && !confirmPasswordControl.errors['mustMatch']) {
+        return null;
+      }
+
+      if (passwordControl.value !== confirmPasswordControl.value) {
+        confirmPasswordControl.setErrors({ mustMatch: true });
+        return { mustMatch: true };
+      } else {
+        confirmPasswordControl.setErrors(null);
+        return null;
+      }
+    };
   }
 
   onFileChange(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.imagePreview = input.files[0];
+      const file = input.files[0];
+      console.log('Selected file:', file); // Debug: Log the selected file
+      console.log('File size (bytes):', file.size); // Debug: Log file size
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        console.error('Invalid file type:', file.type);
+        Swal.fire({
+          icon: 'error',
+          title: 'Invalid File',
+          text: 'Please upload a valid image file (e.g., JPEG, PNG).',
+        });
+        this.imagePreview = null;
+        this.selectedFile = null;
+        this.form.get('profileImage')?.setValue(null);
+        return;
+      }
+
+      // Validate file size (limit to 5MB)
+      const maxSizeInBytes = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSizeInBytes) {
+        console.error('File too large:', file.size);
+        Swal.fire({
+          icon: 'error',
+          title: 'File Too Large',
+          text: 'Please upload an image smaller than 5MB.',
+        });
+        this.imagePreview = null;
+        this.selectedFile = null;
+        this.form.get('profileImage')?.setValue(null);
+        return;
+      }
+
+      // Store the file for submission
+      this.selectedFile = file;
+
+      // Update the form control with the file
+      this.form.get('profileImage')?.setValue(file);
+
+      // Create a temporary URL for the image preview
+      this.imagePreview = URL.createObjectURL(file);
+      console.log('Image Preview set to:', this.imagePreview); // Debug: Log the preview URL
+    } else {
+      console.log('No file selected'); // Debug: Log if no file is selected
+      this.imagePreview = null;
+      this.selectedFile = null;
+      this.form.get('profileImage')?.setValue(null);
     }
   }
 
@@ -57,7 +134,6 @@ export class AddUserComponent {
     this.submitted = true;
 
     if (this.form.invalid) {
-      // console.log('Form is invalid. Please check the errors.');
       Swal.fire({
         icon: 'error',
         title: 'Validation Error',
@@ -78,24 +154,28 @@ export class AddUserComponent {
     formData.append('email', this.form.value.email);
     formData.append('acc_status', this.form.value.status);
     formData.append('user_role', this.form.value.userRole);
-    if (this.imagePreview) {
-      formData.append('image', this.imagePreview);
+    formData.append('contact', this.form.value.contact);
+    formData.append('gender', this.form.value.gender);
+    formData.append('password', this.form.value.password);
+    if (this.selectedFile) {
+      formData.append('image', this.selectedFile); // Use the selected file
     }
 
-    this.UserAccountService.insertUserAccount(formData).subscribe(
+    this.UserAccountService.insertAuthorityUser(formData).subscribe(
       (response) => {
         Swal.fire({
           icon: 'success',
           title: 'Success',
-          text: 'User registered successfully!',
+          text: 'User added successfully! Please provide the credentials to the user.',
         }).then(() => {
           this.form.reset();
           this.submitted = false;
+          this.imagePreview = null;
+          this.selectedFile = null;
           this.router.navigate(['user-management']);
         });
       },
       (error: any) => {
-        // console.error('Error adding user:', error);
         this.duplicateEmailError = 'Email already exists';
         Swal.fire({
           icon: 'error',

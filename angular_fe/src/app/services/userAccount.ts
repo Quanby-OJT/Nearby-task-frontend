@@ -4,16 +4,24 @@ import { catchError, Observable, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { SessionLocalStorage } from 'src/services/sessionStorage';
 
+// Interface for document response
+interface DocumentResponse {
+  url: string;
+  filename: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class UserAccountService {
   private apiUrl = `${environment.apiUrl}`;
 
-  constructor(private http: HttpClient, private sessionStorage: SessionLocalStorage) {}
+  constructor(
+    private http: HttpClient,
+    private sessionStorage: SessionLocalStorage
+  ) {}
 
-
-  private getHeaders(): HttpHeaders {
+  getHeaders(): HttpHeaders {
     return new HttpHeaders({
       'Authorization': `Bearer ${this.sessionStorage.getSessionToken()}`
     });
@@ -22,42 +30,49 @@ export class UserAccountService {
   insertUserAccount(userData: FormData): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/userAdd`, userData, {
       headers: this.getHeaders(),
-      withCredentials: true // This enables sending cookies with the request
+      withCredentials: true
+    });
+  }
+
+  insertAuthorityUser(userData: FormData): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/authorityAdd`, userData, {
+      headers: this.getHeaders(),
+      withCredentials: true
     });
   }
 
   deleteUser(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/deleteUser/${id}`, {
       headers: this.getHeaders(),
-      withCredentials: true // This enables sending cookies with the request
+      withCredentials: true
     });
   }
 
   getAllUsers(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/userDisplay`, {
       headers: this.getHeaders(),
-      withCredentials: true // This enables sending cookies with the request
+      withCredentials: true
     });
   }
 
   getUserById(userID: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/getUserData/${userID}`, {
       headers: this.getHeaders(),
-      withCredentials: true // This enables sending cookies with the request
+      withCredentials: true
     });
   }
 
   checkEmailExists(email: string, userId: number): Observable<boolean> {
     return this.http.get<boolean>(`${this.apiUrl}/users/check-email?email=${email}&userId=${userId}`, {
       headers: this.getHeaders(),
-      withCredentials: true // This enables sending cookies with the request
+      withCredentials: true
     });
   }
 
   updateUserAccount(userID: number, userData: FormData): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/updateUserInfo/${userID}`, userData, {
       headers: this.getHeaders(),
-      withCredentials: true // This enables sending cookies with the request
+      withCredentials: true
     });
   }
 
@@ -65,7 +80,7 @@ export class UserAccountService {
     return this.http
       .get<{ users: any[]; total: number }>(`${this.apiUrl}/users?page=${page}&pageSize=${pageSize}`, {
         headers: this.getHeaders(),
-        withCredentials: true // This enables sending cookies with the request
+        withCredentials: true
       })
       .pipe(
         catchError((error) => {
@@ -74,4 +89,19 @@ export class UserAccountService {
         }),
       );
   }
+
+  getUserDocument(userId: number): Observable<DocumentResponse> {
+    return this.http.get<DocumentResponse>(`${this.apiUrl}/getUserDocument/${userId}`, {
+      headers: this.getHeaders(),
+      withCredentials: true,
+    });
+  }
+
+  getUserDocuments(userId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/getAuthorityUserDocuments/${userId}`, {
+      headers: this.getHeaders(),
+      withCredentials: true,
+    });
+  }
+  
 }

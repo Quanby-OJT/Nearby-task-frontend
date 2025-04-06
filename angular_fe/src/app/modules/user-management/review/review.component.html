@@ -5,7 +5,7 @@
       <a href="" class="hover:text-primary">Dashboards > User Management > Review User</a>
     </div>
   </div>
-  <!-- Submit Button -->
+  <!-- Back Button -->
   <div class="">
     <app-button full impact="bold" shape="rounded" size="medium" (click)="navigateToUsermanagement()">Back</app-button>
   </div>
@@ -72,7 +72,7 @@
           </div>
 
           <div class="form__group mb-5">
-            <!-- Last Name  -->
+            <!-- Birthdate -->
             <div class="relative">
               <input
                 type="date"
@@ -85,7 +85,7 @@
           </div>
 
           <div class="form__group mb-5">
-            <!-- Last Name  -->
+            <!-- Email -->
             <div class="relative">
               <input
                 type="email"
@@ -107,9 +107,10 @@
                   [ngClass]="{ 'border-red-500': submitted && f['userRole'].errors }"
                   required>
                   <option value="" disabled selected>Select User Role</option>
-                  <option value="client">Client</option>
-                  <option value="moderator">Moderator</option>
-                  <option value="tasker">Tasker</option>
+                  <option value="Client">Client</option>
+                  <option value="Moderator">Moderator</option>
+                  <option value="Admin">Admin</option>
+                  <option value="Tasker">Tasker</option>
                 </select>
               </div>
             </div>
@@ -121,12 +122,16 @@
                   class="peer block w-full rounded border px-3 py-2"
                   formControlName="status"
                   [ngClass]="{ 'border-red-500': submitted && f['status'].errors }"
-                  required>
+                  required> 
                   <option value="" disabled selected>Select User status</option>
-                  <option value="verified">Verified</option>
-                  <option value="review">Review</option>
-                  <option value="blocked">Blocked</option>
-                  <option value="rejected">Rejected</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Active">Active</option>
+                  <option value="Warn">Warn</option>
+                  <option value="Suspend">Suspend</option>
+                  <option value="Ban">Ban</option>
+                  <option value="Block">Block</option>
+                  <option value="Deactivate">Deactivated</option>
+                  <option value="Review">Review</option>
                 </select>
               </div>
               <div *ngIf="submitted && f['status'].errors" class="pt-1 text-xs text-red-500">
@@ -138,13 +143,20 @@
           <!-- Submit Button -->
           <div class="">
             <div class="mb-5">
-              <a href="" target="_blank">
-                <button
-                  class="bg-main-color block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                  type="button">
-                  Click To Review Document
-                </button></a
-              >
+              <!-- Show Document if May Document -->
+              <a *ngIf="documentUrl"
+                [href]="documentUrl"
+                [download]="documentName"
+                class="bg-main-color block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                Download Documents
+              </a>
+              <!-- Show No Document pag wala -->
+              <button *ngIf="!documentUrl"
+                type="button"
+                disabled
+                class="bg-gray-400 block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white cursor-not-allowed">
+                No Documents Available
+              </button>
             </div>
             <app-button full impact="bold" shape="rounded" size="medium">Update User</app-button>
           </div>

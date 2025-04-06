@@ -13,15 +13,15 @@
 
 <div class="border-muted/20 bg-background flex min-w-full flex-col rounded-xl border p-2">
   <!-- Add User form -->
-
   <form class="my-10 space-y-6" [formGroup]="form" (ngSubmit)="onSubmit()">
     <div class="space-y-3 text-left">
       <div class="grid grid-cols-3 gap-5 p-5">
         <div class="mx-auto w-full max-w-xs">
           <div class="overflow-hidden rounded-lg bg-white shadow-md">
-            <div class="h-50 flex w-full items-center justify-center bg-gray-100">
+            <div class="h-48 flex w-full items-center justify-center bg-gray-100">
               <img
-                [src]="imagePreview || 'https://via.placeholder.com/150'"
+                [src]="imagePreview || 'https://community.softr.io/uploads/db9110/original/2X/7/74e6e7e382d0ff5d7773ca9a87e6f6f8817a68a6.jpeg'"
+                (error)="imagePreview = null" 
                 alt="Uploaded Image"
                 class="h-full w-full object-cover" />
             </div>
@@ -36,7 +36,6 @@
                 id="profileImage"
                 class="mt-2 block w-full cursor-pointer rounded-lg border border-gray-300 p-2 text-sm text-gray-900 focus:outline-none"
                 (change)="onFileChange($event)"
-                formControlName="profileImage"
                 accept="image/*" />
               <div *ngIf="submitted && f['profileImage'].errors" class="px-1 pt-1 text-center text-xs text-red-500">
                 <div *ngIf="f['profileImage'].errors['required']" class="px-1 pt-1 text-xs text-red-500">
@@ -88,8 +87,9 @@
               </label>
             </div>
           </div>
+
           <div class="form__group mb-5">
-            <!-- Last Name  -->
+            <!-- Last Name -->
             <div class="relative">
               <input
                 type="text"
@@ -111,7 +111,7 @@
           </div>
 
           <div class="form__group mb-5">
-            <!-- Last Name  -->
+            <!-- Birthday -->
             <div class="relative">
               <input
                 type="date"
@@ -133,7 +133,7 @@
           </div>
 
           <div class="form__group mb-5">
-            <!-- Last Name  -->
+            <!-- Email -->
             <div class="relative">
               <input
                 type="email"
@@ -157,6 +157,93 @@
             </div>
           </div>
 
+          <div class="form__group mb-5">
+            <!-- Contact -->
+            <div class="relative">
+              <input
+                type="text"
+                id="contact"
+                [ngClass]="{ 'is__invalid-input': submitted && f['contact'].errors }"
+                class="peer block"
+                placeholder=" "
+                formControlName="contact" />
+              <label
+                for="contact"
+                [ngClass]="{ 'peer-focus:text-destructive!': submitted && f['contact'].errors }"
+                class="bg-background text-muted-foreground peer-focus:text-primary absolute top-2 left-1 z-10 origin-[0] -translate-y-4 scale-95 transform px-2 text-sm duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-95 peer-focus:px-2">
+                Contact Number
+              </label>
+            </div>
+            <div *ngIf="submitted && f['contact'].errors" class="px-1 pt-1 text-xs text-red-500">
+              <div *ngIf="f['contact'].errors['required']" class="px-1 pt-1 text-xs text-red-500">Required field</div>
+            </div>
+          </div>
+
+          <div class="form__group mb-5">
+            <!-- Gender -->
+            <div class="relative">
+              <select
+                id="gender"
+                class="peer block w-full rounded border px-3 py-2"
+                formControlName="gender"
+                [ngClass]="{ 'border-red-500': submitted && f['gender'].errors }"
+                required>
+                <option value="" disabled selected>Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div *ngIf="submitted && f['gender'].errors" class="pt-1 text-xs text-red-500">
+              <div *ngIf="f['gender'].errors['required']">Required field</div>
+            </div>
+          </div>
+
+          <div class="form__group mb-5">
+            <!-- Password -->
+            <div class="relative">
+              <input
+                type="password"
+                id="password"
+                [ngClass]="{ 'is__invalid-input': submitted && f['password'].errors }"
+                class="peer block"
+                placeholder=" "
+                formControlName="password" />
+              <label
+                for="password"
+                [ngClass]="{ 'peer-focus:text-destructive!': submitted && f['password'].errors }"
+                class="bg-background text-muted-foreground peer-focus:text-primary absolute top-2 left-1 z-10 origin-[0] -translate-y-4 scale-95 transform px-2 text-sm duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-95 peer-focus:px-2">
+                Password
+              </label>
+            </div>
+            <div *ngIf="submitted && f['password'].errors" class="px-1 pt-1 text-xs text-red-500">
+              <div *ngIf="f['password'].errors['required']" class="px-1 pt-1 text-xs text-red-500">Required field</div>
+            </div>
+          </div>
+
+          <div class="form__group mb-5">
+            <!-- Confirm Password -->
+            <div class="relative">
+              <input
+                type="password"
+                id="confirmPassword"
+                [ngClass]="{ 'is__invalid-input': submitted && f['confirmPassword'].errors }"
+                class="peer block"
+                placeholder=" "
+                formControlName="confirmPassword" />
+              <label
+                for="confirmPassword"
+                [ngClass]="{ 'peer-focus:text-destructive!': submitted && f['confirmPassword'].errors }"
+                class="bg-background text-muted-foreground peer-focus:text-primary absolute top-2 left-1 z-10 origin-[0] -translate-y-4 scale-95 transform px-2 text-sm duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-95 peer-focus:px-2">
+                Confirm Password
+              </label>
+            </div>
+            <div *ngIf="submitted && f['confirmPassword'].errors" class="px-1 pt-1 text-xs text-red-500">
+              <div *ngIf="f['confirmPassword'].errors['required']">Required field</div>
+              <div *ngIf="f['confirmPassword'].errors['mustMatch']">Passwords must match</div>
+            </div>
+          </div>
+
           <div class="mb-5 grid grid-cols-2 gap-5">
             <div class="form__group">
               <div class="relative">
@@ -167,9 +254,8 @@
                   [ngClass]="{ 'border-red-500': submitted && f['userRole'].errors }"
                   required>
                   <option value="" disabled selected>Select User Role</option>
-                  <option value="client">Client</option>
-                  <option value="moderator">Moderator</option>
-                  <option value="tasker">Tasker</option>
+                  <option value="Moderator">Moderator</option>
+                  <option value="Admin">Admin</option>
                 </select>
               </div>
               <div *ngIf="submitted && f['userRole'].errors" class="pt-1 text-xs text-red-500">
@@ -184,12 +270,16 @@
                   class="peer block w-full rounded border px-3 py-2"
                   formControlName="status"
                   [ngClass]="{ 'border-red-500': submitted && f['status'].errors }"
-                  required>
+                  required> 
                   <option value="" disabled selected>Select User status</option>
-                  <option value="verified">Verified</option>
-                  <option value="review">Review</option>
-                  <option value="blocked">Blocked</option>
-                  <option value="rejected">Rejected</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Active">Active</option>
+                  <option value="Warn">Warn</option>
+                  <option value="Suspend">Suspend</option>
+                  <option value="Ban">Ban</option>
+                  <option value="Block">Block</option>
+                  <option value="Deactivate">Deactivate</option>
+                  <option value="Review">Review</option>
                 </select>
               </div>
               <div *ngIf="submitted && f['status'].errors" class="pt-1 text-xs text-red-500">
@@ -197,6 +287,7 @@
               </div>
             </div>
           </div>
+
           <!-- Submit Button -->
           <div class="">
             <app-button full impact="bold" shape="rounded" size="medium">Add User</app-button>

@@ -21,6 +21,8 @@ export class TaskComponent implements OnInit {
   tasksPerPage: number = 10;
   currentPage: number = 1;
   totalPages: number = 1;
+  currentSearchText: string = '';
+  currentStatusFilter: string = '';
 
   constructor(
     private route: Router,
@@ -52,20 +54,49 @@ export class TaskComponent implements OnInit {
     );
   }
 
-  filterTasks(event: Event) {
-    const selectedValue = (event.target as HTMLSelectElement).value.toLowerCase();
-    this.filteredTasks = selectedValue === "" 
-      ? this.tasks 
-      : this.tasks.filter(task => task.status?.toLowerCase() === selectedValue);
-    this.currentPage = 1;
-    this.updatePagination();
+  searchTasks(event: Event) {
+    this.currentSearchText = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    this.applyFilters();
   }
 
-  searchTasks(event: Event) {
-    const searchValue = (event.target as HTMLInputElement).value.toLowerCase();
-    this.filteredTasks = this.tasks.filter(task => 
-      task.specialization.toLowerCase().includes(searchValue)
-    );
+  filterTasks(event: Event) {
+    this.currentStatusFilter = (event.target as HTMLSelectElement).value.toLowerCase();
+    this.applyFilters();
+  }
+
+  applyFilters() {
+    let tempTasks = [...this.tasks];
+
+    // Apply search filter if there's a search term
+    if (this.currentSearchText) {
+      tempTasks = tempTasks.filter(task => {
+        // Ensure all name parts are strings and handle null/undefined
+        const firstName = (task.clients.user.first_name || '').toLowerCase();
+        const middleName = (task.clients.user.middle_name || '').toLowerCase();
+        const lastName = (task.clients.user.last_name || '').toLowerCase();
+
+        // Create full name with proper spacing
+        const fullName = [firstName, middleName, lastName]
+          .filter(name => name) // Remove empty strings
+          .join(' ');
+
+        // Split search terms to allow matching individual words
+        const searchTerms = this.currentSearchText.split(/\s+/).filter(term => term);
+
+        // Check if all search terms are present in the full name
+        return searchTerms.every(term => fullName.includes(term));
+      });
+    }
+
+    // Apply status filter if a status is selected
+    if (this.currentStatusFilter) {
+      tempTasks = tempTasks.filter(task => {
+        const taskStatus = task.status?.toLowerCase();
+        return taskStatus === this.currentStatusFilter;
+      });
+    }
+
+    this.filteredTasks = tempTasks;
     this.currentPage = 1;
     this.updatePagination();
   }
