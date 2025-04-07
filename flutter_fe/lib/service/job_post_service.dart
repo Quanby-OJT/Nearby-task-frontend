@@ -328,6 +328,25 @@ class JobPostService {
 
   Future<String?> getUserId() async => storage.read('user_id')?.toString();
 
+  Future<Map<String, dynamic>> fetchIsApplied(
+      int? taskId, int? clientId, int? taskerId) async {
+    final userId = await getUserId();
+    if (userId == null) {
+      return {
+        'success': false,
+        'message': 'Please log in to like jobs',
+        'requiresLogin': true
+      };
+    }
+
+    debugPrint("Sending task request...");
+    debugPrint("Task ID: $taskId, Client ID: $clientId, Tasker ID: $taskerId");
+
+    final response = await _getRequest(
+        "/fetchIsApplied?task_id=$taskId&client_id=$clientId&tasker_id=$taskerId");
+    return response;
+  }
+
   Future<Map<String, dynamic>> assignTask(
       int? taskId, int? clientId, int? taskerId) async {
     final userId = await getUserId();
