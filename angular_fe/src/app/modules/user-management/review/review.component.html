@@ -42,7 +42,7 @@
                 [ngClass]="{ 'is__invalid-input': submitted && f['firstName'].errors }"
                 class="peer block"
                 placeholder=" "
-                formControlName="firstName" />
+                formControlName="firstName"/>
             </div>
           </div>
 
@@ -55,7 +55,7 @@
                 [ngClass]="{ 'is__invalid-input': submitted && f['middleName'].errors }"
                 class="peer block"
                 placeholder=" "
-                formControlName="middleName" />
+                formControlName="middleName"/>
             </div>
           </div>
           <div class="form__group mb-5">
@@ -107,10 +107,10 @@
                   [ngClass]="{ 'border-red-500': submitted && f['userRole'].errors }"
                   required>
                   <option value="" disabled selected>Select User Role</option>
-                  <option value="Client">Client</option>
+                  <option value="Client" class="non-interactive" hidden>Client</option>
                   <option value="Moderator">Moderator</option>
                   <option value="Admin">Admin</option>
-                  <option value="Tasker">Tasker</option>
+                  <option value="Tasker" class="non-interactive" hidden>Tasker</option>
                 </select>
               </div>
             </div>
@@ -127,10 +127,10 @@
                   <option value="Pending">Pending</option>
                   <option value="Active">Active</option>
                   <option value="Warn">Warn</option>
-                  <option value="Suspend">Suspend</option>
-                  <option value="Ban">Ban</option>
+                  <option value="Suspend" class="non-interactive" hidden>Suspend</option>
+                  <option value="Ban" class="non-interactive" hidden>Ban</option>
                   <option value="Block">Block</option>
-                  <option value="Deactivate">Deactivated</option>
+                  <option value="Deactivate" class="non-interactive" hidden>Deactivated</option>
                   <option value="Review">Review</option>
                 </select>
               </div>

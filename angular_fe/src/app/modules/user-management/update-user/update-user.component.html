@@ -173,10 +173,10 @@
                   required
                 >
                   <option value="" disabled selected>Select User Role</option>
-                  <option value="Client">Client</option>
+                  <option value="Client" class="non-interactive" hidden>Client</option>
                   <option value="Admin">Admin</option>
                   <option value="Moderator">Moderator</option>
-                  <option value="Tasker">Tasker</option>
+                  <option value="Tasker" class="non-interactive" hidden>Tasker</option>
                 </select>
               </div>
               <div *ngIf="submitted && f['userRole'].errors" class="pt-1 text-xs text-red-500">
@@ -195,11 +195,10 @@
                   <option value="" disabled selected>Select User Status</option>
                   <option value="Active">Active</option>
                   <option value="Pending">Pending</option>
-                  <option value="Deactivate">Deactivate</option>
-                  <option value="Block">Block</option>
+                  <option value="Deactivate" class="non-inter" hidden>Deactivate</option>
+                  <option value="Block" class="non-interactive" hidden>Block</option>
                   <option value="Ban">Ban</option>
-                  <option value="Suspend">Suspend</option>
-                  <option value="Pending">Pending</option>
+                  <option value="Suspend" class="non-interactive" hidden>Suspend</option>
                   <option value="Warn">Warn</option>
                   <option value="Review">Review</option>
                 </select>
