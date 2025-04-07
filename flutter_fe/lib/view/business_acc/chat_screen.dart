@@ -629,7 +629,7 @@ class _ChatScreenState extends State<ChatScreen> {
             fontWeight: FontWeight.bold,
             fontSize: 24,
           ),
-        ),
+      ),
         centerTitle: true,
       ),
       floatingActionButton: (taskAssignments != null &&

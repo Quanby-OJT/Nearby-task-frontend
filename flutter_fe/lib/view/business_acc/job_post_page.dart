@@ -28,7 +28,6 @@ class _JobPostPageState extends State<JobPostPage> {
   final TaskController controller = TaskController();
   final JobPostService jobPostService = JobPostService();
   final ClientServices _clientServices = ClientServices();
-  final AuthenticationController _authController = AuthenticationController();
   final ProfileController _profileController = ProfileController();
   final GetStorage storage = GetStorage();
   String? _message;
@@ -843,7 +842,9 @@ class _JobPostPageState extends State<JobPostPage> {
               TextStyle(color: Color(0xFF0272B1), fontWeight: FontWeight.bold),
         ),
       ),
-      body: clientTasks.isEmpty
+      body: _isLoading ? Center(
+        child: CircularProgressIndicator(),
+      ) : clientTasks.isEmpty
           ? const Center(child: Text("No tasks available"))
           : ListView.builder(
               itemCount: clientTasks.length,
@@ -883,16 +884,18 @@ class _JobPostPageState extends State<JobPostPage> {
                         _buildInfoRow(
                           FontAwesomeIcons.locationPin, Colors.redAccent, task.location,
                         ),
+                        const SizedBox(height: 5),
                         _buildInfoRow(
                           FontAwesomeIcons.pesoSign, Colors.green, "$priceDisplay",
                         ),
+                        const SizedBox(height: 5),
                         _buildInfoRow(
-                          FontAwesomeIcons.cartFlatbedSuitcase, Colors.blue, "${task.specialization}",
+                          FontAwesomeIcons.screwdriverWrench, Colors.blue, "${task.specialization}",
                         ),
-                        if (task.duration != null)
-                          _buildInfoRow(
-                            FontAwesomeIcons.clock, Colors.orange, "Duration: ${task.duration} ${task.period}",
-                          ),
+                        const SizedBox(height: 5),
+                        _buildInfoRow(
+                          FontAwesomeIcons.clock, Colors.orange, "Duration: ${task.duration} ${task.period}",
+                        ),
                       ],
                     ),
                     trailing: const Icon(
