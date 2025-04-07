@@ -16,6 +16,7 @@ import { ReviewComponent } from '../review/review.component';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { NgIf } from '@angular/common';
+import { saveAs } from 'file-saver';
 
 @Component({
   selector: 'app-users',
@@ -45,33 +46,45 @@ export class UsersComponent implements OnInit {
 
   constructor(
     private http: HttpClient,
-    private filterService: UserTableFilterService,
+    public filterService: UserTableFilterService,
     private router: Router,
     private useraccount: UserAccountService,
   ) {
     effect(() => {
       const currentPage = this.filterService.currentPageField();
       const pageSize = this.filterService.pageSizeField();
-      this.loadUsers(currentPage, pageSize);
-    });
-  }
+      const filteredUsers = this.filteredUsers;
+      const totalFilteredUsers = filteredUsers.length;
+      const totalPages = Math.ceil(totalFilteredUsers / pageSize) || 1;
 
-  loadUsers(page: number, pageSize: number) {
-    this.useraccount.getUsers(page, pageSize).subscribe(
-      (response) => {
-        console.log('Fetched Users:', response.users);
-        this.filterService.setCurrentUsers(response.users || []);
-        this.filterService.userSizeField.set(response.total || 0);
-      },
-      (error) => {
-        console.error('Load Users Error:', error);
-      },
-    );
+      if (currentPage > totalPages) {
+        this.filterService.currentPageField.set(totalPages);
+      }
+
+      const startIndex = (currentPage - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+      this.filterService.setCurrentUsers(paginatedUsers);
+    });
   }
 
   ngOnInit(): void {
     this.fetchUsers();
     this.setUserSize();
+  }
+
+  exportCSV() {
+    const headers = ['Fullname', 'Role', 'Email', 'Account', 'Status'];
+    const rows = this.filteredUsers.map((item) => [
+      `"${item.first_name} ${item.middle_name === null ? '' : item.middle_name} ${item.last_name}"`,
+      item.user_role,
+      item.email,
+      item.acc_status,
+      item.status,
+    ]);
+    const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    saveAs(blob, 'UserAccounts.csv');
   }
 
   exportPDF() {
@@ -81,21 +94,9 @@ export class UsersComponent implements OnInit {
       format: 'a4',
     });
 
-    const title = 'Users Report';
-
-    const img = new Image();
-    img.src = 'assets/image/sample.png'; // Replace with your image source
-    doc.addImage(img, 'png', 10, 10, 50, 50); // x, y, width, height
-    doc.line(10, 70, 200, 70); // x1, y1, x2, y2
-    img.onload = () => {
-      doc.addImage(img, 'PNG', 30, 20, 100, 100);
-    };
-
-    // Add Title
+    const title = 'Users Account';
     doc.setFontSize(20);
-    doc.text(title, 170, 45); //w and h
-
-    // Define Table Columns & Rows
+    doc.text(title, 170, 45);
     const columns = ['Fullname', 'Role', 'Email', 'Account', 'Status'];
     const rows = this.filteredUsers.map((item) => [
       item.first_name + ' ' + (item.middle_name === null ? '' : item.middle_name) + ' ' + item.last_name,
@@ -104,29 +105,25 @@ export class UsersComponent implements OnInit {
       item.acc_status,
       item.status,
     ]);
-
-    // Generate Table
     autoTable(doc, {
-      startY: 100, // Start table below the title
+      startY: 100,
       head: [columns],
       body: rows,
       theme: 'grid',
       styles: { fontSize: 8, cellPadding: 5, textColor: 'black' },
       headStyles: { fillColor: [60, 33, 146], textColor: 'white' },
     });
-
-    // Save PDF
-    doc.save('User_table.pdf');
+    doc.save('UserAccounts.pdf');
   }
 
   setUserSize(): void {
-    this.useraccount.getUsers(1, 10).subscribe((users) => {
+    this.useraccount.getAllUsers().subscribe((response) => {
       this.filterService.setUsers(this.users);
     });
   }
 
   get UserSize(): number {
-    return this.users.length;
+    return this.filteredUsers.length;
   }
 
   fetchUsers(): void {
@@ -134,6 +131,8 @@ export class UsersComponent implements OnInit {
       (response: any) => {
         this.users = response.users;
         this.filterService.setUsers(this.users);
+        const pageSize = this.filterService.pageSizeField();
+        this.filterService.setCurrentUsers(this.filteredUsers.slice(0, pageSize));
       },
       (error: any) => {
         console.error('Error fetching users:', error);
@@ -144,58 +143,77 @@ export class UsersComponent implements OnInit {
 
   get filteredUsers(): any[] {
     const search = this.filterService.searchField().toLowerCase() || '';
-    console.log('Search Value:', search);
     const account = this.filterService.statusField();
     const status = this.filterService.onlineField();
     const role = this.filterService.roleField();
-    this.PaginationUsers = this.filterService.currentUsers();
-    console.log('Current Users:', this.PaginationUsers);
 
-    return this.PaginationUsers.filter(
-      (user) =>
-        user.first_name.toLowerCase().includes(search) ||
-        user.last_name.toLowerCase().includes(search) ||
-        user.email.toLowerCase().includes(search),
-    )
-      .filter((user) => {
-        if (!account) return true;
-        switch (account) {
-          case '1':
-            return user.acc_status === 'verified';
-          case '2':
-            return user.acc_status === 'review';
-          case '3':
-            return user.acc_status === 'rejected';
-          case '4':
-            return user.acc_status === 'blocked';
-          default:
-            return true;
-        }
-      })
-      .filter((user) => {
-        if (!role) return true;
-        switch (role) {
-          case '1':
-            return user.user_role === 'client';
-          case '2':
-            return user.user_role === 'tasker';
-          case '3':
-            return user.user_role === 'moderator';
-          default:
-            return true;
-        }
-      })
-      .filter((user) => {
-        if (!status) return true;
-        switch (status) {
-          case '1':
-            return user.status === true;
-          case '2':
-            return user.status === false;
-          default:
-            return true;
-        }
-      });
+    let filtered = this.users.filter((user) => {
+      const firstName = String(user.first_name || '').toLowerCase();
+      const middleName = String(user.middle_name || '').toLowerCase();
+      const lastName = String(user.last_name || '').toLowerCase();
+      const fullName = [firstName, middleName, lastName]
+        .filter((name) => name)
+        .join(' ');
+      const searchTerms = search.split(/\s+/).filter((term) => term);
+      return (
+        searchTerms.every((term) => fullName.includes(term)) ||
+        (user.email || '').toLowerCase().includes(search)
+      );
+    });
+
+    filtered = filtered.filter((user) => {
+      if (!account) return true;
+      switch (account) {
+        case '1':
+          return user.acc_status === 'Pending';
+        case '2':
+          return user.acc_status === 'Active';
+        case '3':
+          return user.acc_status === 'Warn';
+        case '4':
+          return user.acc_status === 'Suspend';
+        case '5':
+          return user.acc_status === 'Ban';
+        case '6':
+          return user.acc_status === 'Block';
+        case '7':
+          return user.acc_status === 'Deactivate';
+        case '8':
+          return user.acc_status === 'Review';
+        default:
+          return true;
+      }
+    });
+
+    filtered = filtered.filter((user) => {
+      if (!role) return true;
+      switch (role) {
+        case '1':
+          return user.user_role === 'Client';
+        case '2':
+          return user.user_role === 'Tasker';
+        case '3':
+          return user.user_role === 'Moderator';
+        case '4':
+          return user.user_role === 'Admin';
+        default:
+          return true;
+      }
+    });
+
+    filtered = filtered.filter((user) => {
+      if (!status) return true;
+      switch (status) {
+        case '1':
+          return user.status === true;
+        case '2':
+          return user.status === false;
+        default:
+          return true;
+      }
+    });
+
+    return filtered;
   }
 
   toggleUsers(checked: boolean): void {
