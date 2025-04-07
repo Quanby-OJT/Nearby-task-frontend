@@ -17,15 +17,23 @@
       <!-- Search input -->
       <div class="flex-1 min-w-[200px] lg:min-w-[300px] xl:min-w-[400px]">
         <label class="relative w-full">
-          <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" placeholder="Search users logs" type="text" />
+          <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" placeholder="Search users" type="text" />
         </label>
       </div>
+
+      <!-- Status filter dropdown -->
+      <select name="status" class="text-muted-foreground w-28! p-2 border rounded-md">
+        <option value="">All Reports</option>
+        <option value="true">True</option>
+        <option value="false">False</option>
+      </select>
       <!-- Status filter dropdown -->
       <select name="status" class="text-muted-foreground w-28! p-2 border rounded-md">
         <option value="">All Status</option>
         <option value="active">Online</option>
         <option value="disabled">Offline</option>
       </select>
+
     </div>
   </div>
 
@@ -35,67 +43,27 @@
       <thead class="border-b">
         <tr class="bg-gray-100">
           <th class="px-4 py-2 w-[80px] lg:w-[100px]">No</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Task No</th>
           <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">User Name</th>
-          <th class="px-4 py-2 text-center min-w-[140px] lg:min-w-[300px] xl:min-w-[250px]">User Role</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Time Start</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Time End</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Status</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">User Role</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Conversation</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Email</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Reported</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Action</th>
         </tr>
       </thead>
       <tbody>
         <!-- Record 1 -->
-        <tr class="border-b">
-          <td class="px-4 py-3 text-center">1</td>
-          <td class="px-4 py-3 text-center">John Doe</td>
-          <td class="px-4 py-3 text-center">Admin</td>
-          <td class="px-4 py-3 text-center">10:00 AM</td>
-          <td class="px-4 py-3 text-center">12:00 PM</td>
+        <tr *ngFor="let convo of conversation; let i = index" class="border-b">
+          <td class="px-4 py-3 text-center">{{ i + 1 }}</td>
+          <td class="px-4 py-3 text-center">{{ convo.task_taken_id }}</td>
+          <td class="px-4 py-3 text-center">{{ convo.user.first_name }} {{ convo.user.middle_name }} {{ convo.user.last_name }}</td>
+          <td class="px-4 py-3 text-center">{{ convo.user.user_role }}</td>
+          <td class="px-4 py-3 text-center">{{ convo.conversation }}</td>
+          <td class="px-4 py-3 text-center">{{ convo.user.email }}</td>
+          <td class="px-4 py-3 text-center">{{ convo.reported }}</td>
           <td class="px-4 py-3 text-center">
-            <span class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-green-500">Online</span>
-          </td>
-        </tr>
-        <!-- Record 2 -->
-        <tr class="border-b">
-          <td class="px-4 py-3 text-center">2</td>
-          <td class="px-4 py-3 text-center">Jane Smith</td>
-          <td class="px-4 py-3 text-center">Moderator</td>
-          <td class="px-4 py-3 text-center">09:30 AM</td>
-          <td class="px-4 py-3 text-center">11:30 AM</td>
-          <td class="px-4 py-3 text-center">
-            <span class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-red-500">Offline</span>
-          </td>
-        </tr>
-        <!-- Record 3 -->
-        <tr class="border-b">
-          <td class="px-4 py-3 text-center">3</td>
-          <td class="px-4 py-3 text-center">Mike Johnson</td>
-          <td class="px-4 py-3 text-center">User</td>
-          <td class="px-4 py-3 text-center">08:45 AM</td>
-          <td class="px-4 py-3 text-center">10:45 AM</td>
-          <td class="px-4 py-3 text-center">
-            <span class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-green-500">Online</span>
-          </td>
-        </tr>
-        <!-- Record 4 -->
-        <tr class="border-b">
-          <td class="px-4 py-3 text-center">4</td>
-          <td class="px-4 py-3 text-center">Sarah Williams</td>
-          <td class="px-4 py-3 text-center">Editor</td>
-          <td class="px-4 py-3 text-center">11:00 AM</td>
-          <td class="px-4 py-3 text-center">01:00 PM</td>
-          <td class="px-4 py-3 text-center">
-            <span class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-red-500">Offline</span>
-          </td>
-        </tr>
-        <!-- Record 5 -->
-        <tr class="border-b">
-          <td class="px-4 py-3 text-center">5</td>
-          <td class="px-4 py-3 text-center">Robert Brown</td>
-          <td class="px-4 py-3 text-center">Admin</td>
-          <td class="px-4 py-3 text-center">07:30 AM</td>
-          <td class="px-4 py-3 text-center">09:30 AM</td>
-          <td class="px-4 py-3 text-center">
-            <span class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-green-500">Online</span>
+            <span class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-red-300">Ban</span>
           </td>
         </tr>
       </tbody>
