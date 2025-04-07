@@ -6,7 +6,6 @@ import 'dart:convert';
 class LikeService {
   static final String apiUrl = "http://localhost:5000/connect";
 
-
   static Future<void> addLike(int userId, bool like, String likedBy) async {
     final String token = await AuthService.getSessionToken();
     final response = await http.post(

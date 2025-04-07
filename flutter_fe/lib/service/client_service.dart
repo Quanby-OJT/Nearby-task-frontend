@@ -311,4 +311,35 @@ class ClientServices {
       return {'success': false, 'message': 'Failed to fetch image'};
     }
   }
+
+  Future<Map<String, dynamic>> submitTaskerRating(
+      int taskerId, double rating) async {
+    try {
+      final response = await http.post(
+        Uri.parse('rate-tasker'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${storage.read('token')}',
+        },
+        body: jsonEncode({
+          'tasker_id': taskerId,
+          'rating': rating,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return {'success': true};
+      } else {
+        return {
+          'success': false,
+          'message': 'Failed to submit rating: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Error submitting rating: $e',
+      };
+    }
+  }
 }

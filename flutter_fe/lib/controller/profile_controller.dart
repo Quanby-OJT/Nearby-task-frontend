@@ -1124,7 +1124,7 @@ class ProfileController {
   }
 
   Future<void> updateTaskerInfo(
-      BuildContext context, int userId, File file, File image) async {
+      BuildContext context, int userId, File? file, File? image) async {
     // Create user model with current data
 
     try {
