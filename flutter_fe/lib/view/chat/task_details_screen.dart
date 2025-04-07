@@ -7,7 +7,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_fe/view/chat/escrow_payment.dart';
 
 class TaskDetailsScreen extends StatefulWidget{
   final int taskTakenId;
@@ -108,32 +108,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     }
   }
 
-  Future<void> redirectToEscrow(String paymentUrl) async {
-    final Uri url = Uri.parse(paymentUrl);
-
-    debugPrint("Attempting to launch: $url");
-
-    try{
-      if (!await canLaunchUrl(url)) {
-        debugPrint("Cannot launch URL: $url");
-        throw 'Could not launch $paymentUrl';
-      }
-
-      bool launched =
-          await launchUrl(url, mode: LaunchMode.externalApplication);
-
-      if (!launched) {
-        debugPrint("launchUrl() failed.");
-        throw 'Could not launch $paymentUrl';
-      }
-    }catch(e, stackTrace){
-      debugPrint(e.toString());
-      debugPrintStack(stackTrace: stackTrace);
-    }
-
-    debugPrint("URL Launched Successfully!");
-  }
-
 
   //Main Application
   @override
@@ -151,7 +125,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : taskAssignment == null
-          ? const Center(child: Text('No task information available. Please Try Again.'))
+          ? const Center(child: Text('Error Loading Task Information. Please Try Again.'))
           : role == "Tasker" ? _buildClientDetails() : _buildTaskerDetails()
     );
   }
@@ -230,35 +204,125 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                 color: Color(0XFF03045E)
               ),
             ),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Wrap(
-                spacing: 8.0,
-                runSpacing: 4.0,
-                children: taskClientStatus.map((status) => ChoiceChip(
-                  label: Text(
-                    status,
-                    style: TextStyle(
-                      fontSize: 14,
-                    ),
-                  ),
-                  selected: selectedTaskStatus == status,
-                  onSelected: (bool selected) {
-                    if (selected) {
-                      setState(() {
-                        selectedTaskStatus = status;
-                      });
-                      _handleTaskStatusChange(status);
-                    }
-                  },
-                  labelPadding: EdgeInsets.symmetric(horizontal: 12), // Adjust padding
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20), // Adjust border radius
-                  ),
-                )).toList(),
+            // Align(
+            //   alignment: Alignment.centerLeft,
+            //   child: Wrap(
+            //     spacing: 8.0,
+            //     runSpacing: 4.0,
+            //     children: taskClientStatus.map((status) => ChoiceChip(
+            //       label: Text(
+            //         status,
+            //         style: TextStyle(
+            //           fontSize: 14,
+            //         ),
+            //       ),
+            //       selected: selectedTaskStatus == status,
+            //       onSelected: (bool selected) {
+            //         if (selected) {
+            //           setState(() {
+            //             selectedTaskStatus = status;
+            //           });
+            //           _handleTaskStatusChange(status);
+            //         }
+            //       },
+            //       labelPadding: EdgeInsets.symmetric(horizontal: 12), // Adjust padding
+            //       shape: RoundedRectangleBorder(
+            //         borderRadius: BorderRadius.circular(20), // Adjust border radius
+            //       ),
+            //     )).toList(),
+            //   ),
+            // ),
+            ElevatedButton(
+              onPressed: () => showEscrowPayment(context),
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.all(Color(0XFF3E9B52)),
               ),
+              child: Row(
+                children: [
+                  Icon(
+                    FontAwesomeIcons.check,
+                    color: Colors.white,
+                  ),
+                  SizedBox(width: 10,),
+                  Text(
+                    "Accept Tasker",
+                    style: GoogleFonts.roboto(
+                        fontSize: 16,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold
+                    ),
+                  )
+                ],
+              )
+            ),
+            SizedBox(width: 5,),
+            ElevatedButton(
+                onPressed: () => showRejectionOrCancellationForm("Reject"),
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(Color(0XFFD43D4D)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      FontAwesomeIcons.trash,
+                      color: Colors.white,
+                    ),
+                    SizedBox(width: 10,),
+                    Text(
+                      "Reject Tasker",
+                      style: GoogleFonts.roboto(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold
+                      ),
+                    )
+                  ],
+                )
+            ),
+            ElevatedButton(
+                onPressed: () => showRejectionOrCancellationForm("Cancel"),
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(Color(0XFFD43D4D)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      FontAwesomeIcons.ban,
+                      color: Colors.white,
+                    ),
+                    SizedBox(width: 10,),
+                    Text(
+                      "Cancel the Task",
+                      style: GoogleFonts.roboto(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold
+                      ),
+                    )
+                  ],
+                )
             ),
             const SizedBox(height: 20),
+            ///
+            /// If Tasker finishes the task on time, or the task in itself reaches its dealine, this button must appear.
+            ///
+            /// -Ces
+            // Center(
+            //   child: ElevatedButton(
+            //     style: ButtonStyle(
+            //       backgroundColor: WidgetStateProperty.all(Color(0XFF3E9B52)),
+            //     ),
+            //     onPressed: () => Navigator.of(context).pop,
+            //     child: Text(
+            //       "Release Payment",
+            //       style: GoogleFonts.roboto(
+            //         fontSize: 16,
+            //         color: Colors.white,
+            //         fontWeight: FontWeight.bold
+            //       ),
+            //     )
+            //   )
+            // )
           ]
         ),
       )
@@ -440,118 +504,225 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
         showRejectionOrCancellationForm("Cancelled");
         return "Cancelled";
       case "Confirm Tasker":
-        showEscrowPayment();
+        showEscrowPayment(context);
         return "Confirmed";
       case "Completed":
         //TODO: implement this later for Client
+
         return "Completed";
     }
     return "";
   }
 
-  void showEscrowPayment(){
+  void showEscrowPayment(BuildContext parentContext) {  // Add parentContext parameter
     showDialog(
-      context: context,
-      builder: (BuildContext context){
+      context: parentContext,  // Use parentContext here
+      builder: (BuildContext dialogContext) {  // Rename the inner context
         return AlertDialog(
           title: Text(
             "Deposit the Payment First.",
             style: GoogleFonts.roboto(
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0272B1)
+              fontSize: 30,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0272B1),
             ),
             textAlign: TextAlign.center,
           ),
-          content: Text(processingData ? "" : "In order for the tasker to continue their task, you need to deposit first your negotiated and agreed contract price."),
+          content: Text(
+            "In order for the tasker to continue their task, you need to deposit first your negotiated and agreed contract price.",
+          ),
           actions: <Widget>[
             TextButton(
               onPressed: () async {
-                Map<String, dynamic> result = await taskRequestController.depositAmountToEscrow(
-                    taskAssignment?.task?.contactPrice.toDouble() ?? 0.00,
-                    taskAssignment?.taskTakenId ?? 0);
-                processingData = true;
-                if(result.containsKey("message")){
-                  ScaffoldMessenger.of(context).showMaterialBanner(
+                setState(() {
+                  processingData = true;
+                });
+
+                try {
+                  Navigator.of(dialogContext).pop();  // Use dialogContext to pop the dialog
+                  ScaffoldMessenger.of(parentContext).showMaterialBanner(  // Use parentContext here
                     MaterialBanner(
-                      content: result['message'],
+                      backgroundColor: Color(0xFFD6932A),
+                      content: Text("Please Wait while we process your transaction."),
                       actions: [
                         TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: Text("Dismiss")
-                        )
+                          onPressed: () {
+                            ScaffoldMessenger.of(parentContext).hideCurrentMaterialBanner();
+                          },
+                          child: Text("Dismiss"),
+                        ),
                       ],
                     ),
                   );
-                  if(result.containsKey("payment_url")){
-                    redirectToEscrow(result["payment_url"]);
+
+                  Map<String, dynamic> result = await taskRequestController.depositAmountToEscrow(
+                    taskAssignment?.task?.contactPrice.toDouble() ?? 0.00,
+                    taskAssignment?.taskTakenId ?? 0,
+                  );
+
+                  if (result.containsKey("message")) {
+                    ScaffoldMessenger.of(parentContext).showMaterialBanner(
+                      MaterialBanner(
+                        content: Text(result['message']),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              ScaffoldMessenger.of(parentContext).hideCurrentMaterialBanner();
+                            },
+                            child: Text("Dismiss"),
+                          ),
+                        ],
+                      ),
+                    );
+                    Navigator.push(
+                      parentContext,  // Use parentContext for navigation
+                      MaterialPageRoute(
+                        builder: (context) => EscrowPaymentScreen(
+                          paymentUrl: result['payment_url'],
+                          contractPrice: taskAssignment?.task?.contactPrice.toDouble() ?? 0.00,
+                          taskTitle: taskAssignment?.task?.title ?? "Untitled Task",
+                        ),
+                      ),
+                    );
+                  } else if (result.containsKey("error")) {
+                    ScaffoldMessenger.of(parentContext).showMaterialBanner(
+                      MaterialBanner(
+                        content: Text(result['error']),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              ScaffoldMessenger.of(parentContext).hideCurrentMaterialBanner();
+                            },
+                            child: Text("Dismiss"),
+                          ),
+                        ],
+                      ),
+                    );
                   }
-                }else if(result.containsKey("error")){
-                  ScaffoldMessenger.of(context).showMaterialBanner(
+                } catch (e, stackTrace) {
+                  debugPrint(e.toString());
+                  debugPrintStack(stackTrace: stackTrace);
+                  ScaffoldMessenger.of(parentContext).showMaterialBanner(
                     MaterialBanner(
-                      content: result['error'],
-                      actions:[
+                      content: Text("Error while we process your transaction. Please Try Again."),
+                      actions: [
                         TextButton(
-                        onPressed: () {
-                          Navigator.of(context).dispose();
+                          onPressed: () {
+                            ScaffoldMessenger.of(parentContext).hideCurrentMaterialBanner();
                           },
-                          child: Text("Dismiss")
-                        )
-                      ]
+                          child: Text("Dismiss"),
+                        ),
+                      ],
                     ),
                   );
+                } finally {
+                  setState(() {
+                    processingData = false;
+                  });
                 }
               },
               child: Padding(
                 padding: const EdgeInsets.all(10.0),
-                  child: Row(
+                child: Row(
                   children: [
-                    Icon(
-                      FontAwesomeIcons.moneyBillTransfer,
-                      color: Colors.green,
-                      size: 20,
-                    ),
-                    SizedBox(width: 20,),
+                    Icon(FontAwesomeIcons.moneyBillTransfer, color: Colors.green, size: 20),
+                    SizedBox(width: 20),
                     Text(
                       "Deposit Amount",
-                      style: GoogleFonts.roboto(
-                        fontSize: 14,
-                        color: Colors.green
-                      ),
+                      style: GoogleFonts.roboto(fontSize: 14, color: Colors.green),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),  // Use dialogContext here
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Row(
+                  children: [
+                    Icon(FontAwesomeIcons.ban, color: Colors.red, size: 20),
+                    SizedBox(width: 20),
+                    Text(
+                      "Cancel",
+                      style: GoogleFonts.roboto(fontSize: 14, color: Colors.red),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void showCompletedTaskPayment() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            "Does your Tasker Finished Your Task?",
+            style: GoogleFonts.roboto(
+              fontSize: 30,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0272B1),
+            ),
+          ),
+          content: Text(
+            "If your tasker had finished your task, check first the following: \n 1. "
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(), //A function where
+              child: Row(
+                children: [
+                  Icon(
+                    FontAwesomeIcons.moneyBillTransfer,
+                    color: Colors.green.shade900,
+                    size: 20,
+                  ),
+                  SizedBox(
+                    width: 20,
+                  ),
+                  Text(
+                    "Release Funds",
+                    style: GoogleFonts.roboto(
+                      fontSize: 14,
+                      color: Colors.green.shade900,
                     )
-                  ]
-                )
+                  )
+                ]
               )
             ),
             TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Row(
-                        children: [
-                          Icon(
-                            FontAwesomeIcons.ban,
-                            color: Colors.red,
-                            size: 20,
-                          ),
-                          SizedBox(width: 20,),
-                          Text(
-                            "Cancel",
-                            style: GoogleFonts.roboto(
-                                fontSize: 14,
-                                color: Colors.red
-                            ),
-                          )
-                        ]
-                    )
-                )
-            ),
-          ]
+              onPressed: () => Navigator.of(context).pop(),
+              child: Row(
+                children: [
+                  Icon(
+                    FontAwesomeIcons.ban,
+                    color: Colors.red.shade900,
+                    size: 20,
+                  ),
+                  SizedBox(
+                    width: 20,
+                  ),
+                  Text(
+                    "Cancel",
+                    style: GoogleFonts.roboto(
+                      fontSize: 14,
+                      color: Colors.red.shade900
+                    ),
+                  )
+                ]
+              )
+            )
+          ],
         );
       }
     );
   }
-
   void showRejectionOrCancellationForm(String status){
     showDialog(
       context: context,

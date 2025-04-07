@@ -59,6 +59,8 @@ dependencies:
   url_launcher: ^6.3.1
   flutter_svg: ^2.0.17
   flutter_dotenv: ^5.2.1
+  webview_flutter: ^4.10.0
+  webview_flutter_android: ^4.3.4
 
 dev_dependencies:
   flutter_test:
