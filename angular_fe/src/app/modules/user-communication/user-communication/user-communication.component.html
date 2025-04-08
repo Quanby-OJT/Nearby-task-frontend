@@ -47,7 +47,7 @@
           <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">User Role</th>
           <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Email</th>
           <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Date Created</th>
-          
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Status</th>
           <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Action</th>
         </tr>
       </thead>
@@ -64,6 +64,7 @@
           <td class="px-4 py-3 text-center">{{ convo.user.user_role }}</td>
           <td class="px-4 py-3 text-center">{{ convo.user.email }}</td>
           <td class="px-4 py-3 text-center">{{ convo.created_at }}</td>
+          <td class="px-4 py-3 text-center">{{ convo.user.acc_status }}</td>
           <td class="px-4 py-3 text-center">
             <div  class="flex gap-2">
               <span class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-red-500" (click)="banUser(convo.user_id)">Ban</span>

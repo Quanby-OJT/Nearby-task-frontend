@@ -175,9 +175,18 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
         this.userConversationService.banUser(id).subscribe((response) => {
           if (response) {
             Swal.fire('Banned!', 'User has been banned.', 'success').then(() => {
-              this.updatePage();
+              // Refresh the conversation list after banning
+              this.userConversationService.getUserLogs().subscribe((response) => {
+                if (response && response.data) {
+                  this.conversation = response.data;
+                  this.filteredConversations = [...this.conversation];
+                  this.updatePage();
+                }
+              });
             });
           }
+        }, (error) => {
+          Swal.fire('Error!', 'Failed to ban the user.', 'error');
         });
       }
     });
@@ -191,20 +200,26 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, ban it!',
+      confirmButtonText: 'Yes, warn it!', // Fixed the button text
     }).then((result) => {
       if (result.isConfirmed) {
-        this.userConversationService.banUser(id).subscribe((response) => {
+        this.userConversationService.warnUser(id).subscribe((response) => { // Fixed to call warnUser
           if (response) {
-            Swal.fire('Banned!', 'User has been banned.', 'success').then(() => {
-              this.updatePage();
+            Swal.fire('Warned!', 'User has been warned.', 'success').then(() => { // Fixed the message
+              // Refresh the conversation list after warning
+              this.userConversationService.getUserLogs().subscribe((response) => {
+                if (response && response.data) {
+                  this.conversation = response.data;
+                  this.filteredConversations = [...this.conversation];
+                  this.updatePage();
+                }
+              });
             });
           }
+        }, (error) => {
+          Swal.fire('Error!', 'Failed to warn the user.', 'error');
         });
       }
     });
   }
-
-
-
 }

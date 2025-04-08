@@ -13,7 +13,6 @@ export class UserConversationService {
   constructor(
     private http: HttpClient, private sessionStorage: SessionLocalStorage) {}
 
-
   private getHeaders(): HttpHeaders {
     return new HttpHeaders({
       'Content-Type': 'application/json',
@@ -31,6 +30,13 @@ export class UserConversationService {
 
   banUser(id: number): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/banUser/${id}`, {},{
+      headers: this.getHeaders(),
+      withCredentials: true 
+    });
+  }
+
+  warnUser(id: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/warnUser/${id}`, {},{
       headers: this.getHeaders(),
       withCredentials: true 
     });
