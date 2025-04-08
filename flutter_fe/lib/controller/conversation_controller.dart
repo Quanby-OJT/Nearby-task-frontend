@@ -9,7 +9,8 @@ class ConversationController {
   final storage = GetStorage();
 
   Future<void> sendMessage(BuildContext context, int taskTaken) async {
-    int userId = storage.read('user_id');
+    int userId = await storage.read('user_id');
+    debugPrint("$userId $taskTaken");
 
     final conversation = Conversation(
 
@@ -17,6 +18,7 @@ class ConversationController {
       userId: userId,
       taskTakenId: taskTaken,
     );
+    debugPrint("Data to be Sent: ${conversation.toString()}");
     Map<String, dynamic> messageSent = await TaskDetailsService.sendMessage(conversation);
 
     if (messageSent.containsKey('message')) {
@@ -31,7 +33,7 @@ class ConversationController {
   Future<List<Conversation>> getMessages(BuildContext context, int taskTakenId) async {
     debugPrint(taskTakenId.toString());
     final messages = await TaskDetailsService.getMessages(taskTakenId);
-    debugPrint(messages.toString());
+    //debugPrint(messages.toString());
 
     if (messages.containsKey("data")) {
 

@@ -418,7 +418,7 @@ class TaskRequestService {
           'task_taken_id': taskTakenId,
           'client_id': int.parse(userId),
           'amount': contractPrice,
-          'status': 'Accepted'
+          'status': 'Confirmed'
         },
       );
     } catch (e) {
@@ -474,6 +474,37 @@ class TaskRequestService {
       return {
         'success': false,
         'message': 'Failed to reject the tasker. Please Try Again.'
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> releaseEscrowPayment(int taskTakenId) async {
+    try {
+      final userId = await getUserId();
+
+      if (userId == null) {
+        return {
+          'success': false,
+          'error': 'Please log in to release payments.',
+        };
+      }
+
+      debugPrint("Releasing escrow payment with task taken ID: $taskTakenId");
+
+      return await _postRequest(
+        endpoint: '/release-escrow-payment',
+        body: {
+          'task_taken_id': taskTakenId,
+          'tasker id': int.parse(userId),
+          'status': 'Accepted'
+        },
+      );
+    }catch (e, stackTrace){
+      debugPrint("Error releasing escrow payment: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {
+        'success': false,
+        'error': 'Failed to release the payment. Please Try Again.'
       };
     }
   }

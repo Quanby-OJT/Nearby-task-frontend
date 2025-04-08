@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:get_storage/get_storage.dart';
 
+import '../model/client_model.dart';
 import '../model/tasker_model.dart';
 
 class JobPostService {
@@ -141,11 +142,11 @@ class JobPostService {
             response["tasks"] as Map<String, dynamic>;
         debugPrint("Mapped: ${taskData.toString()}");
         return TaskAssignment(
-          client: null,
+          client: ClientModel.fromJson(taskData['clients']),
           tasker: null,
           task: TaskModel.fromJson(taskData),
-          taskStatus: taskData['task_status'],
-          taskTakenId: taskData['task_taken_id']
+          taskStatus: taskData['task_status'] ?? "",
+          taskTakenId: taskData['task_taken_id'] ?? 0
         );
       }
 

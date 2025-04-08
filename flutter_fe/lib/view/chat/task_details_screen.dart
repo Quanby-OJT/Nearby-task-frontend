@@ -204,72 +204,21 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                 color: Color(0XFF03045E)
               ),
             ),
-            // Align(
-            //   alignment: Alignment.centerLeft,
-            //   child: Wrap(
-            //     spacing: 8.0,
-            //     runSpacing: 4.0,
-            //     children: taskClientStatus.map((status) => ChoiceChip(
-            //       label: Text(
-            //         status,
-            //         style: TextStyle(
-            //           fontSize: 14,
-            //         ),
-            //       ),
-            //       selected: selectedTaskStatus == status,
-            //       onSelected: (bool selected) {
-            //         if (selected) {
-            //           setState(() {
-            //             selectedTaskStatus = status;
-            //           });
-            //           _handleTaskStatusChange(status);
-            //         }
-            //       },
-            //       labelPadding: EdgeInsets.symmetric(horizontal: 12), // Adjust padding
-            //       shape: RoundedRectangleBorder(
-            //         borderRadius: BorderRadius.circular(20), // Adjust border radius
-            //       ),
-            //     )).toList(),
-            //   ),
-            // ),
-            ElevatedButton(
-              onPressed: () => showEscrowPayment(context),
-              style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all(Color(0XFF3E9B52)),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    FontAwesomeIcons.check,
-                    color: Colors.white,
-                  ),
-                  SizedBox(width: 10,),
-                  Text(
-                    "Accept Tasker",
-                    style: GoogleFonts.roboto(
-                        fontSize: 16,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold
-                    ),
-                  )
-                ],
-              )
-            ),
-            SizedBox(width: 5,),
-            ElevatedButton(
-                onPressed: () => showRejectionOrCancellationForm("Reject"),
+            if(taskAssignment?.taskStatus == "Pending") ...[
+              ElevatedButton(
+                onPressed: () => showEscrowPayment(context),
                 style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(Color(0XFFD43D4D)),
+                  backgroundColor: WidgetStateProperty.all(Color(0XFF3E9B52)),
                 ),
                 child: Row(
                   children: [
                     Icon(
-                      FontAwesomeIcons.trash,
+                      FontAwesomeIcons.check,
                       color: Colors.white,
                     ),
                     SizedBox(width: 10,),
                     Text(
-                      "Reject Tasker",
+                      "Accept Tasker",
                       style: GoogleFonts.roboto(
                           fontSize: 16,
                           color: Colors.white,
@@ -278,8 +227,32 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                     )
                   ],
                 )
-            ),
-            ElevatedButton(
+              ),
+              SizedBox(width: 5,),
+              ElevatedButton(
+                  onPressed: () => showRejectionOrCancellationForm("Reject"),
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all(Color(0XFFD43D4D)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        FontAwesomeIcons.trash,
+                        color: Colors.white,
+                      ),
+                      SizedBox(width: 10,),
+                      Text(
+                        "Reject Tasker",
+                        style: GoogleFonts.roboto(
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold
+                        ),
+                      )
+                    ],
+                  )
+              ),
+              ElevatedButton(
                 onPressed: () => showRejectionOrCancellationForm("Cancel"),
                 style: ButtonStyle(
                   backgroundColor: WidgetStateProperty.all(Color(0XFFD43D4D)),
@@ -301,28 +274,30 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                     )
                   ],
                 )
-            ),
+              ),
+            ],
             const SizedBox(height: 20),
             ///
             /// If Tasker finishes the task on time, or the task in itself reaches its dealine, this button must appear.
             ///
             /// -Ces
-            // Center(
-            //   child: ElevatedButton(
-            //     style: ButtonStyle(
-            //       backgroundColor: WidgetStateProperty.all(Color(0XFF3E9B52)),
-            //     ),
-            //     onPressed: () => Navigator.of(context).pop,
-            //     child: Text(
-            //       "Release Payment",
-            //       style: GoogleFonts.roboto(
-            //         fontSize: 16,
-            //         color: Colors.white,
-            //         fontWeight: FontWeight.bold
-            //       ),
-            //     )
-            //   )
-            // )
+
+            if(taskAssignment?.taskStatus == "Completed")...[Center(
+              child: ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(Color(0XFF3E9B52)),
+                ),
+                onPressed: () => showCompletedTaskPayment(),
+                child: Text(
+                  "Release Payment",
+                  style: GoogleFonts.roboto(
+                    fontSize: 16,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold
+                  ),
+                )
+              )
+            )]
           ]
         ),
       )
@@ -334,6 +309,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     return SizedBox(
       height: MediaQuery.of(context).size.height,
       child: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -396,7 +372,14 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text("Your Application Status: ", style: TextStyle(fontSize: 16)),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 6),
+                  child: Text(
+                    "Your Current Application Status: ",
+                    style: TextStyle(
+                      fontSize: 16)
+                  ),
+                ),
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
@@ -442,6 +425,14 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                 ]
               ),
             ]
+            else if(taskAssignment?.taskStatus == "Confirmed") ...[
+              ElevatedButton(
+                onPressed: () => showEscrowPayment(context),
+                child: Text(
+                  "Proceed to Agreement"
+                )
+              )
+            ]
           ]
         ),
       ),
@@ -451,15 +442,17 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   Color badgeColor(String status){
     switch(status){
       case "Rejected":
-        return Colors.red;
+        return Color(0XFFD43D4D);
       case "Cancelled":
-        return Colors.red.shade600;
+        return Color(0XFFD43D4D);
       case "Confirmed":
-        return Colors.green.shade300;
+        return Color(0XFF4DBF66);
         case "Ongoing":
-        return Colors.orange;
+        return Color(0XFF3C28CC);
       case "Completed":
-        return Colors.green.shade600;
+        return Color(0XFF2E763E);
+      case "Pending":
+        return Color(0XFFE7A335);
       default:
         return Colors.grey;
     } 
@@ -520,7 +513,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
       builder: (BuildContext dialogContext) {  // Rename the inner context
         return AlertDialog(
           title: Text(
-            "Deposit the Payment First.",
+            "Pay Your Tasker Upfront.",
             style: GoogleFonts.roboto(
               fontSize: 30,
               fontWeight: FontWeight.bold,
@@ -529,7 +522,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
             textAlign: TextAlign.center,
           ),
           content: Text(
-            "In order for the tasker to continue their task, you need to deposit first your negotiated and agreed contract price.",
+            "In order for the tasker to start their task, you need to pay 25% of your negotiated and agreed contract price.",
           ),
           actions: <Widget>[
             TextButton(
@@ -555,6 +548,13 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                     ),
                   );
 
+                  // Auto-dismiss the banner after 10 seconds
+                  Future.delayed(Duration(seconds: 10), () {
+                    ScaffoldMessenger.of(parentContext)
+                        .hideCurrentMaterialBanner();
+                    debugPrint("Material Banner Dismissed!");
+                  });
+
                   Map<String, dynamic> result = await taskRequestController.depositAmountToEscrow(
                     taskAssignment?.task?.contactPrice.toDouble() ?? 0.00,
                     taskAssignment?.taskTakenId ?? 0,
@@ -574,6 +574,12 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                         ],
                       ),
                     );
+
+                    // Auto-dismiss the banner after 10 seconds
+                    Future.delayed(Duration(seconds: 10), () {
+                      ScaffoldMessenger.of(parentContext).hideCurrentMaterialBanner();
+                      debugPrint("Material Banner Dismissed!");
+                    });
                     Navigator.push(
                       parentContext,  // Use parentContext for navigation
                       MaterialPageRoute(
@@ -598,13 +604,19 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                         ],
                       ),
                     );
+
+                    // Auto-dismiss the banner after 10 seconds
+                    Future.delayed(Duration(seconds: 10), () {
+                      ScaffoldMessenger.of(parentContext).hideCurrentMaterialBanner();
+                      debugPrint("Material Banner Dismissed!");
+                    });
                   }
                 } catch (e, stackTrace) {
                   debugPrint(e.toString());
                   debugPrintStack(stackTrace: stackTrace);
                   ScaffoldMessenger.of(parentContext).showMaterialBanner(
                     MaterialBanner(
-                      content: Text("Error while we process your transaction. Please Try Again."),
+                      content: Text("An Error Occurred while we process your transaction. Please Try Again."),
                       actions: [
                         TextButton(
                           onPressed: () {
@@ -615,6 +627,13 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                       ],
                     ),
                   );
+
+                  // Auto-dismiss the banner after 10 seconds
+                  Future.delayed(Duration(seconds: 10), () {
+                    ScaffoldMessenger.of(parentContext)
+                        .hideCurrentMaterialBanner();
+                    debugPrint("Material Banner Dismissed!");
+                  });
                 } finally {
                   setState(() {
                     processingData = false;
@@ -628,7 +647,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                     Icon(FontAwesomeIcons.moneyBillTransfer, color: Colors.green, size: 20),
                     SizedBox(width: 20),
                     Text(
-                      "Deposit Amount",
+                      "Pay Your Tasker Now",
                       style: GoogleFonts.roboto(fontSize: 14, color: Colors.green),
                     ),
                   ],
@@ -656,7 +675,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
       },
     );
   }
-
   void showCompletedTaskPayment() {
     showDialog(
       context: context,
@@ -671,11 +689,11 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
             ),
           ),
           content: Text(
-            "If your tasker had finished your task, check first the following: \n 1. "
+            "If your tasker had finished your task, check first the following: \n 1. Work Quality \n 2. Tasker's Attitude \n"
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(), //A function where
+              onPressed: () => Navigator.of(context).pop(), //A function where the escrow payment will be released to the tasker and they will provide a feedback of their work.
               child: Row(
                 children: [
                   Icon(
@@ -805,7 +823,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                         ),
                         SizedBox(width: 20,),
                         Text(
-                          processingData ? "Please Wait..." : "Send Rejection Notice",
+                          processingData ? "Please Wait..." : status == "Rejected" ? "Send Rejection Notice" : "Send Cancellation Notice",
                           style: GoogleFonts.roboto(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,

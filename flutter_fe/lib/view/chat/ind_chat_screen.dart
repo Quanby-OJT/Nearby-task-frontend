@@ -47,7 +47,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   }
 
   Future<void> loadConversationHistory() async {
-    final messages = await conversationController.getMessages(context, widget.taskTakenId ?? 0);
+    final messages = await conversationController.getMessages(context, widget.taskTakenId);
     if (mounted) { // Check if the widget is still in the tree
       setState(() {
         _messages.clear();

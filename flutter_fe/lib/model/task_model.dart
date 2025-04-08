@@ -1,3 +1,5 @@
+import 'package:flutter_fe/model/client_model.dart';
+
 class TaskModel {
   final int id;
   final int? clientId;
@@ -13,6 +15,7 @@ class TaskModel {
   final String? remarks;
   final String taskBeginDate;
   final String workType; // New field
+  final ClientModel? client;
 
   TaskModel({
     required this.id,
@@ -29,6 +32,7 @@ class TaskModel {
     this.remarks,
     required this.taskBeginDate,
     required this.workType,
+    this.client
   });
 
   Map<String, dynamic> toJson() {
@@ -78,6 +82,7 @@ class TaskModel {
       taskBeginDate: json['task_begin_date'] as String,
       status: json['status'] as String,
       workType: json['work_type'] as String,
+      client: json['client'] != null ? ClientModel.fromJson(json['client']) : null,
     );
   }
 }

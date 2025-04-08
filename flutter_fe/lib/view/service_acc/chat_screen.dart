@@ -790,11 +790,9 @@ class _ChatScreenState extends State<ChatScreen> {
                           style: TextStyle(fontSize: 14),
                         )
                       ]),
-                      trailing: Icon(Icons.arrow_forward_ios,
-                          size: 16, color: Colors.grey),
                       onTap: () {
-                        debugPrint(
-                            "Task Id: " + assignment.taskTakenId.toString());
+                        // debugPrint(
+                        //     "Task Id: " + assignment.taskTakenId.toString());
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -806,6 +804,14 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                         );
                       },
+                      tileColor: Colors.grey[50],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
                     );
                   },
                 ),

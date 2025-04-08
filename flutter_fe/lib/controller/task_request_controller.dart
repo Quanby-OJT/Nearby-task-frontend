@@ -105,4 +105,22 @@ class TaskRequestController {
       return "An Error Occured. Please Try Again.";
     }
   }
+
+  Future<String> releaseEscrowPayment(int taskTakenId) async{
+    try{
+      debugPrint("TaskRequestController: Releasing escrow payment for task taken with ID $taskTakenId");
+      var response = await _requestService.releaseEscrowPayment(taskTakenId);
+      if(response.containsKey("message")){
+        return response["message"];
+      }else if(response.containsKey("error")){
+        return response["error"];
+      }else{
+        return "Unknown Error";
+      }
+    }catch(e, stackTrace){
+      debugPrint("Error in TaskRequestController.releaseEscrowPayment: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return "An Error Occured while releasing your payment. Please Try Again.";
+    }
+  }
 }
