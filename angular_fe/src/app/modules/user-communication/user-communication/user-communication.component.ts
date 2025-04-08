@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { UserConversationService } from 'src/app/services/conversation.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-user-communication',
@@ -26,7 +27,9 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
 
   private conversationSubscription!: Subscription;
 
-  constructor(private userConversationService: UserConversationService) {}
+  constructor(
+    private userConversationService: UserConversationService,
+  ) {}
 
   ngOnInit(): void {
     this.conversationSubscription = this.userConversationService.getUserLogs().subscribe(
@@ -157,4 +160,51 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
       this.updatePage();
     }
   }
+  
+  banUser(id: number): void {
+    Swal.fire({
+      title: 'Are you sure to ban?',
+      text: 'This action cannot be undone!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, ban it!',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.userConversationService.banUser(id).subscribe((response) => {
+          if (response) {
+            Swal.fire('Banned!', 'User has been banned.', 'success').then(() => {
+              this.updatePage();
+            });
+          }
+        });
+      }
+    });
+  }
+
+  warnUser(id: number): void {
+    Swal.fire({
+      title: 'Are you sure to warn this user?',
+      text: 'This action cannot be undone!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, ban it!',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.userConversationService.banUser(id).subscribe((response) => {
+          if (response) {
+            Swal.fire('Banned!', 'User has been banned.', 'success').then(() => {
+              this.updatePage();
+            });
+          }
+        });
+      }
+    });
+  }
+
+
+
 }

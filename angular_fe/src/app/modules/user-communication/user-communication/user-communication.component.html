@@ -41,32 +41,34 @@
     <table class="w-full border-collapse border-0 text-left text-sm">
       <thead class="border-b">
         <tr class="bg-gray-100">
-          <th class="px-4 py-2 w-[80px] lg:w-[100px]">No</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Task No</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">User No</th>
           <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">User Name</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">User Role</th>
           <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Conversation</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">User Role</th>
           <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Email</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Reported</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Date Created</th>
+          
           <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Action</th>
         </tr>
       </thead>
       <tbody>
         <!-- Record 1 -->
-        <tr *ngFor="let convo of displayConversations; let i = index" class="border-b">
-          <td class="px-4 py-3 text-center">{{ i + 1 }}</td>
-          <td class="px-4 py-3 text-center">{{ convo.task_taken_id }}</td>
+        <tr *ngFor="let convo of displayConversations" class="border-b">
+          <td class="px-4 py-3 text-center">{{ convo.user_id }}</td>
           <td class="px-4 py-3 text-center">{{ convo.user.first_name }} {{ convo.user.middle_name }} {{ convo.user.last_name }}</td>
-          <td class="px-4 py-3 text-center">{{ convo.user.user_role }}</td>
           <td class="px-4 py-3 text-center">
-            <div class="max-h-[80px] max-w-[200px] overflow-y-auto overflow-x-hidden mx-auto text-left whitespace-pre-wrap break-words">
+            <div class="max-h-[80px] max-w-[300px] overflow-y-auto overflow-x-hidden mx-auto text-left whitespace-pre-wrap break-words text-center">
               {{ convo.conversation }}
             </div>
           </td>
+          <td class="px-4 py-3 text-center">{{ convo.user.user_role }}</td>
           <td class="px-4 py-3 text-center">{{ convo.user.email }}</td>
-          <td class="px-4 py-3 text-center">{{ convo.reported }}</td>
+          <td class="px-4 py-3 text-center">{{ convo.created_at }}</td>
           <td class="px-4 py-3 text-center">
-            <span class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-red-300">Ban</span>
+            <div  class="flex gap-2">
+              <span class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-red-500" (click)="banUser(convo.user_id)">Ban</span>
+              <span class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-yellow-300" (click)="warnUser(convo.user_id)">Warn</span>
+            </div>
           </td>
         </tr>
       </tbody>
