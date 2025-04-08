@@ -17,23 +17,22 @@
       <!-- Search input -->
       <div class="flex-1 min-w-[200px] lg:min-w-[300px] xl:min-w-[400px]">
         <label class="relative w-full">
-          <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" placeholder="Search users" type="text" />
+          <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" placeholder="Search users" type="text" (input)="searchConversations($event)" />
         </label>
       </div>
 
-      <!-- Status filter dropdown -->
-      <select name="status" class="text-muted-foreground w-28! p-2 border rounded-md">
+      <!-- Reported filter dropdown -->
+      <select name="reported" class="text-muted-foreground w-28! p-2 border rounded-md" (change)="filterReported($event)">
         <option value="">All Reports</option>
         <option value="true">True</option>
         <option value="false">False</option>
       </select>
       <!-- Status filter dropdown -->
-      <select name="status" class="text-muted-foreground w-28! p-2 border rounded-md">
+      <select name="status" class="text-muted-foreground w-28! p-2 border rounded-md" (change)="filterStatus($event)">
         <option value="">All Status</option>
         <option value="active">Online</option>
         <option value="disabled">Offline</option>
       </select>
-
     </div>
   </div>
 
@@ -54,12 +53,16 @@
       </thead>
       <tbody>
         <!-- Record 1 -->
-        <tr *ngFor="let convo of conversation; let i = index" class="border-b">
+        <tr *ngFor="let convo of displayConversations; let i = index" class="border-b">
           <td class="px-4 py-3 text-center">{{ i + 1 }}</td>
           <td class="px-4 py-3 text-center">{{ convo.task_taken_id }}</td>
           <td class="px-4 py-3 text-center">{{ convo.user.first_name }} {{ convo.user.middle_name }} {{ convo.user.last_name }}</td>
           <td class="px-4 py-3 text-center">{{ convo.user.user_role }}</td>
-          <td class="px-4 py-3 text-center">{{ convo.conversation }}</td>
+          <td class="px-4 py-3 text-center">
+            <div class="max-h-[80px] max-w-[200px] overflow-y-auto overflow-x-hidden mx-auto text-left whitespace-pre-wrap break-words">
+              {{ convo.conversation }}
+            </div>
+          </td>
           <td class="px-4 py-3 text-center">{{ convo.user.email }}</td>
           <td class="px-4 py-3 text-center">{{ convo.reported }}</td>
           <td class="px-4 py-3 text-center">
@@ -76,7 +79,7 @@
     <div class="text-muted-foreground flex items-center justify-between py-3 px-5 text-xs">
       <div class="flex items-center gap-2">
         Show
-        <select class="w-[140px] p-2 border rounded-md">
+        <select class="w-[140px] p-2 border rounded-md" (change)="changeConversationsPerPage($event)">
           <option value="10" selected>10</option>
           <option value="20">20</option>
           <option value="30">30</option>
@@ -90,23 +93,31 @@
     <div class="flex items-center justify-end gap-4 sticky bottom-0 left-0 right-0 bg-white p-2">
       <!-- Show current range of logs -->
       <span class="text-sm border w-32 text-center">
-        1 - 5 of 5
+        {{ startIndex }} - {{ endIndex }} of {{ filteredConversations.length }}
       </span>
 
       <!-- Pagination buttons -->
       <div class="inline-flex items-center gap-2">
         <!-- Previous page button -->
-        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300">
+        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300"
+                [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
           ◀
         </button>
 
         <!-- Page number buttons -->
-        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-sm bg-primary text-white">
-          1
-        </button>
+        <ng-container *ngFor="let page of paginationButtons">
+          <button *ngIf="page !== '...'"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-sm"
+                  [ngClass]="{'bg-primary text-white': currentPage === page}"
+                  (click)="goToPage(page)">
+            {{ page }}
+          </button>
+          <span *ngIf="page === '...'">...</span>
+        </ng-container>
 
         <!-- Next page button -->
-        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300">
+        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300"
+                [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
           ▶
         </button>
       </div>

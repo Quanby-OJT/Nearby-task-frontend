@@ -62,14 +62,31 @@ export class UpdateUserComponent {
   loadUserData(): void {
     this.isLoading = true;
     const userId = Number(this.userId);
+    console.log('Loading data for user ID:', userId);
 
     this.userAccountService.getUserById(userId).subscribe({
       next: (response: any) => {
         console.log('Raw Backend Response:', response);
-        this.userData = response.user || response;
+        
+        // Handle different response structures
+        if (response.userme) {
+          // Tasker response
+          this.userData = response.user;
+        } else if (response.client) {
+          // Client response
+          this.userData = response.user;
+        } else if (response.user) {
+          // Admin/Moderator/Other response
+          this.userData = response.user;
+        } else {
+          // Fallback if none of the above
+          this.userData = response;
+        }
+        
         console.log('Processed User Data:', this.userData);
 
         if (this.userData) {
+          // Map the data from Supabase columns to form fields
           this.form.patchValue({
             firstName: this.userData.first_name || '',
             middleName: this.userData.middle_name || '',
@@ -79,10 +96,16 @@ export class UpdateUserComponent {
               : '',
             userRole: this.userData.user_role || '', 
             email: this.userData.email || '',
-            status: this.userData.acc_status || '',
+            status: this.userData.acc_status || this.userData.status || '',
           });
+
+          // Handle profile image
           this.profileImage = this.userData.image_link || null;
           console.log('Form Value After Patch:', this.form.value);
+          console.log('Profile Image:', this.profileImage);
+          
+          // Force change detection
+          this.cdRef.detectChanges();
         } else {
           console.warn('No user data found in response');
           Swal.fire({
@@ -92,7 +115,6 @@ export class UpdateUserComponent {
           });
         }
         this.isLoading = false;
-        this.cdRef.detectChanges();
       },
       error: (error: any) => {
         console.error('Error fetching user data:', error);
