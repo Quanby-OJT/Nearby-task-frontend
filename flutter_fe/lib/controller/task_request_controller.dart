@@ -59,7 +59,7 @@ class TaskRequestController {
       }
       var response = await _requestService.depositEscrowPayment(contractPrice, taskTakenId);
 
-      if(response.containsKey('message')){
+      if(response['success']){
            return {"message": response['message'], "payment_url": response['payment_url']};
       }else{
         return {"error": response['error']};

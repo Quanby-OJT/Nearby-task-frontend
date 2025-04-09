@@ -27,7 +27,6 @@ class ClientModel{
     return ClientModel(
         preferences: json['preferences'] as String,
         clientAddress: json['client_address'] as String,
-        user: UserModel.fromJson(json['user'])
     );
   }
 }

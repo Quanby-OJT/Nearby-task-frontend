@@ -7,7 +7,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_fe/view/chat/escrow_payment.dart';
+import 'package:flutter_fe/view/chat/payment.dart';
 
 class TaskDetailsScreen extends StatefulWidget{
   final int taskTakenId;
@@ -522,7 +522,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
             textAlign: TextAlign.center,
           ),
           content: Text(
-            "In order for the tasker to start their task, you need to pay 25% of your negotiated and agreed contract price.",
+            "In order for the tasker to start their task, you need to deposit your negotiated and agreed contract price.",
           ),
           actions: <Widget>[
             TextButton(
@@ -561,9 +561,12 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                   );
 
                   if (result.containsKey("message")) {
+                    ScaffoldMessenger.of(parentContext)
+                        .hideCurrentMaterialBanner();
+                    debugPrint("Material Banner Dismissed!");
                     ScaffoldMessenger.of(parentContext).showMaterialBanner(
                       MaterialBanner(
-                        content: Text(result['message']),
+                        content: Text("You will be redirected to the escrow payment page."),
                         actions: [
                           TextButton(
                             onPressed: () {
@@ -576,7 +579,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                     );
 
                     // Auto-dismiss the banner after 10 seconds
-                    Future.delayed(Duration(seconds: 10), () {
+                    Future.delayed(Duration(seconds: 5), () {
                       ScaffoldMessenger.of(parentContext).hideCurrentMaterialBanner();
                       debugPrint("Material Banner Dismissed!");
                     });
@@ -591,6 +594,9 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                       ),
                     );
                   } else if (result.containsKey("error")) {
+                    ScaffoldMessenger.of(parentContext)
+                        .hideCurrentMaterialBanner();
+                    debugPrint("Material Banner Dismissed!");
                     ScaffoldMessenger.of(parentContext).showMaterialBanner(
                       MaterialBanner(
                         content: Text(result['error']),
