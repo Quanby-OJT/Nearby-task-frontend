@@ -40,7 +40,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
       final response = await _jobPostService.fetchTaskInformation(widget.taskId ?? 0);
       debugPrint("Response: $response");
       setState(() {
-        _taskInformation = response;
+        _taskInformation = response?.task;
         _isLoading = false;
       });
     } catch (e) {

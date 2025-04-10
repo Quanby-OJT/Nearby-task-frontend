@@ -567,8 +567,9 @@ class _LikeScreenState extends State<LikeScreen> {
           );
         }
       }
-    } catch (e) {
+    } catch (e, st) {
       debugPrint("Error in _unlikeJob: $e");
+      debugPrintStack(stackTrace: st);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

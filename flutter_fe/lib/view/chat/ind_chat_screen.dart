@@ -10,9 +10,9 @@ import 'package:get_storage/get_storage.dart';
 
 class IndividualChatScreen extends StatefulWidget {
   final String? taskTitle;
-  final int? taskTakenId;
-  final int? taskId;
-  const IndividualChatScreen({super.key, this.taskTitle, this.taskTakenId, this.taskId});
+  final int taskTakenId;
+  final int taskId;
+  const IndividualChatScreen({super.key, this.taskTitle, required this.taskTakenId, required this.taskId});
 
   @override
   State<IndividualChatScreen> createState() => _IndividualChatScreenState();
@@ -39,20 +39,21 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   }
 
   Future<void> loadInitialData() async {
-    final task = await jobPostService.fetchTaskInformation(widget.taskTakenId ?? 0);
+    final task = await jobPostService.fetchTaskInformation(widget.taskId);
     setState(() {
-      this.task = task;
+      this.task = task?.task;
     });
     await loadConversationHistory();
   }
 
   Future<void> loadConversationHistory() async {
-    //debugPrint(widget.taskTitle.toString() + " | Task Taken ID: " + widget.taskTakenId.toString());
-    final messages = await conversationController.getMessages(context, widget.taskTakenId ?? 0);
-    setState(() {
-      _messages.clear();
-      _messages.addAll(messages); // No type error: messages is List<Conversation>
-    });
+    final messages = await conversationController.getMessages(context, widget.taskTakenId);
+    if (mounted) { // Check if the widget is still in the tree
+      setState(() {
+        _messages.clear();
+        _messages.addAll(messages);
+      });
+    }
   }
 
   @override
@@ -94,11 +95,12 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                   /// NOTE: When retrieving task information, task_id must be used to retrieve task information
                   ///
                   onPressed: () {
+                    debugPrint(widget.taskTakenId.toString());
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => TaskDetailsScreen(
-                          taskId: widget.taskId ?? 0,
+                          taskTakenId: widget.taskTakenId,
                         ),
                       ),
                     );
@@ -223,52 +225,6 @@ class _MessageBar extends StatelessWidget {
     );
   }
 }
-
-//Chat Bubble
-// class _ChatBubble extends StatelessWidget {
-//   final Conversation message;
-//   final UserModel profile;
-//
-//   const _ChatBubble({required this.message, required this.profile});
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     // Add logic to determine if message is from current user
-//     bool isMine = message.userId == GetStorage().read('userId');
-//
-//     List<Widget> chatContents = [
-//       if (!isMine)
-//         CircleAvatar(
-//           child: Text(profile.firstName.substring(0, 2)),
-//         ),
-//       const SizedBox(width: 12),
-//       Flexible(
-//         child: Container(
-//           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-//           decoration: BoxDecoration(
-//             color: isMine ? Theme.of(context).primaryColor : Colors.grey[300],
-//             borderRadius: BorderRadius.circular(8),
-//           ),
-//           child: Text(message.conversationMessage ?? ''),
-//         ),
-//       ),
-//       const SizedBox(width: 12),
-//       // Add timestamp if available from your API
-//     ];
-//
-//     if (isMine) {
-//       chatContents = chatContents.reversed.toList();
-//     }
-//
-//     return Padding(
-//       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 18),
-//       child: Row(
-//         mainAxisAlignment: isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
-//         children: chatContents,
-//       ),
-//     );
-//   }
-// }
 
 class _ChatBubble extends StatelessWidget {
   final Conversation message;

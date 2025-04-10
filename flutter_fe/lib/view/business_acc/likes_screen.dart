@@ -691,7 +691,7 @@ class _LikesScreenState extends State<LikesScreen> {
       final result = await taskController.assignTask(
         selectedTask.id,
         int.parse(clientId),
-        tasker.id,
+        tasker.id ?? 0,
       );
 
       // Show result

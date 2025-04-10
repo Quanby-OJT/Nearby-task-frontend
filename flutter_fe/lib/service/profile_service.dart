@@ -9,7 +9,7 @@ import 'package:flutter_fe/model/tasker_model.dart';
 import 'dart:io';
 
 class ProfileService {
-  static const String apiUrl = "http://localhost:5000/connect";
+  static const String apiUrl = "http://10.0.2.2:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
   static Future<String?> getUserId() async =>
