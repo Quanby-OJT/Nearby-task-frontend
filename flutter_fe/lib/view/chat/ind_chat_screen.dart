@@ -12,10 +12,11 @@ class IndividualChatScreen extends StatefulWidget {
   final String? taskTitle;
   final int? taskTakenId;
   final int? taskId;
-  final int taskTakenId;
-  final int taskId;
-  const IndividualChatScreen({super.key, this.taskTitle, required this.taskTakenId, required this.taskId});
-
+  const IndividualChatScreen(
+      {super.key,
+      this.taskTitle,
+      required this.taskTakenId,
+      required this.taskId});
 
   @override
   State<IndividualChatScreen> createState() => _IndividualChatScreenState();
@@ -53,7 +54,6 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   }
 
   Future<void> loadConversationHistory() async {
-
     //debugPrint(widget.taskTitle.toString() + " | Task Taken ID: " + widget.taskTakenId.toString());
     final messages = await conversationController.getMessages(
         context, widget.taskTakenId ?? 0);
@@ -109,7 +109,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => TaskDetailsScreen(
-                          taskTakenId: widget.taskTakenId,
+                          taskTakenId: widget.taskTakenId ?? 0,
                         ),
                       ),
                     );

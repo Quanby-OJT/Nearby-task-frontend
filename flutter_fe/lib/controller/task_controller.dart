@@ -40,23 +40,22 @@ class TaskController {
       final priceText = contactPriceController.text.trim();
       final priceInt = int.tryParse(priceText) ?? 0;
       final task = TaskModel(
-        id: 0,
-        clientId: userId,
-        title: jobTitleController.text.trim(),
-        specialization: specialization,
-        description: jobDescriptionController.text.trim(),
-        location: jobLocationController.text.trim(),
-        duration: durationInt.toString(),
-        // Use the parsed integer value
-        period: period,
-        urgency: urgency,
-        contactPrice: priceInt,
-        // Use the parsed integer value
-        remarks: jobRemarksController.text.trim(),
-        taskBeginDate: jobTaskBeginDateController.text.trim(),
-        workType: workType, // New field
-        status: "Available"
-      );
+          id: 0,
+          clientId: userId,
+          title: jobTitleController.text.trim(),
+          specialization: specialization,
+          description: jobDescriptionController.text.trim(),
+          location: jobLocationController.text.trim(),
+          duration: durationInt.toString(),
+          // Use the parsed integer value
+          period: period,
+          urgency: urgency,
+          contactPrice: priceInt,
+          // Use the parsed integer value
+          remarks: jobRemarksController.text.trim(),
+          taskBeginDate: jobTaskBeginDateController.text.trim(),
+          workType: workType, // New field
+          status: "Available");
 
       print('Task data: ${task.toJson()}');
       return await _jobPostService.postJob(task, userId);
@@ -118,10 +117,9 @@ class TaskController {
   }
 
   Future<String> assignTask(int? taskId, int? clientId, int? taskerId) async {
-
     debugPrint("Assigning task...");
     final assignedTask =
-        await _jobPostService.assignTask(taskId, clientId, taskerId);
+        await _jobPostService.assignTask(taskId!, clientId!, taskerId!);
     return assignedTask.containsKey('message')
         ? assignedTask['message'].toString()
         : assignedTask['error'].toString();
@@ -213,8 +211,8 @@ class TaskController {
           id: taskData[
               'task_id'], // Use taskTakenId here if it's meant to be the task's ID
 
-            //id: taskData['task_id'], // Use taskTakenId here if it's meant to be the task's ID
-          );
+          //id: taskData['task_id'], // Use taskTakenId here if it's meant to be the task's ID
+        );
 
         Map<String, dynamic> clientData =
             item['clients'] as Map<String, dynamic>;

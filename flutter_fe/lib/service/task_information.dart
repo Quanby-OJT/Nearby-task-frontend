@@ -8,7 +8,7 @@ import 'package:flutter_fe/service/auth_service.dart';
 import '../model/conversation.dart';
 
 class TaskDetailsService {
-  static final String apiUrl = "http://10.0.2.2:5000/connect";
+  static final String apiUrl = "http://localhost:5000/connect";
   final storage = GetStorage();
 
   static Map<String, dynamic> _handleResponse(http.Response response) {
@@ -74,7 +74,6 @@ class TaskDetailsService {
 
   static Future<TaskModel?> fetchTaskDetails(int taskId) async {
     try {
-
       // final url = Uri.parse("$apiUrl/displayLikedJob/$taskId");
       //
       // final response = await http.get(url);
@@ -124,9 +123,11 @@ class TaskDetailsService {
     }
   }
 
-  static Future<Map<String, dynamic>> sendMessage(Conversation conversation) async {
+  static Future<Map<String, dynamic>> sendMessage(
+      Conversation conversation) async {
     try {
-      return await _postRequest(endpoint: "/send-message", body: conversation.toJson());
+      return await _postRequest(
+          endpoint: "/send-message", body: conversation.toJson());
       // String token = await AuthService.getSessionToken();
       //
       // final response = await http.post(Uri.parse("$apiUrl/send-message"),
@@ -171,7 +172,8 @@ class TaskDetailsService {
       debugPrint(e.toString());
       debugPrint(st.toString());
       return {
-        "error": "An error occurred while retrieving your conversation. Please try again."
+        "error":
+            "An error occurred while retrieving your conversation. Please try again."
       };
     }
   }

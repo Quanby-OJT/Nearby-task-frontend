@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/specialization.dart';
+import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_fe/model/task_model.dart';
@@ -11,7 +12,7 @@ import '../model/client_model.dart';
 import '../model/tasker_model.dart';
 
 class JobPostService {
-  static const String apiUrl = "http://10.0.2.2:5000/connect";
+  static const String apiUrl = "http://localhost:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -153,7 +154,7 @@ class JobPostService {
     }
   }
 
-  Future<TaskModel?> fetchTaskInformation(int taskID) async {
+  Future<TaskAssignment?> fetchTaskInformation(int taskID) async {
     try {
       Map<String, dynamic> response = await _getRequest("/displayTask/$taskID");
       //debugPrint("Assigned Task Information Retrieved: ${response.toString()}");
@@ -164,12 +165,11 @@ class JobPostService {
             response["tasks"] as Map<String, dynamic>;
         debugPrint("Mapped: ${taskData.toString()}");
         return TaskAssignment(
-          client: ClientModel.fromJson(taskData['clients']),
-          tasker: null,
-          task: TaskModel.fromJson(taskData),
-          taskStatus: taskData['task_status'] ?? "",
-          taskTakenId: taskData['task_taken_id'] ?? 0
-        );
+            client: ClientModel.fromJson(taskData['clients']),
+            tasker: null,
+            task: TaskModel.fromJson(taskData),
+            taskStatus: taskData['task_status'] ?? "",
+            taskTakenId: taskData['task_taken_id'] ?? 0);
       }
 
       // Return null if no tasks found or invalid format
@@ -184,29 +184,30 @@ class JobPostService {
 
   Future<TaskAssignment?> fetchAssignedTaskInformation(int taskTakenID) async {
     try {
-      Map<String, dynamic> response = await _getRequest("/display-assigned-task/$taskTakenID");
+      Map<String, dynamic> response =
+          await _getRequest("/display-assigned-task/$taskTakenID");
       debugPrint("Assigned Task Information Retrieved: ${response.toString()}");
 
       // Check if response is not empty and is a Map
       if (response['success']) {
         debugPrint("Mapped: ${response.toString()}");
         return TaskAssignment(
-          client: null,
-          tasker: TaskerModel.fromJson(response['task_information']['tasker']),
-          task: TaskModel.fromJson(response['task_information']['post_task']),
-          taskStatus: response['task_information']['task_status'],
-          taskTakenId: response['task_information']['task_taken_id'],
-          taskStatusReason: response['task_information']['reason_for_rejection_or_cancellation']
-        );
-      }else if(response.containsKey("error")){
+            client: null,
+            tasker:
+                TaskerModel.fromJson(response['task_information']['tasker']),
+            task: TaskModel.fromJson(response['task_information']['post_task']),
+            taskStatus: response['task_information']['task_status'],
+            taskTakenId: response['task_information']['task_taken_id'],
+            taskStatusReason: response['task_information']
+                ['reason_for_rejection_or_cancellation']);
+      } else if (response.containsKey("error")) {
         debugPrint("Mapped: ${response.toString()}");
         return TaskAssignment(
-          client: null,
-          tasker: null,
-          task: null,
-          taskStatus: "Unknown",
-          taskTakenId: 0
-        );
+            client: null,
+            tasker: null,
+            task: null,
+            taskStatus: "Unknown",
+            taskTakenId: 0);
       }
 
       // Return null if no valid data found
