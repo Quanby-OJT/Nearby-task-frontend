@@ -49,28 +49,6 @@ class TaskRequestController {
     }
   }
 
-  Future<Map<String, dynamic>> depositAmountToEscrow(double contractPrice, int taskTakenId) async{
-    try{
-      // debugPrint("TaskRequestController: Depositing amount to escrow");
-      // debugPrint("TaskRequestController: Contract Price: $contractPrice");
-      // debugPrint("TaskRequestController: Task Taken ID: $taskTakenId");
-      if(contractPrice <= 0 || taskTakenId <= 0){
-        return {"error": "Error while Processing Your Payment. Please Try Again."};
-      }
-      var response = await _requestService.depositEscrowPayment(contractPrice, taskTakenId);
-
-      if(response['success']){
-           return {"message": response['message'], "payment_url": response['payment_url']};
-      }else{
-        return {"error": response['error']};
-      }
-    }catch(e, st){
-      debugPrint(e.toString());
-      debugPrintStack(stackTrace: st);
-      return {"error": 'Error depositing amount to escrow. Please try again.'};
-    }
-  }
-
   Future<Map<String, dynamic>> declineRequest(int requestId) async {
     try {
       debugPrint("TaskRequestController: Declining request with ID $requestId");
@@ -103,24 +81,6 @@ class TaskRequestController {
       debugPrint("Error in TaskRequestController.rejectTasker: $e");
       debugPrintStack(stackTrace: stackTrace);
       return "An Error Occured. Please Try Again.";
-    }
-  }
-
-  Future<String> releaseEscrowPayment(int taskTakenId) async{
-    try{
-      debugPrint("TaskRequestController: Releasing escrow payment for task taken with ID $taskTakenId");
-      var response = await _requestService.releaseEscrowPayment(taskTakenId);
-      if(response.containsKey("message")){
-        return response["message"];
-      }else if(response.containsKey("error")){
-        return response["error"];
-      }else{
-        return "Unknown Error";
-      }
-    }catch(e, stackTrace){
-      debugPrint("Error in TaskRequestController.releaseEscrowPayment: $e");
-      debugPrintStack(stackTrace: stackTrace);
-      return "An Error Occured while releasing your payment. Please Try Again.";
     }
   }
 }

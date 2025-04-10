@@ -401,7 +401,7 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> depositEscrowPayment(double contractPrice, int taskTakenId) async {
+  Future<Map<String, dynamic>> depositEscrowPayment(double depositAmount) async {
     try {
       final userId = await getUserId();
       if (userId == null) {
@@ -410,15 +410,13 @@ class TaskRequestService {
           'error': 'Please log in to deposit payments.',
         };
       }
-      debugPrint("Depositing escrow payment with price: $contractPrice");
+      debugPrint("Depositing escrow payment with price: $depositAmount");
 
       return await _postRequest(
         endpoint: '/deposit-escrow-payment',
         body: {
-          'task_taken_id': taskTakenId,
           'client_id': int.parse(userId),
-          'amount': contractPrice,
-          'status': 'Confirmed'
+          'amount': depositAmount,
         },
       );
     } catch (e) {
@@ -426,6 +424,26 @@ class TaskRequestService {
       return {
         'success': false,
         'error': 'Failed to accept request: $e',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> getTokenBalance() async {
+    try {
+      final userId = await getUserId();
+      if (userId == null) {
+        return {
+          'success': false,
+          'error': 'Please log in to check balance.',
+        };
+      }
+      debugPrint("Checking token balance for user with ID: $userId");
+      return await _getRequest('/get-token-balance/$userId');
+    } catch (e) {
+      debugPrint("Error checking token balance: $e");
+      return {
+        'success': false,
+        'error': 'Failed to check balance: $e',
       };
     }
   }
