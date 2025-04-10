@@ -21,13 +21,18 @@
         <option value="1">Client</option>
         <option value="2">Tasker</option>
         <option value="3">Moderator</option>
+        <option value="4">Admin</option>
       </select>
       <select name="account" class="text-muted-foreground w-28! p-2" (change)="onStatusChange($event)">
         <option value="">All Account</option>
-        <option value="1">Verified</option>
-        <option value="2">Review</option>
-        <option value="3">Rejected</option>
-        <option value="4">Blocked</option>
+        <option value="1">Pending</option>
+        <option value="2">Active</option>
+        <option value="3">Warn</option>
+        <option value="4">Suspend</option>
+        <option value="5">Ban</option>
+        <option value="6">Block</option>
+        <option value="7">Deactivate</option>
+        <option value="8">Review</option>
       </select>
 
       <select name="status" class="text-muted-foreground w-28! p-2" (change)="onOnlineChange($event)">
@@ -35,10 +40,6 @@
         <option value="1">Online</option>
         <option value="2">Offline</option>
       </select>
-      <!-- <select name="order" class="text-muted-foreground w-28! p-2" (change)="onOrderChange($event)">
-        <option value="1">Newest</option>
-        <option value="2">Oldest</option>
-      </select> -->
     </div>
   </div>
 </div>

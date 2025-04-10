@@ -5,12 +5,13 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 
-class TaskDetailsService {
-  final String apiUrl = "http://localhost:5000/connect";
+import '../model/conversation.dart';
 
+class TaskDetailsService {
+  static final String apiUrl = "http://10.0.2.2:5000/connect";
   final storage = GetStorage();
 
-  Map<String, dynamic> _handleResponse(http.Response response) {
+  static Map<String, dynamic> _handleResponse(http.Response response) {
     debugPrint(response.body);
     final responseBody = jsonDecode(response.body);
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -21,7 +22,7 @@ class TaskDetailsService {
     }
   }
 
-  Future<Map<String, dynamic>> _getRequest(String endpoint) async {
+  static Future<Map<String, dynamic>> _getRequest(String endpoint) async {
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.get(
@@ -42,7 +43,7 @@ class TaskDetailsService {
     }
   }
 
-  Future<Map<String, dynamic>> _postRequest(
+  static Future<Map<String, dynamic>> _postRequest(
       {required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     final response = await http.post(Uri.parse("$apiUrl$endpoint"),
@@ -55,7 +56,7 @@ class TaskDetailsService {
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> _deleteRequest(
+  static Future<Map<String, dynamic>> _deleteRequest(
       String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
@@ -71,20 +72,24 @@ class TaskDetailsService {
     }
   }
 
-  Future<TaskModel?> fetchTaskDetails(int taskId) async {
+  static Future<TaskModel?> fetchTaskDetails(int taskId) async {
     try {
-      final url = Uri.parse("$apiUrl/displayLikedJob/$taskId");
 
-      final response = await http.get(url);
+      // final url = Uri.parse("$apiUrl/displayLikedJob/$taskId");
+      //
+      // final response = await http.get(url);
+      //
+      // if (response.statusCode == 200) {
+      //   final Map<String, dynamic> jsonData = jsonDecode(response.body);
+      //
+      //   if (jsonData.containsKey('tasks') && jsonData['tasks'].isNotEmpty) {
+      //     return TaskModel.fromJson(jsonData['tasks'][0]);
+      //   }
+      // }
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> jsonData = jsonDecode(response.body);
+      final data = await _getRequest("$apiUrl/displayLikedJob/$taskId");
 
-        if (jsonData.containsKey('tasks') && jsonData['tasks'].isNotEmpty) {
-          return TaskModel.fromJson(jsonData['tasks'][0]);
-        }
-      }
-      return null;
+      return TaskModel.fromJson(data['tasks'][0]);
     } catch (e) {
       debugPrint("Exception in fetchTaskDetails: $e");
       return null;
@@ -116,6 +121,58 @@ class TaskDetailsService {
       debugPrint(e.toString());
       debugPrint(stackTrace.toString());
       return {"error": "An Error Occured while updating task status."};
+    }
+  }
+
+  static Future<Map<String, dynamic>> sendMessage(Conversation conversation) async {
+    try {
+      return await _postRequest(endpoint: "/send-message", body: conversation.toJson());
+      // String token = await AuthService.getSessionToken();
+      //
+      // final response = await http.post(Uri.parse("$apiUrl/send-message"),
+      //     headers: {
+      //       "Authorization": "Bearer $token",
+      //       "Content-Type": "application/json"
+      //     },
+      //     body: jsonEncode(conversation.toJson()));
+      //
+      // var data = jsonDecode(response.body);
+      //
+      // if (response.statusCode == 200) {
+      //   return {"message": data["message"] ?? "Successfully Sent the Message"};
+      // } else if (response.statusCode == 400) {
+      //   return {
+      //     "error": data["errors"] ?? "Please Check Your inputs and try again"
+      //   };
+      // } else {
+      //   // Handle unexpected response statuses
+      //   return {
+      //     "error":
+      //     "Unexpected error occurred. Status code: ${response.statusCode}"
+      //   };
+      // }
+    } catch (e) {
+      debugPrint(e.toString());
+      debugPrintStack();
+      return {
+        "error": "An Error Occured while Sending a Message. Please Try Again"
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> getMessages(int taskTakenId) async {
+    try {
+      final data = await _getRequest("/messages/$taskTakenId");
+
+      debugPrint("All Messages Data: ${data.toString()}");
+
+      return data;
+    } catch (e, st) {
+      debugPrint(e.toString());
+      debugPrint(st.toString());
+      return {
+        "error": "An error occurred while retrieving your conversation. Please try again."
+      };
     }
   }
 }
