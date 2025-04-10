@@ -78,7 +78,7 @@ class _ClientStartState extends State<ClientStart> {
       final response = await _jobPostService
           .fetchTaskInformation(_requestInformation!.task_id as int);
       setState(() {
-        _taskInformation = response;
+        _taskInformation = response?.task;
         _isLoading = false;
       });
     } catch (e) {

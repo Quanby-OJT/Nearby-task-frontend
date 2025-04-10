@@ -8,7 +8,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 
 class TaskRequestService {
-  static const String apiUrl = "http://10.0.2.2:5000/connect";
+  static const String apiUrl = "http://localhost:5000/connect";
   static final storage = GetStorage();
 
   Future<String?> getUserId() async => storage.read('user_id')?.toString();
@@ -111,7 +111,8 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> _putRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _putRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.put(
@@ -293,43 +294,40 @@ class TaskRequestService {
             status: taskData['status'],
             duration: '',
             taskBeginDate: '',
-            workType: ''
-        );
+            workType: '');
       }
 
       // Fallback if task data is not found
       return TaskModel(
-        id: taskId,
-        title: "Task #$taskId",
-        description: "No details available",
-        location: "",
-        contactPrice: 0,
-        urgency: "Unknown",
-        specialization: '',
-        period: '',
-        status: '',
-        duration: '',
-        taskBeginDate: '',
-        workType: ''
-      );
+          id: taskId,
+          title: "Task #$taskId",
+          description: "No details available",
+          location: "",
+          contactPrice: 0,
+          urgency: "Unknown",
+          specialization: '',
+          period: '',
+          status: '',
+          duration: '',
+          taskBeginDate: '',
+          workType: '');
     } catch (e, stackTrace) {
       debugPrint("Error creating TaskModel: $e");
       debugPrintStack(stackTrace: stackTrace);
       // Return minimal task model
       return TaskModel(
-        id: taskId,
-        title: "Task #$taskId",
-        description: "No details available",
-        location: "",
-        contactPrice: 0,
-        urgency: "Unknown",
-        specialization: '',
-        period: '',
-        status: '',
-        duration: '',
-        taskBeginDate: '',
-        workType: ''
-      );
+          id: taskId,
+          title: "Task #$taskId",
+          description: "No details available",
+          location: "",
+          contactPrice: 0,
+          urgency: "Unknown",
+          specialization: '',
+          period: '',
+          status: '',
+          duration: '',
+          taskBeginDate: '',
+          workType: '');
     }
   }
 
@@ -401,7 +399,8 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> depositEscrowPayment(double contractPrice, int taskTakenId) async {
+  Future<Map<String, dynamic>> depositEscrowPayment(
+      double contractPrice, int taskTakenId) async {
     try {
       final userId = await getUserId();
       if (userId == null) {
@@ -459,16 +458,16 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> rejectTaskerOrCancelTask(int requestId, String rejectOrCancel, String rejectionReason) async {
-    try{
+  Future<Map<String, dynamic>> rejectTaskerOrCancelTask(
+      int requestId, String rejectOrCancel, String rejectionReason) async {
+    try {
       return await _putRequest(
-        endpoint: "/update-status-tasker/$requestId",
-        body: {
-          "task_status": rejectOrCancel,
-          "reason_for_rejection_or_cancellation": rejectionReason
-        }
-      );
-    }catch(e, stackTrace) {
+          endpoint: "/update-status-tasker/$requestId",
+          body: {
+            "task_status": rejectOrCancel,
+            "reason_for_rejection_or_cancellation": rejectionReason
+          });
+    } catch (e, stackTrace) {
       debugPrint("Error rejecting tasker: $e");
       debugPrintStack(stackTrace: stackTrace);
       return {
@@ -499,7 +498,7 @@ class TaskRequestService {
           'status': 'Accepted'
         },
       );
-    }catch (e, stackTrace){
+    } catch (e, stackTrace) {
       debugPrint("Error releasing escrow payment: $e");
       debugPrintStack(stackTrace: stackTrace);
       return {
@@ -537,50 +536,47 @@ class TaskRequestService {
       // Create dummy tasks
       List<TaskModel> tasks = [
         TaskModel(
-          id: 101,
-          clientId: 1,
-          title: "Fix Plumbing",
-          description: "Need to fix a leaking pipe in the kitchen",
-          location: "123 Main St",
-          contactPrice: 120,
-          urgency: "Urgent",
-          specialization: '',
-          period: '',
-          status: '',
-          duration: '',
-          taskBeginDate: '',
-          workType: ''
-        ),
+            id: 101,
+            clientId: 1,
+            title: "Fix Plumbing",
+            description: "Need to fix a leaking pipe in the kitchen",
+            location: "123 Main St",
+            contactPrice: 120,
+            urgency: "Urgent",
+            specialization: '',
+            period: '',
+            status: '',
+            duration: '',
+            taskBeginDate: '',
+            workType: ''),
         TaskModel(
-          id: 102,
-          clientId: 1,
-          title: "Install Ceiling Fan",
-          description: "Need to install a new ceiling fan in the living room",
-          location: "456 Oak Ave",
-          contactPrice: 80,
-          urgency: "Non-Urgent",
-          specialization: '',
-          period: '',
-          status: '',
-          duration: '',
-          taskBeginDate: '',
-          workType: ''
-        ),
+            id: 102,
+            clientId: 1,
+            title: "Install Ceiling Fan",
+            description: "Need to install a new ceiling fan in the living room",
+            location: "456 Oak Ave",
+            contactPrice: 80,
+            urgency: "Non-Urgent",
+            specialization: '',
+            period: '',
+            status: '',
+            duration: '',
+            taskBeginDate: '',
+            workType: ''),
         TaskModel(
-          id: 103,
-          clientId: 1,
-          title: "Paint Bedroom",
-          description: "Paint the walls of a medium-sized bedroom",
-          location: "789 Pine Blvd",
-          contactPrice: 200,
-          urgency: "Non-Urgent",
-          specialization: '',
-          period: '',
-          status: '',
-          duration: '',
-          taskBeginDate: '',
-          workType: ''
-        ),
+            id: 103,
+            clientId: 1,
+            title: "Paint Bedroom",
+            description: "Paint the walls of a medium-sized bedroom",
+            location: "789 Pine Blvd",
+            contactPrice: 200,
+            urgency: "Non-Urgent",
+            specialization: '',
+            period: '',
+            status: '',
+            duration: '',
+            taskBeginDate: '',
+            workType: ''),
       ];
 
       // Create dummy requests

@@ -17,23 +17,22 @@ class TaskModel {
   final String workType; // New field
   final ClientModel? client;
 
-  TaskModel({
-    required this.id,
-    this.clientId,
-    required this.title,
-    required this.specialization,
-    required this.description,
-    required this.location,
-    required this.period,
-    required this.duration,
-    required this.urgency,
-    required this.status,
-    required this.contactPrice,
-    this.remarks,
-    required this.taskBeginDate,
-    required this.workType,
-    this.client
-  });
+  TaskModel(
+      {required this.id,
+      this.clientId,
+      required this.title,
+      required this.specialization,
+      required this.description,
+      required this.location,
+      required this.period,
+      required this.duration,
+      required this.urgency,
+      required this.status,
+      required this.contactPrice,
+      this.remarks,
+      required this.taskBeginDate,
+      required this.workType,
+      this.client});
 
   Map<String, dynamic> toJson() {
     return {
@@ -82,7 +81,8 @@ class TaskModel {
       taskBeginDate: json['task_begin_date'] as String,
       status: json['status'] as String,
       workType: json['work_type'] as String,
-      client: json['client'] != null ? ClientModel.fromJson(json['client']) : null,
+      client:
+          json['client'] != null ? ClientModel.fromJson(json['client']) : null,
     );
   }
 }

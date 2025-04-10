@@ -142,7 +142,6 @@ class _TaskInformationState extends State<TaskInformation> {
                                           ],
                                         ),
                                       ],
-
                                     ),
                                   ),
                                 ],
@@ -313,15 +312,16 @@ class _TaskInformationState extends State<TaskInformation> {
           const SizedBox(width: 8),
           Text(
             value,
-            style: GoogleFonts.openSans(fontWeight: FontWeight.bold, fontSize: 16),
+            style:
+                GoogleFonts.openSans(fontWeight: FontWeight.bold, fontSize: 16),
           )
         ],
       ),
     );
   }
 
-  Color statusColor(String taskStatus){
-    switch(taskStatus){
+  Color statusColor(String taskStatus) {
+    switch (taskStatus) {
       case "Available":
         return Color(0XFF2E763E);
       case "Already Taken":

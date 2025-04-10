@@ -796,11 +796,10 @@ class _ChatScreenState extends State<ChatScreen> {
                           context,
                           MaterialPageRoute(
                               builder: (context) => IndividualChatScreen(
-
-                               taskTitle: assignment.task.title,
-                                  taskId: assignment.task.id,
+                                  taskTitle:
+                                      assignment.task?.title ?? "Unknown Task",
+                                  taskId: assignment.task?.id ?? 0,
                                   taskTakenId: assignment.taskTakenId ?? 0)),
-
                         );
                       },
                       tileColor: Colors.grey[50],
