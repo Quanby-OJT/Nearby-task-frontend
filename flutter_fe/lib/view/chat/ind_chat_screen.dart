@@ -10,9 +10,13 @@ import 'package:get_storage/get_storage.dart';
 
 class IndividualChatScreen extends StatefulWidget {
   final String? taskTitle;
-  final int taskTakenId;
-  final int taskId;
-  const IndividualChatScreen({super.key, this.taskTitle, required this.taskTakenId, required this.taskId});
+  final int? taskTakenId;
+  final int? taskId;
+  const IndividualChatScreen(
+      {super.key,
+      this.taskTitle,
+      required this.taskTakenId,
+      required this.taskId});
 
   @override
   State<IndividualChatScreen> createState() => _IndividualChatScreenState();
@@ -23,7 +27,8 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final storage = GetStorage();
-  final ConversationController conversationController = ConversationController();
+  final ConversationController conversationController =
+      ConversationController();
   final JobPostService jobPostService = JobPostService();
   TaskModel? task;
   Timer? _timer;
@@ -39,7 +44,9 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   }
 
   Future<void> loadInitialData() async {
-    final task = await jobPostService.fetchTaskInformation(widget.taskId);
+    final task =
+        await jobPostService.fetchTaskInformation(widget.taskTakenId ?? 0);
+
     setState(() {
       this.task = task?.task;
     });
@@ -47,13 +54,14 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   }
 
   Future<void> loadConversationHistory() async {
-    final messages = await conversationController.getMessages(context, widget.taskTakenId);
-    if (mounted) { // Check if the widget is still in the tree
-      setState(() {
-        _messages.clear();
-        _messages.addAll(messages);
-      });
-    }
+    //debugPrint(widget.taskTitle.toString() + " | Task Taken ID: " + widget.taskTakenId.toString());
+    final messages = await conversationController.getMessages(
+        context, widget.taskTakenId ?? 0);
+    setState(() {
+      _messages.clear();
+      _messages
+          .addAll(messages); // No type error: messages is List<Conversation>
+    });
   }
 
   @override
@@ -91,6 +99,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
               children: [
                 IconButton(
                   icon: Icon(Icons.info_outline, color: Color(0xFF0272B1)),
+
                   ///
                   /// NOTE: When retrieving task information, task_id must be used to retrieve task information
                   ///
@@ -100,7 +109,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => TaskDetailsScreen(
-                          taskTakenId: widget.taskTakenId,
+                          taskTakenId: widget.taskTakenId ?? 0,
                         ),
                       ),
                     );
@@ -117,46 +126,47 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
           Expanded(
             child: _messages.isEmpty
                 ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.message,
-                    size: 100,
-                    color: Color(0xFF0272B1),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: Text(
-                      "You Don't Have Messages Yet, You can Start a Conversation By Sending Your First Message to your Client.",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.message,
+                          size: 100,
+                          color: Color(0xFF0272B1),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 20),
+                          child: Text(
+                            "You Don't Have Messages Yet, You can Start a Conversation By Sending Your First Message to your Client.",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-            )
+                  )
                 : ListView.builder(
-              controller: _scrollController,
-              reverse: false,
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                return _ChatBubble(
-                  message: message,
-                  profile: message.user ??
-                      UserModel(
-                        firstName: message.user?.firstName ?? "Loading...",
-                        middleName: '',
-                        lastName: '',
-                        email: '',
-                        role: '',
-                        accStatus: '',
-                      ),
-                );
-              },
-            ),
+                    controller: _scrollController,
+                    reverse: false,
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      final message = _messages[index];
+                      return _ChatBubble(
+                        message: message,
+                        profile: message.user ??
+                            UserModel(
+                              firstName:
+                                  message.user?.firstName ?? "Loading...",
+                              middleName: '',
+                              lastName: '',
+                              email: '',
+                              role: '',
+                              accStatus: '',
+                            ),
+                      );
+                    },
+                  ),
           ),
           _MessageBar(
             controller: conversationController,
@@ -188,7 +198,6 @@ class _MessageBar extends StatelessWidget {
       onMessageSent();
     });
   }
-
 
   //Text Form Field
   @override
@@ -274,7 +283,8 @@ class _ChatBubble extends StatelessWidget {
           children: [
             CircleAvatar(
               child: Text(profile.firstName.isNotEmpty
-                  ? profile.firstName.substring(0, profile.firstName.length > 1 ? 2 : 1)
+                  ? profile.firstName
+                      .substring(0, profile.firstName.length > 1 ? 2 : 1)
                   : 'U'),
             ),
             const SizedBox(width: 12),

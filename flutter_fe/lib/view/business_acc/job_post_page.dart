@@ -834,12 +834,16 @@ class _JobPostPageState extends State<JobPostPage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        iconTheme: const IconThemeData(color: Color(0xFF0272B1)),
-        title: const Text(
-          'Your Tasks',
-          textAlign: TextAlign.center,
-          style:
-              TextStyle(color: Color(0xFF0272B1), fontWeight: FontWeight.bold),
+        backgroundColor: Colors.white,
+        title: Center(
+          child: Text(
+            'Posted Tasks',
+            style: GoogleFonts.montserrat(
+              color: Color(0xFF0272B1),
+              fontWeight: FontWeight.w600,
+              fontSize: 18,
+            ),
+          ),
         ),
       ),
       body: _isLoading ? Center(

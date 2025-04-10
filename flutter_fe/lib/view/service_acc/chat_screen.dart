@@ -630,7 +630,6 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: NavUserScreen(),
       floatingActionButton: (taskAssignments != null &&
               taskAssignments!.isNotEmpty &&
               !_isModalOpen)
@@ -797,11 +796,10 @@ class _ChatScreenState extends State<ChatScreen> {
                           context,
                           MaterialPageRoute(
                               builder: (context) => IndividualChatScreen(
-                                taskId: assignment.task!.id,
-                                taskTitle: assignment.task?.title,
-                                taskTakenId: assignment.taskTakenId ?? 0
-                              )
-                          ),
+                                  taskTitle:
+                                      assignment.task?.title ?? "Unknown Task",
+                                  taskId: assignment.task?.id ?? 0,
+                                  taskTakenId: assignment.taskTakenId ?? 0)),
                         );
                       },
                       tileColor: Colors.grey[50],

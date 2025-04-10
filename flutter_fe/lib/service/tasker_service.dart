@@ -17,7 +17,7 @@ import '../model/tasker_model.dart';
 
 class TaskerService {
   static final storage = GetStorage();
-  static final String apiUrl = "http://10.0.2.2:5000/connect";
+  static final String apiUrl = "http://localhost:5000/connect";
 
   final ProfileService _profileService = ProfileService();
 
@@ -306,35 +306,35 @@ class TaskerService {
     }
   }
 
-  static Future<Map<String, dynamic>> setTaskerSchedule(TaskerScheduler taskerScheduler) async{
-    try{
+  static Future<Map<String, dynamic>> setTaskerSchedule(
+      TaskerScheduler taskerScheduler) async {
+    try {
       final taskerId = await storage.read("user_id");
 
-      return await _postRequest(endpoint: "/set-tasker-schedule", body: {
-        "tasker_id": taskerId,
-        ...taskerScheduler.toJson()
-      });
-    }catch(e, stackTrace){
+      return await _postRequest(
+          endpoint: "/set-tasker-schedule",
+          body: {"tasker_id": taskerId, ...taskerScheduler.toJson()});
+    } catch (e, stackTrace) {
       debugPrint("Error setting tasker schedule: $e");
       debugPrintStack(stackTrace: stackTrace);
       return {"error": "An error occurred while setting tasker schedule."};
     }
   }
 
-  static Future<List<TaskerScheduler>> getTaskerSchedule() async{
-    try{
+  static Future<List<TaskerScheduler>> getTaskerSchedule() async {
+    try {
       final taskerId = await storage.read("user_id");
       var response = await _getRequest("/get-tasker-schedule/$taskerId");
 
-      if(response.containsKey("tasker_schedule")){
+      if (response.containsKey("tasker_schedule")) {
         List<TaskerScheduler> schedules = [];
-        for(var schedule in response["tasker_schedule"]){
+        for (var schedule in response["tasker_schedule"]) {
           schedules.add(TaskerScheduler.fromJson(schedule));
         }
         return schedules;
       }
       return [];
-    }catch(e, stackTrace){
+    } catch (e, stackTrace) {
       debugPrint("Error getting tasker schedule: $e");
       debugPrintStack(stackTrace: stackTrace);
       return [];

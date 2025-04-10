@@ -13,13 +13,18 @@ class ConversationController {
     debugPrint("$userId $taskTaken");
 
     final conversation = Conversation(
-
       conversationMessage: conversationMessage.text,
       userId: userId,
       taskTakenId: taskTaken,
     );
-    debugPrint("Data to be Sent: ${conversation.toString()}");
-    Map<String, dynamic> messageSent = await TaskDetailsService.sendMessage(conversation);
+
+    debugPrint("Sending Message for Task Taken ID of: " + taskTaken.toString());
+    debugPrint("User ID: " + userId.toString());
+    debugPrint("Conversation Message: " + conversationMessage.text);
+    Map<String, dynamic> messageSent =
+        await ApiService.sendMessage(conversation);
+//     Map<String, dynamic> messageSent = await TaskDetailsService.sendMessage(conversation);
+
 
     if (messageSent.containsKey('message')) {
       // Optionally notify success if needed
@@ -30,13 +35,13 @@ class ConversationController {
     }
   }
 
+
   Future<List<Conversation>> getMessages(BuildContext context, int taskTakenId) async {
     debugPrint(taskTakenId.toString());
     final messages = await TaskDetailsService.getMessages(taskTakenId);
     //debugPrint(messages.toString());
 
     if (messages.containsKey("data")) {
-
       // Expecting a list of conversations from the API
       List<dynamic> messageList = messages['data'];
       List<Conversation> conversations = messageList
@@ -48,11 +53,11 @@ class ConversationController {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(messages['error'] ?? "Something went wrong while retrieving your messages."),
+          content: Text(messages['error'] ??
+              "Something went wrong while retrieving your messages."),
         ),
       );
       return []; // Return empty list on error
-
     }
   }
 

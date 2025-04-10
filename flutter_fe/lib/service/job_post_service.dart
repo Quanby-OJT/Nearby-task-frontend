@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/service/auth_service.dart';
@@ -11,7 +12,7 @@ import '../model/client_model.dart';
 import '../model/tasker_model.dart';
 
 class JobPostService {
-  static const String apiUrl = "http://10.0.2.2:5000/connect";
+  static const String apiUrl = "http://localhost:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -131,6 +132,28 @@ class JobPostService {
     return [];
   }
 
+  Future<ClientRequestModel> fetchRequestInformation(int requestID) async {
+    try {
+      Map<String, dynamic> response =
+          await _getRequest("/displayRequest/$requestID");
+      debugPrint("Request Data Retrieved: ${response.toString()}");
+
+      if (response.containsKey("request") && response["request"] is Map) {
+        Map<String, dynamic> request =
+            response["request"] as Map<String, dynamic>;
+        debugPrint("Mapped: ${request.toString()}");
+        return ClientRequestModel.fromJson(request);
+      } else {
+        debugPrint("Response does not contain a valid 'request' map");
+        return ClientRequestModel();
+      }
+    } catch (e) {
+      debugPrint('Error fetching request: $e');
+      debugPrintStack();
+      return ClientRequestModel();
+    }
+  }
+
   Future<TaskAssignment?> fetchTaskInformation(int taskID) async {
     try {
       Map<String, dynamic> response = await _getRequest("/displayTask/$taskID");
@@ -142,12 +165,11 @@ class JobPostService {
             response["tasks"] as Map<String, dynamic>;
         debugPrint("Mapped: ${taskData.toString()}");
         return TaskAssignment(
-          client: ClientModel.fromJson(taskData['clients']),
-          tasker: null,
-          task: TaskModel.fromJson(taskData),
-          taskStatus: taskData['task_status'] ?? "",
-          taskTakenId: taskData['task_taken_id'] ?? 0
-        );
+            client: ClientModel.fromJson(taskData['clients']),
+            tasker: null,
+            task: TaskModel.fromJson(taskData),
+            taskStatus: taskData['task_status'] ?? "",
+            taskTakenId: taskData['task_taken_id'] ?? 0);
       }
 
       // Return null if no tasks found or invalid format
@@ -162,29 +184,30 @@ class JobPostService {
 
   Future<TaskAssignment?> fetchAssignedTaskInformation(int taskTakenID) async {
     try {
-      Map<String, dynamic> response = await _getRequest("/display-assigned-task/$taskTakenID");
+      Map<String, dynamic> response =
+          await _getRequest("/display-assigned-task/$taskTakenID");
       debugPrint("Assigned Task Information Retrieved: ${response.toString()}");
 
       // Check if response is not empty and is a Map
       if (response['success']) {
         debugPrint("Mapped: ${response.toString()}");
         return TaskAssignment(
-          client: null,
-          tasker: TaskerModel.fromJson(response['task_information']['tasker']),
-          task: TaskModel.fromJson(response['task_information']['post_task']),
-          taskStatus: response['task_information']['task_status'],
-          taskTakenId: response['task_information']['task_taken_id'],
-          taskStatusReason: response['task_information']['reason_for_rejection_or_cancellation']
-        );
-      }else if(response.containsKey("error")){
+            client: null,
+            tasker:
+                TaskerModel.fromJson(response['task_information']['tasker']),
+            task: TaskModel.fromJson(response['task_information']['post_task']),
+            taskStatus: response['task_information']['task_status'],
+            taskTakenId: response['task_information']['task_taken_id'],
+            taskStatusReason: response['task_information']
+                ['reason_for_rejection_or_cancellation']);
+      } else if (response.containsKey("error")) {
         debugPrint("Mapped: ${response.toString()}");
         return TaskAssignment(
-          client: null,
-          tasker: null,
-          task: null,
-          taskStatus: "Unknown",
-          taskTakenId: 0
-        );
+            client: null,
+            tasker: null,
+            task: null,
+            taskStatus: "Unknown",
+            taskTakenId: 0);
       }
 
       // Return null if no valid data found
@@ -372,6 +395,45 @@ class JobPostService {
   }
 
   Future<String?> getUserId() async => storage.read('user_id')?.toString();
+
+  Future<Map<String, dynamic>> fetchIsApplied(
+      int? taskId, int? clientId, int? taskerId) async {
+    final userId = await getUserId();
+    if (userId == null) {
+      return {
+        'success': false,
+        'message': 'Please log in to like jobs',
+        'requiresLogin': true
+      };
+    }
+
+    debugPrint("Sending task request...");
+    debugPrint("Task ID: $taskId, Client ID: $clientId, Tasker ID: $taskerId");
+
+    final response = await _getRequest(
+        "/fetchIsApplied?task_id=$taskId&client_id=$clientId&tasker_id=$taskerId");
+    return response;
+  }
+
+  Future<Map<String, dynamic>> acceptRequest(int taskTakenId) async {
+    try {
+      debugPrint("Accepting task with ID: $taskTakenId");
+      final response = await http.put(
+        Uri.parse('$apiUrl/acceptRequest/$taskTakenId'),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+      );
+
+      print("API Response for acceptRequest: ${response.body}");
+      return _handleResponse(response);
+    } catch (e) {
+      debugPrint('Error accepting task: $e');
+      debugPrintStack();
+      return {'success': false, 'error': 'Error: $e'};
+    }
+  }
 
   Future<Map<String, dynamic>> assignTask(
       int taskId, int clientId, int taskerId) async {

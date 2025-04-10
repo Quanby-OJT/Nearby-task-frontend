@@ -28,7 +28,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _fetchUserData() async {
     try {
       int userId = storage.read("user_id");
-      AuthenticatedUser? user = await _userController.getAuthenticatedUser(context, userId);
+      AuthenticatedUser? user =
+          await _userController.getAuthenticatedUser(context, userId);
 
       debugPrint(user.toString());
       setState(() {
@@ -61,7 +62,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       backgroundColor: Color(0xFF0272B1),
       appBar: AppBar(
-        automaticallyImplyLeading: false,
         title: Center(
             child: Text(
           '',

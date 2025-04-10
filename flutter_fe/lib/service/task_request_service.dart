@@ -517,7 +517,7 @@ class TaskRequestService {
           'status': 'Accepted'
         },
       );
-    }catch (e, stackTrace){
+    } catch (e, stackTrace) {
       debugPrint("Error releasing escrow payment: $e");
       debugPrintStack(stackTrace: stackTrace);
       return {
@@ -555,50 +555,47 @@ class TaskRequestService {
       // Create dummy tasks
       List<TaskModel> tasks = [
         TaskModel(
-          id: 101,
-          clientId: 1,
-          title: "Fix Plumbing",
-          description: "Need to fix a leaking pipe in the kitchen",
-          location: "123 Main St",
-          contactPrice: 120,
-          urgency: "Urgent",
-          specialization: '',
-          period: '',
-          status: '',
-          duration: '',
-          taskBeginDate: '',
-          workType: ''
-        ),
+            id: 101,
+            clientId: 1,
+            title: "Fix Plumbing",
+            description: "Need to fix a leaking pipe in the kitchen",
+            location: "123 Main St",
+            contactPrice: 120,
+            urgency: "Urgent",
+            specialization: '',
+            period: '',
+            status: '',
+            duration: '',
+            taskBeginDate: '',
+            workType: ''),
         TaskModel(
-          id: 102,
-          clientId: 1,
-          title: "Install Ceiling Fan",
-          description: "Need to install a new ceiling fan in the living room",
-          location: "456 Oak Ave",
-          contactPrice: 80,
-          urgency: "Non-Urgent",
-          specialization: '',
-          period: '',
-          status: '',
-          duration: '',
-          taskBeginDate: '',
-          workType: ''
-        ),
+            id: 102,
+            clientId: 1,
+            title: "Install Ceiling Fan",
+            description: "Need to install a new ceiling fan in the living room",
+            location: "456 Oak Ave",
+            contactPrice: 80,
+            urgency: "Non-Urgent",
+            specialization: '',
+            period: '',
+            status: '',
+            duration: '',
+            taskBeginDate: '',
+            workType: ''),
         TaskModel(
-          id: 103,
-          clientId: 1,
-          title: "Paint Bedroom",
-          description: "Paint the walls of a medium-sized bedroom",
-          location: "789 Pine Blvd",
-          contactPrice: 200,
-          urgency: "Non-Urgent",
-          specialization: '',
-          period: '',
-          status: '',
-          duration: '',
-          taskBeginDate: '',
-          workType: ''
-        ),
+            id: 103,
+            clientId: 1,
+            title: "Paint Bedroom",
+            description: "Paint the walls of a medium-sized bedroom",
+            location: "789 Pine Blvd",
+            contactPrice: 200,
+            urgency: "Non-Urgent",
+            specialization: '',
+            period: '',
+            status: '',
+            duration: '',
+            taskBeginDate: '',
+            workType: ''),
       ];
 
       // Create dummy requests
