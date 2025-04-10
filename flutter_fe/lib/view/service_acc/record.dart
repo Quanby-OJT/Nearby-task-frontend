@@ -1,28 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/controller/authentication_controller.dart';
-import 'package:flutter_fe/controller/profile_controller.dart';
-import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_coinfirmed.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_finish.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_ongoing.dart';
+
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class RecordPage extends StatefulWidget {
-  const RecordPage({super.key});
+class RecordTaskerPage extends StatefulWidget {
+  const RecordTaskerPage({super.key});
 
   @override
-  State<RecordPage> createState() => _RecordPageState();
+  State<RecordTaskerPage> createState() => _RecordTaskerPageState();
 }
 
-class _RecordPageState extends State<RecordPage> {
+class _RecordTaskerPageState extends State<RecordTaskerPage> {
   final storage = GetStorage();
 
   bool _isLoading = true;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
   }
 
@@ -34,7 +31,7 @@ class _RecordPageState extends State<RecordPage> {
         backgroundColor: Colors.white,
         title: Center(
           child: Text(
-            'Record',
+            'My Record',
             textAlign: TextAlign.center,
             style: GoogleFonts.montserrat(
               color: Color(0xFF0272B1),
@@ -66,7 +63,7 @@ class _RecordPageState extends State<RecordPage> {
                     child: Column(
                       children: [
                         Text(
-                          'My Record',
+                          '',
                           style: GoogleFonts.montserrat(
                             fontWeight: FontWeight.w600,
                             fontSize: 18,

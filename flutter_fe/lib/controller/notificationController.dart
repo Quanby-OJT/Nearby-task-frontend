@@ -26,6 +26,16 @@ class NotificationController {
     }
   }
 
+  Future<Map<String, dynamic>> getFinishRequests(int userId) async {
+    try {
+      final data = await _notificationService.getFinishRequests(userId);
+      return data;
+    } catch (e, st) {
+      debugPrint("Controller error: $e\nStacktrace: $st");
+      return {"error": "An error occurred while getting finish requests"};
+    }
+  }
+
   Future<Map<String, dynamic>> getConfirmedRequests(int userId) async {
     try {
       final data = await _notificationService.getConfirmedRequests(userId);

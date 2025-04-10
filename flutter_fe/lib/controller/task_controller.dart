@@ -96,9 +96,10 @@ class TaskController {
     }
   }
 
-  Future<bool> acceptRequest(int taskTakenId) async {
+  Future<bool> acceptRequest(int taskTakenId, String value) async {
     debugPrint("Assigning task...");
-    final assignedTask = await _jobPostService.acceptRequest(taskTakenId);
+    final assignedTask =
+        await _jobPostService.acceptRequest(taskTakenId, value);
     if (assignedTask.containsKey('message')) {
       return assignedTask['message'] = true;
     }

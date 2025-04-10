@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/notificationController.dart';
-import 'package:flutter_fe/model/auth_user.dart';
-import 'package:flutter_fe/view/client_record/client_start.dart';
-import 'package:flutter_fe/view/notification/client_request.dart';
+import 'package:flutter_fe/view/business_acc/client_record/client_start.dart';
+import 'package:flutter_fe/view/service_acc/tasker_record/tasker_start.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-import '../../service/notification_service.dart';
 
 class DisplayListRecordConfirmed extends StatefulWidget {
   const DisplayListRecordConfirmed({super.key});
@@ -109,19 +106,35 @@ class _DisplayListRecordConfirmedState
                         child: InkWell(
                           borderRadius: BorderRadius.circular(12),
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ClientStart(
-                                  requestID: request["id"],
+                            if (request["role"] == "Tasker") {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ClientStart(
+                                    requestID: request["id"],
+                                  ),
                                 ),
-                              ),
-                            ).then((value) {
-                              setState(() {
-                                _isLoading = true;
+                              ).then((value) {
+                                setState(() {
+                                  _isLoading = true;
+                                });
+                                _fetchRequests();
                               });
-                              _fetchRequests();
-                            });
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => TaskerStart(
+                                    requestID: request["id"],
+                                  ),
+                                ),
+                              ).then((value) {
+                                setState(() {
+                                  _isLoading = true;
+                                });
+                                _fetchRequests();
+                              });
+                            }
                           },
                           child: Padding(
                             padding: EdgeInsets.all(16),
@@ -160,7 +173,7 @@ class _DisplayListRecordConfirmedState
                                 ),
                                 SizedBox(height: 8),
                                 Text(
-                                  "Tasker: ${request["clientName"]}",
+                                  "${request["role"]}: ${request["clientName"]}",
                                   style: GoogleFonts.montserrat(
                                     fontSize: 14,
                                     color: Colors.grey[700],

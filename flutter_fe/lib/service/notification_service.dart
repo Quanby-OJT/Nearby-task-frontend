@@ -61,6 +61,16 @@ class NotificationService {
     }
   }
 
+  Future<Map<String, dynamic>> getFinishRequests(int userId) async {
+    try {
+      final data = await _getRequest("/notifications-tasker-finish/$userId");
+      return data;
+    } catch (e, st) {
+      debugPrint("Service error: $e\nStacktrace: $st");
+      return {"error": "An error occurred while getting finish requests"};
+    }
+  }
+
   Future<Map<String, dynamic>> getConfirmedRequests(int userId) async {
     try {
       final data = await _getRequest("/notifications-tasker-confirmed/$userId");

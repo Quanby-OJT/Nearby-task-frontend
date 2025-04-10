@@ -415,11 +415,13 @@ class JobPostService {
     return response;
   }
 
-  Future<Map<String, dynamic>> acceptRequest(int taskTakenId) async {
+  Future<Map<String, dynamic>> acceptRequest(
+      int taskTakenId, String value) async {
     try {
       debugPrint("Accepting task with ID: $taskTakenId");
       final response = await http.put(
         Uri.parse('$apiUrl/acceptRequest/$taskTakenId'),
+        body: jsonEncode({"value": value}),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"

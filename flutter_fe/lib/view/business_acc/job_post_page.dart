@@ -66,9 +66,11 @@ class _JobPostPageState extends State<JobPostPage> {
 
   Future<void> fetchSpecialization() async {
     try {
-      List<SpecializationModel> fetchedSpecializations = await jobPostService.getSpecializations();
+      List<SpecializationModel> fetchedSpecializations =
+          await jobPostService.getSpecializations();
       setState(() {
-        specialization = fetchedSpecializations.map((spec) => spec.specialization).toList();
+        specialization =
+            fetchedSpecializations.map((spec) => spec.specialization).toList();
         debugPrint("Specializations: $specialization");
       });
     } catch (error) {
@@ -663,8 +665,11 @@ class _JobPostPageState extends State<JobPostPage> {
 
     selectedUrgency == "Urgent";
     try {
-      final result = await controller.postJob(selectedSpecialization ?? "",
-          selectedUrgency ?? "", selectedTimePeriod ?? "", selectedWorkType ?? "");
+      final result = await controller.postJob(
+          selectedSpecialization ?? "",
+          selectedUrgency ?? "",
+          selectedTimePeriod ?? "",
+          selectedWorkType ?? "");
       debugPrint(result.toString());
 
       if (result['success']) {
@@ -846,74 +851,85 @@ class _JobPostPageState extends State<JobPostPage> {
           ),
         ),
       ),
-      body: _isLoading ? Center(
-        child: CircularProgressIndicator(),
-      ) : clientTasks.isEmpty
-          ? const Center(child: Text("No tasks available"))
-          : ListView.builder(
-              itemCount: clientTasks.length,
-              itemBuilder: (context, index) {
-                final task = clientTasks[index];
-                if (task == null) {
-                  return const SizedBox.shrink(); // Skip null tasks
-                }
-                // Format the price safely
-                String priceDisplay = "N/A";
-                if (task.contactPrice != null) {
-                  try {
-                    priceDisplay = NumberFormat("#,##0.00", "en_US")
-                        .format(task.contactPrice!.roundToDouble());
-                  } catch (e) {
-                    priceDisplay = task.contactPrice.toString();
-                  }
-                }
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : clientTasks.isEmpty
+              ? const Center(child: Text("No tasks available"))
+              : ListView.builder(
+                  itemCount: clientTasks.length,
+                  itemBuilder: (context, index) {
+                    final task = clientTasks[index];
+                    if (task == null) {
+                      return const SizedBox.shrink(); // Skip null tasks
+                    }
+                    // Format the price safely
+                    String priceDisplay = "N/A";
+                    if (task.contactPrice != null) {
+                      try {
+                        priceDisplay = NumberFormat("#,##0.00", "en_US")
+                            .format(task.contactPrice!.roundToDouble());
+                      } catch (e) {
+                        priceDisplay = task.contactPrice.toString();
+                      }
+                    }
 
-                return Card(
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  elevation: 2,
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(12),
-                    title: Text(
-                      task.title ?? "Untitled Task",
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    return Card(
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      elevation: 2,
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(12),
+                        title: Text(
+                          task.title ?? "Untitled Task",
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 4),
+                            _buildInfoRow(
+                              FontAwesomeIcons.locationPin,
+                              Colors.redAccent,
+                              task.location,
+                            ),
+                            const SizedBox(height: 5),
+                            _buildInfoRow(
+                              FontAwesomeIcons.pesoSign,
+                              Colors.green,
+                              "$priceDisplay",
+                            ),
+                            const SizedBox(height: 5),
+                            _buildInfoRow(
+                              FontAwesomeIcons.screwdriverWrench,
+                              Colors.blue,
+                              "${task.specialization}",
+                            ),
+                            const SizedBox(height: 5),
+                            _buildInfoRow(
+                              FontAwesomeIcons.clock,
+                              Colors.orange,
+                              "Duration: ${task.duration} ${task.period}",
+                            ),
+                          ],
+                        ),
+                        trailing: const Icon(
+                          Icons.arrow_forward_ios,
+                          size: 16,
+                          color: Colors.grey,
+                        ),
+                        onTap: () {
+                          _navigateToTaskDetail(
+                              task); // Navigate to task details
+                        },
                       ),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 4),
-                        _buildInfoRow(
-                          FontAwesomeIcons.locationPin, Colors.redAccent, task.location,
-                        ),
-                        const SizedBox(height: 5),
-                        _buildInfoRow(
-                          FontAwesomeIcons.pesoSign, Colors.green, "$priceDisplay",
-                        ),
-                        const SizedBox(height: 5),
-                        _buildInfoRow(
-                          FontAwesomeIcons.screwdriverWrench, Colors.blue, "${task.specialization}",
-                        ),
-                        const SizedBox(height: 5),
-                        _buildInfoRow(
-                          FontAwesomeIcons.clock, Colors.orange, "Duration: ${task.duration} ${task.period}",
-                        ),
-                      ],
-                    ),
-                    trailing: const Icon(
-                      Icons.arrow_forward_ios,
-                      size: 16,
-                      color: Colors.grey,
-                    ),
-                    onTap: () {
-                      _navigateToTaskDetail(task); // Navigate to task details
-                    },
-                  ),
-                );
-              },
-            ),
+                    );
+                  },
+                ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -931,7 +947,7 @@ class _JobPostPageState extends State<JobPostPage> {
             onPressed: _showCreateTaskModal,
             icon: const Icon(Icons.add, size: 26),
             label: const Text(
-              "Had a New Task in Mind?",
+              "Add Task",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             backgroundColor: Colors.blueAccent,
@@ -947,21 +963,19 @@ class _JobPostPageState extends State<JobPostPage> {
   }
 
   Widget _buildInfoRow(IconData icon, Color color, String label) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          color: color,
+    return Row(children: [
+      Icon(
+        icon,
+        color: color,
+      ),
+      SizedBox(width: 10),
+      Text(
+        label,
+        style: GoogleFonts.openSans(
+          fontSize: 16,
+          color: Colors.black,
         ),
-        SizedBox(width: 10),
-        Text(
-          label,
-          style: GoogleFonts.openSans(
-            fontSize: 16,
-            color: Colors.black,
-          ),
-        )
-      ]
-    );
+      )
+    ]);
   }
 }
