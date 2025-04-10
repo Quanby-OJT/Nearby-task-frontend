@@ -57,8 +57,9 @@
           <td class="px-4 py-3 text-center">{{ convo.user_id }}</td>
           <td class="px-4 py-3 text-center">{{ convo.user.first_name }} {{ convo.user.middle_name }} {{ convo.user.last_name }}</td>
           <td class="px-4 py-3 text-center">
-            <div class="max-h-[80px] max-w-[300px] overflow-y-auto overflow-x-hidden mx-auto text-left whitespace-pre-wrap break-words text-center">
-              {{ convo.conversation }}
+            <div class="flex justify-between items-center mx-auto whitespace-pre-wrap break-words">
+              <span class="line-clamp-1 max-w-[150px] text-left">{{ convo.conversation }}</span>
+              <a href="javascript:void(0)" class="text-blue-500 hover:underline text-right" (click)="viewConversation(convo.conversation)">View</a>
             </div>
           </td>
           <td class="px-4 py-3 text-center">{{ convo.user.user_role }}</td>
@@ -66,7 +67,7 @@
           <td class="px-4 py-3 text-center">{{ convo.created_at }}</td>
           <td class="px-4 py-3 text-center">{{ convo.user.acc_status }}</td>
           <td class="px-4 py-3 text-center">
-            <div  class="flex gap-2">
+            <div class="flex gap-2">
               <span class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-red-500" (click)="banUser(convo.user_id)">Ban</span>
               <span class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-yellow-300" (click)="warnUser(convo.user_id)">Warn</span>
             </div>

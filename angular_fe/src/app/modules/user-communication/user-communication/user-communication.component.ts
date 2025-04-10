@@ -200,12 +200,12 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, warn it!', // Fixed the button text
+      confirmButtonText: 'Yes, warn it!',
     }).then((result) => {
       if (result.isConfirmed) {
-        this.userConversationService.warnUser(id).subscribe((response) => { // Fixed to call warnUser
+        this.userConversationService.warnUser(id).subscribe((response) => {
           if (response) {
-            Swal.fire('Warned!', 'User has been warned.', 'success').then(() => { // Fixed the message
+            Swal.fire('Warned!', 'User has been warned.', 'success').then(() => {
               // Refresh the conversation list after warning
               this.userConversationService.getUserLogs().subscribe((response) => {
                 if (response && response.data) {
@@ -219,6 +219,20 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
         }, (error) => {
           Swal.fire('Error!', 'Failed to warn the user.', 'error');
         });
+      }
+    });
+  }
+
+  viewConversation(conversation: string): void {
+    Swal.fire({
+      title: 'Conversation',
+      text: conversation,
+      icon: 'info',
+      confirmButtonText: 'Close',
+      confirmButtonColor: '#3085d6',
+      width: '600px',
+      customClass: {
+        htmlContainer: 'text-left whitespace-pre-wrap'
       }
     });
   }
