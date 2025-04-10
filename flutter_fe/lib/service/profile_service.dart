@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/config/url_strategy.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
@@ -9,7 +10,7 @@ import 'package:flutter_fe/model/tasker_model.dart';
 import 'dart:io';
 
 class ProfileService {
-  static const String apiUrl = "http://localhost:5000/connect";
+  static String url = apiUrl ?? "http://localhost:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
   static Future<String?> getUserId() async =>
@@ -17,7 +18,7 @@ class ProfileService {
 
   static Future<Map<String, dynamic>> _postRequest(
       {required String endpoint, required Map<String, dynamic> body}) async {
-    final response = await http.post(Uri.parse("$apiUrl$endpoint"),
+    final response = await http.post(Uri.parse("$url$endpoint"),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -33,11 +34,11 @@ class ProfileService {
       // Ensure endpoint starts with a slash if not already
       String formattedEndpoint =
           endpoint.startsWith('/') ? endpoint : '/$endpoint';
-      debugPrint('Making GET request to: $apiUrl$formattedEndpoint');
+      debugPrint('Making GET request to: $url$formattedEndpoint');
       debugPrint('Using token: $token');
 
       final response = await http.get(
-        Uri.parse('$apiUrl$formattedEndpoint'),
+        Uri.parse('$url$formattedEndpoint'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -79,7 +80,7 @@ class ProfileService {
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.put(
-        Uri.parse('$apiUrl$endpoint'),
+        Uri.parse('$url$endpoint'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -111,7 +112,7 @@ class ProfileService {
       }
 
       var request = http.MultipartRequest(
-          'PUT', Uri.parse('$apiUrl/user/tasker/$userId'));
+          'PUT', Uri.parse('$url/user/tasker/$userId'));
       request.headers['Authorization'] = 'Bearer $token';
       request.headers['Content-Type'] = 'multipart/form-data';
 
@@ -172,7 +173,7 @@ class ProfileService {
       debugPrint("Request fields: ${request.fields}");
       debugPrint(
           "Request files: ${request.files.map((f) => '${f.field}: ${f.filename}').toList()}");
-      debugPrint("Sending request to: $apiUrl/user/tasker/$userId");
+      debugPrint("Sending request to: $url/user/tasker/$userId");
       final response = await request.send();
       final responseBody = await http.Response.fromStream(response);
       debugPrint("Response: ${responseBody.body}");
@@ -201,7 +202,7 @@ class ProfileService {
 
     // Create a multipart request for the PUT endpoint
     var request =
-        http.MultipartRequest('PUT', Uri.parse('$apiUrl/user/client/$userId'));
+        http.MultipartRequest('PUT', Uri.parse('$url/user/client/$userId'));
     request.headers['Authorization'] = 'Bearer $token';
 
     // Add tasker data as a JSON string in a form field

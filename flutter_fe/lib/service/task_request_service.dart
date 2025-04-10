@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/config/url_strategy.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/model/task_request.dart';
 import 'package:flutter_fe/model/user_model.dart';
@@ -8,7 +9,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 
 class TaskRequestService {
-  static const String apiUrl = "http://10.0.2.2:5000/connect";
+  static String url = apiUrl ?? "http://localhost:5000/connect";
   static final storage = GetStorage();
 
   Future<String?> getUserId() async => storage.read('user_id')?.toString();
@@ -66,10 +67,10 @@ class TaskRequestService {
     try {
       String formattedEndpoint =
           endpoint.startsWith('/') ? endpoint : '/$endpoint';
-      debugPrint('Making GET request to: $apiUrl$formattedEndpoint');
+      debugPrint('Making GET request to: $url$formattedEndpoint');
 
       final response = await http.get(
-        Uri.parse('$apiUrl$formattedEndpoint'),
+        Uri.parse('$url$formattedEndpoint'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -93,7 +94,7 @@ class TaskRequestService {
       String formattedEndpoint =
           endpoint.startsWith('/') ? endpoint : '/$endpoint';
       final response = await http.post(
-        Uri.parse('$apiUrl$formattedEndpoint'),
+        Uri.parse('$url$formattedEndpoint'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -115,7 +116,7 @@ class TaskRequestService {
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.put(
-        Uri.parse('$apiUrl$endpoint'),
+        Uri.parse('$url$endpoint'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"

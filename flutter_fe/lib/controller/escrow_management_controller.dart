@@ -40,11 +40,11 @@ class EscrowManagementController {
     try {
       var response = await _requestService.getTokenBalance();
 
-      if (response['success'] == true && response.containsKey('token_balance')) {
+      if (response['success'] == false) {
         debugPrint("Error fetching token balance: ${response["error"]}");
         return;
       }
-      tokenCredits.value = response["token_balance"];
+      tokenCredits.value = response["tokens"];
     } catch (e) {
       debugPrint("Error fetching token balance: $e");
     }

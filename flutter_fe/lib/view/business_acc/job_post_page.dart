@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
+import 'package:flutter_fe/controller/escrow_management_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
@@ -17,6 +18,8 @@ import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import '../../model/client_model.dart';
+
 class JobPostPage extends StatefulWidget {
   const JobPostPage({super.key});
 
@@ -29,7 +32,9 @@ class _JobPostPageState extends State<JobPostPage> {
   final JobPostService jobPostService = JobPostService();
   final ClientServices _clientServices = ClientServices();
   final ProfileController _profileController = ProfileController();
+  final EscrowManagementController _escrowManagementController = EscrowManagementController();
   final GetStorage storage = GetStorage();
+  ClientModel? clientModel;
   String? _message;
   bool _isSuccess = false;
 
@@ -60,7 +65,6 @@ class _JobPostPageState extends State<JobPostPage> {
     fetchSpecialization();
     _loadSkills();
     _fetchUserIDImage();
-
     fetchCreatedTasks();
   }
 
@@ -319,11 +323,11 @@ class _JobPostPageState extends State<JobPostPage> {
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     decoration: InputDecoration(
-                      label: Text('Contact Price *'),
+                      label: Text('Number of Tokens to be Allocated *'),
                       labelStyle: TextStyle(color: Color(0xFF0272B1)),
                       filled: true,
                       fillColor: Color(0xFFF1F4FF),
-                      hintText: 'Enter price...',
+                      hintText: 'Make Sure You have Sufficient Tokens',
                       hintStyle: TextStyle(color: Colors.grey),
                       enabledBorder: OutlineInputBorder(
                         borderSide:
@@ -835,16 +839,39 @@ class _JobPostPageState extends State<JobPostPage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
-        title: Center(
-          child: Text(
-            'Posted Tasks',
-            style: GoogleFonts.montserrat(
-              color: Color(0xFF0272B1),
-              fontWeight: FontWeight.w600,
-              fontSize: 18,
-            ),
-          ),
-        ),
+        toolbarHeight: 80,
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: Padding(
+            padding: EdgeInsets.only(left: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Posted Tasks',
+                  style: GoogleFonts.montserrat(
+                    color: Color(0xFF0272B1),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 20,
+                  ),
+                ),
+                SizedBox(height: 5),
+                Text.rich(
+                  TextSpan(
+                    style: GoogleFonts.openSans(
+                      color: Colors.black,
+                      fontSize: 14,
+                    ),
+                    children: <TextSpan>[
+                      TextSpan(text: 'You Currently Have '),
+                      TextSpan(text: '${_escrowManagementController.tokenCredits.value} NearByTask Credits', style: TextStyle(fontWeight: FontWeight.bold, )),
+                    ],
+                  )
+                )
+              ],
+              ),
+            )
+        )
       ),
       body: _isLoading ? Center(
         child: CircularProgressIndicator(),
@@ -856,16 +883,6 @@ class _JobPostPageState extends State<JobPostPage> {
                 final task = clientTasks[index];
                 if (task == null) {
                   return const SizedBox.shrink(); // Skip null tasks
-                }
-                // Format the price safely
-                String priceDisplay = "N/A";
-                if (task.contactPrice != null) {
-                  try {
-                    priceDisplay = NumberFormat("#,##0.00", "en_US")
-                        .format(task.contactPrice!.roundToDouble());
-                  } catch (e) {
-                    priceDisplay = task.contactPrice.toString();
-                  }
                 }
 
                 return Card(
@@ -890,7 +907,7 @@ class _JobPostPageState extends State<JobPostPage> {
                         ),
                         const SizedBox(height: 5),
                         _buildInfoRow(
-                          FontAwesomeIcons.pesoSign, Colors.green, "$priceDisplay",
+                          FontAwesomeIcons.creditCard, Colors.green, "${task.contactPrice} Credits",
                         ),
                         const SizedBox(height: 5),
                         _buildInfoRow(

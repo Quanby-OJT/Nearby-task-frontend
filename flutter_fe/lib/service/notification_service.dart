@@ -3,9 +3,10 @@ import 'package:flutter_fe/service/auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:get_storage/get_storage.dart';
+import '../config/url_strategy.dart';
 
 class NotificationService {
-  static final String apiUrl = "http://localhost:5000/connect";
+  static final String url = apiUrl ?? "http://localhost:5000/connect";
 
   final storage = GetStorage();
 
@@ -24,7 +25,7 @@ class NotificationService {
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.get(
-        Uri.parse('$apiUrl$endpoint'),
+        Uri.parse('$url$endpoint'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"

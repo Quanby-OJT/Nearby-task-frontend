@@ -7,12 +7,13 @@ import 'package:flutter_fe/service/auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:flutter_fe/config/url_strategy.dart';
 
 import '../model/client_model.dart';
 import '../model/tasker_model.dart';
 
 class JobPostService {
-  static const String apiUrl = "http://localhost:5000/connect";
+  static String url = apiUrl ?? "http://localhost:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -32,7 +33,7 @@ class JobPostService {
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.get(
-        Uri.parse('$apiUrl$endpoint'),
+        Uri.parse('$url$endpoint'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -49,7 +50,7 @@ class JobPostService {
 
   Future<Map<String, dynamic>> _postRequest(
       {required String endpoint, required Map<String, dynamic> body}) async {
-    final response = await http.post(Uri.parse("$apiUrl$endpoint"),
+    final response = await http.post(Uri.parse("$url$endpoint"),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -63,7 +64,7 @@ class JobPostService {
       String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
-      final request = http.Request("DELETE", Uri.parse('$apiUrl$endpoint'))
+      final request = http.Request("DELETE", Uri.parse('$url$endpoint'))
         ..headers["Authorization"] = "Bearer $token"
         ..headers["Content-Type"] = "application/json"
         ..body = jsonEncode(body);
@@ -419,7 +420,7 @@ class JobPostService {
     try {
       debugPrint("Accepting task with ID: $taskTakenId");
       final response = await http.put(
-        Uri.parse('$apiUrl/acceptRequest/$taskTakenId'),
+        Uri.parse('$url/acceptRequest/$taskTakenId'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -464,7 +465,7 @@ class JobPostService {
     try {
       debugPrint("Updating task with ID: $taskId");
       final response = await http.put(
-        Uri.parse('$apiUrl/updateTask/$taskId'),
+        Uri.parse('$url/updateTask/$taskId'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -487,7 +488,7 @@ class JobPostService {
     try {
       debugPrint("Disabling task with ID: $taskId with status: $status");
       final response = await http.put(
-        Uri.parse('$apiUrl/disableTask/$taskId'),
+        Uri.parse('$url/disableTask/$taskId'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -528,7 +529,7 @@ class JobPostService {
       debugPrint("Deleting task with ID: $taskId");
       final token = await AuthService.getSessionToken();
       final response = await http.delete(
-        Uri.parse('$apiUrl/deleteTask/$taskId'),
+        Uri.parse('$url/deleteTask/$taskId'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"

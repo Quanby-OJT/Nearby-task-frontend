@@ -7,10 +7,12 @@ import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/service/task_information.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:flutter_fe/controller/escrow_management_controller.dart';
 
 class TaskController {
   final JobPostService _jobPostService = JobPostService();
   final TaskDetailsService _taskDetailsService = TaskDetailsService();
+  final EscrowManagementController _escrowManagementController = EscrowManagementController();
   final jobIdController = TextEditingController();
   final jobTitleController = TextEditingController();
   final jobSpecializationController = TextEditingController();
@@ -39,26 +41,33 @@ class TaskController {
       // Parse the price as an integer
       final priceText = contactPriceController.text.trim();
       final priceInt = int.tryParse(priceText) ?? 0;
-      final task = TaskModel(
-          id: 0,
-          clientId: userId,
-          title: jobTitleController.text.trim(),
-          specialization: specialization,
-          description: jobDescriptionController.text.trim(),
-          location: jobLocationController.text.trim(),
-          duration: durationInt.toString(),
-          // Use the parsed integer value
-          period: period,
-          urgency: urgency,
-          contactPrice: priceInt,
-          // Use the parsed integer value
-          remarks: jobRemarksController.text.trim(),
-          taskBeginDate: jobTaskBeginDateController.text.trim(),
-          workType: workType, // New field
-          status: "Available");
 
-      print('Task data: ${task.toJson()}');
-      return await _jobPostService.postJob(task, userId);
+      if(priceInt < _escrowManagementController.tokenCredits.value){
+        return {
+          "error": "You don't have enough tokens to post your needed task."
+        };
+      }else{
+        final task = TaskModel(
+            id: 0,
+            clientId: userId,
+            title: jobTitleController.text.trim(),
+            specialization: specialization,
+            description: jobDescriptionController.text.trim(),
+            location: jobLocationController.text.trim(),
+            duration: durationInt.toString(),
+            // Use the parsed integer value
+            period: period,
+            urgency: urgency,
+            contactPrice: priceInt,
+            // Use the parsed integer value
+            remarks: jobRemarksController.text.trim(),
+            taskBeginDate: jobTaskBeginDateController.text.trim(),
+            workType: workType, // New field
+            status: "Available");
+
+        print('Task data: ${task.toJson()}');
+        return await _jobPostService.postJob(task, userId);
+      }
     } catch (e, stackTrace) {
       print('Error in postJob: $e');
       debugPrint(stackTrace.toString());

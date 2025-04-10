@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter_fe/config/url_strategy.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/api_service.dart';
 import 'dart:convert';
@@ -17,7 +18,7 @@ import '../model/tasker_model.dart';
 
 class TaskerService {
   static final storage = GetStorage();
-  static final String apiUrl = "http://localhost:5000/connect";
+  static final String url = apiUrl ?? "http://localhost:5000/connect";
 
   final ProfileService _profileService = ProfileService();
 
@@ -37,7 +38,7 @@ class TaskerService {
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.get(
-        Uri.parse('$apiUrl$endpoint'),
+        Uri.parse('$url$endpoint'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -55,7 +56,7 @@ class TaskerService {
   static Future<Map<String, dynamic>> _postRequest(
       {required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
-    final response = await http.post(Uri.parse("$apiUrl$endpoint"),
+    final response = await http.post(Uri.parse("$url$endpoint"),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -69,7 +70,7 @@ class TaskerService {
       String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
-      final request = http.Request("DELETE", Uri.parse('$apiUrl$endpoint'))
+      final request = http.Request("DELETE", Uri.parse('$url$endpoint'))
         ..headers["Authorization"] = "Bearer $token"
         ..headers["Content-Type"] = "application/json"
         ..body = jsonEncode(body);
@@ -85,7 +86,7 @@ class TaskerService {
     try {
       final token = await AuthService.getSessionToken();
       final response = await http.get(
-        Uri.parse('$apiUrl/tasker-profile/$taskerId'),
+        Uri.parse('$url/tasker-profile/$taskerId'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -101,7 +102,7 @@ class TaskerService {
     try {
       final token = await AuthService.getSessionToken();
       final response = await http.get(
-        Uri.parse('$apiUrl/document-link/$taskerId'),
+        Uri.parse('$url/document-link/$taskerId'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -123,7 +124,7 @@ class TaskerService {
 
       var request = http.MultipartRequest(
         "PUT",
-        Uri.parse("$apiUrl/update-tasker-login-with-file/${tasker.id}"),
+        Uri.parse("$url/update-tasker-login-with-file/${tasker.id}"),
       );
 
       request.headers.addAll({
@@ -229,7 +230,7 @@ class TaskerService {
 
       var request = http.MultipartRequest(
         "PUT",
-        Uri.parse("$apiUrl/update-tasker-with-images/${user.id}"),
+        Uri.parse("$url/update-tasker-with-images/${user.id}"),
       );
 
       request.headers.addAll({

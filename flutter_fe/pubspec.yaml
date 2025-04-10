@@ -98,7 +98,7 @@ flutter:
     - assets/tesda_skills.json
     - assets/images/default-profile.jpg
     - assets/svg/logo.svg
-  # - .env
+    - .env
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 
