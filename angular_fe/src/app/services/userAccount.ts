@@ -55,8 +55,9 @@ export class UserAccountService {
     });
   }
 
+  //Change Route To Handle Moderator and Admin Request and no Email Verification
   getUserById(userID: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/getUserData/${userID}`, {
+    return this.http.get<any>(`${this.apiUrl}/getAuthorityUserData/${userID}`, {
       headers: this.getHeaders(),
       withCredentials: true
     });
