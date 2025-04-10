@@ -1,5 +1,5 @@
 import { NgClass, NgIf } from '@angular/common';
-import { Component, numberAttribute } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
 import { UserAccountService } from 'src/app/services/userAccount';
@@ -9,7 +9,8 @@ import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-review',
-  imports: [ButtonComponent, RouterOutlet, ReactiveFormsModule, NgIf, ButtonComponent, NgClass],
+  standalone: true,
+  imports: [ButtonComponent, RouterOutlet, ReactiveFormsModule, NgIf, NgClass],
   templateUrl: './review.component.html',
   styleUrl: './review.component.css',
 })
@@ -24,6 +25,8 @@ export class ReviewComponent {
   userData: any = null;
   first_name: string = '';
   profileImage: string | null = null;
+  documentUrl: string | null = null; 
+  documentName: string | null = null; 
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -40,7 +43,7 @@ export class ReviewComponent {
       this.router.navigate(['user-management']);
     } else if (this.userId) {
       this.loadUserData();
-      console.log(this.userId);
+      console.log('User ID being reviewed:', this.userId);
     }
   }
 
@@ -55,11 +58,13 @@ export class ReviewComponent {
       bday: ['', Validators.required],
     });
   }
+
   loadUserData(): void {
     const userId = Number(this.userId);
 
     this.userAccountService.getUserById(userId).subscribe({
       next: (response: any) => {
+        console.log('User data response:', response);
         this.userData = response.user;
         this.form.patchValue({
           firstName: response.user.first_name,
@@ -70,7 +75,61 @@ export class ReviewComponent {
           email: response.user.email,
           status: response.user.acc_status,
         });
+        console.log('Form value after patching:', this.form.value);
         this.profileImage = response.user.image_link;
+
+        // Fetch the documents for the user
+        this.userAccountService.getUserDocuments(userId).subscribe({
+          next: (docResponse: any) => {
+            console.log('Raw response from getUserDocuments:', docResponse);
+
+            let documents: { url: string, name: string }[] = [];
+
+            // Check for documents directly in the response, accounting for the 'user' wrapper
+            if (docResponse.user?.client_documents?.length > 0) {
+              console.log('Processing Client documents:', docResponse.user.client_documents);
+              documents = docResponse.user.client_documents.map((doc: any) => ({
+                url: doc.document_url,
+                name: 'Client_Document'
+              }));
+            }
+            if (docResponse.user?.tasker?.length > 0) {
+              console.log('Processing Tasker documents:', docResponse.user.tasker);
+              const taskerDocs = docResponse.user.tasker[0]?.tasker_documents || [];
+              const taskerDocuments = taskerDocs
+                .filter((doc: any) => doc.tesda_document_link)
+                .map((doc: any) => ({
+                  url: doc.tesda_document_link,
+                  name: 'TESDA_Document'
+                }));
+              documents = [...documents, ...taskerDocuments];
+            }
+
+            console.log('Final documents array:', documents);
+
+            // If documents are found, set the first document's URL and name
+            if (documents.length > 0) {
+              this.documentUrl = documents[0].url;
+              this.documentName = this.documentUrl.split('/').pop() || documents[0].name;
+              console.log('Document URL set:', this.documentUrl);
+              console.log('Document Name set:', this.documentName);
+            } else {
+              this.documentUrl = null;
+              this.documentName = null;
+              console.log('No documents found for this user.');
+            }
+          },
+          error: (err) => {
+            console.error('Error fetching documents:', err);
+            this.documentUrl = null;
+            this.documentName = null;
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Failed to fetch documents. Please try again.',
+            });
+          }
+        });
       },
       error: (error: any) => {
         console.error('Error fetching user data:', error);
@@ -137,7 +196,6 @@ export class ReviewComponent {
           this.router.navigate(['user-management']);
         });
       },
-
       (error) => {
         Swal.fire({
           icon: 'error',

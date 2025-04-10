@@ -23,10 +23,11 @@ class TaskController {
   final jobRemarksController = TextEditingController();
   final jobTaskBeginDateController = TextEditingController();
   final contactpriceController = TextEditingController();
+  final rejectionController = TextEditingController();
   final storage = GetStorage();
 
-  Future<Map<String, dynamic>> postJob(String? specialization, String? urgency,
-      String? period, String? workType) async {
+  Future<Map<String, dynamic>> postJob(String specialization, String urgency,
+      String period, String workType) async {
     try {
       int userId = storage.read('user_id');
       print('Submitting data...');
@@ -38,7 +39,6 @@ class TaskController {
       // Parse the price as an integer
       final priceText = contactPriceController.text.trim();
       final priceInt = int.tryParse(priceText) ?? 0;
-
       final task = TaskModel(
         id: 0,
         clientId: userId,
@@ -55,6 +55,7 @@ class TaskController {
         remarks: jobRemarksController.text.trim(),
         taskBeginDate: jobTaskBeginDateController.text.trim(),
         workType: workType, // New field
+        status: "Available"
       );
 
       print('Task data: ${task.toJson()}');
@@ -117,6 +118,7 @@ class TaskController {
   }
 
   Future<String> assignTask(int? taskId, int? clientId, int? taskerId) async {
+
     debugPrint("Assigning task...");
     final assignedTask =
         await _jobPostService.assignTask(taskId, clientId, taskerId);
@@ -195,25 +197,24 @@ class TaskController {
             item['post_task'] as Map<String, dynamic>;
         int taskTakenId = item['task_taken_id'];
         TaskModel task = TaskModel(
-          title: taskData['task_title'] as String?,
+          title: taskData['task_title'] as String,
           clientId: null,
-          specialization: null,
-          description: null,
-          location: null,
-          period: null,
-          duration: null,
-          urgency: taskData['urgent'] as String?,
-          // Check if this field exists in your API
-          status: null,
-          contactPrice: null,
+          specialization: '',
+          description: '',
+          location: '',
+          period: '',
+          duration: '',
+          urgency: '',
+          status: '',
+          contactPrice: 0,
           remarks: null,
-          taskBeginDate: null,
-
+          taskBeginDate: '',
+          workType: '',
           id: taskData[
               'task_id'], // Use taskTakenId here if it's meant to be the task's ID
 
-          //id: taskData['task_id'], // Use taskTakenId here if it's meant to be the task's ID
-        );
+            //id: taskData['task_id'], // Use taskTakenId here if it's meant to be the task's ID
+          );
 
         Map<String, dynamic> clientData =
             item['clients'] as Map<String, dynamic>;
@@ -255,6 +256,7 @@ class TaskController {
           availability: false,
           wage: 0.0,
           payPeriod: '',
+          birthDate: DateTime.now(),
           group: false,
           user: taskerUser,
         );
@@ -265,6 +267,7 @@ class TaskController {
           tasker: tasker,
           task: task,
           taskTakenId: taskTakenId, // Use the root-level task_taken_id
+          taskStatus: item['task_status'] as String,
         );
         debugPrint(assignment.toString()); // Verify the full object
         return assignment;

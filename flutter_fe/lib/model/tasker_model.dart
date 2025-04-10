@@ -12,6 +12,7 @@ class TaskerModel {
   final Map<String, String>? address;
   final double wage;
   final String payPeriod;
+  final DateTime birthDate;
   final bool? group;
   UserModel? user;
 
@@ -25,6 +26,7 @@ class TaskerModel {
     this.address,
     required this.wage,
     required this.payPeriod,
+    required this.birthDate,
     this.taskerDocuments,
     this.socialMediaLinks,
     this.user,
@@ -37,7 +39,7 @@ class TaskerModel {
 
   // Factory method to map JSON to TaskerModel
   factory TaskerModel.fromJson(Map<String, dynamic> json) {
-    debugPrint('JSON Data: $json');
+    //debugPrint('JSON Data: $json');
     return TaskerModel(
       id: json['tasker_id'] ?? 0,
       bio: json['bio'] ?? '',
@@ -53,7 +55,11 @@ class TaskerModel {
       taskerDocuments: json['tesda_document_link'] ?? '',
       wage: json['wage_per_hour'].toDouble() ?? 0.0,
       payPeriod: json['pay_period'] ?? "",
+      birthDate: json['birthdate'] != null
+          ? DateTime.parse(json['birthdate'])
+          : DateTime.now(),
       group: json['group'] ?? false,
+      user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
     );
   }
 
@@ -66,14 +72,10 @@ class TaskerModel {
 
       //Must be in another table
       "availability": availability,
-
       "tesda_documents_link": taskerDocuments,
-      //  "social_media_links": socialMediaLinks,
-
-      // MUST in another table
-      // "tesda_documents_id": taskerDocuments,
       "social_media_links": socialMediaLinks ?? {},
       "address": address ?? {},
+
 
       // remove kasi nasa user na siya
       "group": group,

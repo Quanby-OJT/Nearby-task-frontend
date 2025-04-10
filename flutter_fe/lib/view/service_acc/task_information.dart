@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
+import 'package:flutter_fe/model/client_model.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -18,6 +20,7 @@ class _TaskInformationState extends State<TaskInformation> {
   final JobPostService _jobPostService = JobPostService();
   final TaskController taskController = TaskController();
   TaskModel? _taskInformation;
+  ClientModel? clientModel;
   bool _isLoading = true;
   final storage = GetStorage();
   bool _isApplying = false;
@@ -36,7 +39,8 @@ class _TaskInformationState extends State<TaskInformation> {
       final response =
           await _jobPostService.fetchTaskInformation(widget.taskID ?? 0);
       setState(() {
-        _taskInformation = response;
+        _taskInformation = response?.task;
+        clientModel = response?.client;
         _isLoading = false;
       });
     } catch (e) {
@@ -138,6 +142,7 @@ class _TaskInformationState extends State<TaskInformation> {
                                           ],
                                         ),
                                       ],
+
                                     ),
                                   ),
                                 ],
@@ -305,8 +310,30 @@ class _TaskInformationState extends State<TaskInformation> {
               fontWeight: FontWeight.w500,
             ),
           ),
+          const SizedBox(width: 8),
+          Text(
+            value,
+            style: GoogleFonts.openSans(fontWeight: FontWeight.bold, fontSize: 16),
+          )
         ],
       ),
     );
+  }
+
+  Color statusColor(String taskStatus){
+    switch(taskStatus){
+      case "Available":
+        return Color(0XFF2E763E);
+      case "Already Taken":
+        return Color(0XFFD6932A);
+      case "Closed":
+        return Color(0XFFD43D4D);
+      case "On Hold":
+        return Color(0XFF2C648C);
+      case "Reported":
+        return Color(0XFF7A2532);
+      default:
+        return Color(0XFFD43D4D);
+    }
   }
 }

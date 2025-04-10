@@ -8,7 +8,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 
 class TaskRequestService {
-  static const String apiUrl = "http://localhost:5000/connect";
+  static const String apiUrl = "http://10.0.2.2:5000/connect";
   static final storage = GetStorage();
 
   Future<String?> getUserId() async => storage.read('user_id')?.toString();
@@ -108,6 +108,25 @@ class TaskRequestService {
       debugPrint("API Request Error: $e");
       debugPrint(stackTrace.toString());
       return {"error": "Request failed: $e"};
+    }
+  }
+
+  Future<Map<String, dynamic>> _putRequest({required String endpoint, required Map<String, dynamic> body}) async {
+    final token = await AuthService.getSessionToken();
+    try {
+      final response = await http.put(
+        Uri.parse('$apiUrl$endpoint'),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+        body: jsonEncode(body),
+      );
+      return _handleResponse(response);
+    } catch (e, stackTrace) {
+      debugPrint(e.toString());
+      debugPrint(stackTrace.toString());
+      return {"error": "Request failed. Please Try Again."};
     }
   }
 
@@ -260,6 +279,7 @@ class TaskRequestService {
       // which references the post_task table
       if (item.containsKey('task') && item['task'] is Map) {
         final taskData = item['task'];
+        debugPrint("Task data: $taskData");
 
         return TaskModel(
             id: taskId, // Use the task_id from the root level
@@ -269,7 +289,12 @@ class TaskRequestService {
             contactPrice: taskData['proposed_price'] ?? 0,
             urgency: taskData['urgent'] == true ? 'Urgent' : 'Non-Urgent',
             specialization: taskData['specialization'],
-            status: taskData['status']);
+            period: taskData['period'],
+            status: taskData['status'],
+            duration: '',
+            taskBeginDate: '',
+            workType: ''
+        );
       }
 
       // Fallback if task data is not found
@@ -280,9 +305,16 @@ class TaskRequestService {
         location: "",
         contactPrice: 0,
         urgency: "Unknown",
+        specialization: '',
+        period: '',
+        status: '',
+        duration: '',
+        taskBeginDate: '',
+        workType: ''
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint("Error creating TaskModel: $e");
+      debugPrintStack(stackTrace: stackTrace);
       // Return minimal task model
       return TaskModel(
         id: taskId,
@@ -291,6 +323,12 @@ class TaskRequestService {
         location: "",
         contactPrice: 0,
         urgency: "Unknown",
+        specialization: '',
+        period: '',
+        status: '',
+        duration: '',
+        taskBeginDate: '',
+        workType: ''
       );
     }
   }
@@ -351,7 +389,7 @@ class TaskRequestService {
         body: {
           'task_taken_id': requestId,
           'tasker_id': int.parse(userId),
-          'status': 'accepted'
+          'status': 'Confirmed'
         },
       );
     } catch (e) {
@@ -359,6 +397,35 @@ class TaskRequestService {
       return {
         'success': false,
         'message': 'Failed to accept request: $e',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> depositEscrowPayment(double contractPrice, int taskTakenId) async {
+    try {
+      final userId = await getUserId();
+      if (userId == null) {
+        return {
+          'success': false,
+          'error': 'Please log in to deposit payments.',
+        };
+      }
+      debugPrint("Depositing escrow payment with price: $contractPrice");
+
+      return await _postRequest(
+        endpoint: '/deposit-escrow-payment',
+        body: {
+          'task_taken_id': taskTakenId,
+          'client_id': int.parse(userId),
+          'amount': contractPrice,
+          'status': 'Confirmed'
+        },
+      );
+    } catch (e) {
+      debugPrint("Error accepting task request: $e");
+      return {
+        'success': false,
+        'error': 'Failed to accept request: $e',
       };
     }
   }
@@ -380,7 +447,7 @@ class TaskRequestService {
         body: {
           'task_taken_id': requestId,
           'tasker_id': int.parse(userId),
-          'status': 'declined'
+          'status': 'Declined'
         },
       );
     } catch (e) {
@@ -388,6 +455,56 @@ class TaskRequestService {
       return {
         'success': false,
         'message': 'Failed to decline request: $e',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> rejectTaskerOrCancelTask(int requestId, String rejectOrCancel, String rejectionReason) async {
+    try{
+      return await _putRequest(
+        endpoint: "/update-status-tasker/$requestId",
+        body: {
+          "task_status": rejectOrCancel,
+          "reason_for_rejection_or_cancellation": rejectionReason
+        }
+      );
+    }catch(e, stackTrace) {
+      debugPrint("Error rejecting tasker: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {
+        'success': false,
+        'message': 'Failed to reject the tasker. Please Try Again.'
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> releaseEscrowPayment(int taskTakenId) async {
+    try {
+      final userId = await getUserId();
+
+      if (userId == null) {
+        return {
+          'success': false,
+          'error': 'Please log in to release payments.',
+        };
+      }
+
+      debugPrint("Releasing escrow payment with task taken ID: $taskTakenId");
+
+      return await _postRequest(
+        endpoint: '/release-escrow-payment',
+        body: {
+          'task_taken_id': taskTakenId,
+          'tasker id': int.parse(userId),
+          'status': 'Accepted'
+        },
+      );
+    }catch (e, stackTrace){
+      debugPrint("Error releasing escrow payment: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {
+        'success': false,
+        'error': 'Failed to release the payment. Please Try Again.'
       };
     }
   }
@@ -427,6 +544,12 @@ class TaskRequestService {
           location: "123 Main St",
           contactPrice: 120,
           urgency: "Urgent",
+          specialization: '',
+          period: '',
+          status: '',
+          duration: '',
+          taskBeginDate: '',
+          workType: ''
         ),
         TaskModel(
           id: 102,
@@ -436,6 +559,12 @@ class TaskRequestService {
           location: "456 Oak Ave",
           contactPrice: 80,
           urgency: "Non-Urgent",
+          specialization: '',
+          period: '',
+          status: '',
+          duration: '',
+          taskBeginDate: '',
+          workType: ''
         ),
         TaskModel(
           id: 103,
@@ -445,6 +574,12 @@ class TaskRequestService {
           location: "789 Pine Blvd",
           contactPrice: 200,
           urgency: "Non-Urgent",
+          specialization: '',
+          period: '',
+          status: '',
+          duration: '',
+          taskBeginDate: '',
+          workType: ''
         ),
       ];
 

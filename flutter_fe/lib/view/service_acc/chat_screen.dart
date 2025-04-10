@@ -5,6 +5,7 @@ import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:flutter_fe/view/nav/user_navigation.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_fe/view/service_acc/fill_up.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
@@ -773,33 +774,43 @@ class _ChatScreenState extends State<ChatScreen> {
                     final assignment = taskAssignments![index];
                     return ListTile(
                       title: Text(
-                        assignment.task.title ?? "Unknown Task",
+                        assignment.task?.title ?? "Unknown Task",
                         style: TextStyle(
                             fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       subtitle: Row(children: [
                         Icon(
-                          Icons.cases,
-                          size: 20,
+                          FontAwesomeIcons.user,
+                          size: 15,
                         ),
+                        SizedBox(width: 5),
                         Text(
-                          "${assignment.tasker.user?.firstName ?? ''} ${assignment.tasker.user?.middleName ?? ''} ${assignment.tasker.user?.lastName ?? ''}",
+                          "${assignment.client?.user?.firstName ?? ''} ${assignment.client?.user?.middleName ?? ''} ${assignment.client?.user?.lastName ?? ''}",
                           style: TextStyle(fontSize: 14),
                         )
                       ]),
-                      trailing: Icon(Icons.arrow_forward_ios,
-                          size: 16, color: Colors.grey),
                       onTap: () {
-                        debugPrint(
-                            "Task Id: " + assignment.taskTakenId.toString());
+                        // debugPrint(
+                        //     "Task Id: " + assignment.taskTakenId.toString());
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) => IndividualChatScreen(
-                                  taskTitle: assignment.task.title,
+
+                               taskTitle: assignment.task.title,
+                                  taskId: assignment.task.id,
                                   taskTakenId: assignment.taskTakenId ?? 0)),
+
                         );
                       },
+                      tileColor: Colors.grey[50],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
                     );
                   },
                 ),

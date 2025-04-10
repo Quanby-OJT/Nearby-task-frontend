@@ -58,14 +58,10 @@
   </div>
 
   <div class="mb-2 flex items-center justify-between space-x-3">
-    <div class="flex items-center">
+    <!-- <div class="flex items-center">
       <input id="remember-me" name="remember-me" type="checkbox" />
       <label for="remember-me" class="text-muted-foreground ml-2 block text-sm"> Remember me</label>
-    </div>
-
-    <app-button routerLink="/auth/forgot-password" impact="none" tone="primary" shape="rounded" size="small">
-      Forgot your password?
-    </app-button>
+    </div> -->
   </div>
 
   <!-- Submit Button -->
@@ -73,17 +69,20 @@
   <div>
     <app-button full impact="bold" shape="rounded" size="medium" class="py-2">Sign in</app-button>
   </div>
-
-  <div routerLink="/dashboard" class="py-2">
+  <!-- <div routerLink="/dashboard" class="py-2">
     <app-button full impact="bold" tone="light" shape="rounded" size="medium">
       <svg-icon src="assets/icons/google-logo.svg" [svgClass]="'h-6 w-6 mr-2'"> </svg-icon>
       Log in with Google
     </app-button>
-  </div>
+  </div> -->
 </div>
+
+<app-button routerLink="/auth/forgot-password" impact="none" tone="primary" shape="rounded" size="small">
+  Forgot your password?
+</app-button>
   <!-- Sign-up -->
-  <div class="text-muted-foreground flex items-center text-sm">
+  <!-- <div class="text-muted-foreground flex items-center text-sm">
     Not a Member yet?
     <app-button routerLink="/auth/sign-up" impact="none" shape="rounded" size="small"> Sign up </app-button>
-  </div>
+  </div> -->
 </form>

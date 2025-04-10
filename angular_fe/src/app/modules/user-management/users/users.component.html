@@ -12,10 +12,14 @@
     <div class="flex space-x-4">
       <button
         class="bg-muted text-muted-foreground hover:text-foreground flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold"
-        (click)="exportPDF()">
-        Import CSV
+        (click)="exportCSV()">
+        Export CSV
       </button>
-
+      <button
+        class="bg-muted text-muted-foreground hover:text-foreground flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold"
+        (click)="exportPDF()">
+        Export PDF
+      </button>
       <app-button full impact="bold" shape="rounded" size="medium" (click)="navigateToAddUser()">Add User</app-button>
     </div>
   </div>
@@ -23,17 +27,17 @@
   <div class="border-muted/20 bg-background flex min-w-full flex-col rounded-xl border p-2">
     <app-table-action></app-table-action>
     <div
-      class="scrollbar-thumb-rounded scrollbar-track-rounded scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted grow overflow-x-auto px-5">
+      class="scrollbar-thumb-rounded scrollbar-track-rounded scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted grow overflow-x-auto px-5 min-h-[300px]">
       <table
         class="text-muted-foreground table w-full table-auto border-collapse border-0 text-left align-middle leading-5">
         <thead class="border-muted/20 text-muted-foreground border text-xs">
           <tr app-table-header (onCheck)="toggleUsers($event)"></tr>
         </thead>
-        <tbody>
-          @for (user of filteredUsers; track $index) {
-          <tr class="hover:bg-card/50" app-table-row [user]="user"></tr>
+        <tbody class="min-h-[240px]">
+          @for (user of filterService.currentUsers(); track $index) {
+          <tr class="hover:bg-card/50 h-[60px]" app-table-row [user]="user"></tr>
           }@empty {
-          <tr>
+          <tr class="h-[60px]">
             <td class="py-4 text-center text-sm" colspan="7">No users found</td>
           </tr>
           }

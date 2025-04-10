@@ -1,4 +1,4 @@
-import { NgClass } from '@angular/common';
+import { CommonModule, NgClass } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -11,7 +11,7 @@ import { DataService } from 'src/services/dataStorage';
 
 @Component({
   selector: '[app-table-row]',
-  imports: [FormsModule, AngularSvgIconModule, NgClass],
+  imports: [FormsModule, AngularSvgIconModule, NgClass, CommonModule],
   templateUrl: './table-row.component.html',
   styleUrl: './table-row.component.css',
 })

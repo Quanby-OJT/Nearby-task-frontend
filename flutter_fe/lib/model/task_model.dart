@@ -1,34 +1,38 @@
+import 'package:flutter_fe/model/client_model.dart';
+
 class TaskModel {
   final int id;
   final int? clientId;
-  final String? title;
-  final String? specialization;
-  final String? description;
-  final String? location;
-  final String? period;
-  final String? duration;
-  final String? urgency;
-  final String? status;
-  final int? contactPrice;
+  final String title;
+  final String specialization;
+  final String description;
+  final String location;
+  final String period;
+  final String duration;
+  final String urgency;
+  final String status;
+  final int contactPrice;
   final String? remarks;
-  final String? taskBeginDate;
-  final String? workType; // New field
+  final String taskBeginDate;
+  final String workType; // New field
+  final ClientModel? client;
 
   TaskModel({
     required this.id,
     this.clientId,
-    this.title,
-    this.specialization,
-    this.description,
-    this.location,
-    this.period,
-    this.duration,
-    this.urgency,
-    this.status,
-    this.contactPrice,
+    required this.title,
+    required this.specialization,
+    required this.description,
+    required this.location,
+    required this.period,
+    required this.duration,
+    required this.urgency,
+    required this.status,
+    required this.contactPrice,
     this.remarks,
-    this.taskBeginDate,
-    this.workType,
+    required this.taskBeginDate,
+    required this.workType,
+    this.client
   });
 
   Map<String, dynamic> toJson() {
@@ -66,18 +70,19 @@ class TaskModel {
     return TaskModel(
       id: json['task_id'] as int,
       clientId: json['client_id'] as int?,
-      title: json['task_title'] as String?,
-      specialization: json['specialization'] as String?,
-      description: json['task_description'] as String?,
-      location: json['location'] as String?,
-      duration: json['duration']?.toString(),
-      period: json['period']?.toString(),
+      title: json['task_title'] as String,
+      specialization: json['specialization'] as String,
+      description: json['task_description'] as String,
+      location: json['location'] as String,
+      duration: json['duration'].toString(),
+      period: json['period'].toString(),
       urgency: urgencyValue,
-      contactPrice: json['proposed_price'] as int?,
+      contactPrice: json['proposed_price'] as int,
       remarks: json['remarks'] as String?,
-      taskBeginDate: json['task_begin_date'] as String?,
-      status: json['status'] as String?,
-      workType: json['work_type'] as String?,
+      taskBeginDate: json['task_begin_date'] as String,
+      status: json['status'] as String,
+      workType: json['work_type'] as String,
+      client: json['client'] != null ? ClientModel.fromJson(json['client']) : null,
     );
   }
 }

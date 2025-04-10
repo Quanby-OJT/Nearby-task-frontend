@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/config/url_strategy.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:url_strategy/url_strategy.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   setPathUrlStrategy(); // Enable web URL strategy
+  WebViewPlatform.instance = AndroidWebViewPlatform();
   await GetStorage.init();
   runApp(const MyApp());
 }
