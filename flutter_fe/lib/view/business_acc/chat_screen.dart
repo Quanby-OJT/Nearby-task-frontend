@@ -12,6 +12,7 @@ import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -621,16 +622,17 @@ class _ChatScreenState extends State<ChatScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.transparent,
-        title: Text(
-          "NearByTask Conversation",
-          style: TextStyle(
-            color: Color(0xFF0272B1),
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
+        backgroundColor: Colors.white,
+        title: Center(
+          child: Text(
+            "Chat Messages",
+            style: GoogleFonts.montserrat(
+              color: Color(0xFF0272B1),
+              fontWeight: FontWeight.w600,
+              fontSize: 18,
+            ),
           ),
         ),
-        centerTitle: true,
       ),
       floatingActionButton: (taskAssignments != null &&
               taskAssignments!.isNotEmpty &&
@@ -769,7 +771,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           MaterialPageRoute(
                               builder: (context) => IndividualChatScreen(
                                   taskTitle: assignment.task.title,
-                                  taskTakenId: assignment.task.id ?? 0)),
+                                  taskTakenId: assignment.taskTakenId ?? 0)),
                         );
                       },
                     );

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/specialization.dart';
-import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_fe/model/task_model.dart';
@@ -127,6 +127,28 @@ class JobPostService {
           .toList();
     }
     return [];
+  }
+
+  Future<ClientRequestModel> fetchRequestInformation(int requestID) async {
+    try {
+      Map<String, dynamic> response =
+          await _getRequest("/displayRequest/$requestID");
+      debugPrint("Request Data Retrieved: ${response.toString()}");
+
+      if (response.containsKey("request") && response["request"] is Map) {
+        Map<String, dynamic> request =
+            response["request"] as Map<String, dynamic>;
+        debugPrint("Mapped: ${request.toString()}");
+        return ClientRequestModel.fromJson(request);
+      } else {
+        debugPrint("Response does not contain a valid 'request' map");
+        return ClientRequestModel();
+      }
+    } catch (e) {
+      debugPrint('Error fetching request: $e');
+      debugPrintStack();
+      return ClientRequestModel();
+    }
   }
 
   Future<TaskModel?> fetchTaskInformation(int taskID) async {
@@ -345,6 +367,26 @@ class JobPostService {
     final response = await _getRequest(
         "/fetchIsApplied?task_id=$taskId&client_id=$clientId&tasker_id=$taskerId");
     return response;
+  }
+
+  Future<Map<String, dynamic>> acceptRequest(int taskTakenId) async {
+    try {
+      debugPrint("Accepting task with ID: $taskTakenId");
+      final response = await http.put(
+        Uri.parse('$apiUrl/acceptRequest/$taskTakenId'),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+      );
+
+      print("API Response for acceptRequest: ${response.body}");
+      return _handleResponse(response);
+    } catch (e) {
+      debugPrint('Error accepting task: $e');
+      debugPrintStack();
+      return {'success': false, 'error': 'Error: $e'};
+    }
   }
 
   Future<Map<String, dynamic>> assignTask(

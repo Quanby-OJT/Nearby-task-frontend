@@ -170,7 +170,6 @@ class _LikeScreenState extends State<LikeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: NavUserScreen(),
       body: Column(
         children: [
           Padding(

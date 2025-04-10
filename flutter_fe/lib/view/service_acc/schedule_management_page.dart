@@ -19,28 +19,6 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   automaticallyImplyLeading: false,
-      //   title: Text(
-      //     'Set Schedule',
-      //     style:
-      //         TextStyle(color: Color(0xFF0272B1), fontWeight: FontWeight.bold),
-      //   ),
-      //   backgroundColor: Colors.transparent,
-      //   actions: [
-      //     IconButton(
-      //       icon: Icon(Icons.calendar_view_month),
-      //       onPressed: () {
-      //         setState(() {
-      //           _calendarFormat = _calendarFormat == CalendarFormat.month
-      //               ? CalendarFormat.week
-      //               : CalendarFormat.month;
-      //         });
-      //       },
-      //     ),
-      //   ],
-      // ),
-      appBar: NavUserScreen(),
       body: Column(
         children: [
           TableCalendar(

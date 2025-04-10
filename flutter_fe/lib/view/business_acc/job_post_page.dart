@@ -13,6 +13,7 @@ import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/business_acc/business_task_detail.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class JobPostPage extends StatefulWidget {
@@ -834,12 +835,16 @@ class _JobPostPageState extends State<JobPostPage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        iconTheme: const IconThemeData(color: Color(0xFF0272B1)),
-        title: const Text(
-          'Your Tasks',
-          textAlign: TextAlign.center,
-          style:
-              TextStyle(color: Color(0xFF0272B1), fontWeight: FontWeight.bold),
+        backgroundColor: Colors.white,
+        title: Center(
+          child: Text(
+            'Posted Tasks',
+            style: GoogleFonts.montserrat(
+              color: Color(0xFF0272B1),
+              fontWeight: FontWeight.w600,
+              fontSize: 18,
+            ),
+          ),
         ),
       ),
       body: clientTasks.isEmpty
