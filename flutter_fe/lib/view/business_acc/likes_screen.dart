@@ -257,6 +257,21 @@ class _LikesScreenState extends State<LikesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.white,
+        title: Center(
+          child: Text(
+            'Liked Tasks',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.montserrat(
+              color: Color(0xFF0272B1),
+              fontWeight: FontWeight.w600,
+              fontSize: 18,
+            ),
+          ),
+        ),
+      ),
       body: Column(
         children: [
           Padding(

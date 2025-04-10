@@ -48,7 +48,6 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: NavUserScreen(),
       body: Column(
         children: [
           //Main Calendar

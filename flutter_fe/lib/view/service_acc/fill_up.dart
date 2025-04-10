@@ -242,7 +242,7 @@ class _FillUpTaskerLoginState extends State<FillUpTaskerLogin> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(backgroundColor: Colors.transparent),
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Column(
           children: [
