@@ -170,7 +170,6 @@ class _LikeScreenState extends State<LikeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: NavUserScreen(),
       body: Column(
         children: [
           Padding(
@@ -241,18 +240,20 @@ class _LikeScreenState extends State<LikeScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => TaskRequestsScreen()),
-          );
-        },
-        backgroundColor: Colors.blue,
-        // icon: Icon(Icons.notifications, color: Colors.white),
-        label: Text('Requests', style: TextStyle(color: Colors.white)),
-        tooltip: 'Task Requests',
-      ),
+
+      // Do not remove. In hide ko lng gagamitin ko kasi after
+      // floatingActionButton: FloatingActionButton.extended(
+      //   onPressed: () {
+      //     Navigator.push(
+      //       context,
+      //       MaterialPageRoute(builder: (context) => TaskRequestsScreen()),
+      //     );
+      //   },
+      //   backgroundColor: Colors.blue,
+      //   // icon: Icon(Icons.notifications, color: Colors.white),
+      //   label: Text('Requests', style: TextStyle(color: Colors.white)),
+      //   tooltip: 'Task Requests',
+      // ),
     );
   }
 
@@ -336,147 +337,112 @@ class _LikeScreenState extends State<LikeScreen> {
   Widget _buildJobCard(TaskModel task) {
     return Card(
       color: Color.fromARGB(255, 239, 254, 255),
-      elevation: 4,
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  // Wrap the left content in Expanded
-                  child: Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Row(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(25),
-                          child: Container(
-                            height: 40,
-                            width: 40,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              image: const DecorationImage(
-                                image: AssetImage('assets/images/image1.jpg'),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                            width:
-                                10), // Replace Padding with SizedBox for consistency
-                        Expanded(
-                          // Wrap the text column in Expanded to prevent overflow
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                task.title!,
-                                style: GoogleFonts.montserrat(
-                                  color: const Color(0xFF03045E),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
+      elevation: 2, // No shadow, as requested
+      margin: const EdgeInsets.only(top: 16), // Fixed typo from 'custom'
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TaskInformation(taskID: task.id as int),
+            ),
+          );
+          print('Card tapped: ${task.id}');
+        },
+        borderRadius: BorderRadius.circular(12),
+        hoverColor: Colors.grey.withOpacity(0.2),
+        splashColor: Colors.grey.withOpacity(0.3),
+        highlightColor: Colors.transparent,
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 10),
+                      child: Row(
+                        children: [
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Task: ${task.title}",
+                                  style: GoogleFonts.montserrat(
+                                    color: const Color(0xFF03045E),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                overflow:
-                                    TextOverflow.ellipsis, // Handle long titles
-                              ),
-                              Row(
-                                children: [
-                                  if (task.status != null)
-                                    Flexible(
-                                      // Wrap status text in Flexible
-                                      child: Text(
-                                        task.status!,
-                                        style: GoogleFonts.montserrat(
-                                          color:
-                                              Color.fromARGB(255, 57, 209, 11),
-                                          fontSize: 8,
-                                          fontWeight: FontWeight.w500,
+                                Row(
+                                  children: [
+                                    if (task.status != null)
+                                      Flexible(
+                                        child: Text(
+                                          task.status!,
+                                          style: GoogleFonts.montserrat(
+                                            color: Color.fromARGB(
+                                                255, 57, 209, 11),
+                                            fontSize: 8,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                    ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.delete,
-                    color: Color.fromARGB(255, 228, 11, 11),
-                    size: 24,
-                  ),
-                  onPressed: () {
-                    _unlikeJob(task);
-                  },
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  // Wrap the price section in Expanded
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (task.contactPrice != null)
-                          Text(
-                            '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice!.roundToDouble())}',
-                            style: GoogleFonts.montserrat(
-                              color: const Color(0xFF03045E),
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                                  ],
+                                ),
+                              ],
                             ),
-                            overflow: TextOverflow.ellipsis,
                           ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(right: 10),
-                  child: TextButton(
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (task.contactPrice != null)
+                            Text(
+                              '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice!.roundToDouble())}',
+                              style: GoogleFonts.montserrat(
+                                color: const Color(0xFF03045E),
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.delete,
+                      color: Color.fromARGB(255, 228, 11, 11),
+                      size: 24,
+                    ),
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              TaskInformation(taskID: task.id as int),
-                        ),
-                      );
-                      print(task.id);
+                      _unlikeJob(task);
                     },
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min, // Minimize the Row size
-                      children: [
-                        Text(
-                          "View Details",
-                          style: GoogleFonts.montserrat(
-                            color: Color(0xFF03045E),
-                            fontSize: 10,
-                          ),
-                        ),
-                        SizedBox(width: 5),
-                        Icon(Icons.arrow_forward, color: Color(0xFF03045E)),
-                      ],
-                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -567,8 +533,9 @@ class _LikeScreenState extends State<LikeScreen> {
           );
         }
       }
-    } catch (e) {
+    } catch (e, st) {
       debugPrint("Error in _unlikeJob: $e");
+      debugPrintStack(stackTrace: st);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

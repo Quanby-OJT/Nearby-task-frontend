@@ -9,17 +9,19 @@ import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/auth_service.dart';
+import 'dart:io';
+import 'package:flutter_fe/model/tasker_scheduler.dart';
 
 import '../model/address.dart';
 import '../model/tasker_model.dart';
 
 class TaskerService {
-  final storage = GetStorage();
-  final String apiUrl = "http://localhost:5000/connect";
+  static final storage = GetStorage();
+  static final String apiUrl = "http://localhost:5000/connect";
 
   final ProfileService _profileService = ProfileService();
 
-  Map<String, dynamic> _handleResponse(http.Response response) {
+  static Map<String, dynamic> _handleResponse(http.Response response) {
     debugPrint(response.body);
     final responseBody = jsonDecode(response.body);
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -27,6 +29,55 @@ class TaskerService {
       return responseBody;
     } else {
       return {"error": responseBody["error"] ?? "Unknown error"};
+    }
+  }
+
+  static Future<Map<String, dynamic>> _getRequest(String endpoint) async {
+    debugPrint("Current Session: ${await storage.read('session')}");
+    final token = await AuthService.getSessionToken();
+    try {
+      final response = await http.get(
+        Uri.parse('$apiUrl$endpoint'),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+      );
+      print("API Response for $endpoint: ${response.body}");
+      return _handleResponse(response);
+    } catch (e, stackTrace) {
+      debugPrint(e.toString());
+      debugPrint(stackTrace.toString());
+      return {"error": "Request failed: $e"};
+    }
+  }
+
+  static Future<Map<String, dynamic>> _postRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
+    final token = await AuthService.getSessionToken();
+    final response = await http.post(Uri.parse("$apiUrl$endpoint"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+        body: jsonEncode(body));
+
+    return _handleResponse(response);
+  }
+
+  Future<Map<String, dynamic>> _deleteRequest(
+      String endpoint, Map<String, dynamic> body) async {
+    final token = await AuthService.getSessionToken();
+    try {
+      final request = http.Request("DELETE", Uri.parse('$apiUrl$endpoint'))
+        ..headers["Authorization"] = "Bearer $token"
+        ..headers["Content-Type"] = "application/json"
+        ..body = jsonEncode(body);
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      return _handleResponse(response);
+    } catch (e) {
+      return {"error": "Request failed: $e"};
     }
   }
 
@@ -252,6 +303,41 @@ class TaskerService {
         "errors":
             "An error occurred during updating user information with images: $e"
       };
+    }
+  }
+
+  static Future<Map<String, dynamic>> setTaskerSchedule(
+      TaskerScheduler taskerScheduler) async {
+    try {
+      final taskerId = await storage.read("user_id");
+
+      return await _postRequest(
+          endpoint: "/set-tasker-schedule",
+          body: {"tasker_id": taskerId, ...taskerScheduler.toJson()});
+    } catch (e, stackTrace) {
+      debugPrint("Error setting tasker schedule: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {"error": "An error occurred while setting tasker schedule."};
+    }
+  }
+
+  static Future<List<TaskerScheduler>> getTaskerSchedule() async {
+    try {
+      final taskerId = await storage.read("user_id");
+      var response = await _getRequest("/get-tasker-schedule/$taskerId");
+
+      if (response.containsKey("tasker_schedule")) {
+        List<TaskerScheduler> schedules = [];
+        for (var schedule in response["tasker_schedule"]) {
+          schedules.add(TaskerScheduler.fromJson(schedule));
+        }
+        return schedules;
+      }
+      return [];
+    } catch (e, stackTrace) {
+      debugPrint("Error getting tasker schedule: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return [];
     }
   }
 }

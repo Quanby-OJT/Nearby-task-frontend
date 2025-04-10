@@ -226,8 +226,8 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: NavUserScreen(),
       backgroundColor: Color(0xFF0272B1),
+      appBar: NavUserScreen(),
       body: Stack(
         children: [
           Column(

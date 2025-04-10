@@ -14,7 +14,6 @@ import 'api_service.dart';
 
 class ClientServices {
   static const String apiUrl = "http://localhost:5000/connect";
-
   static final storage = GetStorage();
   static final token = storage.read('session');
   Future<String?> getUserId() async => storage.read('user_id')?.toString();
