@@ -124,8 +124,7 @@ class _TaskInformationState extends State<TaskInformation> {
                                         ),
                                         Row(
                                           children: [
-                                            if (_taskInformation!.status !=
-                                                null)
+                                            if (_taskInformation!.status != null)
                                               Flexible(
                                                 child: Text(
                                                   _taskInformation!.status!,
