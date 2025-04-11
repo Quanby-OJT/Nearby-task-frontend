@@ -97,12 +97,45 @@ class TaskController {
   }
 
   Future<String> assignTask(int? taskId, int? clientId, int? taskerId) async {
-    debugPrint("Assigning task...");
-    final assignedTask =
-        await _jobPostService.assignTask(taskId, clientId, taskerId);
-    return assignedTask.containsKey('message')
-        ? assignedTask['message'].toString()
-        : assignedTask['error'].toString();
+    if (taskId == null || clientId == null || taskerId == null) {
+      return "Invalid task, client, or tasker ID";
+    }
+
+    try {
+      debugPrint("Assigning task $taskId to tasker $taskerId...");
+
+      // Double-check for existing assignments first (fail-safe)
+      if (await isTaskAssignedToTasker(taskId, taskerId)) {
+        return "This task is already assigned to this tasker";
+      }
+
+      // Do a final check before proceeding
+      final assignmentExists =
+          await _jobPostService.checkExistingAssignment(taskId, taskerId);
+      if (assignmentExists) {
+        return "This task is already assigned to this tasker (found during final check)";
+      }
+
+      // If no existing assignment found, proceed with assignment
+      final assignedTask =
+          await _jobPostService.assignTask(taskId, clientId, taskerId);
+
+      // Log full response for debugging
+      debugPrint("Assignment response: $assignedTask");
+
+      if (!assignedTask['success']) {
+        // Handle error case
+        return assignedTask['message'] ??
+            assignedTask['error'] ??
+            "Failed to assign task. It may already be assigned.";
+      }
+
+      // Handle success case
+      return assignedTask['message'] ?? "Task assigned successfully";
+    } catch (e) {
+      debugPrint("Error in task controller assignTask: $e");
+      return "An error occurred while assigning the task: $e";
+    }
   }
 
   // Method to update a task
@@ -288,6 +321,16 @@ class TaskController {
     } catch (e, stackTrace) {
       debugPrint('Error updating task status: $e');
       debugPrintStack(stackTrace: stackTrace);
+    }
+  }
+
+  // Method to check if a task is already assigned to a tasker
+  Future<bool> isTaskAssignedToTasker(int taskId, int taskerId) async {
+    try {
+      return await _jobPostService.checkExistingAssignment(taskId, taskerId);
+    } catch (e) {
+      debugPrint("Error checking if task is assigned: $e");
+      return false;
     }
   }
 }

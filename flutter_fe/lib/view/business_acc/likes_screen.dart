@@ -5,6 +5,7 @@ import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
+import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/service_acc/task_information.dart';
@@ -13,6 +14,7 @@ import 'package:flutter_fe/view/service_acc/task_requests_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
+import 'package:flutter_fe/service/job_post_service.dart';
 
 class LikesScreen extends StatefulWidget {
   const LikesScreen({super.key});
@@ -510,8 +512,7 @@ class _LikesScreenState extends State<LikesScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              TaskInformation(taskID: task.id as int),
+                          builder: (context) => TaskerProfilePage(tasker: task),
                         ),
                       );
                       print(task.id);
@@ -653,6 +654,9 @@ class _LikesScreenState extends State<LikesScreen> {
 
   Future<void> _assignTask(UserModel tasker) async {
     try {
+      // Create TaskController instance
+      final taskController = TaskController();
+
       // Fetch the client's created tasks to display in the dialog
       List<TaskModel> clientTasks = await _fetchClientTasks();
 
@@ -666,10 +670,36 @@ class _LikesScreenState extends State<LikesScreen> {
         return;
       }
 
-      // Show task selection dialog
+      // Filter out tasks that are already assigned to anyone
+      final jobPostService = JobPostService();
+      List<TaskModel> availableTasks = [];
+      for (var task in clientTasks) {
+        if (task.id != null) {
+          bool isAssigned =
+              await jobPostService.isTaskAssigned(task.id, tasker.id!);
+          if (!isAssigned) {
+            availableTasks.add(task);
+          }
+        } else {
+          // Skip this task as it has an invalid ID
+          debugPrint("Skipping task with null ID");
+        }
+      }
+
+      if (availableTasks.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('All your active tasks are already assigned.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+
+      // Show task selection dialog with filtered tasks
       final TaskModel? selectedTask = await showDialog<TaskModel>(
         context: context,
-        builder: (context) => _buildTaskSelectionDialog(clientTasks),
+        builder: (context) => _buildTaskSelectionDialog(availableTasks),
       );
 
       if (selectedTask == null) return;
@@ -686,24 +716,63 @@ class _LikesScreenState extends State<LikesScreen> {
         return;
       }
 
-      // Assign the task using the TaskController
-      final taskController = TaskController();
-      final result = await taskController.assignTask(
-        selectedTask.id,
-        int.parse(clientId),
-        tasker.id,
-      );
-
-      // Show result
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result),
-          backgroundColor:
-              result.contains('success') || result.contains('Success')
-                  ? Colors.green
-                  : Colors.red,
+      // Show loading indicator
+      final loadingOverlay = OverlayEntry(
+        builder: (context) => Container(
+          color: Colors.black45,
+          child: Center(
+            child: CircularProgressIndicator(),
+          ),
         ),
       );
+
+      Overlay.of(context)?.insert(loadingOverlay);
+
+      try {
+        // Assign the task using the TaskController
+        final result = await taskController.assignTask(
+          selectedTask.id,
+          int.parse(clientId),
+          tasker.id,
+        );
+
+        // Remove loading indicator
+        loadingOverlay.remove();
+
+        // Show result with appropriate color based on success/failure
+        final isSuccess = !result.toLowerCase().contains('already') &&
+            !result.toLowerCase().contains('error') &&
+            !result.toLowerCase().contains('failed');
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result),
+            backgroundColor: isSuccess ? Colors.green : Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+
+        // If successful, refresh the task list
+        if (isSuccess) {
+          await _fetchClientTasks();
+
+          // Also add this success to the JobPostService cache manually
+          try {
+            final jobPostService = JobPostService();
+            jobPostService.updateAssignmentCache(
+                selectedTask.id!, tasker.id!, true);
+          } catch (e) {
+            debugPrint("Error updating cache: $e");
+          }
+        }
+      } finally {
+        // Ensure the loading overlay is removed even if there's an error
+        try {
+          loadingOverlay.remove();
+        } catch (e) {
+          // Overlay may already be removed
+        }
+      }
     } catch (e) {
       debugPrint("Error in _assignTask: $e");
       ScaffoldMessenger.of(context).showSnackBar(
