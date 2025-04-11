@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
+import 'package:flutter_fe/view/business_acc/create_escrow_token.dart';
 
 import 'package:flutter_fe/view/business_acc/notif_screen.dart';
 import 'package:flutter_fe/view/business_acc/profile_screen.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/service_acc/fill_up.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -271,6 +273,16 @@ class _NavUserScreenState extends State<NavUserScreen> {
                           overlayEntry.remove();
                         }
                       },
+                    ),
+                    ListTile(
+                      leading: Icon(FontAwesomeIcons.coins),
+                      title: Text('Add NearByTask Tokens'),
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) {
+                          return EscrowTokenScreen();
+                        }));
+                        overlayEntry.remove();
+                      }
                     ),
                     ListTile(
                       leading: Icon(Icons.settings),

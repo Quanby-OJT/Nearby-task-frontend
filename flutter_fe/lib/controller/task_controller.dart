@@ -42,9 +42,11 @@ class TaskController {
       final priceText = contactPriceController.text.trim();
       final priceInt = int.tryParse(priceText) ?? 0;
 
-      if(priceInt < _escrowManagementController.tokenCredits.value){
+      debugPrint(_escrowManagementController.tokenCredits.value.toString());
+      if(_escrowManagementController.tokenCredits.value - priceInt < _escrowManagementController.tokenCredits.value){
         return {
-          "error": "You don't have enough tokens to post your needed task."
+          "success": false,
+          "error": "You don't have enough tokens to post your needed task. Please Deposit First Your Desired Amount of Tokens."
         };
       }else{
         final task = TaskModel(
@@ -69,9 +71,9 @@ class TaskController {
         return await _jobPostService.postJob(task, userId);
       }
     } catch (e, stackTrace) {
-      print('Error in postJob: $e');
+      debugPrint('Error in postJob: $e');
       debugPrint(stackTrace.toString());
-      return {'success': false, 'error': 'Error: $e'};
+      return {'success': false, 'error': 'An Error Occurred while Posting Your Task. Please Try Again. If Issue Persists, contact our support.'};
     }
   }
 

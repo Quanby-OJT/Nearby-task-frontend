@@ -697,6 +697,7 @@ class _JobPostPageState extends State<JobPostPage> {
           selectedWorkType = '';
         });
       } else {
+        Navigator.pop(context);
         setState(() {
           if (result.containsKey('errors') && result['errors'] is List) {
             for (var error in result['errors']) {
@@ -706,8 +707,9 @@ class _JobPostPageState extends State<JobPostPage> {
                 _errors[error['path']] = error['msg'];
               }
             }
-          } else if (result.containsKey('message')) {
-            _message = result['message'];
+          } else if (result.containsKey('error')) {
+            _message = result['error'];
+            _escrowManagementController.tokenCredits.value;
           }
         });
       }
@@ -907,7 +909,7 @@ class _JobPostPageState extends State<JobPostPage> {
                         ),
                         const SizedBox(height: 5),
                         _buildInfoRow(
-                          FontAwesomeIcons.creditCard, Colors.green, "${task.contactPrice} Credits",
+                          FontAwesomeIcons.coins, Colors.green, "${task.contactPrice} Credits",
                         ),
                         const SizedBox(height: 5),
                         _buildInfoRow(
@@ -939,14 +941,17 @@ class _JobPostPageState extends State<JobPostPage> {
             heroTag: "refreshBtn",
             mini: true,
             onPressed: fetchCreatedTasks,
-            child: const Icon(Icons.refresh),
             backgroundColor: Colors.green,
+            child: const Icon(
+              FontAwesomeIcons.arrowsRotate,
+              color: Colors.white,
+            ),
           ),
           const SizedBox(height: 16),
           FloatingActionButton.extended(
             heroTag: "addTaskBtn",
             onPressed: _showCreateTaskModal,
-            icon: const Icon(Icons.add, size: 26),
+            icon: const Icon(FontAwesomeIcons.plus, size: 26),
             label: const Text(
               "Had a New Task in Mind?",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
