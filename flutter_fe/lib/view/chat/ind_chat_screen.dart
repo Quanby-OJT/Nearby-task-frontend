@@ -533,42 +533,77 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                         SizedBox(width: 10),
                         ElevatedButton(
                           onPressed: () {
-                            // Validate the description
-                            if (reasonController.text.trim().isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content:
-                                      Text('Please enter a report description'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                              return;
-                            }
-
-                            // Get the user IDs
-                            final int loggedinUserId = storage.read('user_id');
-                            final int selectedUserId = otherUserId ?? 0;
-
-                            // Validate the reported user ID
-                            if (selectedUserId == 0) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                      'Unable to determine the user to report. Please send a message first.'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                              return;
-                            }
-
-                            // Pass the data to the ReportController
-                            reportController.submitReport(
+                            // Show confirmation dialog
+                            showDialog(
                               context: context,
-                              setModalState: setModalState,
-                              reason: reasonController.text.trim(),
-                              images: reportController.selectedImages,
-                              reportedBy: loggedinUserId,
-                              reportedWhom: selectedUserId,
+                              builder: (BuildContext dialogContext) {
+                                return AlertDialog(
+                                  title: Text("Confirm Report"),
+                                  content: Text(
+                                      "Are you sure you want to submit this report?"),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(dialogContext)
+                                            .pop(); // Close the dialog
+                                      },
+                                      child: Text("No"),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(dialogContext)
+                                            .pop(); // Close the dialog
+
+                                        // Validate the description
+                                        if (reasonController.text
+                                            .trim()
+                                            .isEmpty) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  'Please enter a report description'),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                          return;
+                                        }
+
+                                        // Get the user IDs
+                                        final int loggedinUserId =
+                                            storage.read('user_id');
+                                        final int selectedUserId =
+                                            otherUserId ?? 0;
+
+                                        // Validate the reported user ID
+                                        if (selectedUserId == 0) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  'Unable to determine the user to report. Please send a message first.'),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                          return;
+                                        }
+
+                                        // Pass the data to the ReportController
+                                        reportController.submitReport(
+                                          context: context,
+                                          setModalState: setModalState,
+                                          reason: reasonController.text.trim(),
+                                          images:
+                                              reportController.selectedImages,
+                                          reportedBy: loggedinUserId,
+                                          reportedWhom: selectedUserId,
+                                        );
+                                      },
+                                      child: Text("Yes"),
+                                    ),
+                                  ],
+                                );
+                              },
                             );
                           },
                           style: ElevatedButton.styleFrom(

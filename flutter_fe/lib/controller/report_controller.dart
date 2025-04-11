@@ -141,35 +141,71 @@ class ReportController {
     required int reportedBy,
     required int reportedWhom,
   }) async {
-    // Validate the inputs
-    errors.clear();
-
     if (reason.isEmpty) {
       errors['reason'] = 'Please enter a reason';
+      return;
     }
 
     if (reportedWhom == 0) {
-      errors['reported_whom'] = 'Please select a user to report';
-    }
-
-    if (errors.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Please fix the errors before submitting'),
+          content: Text('Unable to determine the user to report'),
           backgroundColor: Colors.red,
         ),
       );
       return;
     }
 
-    // Update the selectedImages in the controller
-    selectedImages = images;
+    final report = ReportModel(
+      reason: reason,
+      images: images,
+      reportedBy: reportedBy,
+      reportedWhom: reportedWhom,
+    );
 
-    // Call the existing _submitReport method with the reason
-    await _submitReport(
-        context, setModalState, reason, reportedBy, reportedWhom);
+    try {
+      final result = await _reportService.submitReport(report);
+      debugPrint("Backend response: $result");
+
+      if (result['success']) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? "Report Submitted!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+        clearForm();
+      } else {
+        if (result.containsKey('errors') && result['errors'] is List) {
+          for (var error in result['errors']) {
+            if (error is Map<String, dynamic> &&
+                error.containsKey('path') &&
+                error.containsKey('msg')) {
+              errors[error['path']] = error['msg'];
+            }
+          }
+          setModalState(() {});
+        } else if (result.containsKey('message')) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message']),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (error, stackTrace) {
+      debugPrint(error.toString());
+      debugPrintStack(stackTrace: stackTrace);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error submitting report: $error'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
-  // Update end
 
   void validateAndSubmit(BuildContext context, StateSetter setModalState,
       int reportedBy, int? reportedWhom) {
