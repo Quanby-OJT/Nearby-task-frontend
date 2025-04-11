@@ -11,7 +11,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 class ClientFinish extends StatefulWidget {
   final int? finishID;
-  const ClientFinish({super.key, this.finishID});
+  final String? role;
+  const ClientFinish({super.key, this.finishID, this.role});
 
   @override
   State<ClientFinish> createState() => _ClientFinishState();
@@ -28,14 +29,32 @@ class _ClientFinishState extends State<ClientFinish> {
   bool _isApplying = false;
   bool _isEditing = false;
 
+  String? _role;
+
   AuthenticatedUser? tasker;
 
   @override
   void initState() {
     super.initState();
     _fetchRequestDetails();
+    _fetchUserData();
 
     debugPrint("Task ID from the widget: ${widget.finishID}");
+  }
+
+  Future<void> _fetchUserData() async {
+    try {
+      int userId = storage.read("user_id");
+      AuthenticatedUser? user =
+          await _profileController.getAuthenticatedUser(context, userId);
+      debugPrint(user.toString());
+      setState(() {
+        _role = user?.user.role;
+      });
+    } catch (e) {
+      print("Error fetching user data: $e");
+      setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _fetchTaskerDetails(int userId) async {
@@ -63,7 +82,11 @@ class _ClientFinishState extends State<ClientFinish> {
         _requestInformation = response;
       });
       await _fetchTaskDetails();
-      await _fetchTaskerDetails(_requestInformation!.tasker_id as int);
+      if (widget.role == "Client") {
+        await _fetchTaskerDetails(_requestInformation!.tasker_id as int);
+      } else {
+        await _fetchTaskerDetails(_requestInformation!.client_id as int);
+      }
     } catch (e) {
       debugPrint("Error fetching task details: $e");
       setState(() {
@@ -93,7 +116,7 @@ class _ClientFinishState extends State<ClientFinish> {
     return Scaffold(
       appBar: AppBar(
           title: Text(
-        'Finish Task',
+        'Completed Task',
         style: const TextStyle(
           color: Color(0xFF03045E),
           fontSize: 20,
@@ -210,7 +233,9 @@ class _ClientFinishState extends State<ClientFinish> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          "Tasker Profile",
+                                          widget.role! == "Client"
+                                              ? "Tasker"
+                                              : "Client",
                                           style: GoogleFonts.montserrat(
                                             color: const Color(0xFF03045E),
                                             fontSize: 14,
@@ -242,53 +267,6 @@ class _ClientFinishState extends State<ClientFinish> {
                         ),
                       ),
                     ),
-
-                    Padding(
-                        padding: const EdgeInsets.only(
-                            left: 16.0, right: 16.0, top: 16),
-                        child: Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            color: Colors.blue,
-                          ),
-                          child: TextButton(
-                            onPressed: () async {
-                              setState(() {
-                                _isLoading = true;
-                              });
-
-                              final String value = 'Finish';
-                              bool result = await taskController.acceptRequest(
-                                  _requestInformation!.task_taken_id!, value);
-                              debugPrint("Accept request result: $result");
-                              if (result) {
-                                setState(() {
-                                  _isLoading = true;
-                                });
-
-                                _fetchRequestDetails();
-                              } else {
-                                setState(() {
-                                  _isLoading = false;
-                                });
-                              }
-                            },
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 20),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: Text(
-                              'Finish Task',
-                              style: GoogleFonts.montserrat(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ))
                   ],
                 ),
     );

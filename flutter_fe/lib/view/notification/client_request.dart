@@ -8,6 +8,9 @@ import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../controller/profile_controller.dart';
+import '../../model/auth_user.dart';
+
 class ClientRequest extends StatefulWidget {
   final int? requestID;
   const ClientRequest({super.key, this.requestID});
@@ -19,6 +22,11 @@ class ClientRequest extends StatefulWidget {
 class _ClientRequestState extends State<ClientRequest> {
   final JobPostService _jobPostService = JobPostService();
   final TaskController taskController = TaskController();
+
+  final ProfileController _userController = ProfileController();
+  AuthenticatedUser? _user;
+  String? _role;
+
   TaskModel? _taskInformation;
   ClientRequestModel? _requestInformation;
   bool _isLoading = true;
@@ -30,14 +38,47 @@ class _ClientRequestState extends State<ClientRequest> {
   void initState() {
     super.initState();
     _fetchRequestDetails();
+    _fetchUserData();
+    _updateNotif();
 
     debugPrint("Request ID from the widget: ${widget.requestID}");
   }
 
+  Future<void> _updateNotif() async {
+    try {
+      final response = await taskController.updateNotif(
+        widget.requestID ?? 0,
+      );
+      debugPrint("Update notification response: ${response.toString()}");
+      if (!response) {
+        debugPrint("Failed to update notification");
+      }
+    } catch (e) {
+      debugPrint("Error updating notification: $e");
+    }
+  }
+
+  Future<void> _fetchUserData() async {
+    try {
+      int userId = storage.read("user_id");
+      AuthenticatedUser? user =
+          await _userController.getAuthenticatedUser(context, userId);
+      debugPrint(user.toString());
+      setState(() {
+        _user = user;
+        _role = user?.user.role;
+      });
+    } catch (e) {
+      debugPrint("Error fetching user data: $e");
+      setState(() => _isLoading = false);
+    }
+  }
+
   Future<void> _fetchRequestDetails() async {
     try {
-      final response =
-          await _jobPostService.fetchRequestInformation(widget.requestID ?? 0);
+      final response = await _jobPostService.fetchRequestInformation(
+        widget.requestID ?? 0,
+      );
       debugPrint("Fetched request details: $response");
       setState(() {
         _requestInformation = response;
@@ -232,7 +273,29 @@ class _ClientRequestState extends State<ClientRequest> {
                                     color: const Color.fromARGB(255, 203, 4, 4),
                                   ),
                                   child: TextButton(
-                                    onPressed: () {},
+                                    onPressed: () async {
+                                      setState(() {
+                                        _isLoading = true;
+                                      });
+
+                                      final String value = 'Reject';
+                                      debugPrint("Reject request role: $_role");
+                                      bool result =
+                                          await taskController.acceptRequest(
+                                              _requestInformation!
+                                                  .task_taken_id!,
+                                              value,
+                                              _role!);
+                                      debugPrint(
+                                          "Reject request result: $result");
+                                      if (result) {
+                                        Navigator.pop(context);
+                                      } else {
+                                        setState(() {
+                                          _isLoading = false;
+                                        });
+                                      }
+                                    },
                                     style: TextButton.styleFrom(
                                       padding: const EdgeInsets.symmetric(
                                           vertical: 20),
@@ -264,15 +327,14 @@ class _ClientRequestState extends State<ClientRequest> {
                                       setState(() {
                                         _isLoading = true;
                                       });
-
+                                      debugPrint("Reject request role: $_role");
                                       final String value = 'Accept';
                                       bool result =
                                           await taskController.acceptRequest(
                                               _requestInformation!
                                                   .task_taken_id!,
-                                              value);
-                                      debugPrint(
-                                          "Accept request result: $result");
+                                              value,
+                                              _role!);
                                       if (result) {
                                         Navigator.push(
                                           context,

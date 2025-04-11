@@ -23,6 +23,10 @@ class _ClientStartState extends State<ClientStart> {
   final JobPostService _jobPostService = JobPostService();
   final TaskController taskController = TaskController();
   final ProfileController _profileController = ProfileController();
+
+  AuthenticatedUser? _user;
+  String? _role;
+
   TaskModel? _taskInformation;
   ClientRequestModel? _requestInformation;
   bool _isLoading = true;
@@ -36,8 +40,25 @@ class _ClientStartState extends State<ClientStart> {
   void initState() {
     super.initState();
     _fetchRequestDetails();
+    _fetchUserData();
 
     debugPrint("Task ID from the widget: ${widget.requestID}");
+  }
+
+  Future<void> _fetchUserData() async {
+    try {
+      int userId = storage.read("user_id");
+      AuthenticatedUser? user =
+          await _profileController.getAuthenticatedUser(context, userId);
+      debugPrint(user.toString());
+      setState(() {
+        _user = user;
+        _role = user?.user.role;
+      });
+    } catch (e) {
+      print("Error fetching user data: $e");
+      setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _fetchTaskerDetails(int userId) async {
@@ -58,8 +79,9 @@ class _ClientStartState extends State<ClientStart> {
 
   Future<void> _fetchRequestDetails() async {
     try {
-      final response =
-          await _jobPostService.fetchRequestInformation(widget.requestID ?? 0);
+      final response = await _jobPostService.fetchRequestInformation(
+        widget.requestID ?? 0,
+      );
       debugPrint("Fetched request details: $response");
       setState(() {
         _requestInformation = response;
@@ -268,7 +290,8 @@ class _ClientStartState extends State<ClientStart> {
                                           await taskController.acceptRequest(
                                               _requestInformation!
                                                   .task_taken_id!,
-                                              value);
+                                              value,
+                                              _role!);
                                       debugPrint(
                                           "Accept request result: $result");
                                       if (result) {

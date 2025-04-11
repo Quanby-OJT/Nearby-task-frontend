@@ -5,6 +5,9 @@ import 'package:flutter_fe/view/notification/client_request.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../controller/profile_controller.dart';
+import '../../../model/auth_user.dart';
+
 class DisplayListRecordOngoing extends StatefulWidget {
   const DisplayListRecordOngoing({super.key});
 
@@ -27,10 +30,33 @@ class _DisplayListRecordOngoingState extends State<DisplayListRecordOngoing> {
   // Track the selected tab index
   int _selectedTabIndex = 0;
 
+  final ProfileController _userController = ProfileController();
+  AuthenticatedUser? _user;
+  String? role;
+
   @override
   void initState() {
     super.initState();
     _fetchRequests();
+    _fetchUserData();
+  }
+
+  Future<void> _fetchUserData() async {
+    try {
+      int userId = storage.read("user_id");
+      AuthenticatedUser? user =
+          await _userController.getAuthenticatedUser(context, userId);
+
+      debugPrint(user.toString());
+      setState(() {
+        _user = user;
+        _isLoading = false;
+        role = user?.user.role;
+      });
+    } catch (e) {
+      print("Error fetching user data: $e");
+      setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _fetchRequests() async {
@@ -108,7 +134,7 @@ class _DisplayListRecordOngoingState extends State<DisplayListRecordOngoing> {
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => ClientOngoing(
-                                        ongoingID: request["id"])));
+                                        ongoingID: request["id"], role: role)));
                           },
                           child: Padding(
                             padding: EdgeInsets.all(16),

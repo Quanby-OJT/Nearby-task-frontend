@@ -134,8 +134,9 @@ class JobPostService {
 
   Future<ClientRequestModel> fetchRequestInformation(int requestID) async {
     try {
-      Map<String, dynamic> response =
-          await _getRequest("/displayRequest/$requestID");
+      Map<String, dynamic> response = await _getRequest(
+        "/displayRequest/$requestID",
+      );
       debugPrint("Request Data Retrieved: ${response.toString()}");
 
       if (response.containsKey("request") && response["request"] is Map) {
@@ -415,13 +416,33 @@ class JobPostService {
     return response;
   }
 
-  Future<Map<String, dynamic>> acceptRequest(
-      int taskTakenId, String value) async {
+  Future<Map<String, dynamic>> updateNotification(int taskTakenId) async {
     try {
-      debugPrint("Accepting task with ID: $taskTakenId");
+      debugPrint("Updating notification with ID: $taskTakenId");
+      final response = await http.put(
+        Uri.parse('$apiUrl/updateNotification/$taskTakenId'),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+      );
+
+      print("API Response for updateNotification: ${response.body}");
+      return _handleResponse(response);
+    } catch (e) {
+      debugPrint('Error accepting task: $e');
+      debugPrintStack();
+      return {'success': false, 'error': 'Error: $e'};
+    }
+  }
+
+  Future<Map<String, dynamic>> acceptRequest(
+      int taskTakenId, String value, String role) async {
+    try {
+      debugPrint("Accepting task with ID: $taskTakenId $value $role");
       final response = await http.put(
         Uri.parse('$apiUrl/acceptRequest/$taskTakenId'),
-        body: jsonEncode({"value": value}),
+        body: jsonEncode({"value": value, "role": role}),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -438,7 +459,7 @@ class JobPostService {
   }
 
   Future<Map<String, dynamic>> assignTask(
-      int taskId, int clientId, int taskerId) async {
+      int taskId, int clientId, int taskerId, String role) async {
     final userId = await getUserId();
     if (userId == null) {
       return {
@@ -455,6 +476,7 @@ class JobPostService {
       "tasker_id": taskerId,
       "client_id": clientId,
       "task_id": taskId,
+      "role": role,
       // Backend expects task_status field, not status
       "task_status": "Pending"
     });

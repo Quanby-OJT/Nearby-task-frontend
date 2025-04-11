@@ -38,6 +38,7 @@ class _LikesScreenState extends State<LikesScreen> {
   String? _existingProfileImageUrl;
   String? _existingIDImageUrl;
   AuthenticatedUser? _user;
+  String _role = '';
 
   @override
   void initState() {
@@ -208,6 +209,8 @@ class _LikesScreenState extends State<LikesScreen> {
           _existingProfileImageUrl = user?.user.image;
           _existingIDImageUrl = response['url'];
           _isLoading = false;
+
+          _role = _user?.user?.role ?? '';
 
           debugPrint(
               "Successfully loaded user image" + _existingProfileImageUrl!);
@@ -525,8 +528,8 @@ class _LikesScreenState extends State<LikesScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              TaskInformation(taskID: task.id as int),
+                          builder: (context) => TaskInformation(
+                              taskID: task.id as int, role: _role),
                         ),
                       );
                       print(task.id);
@@ -707,6 +710,7 @@ class _LikesScreenState extends State<LikesScreen> {
         selectedTask.id,
         int.parse(clientId),
         tasker.id ?? 0,
+        _role,
       );
 
       // Show result

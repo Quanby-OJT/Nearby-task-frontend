@@ -10,7 +10,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 class TaskInformation extends StatefulWidget {
   final int? taskID;
-  const TaskInformation({super.key, this.taskID});
+  final String role;
+  const TaskInformation({super.key, this.taskID, required this.role});
 
   @override
   State<TaskInformation> createState() => _TaskInformationState();
@@ -250,15 +251,10 @@ class _TaskInformationState extends State<TaskInformation> {
                                 widget.taskID ?? 0,
                                 _taskInformation!.clientId,
                                 userId,
+                                widget.role,
                               );
 
                               debugPrint("Assign task result: $result");
-                              // Navigator.push(
-                              //   context,
-                              //   MaterialPageRoute(
-                              //     builder: (context) => IndividualChatScreen(),
-                              //   ),
-                              // );
 
                               if (result ==
                                   'A New Conversation Has been Opened.') {

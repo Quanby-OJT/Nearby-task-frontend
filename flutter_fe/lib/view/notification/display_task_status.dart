@@ -6,19 +6,21 @@ import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/view/business_acc/client_record/client_ongoing.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class TaskerStart extends StatefulWidget {
+class DisplayTaskStatus extends StatefulWidget {
   final int? requestID;
-  const TaskerStart({super.key, this.requestID});
+  final String? role;
+  const DisplayTaskStatus({super.key, this.requestID, this.role});
 
   @override
-  State<TaskerStart> createState() => _TaskerStartState();
+  State<DisplayTaskStatus> createState() => _DisplayTaskStatusState();
 }
 
-class _TaskerStartState extends State<TaskerStart> {
+class _DisplayTaskStatusState extends State<DisplayTaskStatus> {
   final JobPostService _jobPostService = JobPostService();
   final TaskController taskController = TaskController();
   final ProfileController _profileController = ProfileController();
@@ -36,7 +38,8 @@ class _TaskerStartState extends State<TaskerStart> {
     super.initState();
     _fetchRequestDetails();
     _updateNotif();
-    debugPrint("Task ID from the widget: ${widget.requestID}");
+
+    debugPrint("Display task status: ${widget.requestID}");
   }
 
   Future<void> _updateNotif() async {
@@ -79,7 +82,12 @@ class _TaskerStartState extends State<TaskerStart> {
         _requestInformation = response;
       });
       await _fetchTaskDetails();
-      await _fetchTaskerDetails(_requestInformation!.client_id as int);
+
+      if (_requestInformation!.task_status == widget.role) {
+        await _fetchTaskerDetails(_requestInformation!.client_id as int);
+      } else {
+        await _fetchTaskerDetails(_requestInformation!.tasker_id as int);
+      }
     } catch (e) {
       debugPrint("Error fetching task details: $e");
       setState(() {
@@ -109,7 +117,7 @@ class _TaskerStartState extends State<TaskerStart> {
     return Scaffold(
       appBar: AppBar(
           title: Text(
-        'Task Information',
+        'Task Status',
         style: const TextStyle(
           color: Color(0xFF03045E),
           fontSize: 20,
@@ -226,7 +234,7 @@ class _TaskerStartState extends State<TaskerStart> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          "Client Profile",
+                                          "Tasker Profile",
                                           style: GoogleFonts.montserrat(
                                             color: const Color(0xFF03045E),
                                             fontSize: 14,
@@ -259,68 +267,31 @@ class _TaskerStartState extends State<TaskerStart> {
                       ),
                     ),
 
-                    _requestInformation!.task_status == "Confirmed"
-                        ? Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 16.0, right: 16.0, top: 16),
-                                child: Container(
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    color: const Color.fromARGB(255, 203, 4, 4),
-                                  ),
-                                  child: TextButton(
-                                    onPressed: () {},
-                                    style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 20),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      'Cancel',
-                                      style: GoogleFonts.montserrat(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                    Padding(
+                        padding: const EdgeInsets.only(
+                            left: 16.0, right: 16.0, top: 16),
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              color: Colors.blue),
+                          child: TextButton(
+                            onPressed: () {},
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
                               ),
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 16.0, right: 16.0, top: 16),
-                                child: Container(
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    color: Colors.yellow,
-                                  ),
-                                  child: TextButton(
-                                    onPressed: () {},
-                                    style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 20),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      'Reschedule',
-                                      style: GoogleFonts.montserrat(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                            ),
+                            child: Text(
+                              'Reject',
+                              style: GoogleFonts.montserrat(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
                               ),
-                            ],
-                          )
-                        : const SizedBox.shrink()
+                            ),
+                          ),
+                        ))
                   ],
                 ),
     );

@@ -12,7 +12,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 class ClientOngoing extends StatefulWidget {
   final int? ongoingID;
-  const ClientOngoing({super.key, this.ongoingID});
+  final String? role;
+  const ClientOngoing({super.key, this.ongoingID, this.role});
 
   @override
   State<ClientOngoing> createState() => _ClientOngoingState();
@@ -29,6 +30,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
   bool _isApplying = false;
   bool _isEditing = false;
 
+  AuthenticatedUser? client;
   AuthenticatedUser? tasker;
 
   @override
@@ -38,6 +40,22 @@ class _ClientOngoingState extends State<ClientOngoing> {
 
     debugPrint("Task ID from the widget: ${widget.ongoingID}");
   }
+
+  // Future<void> _fetchClientDetails(int userId) async {
+  //   try {
+  //     AuthenticatedUser? user =
+  //         await _profileController.getAuthenticatedUser(context, userId);
+  //     debugPrint(user.toString());
+  //     setState(() {
+  //       client = user;
+  //     });
+  //   } catch (e) {
+  //     debugPrint("Error fetching client details: $e");
+  //     setState(() {
+  //       _isLoading = false;
+  //     });
+  //   }
+  // }
 
   Future<void> _fetchTaskerDetails(int userId) async {
     try {
@@ -64,7 +82,12 @@ class _ClientOngoingState extends State<ClientOngoing> {
         _requestInformation = response;
       });
       await _fetchTaskDetails();
-      await _fetchTaskerDetails(_requestInformation!.tasker_id as int);
+
+      if (widget.role == "Client") {
+        await _fetchTaskerDetails(_requestInformation!.tasker_id as int);
+      } else {
+        await _fetchTaskerDetails(_requestInformation!.client_id as int);
+      }
     } catch (e) {
       debugPrint("Error fetching task details: $e");
       setState(() {
@@ -211,7 +234,10 @@ class _ClientOngoingState extends State<ClientOngoing> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          "Tasker Profile",
+                                          // this is the role
+                                          widget.role! == "Client"
+                                              ? "Tasker"
+                                              : "Client",
                                           style: GoogleFonts.montserrat(
                                             color: const Color(0xFF03045E),
                                             fontSize: 14,
@@ -244,57 +270,63 @@ class _ClientOngoingState extends State<ClientOngoing> {
                       ),
                     ),
 
-                    Padding(
-                        padding: const EdgeInsets.only(
-                            left: 16.0, right: 16.0, top: 16),
-                        child: Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            color: Colors.blue,
-                          ),
-                          child: TextButton(
-                            onPressed: () async {
-                              setState(() {
-                                _isLoading = true;
-                              });
-
-                              final String value = 'Finish';
-                              bool result = await taskController.acceptRequest(
-                                  _requestInformation!.task_taken_id!, value);
-                              debugPrint("Accept request result: $result");
-                              if (result) {
-                                setState(() {
-                                  _isLoading = true;
-                                });
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => ClientFinish(
-                                            finishID: _requestInformation!
-                                                .task_taken_id!)));
-                                _fetchRequestDetails();
-                              } else {
-                                setState(() {
-                                  _isLoading = false;
-                                });
-                              }
-                            },
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 20),
-                              shape: RoundedRectangleBorder(
+                    widget.role! == "Client"
+                        ? Padding(
+                            padding: const EdgeInsets.only(
+                                left: 16.0, right: 16.0, top: 16),
+                            child: Container(
+                              width: double.infinity,
+                              decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(10),
+                                color: Colors.blue,
                               ),
-                            ),
-                            child: Text(
-                              'Finish Task',
-                              style: GoogleFonts.montserrat(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                              child: TextButton(
+                                onPressed: () async {
+                                  setState(() {
+                                    _isLoading = true;
+                                  });
+
+                                  final String value = 'Finish';
+                                  bool result =
+                                      await taskController.acceptRequest(
+                                          _requestInformation!.task_taken_id!,
+                                          value,
+                                          widget.role!);
+                                  debugPrint("Accept request result: $result");
+                                  if (result) {
+                                    setState(() {
+                                      _isLoading = true;
+                                    });
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => ClientFinish(
+                                                finishID: _requestInformation!
+                                                    .task_taken_id!)));
+                                    _fetchRequestDetails();
+                                  } else {
+                                    setState(() {
+                                      _isLoading = false;
+                                    });
+                                  }
+                                },
+                                style: TextButton.styleFrom(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 20),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Finish Task',
+                                  style: GoogleFonts.montserrat(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        ))
+                            ))
+                        : const SizedBox(),
                   ],
                 ),
     );

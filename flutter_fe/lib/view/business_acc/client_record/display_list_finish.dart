@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/notificationController.dart';
+import 'package:flutter_fe/controller/profile_controller.dart';
+import 'package:flutter_fe/model/auth_user.dart';
+import 'package:flutter_fe/view/business_acc/client_record/client_finish.dart';
 import 'package:flutter_fe/view/business_acc/client_record/client_start.dart';
 import 'package:flutter_fe/view/service_acc/tasker_record/tasker_start.dart';
 import 'package:get_storage/get_storage.dart';
@@ -24,6 +27,10 @@ class _DisplayListRecordFinishState extends State<DisplayListRecordFinish> {
   // Mock data for requests
   final List<Map<String, dynamic>> requestData = [];
 
+  final ProfileController _userController = ProfileController();
+  AuthenticatedUser? _user;
+  String? role;
+
   // Track the selected tab index
   int _selectedTabIndex = 0;
 
@@ -31,6 +38,25 @@ class _DisplayListRecordFinishState extends State<DisplayListRecordFinish> {
   void initState() {
     super.initState();
     _fetchRequests();
+    _fetchUserData();
+  }
+
+  Future<void> _fetchUserData() async {
+    try {
+      int userId = storage.read("user_id");
+      AuthenticatedUser? user =
+          await _userController.getAuthenticatedUser(context, userId);
+
+      debugPrint(user.toString());
+      setState(() {
+        _user = user;
+        _isLoading = false;
+        role = user?.user.role;
+      });
+    } catch (e) {
+      print("Error fetching user data: $e");
+      setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _fetchRequests() async {
@@ -89,7 +115,7 @@ class _DisplayListRecordFinishState extends State<DisplayListRecordFinish> {
       child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : requestData.isEmpty
-              ? _buildEmptyState("No confirmed tasks available!")
+              ? _buildEmptyState("No finish tasks available!")
               : ListView.builder(
                   itemCount: requestData.length,
                   itemBuilder: (context, index) {
@@ -104,35 +130,20 @@ class _DisplayListRecordFinishState extends State<DisplayListRecordFinish> {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(12),
                           onTap: () {
-                            if (request["role"] == "Tasker") {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ClientStart(
-                                    requestID: request["id"],
-                                  ),
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ClientFinish(
+                                  finishID: request["id"],
+                                  role: role,
                                 ),
-                              ).then((value) {
-                                setState(() {
-                                  _isLoading = true;
-                                });
-                                _fetchRequests();
+                              ),
+                            ).then((value) {
+                              setState(() {
+                                _isLoading = true;
                               });
-                            } else {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => TaskerStart(
-                                    requestID: request["id"],
-                                  ),
-                                ),
-                              ).then((value) {
-                                setState(() {
-                                  _isLoading = true;
-                                });
-                                _fetchRequests();
-                              });
-                            }
+                              _fetchRequests();
+                            });
                           },
                           child: Padding(
                             padding: EdgeInsets.all(16),
@@ -240,9 +251,10 @@ class _DisplayListRecordFinishState extends State<DisplayListRecordFinish> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          'Confirmed Task',
+          'Completed Tasks',
           style: GoogleFonts.montserrat(
             color: Color(0xFF0272B1),
             fontWeight: FontWeight.w600,
