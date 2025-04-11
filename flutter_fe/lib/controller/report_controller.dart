@@ -133,8 +133,48 @@ class ReportController {
     selectedImages.removeAt(index);
   }
 
+  Future<void> submitReport({
+    required BuildContext context,
+    required StateSetter setModalState,
+    required String reason,
+    required List<XFile> images,
+    required int reportedBy,
+    required int reportedWhom,
+  }) async {
+    // Validate the inputs
+    errors.clear();
+
+    if (reason.isEmpty) {
+      errors['reason'] = 'Please enter a reason';
+    }
+
+    if (reportedWhom == 0) {
+      errors['reported_whom'] = 'Please select a user to report';
+    }
+
+    if (errors.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please fix the errors before submitting'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Update the selectedImages in the controller
+    selectedImages = images;
+
+    // Call the existing _submitReport method with the reason
+    await _submitReport(
+        context, setModalState, reason, reportedBy, reportedWhom);
+  }
+  // Update end
+
   void validateAndSubmit(BuildContext context, StateSetter setModalState,
       int reportedBy, int? reportedWhom) {
+    // This method is no longer needed since we're using submitReport directly
+    // Keeping it for reference in case other parts of the app use it
     errors.clear();
 
     if (reasonController.text.trim().isEmpty) {
@@ -155,16 +195,18 @@ class ReportController {
       return;
     }
 
-    _submitReport(context, setModalState, reportedBy, reportedWhom!);
+    _submitReport(context, setModalState, reasonController.text.trim(),
+        reportedBy, reportedWhom!);
   }
 
+  // Update start: Update _submitReport to accept the reason as a parameter
   Future<void> _submitReport(BuildContext context, StateSetter setModalState,
-      int reportedBy, int reportedWhom) async {
+      String reason, int reportedBy, int reportedWhom) async {
     final report = ReportModel(
-      reason: reasonController.text.trim(),
+      reason: reason, // Use the passed reason instead of reasonController
       images: selectedImages,
-      reportedBy: reportedBy, // Pass the current user's user_id
-      reportedWhom: reportedWhom, // Pass the selected user's user_id
+      reportedBy: reportedBy,
+      reportedWhom: reportedWhom,
     );
 
     debugPrint("JSON Data being sent to backend: ${report.toJson()}");

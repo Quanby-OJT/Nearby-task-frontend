@@ -42,6 +42,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   final ReportController reportController = ReportController();
   TaskModel? task;
   Timer? _timer;
+  int? otherUserId;
 
   @override
   void initState() {
@@ -74,6 +75,16 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
       _messages.clear();
       _messages
           .addAll(messages); // No type error: messages is List<Conversation>
+
+      int loggedinUserId = storage.read('user_id');
+      for (var message in _messages) {
+        if (message.userId != loggedinUserId) {
+          otherUserId = message.userId;
+          break;
+        }
+      }
+      debugPrint(
+          'Logged-in User ID: $loggedinUserId, Other User ID: $otherUserId');
     });
   }
 
@@ -522,13 +533,43 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                         SizedBox(width: 10),
                         ElevatedButton(
                           onPressed: () {
-                            // Simulate report submission without backend
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
+                            // Validate the description
+                            if (reasonController.text.trim().isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content:
+                                      Text('Please enter a report description'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              return;
+                            }
+
+                            // Get the user IDs
+                            final int loggedinUserId = storage.read('user_id');
+                            final int selectedUserId = otherUserId ?? 0;
+
+                            // Validate the reported user ID
+                            if (selectedUserId == 0) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
                                   content: Text(
-                                      'Report submitted: ${reasonController.text}')),
+                                      'Unable to determine the user to report. Please send a message first.'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              return;
+                            }
+
+                            // Pass the data to the ReportController
+                            reportController.submitReport(
+                              context: context,
+                              setModalState: setModalState,
+                              reason: reasonController.text.trim(),
+                              images: reportController.selectedImages,
+                              reportedBy: loggedinUserId,
+                              reportedWhom: selectedUserId,
                             );
-                            Navigator.pop(context);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Color(0xFF0272B1),
