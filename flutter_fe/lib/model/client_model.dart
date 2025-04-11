@@ -26,7 +26,7 @@ class ClientModel{
   factory ClientModel.fromJson(Map<String, dynamic> json){
     return ClientModel(
         preferences: json['preferences'] as String,
-        clientAddress: json['client_address'] as String
+        clientAddress: json['client_address'] as String,
     );
   }
 }

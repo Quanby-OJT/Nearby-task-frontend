@@ -308,6 +308,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: NavUserScreen(),
       body: Stack(
         children: [
           if (_isLoading)
@@ -331,7 +332,7 @@ class _HomePageState extends State<HomePage> {
                 ElevatedButton(onPressed: _fetchTasker, child: Text('Retry')),
               ],
             ))
-          else if (tasker.isEmpty)
+          else if (tasker.isEmpty && tasker.length < 2)
             Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,

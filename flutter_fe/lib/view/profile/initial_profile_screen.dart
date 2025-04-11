@@ -7,15 +7,16 @@ import 'package:flutter_fe/view/fill_up/fill_up_tasker.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
 import 'package:flutter_fe/view/service_acc/fill_up.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-class InitialProfileScreen extends StatefulWidget {
-  const InitialProfileScreen({super.key});
+class RecordPage extends StatefulWidget {
+  const RecordPage({super.key});
 
   @override
-  State<InitialProfileScreen> createState() => _InitialProfileScreenState();
+  State<RecordPage> createState() => _RecordPageState();
 }
 
-class _InitialProfileScreenState extends State<InitialProfileScreen> {
+class _RecordPageState extends State<RecordPage> {
   final ProfileController _userController = ProfileController();
   final AuthenticationController _authController = AuthenticationController();
   final storage = GetStorage();
@@ -55,89 +56,27 @@ class _InitialProfileScreenState extends State<InitialProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // if (_isLoading) {
-    //   return Center(
-    //     child: CircularProgressIndicator(),
-    //   );
-    // }
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        centerTitle: true,
-        title: Text('Profile'),
         backgroundColor: Colors.white,
+        title: Center(
+          child: Text(
+            'Record',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.montserrat(
+              color: Color(0xFF0272B1),
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+        ),
       ),
       body: Container(
         color: Colors.white,
         child: ListView(
           children: [
             // Menu Items
-            ListTile(
-              leading: Icon(Icons.person),
-              title: Text('Personal Data'),
-              trailing: Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  return ProfileScreen();
-                }));
-                // Handle navigation to Personal Data
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.domain_verification),
-              title: Text('Verify Account'),
-              trailing: Icon(Icons.chevron_right),
-              onTap: () {
-                final userId = storage.read("user_id");
-                if (_user?.user.role.toLowerCase() == 'client') {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return FillUpClient();
-                  }));
-                } else {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return FillUpTaskerLogin(userId: userId as int);
-                  }));
-                }
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.settings),
-              title: Text('Settings'),
-              trailing: Icon(Icons.chevron_right),
-              onTap: () {
-                // Handle navigation to E-Statement
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.card_giftcard),
-              title: Text('Referral Code'),
-              trailing: Icon(Icons.chevron_right),
-              onTap: () {
-                // Handle navigation to Referral Code
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.help),
-              title: Text('FAQs'),
-              trailing: Icon(Icons.chevron_right),
-              onTap: () {
-                // Handle navigation to FAQs
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.book),
-              title: Text('Our Handbook'),
-              trailing: Icon(Icons.chevron_right),
-              onTap: () {},
-            ),
-            ListTile(
-              leading: Icon(Icons.logout),
-              title: Text('Logout'),
-              trailing: Icon(Icons.chevron_right),
-              onTap: () {
-                _authController.logout(context);
-              },
-            ),
           ],
         ),
       ),

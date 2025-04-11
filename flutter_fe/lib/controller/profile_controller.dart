@@ -13,6 +13,7 @@ import '../model/user_model.dart';
 import '../service/api_service.dart';
 import '../model/tasker_model.dart';
 import '../model/auth_user.dart';
+import 'package:flutter_fe/model/document_model.dart';
 
 class ProfileController {
   //General Account Information
@@ -1149,6 +1150,7 @@ class ProfileController {
         wage: double.tryParse(wageController.text.trim()) ?? 0.0,
         payPeriod: payPeriodController.text.trim(),
         group: taskerGroupController.text.trim() == 'true',
+        birthDate: DateTime.parse(birthdateController.text),
         user: user,
       );
 
@@ -1354,6 +1356,7 @@ class ProfileController {
         socialMediaLinks: socials,
         wage: double.parse(cleanedWage),
         payPeriod: payPeriodController.text,
+        birthDate: DateTime.parse(birthdateController.text),
       );
 
       Map<String, dynamic> resultData = await ProfileService.updateTasker(

@@ -26,7 +26,7 @@ class Conversation {
 
   @override
   String toString() {
-    return "Conversation(user: $user, taskTaken: $taskTaken, conversationMessage: $conversationMessage)";
+    return "Conversation(user: $user, taskTaken: $taskTaken, conversationMessage: $conversationMessage, taskTakenId: $taskTakenId, userId: $userId)";
   }
 
   factory Conversation.fromJson(Map<String, dynamic> json) {

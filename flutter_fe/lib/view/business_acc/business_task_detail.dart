@@ -47,7 +47,7 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
       final response =
           await _jobPostService.fetchTaskInformation(widget.taskID);
       setState(() {
-        _taskInformation = response;
+        _taskInformation = response?.task;
         _isLoading = false;
       });
     } catch (e) {

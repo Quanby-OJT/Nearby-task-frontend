@@ -12,7 +12,9 @@ import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/business_acc/business_task_detail.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class JobPostPage extends StatefulWidget {
@@ -26,7 +28,6 @@ class _JobPostPageState extends State<JobPostPage> {
   final TaskController controller = TaskController();
   final JobPostService jobPostService = JobPostService();
   final ClientServices _clientServices = ClientServices();
-  final AuthenticationController _authController = AuthenticationController();
   final ProfileController _profileController = ProfileController();
   final GetStorage storage = GetStorage();
   String? _message;
@@ -35,7 +36,7 @@ class _JobPostPageState extends State<JobPostPage> {
   String? selectedTimePeriod;
   String? selectedUrgency;
   String? selectedSpecialization;
-  String? selectedWorkType; // New field for work_type
+  String selectedWorkType = "Solo"; // New field for work_type
   List<String> items = ['Day/s', 'Week/s', 'Month/s', 'Year/s'];
   List<String> urgency = ['Non-Urgent', 'Urgent'];
   List<String> workTypes = ['Solo', 'Group']; // Options for work_type dropdown
@@ -65,11 +66,10 @@ class _JobPostPageState extends State<JobPostPage> {
 
   Future<void> fetchSpecialization() async {
     try {
-      List<SpecializationModel> fetchedSpecializations =
-          await jobPostService.getSpecializations();
+      List<SpecializationModel> fetchedSpecializations = await jobPostService.getSpecializations();
       setState(() {
-        specialization =
-            fetchedSpecializations.map((spec) => spec.specialization).toList();
+        specialization = fetchedSpecializations.map((spec) => spec.specialization).toList();
+        debugPrint("Specializations: $specialization");
       });
     } catch (error) {
       print('Error fetching specializations: $error');
@@ -277,7 +277,7 @@ class _JobPostPageState extends State<JobPostPage> {
                     }).toList(),
                     onChanged: (newValue) {
                       setState(() {
-                        selectedSpecialization = newValue;
+                        selectedSpecialization = newValue!;
                       });
                     },
                   ),
@@ -393,7 +393,7 @@ class _JobPostPageState extends State<JobPostPage> {
                     }).toList(),
                     onChanged: (newValue) {
                       setState(() {
-                        selectedTimePeriod = newValue;
+                        selectedTimePeriod = newValue!;
                       });
                     },
                   ),
@@ -498,7 +498,7 @@ class _JobPostPageState extends State<JobPostPage> {
                     }).toList(),
                     onChanged: (newValue) {
                       setState(() {
-                        selectedUrgency = newValue;
+                        selectedUrgency = newValue!;
                       });
                     },
                   ),
@@ -533,7 +533,7 @@ class _JobPostPageState extends State<JobPostPage> {
                     }).toList(),
                     onChanged: (newValue) {
                       setState(() {
-                        selectedWorkType = newValue;
+                        selectedWorkType = newValue!;
                       });
                     },
                   ),
@@ -663,8 +663,8 @@ class _JobPostPageState extends State<JobPostPage> {
 
     selectedUrgency == "Urgent";
     try {
-      final result = await controller.postJob(selectedSpecialization,
-          selectedUrgency, selectedTimePeriod, selectedWorkType);
+      final result = await controller.postJob(selectedSpecialization ?? "",
+          selectedUrgency ?? "", selectedTimePeriod ?? "", selectedWorkType ?? "");
       debugPrint(result.toString());
 
       if (result['success']) {
@@ -687,10 +687,10 @@ class _JobPostPageState extends State<JobPostPage> {
         controller.jobTaskBeginDateController.clear();
 
         setState(() {
-          selectedSpecialization = null;
-          selectedUrgency = null;
-          selectedTimePeriod = null;
-          selectedWorkType = null;
+          selectedSpecialization = '';
+          selectedUrgency = '';
+          selectedTimePeriod = '';
+          selectedWorkType = '';
         });
       } else {
         setState(() {
@@ -731,7 +731,7 @@ class _JobPostPageState extends State<JobPostPage> {
   Future<void> _fetchUserIDImage() async {
     try {
       int userId = int.parse(storage.read('user_id').toString());
-      if (userId == null) {
+      if (userId == 0) {
         debugPrint("User ID not found in storage po");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -834,15 +834,21 @@ class _JobPostPageState extends State<JobPostPage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        iconTheme: const IconThemeData(color: Color(0xFF0272B1)),
-        title: const Text(
-          'Your Tasks',
-          textAlign: TextAlign.center,
-          style:
-              TextStyle(color: Color(0xFF0272B1), fontWeight: FontWeight.bold),
+        backgroundColor: Colors.white,
+        title: Center(
+          child: Text(
+            'Posted Tasks',
+            style: GoogleFonts.montserrat(
+              color: Color(0xFF0272B1),
+              fontWeight: FontWeight.w600,
+              fontSize: 18,
+            ),
+          ),
         ),
       ),
-      body: clientTasks.isEmpty
+      body: _isLoading ? Center(
+        child: CircularProgressIndicator(),
+      ) : clientTasks.isEmpty
           ? const Center(child: Text("No tasks available"))
           : ListView.builder(
               itemCount: clientTasks.length,
@@ -879,23 +885,21 @@ class _JobPostPageState extends State<JobPostPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 4),
-                        Text(
-                          "📍 ${task.location ?? 'Location not specified'}",
-                          style: const TextStyle(fontSize: 14),
+                        _buildInfoRow(
+                          FontAwesomeIcons.locationPin, Colors.redAccent, task.location,
                         ),
-                        Text(
-                          "• ₱ $priceDisplay",
-                          style: const TextStyle(fontSize: 14),
+                        const SizedBox(height: 5),
+                        _buildInfoRow(
+                          FontAwesomeIcons.pesoSign, Colors.green, "$priceDisplay",
                         ),
-                        Text(
-                          "• 🛠 ${task.specialization ?? 'No specialization'}",
-                          style: const TextStyle(fontSize: 14),
+                        const SizedBox(height: 5),
+                        _buildInfoRow(
+                          FontAwesomeIcons.screwdriverWrench, Colors.blue, "${task.specialization}",
                         ),
-                        if (task.duration != null)
-                          Text(
-                            "• ⏱ Duration: ${task.duration}",
-                            style: const TextStyle(fontSize: 14),
-                          ),
+                        const SizedBox(height: 5),
+                        _buildInfoRow(
+                          FontAwesomeIcons.clock, Colors.orange, "Duration: ${task.duration} ${task.period}",
+                        ),
                       ],
                     ),
                     trailing: const Icon(
@@ -939,6 +943,25 @@ class _JobPostPageState extends State<JobPostPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, Color color, String label) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          color: color,
+        ),
+        SizedBox(width: 10),
+        Text(
+          label,
+          style: GoogleFonts.openSans(
+            fontSize: 16,
+            color: Colors.black,
+          ),
+        )
+      ]
     );
   }
 }
