@@ -80,7 +80,6 @@ class ReportController {
     }
   }
 
-  // In report_controller.dart
   Future<void> fetchReportHistory(int userId) async {
     try {
       debugPrint("Fetching report history for user: $userId");

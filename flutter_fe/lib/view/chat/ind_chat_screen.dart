@@ -52,6 +52,8 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
     _timer = Timer.periodic(Duration(seconds: 3), (timer) {
       loadConversationHistory();
     });
+    // Fetch report history when screen initializes
+    _fetchReportHistory();
   }
 
   Future<void> loadInitialData() async {
@@ -86,6 +88,13 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
       debugPrint(
           'Logged-in User ID: $loggedinUserId, Other User ID: $otherUserId');
     });
+  }
+
+  // Add method to fetch report history
+  Future<void> _fetchReportHistory() async {
+    int userId = storage.read('user_id');
+    await reportController.fetchReportHistory(userId);
+    setState(() {});
   }
 
   @override
@@ -662,12 +671,43 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
               ),
               SizedBox(height: 20),
               Expanded(
-                child: Center(
-                  child: Text(
-                    "No report history available yet.",
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                ),
+                child: reportController.reportHistory.isEmpty
+                    ? Center(
+                        child: Text(
+                          "No report history available yet.",
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: reportController.reportHistory.length,
+                        itemBuilder: (context, index) {
+                          final report = reportController.reportHistory[index];
+                          return Card(
+                            margin: EdgeInsets.symmetric(vertical: 5),
+                            child: ListTile(
+                              title: Text(
+                                "Report #${report.reportId ?? 'N/A'}",
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                      "Reason: ${report.reason ?? 'No reason provided'}"),
+                                  Text(
+                                      "Reported By: ${report.reportedByName ?? 'Unknown'}"),
+                                  Text(
+                                      "Reported Whom: ${report.reportedWhomName ?? 'Unknown'}"),
+                                  Text(
+                                      "Created At: ${report.createdAt ?? 'N/A'}"),
+                                  Text(
+                                      "Status: ${report.status != null ? (report.status! ? 'Resolved' : 'Pending') : 'N/A'}"),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
               ),
               SizedBox(height: 10),
               Align(
