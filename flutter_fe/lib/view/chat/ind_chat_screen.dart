@@ -280,6 +280,9 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   }
 
   void _showReportModal(BuildContext context) {
+    // Reset the form state each time the modal is opened
+    reportController.clearForm();
+
     final TextEditingController reasonController = TextEditingController();
     showModalBottomSheet(
       enableDrag: true,
@@ -512,6 +515,8 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                       children: [
                         ElevatedButton(
                           onPressed: () {
+                            // Clear the form on cancel
+                            reportController.clearForm();
                             Navigator.pop(context);
                           },
                           style: ElevatedButton.styleFrom(
@@ -540,7 +545,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                                 return AlertDialog(
                                   title: Text("Confirm Report"),
                                   content: Text(
-                                      "Are you sure you want to submit this report?"),
+                                      "Reporting is a serious action, are you sure about this report?"),
                                   actions: [
                                     TextButton(
                                       onPressed: () {
@@ -631,7 +636,10 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
           },
         );
       },
-    );
+    ).whenComplete(() {
+      // Clear the form when the modal is closed
+      reportController.clearForm();
+    });
   }
 
   void _showReportHistoryModal(BuildContext context) {
