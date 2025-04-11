@@ -41,6 +41,8 @@ class _HomePageState extends State<HomePage> {
   bool _isUploadDialogShown = false;
   bool _showButton = false;
 
+  double _currentRating = 0;
+
   @override
   void initState() {
     super.initState();
@@ -227,6 +229,81 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void _showRatingDialog(UserModel tasker) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Rate ${tasker.firstName}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('How would you rate your experience?'),
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(5, (index) {
+                return IconButton(
+                  icon: Icon(
+                    index < _currentRating ? Icons.star : Icons.star_border,
+                    color: Colors.amber,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _currentRating = index + 1;
+                    });
+                  },
+                );
+              }),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await _submitRating(tasker.id!, _currentRating);
+              Navigator.pop(context);
+            },
+            child: Text('Submit'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _submitRating(int taskerId, double rating) async {
+    try {
+      final result = await _clientServices.submitTaskerRating(taskerId, rating);
+
+      if (result['success']) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Rating submitted successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        await _fetchTasker(); // Refresh the tasker list to show updated rating
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Failed to submit rating'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error submitting rating'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -310,6 +387,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 Expanded(
                   child: CardSwiper(
+                    numberOfCardsDisplayed: 1,
                     allowedSwipeDirection: AllowedSwipeDirection.only(
                       left: true,
                       right: true,
@@ -383,7 +461,6 @@ class _HomePageState extends State<HomePage> {
                                           ],
                                         ),
                                       ),
-                                      // padding: EdgeInsets.all(16),
                                       child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
@@ -395,6 +472,31 @@ class _HomePageState extends State<HomePage> {
                                               fontWeight: FontWeight.bold,
                                               color: Colors.white,
                                             ),
+                                          ),
+                                          SizedBox(height: 8),
+                                          Row(
+                                            children: [
+                                              ...List.generate(5, (index) {
+                                                double rating = 4.5;
+                                                return Icon(
+                                                  index < rating.floor()
+                                                      ? Icons.star
+                                                      : index < rating
+                                                          ? Icons.star_half
+                                                          : Icons.star_border,
+                                                  color: Colors.amber,
+                                                  size: 20,
+                                                );
+                                              }),
+                                              SizedBox(width: 8),
+                                              Text(
+                                                "4.5",
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                           SizedBox(height: 4),
                                           Text(
@@ -440,42 +542,75 @@ class _HomePageState extends State<HomePage> {
                                       style: TextStyle(fontSize: 16),
                                     ),
                                     SizedBox(height: 20),
-                                    Center(
-                                      child: ElevatedButton.icon(
-                                        onPressed: () {
-                                          if (_existingProfileImageUrl ==
-                                                  null ||
-                                              _existingIDImageUrl == null ||
-                                              _existingProfileImageUrl!
-                                                  .isEmpty ||
-                                              _existingIDImageUrl!.isEmpty ||
-                                              !_documentValid) {
-                                            _showWarningDialog();
-                                          } else {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    TaskerProfilePage(
-                                                        tasker: task),
-                                              ),
-                                            );
-                                          }
-                                        },
-                                        icon: Icon(Icons.person,
-                                            color: Colors.white),
-                                        label: Text('View Full Profile'),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Color(0xFF0272B1),
-                                          foregroundColor: Colors.white,
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 20, vertical: 10),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        ElevatedButton.icon(
+                                          onPressed: () {
+                                            if (_existingProfileImageUrl ==
+                                                    null ||
+                                                _existingIDImageUrl == null ||
+                                                _existingProfileImageUrl!
+                                                    .isEmpty ||
+                                                _existingIDImageUrl!.isEmpty ||
+                                                !_documentValid) {
+                                              _showWarningDialog();
+                                            } else {
+                                              _showRatingDialog(task);
+                                            }
+                                          },
+                                          icon: Icon(Icons.star,
+                                              color: Colors.white),
+                                          label: Text('Rate Tasker'),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.amber,
+                                            foregroundColor: Colors.white,
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 20, vertical: 10),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
                                           ),
                                         ),
-                                      ),
+                                        SizedBox(width: 10),
+                                        ElevatedButton.icon(
+                                          onPressed: () {
+                                            if (_existingProfileImageUrl ==
+                                                    null ||
+                                                _existingIDImageUrl == null ||
+                                                _existingProfileImageUrl!
+                                                    .isEmpty ||
+                                                _existingIDImageUrl!.isEmpty ||
+                                                !_documentValid) {
+                                              _showWarningDialog();
+                                            } else {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      TaskerProfilePage(
+                                                          tasker: task),
+                                                ),
+                                              );
+                                            }
+                                          },
+                                          icon: Icon(Icons.person,
+                                              color: Colors.white),
+                                          label: Text('View Full Profile'),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Color(0xFF0272B1),
+                                            foregroundColor: Colors.white,
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 20, vertical: 10),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                     Spacer(),
                                     Center(
