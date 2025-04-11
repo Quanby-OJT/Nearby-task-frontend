@@ -76,6 +76,26 @@ class JobPostService {
     }
   }
 
+  Future<Map<String, dynamic>> _putRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
+    final token = await AuthService.getSessionToken();
+    try {
+      final response = await http.put(
+        Uri.parse('$url$endpoint'),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+        body: jsonEncode(body),
+      );
+      return _handleResponse(response);
+    } catch (e, stackTrace) {
+      debugPrint(e.toString());
+      debugPrint(stackTrace.toString());
+      return {"error": "Request failed. Please Try Again."};
+    }
+  }
+
   Future<Map<String, dynamic>> postJob(TaskModel task, int userId) async {
     try {
       // Log the request for debugging
@@ -464,17 +484,7 @@ class JobPostService {
       int taskId, Map<String, dynamic> taskData) async {
     try {
       debugPrint("Updating task with ID: $taskId");
-      final response = await http.put(
-        Uri.parse('$url/updateTask/$taskId'),
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json"
-        },
-        body: jsonEncode(taskData),
-      );
-
-      print("API Response for updateTask: ${response.body}");
-      return _handleResponse(response);
+      return await _putRequest(endpoint: '/updateTask/$taskId', body: taskData,);
     } catch (e) {
       debugPrint('Error updating task: $e');
       debugPrintStack();

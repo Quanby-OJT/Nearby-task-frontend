@@ -137,12 +137,17 @@ class TaskController {
   }
 
   // Method to update a task
-  Future<Map<String, dynamic>> updateTask(
-      int taskId, Map<String, dynamic> taskData) async {
+  Future<Map<String, dynamic>> updateTask(int taskId, Map<String, dynamic> taskData) async {
+    debugPrint("Updating task with ID: $taskId");
     try {
-      debugPrint("Updating task with ID: $taskId");
-      final result = await _jobPostService.updateTask(taskId, taskData);
-      return result;
+      if(_escrowManagementController.tokenCredits.value - taskData['proposed_price'] < _escrowManagementController.tokenCredits.value) {
+        return {
+          "success": false,
+          "error": "You don't have enough tokens to post your needed task. Please Deposit First Your Desired Amount of Tokens."
+        };
+      }else{
+        return await _jobPostService.updateTask(taskId, taskData);
+      }
     } catch (e, stackTrace) {
       debugPrint("Error updating task: $e");
       debugPrintStack(stackTrace: stackTrace);
@@ -193,8 +198,7 @@ class TaskController {
   }
 
   //All Messages to client/tasker
-  Future<List<TaskAssignment>?> getAllAssignedTasks(
-      BuildContext context, int userId) async {
+  Future<List<TaskAssignment>?> getAllAssignedTasks(BuildContext context, int userId) async {
     final assignedTasks = await TaskDetailsService().getAllTakenTasks();
     debugPrint(assignedTasks.toString());
 
@@ -306,8 +310,7 @@ class TaskController {
   }
 
 //Update Task Status in Conversation
-  Future<void> updateTaskStatus(
-      BuildContext context, int taskTakenId, String? newStatus) async {
+  Future<void> updateTaskStatus(BuildContext context, int taskTakenId, String? newStatus) async {
     try {
       final response =
           await _taskDetailsService.updateTaskStatus(taskTakenId, newStatus);

@@ -37,6 +37,7 @@ class _EscrowTokenScreenState extends State<EscrowTokenScreen>{
         backgroundColor: Color(0XFF03045E),
         centerTitle: true,
         titleTextStyle: GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 20),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: Padding(
         padding: EdgeInsets.all(20),
