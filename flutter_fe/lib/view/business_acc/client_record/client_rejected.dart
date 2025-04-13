@@ -7,17 +7,17 @@ import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:intl/intl.dart';
 
-class TaskerStart extends StatefulWidget {
+class ClientRejected extends StatefulWidget {
   final int? requestID;
-  const TaskerStart({super.key, this.requestID});
+  final String? role;
+  const ClientRejected({super.key, this.requestID, this.role});
 
   @override
-  State<TaskerStart> createState() => _TaskerStartState();
+  State<ClientRejected> createState() => _ClientRejectedState();
 }
 
-class _TaskerStartState extends State<TaskerStart> {
+class _ClientRejectedState extends State<ClientRejected> {
   final JobPostService _jobPostService = JobPostService();
   final TaskController taskController = TaskController();
   final ProfileController _profileController = ProfileController();
@@ -66,7 +66,11 @@ class _TaskerStartState extends State<TaskerStart> {
         _requestInformation = response;
       });
       await _fetchTaskDetails();
-      await _fetchTaskerDetails(_requestInformation!.client_id as int);
+      if (widget.role == "Client") {
+        await _fetchTaskerDetails(_requestInformation!.tasker_id as int);
+      } else {
+        await _fetchTaskerDetails(_requestInformation!.client_id as int);
+      }
     } catch (e) {
       debugPrint("Error fetching task details: $e");
       setState(() {
@@ -91,70 +95,6 @@ class _TaskerStartState extends State<TaskerStart> {
     }
   }
 
-  Future<void> _handleCancelTask(BuildContext context) async {
-    bool? confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'Cancel Task',
-          style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
-        ),
-        content: Text(
-          'Are you sure you want to cancel this task? This action cannot be undone.',
-          style: GoogleFonts.montserrat(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child:
-                Text('No', style: GoogleFonts.montserrat(color: Colors.grey)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child:
-                Text('Yes', style: GoogleFonts.montserrat(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Task cancellation requested')),
-      );
-    }
-  }
-
-  Future<void> _handleRescheduleTask() async {
-    DateTime? selectedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now().add(Duration(days: 1)),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(Duration(days: 30)),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: ColorScheme.light(
-              primary: Color(0xFF03045E),
-              onPrimary: Colors.white,
-              surface: Colors.white,
-            ),
-            dialogBackgroundColor: Colors.white,
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (selectedDate != null) {
-      // TODO: Implement actual reschedule API call
-      String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Reschedule requested for $formattedDate')),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -167,7 +107,7 @@ class _TaskerStartState extends State<TaskerStart> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Confirmed Task',
+          'Rejected Task',
           style: GoogleFonts.montserrat(
             color: Color(0xFF03045E),
             fontSize: 20,
@@ -194,63 +134,18 @@ class _TaskerStartState extends State<TaskerStart> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Status Section
                         _buildStatusSection(),
                         SizedBox(height: 16),
-                        // Task Card
                         _buildTaskCard(),
                         SizedBox(height: 16),
-                        // Client Profile Card
+                        // Client/Tasker Profile Card
                         _buildProfileCard(),
-                        if (_requestInformation!.task_status ==
-                            "Confirmed") ...[
-                          SizedBox(height: 24),
-                          // Action Buttons
-                          _buildActionButtons(),
-                        ],
+                        SizedBox(height: 16),
+                        _buildActionButton(),
                       ],
                     ),
                   ),
                 ),
-    );
-  }
-
-  Widget _buildStatusSection() {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue[100]!),
-      ),
-      child: Column(
-        children: [
-          Icon(
-            Icons.hourglass_empty,
-            color: Colors.blue[600],
-            size: 40,
-          ),
-          SizedBox(height: 12),
-          Text(
-            'Awaiting Client',
-            style: GoogleFonts.montserrat(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.blue[800],
-            ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'The task is confirmed. Waiting for the client to start the task.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.montserrat(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -298,12 +193,6 @@ class _TaskerStartState extends State<TaskerStart> {
               label: 'Date',
               value: _taskInformation?.duration ?? 'Not specified',
             ),
-            SizedBox(height: 12),
-            _buildTaskInfoRow(
-              icon: Icons.info,
-              label: 'Status',
-              value: _requestInformation?.task_status ?? 'Confirmed',
-            ),
           ],
         ),
       ),
@@ -335,7 +224,9 @@ class _TaskerStartState extends State<TaskerStart> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Client Profile',
+                      widget.role! == "Client"
+                          ? "Tasker Profile"
+                          : "Client Profile",
                       style: GoogleFonts.montserrat(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -373,52 +264,69 @@ class _TaskerStartState extends State<TaskerStart> {
     );
   }
 
-  Widget _buildActionButtons() {
-    return Row(
-      children: [
-        Expanded(
-          child: OutlinedButton(
-            onPressed: () => _handleCancelTask(context),
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: Colors.red[400]!),
-              padding: EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Text(
-              'Cancel Task',
-              style: GoogleFonts.montserrat(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.red[400],
-              ),
+  Widget _buildStatusSection() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.red[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red[100]!),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.cancel,
+            color: Colors.red[400],
+            size: 40,
+          ),
+          SizedBox(height: 12),
+          Text(
+            'Task Rejected',
+            style: GoogleFonts.montserrat(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.red[700],
             ),
           ),
-        ),
-        SizedBox(width: 12),
-        Expanded(
-          child: ElevatedButton(
-            onPressed: _handleRescheduleTask,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue[600],
-              padding: EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 2,
-            ),
-            child: Text(
-              'Reschedule',
-              style: GoogleFonts.montserrat(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
+          SizedBox(height: 8),
+          Text(
+            'This task has been rejected. Please contact support for more information.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.montserrat(
+              fontSize: 14,
+              color: Colors.grey[600],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () {
+          Navigator.pop(context);
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Color(0xFF03045E),
+          padding: EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 2,
         ),
-      ],
+        child: Text(
+          'Back to Tasks',
+          style: GoogleFonts.montserrat(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+      ),
     );
   }
 

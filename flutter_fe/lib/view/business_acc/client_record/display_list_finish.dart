@@ -174,7 +174,7 @@ class _DisplayListRecordFinishState extends State<DisplayListRecordFinish> {
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      backgroundColor: Colors.blue[300],
+                                      backgroundColor: Colors.green[300],
                                       padding: EdgeInsets.symmetric(
                                           horizontal: 8, vertical: 0),
                                     ),

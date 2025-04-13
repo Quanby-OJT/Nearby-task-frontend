@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/notificationController.dart';
 import 'package:flutter_fe/view/business_acc/client_record/client_ongoing.dart';
 import 'package:flutter_fe/view/notification/client_request.dart';
+import 'package:flutter_fe/view/service_acc/tasker_record/tasker_ongoing.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -130,11 +131,23 @@ class _DisplayListRecordOngoingState extends State<DisplayListRecordOngoing> {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(12),
                           onTap: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => ClientOngoing(
-                                        ongoingID: request["id"], role: role)));
+                            if (role == "Client") {
+                              debugPrint("Role: $role");
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => ClientOngoing(
+                                          ongoingID: request["id"],
+                                          role: role)));
+                            } else {
+                              debugPrint("Tasker role");
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => TaskerOngoing(
+                                          ongoingID: request["id"],
+                                          role: role)));
+                            }
                           },
                           child: Padding(
                             padding: EdgeInsets.all(16),
@@ -165,7 +178,7 @@ class _DisplayListRecordOngoingState extends State<DisplayListRecordOngoing> {
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      backgroundColor: Colors.blue[300],
+                                      backgroundColor: Colors.orange[300],
                                       padding: EdgeInsets.symmetric(
                                           horizontal: 8, vertical: 0),
                                     ),

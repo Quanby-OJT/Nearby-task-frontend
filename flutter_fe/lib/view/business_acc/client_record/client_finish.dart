@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/client_request.dart';
-import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class ClientFinish extends StatefulWidget {
   final int? finishID;
@@ -26,11 +25,7 @@ class _ClientFinishState extends State<ClientFinish> {
   ClientRequestModel? _requestInformation;
   bool _isLoading = true;
   final storage = GetStorage();
-  bool _isApplying = false;
-  bool _isEditing = false;
-
   String? _role;
-
   AuthenticatedUser? tasker;
 
   @override
@@ -114,186 +109,313 @@ class _ClientFinishState extends State<ClientFinish> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-          title: Text(
-        'Completed Task',
-        style: const TextStyle(
-          color: Color(0xFF03045E),
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Color(0xFF03045E)),
+          onPressed: () => Navigator.pop(context),
         ),
-      )),
+        title: Text(
+          'Task Completed',
+          style: GoogleFonts.montserrat(
+            color: Color(0xFF03045E),
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
+      ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator(color: Color(0xFF03045E)))
           : _taskInformation == null
-              ? const Center(child: Text('No task information available'))
-              : Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        elevation: 2,
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Row(
-                                children: [
-                                  SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "${_taskInformation!.title}",
-                                          style: GoogleFonts.montserrat(
-                                            color: const Color(0xFF03045E),
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        Row(
-                                          children: [
-                                            if (_requestInformation!
-                                                    .task_status !=
-                                                null)
-                                              Flexible(
-                                                child: Text(
-                                                  _requestInformation!
-                                                      .task_status!,
-                                                  style: GoogleFonts.montserrat(
-                                                    color: Color.fromARGB(
-                                                        255, 57, 209, 11),
-                                                    fontSize: 8,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 20),
-                              const SizedBox(height: 10),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12.0),
-                                child: Row(
-                                  spacing: 5,
-                                  children: [
-                                    Icon(
-                                      Icons.location_pin,
-                                      size: 20,
-                                    ),
-                                    Text(
-                                      "Location",
-                                      style: GoogleFonts.openSans(),
-                                    )
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+              ? Center(
+                  child: Text(
+                    'No task information available',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 16,
+                      color: Colors.grey[600],
                     ),
-                    // about the client profile
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Card(
-                        color: Color.fromARGB(255, 239, 254, 255),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        elevation: 2,
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Row(
-                                children: [
-                                  SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          widget.role! == "Client"
-                                              ? "Tasker"
-                                              : "Client",
-                                          style: GoogleFonts.montserrat(
-                                            color: const Color(0xFF03045E),
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 20),
-                              _buildInfoRow(
-                                  "Name", tasker?.user.firstName ?? ""),
-                              const SizedBox(height: 10),
-                              _buildInfoRow("Account", "Verified"),
-                              const SizedBox(height: 10),
-                              _buildInfoRow("Email", tasker?.user.email ?? ""),
-                              const SizedBox(height: 10),
-                              _buildInfoRow(
-                                  "Phone", tasker?.user.contact ?? ""),
-                              const SizedBox(height: 10),
-                              _buildInfoRow(
-                                  "Status", tasker?.user.accStatus ?? ""),
-                              const SizedBox(height: 10),
-                            ],
-                          ),
-                        ),
-                      ),
+                  ),
+                )
+              : SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Completion Status Section
+                        _buildCompletionSection(),
+                        SizedBox(height: 16),
+                        // Task Card
+                        _buildTaskCard(),
+                        SizedBox(height: 16),
+                        // Client/Tasker Profile Card
+                        _buildProfileCard(),
+                        SizedBox(height: 24),
+                        // Action Button
+                        _buildActionButton(),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildCompletionSection() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.green[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.green[100]!),
+      ),
+      child: Column(
         children: [
+          Icon(
+            Icons.check_circle,
+            color: Colors.green[600],
+            size: 48,
+          ),
+          SizedBox(height: 12),
           Text(
-            "$label: ",
+            'Task Completed!',
             style: GoogleFonts.montserrat(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.green[800],
             ),
           ),
+          SizedBox(height: 8),
           Text(
-            value,
+            'Congratulations on successfully completing this task!',
+            textAlign: TextAlign.center,
             style: GoogleFonts.montserrat(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+              fontSize: 14,
+              color: Colors.grey[600],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTaskCard() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Color(0xFF03045E).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.task, color: Color(0xFF03045E), size: 24),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    _taskInformation!.title ?? 'Task',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF03045E),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            _buildTaskInfoRow(
+              icon: Icons.location_pin,
+              label: 'Location',
+              value: _taskInformation?.location ?? 'Not specified',
+            ),
+            SizedBox(height: 12),
+            _buildTaskInfoRow(
+              icon: Icons.calendar_today,
+              label: 'Date',
+              value: _taskInformation?.duration ?? 'Not specified',
+            ),
+            SizedBox(height: 12),
+            _buildTaskInfoRow(
+              icon: Icons.info,
+              label: 'Status',
+              value: _requestInformation?.task_status ?? 'Completed',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileCard() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: Color(0xFF03045E).withOpacity(0.1),
+                  child: Icon(
+                    Icons.person,
+                    color: Color(0xFF03045E),
+                    size: 28,
+                  ),
+                ),
+                SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.role! == "Client"
+                          ? "Tasker Profile"
+                          : "Client Profile",
+                      style: GoogleFonts.montserrat(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF03045E),
+                      ),
+                    ),
+                    Text(
+                      'Details',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            _buildProfileInfoRow(
+                'Name', tasker?.user.firstName ?? 'Not available'),
+            SizedBox(height: 8),
+            _buildProfileInfoRow(
+                'Email', tasker?.user.email ?? 'Not available'),
+            SizedBox(height: 8),
+            _buildProfileInfoRow(
+                'Phone', tasker?.user.contact ?? 'Not available'),
+            SizedBox(height: 8),
+            _buildProfileInfoRow(
+                'Status', tasker?.user.accStatus ?? 'Not available'),
+            SizedBox(height: 8),
+            _buildProfileInfoRow('Account', 'Verified', isVerified: true),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () {
+          Navigator.pop(context); // Return to previous screen
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Color(0xFF03045E),
+          padding: EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 2,
+        ),
+        child: Text(
+          'Back to Tasks',
+          style: GoogleFonts.montserrat(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTaskInfoRow(
+      {required IconData icon, required String label, required String value}) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.grey[600], size: 20),
+        SizedBox(width: 8),
+        Text(
+          '$label: ',
+          style: GoogleFonts.montserrat(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey[600],
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: GoogleFonts.montserrat(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF03045E),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProfileInfoRow(String label, String value,
+      {bool isVerified = false}) {
+    return Row(
+      children: [
+        Text(
+          '$label: ',
+          style: GoogleFonts.montserrat(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey[600],
+          ),
+        ),
+        Expanded(
+          child: Row(
+            children: [
+              Flexible(
+                child: Text(
+                  value,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF03045E),
+                  ),
+                ),
+              ),
+              if (isVerified)
+                Padding(
+                  padding: EdgeInsets.only(left: 8),
+                  child: Icon(
+                    Icons.verified,
+                    color: Colors.green[400],
+                    size: 18,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
