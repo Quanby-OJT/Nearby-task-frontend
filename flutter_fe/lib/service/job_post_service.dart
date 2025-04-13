@@ -159,8 +159,9 @@ class JobPostService {
 
   Future<ClientRequestModel> fetchRequestInformation(int requestID) async {
     try {
-      Map<String, dynamic> response =
-          await _getRequest("/displayRequest/$requestID");
+      Map<String, dynamic> response = await _getRequest(
+        "/displayRequest/$requestID",
+      );
       debugPrint("Request Data Retrieved: ${response.toString()}");
 
       if (response.containsKey("request") && response["request"] is Map) {
@@ -643,6 +644,35 @@ class JobPostService {
     }
   }
 
+
+  Future<Map<String, dynamic>> updateNotification(int taskTakenId) async {
+    try {
+      debugPrint("Updating notification with ID: $taskTakenId");
+      final response = await http.put(
+        Uri.parse('$apiUrl/updateNotification/$taskTakenId'),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+      );
+
+      print("API Response for updateNotification: ${response.body}");
+      return _handleResponse(response);
+    } catch (e) {
+      debugPrint('Error accepting task: $e');
+      debugPrintStack();
+      return {'success': false, 'error': 'Error: $e'};
+    }
+  }
+
+//   Future<Map<String, dynamic>> acceptRequest(
+//       int taskTakenId, String value, String role) async {
+//     try {
+//       debugPrint("Accepting task with ID: $taskTakenId $value $role");
+//       final response = await http.put(
+//         Uri.parse('$apiUrl/acceptRequest/$taskTakenId'),
+//         body: jsonEncode({"value": value, "role": role}),
+
   Future<Map<String, dynamic>> requestTask(int taskId, int taskerId) async {
     try {
       // First check if task is already assigned
@@ -669,6 +699,7 @@ class JobPostService {
       // Proceed with task assignment if not already assigned
       final response = await http.post(
         Uri.parse('$apiUrl/requestTask/$taskId'),
+
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -682,6 +713,30 @@ class JobPostService {
       debugPrintStack();
       return {'success': false, 'error': 'Error: $e'};
     }
+  }
+
+  Future<Map<String, dynamic>> assignTask(
+      int taskId, int clientId, int taskerId, String role) async {
+    final userId = await getUserId();
+    if (userId == null) {
+      return {
+        'success': false,
+        'message': 'Please log in to like jobs',
+        'requiresLogin': true
+      };
+    }
+
+    debugPrint("Sending task request...");
+    debugPrint("Task ID: $taskId, Client ID: $clientId, Tasker ID: $taskerId");
+
+    return _postRequest(endpoint: "/assign-task", body: {
+      "tasker_id": taskerId,
+      "client_id": clientId,
+      "task_id": taskId,
+      "role": role,
+      // Backend expects task_status field, not status
+      "task_status": "Pending"
+    });
   }
 
   // Method to update a task

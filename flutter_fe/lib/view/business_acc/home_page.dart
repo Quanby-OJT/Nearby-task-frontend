@@ -51,26 +51,33 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _fetchTasker() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
     try {
       ClientServices clientServices = ClientServices();
       debugPrint("Fetching taskers...");
       List<UserModel> tasks = await clientServices.fetchAllTasker();
 
       if (!mounted) return;
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+        _showButton = false;
+      });
 
       if (tasks.isEmpty) {
         debugPrint("No taskers returned from service");
+        setState(() {
+          _isLoading = false;
+          _showButton = false;
+        });
       } else {
         debugPrint("Successfully fetched ${tasks.length} taskers");
+        setState(() {
+          _isLoading = false;
+          _showButton = true;
+        });
       }
 
       setState(() {
-        _isLoading = false;
         tasker = tasks;
         cardNumber = tasks.length;
       });
@@ -81,6 +88,7 @@ class _HomePageState extends State<HomePage> {
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _showButton = false;
           _errorMessage =
               "Failed to load taskers. Please check your connection and try again.";
         });
@@ -90,10 +98,14 @@ class _HomePageState extends State<HomePage> {
 
   void _cardCounter() {
     if (cardNumber == 0) {
+      setState(() {
+        _showButton = false;
+      });
       return;
     } else {
       setState(() {
         cardNumber = cardNumber! - 1;
+        _showButton = true;
       });
     }
   }
@@ -127,6 +139,9 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       debugPrint("$e");
       debugPrintStack();
+      setState(() {
+        _showButton = false;
+      });
 
       // Show error indicator
       ScaffoldMessenger.of(context).showSnackBar(
@@ -173,9 +188,9 @@ class _HomePageState extends State<HomePage> {
               "Successfully loaded user image" + _existingProfileImageUrl!);
           debugPrint("Successfully loaded ID image" + _existingIDImageUrl!);
 
-          if (_existingProfileImageUrl != null && _existingIDImageUrl != null) {
-            _showButton = true;
-          }
+          // if (_existingProfileImageUrl != null && _existingIDImageUrl != null) {
+          //   _showButton = true;
+          // }
         });
       }
     } catch (e) {
@@ -186,7 +201,7 @@ class _HomePageState extends State<HomePage> {
   void _showWarningDialog() {
     showDialog(
       context: context,
-      barrierDismissible: false, // Prevent dismissing by tapping outside
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: const Text("Account Verification"),
         content: const Text(
@@ -202,11 +217,10 @@ class _HomePageState extends State<HomePage> {
               if (result == true) {
                 setState(() {
                   _isLoading = true;
-                  // Keep the flag true since we're refreshing data
                 });
 
-                await _fetchUserIDImage(); // Refresh user profile and ID image data
-                await _fetchTasker(); // Refresh tasker data if needed
+                await _fetchUserIDImage();
+                await _fetchTasker();
               } else {
                 setState(() {
                   _isUploadDialogShown = false;
@@ -355,7 +369,13 @@ class _HomePageState extends State<HomePage> {
                   ),
                   SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: _fetchTasker,
+                    onPressed: () {
+                      setState(() {
+                        _isLoading = true;
+                        _showButton = false;
+                      });
+                      _fetchTasker();
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFF0272B1),
                       foregroundColor: Colors.white,
@@ -643,55 +663,55 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
-          if (_showButton)
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        controller.swipe(CardSwiperDirection.left);
-                      },
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          shape: CircleBorder(),
-                          fixedSize: Size(60, 60),
-                          padding: EdgeInsets.zero),
-                      child: Center(
-                        child: Icon(
-                          Icons.close,
-                          color: Colors.white,
-                          weight: 4,
-                          size: 30,
+          _showButton
+              ? Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            controller.swipe(CardSwiperDirection.left);
+                          },
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              shape: CircleBorder(),
+                              fixedSize: Size(60, 60),
+                              padding: EdgeInsets.zero),
+                          child: Center(
+                            child: Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              weight: 4,
+                              size: 30,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        controller.swipe(CardSwiperDirection.right);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        shape: CircleBorder(),
-                        fixedSize: Size(60, 60),
-                        padding: EdgeInsets.zero, // Remove default padding
-                      ),
-                      child: Center(
-                        // Use Center instead of Align
-                        child: Icon(
-                          Icons.favorite,
-                          color: Colors.white,
-                          size: 30,
+                        ElevatedButton(
+                          onPressed: () {
+                            controller.swipe(CardSwiperDirection.right);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            shape: CircleBorder(),
+                            fixedSize: Size(60, 60),
+                            padding: EdgeInsets.zero, // Remove default padding
+                          ),
+                          child: Center(
+                            // Use Center instead of Align
+                            child: Icon(
+                              Icons.favorite,
+                              color: Colors.white,
+                              size: 30,
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-            ),
+                  ))
+              : const SizedBox.shrink(),
         ],
       ),
     );

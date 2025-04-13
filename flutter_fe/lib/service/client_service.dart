@@ -115,7 +115,7 @@ class ClientServices {
       if (savedTaskResponse.containsKey("error")) {
         debugPrint(
             "Error fetching saved taskers: ${savedTaskResponse["error"]}");
-        // Continue with empty liked list rather than failing completely
+        return [];
       }
 
       // Extract taskers from response

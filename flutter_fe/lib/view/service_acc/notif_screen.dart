@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/notificationController.dart';
+import 'package:flutter_fe/view/business_acc/client_record/client_ongoing.dart';
 import 'package:flutter_fe/view/notification/client_request.dart';
+import 'package:flutter_fe/view/notification/display_task_status.dart';
+import 'package:flutter_fe/view/service_acc/tasker_record/tasker_start.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../service/notification_service.dart';
 
-class NotifScreen extends StatefulWidget {
-  const NotifScreen({super.key});
+class NotifSTaskerScreen extends StatefulWidget {
+  const NotifSTaskerScreen({super.key});
 
   @override
-  State<NotifScreen> createState() => _NotifScreenState();
+  State<NotifSTaskerScreen> createState() => _NotifScreenTaskerState();
 }
 
-class _NotifScreenState extends State<NotifScreen> {
+class _NotifScreenTaskerState extends State<NotifSTaskerScreen> {
   // Mock data for all notifications
   final List<Map<String, dynamic>> notifications = [];
   final NotificationController _notificationController =
@@ -131,20 +134,56 @@ class _NotifScreenState extends State<NotifScreen> {
                             ),
                             child: InkWell(
                               borderRadius: BorderRadius.circular(12),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ClientRequest(
-                                      requestID: request["id"],
+                              onTap: () async {
+                                if (request["status"] == "Rejected") {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => DisplayTaskStatus(
+                                        requestID: request["id"],
+                                        role: request["role"],
+                                      ),
                                     ),
-                                  ),
-                                ).then((value) {
-                                  setState(() {
-                                    _isLoading = true;
+                                  ).then((value) {
+                                    setState(() {
+                                      _isLoading = true;
+                                    });
+                                    _fetchRequests();
                                   });
-                                  _fetchRequests();
-                                });
+                                }
+
+                                if (request["status"] == "Confirmed") {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => TaskerStart(
+                                        requestID: request["id"],
+                                      ),
+                                    ),
+                                  ).then((value) {
+                                    setState(() {
+                                      _isLoading = true;
+                                    });
+                                    _fetchRequests();
+                                  });
+                                }
+
+                                if (request["status"] == "Ongoing") {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ClientOngoing(
+                                        ongoingID: request["id"],
+                                        role: request["role"],
+                                      ),
+                                    ),
+                                  ).then((value) {
+                                    setState(() {
+                                      _isLoading = true;
+                                    });
+                                    _fetchRequests();
+                                  });
+                                }
                               },
                               child: Padding(
                                 padding: EdgeInsets.all(16),
@@ -171,7 +210,7 @@ class _NotifScreenState extends State<NotifScreen> {
                                     ),
                                     SizedBox(height: 8),
                                     Text(
-                                      "Tasker: ${request["name"]}",
+                                      "Client: ${request["name"]}",
                                       style: GoogleFonts.montserrat(
                                         fontSize: 14,
                                         color: Colors.grey[700],

@@ -96,9 +96,19 @@ class TaskController {
     }
   }
 
-  Future<bool> acceptRequest(int taskTakenId) async {
+  Future<bool> updateNotif(int taskTakenId) async {
     debugPrint("Assigning task...");
-    final assignedTask = await _jobPostService.acceptRequest(taskTakenId);
+    final updateNotif = await _jobPostService.updateNotification(taskTakenId);
+    if (updateNotif.containsKey('message')) {
+      return updateNotif['message'] = true;
+    }
+    return false;
+  }
+
+  Future<bool> acceptRequest(int taskTakenId, String value, String role) async {
+    debugPrint("Assigning task...");
+    final assignedTask =
+        await _jobPostService.acceptRequest(taskTakenId, value, role);
     if (assignedTask.containsKey('message')) {
       return assignedTask['message'] = true;
     }
@@ -115,6 +125,7 @@ class TaskController {
         ? assignedTask['message'].toString()
         : assignedTask['error'].toString();
   }
+
 
   Future<String> assignTask(int? taskId, int? clientId, int? taskerId) async {
     if (taskId == null || clientId == null || taskerId == null) {
