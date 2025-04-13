@@ -165,7 +165,86 @@ class ApiService {
     }
   }
 
-// this is for tasker with only pdf
+  static Future<Map<String, dynamic>> checkTaskAssignment(
+      int taskId, int taskerId) async {
+    try {
+      String token = await AuthService.getSessionToken();
+      final response = await http.get(
+        Uri.parse("$apiUrl/check-task-assignment/$taskId/$taskerId"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+      );
+
+      var responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          "isAssigned": responseData["isAssigned"] ?? false,
+          "message": responseData["message"] ?? "Task assignment status checked"
+        };
+      } else {
+        return {
+          "error": responseData["error"] ?? "Failed to check task assignment",
+          "isAssigned": false
+        };
+      }
+    } catch (e) {
+      debugPrint("Error checking task assignment: $e");
+      return {
+        "error": "Failed to check task assignment status",
+        "isAssigned": false
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> assignTask(
+      int taskId, int taskerId) async {
+    try {
+      // First check if task is already assigned
+      final checkResult = await checkTaskAssignment(taskId, taskerId);
+
+      if (checkResult["isAssigned"] == true) {
+        return {
+          "success": false,
+          "message": "This task is already assigned to this tasker"
+        };
+      }
+
+      String token = await AuthService.getSessionToken();
+      final response = await http.post(
+        Uri.parse("$apiUrl/assign-task"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+        body: json.encode({"task_id": taskId, "tasker_id": taskerId}),
+      );
+
+      var responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          "success": true,
+          "message": responseData["message"] ?? "Task assigned successfully"
+        };
+      } else {
+        return {
+          "success": false,
+          "message": responseData["error"] ?? "Failed to assign task"
+        };
+      }
+    } catch (e) {
+      debugPrint("Error assigning task: $e");
+      return {
+        "success": false,
+        "message": "An error occurred while assigning the task"
+      };
+    }
+  }
+
+  // this is for tasker with only pdf
   static Future<Map<String, dynamic>> updateTaskerProfileWithPdf(
       int userId, File file, Map<String, dynamic> data) async {
     try {
@@ -235,7 +314,7 @@ class ApiService {
     }
   }
 
-// this is for tasker with files and pdf
+  // this is for tasker with files and pdf
   static Future<Map<String, dynamic>> updateTaskerProfileWithImageTobackend(
       int userId, File image, Map<String, dynamic> data) async {
     try {
@@ -305,7 +384,7 @@ class ApiService {
     }
   }
 
-// this is for tasker with files and image
+  // this is for tasker with files and image
   static Future<Map<String, dynamic>> updateTaskerProfileWithFiles(
       int userId, File file, File image, Map<String, dynamic> data) async {
     try {
