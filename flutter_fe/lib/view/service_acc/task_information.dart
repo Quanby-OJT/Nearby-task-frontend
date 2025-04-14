@@ -10,7 +10,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 class TaskInformation extends StatefulWidget {
   final int? taskID;
-  const TaskInformation({super.key, this.taskID});
+  final String role;
+  const TaskInformation({super.key, this.taskID, required this.role});
 
   @override
   State<TaskInformation> createState() => _TaskInformationState();
@@ -49,30 +50,30 @@ class _TaskInformationState extends State<TaskInformation> {
         _isLoading = false;
       });
     }
-    _fetchIfTaskIsAssigned();
+    // _fetchIfTaskIsAssigned();
   }
 
-  Future<void> _fetchIfTaskIsAssigned() async {
-    debugPrint("Task Information from the widget: ${widget.taskID}");
-    try {
-      final String response = await taskController.fetchIsApplied(
-        widget.taskID ?? 0,
-        _taskInformation!.clientId,
-        storage.read('user_id') ?? 0,
-      );
-      if (response == 'True') {
-        setState(() {
-          _isApplying = true;
-        });
-      }
-    } catch (e) {
-      debugPrint("Error fetching task details: $e");
-      setState(() {
-        _isLoading = false;
-        _isApplying = false; // Optionally reset on error
-      });
-    }
-  }
+  // Future<void> _fetchIfTaskIsAssigned() async {
+  //   debugPrint("Task Information from the widget: ${widget.taskID}");
+  //   try {
+  //     final String response = await taskController.fetchIsApplied(
+  //       widget.taskID ?? 0,
+  //       _taskInformation!.clientId,
+  //       storage.read('user_id') ?? 0,
+  //     );
+  //     if (response == 'True') {
+  //       setState(() {
+  //         _isApplying = true;
+  //       });
+  //     }
+  //   } catch (e) {
+  //     debugPrint("Error fetching task details: $e");
+  //     setState(() {
+  //       _isLoading = false;
+  //       _isApplying = false; // Optionally reset on error
+  //     });
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -249,15 +250,10 @@ class _TaskInformationState extends State<TaskInformation> {
                                 widget.taskID ?? 0,
                                 _taskInformation!.clientId,
                                 userId,
+                                // widget.role,
                               );
 
                               debugPrint("Assign task result: $result");
-                              // Navigator.push(
-                              //   context,
-                              //   MaterialPageRoute(
-                              //     builder: (context) => IndividualChatScreen(),
-                              //   ),
-                              // );
 
                               if (result ==
                                   'A New Conversation Has been Opened.') {

@@ -16,6 +16,16 @@ class NotificationController {
     }
   }
 
+  Future<Map<String, dynamic>> getRejectedRequests(int userId) async {
+    try {
+      final data = await _notificationService.getRejectedRequests(userId);
+      return data;
+    } catch (e, st) {
+      debugPrint("Controller error: $e\nStacktrace: $st");
+      return {"error": "An error occurred while getting rejected requests"};
+    }
+  }
+
   Future<Map<String, dynamic>> getOngoingRequests(int userId) async {
     try {
       final data = await _notificationService.getOngoingRequests(userId);
@@ -23,6 +33,16 @@ class NotificationController {
     } catch (e, st) {
       debugPrint("Controller error: $e\nStacktrace: $st");
       return {"error": "An error occurred while getting ongoing requests"};
+    }
+  }
+
+  Future<Map<String, dynamic>> getFinishRequests(int userId) async {
+    try {
+      final data = await _notificationService.getFinishRequests(userId);
+      return data;
+    } catch (e, st) {
+      debugPrint("Controller error: $e\nStacktrace: $st");
+      return {"error": "An error occurred while getting finish requests"};
     }
   }
 

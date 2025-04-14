@@ -85,29 +85,49 @@ class _FillUpTaskerLoginState extends State<FillUpTaskerLogin> {
   }
 
   Future<void> _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
-    );
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+        allowMultiple: false,
+      );
 
-    if (result != null && result.files.single.path != null) {
-      String filePath = result.files.single.path!;
-      String fileExtension = filePath.split('.').last.toLowerCase();
+      if (result != null) {
+        PlatformFile file = result.files.first;
 
-      if (fileExtension == 'pdf') {
-        setState(() {
-          _selectedFile = File(filePath);
-          _fileName = result.files.single.name;
-          _pdfChanged = true;
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Only PDF files are allowed.'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        if (file.extension?.toLowerCase() == 'pdf') {
+          setState(() {
+            _selectedFile = File(file.path!);
+            _fileName = file.name;
+            _pdfChanged = true;
+            // Temporarily set document as invalid until validated by backend
+            _documentValid = false;
+          });
+
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('PDF file selected successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please select a PDF file'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
+    } catch (e) {
+      debugPrint('Error picking file: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error selecting file: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -215,166 +235,229 @@ class _FillUpTaskerLoginState extends State<FillUpTaskerLogin> {
 
   Future<void> _fetchDocumentLink(int taskerId) async {
     try {
-      final documentLink = await _controller.getDocumentLink(taskerId);
+      final response = await _controller.getDocumentLink(taskerId);
+
+      if (response == null) {
+        debugPrint('Document link response is null');
+        setState(() {
+          _existingPDFUrl = null;
+          _documentValid = false;
+        });
+        return;
+      }
+
+      if (response is! Map<String, dynamic>) {
+        debugPrint('Invalid response type: ${response.runtimeType}');
+        setState(() {
+          _existingPDFUrl = null;
+          _documentValid = false;
+        });
+        return;
+      }
+
       setState(() {
-        _existingPDFUrl = documentLink?.tesdaDocumentLink;
-        _documentValid = documentLink?.valid ?? false;
+        _existingPDFUrl = response.tesdaDocumentLink;
+        _documentValid = response.valid ?? false;
       });
     } catch (error) {
       debugPrint('Error fetching document link: $error');
+      setState(() {
+        _existingPDFUrl = null;
+        _documentValid = false;
+      });
     }
   }
 
   Future<void> saveTaskerWithImages() async {
     try {
       int userId = int.parse(storage.read('user_id').toString());
-      if (_selectedFile != null && _selectedImage != null) {
+
+      // Check if either file needs to be uploaded
+      if (_selectedFile != null || _selectedImage != null) {
+        // Show loading indicator
+        setState(() => _isLoading = true);
+
         await _controller.updateTaskerInfo(
-            context, userId, _selectedFile!, _selectedImage!);
+          context,
+          userId,
+          _selectedFile, // Pass as nullable
+          _selectedImage, // Pass as nullable
+        );
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Files uploaded successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text('Error uploading files: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
       );
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Text(
-              'Complete your tasker account',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: const Color(0xFF0272B1),
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                  left: 80, right: 80, top: 10, bottom: 10),
-              child: Text(
-                textAlign: TextAlign.center,
-                "Provide service right away, create an account now!",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-            ),
-            SizedBox(
-              height: 550,
-              child: Theme(
-                data: Theme.of(context).copyWith(
-                  colorScheme: ColorScheme.light(primary: Color(0xFF0272B1)),
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: AppBar(backgroundColor: Colors.transparent),
+          body: SingleChildScrollView(
+            child: Column(
+              children: [
+                Text(
+                  'Complete your tasker account',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: const Color(0xFF0272B1),
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                child: Stepper(
-                  type: StepperType.horizontal,
-                  steps: getSteps(),
-                  currentStep: currentStep,
-                  onStepContinue: () {
-                    if (currentStep == 0) {
-                      if (_generalFormKey.currentState!.validate() &&
-                          (_selectedImage != null)) {
-                        setState(() {
-                          _isGeneralComplete = true;
-                          currentStep += 1;
-                        });
-                      }
-                    } else if (currentStep == 1) {
-                      if (_profileFormKey.currentState!.validate() &&
-                          (_selectedImage != null ||
-                              _existingProfileImageUrl != null)) {
-                        setState(() {
-                          _isProfileComplete = true;
-                          currentStep += 1;
-                        });
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text('Please select a profile picture')),
-                        );
-                      }
-                    } else if (currentStep == 2) {
-                      // Address step validation
-                      if (_addressFormKey.currentState!.validate() &&
-                          _controller.streetAddressController.text.isNotEmpty &&
-                          _controller.barangayController.text.isNotEmpty &&
-                          _controller.cityController.text.isNotEmpty &&
-                          _controller.provinceController.text.isNotEmpty &&
-                          _controller.postalCodeController.text.isNotEmpty &&
-                          _controller.countryController.text.isNotEmpty) {
-                        setState(() {
-                          _isAddressComplete = true;
-                          currentStep += 1;
-                        });
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text('Please complete address fields')),
-                        );
-                      }
-                    } else if (currentStep == 3) {
-                      if (_documentValid || _selectedFile != null) {
-                        setState(() {
-                          _isCertsComplete = true;
-                        });
-                        saveTaskerWithImages();
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text('Please upload a PDF document')),
-                        );
-                      }
-                    }
-                  },
-                  onStepTapped: (step) => setState(() => currentStep = step),
-                  onStepCancel: () {
-                    if (currentStep > 0) {
-                      setState(() => currentStep -= 1);
-                    }
-                  },
-                  controlsBuilder:
-                      (BuildContext context, ControlsDetails details) {
-                    final isLastStep = currentStep == getSteps().length - 1;
-                    return Row(
-                      children: [
-                        if (currentStep != 0)
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF0272B1),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10)),
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left: 80, right: 80, top: 10, bottom: 10),
+                  child: Text(
+                    textAlign: TextAlign.center,
+                    "Provide service right away, create an account now!",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                ),
+                SizedBox(
+                  height: 550,
+                  child: Theme(
+                    data: Theme.of(context).copyWith(
+                      colorScheme:
+                          ColorScheme.light(primary: Color(0xFF0272B1)),
+                    ),
+                    child: Stepper(
+                      type: StepperType.horizontal,
+                      steps: getSteps(),
+                      currentStep: currentStep,
+                      onStepContinue: () {
+                        if (currentStep == 0) {
+                          if (_generalFormKey.currentState!.validate() &&
+                              (_selectedImage != null)) {
+                            setState(() {
+                              _isGeneralComplete = true;
+                              currentStep += 1;
+                            });
+                          }
+                        } else if (currentStep == 1) {
+                          if (_profileFormKey.currentState!.validate() &&
+                              (_selectedImage != null ||
+                                  _existingProfileImageUrl != null)) {
+                            setState(() {
+                              _isProfileComplete = true;
+                              currentStep += 1;
+                            });
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content:
+                                      Text('Please select a profile picture')),
+                            );
+                          }
+                        } else if (currentStep == 2) {
+                          // Address step validation
+                          if (_addressFormKey.currentState!.validate() &&
+                              _controller
+                                  .streetAddressController.text.isNotEmpty &&
+                              _controller.barangayController.text.isNotEmpty &&
+                              _controller.cityController.text.isNotEmpty &&
+                              _controller.provinceController.text.isNotEmpty &&
+                              _controller
+                                  .postalCodeController.text.isNotEmpty &&
+                              _controller.countryController.text.isNotEmpty) {
+                            setState(() {
+                              _isAddressComplete = true;
+                              currentStep += 1;
+                            });
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content:
+                                      Text('Please complete address fields')),
+                            );
+                          }
+                        } else if (currentStep == 3) {
+                          if (_documentValid || _selectedFile != null) {
+                            setState(() {
+                              _isCertsComplete = true;
+                            });
+                            saveTaskerWithImages();
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content:
+                                      Text('Please upload a PDF document')),
+                            );
+                          }
+                        }
+                      },
+                      onStepTapped: (step) =>
+                          setState(() => currentStep = step),
+                      onStepCancel: () {
+                        if (currentStep > 0) {
+                          setState(() => currentStep -= 1);
+                        }
+                      },
+                      controlsBuilder:
+                          (BuildContext context, ControlsDetails details) {
+                        final isLastStep = currentStep == getSteps().length - 1;
+                        return Row(
+                          children: [
+                            if (currentStep != 0)
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Color(0xFF0272B1),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10)),
+                                ),
+                                onPressed: details.onStepCancel,
+                                child: Text('Back',
+                                    style: TextStyle(color: Colors.white)),
+                              ),
+                            const SizedBox(width: 10),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFF0272B1),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10)),
+                              ),
+                              onPressed: details.onStepContinue,
+                              child: isLastStep
+                                  ? const Text('Submit',
+                                      style: TextStyle(color: Colors.white))
+                                  : const Text('Next',
+                                      style: TextStyle(color: Colors.white)),
                             ),
-                            onPressed: details.onStepCancel,
-                            child: Text('Back',
-                                style: TextStyle(color: Colors.white)),
-                          ),
-                        const SizedBox(width: 10),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF0272B1),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
-                          ),
-                          onPressed: details.onStepContinue,
-                          child: isLastStep
-                              ? const Text('Submit',
-                                  style: TextStyle(color: Colors.white))
-                              : const Text('Next',
-                                  style: TextStyle(color: Colors.white)),
-                        ),
-                      ],
-                    );
-                  },
+                          ],
+                        );
+                      },
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
+        if (_isLoading)
+          Container(
+            color: Colors.black54,
+            child: const Center(
+              child: CircularProgressIndicator(),
+            ),
+          ),
+      ],
     );
   }
 

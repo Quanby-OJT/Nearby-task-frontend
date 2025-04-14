@@ -17,14 +17,39 @@ class JobPostService {
   static final storage = GetStorage();
   static final token = storage.read('session');
 
+  // Cache to track assignments already made in this session
+  final Map<String, bool> _assignmentCache = {};
+
+  // Helper to generate cache key for task-tasker pair
+  String _getAssignmentCacheKey(int taskId, int taskerId) {
+    return "$taskId-$taskerId";
+  }
+
+  // Public method to update the assignment cache
+  void updateAssignmentCache(int taskId, int taskerId, bool isAssigned) {
+    String cacheKey = _getAssignmentCacheKey(taskId, taskerId);
+    _assignmentCache[cacheKey] = isAssigned;
+  }
+
   Map<String, dynamic> _handleResponse(http.Response response) {
     debugPrint(response.body.toString());
     final responseBody = jsonDecode(response.body);
     if (response.statusCode >= 200 && response.statusCode < 300) {
       debugPrint(responseBody.toString());
-      return responseBody;
+      // Ensure the response includes a success flag
+      Map<String, dynamic> result = {...responseBody};
+      // If the response doesn't have a 'success' key, add it
+      if (!result.containsKey('success')) {
+        result['success'] = true;
+      }
+      return result;
     } else {
-      return {"error": responseBody["error"] ?? "Unknown error"};
+      // Return error with success flag set to false
+      return {
+        "success": false,
+        "error": responseBody["error"] ?? "Unknown error",
+        "message": responseBody["message"] ?? "Failed to process request"
+      };
     }
   }
 
@@ -48,8 +73,7 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> _postRequest(
-      {required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
     final response = await http.post(Uri.parse("$url$endpoint"),
         headers: {
           "Authorization": "Bearer $token",
@@ -60,8 +84,7 @@ class JobPostService {
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> _deleteRequest(
-      String endpoint, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
       final request = http.Request("DELETE", Uri.parse('$url$endpoint'))
@@ -76,8 +99,7 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> _putRequest(
-      {required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _putRequest({required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.put(
@@ -416,38 +438,241 @@ class JobPostService {
   }
 
   Future<String?> getUserId() async => storage.read('user_id')?.toString();
+  Future<bool> isTaskAssignedToTasker(int taskId, int taskerId) async {
+    try {
+      debugPrint("Checking if task $taskId is assigned to tasker $taskerId");
 
-  Future<Map<String, dynamic>> fetchIsApplied(
-      int? taskId, int? clientId, int? taskerId) async {
+      // First approach: Check in task-taken with tasker ID
+      try {
+        final takenTasksResponse =
+            await _getRequest("/task-taken/tasker/$taskerId");
+
+        if (takenTasksResponse.containsKey('data') &&
+            takenTasksResponse['data'] is List) {
+          List<dynamic> takenTasks = takenTasksResponse['data'];
+
+          for (var task in takenTasks) {
+            final taskIdField =
+                task['post_task_id'] ?? task['task_id'] ?? task['id'];
+            if (taskIdField == taskId) {
+              debugPrint(
+                  "Task $taskId is already assigned to tasker $taskerId (from task-taken)");
+              return true;
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint("Error checking task-taken: $e");
+        // Continue with other checks
+      }
+
+      // Second approach: Direct check with the backend
+      try {
+        final directCheck = await _postRequest(
+            endpoint: "/check-task-assignment/$taskId/$taskerId",
+            body: {"tasker_id": taskerId, "task_id": taskId});
+
+        if (directCheck.containsKey('exists') &&
+            directCheck['exists'] == true) {
+          debugPrint(
+              "Task $taskId is already assigned to tasker $taskerId (from direct check)");
+          return true;
+        }
+      } catch (e) {
+        debugPrint("Direct check failed: $e");
+        // Continue with other checks
+      }
+
+      // Third approach: Check if task is assigned to anyone
+      try {
+        final taskStatus = await _getRequest("/displayTask/$taskId");
+        if (taskStatus.containsKey('tasks') &&
+            taskStatus['tasks'] is Map &&
+            taskStatus['tasks']['status'] != null &&
+            taskStatus['tasks']['status'].toString().toLowerCase() !=
+                'active') {
+          debugPrint("Task $taskId is already assigned (from task status)");
+          return true;
+        }
+      } catch (e) {
+        debugPrint("Task status check failed: $e");
+      }
+
+      debugPrint("Task $taskId is not assigned to tasker $taskerId");
+      return false;
+    } catch (e) {
+      debugPrint('Error checking task assignment: $e');
+      debugPrintStack();
+      // In case of error, return true to prevent potential duplicate assignments
+      return true;
+    }
+  }
+
+  Future<bool> checkExistingAssignment(int taskId, int taskerId) async {
+    try {
+      debugPrint(
+          "Checking for existing assignment between task $taskId and tasker $taskerId");
+
+      // First approach: Direct database check
+      final response = await _postRequest(
+          endpoint: "/check-task-assignment/$taskId/$taskerId",
+          body: {"tasker_id": taskerId, "task_id": taskId});
+
+      // Log the response for debugging
+      debugPrint("Check assignment response: $response");
+
+      if (response.containsKey('exists') && response['exists'] == true) {
+        debugPrint("Found existing assignment in direct check");
+        return true;
+      }
+
+      // Second approach: Check in taken-tasks
+      final takenTasksResponse = await _getRequest("/taken-tasks");
+
+      if (takenTasksResponse.containsKey('data') &&
+          takenTasksResponse['data'] is List) {
+        List<dynamic> takenTasks = takenTasksResponse['data'];
+
+        for (var task in takenTasks) {
+          // Check both post_task_id and task_id fields in case API uses different names
+          final taskIdField =
+              task['post_task_id'] ?? task['task_id'] ?? task['id'];
+          final taskerIdField = task['tasker_id'] ?? task['id'];
+
+          if (taskIdField == taskId && taskerIdField == taskerId) {
+            debugPrint("Found existing assignment in taken tasks");
+            return true;
+          }
+        }
+      }
+
+      // Third approach: Check in task_assignments
+      final assignmentsResponse =
+          await _getRequest("/check-task-assignment/$taskId/$taskerId");
+
+      if (assignmentsResponse.containsKey('assignments') &&
+          assignmentsResponse['assignments'] is List) {
+        List<dynamic> assignments = assignmentsResponse['assignments'];
+
+        for (var assignment in assignments) {
+          if ((assignment['task_id'] == taskId ||
+                  assignment['post_task_id'] == taskId) &&
+              assignment['tasker_id'] == taskerId) {
+            debugPrint("Found existing assignment in assignments list");
+            return true;
+          }
+        }
+      }
+
+      debugPrint(
+          "No existing assignment found for task $taskId and tasker $taskerId");
+      return false;
+    } catch (e) {
+      debugPrint('Error checking existing assignment: $e');
+      debugPrintStack();
+      // In case of error, return false and log the error
+      // This is safer than returning true as it won't block valid assignments
+      return false;
+    }
+  }
+
+  Future<Map<String, dynamic>> assignTask(int? taskId, int? clientId, int? taskerId) async {
     final userId = await getUserId();
     if (userId == null) {
       return {
         'success': false,
-        'message': 'Please log in to like jobs',
+        'message': 'Please log in to assign tasks',
         'requiresLogin': true
       };
     }
 
-    debugPrint("Sending task request...");
+    if (taskId == null || taskerId == null) {
+      return {
+        'success': false,
+        'message': 'Task ID and Tasker ID must be provided',
+      };
+    }
+
+    // Check local cache first
+    String cacheKey = _getAssignmentCacheKey(taskId, taskerId);
+    if (_assignmentCache.containsKey(cacheKey) &&
+        _assignmentCache[cacheKey] == true) {
+      debugPrint(
+          "Assignment prevented by local cache: Task $taskId is already assigned to Tasker $taskerId");
+      return {
+        'success': false,
+        'message': 'This task is already assigned to this tasker (local cache)',
+      };
+    }
+
+    debugPrint("Starting task assignment process...");
     debugPrint("Task ID: $taskId, Client ID: $clientId, Tasker ID: $taskerId");
 
-    final response = await _getRequest(
-        "/fetchIsApplied?task_id=$taskId&client_id=$clientId&tasker_id=$taskerId");
-    return response;
+    try {
+      // First, check if task is already assigned to this tasker
+      final isAssigned = await isTaskAssignedToTasker(taskId, taskerId);
+      if (isAssigned) {
+        debugPrint(
+            "Task $taskId is already assigned to tasker $taskerId (isTaskAssignedToTasker check)");
+        _assignmentCache[cacheKey] = true;
+        return {
+          'success': false,
+          'message': 'This task is already assigned to this tasker',
+        };
+      }
+
+      // If we get here, proceed with assignment
+      debugPrint("Proceeding with task assignment...");
+      final result = await _postRequest(endpoint: "/assign-task", body: {
+        "tasker_id": taskerId,
+        "client_id": clientId,
+        "task_id": taskId,
+        "task_status": "Pending"
+      });
+
+      // Debug the result
+      debugPrint("Assignment result: $result");
+
+      // If the backend reports success, update the cache
+      if (result['success'] == true) {
+        _assignmentCache[cacheKey] = true;
+        debugPrint("Task assignment successful");
+        return result;
+      } else {
+        // If the backend reports failure, check if it's because of a duplicate
+        if (result['message']
+                ?.toString()
+                .toLowerCase()
+                .contains('already assigned') ==
+            true) {
+          _assignmentCache[cacheKey] = true;
+        }
+        return result;
+      }
+    } catch (e) {
+      debugPrint('Error assigning task: $e');
+      debugPrintStack();
+      return {
+        'success': false,
+        'message': 'Error assigning task: $e',
+        'error': e.toString()
+      };
+    }
   }
 
-  Future<Map<String, dynamic>> acceptRequest(int taskTakenId) async {
+
+  Future<Map<String, dynamic>> updateNotification(int taskTakenId) async {
     try {
-      debugPrint("Accepting task with ID: $taskTakenId");
+      debugPrint("Updating notification with ID: $taskTakenId");
       final response = await http.put(
-        Uri.parse('$url/acceptRequest/$taskTakenId'),
+        Uri.parse('$url/updateNotification/$taskTakenId'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
         },
       );
 
-      print("API Response for acceptRequest: ${response.body}");
+      print("API Response for updateNotification: ${response.body}");
       return _handleResponse(response);
     } catch (e) {
       debugPrint('Error accepting task: $e');
@@ -456,28 +681,82 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> assignTask(
-      int taskId, int clientId, int taskerId) async {
-    final userId = await getUserId();
-    if (userId == null) {
-      return {
-        'success': false,
-        'message': 'Please log in to like jobs',
-        'requiresLogin': true
-      };
+  Future<Map<String, dynamic>> acceptRequest(int taskTakenId, String value, String role) async {
+    try {
+      debugPrint("Accepting task with ID: $taskTakenId $value $role");
+      return await _putRequest(endpoint: '$apiUrl/acceptRequest/$taskTakenId', body: {"value": value, "role": role});
+    } catch (e) {
+      debugPrint('Error accepting task: $e');
+      debugPrintStack();
+      return {'success': false, 'error': 'Error: $e'};
     }
-
-    debugPrint("Sending task request...");
-    debugPrint("Task ID: $taskId, Client ID: $clientId, Tasker ID: $taskerId");
-
-    return _postRequest(endpoint: "/assign-task", body: {
-      "tasker_id": taskerId,
-      "client_id": clientId,
-      "task_id": taskId,
-      // Backend expects task_status field, not status
-      "task_status": "Pending"
-    });
   }
+
+  Future<Map<String, dynamic>> requestTask(int taskId, int taskerId) async {
+    try {
+      // First check if task is already assigned
+      final taskResponse = await http.get(
+        Uri.parse('${apiUrl}/tasks/$taskId'),
+        headers: {
+          'Authorization': 'Bearer ${storage.read('token')}',
+        },
+      );
+
+      if (taskResponse.statusCode == 200) {
+        final taskData = json.decode(taskResponse.body);
+        if (taskData['status'] == 'Assigned' ||
+            taskData['status'] == 'In Progress' ||
+            taskData['status'] == 'Completed') {
+          return {
+            'success': false,
+            'message':
+                'This task has already been ${taskData['status'].toLowerCase()}',
+          };
+        }
+      }
+
+      // Proceed with task assignment if not already assigned
+      final response = await http.post(
+        Uri.parse('$apiUrl/requestTask/$taskId'),
+
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+        body: jsonEncode({"tasker_id": taskerId}),
+      );
+
+      return _handleResponse(response);
+    } catch (e) {
+      debugPrint('Error requesting task: $e');
+      debugPrintStack();
+      return {'success': false, 'error': 'Error: $e'};
+    }
+  }
+
+  // Future<Map<String, dynamic>> assignTask(
+  //     int taskId, int clientId, int taskerId, String role) async {
+  //   final userId = await getUserId();
+  //   if (userId == null) {
+  //     return {
+  //       'success': false,
+  //       'message': 'Please log in to like jobs',
+  //       'requiresLogin': true
+  //     };
+  //   }
+  //
+  //   debugPrint("Sending task request...");
+  //   debugPrint("Task ID: $taskId, Client ID: $clientId, Tasker ID: $taskerId");
+  //
+  //   return _postRequest(endpoint: "/assign-task", body: {
+  //     "tasker_id": taskerId,
+  //     "client_id": clientId,
+  //     "task_id": taskId,
+  //     "role": role,
+  //     // Backend expects task_status field, not status
+  //     "task_status": "Pending"
+  //   });
+  // }
 
   // Method to update a task
   Future<Map<String, dynamic>> updateTask(
@@ -552,6 +831,66 @@ class JobPostService {
       debugPrint('Error deleting task: $e');
       debugPrintStack();
       return {'success': false, 'error': 'Error: $e'};
+    }
+  }
+
+  // Method to check if a task is assigned to anyone
+  Future<bool> isTaskAssigned(int taskId, int taskerId) async {
+    try {
+      debugPrint("Checking if task $taskId is assigned to anyone");
+
+      // First approach: Check in task-assignments
+      final response =
+          await _getRequest("/check-task-assignment/$taskId/$taskerId");
+
+      if (response.containsKey('assignments') &&
+          response['assignments'] is List) {
+        List<dynamic> assignments = response['assignments'];
+
+        // Check if this task is assigned to anyone
+        for (var assignment in assignments) {
+          if (assignment['task_id'] == taskId ||
+              assignment['post_task_id'] == taskId) {
+            debugPrint(
+                "Task $taskId is assigned to someone (from assignments)");
+            return true;
+          }
+        }
+      }
+
+      // Second approach: Check in task-taken with tasker ID
+      try {
+        final userId = await getUserId();
+        if (userId != null) {
+          final takenTasksResponse =
+              await _getRequest("/task-taken/tasker/$userId");
+
+          if (takenTasksResponse.containsKey('data') &&
+              takenTasksResponse['data'] is List) {
+            List<dynamic> takenTasks = takenTasksResponse['data'];
+
+            for (var task in takenTasks) {
+              final taskIdField =
+                  task['post_task_id'] ?? task['task_id'] ?? task['id'];
+              if (taskIdField == taskId) {
+                debugPrint(
+                    "Task $taskId is assigned to someone (from task-taken)");
+                return true;
+              }
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint("Error checking task-taken: $e");
+        // Continue with other checks
+      }
+
+      debugPrint("Task $taskId is not assigned to anyone");
+      return false;
+    } catch (e) {
+      debugPrint('Error checking if task is assigned: $e');
+      debugPrintStack();
+      return false;
     }
   }
 }

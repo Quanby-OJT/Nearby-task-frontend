@@ -52,6 +52,16 @@ class NotificationService {
     }
   }
 
+  Future<Map<String, dynamic>> getRejectedRequests(int userId) async {
+    try {
+      final data = await _getRequest("/notifications-tasker-reject/$userId");
+      return data;
+    } catch (e, st) {
+      debugPrint("Service error: $e\nStacktrace: $st");
+      return {"error": "An error occurred while getting rejected requests"};
+    }
+  }
+
   Future<Map<String, dynamic>> getOngoingRequests(int userId) async {
     try {
       final data = await _getRequest("/notifications-tasker-ongoing/$userId");
@@ -59,6 +69,16 @@ class NotificationService {
     } catch (e, st) {
       debugPrint("Service error: $e\nStacktrace: $st");
       return {"error": "An error occurred while getting ongoing requests"};
+    }
+  }
+
+  Future<Map<String, dynamic>> getFinishRequests(int userId) async {
+    try {
+      final data = await _getRequest("/notifications-tasker-finish/$userId");
+      return data;
+    } catch (e, st) {
+      debugPrint("Service error: $e\nStacktrace: $st");
+      return {"error": "An error occurred while getting finish requests"};
     }
   }
 
