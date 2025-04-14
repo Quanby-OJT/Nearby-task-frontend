@@ -252,6 +252,7 @@ class _DisplayListRecordOngoingState extends State<DisplayListRecordOngoing> {
     );
   }
 
+  //Main Application
   @override
   Widget build(BuildContext context) {
     return Scaffold(

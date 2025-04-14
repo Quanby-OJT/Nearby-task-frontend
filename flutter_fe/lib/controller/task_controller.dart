@@ -176,14 +176,33 @@ class TaskController {
       return false;
     }
     try{
-      Map<String, dynamic> result = await _jobPostService.acceptRequest(taskTakenId, value, role);
-      debugPrint("Accept request response: $result");
+      Map<String, dynamic> updateResult = await _jobPostService.acceptRequest(taskTakenId, value, role);
+      debugPrint("Accept request response: $updateResult");
 
-      if(result.containsKey('message')) return result['success'];
-      debugPrint("Error in task controller acceptRequest: ${result['error']}");
+      if(updateResult.containsKey('message')) return updateResult['success'];
+      debugPrint("Error in task controller acceptRequest: ${updateResult['error']}");
       return false;
     }catch(e, stackTrace){
       debugPrint("Error in task controller acceptRequest: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return false;
+    }
+  }
+
+  Future<bool> rateTheTasker(int taskTakenId, int taskerId, int rating, String feedback) async {
+    if(taskTakenId == 0 || rating == 0 || feedback.isEmpty) {
+      return false;
+    }
+
+    try{
+      Map<String, dynamic> feedbackResult = await _jobPostService.rateTheTasker(taskTakenId, taskerId, rating, feedback);
+
+      debugPrint("Feedback response: $feedbackResult");
+      if(feedbackResult.containsKey('message')) return feedbackResult['success'];
+      debugPrint("Error in task controller rateTheTasker: ${feedbackResult['error']}");
+      return false;
+    }catch(e, stackTrace){
+      debugPrint("Error in task controller rateTheTasker: $e");
       debugPrintStack(stackTrace: stackTrace);
       return false;
     }
@@ -362,22 +381,22 @@ class TaskController {
     }
   }
 
-//Update Task Status in Conversation
-  Future<void> updateTaskStatus(BuildContext context, int taskTakenId, String? newStatus) async {
-    try {
-      final response =
-          await _taskDetailsService.updateTaskStatus(taskTakenId, newStatus);
-
-      if (response.containsKey("message")) {
-        debugPrint('Task status updated successfully');
-      } else {
-        debugPrint('Failed to update task status: ${response["error"]}');
-      }
-    } catch (e, stackTrace) {
-      debugPrint('Error updating task status: $e');
-      debugPrintStack(stackTrace: stackTrace);
-    }
-  }
+//Update Task Status in Conversation. To be Retired
+//   Future<void> updateTaskStatus(BuildContext context, int taskTakenId, String? newStatus) async {
+//     try {
+//       final response =
+//           await _taskDetailsService.updateTaskStatus(taskTakenId, newStatus);
+//
+//       if (response.containsKey("message")) {
+//         debugPrint('Task status updated successfully');
+//       } else {
+//         debugPrint('Failed to update task status: ${response["error"]}');
+//       }
+//     } catch (e, stackTrace) {
+//       debugPrint('Error updating task status: $e');
+//       debugPrintStack(stackTrace: stackTrace);
+//     }
+//   }
 
   // Method to check if a task is already assigned to a tasker
   Future<bool> isTaskAssignedToTasker(int taskId, int taskerId) async {

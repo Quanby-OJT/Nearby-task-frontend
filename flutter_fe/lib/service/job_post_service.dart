@@ -692,6 +692,25 @@ class JobPostService {
     }
   }
 
+  Future<Map<String, dynamic>> rateTheTasker(int taskTakenId, int taskerId, int rating, String feedback) async {
+    try {
+      debugPrint("Rating the tasker with rating: $rating and feedback: $feedback");
+      return await _postRequest(
+        endpoint: '/rate-the-tasker',
+        body: {
+          "task_taken_id": taskTakenId,
+          "tasker_id": taskerId,
+          "rating": rating,
+          "feedback": feedback
+        }
+      );
+    } catch (e) {
+      debugPrint('Error rating the tasker: $e');
+      debugPrintStack();
+      return {'success': false, 'error': 'Error: $e'};
+    }
+  }
+
   Future<Map<String, dynamic>> requestTask(int taskId, int taskerId) async {
     try {
       // First check if task is already assigned

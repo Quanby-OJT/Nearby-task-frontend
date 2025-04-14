@@ -155,7 +155,8 @@ class _ClientOngoingState extends State<ClientOngoing> {
               widget.role ?? '',
             );
 
-            if (result) {
+            bool result2 = await taskController.rateTheTasker(_requestInformation?.task_taken_id ?? 0, _requestInformation?.tasker_id ?? 0, rating, feedback);
+            if (result && result2) {
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -479,7 +480,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
               elevation: 2,
             ),
             child: Text(
-              'Release Payment',
+              'Finish Task and Release Payment',
               style: GoogleFonts.montserrat(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -490,7 +491,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
           ),
            SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: _handleFileADispute,
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFFA73140),
               padding: EdgeInsets.symmetric(vertical: 16),
@@ -583,6 +584,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
   }
 }
 
+//Modal
 class _FeedbackBottomSheet extends StatefulWidget {
   final Function(int rating, String feedback, String? report) onSubmit;
 
@@ -739,7 +741,7 @@ class __FeedbackBottomSheetState extends State<_FeedbackBottomSheet> {
                   elevation: 2,
                 ),
                 child: Text(
-                  'Confirm',
+                  'Submit Feedback & Release Payment',
                   style: GoogleFonts.montserrat(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
