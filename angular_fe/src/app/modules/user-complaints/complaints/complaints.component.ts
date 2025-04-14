@@ -4,6 +4,8 @@ import { ClientComplaintComponent } from './client-complaint/client-complaint.co
 import { TaskerComplaintComponent } from './tasker-complaint/tasker-complaint.component';
 import { ReportService } from 'src/app/services/report.service';
 import { Subscription } from 'rxjs';
+import { SessionLocalStorage } from 'src/services/sessionStorage';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-complaints',
@@ -26,24 +28,24 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
   totalPages: number = 1;
   startIndex: number = 1;
   endIndex: number = 0;
-  // Store the current search term and filter value to combine both filters
   currentSearchText: string = '';
   currentStatusFilter: string = '';
-
-  // Modal properties
   isModalOpen: boolean = false;
   selectedReport: any = null;
+  userRole: string | undefined;
 
   private reportsSubscription!: Subscription;
 
   constructor(
-    private reportService: ReportService
-  ){}
+    private reportService: ReportService,
+    private sessionStorage: SessionLocalStorage,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.reportsSubscription = this.reportService.getReport().subscribe(
       (response) => {
-        if (response.success){
+        if (response.success) {
           this.reports = response.reports;
           this.filteredReports = [...this.reports];
           this.updatePage();
@@ -53,10 +55,19 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
         console.error("Failed in getting reports: ", errors);
       }
     );
+
+    this.authService.userInformation().subscribe(
+      (response: any) => {
+        this.userRole = response.user.user_role;
+      },
+      (error: any) => {
+        console.error('Error fetching user info:', error);
+      }
+    );
   }
 
-  ngOnDestroy(): void{
-    if(this.reportsSubscription){
+  ngOnDestroy(): void {
+    if (this.reportsSubscription) {
       this.reportsSubscription.unsubscribe();
     }
   }
