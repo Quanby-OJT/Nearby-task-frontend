@@ -910,6 +910,35 @@ class _JobPostPageState extends State<JobPostPage> {
           ),
         ],
       ),
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            heroTag: "refreshBtn",
+            onPressed: fetchCreatedTasks,
+            backgroundColor: Colors.green[400],
+            child: Icon(FontAwesomeIcons.arrowsRotate, color: Colors.white),
+          ),
+          SizedBox(height: 16),
+          FloatingActionButton.extended(
+            heroTag: "addTaskBtn",
+            onPressed: _showCreateTaskModal,
+            backgroundColor: Color(0xFF0272B1),
+            icon: Icon(Icons.add, color: Colors.white),
+            label: Text(
+              'Add Task',
+              style: GoogleFonts.montserrat(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
