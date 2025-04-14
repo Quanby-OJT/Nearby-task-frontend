@@ -128,7 +128,16 @@ class _ClientOngoingState extends State<ClientOngoing> {
   }
 
   Future<void> _handleFinishTask() async {
-    await showModalBottomSheet(
+    debugPrint("_requestInformation: $_requestInformation");
+
+    if (_requestInformation == null || _requestInformation!.task_taken_id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Task information not available')),
+      );
+      return;
+    }
+
+    showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: RoundedRectangleBorder(
@@ -139,22 +148,19 @@ class _ClientOngoingState extends State<ClientOngoing> {
           setState(() {
             _isLoading = true;
           });
-
           try {
-            // TODO: Implement API call to submit rating, feedback, and report
-            // For now, simulate success
-            final String value = 'Finish';
             bool result = await taskController.acceptRequest(
-              _requestInformation!.task_taken_id!,
-              value,
-              widget.role!,
+              _requestInformation?.task_taken_id ?? 0,
+              'Finish',
+              widget.role ?? '',
             );
+
             if (result) {
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => ClientFinish(
-                    finishID: _requestInformation!.task_taken_id!,
+                    finishID: _requestInformation?.task_taken_id ?? 0,
                     role: widget.role,
                   ),
                 ),
@@ -164,8 +170,9 @@ class _ClientOngoingState extends State<ClientOngoing> {
                 SnackBar(content: Text('Failed to finish task')),
               );
             }
-          } catch (e) {
-            debugPrint("Error finishing task: $e");
+          } catch (e, stackTrace) {
+            debugPrint("Error finishing task: $e.");
+            debugPrintStack(stackTrace: stackTrace);
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Error occurred')),
             );
@@ -178,6 +185,64 @@ class _ClientOngoingState extends State<ClientOngoing> {
       ),
     );
   }
+
+  Future<void> _handleFileADispute() async {
+    if (_requestInformation == null || _requestInformation!.task_taken_id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Task information not available')),
+      );
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => _FeedbackBottomSheet(
+        onSubmit: (int rating, String feedback, String? report) async {
+          setState(() {
+            _isLoading = true;
+          });
+          try {
+            bool result = await taskController.acceptRequest(
+              _requestInformation?.task_taken_id ?? 0,
+              'Disputed',
+              widget.role ?? '',
+            );
+
+            if (result) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ClientFinish(
+                    finishID: _requestInformation?.task_taken_id ?? 0,
+                    role: widget.role,
+                  ),
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Failed to finish task')),
+              );
+            }
+          } catch (e, stackTrace) {
+            debugPrint("Error finishing task: $e.");
+            debugPrintStack(stackTrace: stackTrace);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error occurred')),
+            );
+          } finally {
+            setState(() {
+              _isLoading = false;
+            });
+          }
+        },
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -400,27 +465,51 @@ class _ClientOngoingState extends State<ClientOngoing> {
   }
 
   Widget _buildActionButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: _handleFinishTask,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Color(0xFF03045E),
-          padding: EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+    return Column(
+        children: [
+          ElevatedButton(
+            onPressed: _handleFinishTask,
+            style: ElevatedButton.styleFrom(
+              minimumSize: Size(double.infinity, 50),
+              backgroundColor: Color(0xFF3E9B52),
+              padding: EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 2,
+            ),
+            child: Text(
+              'Release Payment',
+              style: GoogleFonts.montserrat(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+
           ),
-          elevation: 2,
-        ),
-        child: Text(
-          'Finish Task',
-          style: GoogleFonts.montserrat(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
+           SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {},
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFFA73140),
+              padding: EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 2,
+              minimumSize: Size(double.infinity, 50),
+            ),
+            child: Text(
+              'File a Dispute',
+              style: GoogleFonts.montserrat(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
           ),
-        ),
-      ),
+        ]
     );
   }
 

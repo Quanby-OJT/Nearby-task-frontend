@@ -684,7 +684,7 @@ class JobPostService {
   Future<Map<String, dynamic>> acceptRequest(int taskTakenId, String value, String role) async {
     try {
       debugPrint("Accepting task with ID: $taskTakenId $value $role");
-      return await _putRequest(endpoint: '$apiUrl/acceptRequest/$taskTakenId', body: {"value": value, "role": role});
+      return await _putRequest(endpoint: '/acceptRequest/$taskTakenId', body: {"value": value, "role": role});
     } catch (e) {
       debugPrint('Error accepting task: $e');
       debugPrintStack();

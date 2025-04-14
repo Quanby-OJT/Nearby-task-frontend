@@ -172,8 +172,12 @@ class TaskController {
   }
 
   Future<bool> acceptRequest(int taskTakenId, String value, String role) async {
+    if(taskTakenId == 0 || value.isEmpty || role.isEmpty) {
+      return false;
+    }
     try{
       Map<String, dynamic> result = await _jobPostService.acceptRequest(taskTakenId, value, role);
+      debugPrint("Accept request response: $result");
 
       if(result.containsKey('message')) return result['success'];
       debugPrint("Error in task controller acceptRequest: ${result['error']}");
