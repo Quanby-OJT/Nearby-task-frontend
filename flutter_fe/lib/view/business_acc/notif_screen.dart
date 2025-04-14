@@ -171,7 +171,7 @@ class _NotifScreenState extends State<NotifScreen> {
                                     ),
                                     SizedBox(height: 8),
                                     Text(
-                                      "Client: ${request["clientName"]}",
+                                      "Tasker: ${request["name"]}",
                                       style: GoogleFonts.montserrat(
                                         fontSize: 14,
                                         color: Colors.grey[700],
@@ -354,11 +354,20 @@ class _NotifScreenState extends State<NotifScreen> {
       case "pending":
         chipColor = Colors.orange;
         break;
-      case "approved":
+      case "confirmed":
         chipColor = Colors.green;
+        break;
+      case "completed":
+        chipColor = Colors.blue;
         break;
       case "rejected":
         chipColor = Colors.red;
+        break;
+      case "ongoing":
+        chipColor = Colors.yellow;
+        break;
+      case "canceled":
+        chipColor = Colors.grey;
         break;
       default:
         chipColor = Colors.grey;

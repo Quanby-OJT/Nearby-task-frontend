@@ -5,6 +5,7 @@ import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
+import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/service_acc/task_information.dart';
@@ -13,6 +14,7 @@ import 'package:flutter_fe/view/service_acc/task_requests_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
+import 'package:flutter_fe/service/job_post_service.dart';
 
 class LikesScreen extends StatefulWidget {
   const LikesScreen({super.key});
@@ -38,6 +40,7 @@ class _LikesScreenState extends State<LikesScreen> {
   String? _existingProfileImageUrl;
   String? _existingIDImageUrl;
   AuthenticatedUser? _user;
+  String _role = '';
 
   @override
   void initState() {
@@ -56,7 +59,6 @@ class _LikesScreenState extends State<LikesScreen> {
       }).toList();
     });
 
-    _applyFilters();
     _updateSavedTasks();
   }
 
@@ -102,85 +104,6 @@ class _LikesScreenState extends State<LikesScreen> {
     });
   }
 
-  void _applyFilters() {
-    setState(() {
-      if (selectedFilters.isNotEmpty) {
-        _filteredTasks = _filteredTasks.where((task) {
-          int priceFilter = _getPriceFilter(34);
-          return selectedFilters.contains(priceFilter);
-        }).toList();
-      }
-      _updateSavedTasks();
-    });
-  }
-
-  void _openFilterModal() {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Container(
-              padding: EdgeInsets.all(20),
-              height: 250,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Text(
-                      "Filter by Price",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Wrap(
-                    spacing: 10,
-                    children: [
-                      _buildFilterChip(500, setModalState),
-                      _buildFilterChip(700, setModalState),
-                      _buildFilterChip(10000, setModalState),
-                      _buildFilterChip(20000, setModalState),
-                      _buildFilterChip(30000, setModalState),
-                      _buildFilterChip(50000, setModalState),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _applyFilters();
-                    },
-                    child: Text("Apply Filters"),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  // Function to build a filter chip
-  Widget _buildFilterChip(int label, Function setModalState) {
-    bool isSelected = selectedFilters.contains(label);
-
-    return FilterChip(
-      label: Text('\$$label'),
-      selected: isSelected,
-      onSelected: (bool selected) {
-        setModalState(() {
-          if (selected) {
-            selectedFilters.add(label);
-          } else {
-            selectedFilters.remove(label);
-          }
-        });
-      },
-    );
-  }
-
   Future<void> _fetchUserIDImage() async {
     try {
       int userId = int.parse(storage.read('user_id').toString());
@@ -208,6 +131,8 @@ class _LikesScreenState extends State<LikesScreen> {
           _existingProfileImageUrl = user?.user.image;
           _existingIDImageUrl = response['url'];
           _isLoading = false;
+
+          _role = _user?.user?.role ?? '';
 
           debugPrint(
               "Successfully loaded user image" + _existingProfileImageUrl!);
@@ -279,15 +204,6 @@ class _LikesScreenState extends State<LikesScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.search, color: Colors.grey),
-                suffixIcon: IconButton(
-                    onPressed: () {
-                      _openFilterModal();
-                    },
-                    icon: Icon(
-                      Icons.filter_list,
-                      color: Colors.grey,
-                    )),
                 filled: true,
                 fillColor: Color(0xFFF1F4FF),
                 hintText: 'Search Tasks...',
@@ -525,8 +441,12 @@ class _LikesScreenState extends State<LikesScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              TaskInformation(taskID: task.id as int),
+
+                          builder: (context) => TaskInformation(
+                              taskID: task.id as int, role: _role),
+
+//                           builder: (context) => TaskerProfilePage(tasker: task),
+
                         ),
                       );
                       print(task.id);
@@ -668,6 +588,9 @@ class _LikesScreenState extends State<LikesScreen> {
 
   Future<void> _assignTask(UserModel tasker) async {
     try {
+      // Create TaskController instance
+      final taskController = TaskController();
+
       // Fetch the client's created tasks to display in the dialog
       List<TaskModel> clientTasks = await _fetchClientTasks();
 
@@ -681,10 +604,36 @@ class _LikesScreenState extends State<LikesScreen> {
         return;
       }
 
-      // Show task selection dialog
+      // Filter out tasks that are already assigned to anyone
+      final jobPostService = JobPostService();
+      List<TaskModel> availableTasks = [];
+      for (var task in clientTasks) {
+        if (task.id != null) {
+          bool isAssigned =
+              await jobPostService.isTaskAssigned(task.id, tasker.id!);
+          if (!isAssigned) {
+            availableTasks.add(task);
+          }
+        } else {
+          // Skip this task as it has an invalid ID
+          debugPrint("Skipping task with null ID");
+        }
+      }
+
+      if (availableTasks.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('All your active tasks are already assigned.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+
+      // Show task selection dialog with filtered tasks
       final TaskModel? selectedTask = await showDialog<TaskModel>(
         context: context,
-        builder: (context) => _buildTaskSelectionDialog(clientTasks),
+        builder: (context) => _buildTaskSelectionDialog(availableTasks),
       );
 
       if (selectedTask == null) return;
@@ -707,18 +656,66 @@ class _LikesScreenState extends State<LikesScreen> {
         selectedTask.id,
         int.parse(clientId),
         tasker.id ?? 0,
+        _role,
       );
 
-      // Show result
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result),
-          backgroundColor:
-              result.contains('success') || result.contains('Success')
-                  ? Colors.green
-                  : Colors.red,
+      // Show loading indicator
+      final loadingOverlay = OverlayEntry(
+        builder: (context) => Container(
+          color: Colors.black45,
+          child: Center(
+            child: CircularProgressIndicator(),
+          ),
         ),
       );
+
+      Overlay.of(context)?.insert(loadingOverlay);
+
+      try {
+        // Assign the task using the TaskController
+        final result = await taskController.assignTask(
+          selectedTask.id,
+          int.parse(clientId),
+          tasker.id,
+        );
+
+        // Remove loading indicator
+        loadingOverlay.remove();
+
+        // Show result with appropriate color based on success/failure
+        final isSuccess = !result.toLowerCase().contains('already') &&
+            !result.toLowerCase().contains('error') &&
+            !result.toLowerCase().contains('failed');
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result),
+            backgroundColor: isSuccess ? Colors.green : Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+
+        // If successful, refresh the task list
+        if (isSuccess) {
+          await _fetchClientTasks();
+
+          // Also add this success to the JobPostService cache manually
+          try {
+            final jobPostService = JobPostService();
+            jobPostService.updateAssignmentCache(
+                selectedTask.id!, tasker.id!, true);
+          } catch (e) {
+            debugPrint("Error updating cache: $e");
+          }
+        }
+      } finally {
+        // Ensure the loading overlay is removed even if there's an error
+        try {
+          loadingOverlay.remove();
+        } catch (e) {
+          // Overlay may already be removed
+        }
+      }
     } catch (e) {
       debugPrint("Error in _assignTask: $e");
       ScaffoldMessenger.of(context).showSnackBar(

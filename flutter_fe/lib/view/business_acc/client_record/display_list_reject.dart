@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/notificationController.dart';
+import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
-import 'package:flutter_fe/view/client_record/client_start.dart';
-import 'package:flutter_fe/view/notification/client_request.dart';
+import 'package:flutter_fe/view/business_acc/client_record/client_ongoing.dart';
+import 'package:flutter_fe/view/business_acc/client_record/client_rejected.dart';
+import 'package:flutter_fe/view/notification/display_task_status.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../service/notification_service.dart';
-
-class DisplayListRecordConfirmed extends StatefulWidget {
-  const DisplayListRecordConfirmed({super.key});
+class DisplayListRecordReject extends StatefulWidget {
+  const DisplayListRecordReject({super.key});
 
   @override
-  State<DisplayListRecordConfirmed> createState() =>
-      _DisplayListRecordConfirmedState();
+  State<DisplayListRecordReject> createState() =>
+      _DisplayListRecordRejectState();
 }
 
-class _DisplayListRecordConfirmedState
-    extends State<DisplayListRecordConfirmed> {
+class _DisplayListRecordRejectState extends State<DisplayListRecordReject> {
   // Mock data for all notifications
   final List<Map<String, dynamic>> notifications = [];
   final NotificationController _notificationController =
@@ -31,10 +30,33 @@ class _DisplayListRecordConfirmedState
   // Track the selected tab index
   int _selectedTabIndex = 0;
 
+  final ProfileController _userController = ProfileController();
+  AuthenticatedUser? _user;
+  String? role;
+
   @override
   void initState() {
     super.initState();
     _fetchRequests();
+    _fetchUserData();
+  }
+
+  Future<void> _fetchUserData() async {
+    try {
+      int userId = storage.read("user_id");
+      AuthenticatedUser? user =
+          await _userController.getAuthenticatedUser(context, userId);
+
+      debugPrint(user.toString());
+      setState(() {
+        _user = user;
+        _isLoading = false;
+        role = user?.user.role;
+      });
+    } catch (e) {
+      print("Error fetching user data: $e");
+      setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _fetchRequests() async {
@@ -49,7 +71,7 @@ class _DisplayListRecordConfirmedState
         return;
       }
       final response =
-          await _notificationController.getConfirmedRequests(userId);
+          await _notificationController.getRejectedRequests(userId);
 
       debugPrint(response.toString());
 
@@ -94,7 +116,7 @@ class _DisplayListRecordConfirmedState
       child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : requestData.isEmpty
-              ? _buildEmptyState("No confirmed tasks available!")
+              ? _buildEmptyState("No ongoing tasks available!")
               : ListView.builder(
                   itemCount: requestData.length,
                   itemBuilder: (context, index) {
@@ -110,18 +132,12 @@ class _DisplayListRecordConfirmedState
                           borderRadius: BorderRadius.circular(12),
                           onTap: () {
                             Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ClientStart(
-                                  requestID: request["id"],
-                                ),
-                              ),
-                            ).then((value) {
-                              setState(() {
-                                _isLoading = true;
-                              });
-                              _fetchRequests();
-                            });
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => ClientRejected(
+                                          requestID: request["id"],
+                                          role: role,
+                                        )));
                           },
                           child: Padding(
                             padding: EdgeInsets.all(16),
@@ -152,7 +168,7 @@ class _DisplayListRecordConfirmedState
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      backgroundColor: Colors.blue[300],
+                                      backgroundColor: Colors.red[300],
                                       padding: EdgeInsets.symmetric(
                                           horizontal: 8, vertical: 0),
                                     ),
@@ -160,7 +176,7 @@ class _DisplayListRecordConfirmedState
                                 ),
                                 SizedBox(height: 8),
                                 Text(
-                                  "Tasker: ${request["clientName"]}",
+                                  "${request["role"]}: ${request["clientName"]}",
                                   style: GoogleFonts.montserrat(
                                     fontSize: 14,
                                     color: Colors.grey[700],
@@ -231,7 +247,7 @@ class _DisplayListRecordConfirmedState
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Confirmed Task',
+          'Ongoing Task',
           style: GoogleFonts.montserrat(
             color: Color(0xFF0272B1),
             fontWeight: FontWeight.w600,

@@ -242,6 +242,92 @@ class _FillUpClientState extends State<FillUpClient> {
                 ),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: Text(
+                          'Choose a profile picture',
+                          style: GoogleFonts.openSans(
+                              fontSize: 20, color: Color(0xFF0272B1)),
+                        ),
+                      ),
+                      Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 8,
+                                offset: Offset(0, 2)),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 200,
+                              height: 200,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(100),
+                                border: Border.all(
+                                    color: Color(0xFF0272B1), width: 3),
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      blurRadius: 10,
+                                      offset: Offset(0, 4)),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(100),
+                                child: _selectedImage != null
+                                    ? Image.file(_selectedImage!,
+                                        fit: BoxFit.cover)
+                                    : _existingProfileImageUrl != null &&
+                                            _existingProfileImageUrl!.isNotEmpty
+                                        ? Image.network(
+                                            _existingProfileImageUrl!,
+                                            fit: BoxFit.cover)
+                                        : Center(
+                                            child: Icon(Icons.person,
+                                                size: 80,
+                                                color: Colors.grey[600])),
+                              ),
+                            ),
+                            SizedBox(height: 20),
+                            ElevatedButton.icon(
+                              onPressed: _pickImageProfile,
+                              icon: Icon(Icons.edit, color: Colors.white),
+                              label: Text("Change Profile"),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFF0272B1),
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 20, vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                            if (_imageName != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Text("Name: $_imageName",
+                                    style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontStyle: FontStyle.italic)),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
                   child: TextFormField(
                     controller: _controller.firstNameController,
                     cursorColor: Color(0xFF0272B1),
@@ -432,94 +518,6 @@ class _FillUpClientState extends State<FillUpClient> {
                     validator: (value) => value == null || value.isEmpty
                         ? 'Please select a birthdate'
                         : null,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        Step(
-          state: currentStep > 1 ? StepState.complete : StepState.indexed,
-          isActive: currentStep >= 1,
-          title: Text(''),
-          content: Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  child: Text(
-                    'Choose a profile picture',
-                    style: GoogleFonts.openSans(
-                        fontSize: 20, color: Color(0xFF0272B1)),
-                  ),
-                ),
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: Offset(0, 2)),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 200,
-                        height: 200,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(100),
-                          border:
-                              Border.all(color: Color(0xFF0272B1), width: 3),
-                          boxShadow: [
-                            BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 10,
-                                offset: Offset(0, 4)),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(100),
-                          child: _selectedImage != null
-                              ? Image.file(_selectedImage!, fit: BoxFit.cover)
-                              : _existingProfileImageUrl != null &&
-                                      _existingProfileImageUrl!.isNotEmpty
-                                  ? Image.network(_existingProfileImageUrl!,
-                                      fit: BoxFit.cover)
-                                  : Center(
-                                      child: Icon(Icons.person,
-                                          size: 80, color: Colors.grey[600])),
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      ElevatedButton.icon(
-                        onPressed: _pickImageProfile,
-                        icon: Icon(Icons.edit, color: Colors.white),
-                        label: Text("Change Profile"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF0272B1),
-                          foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8)),
-                        ),
-                      ),
-                      if (_imageName != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Text("Name: $_imageName",
-                              style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontStyle: FontStyle.italic)),
-                        ),
-                    ],
                   ),
                 ),
               ],

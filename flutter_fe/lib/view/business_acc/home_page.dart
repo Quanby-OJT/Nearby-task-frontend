@@ -41,6 +41,8 @@ class _HomePageState extends State<HomePage> {
   bool _isUploadDialogShown = false;
   bool _showButton = false;
 
+  double _currentRating = 0;
+
   @override
   void initState() {
     super.initState();
@@ -49,26 +51,33 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _fetchTasker() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
     try {
       ClientServices clientServices = ClientServices();
       debugPrint("Fetching taskers...");
       List<UserModel> tasks = await clientServices.fetchAllTasker();
 
       if (!mounted) return;
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+        _showButton = false;
+      });
 
       if (tasks.isEmpty) {
         debugPrint("No taskers returned from service");
+        setState(() {
+          _isLoading = false;
+          _showButton = false;
+        });
       } else {
         debugPrint("Successfully fetched ${tasks.length} taskers");
+        setState(() {
+          _isLoading = false;
+          _showButton = true;
+        });
       }
 
       setState(() {
-        _isLoading = false;
         tasker = tasks;
         cardNumber = tasks.length;
       });
@@ -79,6 +88,7 @@ class _HomePageState extends State<HomePage> {
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _showButton = false;
           _errorMessage =
               "Failed to load taskers. Please check your connection and try again.";
         });
@@ -88,10 +98,14 @@ class _HomePageState extends State<HomePage> {
 
   void _cardCounter() {
     if (cardNumber == 0) {
+      setState(() {
+        _showButton = false;
+      });
       return;
     } else {
       setState(() {
         cardNumber = cardNumber! - 1;
+        _showButton = true;
       });
     }
   }
@@ -125,6 +139,9 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       debugPrint("$e");
       debugPrintStack();
+      setState(() {
+        _showButton = false;
+      });
 
       // Show error indicator
       ScaffoldMessenger.of(context).showSnackBar(
@@ -171,9 +188,9 @@ class _HomePageState extends State<HomePage> {
               "Successfully loaded user image" + _existingProfileImageUrl!);
           debugPrint("Successfully loaded ID image" + _existingIDImageUrl!);
 
-          if (_existingProfileImageUrl != null && _existingIDImageUrl != null) {
-            _showButton = true;
-          }
+          // if (_existingProfileImageUrl != null && _existingIDImageUrl != null) {
+          //   _showButton = true;
+          // }
         });
       }
     } catch (e) {
@@ -184,7 +201,7 @@ class _HomePageState extends State<HomePage> {
   void _showWarningDialog() {
     showDialog(
       context: context,
-      barrierDismissible: false, // Prevent dismissing by tapping outside
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: const Text("Account Verification"),
         content: const Text(
@@ -200,11 +217,10 @@ class _HomePageState extends State<HomePage> {
               if (result == true) {
                 setState(() {
                   _isLoading = true;
-                  // Keep the flag true since we're refreshing data
                 });
 
-                await _fetchUserIDImage(); // Refresh user profile and ID image data
-                await _fetchTasker(); // Refresh tasker data if needed
+                await _fetchUserIDImage();
+                await _fetchTasker();
               } else {
                 setState(() {
                   _isUploadDialogShown = false;
@@ -225,6 +241,81 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
+  }
+
+  void _showRatingDialog(UserModel tasker) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Rate ${tasker.firstName}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('How would you rate your experience?'),
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(5, (index) {
+                return IconButton(
+                  icon: Icon(
+                    index < _currentRating ? Icons.star : Icons.star_border,
+                    color: Colors.amber,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _currentRating = index + 1;
+                    });
+                  },
+                );
+              }),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await _submitRating(tasker.id!, _currentRating);
+              Navigator.pop(context);
+            },
+            child: Text('Submit'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _submitRating(int taskerId, double rating) async {
+    try {
+      final result = await _clientServices.submitTaskerRating(taskerId, rating);
+
+      if (result['success']) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Rating submitted successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        await _fetchTasker(); // Refresh the tasker list to show updated rating
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Failed to submit rating'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error submitting rating'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -278,7 +369,13 @@ class _HomePageState extends State<HomePage> {
                   ),
                   SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: _fetchTasker,
+                    onPressed: () {
+                      setState(() {
+                        _isLoading = true;
+                        _showButton = false;
+                      });
+                      _fetchTasker();
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFF0272B1),
                       foregroundColor: Colors.white,
@@ -310,6 +407,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 Expanded(
                   child: CardSwiper(
+                    numberOfCardsDisplayed: 1,
                     allowedSwipeDirection: AllowedSwipeDirection.only(
                       left: true,
                       right: true,
@@ -383,7 +481,6 @@ class _HomePageState extends State<HomePage> {
                                           ],
                                         ),
                                       ),
-                                      // padding: EdgeInsets.all(16),
                                       child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
@@ -395,6 +492,31 @@ class _HomePageState extends State<HomePage> {
                                               fontWeight: FontWeight.bold,
                                               color: Colors.white,
                                             ),
+                                          ),
+                                          SizedBox(height: 8),
+                                          Row(
+                                            children: [
+                                              ...List.generate(5, (index) {
+                                                double rating = 4.5;
+                                                return Icon(
+                                                  index < rating.floor()
+                                                      ? Icons.star
+                                                      : index < rating
+                                                          ? Icons.star_half
+                                                          : Icons.star_border,
+                                                  color: Colors.amber,
+                                                  size: 20,
+                                                );
+                                              }),
+                                              SizedBox(width: 8),
+                                              Text(
+                                                "4.5",
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                           SizedBox(height: 4),
                                           Text(
@@ -440,42 +562,75 @@ class _HomePageState extends State<HomePage> {
                                       style: TextStyle(fontSize: 16),
                                     ),
                                     SizedBox(height: 20),
-                                    Center(
-                                      child: ElevatedButton.icon(
-                                        onPressed: () {
-                                          if (_existingProfileImageUrl ==
-                                                  null ||
-                                              _existingIDImageUrl == null ||
-                                              _existingProfileImageUrl!
-                                                  .isEmpty ||
-                                              _existingIDImageUrl!.isEmpty ||
-                                              !_documentValid) {
-                                            _showWarningDialog();
-                                          } else {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    TaskerProfilePage(
-                                                        tasker: task),
-                                              ),
-                                            );
-                                          }
-                                        },
-                                        icon: Icon(Icons.person,
-                                            color: Colors.white),
-                                        label: Text('View Full Profile'),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Color(0xFF0272B1),
-                                          foregroundColor: Colors.white,
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 20, vertical: 10),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        ElevatedButton.icon(
+                                          onPressed: () {
+                                            if (_existingProfileImageUrl ==
+                                                    null ||
+                                                _existingIDImageUrl == null ||
+                                                _existingProfileImageUrl!
+                                                    .isEmpty ||
+                                                _existingIDImageUrl!.isEmpty ||
+                                                !_documentValid) {
+                                              _showWarningDialog();
+                                            } else {
+                                              _showRatingDialog(task);
+                                            }
+                                          },
+                                          icon: Icon(Icons.star,
+                                              color: Colors.white),
+                                          label: Text('Rate Tasker'),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.amber,
+                                            foregroundColor: Colors.white,
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 20, vertical: 10),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
                                           ),
                                         ),
-                                      ),
+                                        SizedBox(width: 10),
+                                        ElevatedButton.icon(
+                                          onPressed: () {
+                                            if (_existingProfileImageUrl ==
+                                                    null ||
+                                                _existingIDImageUrl == null ||
+                                                _existingProfileImageUrl!
+                                                    .isEmpty ||
+                                                _existingIDImageUrl!.isEmpty ||
+                                                !_documentValid) {
+                                              _showWarningDialog();
+                                            } else {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      TaskerProfilePage(
+                                                          tasker: task),
+                                                ),
+                                              );
+                                            }
+                                          },
+                                          icon: Icon(Icons.person,
+                                              color: Colors.white),
+                                          label: Text('View Full Profile'),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Color(0xFF0272B1),
+                                            foregroundColor: Colors.white,
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 20, vertical: 10),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                     Spacer(),
                                     Center(
@@ -508,55 +663,55 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
-          if (_showButton)
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        controller.swipe(CardSwiperDirection.left);
-                      },
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          shape: CircleBorder(),
-                          fixedSize: Size(60, 60),
-                          padding: EdgeInsets.zero),
-                      child: Center(
-                        child: Icon(
-                          Icons.close,
-                          color: Colors.white,
-                          weight: 4,
-                          size: 30,
+          _showButton
+              ? Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            controller.swipe(CardSwiperDirection.left);
+                          },
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              shape: CircleBorder(),
+                              fixedSize: Size(60, 60),
+                              padding: EdgeInsets.zero),
+                          child: Center(
+                            child: Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              weight: 4,
+                              size: 30,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        controller.swipe(CardSwiperDirection.right);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        shape: CircleBorder(),
-                        fixedSize: Size(60, 60),
-                        padding: EdgeInsets.zero, // Remove default padding
-                      ),
-                      child: Center(
-                        // Use Center instead of Align
-                        child: Icon(
-                          Icons.favorite,
-                          color: Colors.white,
-                          size: 30,
+                        ElevatedButton(
+                          onPressed: () {
+                            controller.swipe(CardSwiperDirection.right);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            shape: CircleBorder(),
+                            fixedSize: Size(60, 60),
+                            padding: EdgeInsets.zero, // Remove default padding
+                          ),
+                          child: Center(
+                            // Use Center instead of Align
+                            child: Icon(
+                              Icons.favorite,
+                              color: Colors.white,
+                              size: 30,
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-            ),
+                  ))
+              : const SizedBox.shrink(),
         ],
       ),
     );

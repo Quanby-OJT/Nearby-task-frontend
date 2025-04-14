@@ -1,10 +1,8 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_fe/controller/authentication_controller.dart';
-import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
+import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_model.dart';
@@ -30,22 +28,20 @@ class _JobPostPageState extends State<JobPostPage> {
   final ClientServices _clientServices = ClientServices();
   final ProfileController _profileController = ProfileController();
   final GetStorage storage = GetStorage();
+  final TextEditingController _searchController = TextEditingController();
   String? _message;
   bool _isSuccess = false;
-
   String? selectedTimePeriod;
   String? selectedUrgency;
   String? selectedSpecialization;
-  String selectedWorkType = "Solo"; // New field for work_type
+  String selectedWorkType = "Solo";
   List<String> items = ['Day/s', 'Week/s', 'Month/s', 'Year/s'];
   List<String> urgency = ['Non-Urgent', 'Urgent'];
-  List<String> workTypes = ['Solo', 'Group']; // Options for work_type dropdown
+  List<String> workTypes = ['Solo', 'Group'];
   List<String> specialization = [];
   List<TaskModel?> clientTasks = [];
+  List<TaskModel?> _filteredTasks = [];
   Map<String, String> _errors = {};
-
-  String? _selectedSkill;
-  List<String> _skills = [];
   String? _existingProfileImageUrl;
   String? _existingIDImageUrl;
   AuthenticatedUser? _user;
@@ -60,19 +56,26 @@ class _JobPostPageState extends State<JobPostPage> {
     fetchSpecialization();
     _loadSkills();
     _fetchUserIDImage();
-
     fetchCreatedTasks();
+    _searchController.addListener(_filterTasks);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> fetchSpecialization() async {
     try {
-      List<SpecializationModel> fetchedSpecializations = await jobPostService.getSpecializations();
+      List<SpecializationModel> fetchedSpecializations =
+          await jobPostService.getSpecializations();
       setState(() {
-        specialization = fetchedSpecializations.map((spec) => spec.specialization).toList();
-        debugPrint("Specializations: $specialization");
+        specialization =
+            fetchedSpecializations.map((spec) => spec.specialization).toList();
       });
     } catch (error) {
-      print('Error fetching specializations: $error');
+      debugPrint('Error fetching specializations: $error');
     }
   }
 
@@ -85,9 +88,12 @@ class _JobPostPageState extends State<JobPostPage> {
         _skills = List<String>.from(data['tesda_skills']);
       });
     } catch (e) {
-      print('Error loading skills: $e');
+      debugPrint('Error loading skills: $e');
     }
   }
+
+  String? _selectedSkill;
+  List<String> _skills = [];
 
   Future<void> fetchCreatedTasks() async {
     setState(() {
@@ -100,17 +106,23 @@ class _JobPostPageState extends State<JobPostPage> {
         final tasks = await controller.getJobsforClient(context, userId);
         setState(() {
           clientTasks = tasks;
+          _filteredTasks = List.from(clientTasks);
         });
       }
     } catch (e) {
       debugPrint("Error fetching created tasks: $e");
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("Failed to load your tasks. Please try again."),
-        action: SnackBarAction(
-          label: 'Retry',
-          onPressed: () => fetchCreatedTasks(),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Failed to load tasks. Please try again."),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+          action: SnackBarAction(
+            label: 'Retry',
+            onPressed: fetchCreatedTasks,
+            textColor: Colors.white,
+          ),
         ),
-      ));
+      );
     } finally {
       setState(() {
         _isLoading = false;
@@ -118,69 +130,74 @@ class _JobPostPageState extends State<JobPostPage> {
     }
   }
 
+  void _filterTasks() {
+    String query = _searchController.text.trim().toLowerCase();
+    setState(() {
+      _filteredTasks = clientTasks.where((task) {
+        if (task == null) return false;
+        return (task.title?.toLowerCase().contains(query) ?? false) ||
+            (task.description?.toLowerCase().contains(query) ?? false);
+      }).toList();
+    });
+  }
+
   void _validateAndSubmit() {
     setState(() {
       _errors.clear();
-
       if (controller.jobTitleController.text.trim().isEmpty) {
-        _errors['task_title'] = 'Please Indicate Your Needed Task';
+        _errors['task_title'] = 'Please enter a task title';
       }
       if (selectedSpecialization == null) {
-        _errors['specialization'] = "Please Indicate the Needed Specialization";
+        _errors['specialization'] = "Please select a specialization";
       }
       if (controller.jobDescriptionController.text.trim().isEmpty) {
-        _errors['task_description'] = 'Please Elaborate Your Task.';
+        _errors['task_description'] = 'Please provide a description';
       }
       String contractPrice = controller.contactPriceController.text.trim();
       if (contractPrice.isEmpty) {
-        _errors['contact_price'] = 'Indicate the Contract Price';
+        _errors['contact_price'] = 'Please enter a contract price';
       } else if (double.tryParse(contractPrice) == null ||
           double.parse(contractPrice) <= 0) {
-        _errors['contact_price'] =
-            'Contract Price must be a valid positive number';
+        _errors['contact_price'] = 'Enter a valid positive price';
       }
       if (controller.jobLocationController.text.trim().isEmpty) {
-        _errors['location'] =
-            'Indicate Your Location where the Task will be held.';
+        _errors['location'] = 'Please enter a location';
       }
       String jobTime = controller.jobTimeController.text.trim();
       if (jobTime.isEmpty) {
-        _errors['num_of_days'] = 'Indicate the Time Needed to Finish the Task';
+        _errors['num_of_days'] = 'Please enter duration';
       } else if (int.tryParse(jobTime) == null || int.parse(jobTime) <= 0) {
-        _errors['num_of_days'] = 'Time Needed must be a valid positive number';
+        _errors['num_of_days'] = 'Enter a valid positive number';
       }
       String startDate = controller.jobTaskBeginDateController.text.trim();
       if (startDate.isEmpty) {
-        _errors['task_begin_date'] = 'Indicate When to Start Your Task';
+        _errors['task_begin_date'] = 'Please select a start date';
       } else {
         try {
           DateTime taskBeginDate = DateTime.parse(startDate);
           if (taskBeginDate.isBefore(DateTime.now())) {
-            _errors['task_begin_date'] =
-                'Task start date must be in the future';
+            _errors['task_begin_date'] = 'Start date must be in the future';
           }
         } catch (e) {
           _errors['task_begin_date'] = 'Invalid date format';
         }
       }
       if (selectedUrgency == null) {
-        _errors['urgency'] =
-            'Please Indicate if Your Task Needs to be finished ASAP.';
+        _errors['urgency'] = 'Please select urgency';
       }
       if (selectedTimePeriod == null) {
-        _errors['time_period'] = "Please Indicate the Time Period.";
+        _errors['time_period'] = "Please select a time period";
       }
       if (selectedWorkType == null) {
-        _errors['work_type'] = "Please Indicate the Work Type (Solo or Group).";
+        _errors['work_type'] = "Please select a work type";
       }
-
-      debugPrint(_errors.toString());
 
       if (_errors.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Please fix the errors before submitting'),
             backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
           ),
         );
       } else {
@@ -189,495 +206,30 @@ class _JobPostPageState extends State<JobPostPage> {
     });
   }
 
-  //Form for Task Creation.
-  void _showCreateTaskModal() {
-    showModalBottomSheet(
-      enableDrag: true,
-      context: context,
-      isScrollControlled: true,
-      builder: (BuildContext context) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.75,
-          padding:
-              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 40, right: 40, top: 20),
-                  child: Text(
-                    "Create a New Task",
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.indigo,
-                        fontSize: 24),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 40, right: 40, top: 5),
-                  child: Text(
-                    "* Required Fields",
-                    style: TextStyle(
-                        fontWeight: FontWeight.normal,
-                        color: Colors.indigo,
-                        fontSize: 12),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 40, right: 40, top: 20),
-                  child: TextField(
-                    cursorColor: Color(0xFF0272B1),
-                    controller: controller.jobTitleController,
-                    decoration: InputDecoration(
-                      label: Text('What is the Task All About? *'),
-                      labelStyle: TextStyle(color: Color(0xFF0272B1)),
-                      filled: true,
-                      fillColor: Color(0xFFF1F4FF),
-                      hintText: 'Enter title',
-                      hintStyle: TextStyle(color: Colors.grey),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Colors.transparent, width: 0),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide:
-                            BorderSide(color: Color(0xFF0272B1), width: 2),
-                      ),
-                      errorText: _errors['task_title'],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
-                  child: DropdownButtonFormField<String>(
-                    value: selectedSpecialization,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Color(0xFFF1F4FF),
-                      hintText: 'Select Tasker Specialization *',
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.transparent),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide:
-                            BorderSide(color: Color(0xFF0272B1), width: 2),
-                      ),
-                    ),
-                    items: specialization.map((String spec) {
-                      return DropdownMenuItem<String>(
-                        value: spec,
-                        child: Text(spec, overflow: TextOverflow.ellipsis),
-                      );
-                    }).toList(),
-                    onChanged: (newValue) {
-                      setState(() {
-                        selectedSpecialization = newValue!;
-                      });
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 40, right: 40, top: 20),
-                  child: TextField(
-                    maxLines: 5,
-                    cursorColor: Color(0xFF0272B1),
-                    controller: controller.jobDescriptionController,
-                    decoration: InputDecoration(
-                      label: Text('Can you Elaborate About Your Task? *'),
-                      labelStyle: TextStyle(color: Color(0xFF0272B1)),
-                      alignLabelWithHint: true,
-                      filled: true,
-                      fillColor: Color(0xFFF1F4FF),
-                      hintText: 'Enter description...',
-                      hintStyle: TextStyle(color: Colors.grey),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Colors.transparent, width: 0),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide:
-                            BorderSide(color: Color(0xFF0272B1), width: 2),
-                      ),
-                      errorText: _errors['task_description'],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 40, right: 40, top: 20),
-                  child: TextFormField(
-                    maxLines: 1,
-                    cursorColor: Color(0xFF0272B1),
-                    controller: controller.contactPriceController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: InputDecoration(
-                      label: Text('Contact Price *'),
-                      labelStyle: TextStyle(color: Color(0xFF0272B1)),
-                      filled: true,
-                      fillColor: Color(0xFFF1F4FF),
-                      hintText: 'Enter price...',
-                      hintStyle: TextStyle(color: Colors.grey),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Colors.transparent, width: 0),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide:
-                            BorderSide(color: Color(0xFF0272B1), width: 2),
-                      ),
-                      errorText: _errors['contact_price'],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 40, right: 40, top: 20),
-                  child: TextField(
-                    cursorColor: Color(0xFF0272B1),
-                    controller: controller.jobLocationController,
-                    decoration: InputDecoration(
-                      label: Text('Where Will the Task be Taken? *'),
-                      labelStyle: TextStyle(color: Color(0xFF0272B1)),
-                      filled: true,
-                      fillColor: Color(0xFFF1F4FF),
-                      hintText: 'Enter location',
-                      hintStyle: TextStyle(color: Colors.grey),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Colors.transparent, width: 0),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide:
-                            BorderSide(color: Color(0xFF0272B1), width: 2),
-                      ),
-                      errorText: _errors['location'],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 40, right: 40, top: 20),
-                  child: DropdownButtonFormField<String>(
-                    value: selectedTimePeriod,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Color(0xFFF1F4FF),
-                      hintText: 'Indicate the Time Period',
-                      hintStyle: TextStyle(color: Color(0xFF0272B1)),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Colors.transparent, width: 0),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide:
-                            BorderSide(color: Color(0xFF0272B1), width: 2),
-                      ),
-                    ),
-                    items: items.map((String item) {
-                      return DropdownMenuItem<String>(
-                        value: item,
-                        child: Text(item),
-                      );
-                    }).toList(),
-                    onChanged: (newValue) {
-                      setState(() {
-                        selectedTimePeriod = newValue!;
-                      });
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 40, right: 40, top: 20),
-                  child: TextField(
-                    cursorColor: Color(0xFF0272B1),
-                    controller: controller.jobTimeController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: InputDecoration(
-                      label: Text('How Long Will the Task Would Take? *'),
-                      labelStyle: TextStyle(color: Color(0xFF0272B1)),
-                      filled: true,
-                      fillColor: Color(0xFFF1F4FF),
-                      hintText: 'Enter duration',
-                      hintStyle: TextStyle(color: Colors.grey),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Colors.transparent, width: 0),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide:
-                            BorderSide(color: Color(0xFF0272B1), width: 2),
-                      ),
-                      errorText: _errors['num_of_days'],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 40, right: 40, top: 20),
-                  child: TextField(
-                    controller: controller.jobTaskBeginDateController,
-                    keyboardType: TextInputType.datetime,
-                    readOnly: true,
-                    onTap: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-                      if (pickedDate != null) {
-                        String formattedDate =
-                            "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
-                        controller.jobTaskBeginDateController.text =
-                            formattedDate;
-                      }
-                    },
-                    decoration: InputDecoration(
-                      labelText: 'When will the task begin? *',
-                      labelStyle: TextStyle(color: Color(0xFF0272B1)),
-                      filled: true,
-                      fillColor: Color(0xFFF1F4FF),
-                      hintText: 'Select a date',
-                      hintStyle: TextStyle(color: Colors.grey),
-                      suffixIcon:
-                          Icon(Icons.calendar_today, color: Color(0xFF0272B1)),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Colors.transparent, width: 0),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide:
-                            BorderSide(color: Color(0xFF0272B1), width: 2),
-                      ),
-                      errorText: _errors['task_begin_date'],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(
-                      left: 40, right: 40, top: 20, bottom: 0),
-                  child: DropdownButtonFormField<String>(
-                    value: selectedUrgency,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Color(0xFFF1F4FF),
-                      hintText: 'Does your task need be done ASAP? *',
-                      hintStyle: TextStyle(color: Color(0xFF0272B1)),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Colors.transparent, width: 0),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide:
-                            BorderSide(color: Color(0xFF0272B1), width: 2),
-                      ),
-                    ),
-                    items: urgency.map((String item) {
-                      return DropdownMenuItem<String>(
-                        value: item,
-                        child: Text(item),
-                      );
-                    }).toList(),
-                    onChanged: (newValue) {
-                      setState(() {
-                        selectedUrgency = newValue!;
-                      });
-                    },
-                  ),
-                ),
-                // New work_type dropdown
-                Padding(
-                  padding: const EdgeInsets.only(left: 40, right: 40, top: 20),
-                  child: DropdownButtonFormField<String>(
-                    value: selectedWorkType,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Color(0xFFF1F4FF),
-                      hintText: 'Select Work Type (Solo or Group) *',
-                      hintStyle: TextStyle(color: Color(0xFF0272B1)),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Colors.transparent, width: 0),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide:
-                            BorderSide(color: Color(0xFF0272B1), width: 2),
-                      ),
-                      errorText: _errors['work_type'],
-                    ),
-                    items: workTypes.map((String item) {
-                      return DropdownMenuItem<String>(
-                        value: item,
-                        child: Text(item),
-                      );
-                    }).toList(),
-                    onChanged: (newValue) {
-                      setState(() {
-                        selectedWorkType = newValue!;
-                      });
-                    },
-                  ),
-                ),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-                  child: Column(
-                    children: [
-                      TextField(
-                        maxLines: 3,
-                        cursorColor: Color(0xFF0272B1),
-                        controller: controller.jobRemarksController,
-                        decoration: InputDecoration(
-                          labelText: 'Remarks',
-                          labelStyle: TextStyle(color: Color(0xFF0272B1)),
-                          alignLabelWithHint: true,
-                          filled: true,
-                          fillColor: Color(0xFFF1F4FF),
-                          hintText: 'Enter remarks...',
-                          hintStyle: TextStyle(color: Colors.grey),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Colors.transparent, width: 0),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide:
-                                BorderSide(color: Color(0xFF0272B1), width: 2),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        _message ?? '',
-                        style: TextStyle(
-                          color: _isSuccess ? Colors.green : Colors.red,
-                          fontSize: 16,
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      SizedBox(
-                        height: 50,
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            if (_existingProfileImageUrl == null ||
-                                _existingIDImageUrl == null ||
-                                _existingProfileImageUrl!.isEmpty ||
-                                _existingIDImageUrl!.isEmpty ||
-                                !_documentValid) {
-                              _showWarningDialog();
-                              return;
-                            }
-                            setState(() => _message = "");
-                            _validateAndSubmit();
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF0272B1),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: Text(
-                            'Post Job',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      SizedBox(
-                        height: 50,
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            if (_existingProfileImageUrl == null ||
-                                _existingIDImageUrl == null ||
-                                _existingProfileImageUrl!.isEmpty ||
-                                _existingIDImageUrl!.isEmpty ||
-                                !_documentValid) {
-                              _showWarningDialog();
-                              return;
-                            }
-                            Navigator.pop(context);
-                            setState(() {
-                              _message = "";
-                              _errors = {};
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.pink,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: Text(
-                            'Show My Task List',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Future<void> _submitJob() async {
-    debugPrint("Submitting job...");
     setState(() {
       _message = "";
       _errors.clear();
       _isSuccess = false;
     });
 
-    selectedUrgency == "Urgent";
     try {
-      final result = await controller.postJob(selectedSpecialization ?? "",
-          selectedUrgency ?? "", selectedTimePeriod ?? "", selectedWorkType ?? "");
-      debugPrint(result.toString());
+      final result = await controller.postJob(
+        selectedSpecialization ?? "",
+        selectedUrgency ?? "",
+        selectedTimePeriod ?? "",
+        selectedWorkType,
+      );
 
       if (result['success']) {
         Navigator.pop(context);
         setState(() {
-          _message = result['message'] ?? "Successfully Posted Task.";
+          _message = result['message'] ?? "Task posted successfully!";
           _isSuccess = true;
         });
 
-        // Refresh the task list to show the newly created task
         await fetchCreatedTasks();
 
-        // Clear form fields after successful submission
         controller.jobTitleController.clear();
         controller.jobDescriptionController.clear();
         controller.jobLocationController.clear();
@@ -687,11 +239,19 @@ class _JobPostPageState extends State<JobPostPage> {
         controller.jobTaskBeginDateController.clear();
 
         setState(() {
-          selectedSpecialization = '';
-          selectedUrgency = '';
-          selectedTimePeriod = '';
-          selectedWorkType = '';
+          selectedSpecialization = null;
+          selectedUrgency = null;
+          selectedTimePeriod = null;
+          selectedWorkType = "Solo";
         });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_message!),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
       } else {
         setState(() {
           if (result.containsKey('errors') && result['errors'] is List) {
@@ -702,51 +262,35 @@ class _JobPostPageState extends State<JobPostPage> {
                 _errors[error['path']] = error['msg'];
               }
             }
-          } else if (result.containsKey('message')) {
-            _message = result['message'];
           }
+          _message = result['message'] ?? 'Failed to post task';
         });
-      }
 
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_message!),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (error) {
+      debugPrint("Error submitting job: $error");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_message!),
-          backgroundColor: _isSuccess ? Colors.green : Colors.red,
-          duration: Duration(seconds: 5),
-          action: SnackBarAction(
-            label: 'Dismiss',
-            onPressed: () {
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            },
-            textColor: Colors.white,
-          ),
+          content: Text('An error occurred. Please try again.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
         ),
       );
-    } catch (error, stackTrace) {
-      debugPrint(error.toString());
-      debugPrintStack(stackTrace: stackTrace);
     }
   }
 
   Future<void> _fetchUserIDImage() async {
     try {
       int userId = int.parse(storage.read('user_id').toString());
-      if (userId == 0) {
-        debugPrint("User ID not found in storage po");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Failed to load user image. Please try again."),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
-          ),
-        );
-        return;
-      }
-
       AuthenticatedUser? user =
           await _profileController.getAuthenticatedUser(context, userId);
-      debugPrint(user.toString());
-
       final response = await _clientServices.fetchUserIDImage(userId);
 
       if (response['success']) {
@@ -756,18 +300,16 @@ class _JobPostPageState extends State<JobPostPage> {
           _existingIDImageUrl = response['url'];
           _documentValid = response['status'];
           _isLoading = false;
-
-          debugPrint(
-              "Successfully loaded user image" + _existingProfileImageUrl!);
-          debugPrint("Successfully loaded ID image" + _existingIDImageUrl!);
-
-          if (_existingProfileImageUrl != null && _existingIDImageUrl != null) {
-            _showButton = true;
-          }
+          _showButton = _existingProfileImageUrl != null &&
+              _existingIDImageUrl != null &&
+              _documentValid;
         });
       }
     } catch (e) {
       debugPrint("Error fetching ID image: $e");
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -779,21 +321,53 @@ class _JobPostPageState extends State<JobPostPage> {
       ),
     );
     if (result == true) {
-      // Task was updated or disabled, refresh the task list
       await fetchCreatedTasks();
     }
   }
 
   void _showWarningDialog() {
+    if (_isUploadDialogShown) return;
+    setState(() {
+      _isUploadDialogShown = true;
+    });
+
     showDialog(
       context: context,
-      barrierDismissible: false, // Prevent dismissing by tapping outside
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text("Account Verification"),
-        content: const Text(
-            "Upload your Profile and ID images to complete your account. Verification will follow."),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Complete Your Profile',
+          style: GoogleFonts.montserrat(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF0272B1),
+          ),
+        ),
+        content: Text(
+          'Please upload your profile and ID images to post tasks.',
+          style: GoogleFonts.montserrat(
+            fontSize: 14,
+            color: Colors.grey[600],
+          ),
+        ),
         actions: [
           TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              setState(() {
+                _isUploadDialogShown = false;
+              });
+            },
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.montserrat(
+                fontSize: 14,
+                color: Colors.red[400],
+              ),
+            ),
+          ),
+          ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
               final result = await Navigator.push(
@@ -803,140 +377,527 @@ class _JobPostPageState extends State<JobPostPage> {
               if (result == true) {
                 setState(() {
                   _isLoading = true;
-                  // Keep the flag true since we're refreshing data
                 });
-
-                await _fetchUserIDImage(); // Refresh user profile and ID image data
-              } else {
-                setState(() {
-                  _isUploadDialogShown = false;
-                });
+                await _fetchUserIDImage();
               }
+              setState(() {
+                _isUploadDialogShown = false;
+              });
             },
-            child: const Text("Verify Account"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF0272B1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              'Verify Now',
+              style: GoogleFonts.montserrat(
+                fontSize: 14,
+                color: Colors.white,
+              ),
+            ),
           ),
-          TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                // Reset the flag when user cancels
-                setState(() {
-                  _isUploadDialogShown = false;
-                });
-              },
-              child: Text('Cancel')),
         ],
       ),
+    );
+  }
+
+  void _showCreateTaskModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.9,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) => SingleChildScrollView(
+          controller: scrollController,
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+            left: 16,
+            right: 16,
+            top: 16,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2.5),
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Create a New Task',
+                style: GoogleFonts.montserrat(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF0272B1),
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                '* Required fields',
+                style: GoogleFonts.montserrat(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+              ),
+              SizedBox(height: 16),
+              _buildTextField(
+                controller: controller.jobTitleController,
+                label: 'Task Title *',
+                hint: 'Enter task title',
+                errorText: _errors['task_title'],
+              ),
+              SizedBox(height: 16),
+              _buildDropdownField(
+                value: selectedSpecialization,
+                items: specialization,
+                hint: 'Select Specialization *',
+                onChanged: (value) =>
+                    setState(() => selectedSpecialization = value),
+                errorText: _errors['specialization'],
+              ),
+              SizedBox(height: 16),
+              _buildTextField(
+                controller: controller.jobDescriptionController,
+                label: 'Task Description *',
+                hint: 'Describe your task...',
+                maxLines: 4,
+                errorText: _errors['task_description'],
+              ),
+              SizedBox(height: 16),
+              _buildTextField(
+                controller: controller.contactPriceController,
+                label: 'Contract Price *',
+                hint: 'Enter price',
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                errorText: _errors['contact_price'],
+              ),
+              SizedBox(height: 16),
+              _buildTextField(
+                controller: controller.jobLocationController,
+                label: 'Location *',
+                hint: 'Enter location',
+                errorText: _errors['location'],
+              ),
+              SizedBox(height: 16),
+              _buildDropdownField(
+                value: selectedTimePeriod,
+                items: items,
+                hint: 'Time Period *',
+                onChanged: (value) =>
+                    setState(() => selectedTimePeriod = value),
+                errorText: _errors['time_period'],
+              ),
+              SizedBox(height: 16),
+              _buildTextField(
+                controller: controller.jobTimeController,
+                label: 'Duration *',
+                hint: 'Enter duration (e.g., 5)',
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                errorText: _errors['num_of_days'],
+              ),
+              SizedBox(height: 16),
+              _buildDateField(
+                controller: controller.jobTaskBeginDateController,
+                label: 'Start Date *',
+                hint: 'Select a date',
+                errorText: _errors['task_begin_date'],
+              ),
+              SizedBox(height: 16),
+              _buildDropdownField(
+                value: selectedUrgency,
+                items: urgency,
+                hint: 'Urgency *',
+                onChanged: (value) => setState(() => selectedUrgency = value),
+                errorText: _errors['urgency'],
+              ),
+              SizedBox(height: 16),
+              _buildDropdownField(
+                value: selectedWorkType,
+                items: workTypes,
+                hint: 'Work Type *',
+                onChanged: (value) => setState(() => selectedWorkType = value!),
+                errorText: _errors['work_type'],
+              ),
+              SizedBox(height: 16),
+              _buildTextField(
+                controller: controller.jobRemarksController,
+                label: 'Remarks',
+                hint: 'Additional notes...',
+                maxLines: 3,
+              ),
+              SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        setState(() {
+                          _message = "";
+                          _errors.clear();
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey[200],
+                        foregroundColor: Colors.grey[800],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: Text(
+                        'Cancel',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (!_showButton) {
+                          _showWarningDialog();
+                          return;
+                        }
+                        _validateAndSubmit();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF0272B1),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: Text(
+                        'Post Task',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    int maxLines = 1,
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
+    String? errorText,
+  }) {
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: GoogleFonts.montserrat(
+          color: Color(0xFF0272B1),
+          fontSize: 14,
+        ),
+        hintText: hint,
+        hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey[200]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
+        ),
+        errorText: errorText,
+        errorStyle: GoogleFonts.montserrat(color: Colors.red[400]),
+      ),
+      style: GoogleFonts.montserrat(fontSize: 14),
+    );
+  }
+
+  Widget _buildDropdownField({
+    String? value,
+    required List<String> items,
+    required String hint,
+    required Function(String?) onChanged,
+    String? errorText,
+  }) {
+    return DropdownButtonFormField<String>(
+      value: value,
+      decoration: InputDecoration(
+        labelText: hint,
+        labelStyle: GoogleFonts.montserrat(
+          color: Color(0xFF0272B1),
+          fontSize: 14,
+        ),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey[200]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
+        ),
+        errorText: errorText,
+        errorStyle: GoogleFonts.montserrat(color: Colors.red[400]),
+      ),
+      items: items.map((item) {
+        return DropdownMenuItem<String>(
+          value: item,
+          child: Text(
+            item,
+            style: GoogleFonts.montserrat(fontSize: 14),
+          ),
+        );
+      }).toList(),
+      onChanged: onChanged,
+    );
+  }
+
+  Widget _buildDateField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    String? errorText,
+  }) {
+    return TextField(
+      controller: controller,
+      readOnly: true,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: GoogleFonts.montserrat(
+          color: Color(0xFF0272B1),
+          fontSize: 14,
+        ),
+        hintText: hint,
+        hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey[200]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
+        ),
+        suffixIcon: Icon(Icons.calendar_today, color: Color(0xFF0272B1)),
+        errorText: errorText,
+        errorStyle: GoogleFonts.montserrat(color: Colors.red[400]),
+      ),
+      style: GoogleFonts.montserrat(fontSize: 14),
+      onTap: () async {
+        DateTime? pickedDate = await showDatePicker(
+          context: context,
+          initialDate: DateTime.now(),
+          firstDate: DateTime.now(),
+          lastDate: DateTime(2100),
+          builder: (context, child) {
+            return Theme(
+              data: ThemeData.light().copyWith(
+                colorScheme: ColorScheme.light(
+                  primary: Color(0xFF0272B1),
+                  onPrimary: Colors.white,
+                  surface: Colors.white,
+                  onSurface: Colors.black,
+                ),
+                dialogBackgroundColor: Colors.white,
+              ),
+              child: child!,
+            );
+          },
+        );
+        if (pickedDate != null) {
+          String formattedDate =
+              "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+          controller.text = formattedDate;
+        }
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
-        title: Center(
-          child: Text(
-            'Posted Tasks',
-            style: GoogleFonts.montserrat(
-              color: Color(0xFF0272B1),
-              fontWeight: FontWeight.w600,
-              fontSize: 18,
-            ),
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Color(0xFF0272B1)),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'My Posted Tasks',
+          style: GoogleFonts.montserrat(
+            color: Color(0xFF0272B1),
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
           ),
         ),
+        centerTitle: true,
       ),
-      body: _isLoading ? Center(
-        child: CircularProgressIndicator(),
-      ) : clientTasks.isEmpty
-          ? const Center(child: Text("No tasks available"))
-          : ListView.builder(
-              itemCount: clientTasks.length,
-              itemBuilder: (context, index) {
-                final task = clientTasks[index];
-                if (task == null) {
-                  return const SizedBox.shrink(); // Skip null tasks
-                }
-                // Format the price safely
-                String priceDisplay = "N/A";
-                if (task.contactPrice != null) {
-                  try {
-                    priceDisplay = NumberFormat("#,##0.00", "en_US")
-                        .format(task.contactPrice!.roundToDouble());
-                  } catch (e) {
-                    priceDisplay = task.contactPrice.toString();
-                  }
-                }
-
-                return Card(
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  elevation: 2,
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(12),
-                    title: Text(
-                      task.title ?? "Untitled Task",
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 4),
-                        _buildInfoRow(
-                          FontAwesomeIcons.locationPin, Colors.redAccent, task.location,
-                        ),
-                        const SizedBox(height: 5),
-                        _buildInfoRow(
-                          FontAwesomeIcons.pesoSign, Colors.green, "$priceDisplay",
-                        ),
-                        const SizedBox(height: 5),
-                        _buildInfoRow(
-                          FontAwesomeIcons.screwdriverWrench, Colors.blue, "${task.specialization}",
-                        ),
-                        const SizedBox(height: 5),
-                        _buildInfoRow(
-                          FontAwesomeIcons.clock, Colors.orange, "Duration: ${task.duration} ${task.period}",
-                        ),
-                      ],
-                    ),
-                    trailing: const Icon(
-                      Icons.arrow_forward_ios,
-                      size: 16,
-                      color: Colors.grey,
-                    ),
-                    onTap: () {
-                      _navigateToTaskDetail(task); // Navigate to task details
-                    },
-                  ),
-                );
-              },
+      body: Column(
+        children: [
+          // Search Bar
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.white,
+                hintText: 'Search tasks...',
+                hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
+                prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[200]!),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
+                ),
+              ),
+              style: GoogleFonts.montserrat(fontSize: 14),
             ),
+          ),
+          // Task Count
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Found ${_filteredTasks.length} tasks',
+                style: GoogleFonts.montserrat(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ),
+          ),
+          // Task List
+          Expanded(
+            child: _isLoading
+                ? Center(
+                    child: CircularProgressIndicator(color: Color(0xFF0272B1)))
+                : _filteredTasks.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.task_alt,
+                              size: 64,
+                              color: Colors.grey[400],
+                            ),
+                            SizedBox(height: 16),
+                            Text(
+                              'No tasks found',
+                              style: GoogleFonts.montserrat(
+                                fontSize: 18,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'Create a new task to get started!',
+                              style: GoogleFonts.montserrat(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : RefreshIndicator(
+                        onRefresh: fetchCreatedTasks,
+                        color: Color(0xFF0272B1),
+                        child: ListView.builder(
+                          padding: EdgeInsets.all(16),
+                          itemCount: _filteredTasks.length,
+                          itemBuilder: (context, index) {
+                            final task = _filteredTasks[index];
+                            if (task == null) return SizedBox.shrink();
+                            return _buildTaskCard(task);
+                          },
+                        ),
+                      ),
+          ),
+        ],
+      ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           FloatingActionButton(
             heroTag: "refreshBtn",
-            mini: true,
             onPressed: fetchCreatedTasks,
-            child: const Icon(Icons.refresh),
-            backgroundColor: Colors.green,
+            backgroundColor: Colors.green[400],
+            child: Icon(Icons.refresh, color: Colors.white),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           FloatingActionButton.extended(
             heroTag: "addTaskBtn",
             onPressed: _showCreateTaskModal,
-            icon: const Icon(Icons.add, size: 26),
-            label: const Text(
-              "Had a New Task in Mind?",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            backgroundColor: Color(0xFF0272B1),
+            icon: Icon(Icons.add, color: Colors.white),
+            label: Text(
+              'Add Task',
+              style: GoogleFonts.montserrat(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
             ),
-            backgroundColor: Colors.blueAccent,
-            foregroundColor: Colors.white,
-            elevation: 4,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -946,22 +907,100 @@ class _JobPostPageState extends State<JobPostPage> {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, Color color, String label) {
+  Widget _buildTaskCard(TaskModel task) {
+    String priceDisplay = task.contactPrice != null
+        ? NumberFormat.currency(locale: 'en_US', symbol: '₱', decimalDigits: 0)
+            .format(task.contactPrice!.roundToDouble())
+        : 'N/A';
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => _navigateToTaskDetail(task),
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      task.title ?? 'Untitled Task',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF0272B1),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: Colors.grey[400],
+                  ),
+                ],
+              ),
+              SizedBox(height: 8),
+              _buildTaskInfoRow(
+                icon: FontAwesomeIcons.locationPin,
+                color: Colors.red[400]!,
+                text: task.location ?? 'N/A',
+              ),
+              SizedBox(height: 8),
+              _buildTaskInfoRow(
+                icon: FontAwesomeIcons.pesoSign,
+                color: Colors.green[400]!,
+                text: priceDisplay,
+              ),
+              SizedBox(height: 8),
+              _buildTaskInfoRow(
+                icon: FontAwesomeIcons.screwdriverWrench,
+                color: Color(0xFF0272B1),
+                text: task.specialization ?? 'N/A',
+              ),
+              SizedBox(height: 8),
+              _buildTaskInfoRow(
+                icon: FontAwesomeIcons.clock,
+                color: Colors.orange[400]!,
+                text: '${task.duration ?? 'N/A'} ${task.period ?? ''}',
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTaskInfoRow({
+    required IconData icon,
+    required Color color,
+    required String text,
+  }) {
     return Row(
       children: [
-        Icon(
+        FaIcon(
           icon,
+          size: 16,
           color: color,
         ),
-        SizedBox(width: 10),
-        Text(
-          label,
-          style: GoogleFonts.openSans(
-            fontSize: 16,
-            color: Colors.black,
+        SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: GoogleFonts.montserrat(
+              fontSize: 14,
+              color: Colors.grey[800],
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
-        )
-      ]
+        ),
+      ],
     );
   }
 }

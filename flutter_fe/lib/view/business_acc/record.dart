@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
-import 'package:flutter_fe/view/client_record/display_list_coinfirmed.dart';
-import 'package:flutter_fe/view/client_record/display_list_ongoing.dart';
+import 'package:flutter_fe/view/business_acc/client_record/display_list_coinfirmed.dart';
+import 'package:flutter_fe/view/business_acc/client_record/display_list_finish.dart';
+import 'package:flutter_fe/view/business_acc/client_record/display_list_ongoing.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -15,42 +16,15 @@ class RecordPage extends StatefulWidget {
 }
 
 class _RecordPageState extends State<RecordPage> {
-  final ProfileController _userController = ProfileController();
-  final AuthenticationController _authController = AuthenticationController();
   final storage = GetStorage();
-  final ProfileController _profileController = ProfileController();
-  AuthenticatedUser? _user;
-  bool isLoading = true;
+
+  bool _isLoading = true;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _fetchUserData();
   }
-
-  Future<void> _fetchUserData() async {
-    try {
-      int userId = storage.read("user_id");
-      AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
-      debugPrint(user.toString());
-      setState(() {
-        isLoading = false;
-        _user = user;
-      });
-    } catch (e, stackTrace) {
-      debugPrint("Error fetching user data: $e");
-      debugPrintStack(stackTrace: stackTrace);
-      setState(() => _user = null);
-    }
-  }
-
-  String _fullName = 'Loading...';
-  String _role = 'Loading...';
-  String _image = '';
-
-  bool _isLoading = true;
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +66,7 @@ class _RecordPageState extends State<RecordPage> {
                     child: Column(
                       children: [
                         Text(
-                          'Task Record',
+                          'My Record',
                           style: GoogleFonts.montserrat(
                             fontWeight: FontWeight.w600,
                             fontSize: 18,
@@ -239,7 +213,7 @@ class _RecordPageState extends State<RecordPage> {
                             context,
                             MaterialPageRoute(
                                 builder: (context) =>
-                                    DisplayListRecordConfirmed()),
+                                    DisplayListRecordFinish()),
                           ).then((value) {
                             setState(() {
                               _isLoading = true;
