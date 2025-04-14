@@ -9,10 +9,12 @@ import 'package:flutter_fe/service/auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:dio/dio.dart';
 
 import 'api_service.dart';
 
 class ClientServices {
+  final dio = Dio();
   static const String apiUrl = "http://localhost:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
@@ -340,5 +342,66 @@ class ClientServices {
         'message': 'Error submitting rating: $e',
       };
     }
+  }
+
+  Future<List<UserModel>> fetchTaskersBySpecialization(
+      String specialization) async {
+    try {
+      final response = await dio
+          .get('/taskers', queryParameters: {'specialization': specialization});
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data['data'];
+
+        // Ensure proper type conversion and error handling
+        return data
+            .map((json) {
+              try {
+                return UserModel.fromJson(json);
+              } catch (e) {
+                debugPrint("Error parsing tasker: $e");
+                debugPrint("Problematic tasker data: $json");
+                return null; // Skip invalid entries
+              }
+            })
+            .where((tasker) => tasker != null)
+            .cast<UserModel>()
+            .toList();
+      } else {
+        throw Exception('Failed to fetch taskers');
+      }
+    } catch (e) {
+      debugPrint('Error fetching taskers by specialization: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<String>> fetchSpecializations() async {
+    try {
+      final response = await dio
+          .get('/get-specializations'); // Replace with your API endpoint
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data['data'];
+        return data.map((specialization) => specialization.toString()).toList();
+      } else {
+        throw Exception('Failed to fetch specializations');
+      }
+    } catch (e) {
+      debugPrint('Error fetching specializations: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<SpecializationModel>> getSpecializations() async {
+    final response = await _getRequest("/get-specializations");
+
+    debugPrint("Specializations Response: ${response.toString()}");
+    if (response["specializations"] != null) {
+      return (response["specializations"] as List)
+          .map((item) => SpecializationModel.fromJson(item))
+          .toList();
+    }
+    return [];
   }
 }

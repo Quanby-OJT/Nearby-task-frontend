@@ -498,7 +498,7 @@ class _LikesScreenState extends State<LikesScreen> {
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           title: Center(
             child: Text(
-              'Remove from Saved Tasks? ',
+              'Remove from Saved Tasks?',
               style: GoogleFonts.montserrat(
                   fontSize: 14, fontWeight: FontWeight.bold),
             ),
@@ -510,7 +510,7 @@ class _LikesScreenState extends State<LikesScreen> {
               children: [
                 Center(
                   child: Text(
-                    'This job will be removed from your liked Tasks list.',
+                    'This tasker will be removed from your liked list.',
                     style: GoogleFonts.montserrat(
                         fontSize: 10, fontWeight: FontWeight.normal),
                   ),
@@ -543,8 +543,32 @@ class _LikesScreenState extends State<LikesScreen> {
         ),
       );
 
-      // if (confirm != true) return;
       if (confirm == null || !confirm) return;
+
+      // Ensure the job ID is valid
+      if (job.id == null) {
+        debugPrint("Error: Tasker ID is null.");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to unlike tasker. Invalid tasker ID.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Fetch the client ID
+      final String? clientId = await clientServices.getUserId();
+      if (clientId == null || clientId.isEmpty || clientId == '0') {
+        debugPrint("Error: Client ID is invalid.");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to unlike tasker. Invalid client ID.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
 
       // Process the unlike action
       final result = await clientServices.unlikeTask(job.id!);
@@ -558,7 +582,8 @@ class _LikesScreenState extends State<LikesScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result['message']),
+              content:
+                  Text(result['message'] ?? 'Tasker removed successfully.'),
               backgroundColor: Colors.green,
             ),
           );
@@ -567,7 +592,7 @@ class _LikesScreenState extends State<LikesScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result['message']),
+              content: Text(result['message'] ?? 'Failed to remove tasker.'),
               backgroundColor: Colors.red,
             ),
           );
@@ -578,7 +603,7 @@ class _LikesScreenState extends State<LikesScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Failed to unlike job. Please try again.'),
+            content: Text('Failed to unlike tasker. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -649,15 +674,6 @@ class _LikesScreenState extends State<LikesScreen> {
         );
         return;
       }
-
-      // Assign the task using the TaskController
-      final taskController = TaskController();
-      final result = await taskController.assignTask(
-        selectedTask.id,
-        int.parse(clientId),
-        tasker.id ?? 0,
-        _role,
-      );
 
       // Show loading indicator
       final loadingOverlay = OverlayEntry(

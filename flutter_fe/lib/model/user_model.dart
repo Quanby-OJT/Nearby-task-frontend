@@ -34,7 +34,8 @@ class UserModel {
   // This is for the display record part
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['user_id'] as int?, // Allow null values
+      id: int.tryParse(json['user_id'].toString()) ??
+          0, // Handle string-to-int conversion
       firstName: json['first_name'] ?? '', // Default to empty string
       middleName: json['middle_name'] ?? '',
       lastName: json['last_name'] ?? '',
