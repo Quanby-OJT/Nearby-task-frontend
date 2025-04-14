@@ -1,28 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/controller/authentication_controller.dart';
-import 'package:flutter_fe/controller/profile_controller.dart';
-import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_coinfirmed.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_finish.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_ongoing.dart';
+import 'package:flutter_fe/view/business_acc/client_record/display_list_reject.dart';
+
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class RecordPage extends StatefulWidget {
-  const RecordPage({super.key});
+class RecordTaskerPage extends StatefulWidget {
+  const RecordTaskerPage({super.key});
 
   @override
-  State<RecordPage> createState() => _RecordPageState();
+  State<RecordTaskerPage> createState() => _RecordTaskerPageState();
 }
 
-class _RecordPageState extends State<RecordPage> {
+class _RecordTaskerPageState extends State<RecordTaskerPage> {
   final storage = GetStorage();
 
   bool _isLoading = true;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
   }
 
@@ -34,7 +32,7 @@ class _RecordPageState extends State<RecordPage> {
         backgroundColor: Colors.white,
         title: Center(
           child: Text(
-            'Record',
+            'My Record',
             textAlign: TextAlign.center,
             style: GoogleFonts.montserrat(
               color: Color(0xFF0272B1),
@@ -66,7 +64,7 @@ class _RecordPageState extends State<RecordPage> {
                     child: Column(
                       children: [
                         Text(
-                          'My Record',
+                          '',
                           style: GoogleFonts.montserrat(
                             fontWeight: FontWeight.w600,
                             fontSize: 18,
@@ -99,7 +97,7 @@ class _RecordPageState extends State<RecordPage> {
                       ),
                       child: InkWell(
                         borderRadius: BorderRadius.circular(12),
-                        hoverColor: Colors.yellow.withOpacity(0.1),
+                        hoverColor: Colors.orange.withOpacity(0.1),
                         onTap: () {
                           Navigator.push(
                             context,
@@ -117,7 +115,7 @@ class _RecordPageState extends State<RecordPage> {
                           padding: const EdgeInsets.all(16.0),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
-                            color: Colors.yellow.withOpacity(0.1),
+                            color: Colors.orange.withOpacity(0.1),
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -127,7 +125,7 @@ class _RecordPageState extends State<RecordPage> {
                                 style: GoogleFonts.montserrat(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.yellow,
+                                  color: Colors.orange,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
@@ -135,7 +133,7 @@ class _RecordPageState extends State<RecordPage> {
                               // Optionally, add more details like a count or icon
                               Icon(
                                 Icons.task,
-                                color: Colors.yellow,
+                                color: Colors.orange,
                                 size: 24,
                               ),
                             ],
@@ -171,67 +169,13 @@ class _RecordPageState extends State<RecordPage> {
                           padding: const EdgeInsets.all(16.0),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
-                            color: Colors.green.withOpacity(0.1),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Confirmed Task',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 8),
-                              // Optionally, add more details like a count or icon
-                              Icon(
-                                Icons.task,
-                                color: Colors.green,
-                                size: 24,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        hoverColor: Colors.blue.withOpacity(0.1),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    DisplayListRecordFinish()),
-                          ).then((value) {
-                            setState(() {
-                              _isLoading = true;
-                            });
-                          });
-                        },
-                        child: Container(
-                          width: 150, // Width of each card
-                          padding: const EdgeInsets.all(16.0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
                             color: Colors.blue.withOpacity(0.1),
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                'Completed Task',
+                                'Confirmed Task',
                                 style: GoogleFonts.montserrat(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -261,13 +205,67 @@ class _RecordPageState extends State<RecordPage> {
                       ),
                       child: InkWell(
                         borderRadius: BorderRadius.circular(12),
+                        hoverColor: Colors.green.withOpacity(0.1),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    DisplayListRecordFinish()),
+                          ).then((value) {
+                            setState(() {
+                              _isLoading = true;
+                            });
+                          });
+                        },
+                        child: Container(
+                          width: 150, // Width of each card
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.green.withOpacity(0.1),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Completed Task',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              // Optionally, add more details like a count or icon
+                              Icon(
+                                Icons.task,
+                                color: Colors.green,
+                                size: 24,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
                         hoverColor: Colors.red.withOpacity(0.1),
                         onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (context) =>
-                                    DisplayListRecordConfirmed()),
+                                    DisplayListRecordReject()),
                           ).then((value) {
                             setState(() {
                               _isLoading = true;

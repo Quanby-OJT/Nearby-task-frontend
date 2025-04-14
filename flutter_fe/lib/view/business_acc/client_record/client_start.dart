@@ -1,29 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
+import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/view/business_acc/client_record/client_ongoing.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../controller/profile_controller.dart';
-import '../../model/auth_user.dart';
-
-class ClientRequest extends StatefulWidget {
+class ClientStart extends StatefulWidget {
   final int? requestID;
-  const ClientRequest({super.key, this.requestID});
+  const ClientStart({super.key, this.requestID});
 
   @override
-  State<ClientRequest> createState() => _ClientRequestState();
+  State<ClientStart> createState() => _ClientStartState();
 }
 
-class _ClientRequestState extends State<ClientRequest> {
+class _ClientStartState extends State<ClientStart> {
   final JobPostService _jobPostService = JobPostService();
   final TaskController taskController = TaskController();
+  final ProfileController _profileController = ProfileController();
 
-  final ProfileController _userController = ProfileController();
   AuthenticatedUser? _user;
   String? _role;
 
@@ -34,43 +34,46 @@ class _ClientRequestState extends State<ClientRequest> {
   bool _isApplying = false;
   bool _isEditing = false;
 
+  AuthenticatedUser? tasker;
+
   @override
   void initState() {
     super.initState();
     _fetchRequestDetails();
     _fetchUserData();
-    _updateNotif();
 
-    debugPrint("Request ID from the widget: ${widget.requestID}");
-  }
-
-  Future<void> _updateNotif() async {
-    try {
-      final response = await taskController.updateNotif(
-        widget.requestID ?? 0,
-      );
-      debugPrint("Update notification response: ${response.toString()}");
-      if (!response) {
-        debugPrint("Failed to update notification");
-      }
-    } catch (e) {
-      debugPrint("Error updating notification: $e");
-    }
+    debugPrint("Task ID from the widget: ${widget.requestID}");
   }
 
   Future<void> _fetchUserData() async {
     try {
       int userId = storage.read("user_id");
       AuthenticatedUser? user =
-          await _userController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(context, userId);
       debugPrint(user.toString());
       setState(() {
         _user = user;
         _role = user?.user.role;
       });
     } catch (e) {
-      debugPrint("Error fetching user data: $e");
+      print("Error fetching user data: $e");
       setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _fetchTaskerDetails(int userId) async {
+    try {
+      AuthenticatedUser? user =
+          await _profileController.getAuthenticatedUser(context, userId);
+      debugPrint(user.toString());
+      setState(() {
+        tasker = user;
+      });
+    } catch (e) {
+      debugPrint("Error fetching tasker details: $e");
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -84,6 +87,7 @@ class _ClientRequestState extends State<ClientRequest> {
         _requestInformation = response;
       });
       await _fetchTaskDetails();
+      await _fetchTaskerDetails(_requestInformation!.tasker_id as int);
     } catch (e) {
       debugPrint("Error fetching task details: $e");
       setState(() {
@@ -113,7 +117,7 @@ class _ClientRequestState extends State<ClientRequest> {
     return Scaffold(
       appBar: AppBar(
           title: Text(
-        'Request Information',
+        'Task Information',
         style: const TextStyle(
           color: Color(0xFF03045E),
           fontSize: 20,
@@ -122,8 +126,8 @@ class _ClientRequestState extends State<ClientRequest> {
       )),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _requestInformation == null
-              ? const Center(child: Text('No request information available'))
+          : _taskInformation == null
+              ? const Center(child: Text('No task information available'))
               : Column(
                   children: [
                     Padding(
@@ -148,7 +152,7 @@ class _ClientRequestState extends State<ClientRequest> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          "N/A",
+                                          "${_taskInformation!.title}",
                                           style: GoogleFonts.montserrat(
                                             color: const Color(0xFF03045E),
                                             fontSize: 14,
@@ -244,15 +248,18 @@ class _ClientRequestState extends State<ClientRequest> {
                                 ],
                               ),
                               SizedBox(height: 20),
-                              _buildInfoRow("Name", "Mike Smith"),
+                              _buildInfoRow(
+                                  "Name", tasker?.user.firstName ?? ""),
                               const SizedBox(height: 10),
                               _buildInfoRow("Account", "Verified"),
                               const SizedBox(height: 10),
-                              _buildInfoRow("Email", "mike.smith@example.com"),
+                              _buildInfoRow("Email", tasker?.user.email ?? ""),
                               const SizedBox(height: 10),
-                              _buildInfoRow("Phone", "+1234567890"),
+                              _buildInfoRow(
+                                  "Phone", tasker?.user.contact ?? ""),
                               const SizedBox(height: 10),
-                              _buildInfoRow("Status", "Active"),
+                              _buildInfoRow(
+                                  "Status", tasker?.user.accStatus ?? ""),
                               const SizedBox(height: 10),
                             ],
                           ),
@@ -260,59 +267,9 @@ class _ClientRequestState extends State<ClientRequest> {
                       ),
                     ),
 
-                    _requestInformation!.task_status == "Pending"
+                    _requestInformation!.task_status == "Confirmed"
                         ? Column(
                             children: [
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 16.0, right: 16.0, top: 16),
-                                child: Container(
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    color: const Color.fromARGB(255, 203, 4, 4),
-                                  ),
-                                  child: TextButton(
-                                    onPressed: () async {
-                                      setState(() {
-                                        _isLoading = true;
-                                      });
-
-                                      final String value = 'Reject';
-                                      debugPrint("Reject request role: $_role");
-                                      bool result =
-                                          await taskController.acceptRequest(
-                                              _requestInformation!
-                                                  .task_taken_id!,
-                                              value,
-                                              _role!);
-                                      debugPrint(
-                                          "Reject request result: $result");
-                                      if (result) {
-                                        Navigator.pop(context);
-                                      } else {
-                                        setState(() {
-                                          _isLoading = false;
-                                        });
-                                      }
-                                    },
-                                    style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 20),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      'Reject',
-                                      style: GoogleFonts.montserrat(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
                               Padding(
                                 padding: const EdgeInsets.only(
                                     left: 16.0, right: 16.0, top: 16),
@@ -327,34 +284,29 @@ class _ClientRequestState extends State<ClientRequest> {
                                       setState(() {
                                         _isLoading = true;
                                       });
-                                      debugPrint("Reject request role: $_role");
-                                      final String value = 'Accept';
+
+                                      final String value = 'Start';
                                       bool result =
                                           await taskController.acceptRequest(
                                               _requestInformation!
                                                   .task_taken_id!,
                                               value,
                                               _role!);
+                                      debugPrint(
+                                          "Accept request result: $result");
                                       if (result) {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                IndividualChatScreen(
-                                              taskTitle:
-                                                  _taskInformation!.title,
-                                              taskTakenId: _requestInformation!
-                                                  .task_taken_id,
-                                              taskId: _requestInformation!
-                                                  .client_id,
-                                            ),
-                                          ),
-                                        ).then((value) {
-                                          setState(() {
-                                            _isLoading = true;
-                                          });
-                                          _fetchRequestDetails();
+                                        setState(() {
+                                          _isLoading = true;
                                         });
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    ClientOngoing(
+                                                        ongoingID:
+                                                            _requestInformation!
+                                                                .task_taken_id!)));
+                                        _fetchRequestDetails();
                                       } else {
                                         setState(() {
                                           _isLoading = false;
@@ -369,7 +321,7 @@ class _ClientRequestState extends State<ClientRequest> {
                                       ),
                                     ),
                                     child: Text(
-                                      'Accept',
+                                      'Start',
                                       style: GoogleFonts.montserrat(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
@@ -378,37 +330,7 @@ class _ClientRequestState extends State<ClientRequest> {
                                   ),
                                 ),
                               ),
-                            ],
-                          )
-                        : _requestInformation!.task_status == "Confirmed"
-                            ? Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 16.0, right: 16.0, top: 16),
-                                child: Container(
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    color: Colors.yellow,
-                                  ),
-                                  child: TextButton(
-                                    onPressed: () {},
-                                    style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 20),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      'Accepted',
-                                      style: GoogleFonts.montserrat(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ))
-                            : Padding(
+                              Padding(
                                 padding: const EdgeInsets.only(
                                     left: 16.0, right: 16.0, top: 16),
                                 child: Container(
@@ -434,7 +356,64 @@ class _ClientRequestState extends State<ClientRequest> {
                                       ),
                                     ),
                                   ),
-                                ))
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 16.0, right: 16.0, top: 16),
+                                child: Container(
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    color: Colors.yellow,
+                                  ),
+                                  child: TextButton(
+                                    onPressed: () {},
+                                    style: TextButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 20),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'Reschedule',
+                                      style: GoogleFonts.montserrat(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        : Padding(
+                            padding: const EdgeInsets.only(
+                                left: 16.0, right: 16.0, top: 16),
+                            child: Container(
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  color: Colors.blue),
+                              child: TextButton(
+                                onPressed: () {},
+                                style: TextButton.styleFrom(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 20),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Finish Task',
+                                  style: GoogleFonts.montserrat(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ))
                   ],
                 ),
     );

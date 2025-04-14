@@ -96,7 +96,7 @@ class TaskController {
     }
   }
 
-  Future<bool> acceptRequest(int taskTakenId) async {
+  Future<bool> updateNotif(int taskTakenId) async {
     debugPrint("Assigning task...");
     final assignedTask =
         await _jobPostService.assignTask(taskTakenId, null, null);
@@ -116,6 +116,7 @@ class TaskController {
         ? assignedTask['message'].toString()
         : assignedTask['error'].toString();
   }
+
 
   Future<String> assignTask(int? taskId, int? clientId, int? taskerId) async {
     if (taskId == null || clientId == null || taskerId == null) {

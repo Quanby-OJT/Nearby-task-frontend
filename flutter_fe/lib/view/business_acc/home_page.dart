@@ -133,10 +133,14 @@ class _HomePageState extends State<HomePage> {
 
   void _cardCounter() {
     if (cardNumber == 0) {
+      setState(() {
+        _showButton = false;
+      });
       return;
     } else {
       setState(() {
         cardNumber = cardNumber! - 1;
+        _showButton = true;
       });
     }
   }
@@ -170,6 +174,9 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       debugPrint("$e");
       debugPrintStack();
+      setState(() {
+        _showButton = false;
+      });
 
       // Show error indicator
       ScaffoldMessenger.of(context).showSnackBar(
@@ -216,9 +223,9 @@ class _HomePageState extends State<HomePage> {
               "Successfully loaded user image" + _existingProfileImageUrl!);
           debugPrint("Successfully loaded ID image" + _existingIDImageUrl!);
 
-          if (_existingProfileImageUrl != null && _existingIDImageUrl != null) {
-            _showButton = true;
-          }
+          // if (_existingProfileImageUrl != null && _existingIDImageUrl != null) {
+          //   _showButton = true;
+          // }
         });
       }
     } catch (e) {
@@ -229,7 +236,7 @@ class _HomePageState extends State<HomePage> {
   void _showWarningDialog() {
     showDialog(
       context: context,
-      barrierDismissible: false, // Prevent dismissing by tapping outside
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: const Text("Account Verification"),
         content: const Text(
@@ -245,11 +252,10 @@ class _HomePageState extends State<HomePage> {
               if (result == true) {
                 setState(() {
                   _isLoading = true;
-                  // Keep the flag true since we're refreshing data
                 });
 
-                await _fetchUserIDImage(); // Refresh user profile and ID image data
-                await _fetchTasker(); // Refresh tasker data if needed
+                await _fetchUserIDImage();
+                await _fetchTasker();
               } else {
                 setState(() {
                   _isUploadDialogShown = false;

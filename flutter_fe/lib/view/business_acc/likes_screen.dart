@@ -40,6 +40,7 @@ class _LikesScreenState extends State<LikesScreen> {
   String? _existingProfileImageUrl;
   String? _existingIDImageUrl;
   AuthenticatedUser? _user;
+  String _role = '';
 
   @override
   void initState() {
@@ -58,7 +59,6 @@ class _LikesScreenState extends State<LikesScreen> {
       }).toList();
     });
 
-    _applyFilters();
     _updateSavedTasks();
   }
 
@@ -104,85 +104,6 @@ class _LikesScreenState extends State<LikesScreen> {
     });
   }
 
-  void _applyFilters() {
-    setState(() {
-      if (selectedFilters.isNotEmpty) {
-        _filteredTasks = _filteredTasks.where((task) {
-          int priceFilter = _getPriceFilter(34);
-          return selectedFilters.contains(priceFilter);
-        }).toList();
-      }
-      _updateSavedTasks();
-    });
-  }
-
-  void _openFilterModal() {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Container(
-              padding: EdgeInsets.all(20),
-              height: 250,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Text(
-                      "Filter by Price",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Wrap(
-                    spacing: 10,
-                    children: [
-                      _buildFilterChip(500, setModalState),
-                      _buildFilterChip(700, setModalState),
-                      _buildFilterChip(10000, setModalState),
-                      _buildFilterChip(20000, setModalState),
-                      _buildFilterChip(30000, setModalState),
-                      _buildFilterChip(50000, setModalState),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _applyFilters();
-                    },
-                    child: Text("Apply Filters"),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  // Function to build a filter chip
-  Widget _buildFilterChip(int label, Function setModalState) {
-    bool isSelected = selectedFilters.contains(label);
-
-    return FilterChip(
-      label: Text('\$$label'),
-      selected: isSelected,
-      onSelected: (bool selected) {
-        setModalState(() {
-          if (selected) {
-            selectedFilters.add(label);
-          } else {
-            selectedFilters.remove(label);
-          }
-        });
-      },
-    );
-  }
-
   Future<void> _fetchUserIDImage() async {
     try {
       int userId = int.parse(storage.read('user_id').toString());
@@ -210,6 +131,8 @@ class _LikesScreenState extends State<LikesScreen> {
           _existingProfileImageUrl = user?.user.image;
           _existingIDImageUrl = response['url'];
           _isLoading = false;
+
+          _role = _user?.user?.role ?? '';
 
           debugPrint(
               "Successfully loaded user image" + _existingProfileImageUrl!);
@@ -281,15 +204,6 @@ class _LikesScreenState extends State<LikesScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                prefixIcon: Icon(Icons.search, color: Colors.grey),
-                suffixIcon: IconButton(
-                    onPressed: () {
-                      _openFilterModal();
-                    },
-                    icon: Icon(
-                      Icons.filter_list,
-                      color: Colors.grey,
-                    )),
                 filled: true,
                 fillColor: Color(0xFFF1F4FF),
                 hintText: 'Search Tasks...',
@@ -527,7 +441,12 @@ class _LikesScreenState extends State<LikesScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => TaskerProfilePage(tasker: task),
+
+                          builder: (context) => TaskInformation(
+                              taskID: task.id as int, role: _role),
+
+//                           builder: (context) => TaskerProfilePage(tasker: task),
+
                         ),
                       );
                       print(task.id);

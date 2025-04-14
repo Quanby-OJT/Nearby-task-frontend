@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/controller/profile_controller.dart';
+import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/nav/user_navigation.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/service_acc/task_information.dart';
 import 'package:flutter_fe/view/service_acc/task_requests_screen.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:intl/intl.dart';
@@ -19,12 +22,16 @@ class LikeScreen extends StatefulWidget {
 class _LikeScreenState extends State<LikeScreen> {
   final JobPostService _jobService = JobPostService();
   final TextEditingController _searchController = TextEditingController();
+  final ProfileController _userController = ProfileController();
+  final GetStorage storage = GetStorage();
+  AuthenticatedUser? _user;
   bool _isLoading = true;
   List<TaskModel> _likedJobs = [];
   List<TaskModel> _filteredJobs = [];
   List<int> selectedFilters = [];
   String? _errorMessage;
   int savedJobsCount = 0;
+  String _role = '';
 
   @override
   void initState() {
@@ -98,6 +105,25 @@ class _LikeScreenState extends State<LikeScreen> {
       }
       _updateSavedJobs();
     });
+  }
+
+  Future<void> _fetchUserData() async {
+    try {
+      int userId = storage.read("user_id");
+      AuthenticatedUser? user =
+          await _userController.getAuthenticatedUser(context, userId);
+      debugPrint(user.toString());
+      setState(() {
+        _user = user;
+        _isLoading = false;
+
+        _role = _user?.user?.role ?? '';
+        debugPrint("Role: $_role");
+      });
+    } catch (e) {
+      print("Error fetching user data: $e");
+      setState(() => _isLoading = false);
+    }
   }
 
   void _openFilterModal() {
@@ -240,20 +266,6 @@ class _LikeScreenState extends State<LikeScreen> {
           ),
         ],
       ),
-
-      // Do not remove. In hide ko lng gagamitin ko kasi after
-      // floatingActionButton: FloatingActionButton.extended(
-      //   onPressed: () {
-      //     Navigator.push(
-      //       context,
-      //       MaterialPageRoute(builder: (context) => TaskRequestsScreen()),
-      //     );
-      //   },
-      //   backgroundColor: Colors.blue,
-      //   // icon: Icon(Icons.notifications, color: Colors.white),
-      //   label: Text('Requests', style: TextStyle(color: Colors.white)),
-      //   tooltip: 'Task Requests',
-      // ),
     );
   }
 
@@ -344,7 +356,8 @@ class _LikeScreenState extends State<LikeScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => TaskInformation(taskID: task.id as int),
+              builder: (context) =>
+                  TaskInformation(taskID: task.id as int, role: _role),
             ),
           );
           print('Card tapped: ${task.id}');

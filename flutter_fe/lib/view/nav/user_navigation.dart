@@ -7,6 +7,7 @@ import 'package:flutter_fe/view/business_acc/notif_screen.dart';
 import 'package:flutter_fe/view/business_acc/profile_screen.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/service_acc/fill_up.dart';
+import 'package:flutter_fe/view/service_acc/notif_screen.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -150,13 +151,22 @@ class _NavUserScreenState extends State<NavUserScreen> {
             children: [
               IconButton(
                 onPressed: () {
-                  debugPrint('Notifications clicked');
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => NotifScreen(),
-                    ),
-                  );
+                  debugPrint('Notifications clicked _role: $_role');
+                  if (_role == "Client") {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => NotifScreen(),
+                      ),
+                    );
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => NotifSTaskerScreen(),
+                      ),
+                    );
+                  }
                 },
                 icon: const Icon(
                   Icons.notifications_outlined,

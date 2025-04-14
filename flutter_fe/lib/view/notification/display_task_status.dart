@@ -6,19 +6,21 @@ import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/view/business_acc/client_record/client_ongoing.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class ClientStart extends StatefulWidget {
+class DisplayTaskStatus extends StatefulWidget {
   final int? requestID;
-  const ClientStart({super.key, this.requestID});
+  final String? role;
+  const DisplayTaskStatus({super.key, this.requestID, this.role});
 
   @override
-  State<ClientStart> createState() => _ClientStartState();
+  State<DisplayTaskStatus> createState() => _DisplayTaskStatusState();
 }
 
-class _ClientStartState extends State<ClientStart> {
+class _DisplayTaskStatusState extends State<DisplayTaskStatus> {
   final JobPostService _jobPostService = JobPostService();
   final TaskController taskController = TaskController();
   final ProfileController _profileController = ProfileController();
@@ -35,8 +37,23 @@ class _ClientStartState extends State<ClientStart> {
   void initState() {
     super.initState();
     _fetchRequestDetails();
+    _updateNotif();
 
-    debugPrint("Task ID from the widget: ${widget.requestID}");
+    debugPrint("Display task status: ${widget.requestID}");
+  }
+
+  Future<void> _updateNotif() async {
+    try {
+      final response = await taskController.updateNotif(
+        widget.requestID ?? 0,
+      );
+      debugPrint("Update notification response: ${response.toString()}");
+      if (!response) {
+        debugPrint("Failed to update notification");
+      }
+    } catch (e) {
+      debugPrint("Error updating notification: $e");
+    }
   }
 
   Future<void> _fetchTaskerDetails(int userId) async {
@@ -57,14 +74,20 @@ class _ClientStartState extends State<ClientStart> {
 
   Future<void> _fetchRequestDetails() async {
     try {
-      final response =
-          await _jobPostService.fetchRequestInformation(widget.requestID ?? 0);
+      final response = await _jobPostService.fetchRequestInformation(
+        widget.requestID ?? 0,
+      );
       debugPrint("Fetched request details: $response");
       setState(() {
         _requestInformation = response;
       });
       await _fetchTaskDetails();
-      await _fetchTaskerDetails(_requestInformation!.tasker_id as int);
+
+      if (_requestInformation!.task_status == widget.role) {
+        await _fetchTaskerDetails(_requestInformation!.client_id as int);
+      } else {
+        await _fetchTaskerDetails(_requestInformation!.tasker_id as int);
+      }
     } catch (e) {
       debugPrint("Error fetching task details: $e");
       setState(() {
@@ -94,7 +117,7 @@ class _ClientStartState extends State<ClientStart> {
     return Scaffold(
       appBar: AppBar(
           title: Text(
-        'Task Information',
+        'Task Status',
         style: const TextStyle(
           color: Color(0xFF03045E),
           fontSize: 20,
@@ -244,184 +267,31 @@ class _ClientStartState extends State<ClientStart> {
                       ),
                     ),
 
-                    _requestInformation!.task_status == "Confirmed"
-                        ? Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 16.0, right: 16.0, top: 16),
-                                child: Container(
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    color: const Color(0xFF03045E),
-                                  ),
-                                  child: TextButton(
-                                    onPressed: () async {
-                                      setState(() {
-                                        _isLoading = true;
-                                      });
-                                      bool result = await taskController
-                                          .acceptRequest(_requestInformation!
-                                              .task_taken_id!);
-                                      debugPrint(
-                                          "Accept request result: $result");
-                                      if (result) {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                IndividualChatScreen(
-                                              taskTitle:
-                                                  _taskInformation!.title,
-                                              taskTakenId: _requestInformation!
-                                                  .task_taken_id,
-                                              taskId: _requestInformation!
-                                                  .client_id,
-                                            ),
-                                          ),
-                                        ).then((value) {
-                                          setState(() {
-                                            _isLoading = true;
-                                          });
-                                          _fetchRequestDetails();
-                                        });
-                                      } else {
-                                        setState(() {
-                                          _isLoading = false;
-                                        });
-                                      }
-                                    },
-                                    style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 20),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      'Start',
-                                      style: GoogleFonts.montserrat(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                    Padding(
+                        padding: const EdgeInsets.only(
+                            left: 16.0, right: 16.0, top: 16),
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              color: Colors.blue),
+                          child: TextButton(
+                            onPressed: () {},
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
                               ),
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 16.0, right: 16.0, top: 16),
-                                child: Container(
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    color: const Color.fromARGB(255, 203, 4, 4),
-                                  ),
-                                  child: TextButton(
-                                    onPressed: () {},
-                                    style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 20),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      'Cancel',
-                                      style: GoogleFonts.montserrat(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                            ),
+                            child: Text(
+                              'Reject',
+                              style: GoogleFonts.montserrat(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
                               ),
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 16.0, right: 16.0, top: 16),
-                                child: Container(
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    color: Colors.yellow,
-                                  ),
-                                  child: TextButton(
-                                    onPressed: () {},
-                                    style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 20),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      'Reschedule',
-                                      style: GoogleFonts.montserrat(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
-                        : _requestInformation!.task_status == "Confirmed"
-                            ? Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 16.0, right: 16.0, top: 16),
-                                child: Container(
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    color: Colors.yellow,
-                                  ),
-                                  child: TextButton(
-                                    onPressed: () {},
-                                    style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 20),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      'Accepted',
-                                      style: GoogleFonts.montserrat(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ))
-                            : Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 16.0, right: 16.0, top: 16),
-                                child: Container(
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    color: const Color.fromARGB(255, 203, 4, 4),
-                                  ),
-                                  child: TextButton(
-                                    onPressed: () {},
-                                    style: TextButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 20),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      'Cancel',
-                                      style: GoogleFonts.montserrat(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ))
+                            ),
+                          ),
+                        ))
                   ],
                 ),
     );
