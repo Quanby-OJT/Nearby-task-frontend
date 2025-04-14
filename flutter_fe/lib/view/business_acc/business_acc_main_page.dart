@@ -4,6 +4,7 @@ import 'package:flutter_fe/view/business_acc/home_page.dart';
 import 'package:flutter_fe/view/business_acc/job_post_page.dart';
 import 'package:flutter_fe/view/business_acc/likes_screen.dart';
 import 'package:flutter_fe/view/business_acc/record.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 
 class BusinessAccMain extends StatefulWidget {
@@ -58,23 +59,23 @@ class _BusinessAccMainState extends State<BusinessAccMain> {
           //type: BottomNavigationBarType.fixed,
           tabs: const [
             GButton(
-              icon: Icons.home,
+              icon: FontAwesomeIcons.house,
               text: 'Home',
             ),
             GButton(
-              icon: Icons.post_add,
+              icon: FontAwesomeIcons.clipboardList,
               text: 'Post',
             ),
             GButton(
-              icon: Icons.message,
+              icon: FontAwesomeIcons.solidMessage,
               text: 'Chat',
             ),
             GButton(
-              icon: Icons.favorite,
+              icon: FontAwesomeIcons.solidHeart,
               text: 'Likes',
             ),
             GButton(
-              icon: Icons.call_to_action,
+              icon: FontAwesomeIcons.listCheck,
               text: 'Action',
             )
           ],
