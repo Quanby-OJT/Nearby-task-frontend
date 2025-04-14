@@ -8,21 +8,15 @@
         <!-- Search input -->
         <div class="flex-1 min-w-[200px] lg:min-w-[300px] xl:min-w-[400px]">
           <label class="relative w-full">
-            <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" placeholder="Search analysis" type="text" />
+            <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" placeholder="Search tasker" type="text" />
           </label>
         </div>
-        <!-- Status filter dropdown -->
-        <select name="status" class="text-muted-foreground w-28! p-2 border rounded-md">
-          <option value="">All Status</option>
-          <option value="active">Online</option>
-          <option value="disabled">Offline</option>
-        </select>
       </div>
     </div>
   
     <!-- Table to display logs -->
     <div class="overflow-x-auto w-full">
-      <table class="w-full border-collapse text-left text-sm">
+      <table class="w-full border-collapse border-0 text-left text-sm">
         <thead class="border-b">
           <tr class="bg-gray-100">
             <th class="px-4 py-2 w-[80px] lg:w-[100px]">No</th>
