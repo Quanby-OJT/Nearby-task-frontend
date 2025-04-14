@@ -21,7 +21,7 @@
   </div>
 </div>
 
-<div class="border-gray-200 w-full max-w-[1440px] mx-auto flex-col rounded-xl min-h-[400px] shadow-md">
+<div *ngIf="userRole === 'Moderator'" class="border-gray-200 w-full max-w-[1440px] mx-auto flex-col rounded-xl min-h-[400px] shadow-md">
   <div class="border-gray-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
     <div class="flex flex-wrap items-center justify-between gap-2 py-3 px-5">
       <div class="text-muted-foreground text-sm font-medium"></div>
@@ -113,10 +113,8 @@
     </div>
   </div>
 </div>
-
 <br>
-
-<div class="border-gray-200 w-full max-w-[1440px] mx-auto flex-col rounded-xl min-h-[400px] shadow-md">
+<div *ngIf="userRole === 'Admin'" class="border-gray-200 w-full max-w-[1440px] mx-auto flex-col rounded-xl min-h-[400px] shadow-md">
   <div class="border-gray-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
     <div class="flex flex-wrap items-center justify-between gap-2 py-3 px-5">
       <div class="text-muted-foreground text-sm font-medium"></div>

@@ -45,6 +45,10 @@ export class SessionLocalStorage {
     console.log("User ID form storage: " + this.user_id());
     console.log("User ID form: " + localStorage.getItem('user_id'));
     return localStorage.getItem('user_id');
-   
+  }
+
+  getUserRole(): string | null {
+    const sessionData = this.getSession();
+    return sessionData && sessionData.user ? sessionData.user.user_role : null;
   }
 }

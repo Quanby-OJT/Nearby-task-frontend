@@ -763,16 +763,16 @@ class _ChatScreenState extends State<ChatScreen> {
                           style: TextStyle(fontSize: 14),
                         )
                       ]),
-                      onTap: () {
+                      onTap: () {                     
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) => IndividualChatScreen(
-                                  taskTitle:
-                                      assignment.task?.title ?? "Unknown Task",
+                                  taskTitle: assignment.task?.title ?? "Unknown Task",
                                   taskId: assignment.task?.id ?? 0,
                                   taskTakenId: assignment.taskTakenId ?? 0)),
                         );
+
                       },
                       tileColor: Colors.grey[50],
                       shape: RoundedRectangleBorder(
