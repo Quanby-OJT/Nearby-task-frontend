@@ -10,6 +10,7 @@ final router = GoRouter(
     GoRoute(
       path: '/',
       builder: (context, state) => const WelcomePageViewMain(),
+      //builder: (context, state) => const EscrowTokenScreen()
     ),
     GoRoute(
       path: '/verify',

@@ -7,12 +7,13 @@ import 'package:flutter_fe/service/auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:flutter_fe/config/url_strategy.dart';
 
 import '../model/client_model.dart';
 import '../model/tasker_model.dart';
 
 class JobPostService {
-  static const String apiUrl = "http://localhost:5000/connect";
+  static String url = apiUrl ?? "http://localhost:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -57,7 +58,7 @@ class JobPostService {
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.get(
-        Uri.parse('$apiUrl$endpoint'),
+        Uri.parse('$url$endpoint'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -72,9 +73,8 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> _postRequest(
-      {required String endpoint, required Map<String, dynamic> body}) async {
-    final response = await http.post(Uri.parse("$apiUrl$endpoint"),
+  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
+    final response = await http.post(Uri.parse("$url$endpoint"),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -84,11 +84,10 @@ class JobPostService {
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> _deleteRequest(
-      String endpoint, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
-      final request = http.Request("DELETE", Uri.parse('$apiUrl$endpoint'))
+      final request = http.Request("DELETE", Uri.parse('$url$endpoint'))
         ..headers["Authorization"] = "Bearer $token"
         ..headers["Content-Type"] = "application/json"
         ..body = jsonEncode(body);
@@ -97,6 +96,25 @@ class JobPostService {
       return _handleResponse(response);
     } catch (e) {
       return {"error": "Request failed: $e"};
+    }
+  }
+
+  Future<Map<String, dynamic>> _putRequest({required String endpoint, required Map<String, dynamic> body}) async {
+    final token = await AuthService.getSessionToken();
+    try {
+      final response = await http.put(
+        Uri.parse('$url$endpoint'),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+        body: jsonEncode(body),
+      );
+      return _handleResponse(response);
+    } catch (e, stackTrace) {
+      debugPrint(e.toString());
+      debugPrint(stackTrace.toString());
+      return {"error": "Request failed. Please Try Again."};
     }
   }
 
@@ -159,9 +177,8 @@ class JobPostService {
 
   Future<ClientRequestModel> fetchRequestInformation(int requestID) async {
     try {
-      Map<String, dynamic> response = await _getRequest(
-        "/displayRequest/$requestID",
-      );
+      Map<String, dynamic> response =
+          await _getRequest("/displayRequest/$requestID");
       debugPrint("Request Data Retrieved: ${response.toString()}");
 
       if (response.containsKey("request") && response["request"] is Map) {
@@ -559,8 +576,7 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> assignTask(
-      int? taskId, int? clientId, int? taskerId) async {
+  Future<Map<String, dynamic>> assignTask(int? taskId, int? clientId, int? taskerId) async {
     final userId = await getUserId();
     if (userId == null) {
       return {
@@ -649,7 +665,7 @@ class JobPostService {
     try {
       debugPrint("Updating notification with ID: $taskTakenId");
       final response = await http.put(
-        Uri.parse('$apiUrl/updateNotification/$taskTakenId'),
+        Uri.parse('$url/updateNotification/$taskTakenId'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -665,13 +681,16 @@ class JobPostService {
     }
   }
 
-//   Future<Map<String, dynamic>> acceptRequest(
-//       int taskTakenId, String value, String role) async {
-//     try {
-//       debugPrint("Accepting task with ID: $taskTakenId $value $role");
-//       final response = await http.put(
-//         Uri.parse('$apiUrl/acceptRequest/$taskTakenId'),
-//         body: jsonEncode({"value": value, "role": role}),
+  Future<Map<String, dynamic>> acceptRequest(int taskTakenId, String value, String role) async {
+    try {
+      debugPrint("Accepting task with ID: $taskTakenId $value $role");
+      return await _putRequest(endpoint: '$apiUrl/acceptRequest/$taskTakenId', body: {"value": value, "role": role});
+    } catch (e) {
+      debugPrint('Error accepting task: $e');
+      debugPrintStack();
+      return {'success': false, 'error': 'Error: $e'};
+    }
+  }
 
   Future<Map<String, dynamic>> requestTask(int taskId, int taskerId) async {
     try {
@@ -715,46 +734,36 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> assignTask(
-      int taskId, int clientId, int taskerId, String role) async {
-    final userId = await getUserId();
-    if (userId == null) {
-      return {
-        'success': false,
-        'message': 'Please log in to like jobs',
-        'requiresLogin': true
-      };
-    }
-
-    debugPrint("Sending task request...");
-    debugPrint("Task ID: $taskId, Client ID: $clientId, Tasker ID: $taskerId");
-
-    return _postRequest(endpoint: "/assign-task", body: {
-      "tasker_id": taskerId,
-      "client_id": clientId,
-      "task_id": taskId,
-      "role": role,
-      // Backend expects task_status field, not status
-      "task_status": "Pending"
-    });
-  }
+  // Future<Map<String, dynamic>> assignTask(
+  //     int taskId, int clientId, int taskerId, String role) async {
+  //   final userId = await getUserId();
+  //   if (userId == null) {
+  //     return {
+  //       'success': false,
+  //       'message': 'Please log in to like jobs',
+  //       'requiresLogin': true
+  //     };
+  //   }
+  //
+  //   debugPrint("Sending task request...");
+  //   debugPrint("Task ID: $taskId, Client ID: $clientId, Tasker ID: $taskerId");
+  //
+  //   return _postRequest(endpoint: "/assign-task", body: {
+  //     "tasker_id": taskerId,
+  //     "client_id": clientId,
+  //     "task_id": taskId,
+  //     "role": role,
+  //     // Backend expects task_status field, not status
+  //     "task_status": "Pending"
+  //   });
+  // }
 
   // Method to update a task
   Future<Map<String, dynamic>> updateTask(
       int taskId, Map<String, dynamic> taskData) async {
     try {
       debugPrint("Updating task with ID: $taskId");
-      final response = await http.put(
-        Uri.parse('$apiUrl/updateTask/$taskId'),
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json"
-        },
-        body: jsonEncode(taskData),
-      );
-
-      print("API Response for updateTask: ${response.body}");
-      return _handleResponse(response);
+      return await _putRequest(endpoint: '/updateTask/$taskId', body: taskData,);
     } catch (e) {
       debugPrint('Error updating task: $e');
       debugPrintStack();
@@ -768,7 +777,7 @@ class JobPostService {
     try {
       debugPrint("Disabling task with ID: $taskId with status: $status");
       final response = await http.put(
-        Uri.parse('$apiUrl/disableTask/$taskId'),
+        Uri.parse('$url/disableTask/$taskId'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -809,7 +818,7 @@ class JobPostService {
       debugPrint("Deleting task with ID: $taskId");
       final token = await AuthService.getSessionToken();
       final response = await http.delete(
-        Uri.parse('$apiUrl/deleteTask/$taskId'),
+        Uri.parse('$url/deleteTask/$taskId'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"

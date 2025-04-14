@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_fe/controller/task_controller.dart';
+import 'package:flutter_fe/controller/escrow_management_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
+import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_model.dart';
@@ -14,6 +15,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+
+import '../../model/client_model.dart';
 
 class JobPostPage extends StatefulWidget {
   const JobPostPage({super.key});
@@ -27,8 +30,10 @@ class _JobPostPageState extends State<JobPostPage> {
   final JobPostService jobPostService = JobPostService();
   final ClientServices _clientServices = ClientServices();
   final ProfileController _profileController = ProfileController();
+  final EscrowManagementController _escrowManagementController = EscrowManagementController();
   final GetStorage storage = GetStorage();
   final TextEditingController _searchController = TextEditingController();
+  ClientModel? clientModel;
   String? _message;
   bool _isSuccess = false;
   String? selectedTimePeriod;
@@ -68,14 +73,14 @@ class _JobPostPageState extends State<JobPostPage> {
 
   Future<void> fetchSpecialization() async {
     try {
-      List<SpecializationModel> fetchedSpecializations =
-          await jobPostService.getSpecializations();
+      List<SpecializationModel> fetchedSpecializations = await jobPostService.getSpecializations();
       setState(() {
-        specialization =
-            fetchedSpecializations.map((spec) => spec.specialization).toList();
+        specialization = fetchedSpecializations.map((spec) => spec.specialization).toList();
+        debugPrint("Specializations: $specialization");
       });
-    } catch (error) {
+    } catch (error, stackTrace) {
       debugPrint('Error fetching specializations: $error');
+      debugPrintStack(stackTrace: stackTrace);
     }
   }
 
@@ -87,8 +92,9 @@ class _JobPostPageState extends State<JobPostPage> {
       setState(() {
         _skills = List<String>.from(data['tesda_skills']);
       });
-    } catch (e) {
-      debugPrint('Error loading skills: $e');
+    } catch (e, stackTrace) {
+      print('Error loading skills: $e');
+      debugPrintStack(stackTrace: stackTrace);
     }
   }
 
@@ -144,52 +150,57 @@ class _JobPostPageState extends State<JobPostPage> {
   void _validateAndSubmit() {
     setState(() {
       _errors.clear();
+
       if (controller.jobTitleController.text.trim().isEmpty) {
-        _errors['task_title'] = 'Please enter a task title';
+        _errors['task_title'] = 'Please Indicate Your Needed Task';
       }
       if (selectedSpecialization == null) {
-        _errors['specialization'] = "Please select a specialization";
+        _errors['specialization'] = "Please Indicate the Needed Specialization";
       }
       if (controller.jobDescriptionController.text.trim().isEmpty) {
-        _errors['task_description'] = 'Please provide a description';
+        _errors['task_description'] = 'Please Elaborate Your Task.';
       }
       String contractPrice = controller.contactPriceController.text.trim();
       if (contractPrice.isEmpty) {
-        _errors['contact_price'] = 'Please enter a contract price';
+        _errors['contact_price'] = 'Indicate the Contract Price';
       } else if (double.tryParse(contractPrice) == null ||
           double.parse(contractPrice) <= 0) {
-        _errors['contact_price'] = 'Enter a valid positive price';
+        _errors['contact_price'] =
+            'Contract Price must be a valid positive number';
       }
       if (controller.jobLocationController.text.trim().isEmpty) {
-        _errors['location'] = 'Please enter a location';
+        _errors['location'] =
+            'Indicate Your Location where the Task will be held.';
       }
       String jobTime = controller.jobTimeController.text.trim();
       if (jobTime.isEmpty) {
-        _errors['num_of_days'] = 'Please enter duration';
+        _errors['num_of_days'] = 'Indicate the Time Needed to Finish the Task';
       } else if (int.tryParse(jobTime) == null || int.parse(jobTime) <= 0) {
-        _errors['num_of_days'] = 'Enter a valid positive number';
+        _errors['num_of_days'] = 'Time Needed must be a valid positive number';
       }
       String startDate = controller.jobTaskBeginDateController.text.trim();
       if (startDate.isEmpty) {
-        _errors['task_begin_date'] = 'Please select a start date';
+        _errors['task_begin_date'] = 'Indicate When to Start Your Task';
       } else {
         try {
           DateTime taskBeginDate = DateTime.parse(startDate);
           if (taskBeginDate.isBefore(DateTime.now())) {
-            _errors['task_begin_date'] = 'Start date must be in the future';
+            _errors['task_begin_date'] =
+                'Task start date must be in the future';
           }
         } catch (e) {
           _errors['task_begin_date'] = 'Invalid date format';
         }
       }
       if (selectedUrgency == null) {
-        _errors['urgency'] = 'Please select urgency';
+        _errors['urgency'] =
+            'Please Indicate if Your Task Needs to be finished ASAP.';
       }
       if (selectedTimePeriod == null) {
-        _errors['time_period'] = "Please select a time period";
+        _errors['time_period'] = "Please Indicate the Time Period.";
       }
       if (selectedWorkType == null) {
-        _errors['work_type'] = "Please select a work type";
+        _errors['work_type'] = "Please Indicate the Work Type (Solo or Group).";
       }
 
       if (_errors.isNotEmpty) {
@@ -224,7 +235,7 @@ class _JobPostPageState extends State<JobPostPage> {
       if (result['success']) {
         Navigator.pop(context);
         setState(() {
-          _message = result['message'] ?? "Task posted successfully!";
+          _message = result['message'] ?? "Successfully Posted Task.";
           _isSuccess = true;
         });
 
@@ -253,6 +264,7 @@ class _JobPostPageState extends State<JobPostPage> {
           ),
         );
       } else {
+        Navigator.pop(context);
         setState(() {
           if (result.containsKey('errors') && result['errors'] is List) {
             for (var error in result['errors']) {
@@ -767,22 +779,45 @@ class _JobPostPageState extends State<JobPostPage> {
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Color(0xFF0272B1)),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'My Posted Tasks',
-          style: GoogleFonts.montserrat(
-            color: Color(0xFF0272B1),
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        centerTitle: true,
+        toolbarHeight: 80,
+        title: Align(
+          alignment: Alignment.centerLeft,
+          child: Padding(
+            padding: EdgeInsets.only(left: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Posted Tasks',
+                  style: GoogleFonts.montserrat(
+                    color: Color(0xFF0272B1),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 20,
+                  ),
+                ),
+                SizedBox(height: 5),
+                Text.rich(
+                  TextSpan(
+                    style: GoogleFonts.openSans(
+                      color: Colors.black,
+                      fontSize: 14,
+                    ),
+                    children: <TextSpan>[
+                      TextSpan(text: 'You Currently Have '),
+                      TextSpan(text: '${_escrowManagementController.tokenCredits.value} NearByTask Credits', style: TextStyle(fontWeight: FontWeight.bold, )),
+                    ],
+                  )
+                )
+              ],
+              ),
+            )
+        )
       ),
-      body: Column(
+      body: _isLoading ? Center(
+        child: CircularProgressIndicator(),
+      ) : clientTasks.isEmpty
+          ? const Center(child: Text("No tasks available"))
+          : Column(
         children: [
           // Search Bar
           Padding(
@@ -882,7 +917,7 @@ class _JobPostPageState extends State<JobPostPage> {
             heroTag: "refreshBtn",
             onPressed: fetchCreatedTasks,
             backgroundColor: Colors.green[400],
-            child: Icon(Icons.refresh, color: Colors.white),
+            child: Icon(FontAwesomeIcons.arrowsRotate, color: Colors.white),
           ),
           SizedBox(height: 16),
           FloatingActionButton.extended(

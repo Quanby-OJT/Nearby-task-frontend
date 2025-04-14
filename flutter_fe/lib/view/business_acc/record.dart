@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
+import 'package:flutter_fe/controller/escrow_management_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_coinfirmed.dart';
@@ -17,6 +18,10 @@ class RecordPage extends StatefulWidget {
 
 class _RecordPageState extends State<RecordPage> {
   final storage = GetStorage();
+  final EscrowManagementController _escrowManagementController = EscrowManagementController();
+  final ProfileController _profileController = ProfileController();
+  AuthenticatedUser? _user;
+  bool isLoading = true;
 
   bool _isLoading = true;
 
@@ -24,6 +29,13 @@ class _RecordPageState extends State<RecordPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
+  }
+  Future<void> _loadData() async {
+    await _escrowManagementController.fetchTokenBalance();
+    setState(() => _isLoading = false);
   }
 
   @override
@@ -47,39 +59,60 @@ class _RecordPageState extends State<RecordPage> {
       body: Column(
         children: [
           Expanded(
-              child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-            ),
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+              ),
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  Expanded(
                     child: Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.all(16.0),
-                    width: double.infinity,
-                    child: Column(
-                      children: [
-                        Text(
-                          'My Record',
-                          style: GoogleFonts.montserrat(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 18,
-                            color: Color(0xFF0272B1),
-                          ),
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.all(16.0),
+                        width: double.infinity,
+                        child: Column(
+                          children: [
+                            Text(
+                              'Task Record',
+                              style: GoogleFonts.montserrat(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 18,
+                                color: Color(0xFF0272B1),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            _isLoading ? Text(
+                              "Please Wait while we calculate your NearByTask Credits",
+                              style: GoogleFonts.openSans(fontSize: 18),
+                            ) :
+                            Text.rich(
+                              TextSpan(children: [
+                                TextSpan(text: "You Have: ", style: GoogleFonts.roboto(fontSize: 18)),
+                                TextSpan(
+                                  style: GoogleFonts.openSans(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold
+                                  ),
+                                  text: '${_escrowManagementController.tokenCredits.value} NearByTask Credits'),
+                                ]
+                              )
+                            )
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                ))
-              ],
-            ),
-          )),
+                      ),
+                    )
+                  )
+                ],
+
+              ),
+            )
+          ),
+          //Client Task Progress
           Container(
             color: Colors.white,
             padding: const EdgeInsets.all(16.0),
@@ -310,8 +343,8 @@ class _RecordPageState extends State<RecordPage> {
               ),
             ),
           ),
-        ],
-      ),
+        ]
+      )
     );
   }
 }

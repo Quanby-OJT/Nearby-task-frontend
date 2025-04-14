@@ -582,8 +582,7 @@ class _LikesScreenState extends State<LikesScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content:
-                  Text(result['message'] ?? 'Tasker removed successfully.'),
+              content: Text(result['message']),
               backgroundColor: Colors.green,
             ),
           );
@@ -592,7 +591,7 @@ class _LikesScreenState extends State<LikesScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result['message'] ?? 'Failed to remove tasker.'),
+              content: Text(result['message']),
               backgroundColor: Colors.red,
             ),
           );
@@ -603,7 +602,7 @@ class _LikesScreenState extends State<LikesScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Failed to unlike tasker. Please try again.'),
+            content: Text('Failed to unlike job. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -674,6 +673,13 @@ class _LikesScreenState extends State<LikesScreen> {
         );
         return;
       }
+
+      final result = await taskController.assignTask(
+        selectedTask.id,
+        int.parse(clientId),
+        tasker.id ?? 0,
+        // _role,
+      );
 
       // Show loading indicator
       final loadingOverlay = OverlayEntry(
