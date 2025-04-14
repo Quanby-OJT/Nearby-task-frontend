@@ -73,7 +73,8 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _postRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final response = await http.post(Uri.parse("$url$endpoint"),
         headers: {
           "Authorization": "Bearer $token",
@@ -84,7 +85,8 @@ class JobPostService {
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> _deleteRequest(
+      String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
       final request = http.Request("DELETE", Uri.parse('$url$endpoint'))
@@ -99,7 +101,8 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> _putRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _putRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.put(
@@ -576,7 +579,8 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> assignTask(int? taskId, int? clientId, int? taskerId) async {
+  Future<Map<String, dynamic>> assignTask(
+      int? taskId, int? clientId, int? taskerId) async {
     final userId = await getUserId();
     if (userId == null) {
       return {
@@ -660,7 +664,6 @@ class JobPostService {
     }
   }
 
-
   Future<Map<String, dynamic>> updateNotification(int taskTakenId) async {
     try {
       debugPrint("Updating notification with ID: $taskTakenId");
@@ -681,15 +684,37 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> acceptRequest(int taskTakenId, String value, String role) async {
+  Future<Map<String, dynamic>> acceptRequest(
+      int taskTakenId, String value, String role) async {
     try {
       debugPrint("Accepting task with ID: $taskTakenId $value $role");
-      return await _putRequest(endpoint: '$apiUrl/acceptRequest/$taskTakenId', body: {"value": value, "role": role});
+      return await _putRequest(
+          endpoint: '/acceptRequest/$taskTakenId',
+          body: {"value": value, "role": role});
     } catch (e) {
       debugPrint('Error accepting task: $e');
       debugPrintStack();
       return {'success': false, 'error': 'Error: $e'};
     }
+  }
+
+  Future<Map<String, dynamic>> fetchIsApplied(
+      int? taskId, int? clientId, int? taskerId) async {
+    final userId = await getUserId();
+    if (userId == null) {
+      return {
+        'success': false,
+        'message': 'Please log in to like jobs',
+        'requiresLogin': true
+      };
+    }
+
+    debugPrint("Sending task request...");
+    debugPrint("Task ID: $taskId, Client ID: $clientId, Tasker ID: $taskerId");
+
+    final response = await _getRequest(
+        "/fetchIsApplied?task_id=$taskId&client_id=$clientId&tasker_id=$taskerId");
+    return response;
   }
 
   Future<Map<String, dynamic>> requestTask(int taskId, int taskerId) async {
@@ -718,7 +743,6 @@ class JobPostService {
       // Proceed with task assignment if not already assigned
       final response = await http.post(
         Uri.parse('$apiUrl/requestTask/$taskId'),
-
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -763,7 +787,10 @@ class JobPostService {
       int taskId, Map<String, dynamic> taskData) async {
     try {
       debugPrint("Updating task with ID: $taskId");
-      return await _putRequest(endpoint: '/updateTask/$taskId', body: taskData,);
+      return await _putRequest(
+        endpoint: '/updateTask/$taskId',
+        body: taskData,
+      );
     } catch (e) {
       debugPrint('Error updating task: $e');
       debugPrintStack();

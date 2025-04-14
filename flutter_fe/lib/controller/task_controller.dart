@@ -12,7 +12,8 @@ import 'package:flutter_fe/controller/escrow_management_controller.dart';
 class TaskController {
   final JobPostService _jobPostService = JobPostService();
   final TaskDetailsService _taskDetailsService = TaskDetailsService();
-  final EscrowManagementController _escrowManagementController = EscrowManagementController();
+  final EscrowManagementController _escrowManagementController =
+      EscrowManagementController();
   final jobIdController = TextEditingController();
   final jobTitleController = TextEditingController();
   final jobSpecializationController = TextEditingController();
@@ -43,12 +44,14 @@ class TaskController {
       final priceInt = int.tryParse(priceText) ?? 0;
 
       debugPrint(_escrowManagementController.tokenCredits.value.toString());
-      if(_escrowManagementController.tokenCredits.value - priceInt < _escrowManagementController.tokenCredits.value){
+      if (_escrowManagementController.tokenCredits.value - priceInt <
+          _escrowManagementController.tokenCredits.value) {
         return {
           "success": false,
-          "error": "You don't have enough tokens to post your needed task. Please Deposit First Your Desired Amount of Tokens."
+          "error":
+              "You don't have enough tokens to post your needed task. Please Deposit First Your Desired Amount of Tokens."
         };
-      }else{
+      } else {
         final task = TaskModel(
             id: 0,
             clientId: userId,
@@ -73,7 +76,11 @@ class TaskController {
     } catch (e, stackTrace) {
       debugPrint('Error in postJob: $e');
       debugPrint(stackTrace.toString());
-      return {'success': false, 'error': 'An Error Occurred while Posting Your Task. Please Try Again. If Issue Persists, contact our support.'};
+      return {
+        'success': false,
+        'error':
+            'An Error Occurred while Posting Your Task. Please Try Again. If Issue Persists, contact our support.'
+      };
     }
   }
 
@@ -109,25 +116,12 @@ class TaskController {
 
   Future<bool> updateNotif(int taskTakenId) async {
     debugPrint("Assigning task...");
-    final assignedTask =
-        await _jobPostService.assignTask(taskTakenId, null, null);
-    if (assignedTask.containsKey('message')) {
-      return assignedTask['message'] = true;
+    final updateNotif = await _jobPostService.updateNotification(taskTakenId);
+    if (updateNotif.containsKey('message')) {
+      return updateNotif['message'] = true;
     }
     return false;
   }
-
-  Future<String> fetchIsApplied(
-      int? taskId, int? clientId, int? taskerId) async {
-    final assignedTask =
-        await _jobPostService.assignTask(taskId, clientId, taskerId);
-
-    debugPrint("Is applied response: ${assignedTask.toString()}");
-    return assignedTask.containsKey('message')
-        ? assignedTask['message'].toString()
-        : assignedTask['error'].toString();
-  }
-
 
   Future<String> assignTask(int? taskId, int? clientId, int? taskerId) async {
     if (taskId == null || clientId == null || taskerId == null) {
@@ -172,29 +166,40 @@ class TaskController {
   }
 
   Future<bool> acceptRequest(int taskTakenId, String value, String role) async {
-    try{
-      Map<String, dynamic> result = await _jobPostService.acceptRequest(taskTakenId, value, role);
-
-      if(result.containsKey('message')) return result['success'];
-      debugPrint("Error in task controller acceptRequest: ${result['error']}");
-      return false;
-    }catch(e, stackTrace){
-      debugPrint("Error in task controller acceptRequest: $e");
-      debugPrintStack(stackTrace: stackTrace);
-      return false;
+    debugPrint("Assigning task...");
+    final assignedTask =
+        await _jobPostService.acceptRequest(taskTakenId, value, role);
+    if (assignedTask.containsKey('message')) {
+      return assignedTask['message'] = true;
     }
+    return false;
+  }
+
+  Future<String> fetchIsApplied(
+      int? taskId, int? clientId, int? taskerId) async {
+    final assignedTask =
+        await _jobPostService.fetchIsApplied(taskId, clientId, taskerId);
+
+    debugPrint("Is applied response: ${assignedTask.toString()}");
+    return assignedTask.containsKey('message')
+        ? assignedTask['message'].toString()
+        : assignedTask['error'].toString();
   }
 
   // Method to update a task
-  Future<Map<String, dynamic>> updateTask(int taskId, Map<String, dynamic> taskData) async {
+  Future<Map<String, dynamic>> updateTask(
+      int taskId, Map<String, dynamic> taskData) async {
     debugPrint("Updating task with ID: $taskId");
     try {
-      if(_escrowManagementController.tokenCredits.value - taskData['proposed_price'] < _escrowManagementController.tokenCredits.value) {
+      if (_escrowManagementController.tokenCredits.value -
+              taskData['proposed_price'] <
+          _escrowManagementController.tokenCredits.value) {
         return {
           "success": false,
-          "error": "You don't have enough tokens to post your needed task. Please Deposit First Your Desired Amount of Tokens."
+          "error":
+              "You don't have enough tokens to post your needed task. Please Deposit First Your Desired Amount of Tokens."
         };
-      }else{
+      } else {
         return await _jobPostService.updateTask(taskId, taskData);
       }
     } catch (e, stackTrace) {
@@ -247,7 +252,8 @@ class TaskController {
   }
 
   //All Messages to client/tasker
-  Future<List<TaskAssignment>?> getAllAssignedTasks(BuildContext context, int userId) async {
+  Future<List<TaskAssignment>?> getAllAssignedTasks(
+      BuildContext context, int userId) async {
     final assignedTasks = await TaskDetailsService().getAllTakenTasks();
     debugPrint(assignedTasks.toString());
 
@@ -359,7 +365,8 @@ class TaskController {
   }
 
 //Update Task Status in Conversation
-  Future<void> updateTaskStatus(BuildContext context, int taskTakenId, String? newStatus) async {
+  Future<void> updateTaskStatus(
+      BuildContext context, int taskTakenId, String? newStatus) async {
     try {
       final response =
           await _taskDetailsService.updateTaskStatus(taskTakenId, newStatus);
