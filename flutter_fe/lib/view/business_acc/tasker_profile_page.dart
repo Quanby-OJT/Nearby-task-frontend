@@ -1,27 +1,93 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/controller/profile_controller.dart';
+import 'package:flutter_fe/controller/task_controller.dart';
+import 'package:flutter_fe/model/auth_user.dart';
+import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
-import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
+import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+// In-memory cache for tasks
+class TaskCache {
+  static List<TaskModel>? _cachedTasks;
+  static DateTime? _cacheTimestamp;
+
+  static List<TaskModel>? getTasks() {
+    if (_cachedTasks != null &&
+        _cacheTimestamp != null &&
+        DateTime.now().difference(_cacheTimestamp!).inMinutes < 5) {
+      return _cachedTasks;
+    }
+    return null;
+  }
+
+  static void setTasks(List<TaskModel> tasks) {
+    _cachedTasks = tasks;
+    _cacheTimestamp = DateTime.now();
+  }
+
+  static void clear() {
+    _cachedTasks = null;
+    _cacheTimestamp = null;
+  }
+}
 
 class TaskerProfilePage extends StatefulWidget {
   final UserModel tasker;
+  final bool isSaved;
 
-  const TaskerProfilePage({super.key, required this.tasker});
+  const TaskerProfilePage({
+    super.key,
+    required this.tasker,
+    required this.isSaved,
+  });
 
   @override
   State<TaskerProfilePage> createState() => _TaskerProfilePageState();
 }
 
 class _TaskerProfilePageState extends State<TaskerProfilePage> {
+  final TaskController taskController = TaskController();
+  final ProfileController _profileController = ProfileController();
+  final storage = GetStorage();
+
+  AuthenticatedUser? _user;
+  String? _role;
   bool _isLoading = true;
-  TaskerModel? _taskerDetails;
   String? _errorMessage;
+  bool _isAssigning = false;
+  List<TaskModel>? _preloadedTasks;
 
   @override
   void initState() {
     super.initState();
     _loadTaskerDetails();
+    _fetchUserData();
+    _preloadClientTasks();
+  }
+
+  Future<void> _fetchUserData() async {
+    try {
+      int userId = storage.read("user_id");
+      debugPrint("Fetching user data for user ID: $userId");
+      AuthenticatedUser? user =
+          await _profileController.getAuthenticatedUser(context, userId);
+      debugPrint(user.toString());
+      setState(() {
+        _user = user;
+        _role = user?.user.role;
+
+        debugPrint("Role: ${_role}");
+        debugPrint("Print Id then: ${_user?.user.id}");
+
+        debugPrint("Fetched user data: ${_user?.user.id}");
+      });
+    } catch (e) {
+      debugPrint("Error fetching user data: $e");
+      setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _loadTaskerDetails() async {
@@ -31,10 +97,6 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
         _errorMessage = null;
       });
 
-      // In a real app, you would fetch detailed tasker profile here
-      // For now, we'll just use the basic user model info we already have
-
-      // Mock loading delay
       await Future.delayed(Duration(milliseconds: 500));
 
       setState(() {
@@ -48,23 +110,264 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
     }
   }
 
+  Future<void> _preloadClientTasks() async {
+    try {
+      final tasks = await _fetchClientTasks();
+      if (mounted) {
+        setState(() {
+          _preloadedTasks = tasks;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error preloading tasks: $e");
+    }
+  }
+
+  Future<List<TaskModel>> _fetchClientTasks() async {
+    try {
+      final cachedTasks = TaskCache.getTasks();
+      if (cachedTasks != null) {
+        debugPrint("Using cached tasks");
+        return cachedTasks;
+      }
+
+      final clientServices = ClientServices();
+      final String? clientId = await clientServices.getUserId();
+      if (clientId == null) {
+        debugPrint("Client ID is null");
+        return [];
+      }
+
+      final tasks =
+          await taskController.getCreatedTasksByClient(int.parse(clientId));
+      TaskCache.setTasks(tasks);
+      return tasks;
+    } catch (e) {
+      debugPrint("Error fetching client tasks: $e");
+      return [];
+    }
+  }
+
+  Future<List<TaskModel>> _filterAvailableTasks(
+      List<TaskModel> tasks, int taskerId) async {
+    debugPrint(
+        "Filtering ${tasks.length} available tasks for tasker $taskerId");
+    final jobPostService = JobPostService();
+    try {
+      final assignmentStatuses = await Future.wait(
+        tasks.map((task) async {
+          if (task.id == null) {
+            debugPrint("Skipping task with null ID");
+            return true; // Skip tasks with null ID
+          }
+          try {
+            // Check if the task has ever been assigned to this tasker
+            return await jobPostService.hasTaskEverBeenAssignedToTasker(
+                task.id!, taskerId);
+          } catch (e) {
+            debugPrint("Error checking task ${task.id}: $e");
+            return false; // On error, assume not assigned to show the task
+          }
+        }),
+      );
+
+      return tasks
+          .asMap()
+          .entries
+          .where((entry) => !assignmentStatuses[
+              entry.key]) // Only include tasks that have never been assigned
+          .map((entry) => entry.value)
+          .toList();
+    } catch (e) {
+      debugPrint("Error in _filterAvailableTasks: $e");
+      // In case of error, return all tasks to avoid blocking the user
+      return tasks;
+    }
+  }
+
+  Future<TaskModel?> _showTaskSelectionDialog(List<TaskModel> tasks) async {
+    return showDialog<TaskModel>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        title: Center(
+          child: Text(
+            'Select a Task to Assign',
+            style: GoogleFonts.montserrat(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: const Color(0xFF03045E),
+            ),
+          ),
+        ),
+        content: Container(
+          width: double.maxFinite,
+          height: tasks.length > 3 ? 300 : null,
+          child: tasks.isEmpty
+              ? const Text("No available tasks to assign.")
+              : ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: tasks.length,
+                  itemBuilder: (context, index) {
+                    final task = tasks[index];
+                    return Card(
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      child: ListTile(
+                        title: Text(
+                          task.title ?? 'Untitled Task',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        subtitle: Text(
+                          task.description ?? 'No description',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.montserrat(fontSize: 12),
+                        ),
+                        trailing: Text(
+                          '\$${task.contactPrice ?? 0}',
+                          style: GoogleFonts.montserrat(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                        ),
+                        onTap: () => Navigator.of(context).pop(task),
+                      ),
+                    );
+                  },
+                ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.montserrat(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+// --------------------------------------------------------------------------
+  Future<void> _assignTask(UserModel tasker) async {
+    if (_isAssigning) return;
+
+    debugPrint("Assigning task to tasker ${tasker.id}");
+    setState(() {
+      _isAssigning = true;
+    });
+
+    try {
+      // Use preloaded tasks if available, else fetch
+      List<TaskModel> clientTasks =
+          _preloadedTasks ?? await _fetchClientTasks();
+
+      if (clientTasks.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('You have no active tasks to assign.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+
+      // Filter available tasks concurrently
+      final availableTasks =
+          await _filterAvailableTasks(clientTasks, widget.tasker.id!);
+
+      if (availableTasks.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('All your active tasks are already assigned.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+
+      // Show dialog
+      final selectedTask = await _showTaskSelectionDialog(availableTasks);
+      if (selectedTask == null) return;
+
+      // Get client ID
+      final clientServices = ClientServices();
+      final String? clientId = await clientServices.getUserId();
+      if (clientId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Unable to identify client. Please log in again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Show loading overlay
+      OverlayEntry? loadingOverlay;
+      try {
+        loadingOverlay = OverlayEntry(
+          builder: (context) => Container(
+            color: Colors.black45,
+            child: const Center(child: CircularProgressIndicator()),
+          ),
+        );
+        if (mounted) Overlay.of(context).insert(loadingOverlay);
+
+        // Assign task
+        final result = await taskController.assignTask(
+          selectedTask.id!,
+          int.parse(clientId),
+          tasker.id ?? 0,
+          _role ?? 'client',
+        );
+
+        // Handle result
+        final isSuccess = !result.toLowerCase().contains('already') &&
+            !result.toLowerCase().contains('error') &&
+            !result.toLowerCase().contains('failed');
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result),
+            backgroundColor: isSuccess ? Colors.green : Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+
+        // Update cache on success
+        if (isSuccess) {
+          final jobPostService = JobPostService();
+          jobPostService.updateAssignmentCache(
+              selectedTask.id!, tasker.id ?? 0, true);
+          TaskCache.clear(); // Invalidate cache
+          _preloadClientTasks(); // Refresh preloaded tasks
+        }
+      } finally {
+        loadingOverlay?.remove();
+      }
+    } catch (e) {
+      debugPrint("Error in _assignTask: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to assign task: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isAssigning = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Tasker Profile',
-          style: GoogleFonts.montserrat(
-            color: Color(0xFF0272B1),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        iconTheme: IconThemeData(color: Color(0xFF0272B1)),
-        elevation: 0,
-        backgroundColor: Colors.white,
-      ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null
               ? Center(
                   child: Column(
@@ -72,149 +375,280 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                     children: [
                       Text(
                         _errorMessage!,
-                        style: TextStyle(color: Colors.red),
+                        style: const TextStyle(color: Colors.red),
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: _loadTaskerDetails,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF0272B1),
+                          backgroundColor: const Color(0xFF0272B1),
                           foregroundColor: Colors.white,
                         ),
-                        child: Text('Retry'),
+                        child: const Text('Retry'),
                       ),
                     ],
                   ),
                 )
-              : SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Profile Header
-                      Container(
-                        color: Color(0xFFE3F2FD),
-                        padding: EdgeInsets.all(20),
-                        child: Column(
+              : CustomScrollView(
+                  slivers: [
+                    // Profile Header
+                    SliverAppBar(
+                      expandedHeight: 300,
+                      floating: false,
+                      pinned: true,
+                      flexibleSpace: FlexibleSpaceBar(
+                        background: Stack(
+                          fit: StackFit.expand,
                           children: [
-                            CircleAvatar(
-                              radius: 60,
-                              backgroundImage:
-                                  AssetImage('assets/images/image1.jpg'),
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              "${widget.tasker.firstName} ${widget.tasker.lastName}",
-                              style: GoogleFonts.montserrat(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF0272B1),
-                              ),
-                            ),
-                            SizedBox(height: 8),
                             Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: Color(0xFF0272B1),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                widget.tasker.role,
-                                style: GoogleFonts.montserrat(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Color(0xFF0272B1),
+                                    Color(0xFFE3F2FD),
+                                  ],
                                 ),
                               ),
                             ),
-                            SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                _buildStatItem("4.8", "Rating"),
-                                SizedBox(width: 24),
-                                _buildStatItem("54", "Jobs"),
-                                SizedBox(width: 24),
-                                _buildStatItem("2 yrs", "Experience"),
-                              ],
+                            Positioned(
+                              bottom: 20,
+                              left: 20,
+                              right: 20,
+                              child: Column(
+                                children: [
+                                  const CircleAvatar(
+                                    radius: 60,
+                                    backgroundImage:
+                                        AssetImage('assets/images/image1.jpg'),
+                                    backgroundColor: Colors.white,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    "${widget.tasker.firstName} ${widget.tasker.lastName}",
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Colors.black12,
+                                          blurRadius: 4,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Text(
+                                      widget.tasker.role,
+                                      style: GoogleFonts.montserrat(
+                                        color: const Color(0xFF0272B1),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       ),
+                      leading: IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ),
 
-                      // Contact Information
-                      _buildSectionCard("Contact Information", [
-                        _buildInfoRow(
-                            Icons.email, "Email", widget.tasker.email),
-                        _buildInfoRow(Icons.phone, "Phone", "+63 XXX XXX XXXX"),
-                      ]),
-
-                      // Basic Information
-                      _buildSectionCard("Basic Information", [
-                        _buildInfoRow(
-                            Icons.badge, "ID", "#${widget.tasker.id}"),
-                        _buildInfoRow(
-                            Icons.location_on, "Location", "Metro Manila"),
-                        _buildInfoRow(
-                            Icons.work, "Specialization", "General Services"),
-                      ]),
-
-                      // Skills & Expertise
-                      _buildSectionCard("Skills & Expertise", [
-                        _buildSkillChip("Home Cleaning"),
-                        _buildSkillChip("Gardening"),
-                        _buildSkillChip("Electrical Work"),
-                        _buildSkillChip("Plumbing"),
-                        _buildSkillChip("Painting"),
-                      ]),
-
-                      // Action Buttons
-                      Padding(
-                        padding: EdgeInsets.all(16),
+                    // Stats
+                    SliverToBoxAdapter(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        color: Colors.white,
                         child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: () {
-                                  // Like action
-                                  _likeTasker();
-                                },
-                                icon: Icon(
-                                  Icons.favorite,
-                                  color: Colors.white,
-                                ),
-                                label: Text('Like'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.red,
-                                  foregroundColor: Colors.white,
-                                  padding: EdgeInsets.symmetric(vertical: 12),
-                                ),
-                              ),
-                            ),
+                            _buildStatItem("4.8", "Rating", Icons.star),
+                            _buildStatItem("54", "Jobs", Icons.work),
+                            _buildStatItem("2 yrs", "Experience", Icons.timer),
                           ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+
+                    // About Section
+                    SliverToBoxAdapter(
+                      child: _buildSectionCard(
+                        "About",
+                        [
+                          Text(
+                            "Experienced tasker specializing in various home services with a commitment to quality and customer satisfaction.",
+                            style: GoogleFonts.montserrat(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Contact Information
+                    SliverToBoxAdapter(
+                      child: _buildSectionCard(
+                        "Contact Information",
+                        [
+                          _buildInfoRow(
+                              Icons.email, "Email", widget.tasker.email),
+                          _buildInfoRow(
+                              Icons.phone, "Phone", "+63 XXX XXX XXXX"),
+                        ],
+                      ),
+                    ),
+
+                    // Basic Information
+                    SliverToBoxAdapter(
+                      child: _buildSectionCard(
+                        "Basic Information",
+                        [
+                          _buildInfoRow(
+                              Icons.badge, "ID", "#${widget.tasker.id}"),
+                          _buildInfoRow(
+                              Icons.location_on, "Location", "Metro Manila"),
+                          _buildInfoRow(
+                              Icons.work, "Specialization", "General Services"),
+                        ],
+                      ),
+                    ),
+
+                    // Skills & Expertise
+                    SliverToBoxAdapter(
+                      child: _buildSectionCard(
+                        "Skills & Expertise",
+                        [
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              _buildSkillChip("Home Cleaning"),
+                              _buildSkillChip("Gardening"),
+                              _buildSkillChip("Electrical Work"),
+                              _buildSkillChip("Plumbing"),
+                              _buildSkillChip("Painting"),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Action Buttons
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (!widget.isSaved)
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: _isAssigning
+                                      ? null
+                                      : () {
+                                          _likeTasker();
+                                        },
+                                  icon: const Icon(Icons.favorite_border,
+                                      color: Colors.white),
+                                  label: const Text('Like'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 16),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            if (widget.isSaved && _user != null)
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: _isAssigning
+                                      ? null
+                                      : () => _assignTask(widget.tasker),
+                                  icon: const Icon(Icons.assignment_turned_in,
+                                      color: Colors.white),
+                                  label: const Text('Assign Task'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF0272B1),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 16),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // Reviews
+                    SliverToBoxAdapter(
+                      child: _buildSectionCard(
+                        "Recent Reviews",
+                        [
+                          _buildReviewItem(
+                            "John D.",
+                            "Excellent service! Very professional and thorough.",
+                            5,
+                          ),
+                          _buildReviewItem(
+                            "Sarah M.",
+                            "Completed the job quickly and efficiently.",
+                            4,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                  ],
                 ),
     );
   }
 
-  Widget _buildStatItem(String value, String label) {
+  Widget _buildStatItem(String value, String label, IconData icon) {
     return Column(
       children: [
-        Text(
-          value,
-          style: GoogleFonts.montserrat(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF0272B1),
-          ),
+        Row(
+          children: [
+            Icon(icon, color: const Color(0xFF0272B1), size: 20),
+            const SizedBox(width: 4),
+            Text(
+              value,
+              style: GoogleFonts.montserrat(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF0272B1),
+              ),
+            ),
+          ],
         ),
         Text(
           label,
           style: GoogleFonts.montserrat(
-            fontSize: 14,
+            fontSize: 12,
             color: Colors.grey[600],
           ),
         ),
@@ -224,13 +658,13 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
 
   Widget _buildSectionCard(String title, List<Widget> children) {
     return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -239,10 +673,10 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
               style: GoogleFonts.montserrat(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF0272B1),
+                color: const Color(0xFF0272B1),
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 12),
             ...children,
           ],
         ),
@@ -252,11 +686,11 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
 
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          Icon(icon, color: Color(0xFF0272B1), size: 20),
-          SizedBox(width: 12),
+          Icon(icon, color: const Color(0xFF0272B1), size: 20),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -286,13 +720,56 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
   Widget _buildSkillChip(String skill) {
     return Chip(
       label: Text(skill),
-      backgroundColor: Color(0xFFE3F2FD),
+      backgroundColor: const Color(0xFFE3F2FD),
       labelStyle: GoogleFonts.montserrat(
-        color: Color(0xFF0272B1),
+        color: const Color(0xFF0272B1),
         fontWeight: FontWeight.w500,
       ),
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+    );
+  }
+
+  Widget _buildReviewItem(String reviewer, String comment, int rating) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                reviewer,
+                style: GoogleFonts.montserrat(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              Row(
+                children: List.generate(
+                  5,
+                  (index) => Icon(
+                    index < rating ? Icons.star : Icons.star_border,
+                    color: Colors.amber,
+                    size: 16,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            comment,
+            style: GoogleFonts.montserrat(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -300,7 +777,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
     try {
       if (widget.tasker.id == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text("Cannot like tasker: Invalid tasker ID"),
             backgroundColor: Colors.red,
           ),
@@ -308,7 +785,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
         return;
       }
 
-      ClientServices clientServices = ClientServices();
+      final clientServices = ClientServices();
       final result = await clientServices.saveLikedTasker(widget.tasker.id!);
 
       if (result.containsKey('message')) {

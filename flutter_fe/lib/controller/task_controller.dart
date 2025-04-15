@@ -123,46 +123,56 @@ class TaskController {
     return false;
   }
 
-  Future<String> assignTask(int? taskId, int? clientId, int? taskerId) async {
-    if (taskId == null || clientId == null || taskerId == null) {
-      return "Invalid task, client, or tasker ID";
-    }
+  // Future<String> assignTask(int? taskId, int? clientId, int? taskerId) async {
+  //   if (taskId == null || clientId == null || taskerId == null) {
+  //     return "Invalid task, client, or tasker ID";
+  //   }
 
-    try {
-      debugPrint("Assigning task $taskId to tasker $taskerId...");
+  //   try {
+  //     debugPrint("Assigning task $taskId to tasker $taskerId...");
 
-      // Double-check for existing assignments first (fail-safe)
-      if (await isTaskAssignedToTasker(taskId, taskerId)) {
-        return "This task is already assigned to this tasker";
-      }
+  //     // Double-check for existing assignments first (fail-safe)
+  //     if (await isTaskAssignedToTasker(taskId, taskerId)) {
+  //       return "This task is already assigned to this tasker";
+  //     }
 
-      // Do a final check before proceeding
-      final assignmentExists =
-          await _jobPostService.checkExistingAssignment(taskId, taskerId);
-      if (assignmentExists) {
-        return "This task is already assigned to this tasker (found during final check)";
-      }
+  //     final assignmentExists =
+  //         await _jobPostService.checkExistingAssignment(taskId, taskerId);
+  //     if (assignmentExists) {
+  //       return "This task is already assigned to this tasker (found during final check)";
+  //     }
 
-      // If no existing assignment found, proceed with assignment
-      final assignedTask =
-          await _jobPostService.assignTask(taskId, clientId, taskerId);
+  //     // If no existing assignment found, proceed with assignment
+  //     final assignedTask =
+  //         await _jobPostService.assignTask(taskId, clientId, taskerId);
 
-      // Log full response for debugging
-      debugPrint("Assignment response: $assignedTask");
+  //     // Log full response for debugging
+  //     debugPrint("Assignment response: $assignedTask");
 
-      if (!assignedTask['success']) {
-        // Handle error case
-        return assignedTask['message'] ??
-            assignedTask['error'] ??
-            "Failed to assign task. It may already be assigned.";
-      }
+  //     if (!assignedTask['success']) {
+  //       // Handle error case
+  //       return assignedTask['message'] ??
+  //           assignedTask['error'] ??
+  //           "Failed to assign task. It may already be assigned.";
+  //     }
 
-      // Handle success case
-      return assignedTask['message'] ?? "Task assigned successfully";
-    } catch (e) {
-      debugPrint("Error in task controller assignTask: $e");
-      return "An error occurred while assigning the task: $e";
-    }
+  //     // Handle success case
+  //     return assignedTask['message'] ?? "Task assigned successfully";
+  //   } catch (e) {
+  //     debugPrint("Error in task controller assignTask: $e");
+  //     return "An error occurred while assigning the task: $e";
+  //   }
+  // }
+
+  Future<String> assignTask(
+      int? taskId, int? clientId, int? taskerId, String role) async {
+    debugPrint("Assigning task...");
+    debugPrint("Role: $role");
+    final assignedTask =
+        await _jobPostService.assignTask(taskId!, clientId!, taskerId!, role);
+    return assignedTask.containsKey('message')
+        ? assignedTask['message'].toString()
+        : assignedTask['error'].toString();
   }
 
   Future<bool> acceptRequest(int taskTakenId, String value, String role) async {

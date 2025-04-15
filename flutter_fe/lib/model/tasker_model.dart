@@ -14,6 +14,7 @@ class TaskerModel {
   final String payPeriod;
   final DateTime birthDate;
   final bool? group;
+  final double rating;
   UserModel? user;
 
   TaskerModel({
@@ -29,6 +30,7 @@ class TaskerModel {
     required this.birthDate,
     this.taskerDocuments,
     this.socialMediaLinks,
+    this.rating = 0.0,
     this.user,
   });
 
@@ -59,6 +61,7 @@ class TaskerModel {
           ? DateTime.parse(json['birthdate'])
           : DateTime.now(),
       group: json['group'] ?? false,
+      rating: json['rating'] ?? 0.0,
       user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
     );
   }
@@ -76,11 +79,11 @@ class TaskerModel {
       "social_media_links": socialMediaLinks ?? {},
       "address": address ?? {},
 
-
       // remove kasi nasa user na siya
       "group": group,
       "wage_per_hour": wage,
       "pay_period": payPeriod,
+      "rating": rating,
       "user": user?.toJson(),
     };
   }

@@ -30,6 +30,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
   AuthenticatedUser? tasker;
   Duration? _timeRemaining;
   Timer? _timer;
+  final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
   @override
   void initState() {
@@ -128,107 +129,139 @@ class _ClientOngoingState extends State<ClientOngoing> {
   }
 
   Future<void> _handleFinishTask() async {
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => _FeedbackBottomSheet(
-        onSubmit: (int rating, String feedback, String? report) async {
-          setState(() {
-            _isLoading = true;
-          });
+    try {
+      // Show the feedback bottom sheet and wait for the result
+      final result = await showModalBottomSheet<Map<String, dynamic>>(
+        context: context,
+        isScrollControlled: true,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        builder: (context) => _FeedbackBottomSheet(),
+      );
 
-          try {
-            // TODO: Implement API call to submit rating, feedback, and report
-            // For now, simulate success
-            final String value = 'Finish';
-            bool result = await taskController.acceptRequest(
-              _requestInformation!.task_taken_id!,
-              value,
-              widget.role!,
-            );
-            if (result) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ClientFinish(
-                    finishID: _requestInformation!.task_taken_id!,
-                    role: widget.role,
-                  ),
-                ),
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Failed to finish task')),
-              );
-            }
-          } catch (e) {
-            debugPrint("Error finishing task: $e");
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error occurred')),
-            );
-          } finally {
-            setState(() {
-              _isLoading = false;
-            });
-          }
-        },
-      ),
-    );
+      // If user cancelled the bottom sheet, do nothing
+      if (result == null) return;
+      
+      // Check if we have the necessary information
+      if (_requestInformation?.task_taken_id == null || widget.role == null) {
+        if (mounted) {
+          _scaffoldMessengerKey.currentState?.showSnackBar(
+            SnackBar(content: Text('Missing task information')),
+          );
+        }
+        return;
+      }
+      
+      // Store the necessary information before navigation
+      final int taskTakenId = _requestInformation!.task_taken_id!;
+      final String role = widget.role!;
+      
+      // Show loading indicator
+      if (mounted) {
+        setState(() {
+          _isLoading = true;
+        });
+      }
+      
+      // IMPORTANT: Navigate to the finish screen FIRST, before making the API call
+      // This avoids the context issue completely
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ClientFinish(
+              finishID: taskTakenId,
+              role: role,
+            ),
+          ),
+        );
+      }
+      
+      // Now make the API call after navigation, so we don't need to use context anymore
+      final String value = 'Finish';
+      try {
+        bool requestResult = await taskController.acceptRequest(
+          taskTakenId,
+          value,
+          role,
+        );
+        
+        debugPrint("Finish request result: ${requestResult.toString()}");
+        // We don't need to do anything with the result since we've already navigated
+      } catch (e) {
+        debugPrint("Error finishing task: $e");
+        // We can't show an error message here because we've already navigated away
+      }
+    } catch (e) {
+      debugPrint("Error in feedback sheet: $e");
+      
+      // Only update UI if the widget is still mounted
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        
+        _scaffoldMessengerKey.currentState?.showSnackBar(
+          SnackBar(content: Text('Error occurred')),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Color(0xFF03045E)),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Ongoing Task',
-          style: GoogleFonts.montserrat(
-            color: Color(0xFF03045E),
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
+    return ScaffoldMessenger(
+      key: _scaffoldMessengerKey,
+      child: Scaffold(
+        backgroundColor: Colors.grey[100],
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Color(0xFF03045E)),
+            onPressed: () => Navigator.pop(context),
           ),
+          title: Text(
+            'Ongoing Task',
+            style: GoogleFonts.montserrat(
+              color: Color(0xFF03045E),
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          centerTitle: true,
         ),
-        centerTitle: true,
+        body: _isLoading
+            ? Center(child: CircularProgressIndicator(color: Color(0xFF03045E)))
+            : _taskInformation == null
+                ? Center(
+                    child: Text(
+                      'No task information available',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  )
+                : SingleChildScrollView(
+                    child: Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildTimerSection(),
+                          SizedBox(height: 16),
+                          _buildTaskCard(),
+                          SizedBox(height: 16),
+                          _buildProfileCard(),
+                          SizedBox(height: 24),
+                          _buildActionButton(),
+                        ],
+                      ),
+                    ),
+                  ),
       ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator(color: Color(0xFF03045E)))
-          : _taskInformation == null
-              ? Center(
-                  child: Text(
-                    'No task information available',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 16,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                )
-              : SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildTimerSection(),
-                        SizedBox(height: 16),
-                        _buildTaskCard(),
-                        SizedBox(height: 16),
-                        _buildProfileCard(),
-                        SizedBox(height: 24),
-                        _buildActionButton(),
-                      ],
-                    ),
-                  ),
-                ),
     );
   }
 
@@ -495,9 +528,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
 }
 
 class _FeedbackBottomSheet extends StatefulWidget {
-  final Function(int rating, String feedback, String? report) onSubmit;
-
-  const _FeedbackBottomSheet({required this.onSubmit});
+  const _FeedbackBottomSheet();
 
   @override
   __FeedbackBottomSheetState createState() => __FeedbackBottomSheetState();
@@ -634,12 +665,13 @@ class __FeedbackBottomSheetState extends State<_FeedbackBottomSheet> {
                     );
                     return;
                   }
-                  widget.onSubmit(
-                    _rating,
-                    _feedbackController.text,
-                    _isSatisfied ? null : _reportController.text,
-                  );
-                  Navigator.pop(context);
+                  
+                  // Simply return the data and close the bottom sheet
+                  Navigator.pop(context, {
+                    'rating': _rating,
+                    'feedback': _feedbackController.text,
+                    'report': _isSatisfied ? null : _reportController.text,
+                  });
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF03045E),
