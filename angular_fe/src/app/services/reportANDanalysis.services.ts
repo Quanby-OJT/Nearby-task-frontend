@@ -20,7 +20,7 @@ export class ReportService {
     });
   }
   
-  getSpecialization(trendType: 'requested' | 'applied' = 'applied'): Observable<{
+  getSpecialization(trendType: 'requested' | 'applied' = 'applied', month?: string): Observable<{
     success: boolean;
     rankedSpecializations: { specialization: string; total_requested: number; total_applied: number }[];
     monthlyTrends: { [key: string]: { [key: string]: number } };
@@ -32,7 +32,7 @@ export class ReportService {
     }>(`${this.apiUrl}/getReportAnalysisSpecialization`, {
       headers: this.getHeader(),
       withCredentials: true,
-      params: { trendType }
+      params: { trendType, ...(month && { month }) }
     });
   }
 }
