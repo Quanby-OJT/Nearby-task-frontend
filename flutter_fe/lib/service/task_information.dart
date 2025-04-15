@@ -5,10 +5,11 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 
+import '../config/url_strategy.dart';
 import '../model/conversation.dart';
 
 class TaskDetailsService {
-  static final String apiUrl = "http://localhost:5000/connect";
+  static final String url = apiUrl ?? "http://localhost:5000/connect";
   final storage = GetStorage();
 
   static Map<String, dynamic> _handleResponse(http.Response response) {
@@ -26,7 +27,7 @@ class TaskDetailsService {
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.get(
-        Uri.parse('$apiUrl$endpoint'),
+        Uri.parse('$url$endpoint'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -46,7 +47,7 @@ class TaskDetailsService {
   static Future<Map<String, dynamic>> _postRequest(
       {required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
-    final response = await http.post(Uri.parse("$apiUrl$endpoint"),
+    final response = await http.post(Uri.parse("$url$endpoint"),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -60,7 +61,7 @@ class TaskDetailsService {
       String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
-      final request = http.Request("DELETE", Uri.parse('$apiUrl$endpoint'))
+      final request = http.Request("DELETE", Uri.parse('$url$endpoint'))
         ..headers["Authorization"] = "Bearer $token"
         ..headers["Content-Type"] = "application/json"
         ..body = jsonEncode(body);
@@ -86,7 +87,7 @@ class TaskDetailsService {
       //   }
       // }
 
-      final data = await _getRequest("$apiUrl/displayLikedJob/$taskId");
+      final data = await _getRequest("$url/displayLikedJob/$taskId");
 
       return TaskModel.fromJson(data['tasks'][0]);
     } catch (e) {

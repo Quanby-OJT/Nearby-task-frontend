@@ -5,14 +5,10 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 class EscrowPaymentScreen extends StatefulWidget {
   final String paymentUrl;
-  final double contractPrice;
-  final String taskTitle;
 
   const EscrowPaymentScreen({
     super.key,
     required this.paymentUrl,
-    required this.contractPrice,
-    required this.taskTitle,
   });
 
   @override

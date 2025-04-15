@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/task_request_controller.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
@@ -8,6 +10,8 @@ import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/view/chat/payment.dart';
+
+import '../service_acc/legal_terms_and_conditions.dart';
 
 class TaskDetailsScreen extends StatefulWidget{
   final int taskTakenId;
@@ -43,6 +47,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   List<String> skills = [];
   String selectedTaskStatus = "";
   String address = "";
+  bool agreed = false;
 
 
 
@@ -50,6 +55,9 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   void initState() {
     super.initState();
     _fetchTaskDetails();
+    setState(() {
+      agreed = false;
+    });
   }
 
   Future<void> _fetchTaskDetails() async {
@@ -204,100 +212,102 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                 color: Color(0XFF03045E)
               ),
             ),
-            if(taskAssignment?.taskStatus == "Pending") ...[
-              ElevatedButton(
-                onPressed: () => showEscrowPayment(context),
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(Color(0XFF3E9B52)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      FontAwesomeIcons.check,
-                      color: Colors.white,
-                    ),
-                    SizedBox(width: 10,),
-                    Text(
-                      "Accept Tasker",
-                      style: GoogleFonts.roboto(
-                          fontSize: 16,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold
-                      ),
-                    )
-                  ],
-                )
-              ),
-              SizedBox(width: 5,),
-              ElevatedButton(
-                  onPressed: () => showRejectionOrCancellationForm("Reject"),
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all(Color(0XFFD43D4D)),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        FontAwesomeIcons.trash,
-                        color: Colors.white,
-                      ),
-                      SizedBox(width: 10,),
-                      Text(
-                        "Reject Tasker",
-                        style: GoogleFonts.roboto(
-                            fontSize: 16,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold
-                        ),
-                      )
-                    ],
-                  )
-              ),
-              ElevatedButton(
-                onPressed: () => showRejectionOrCancellationForm("Cancel"),
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(Color(0XFFD43D4D)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      FontAwesomeIcons.ban,
-                      color: Colors.white,
-                    ),
-                    SizedBox(width: 10,),
-                    Text(
-                      "Cancel the Task",
-                      style: GoogleFonts.roboto(
-                          fontSize: 16,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold
-                      ),
-                    )
-                  ],
-                )
-              ),
-            ],
-            const SizedBox(height: 20),
-            ///
-            /// If Tasker finishes the task on time, or the task in itself reaches its dealine, this button must appear.
-            ///
-            /// -Ces
-
-            if(taskAssignment?.taskStatus == "Completed")...[Center(
-              child: ElevatedButton(
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(Color(0XFF3E9B52)),
-                ),
-                onPressed: () => showCompletedTaskPayment(),
-                child: Text(
-                  "Release Payment",
-                  style: GoogleFonts.roboto(
-                    fontSize: 16,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold
-                  ),
-                )
-              )
-            )]
+            // if(taskAssignment?.taskStatus == "Pending") ...[
+            //   ElevatedButton(
+            //     onPressed: () => acceptTasker(context),
+            //     style: ButtonStyle(
+            //       backgroundColor: WidgetStateProperty.all(Color(0XFF3E9B52)),
+            //     ),
+            //     child: Row(
+            //       children: [
+            //         Icon(
+            //           FontAwesomeIcons.check,
+            //           color: Colors.white,
+            //         ),
+            //         SizedBox(width: 10,),
+            //         Text(
+            //           "Accept Tasker",
+            //           style: GoogleFonts.roboto(
+            //               fontSize: 16,
+            //               color: Colors.white,
+            //               fontWeight: FontWeight.bold
+            //           ),
+            //         )
+            //       ],
+            //     )
+            //   ),
+            //   SizedBox(width: 5,),
+            //   ElevatedButton(
+            //       onPressed: () => showRejectionOrCancellationForm("Reject"),
+            //       style: ButtonStyle(
+            //         backgroundColor: WidgetStateProperty.all(Color(0XFFD43D4D)),
+            //       ),
+            //       child: Row(
+            //         children: [
+            //           Icon(
+            //             FontAwesomeIcons.trash,
+            //             color: Colors.white,
+            //           ),
+            //           SizedBox(width: 10,),
+            //           Text(
+            //             "Reject Tasker",
+            //             style: GoogleFonts.roboto(
+            //                 fontSize: 16,
+            //                 color: Colors.white,
+            //                 fontWeight: FontWeight.bold
+            //             ),
+            //           )
+            //         ],
+            //       )
+            //   ),
+            //   ElevatedButton(
+            //     onPressed: () => showRejectionOrCancellationForm("Cancel"),
+            //     style: ButtonStyle(
+            //       backgroundColor: WidgetStateProperty.all(Color(0XFFD43D4D)),
+            //     ),
+            //     child: Row(
+            //       children: [
+            //         Icon(
+            //           FontAwesomeIcons.ban,
+            //           color: Colors.white,
+            //         ),
+            //         SizedBox(width: 10,),
+            //         Text(
+            //           "Cancel the Task",
+            //           style: GoogleFonts.roboto(
+            //               fontSize: 16,
+            //               color: Colors.white,
+            //               fontWeight: FontWeight.bold
+            //           ),
+            //         )
+            //       ],
+            //     )
+            //   ),
+            // ],
+            // const SizedBox(height: 20),
+            // ///
+            // /// If Tasker finishes the task on time, or the task in itself reaches its dealine, this button must appear.
+            // ///
+            // /// -Ces
+            //
+            // if(taskAssignment?.taskStatus == "Completed")...[
+            //   Center(
+            //     child: ElevatedButton(
+            //       style: ButtonStyle(
+            //         backgroundColor: WidgetStateProperty.all(Color(0XFF3E9B52)),
+            //       ),
+            //       onPressed: () => showCompletedTaskPayment(),
+            //       child: Text(
+            //         "Release Payment",
+            //         style: GoogleFonts.roboto(
+            //           fontSize: 16,
+            //           color: Colors.white,
+            //           fontWeight: FontWeight.bold
+            //         ),
+            //       )
+            //     )
+            //   )
+            // ]
           ]
         ),
       )
@@ -426,10 +436,21 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
               ),
             ]
             else if(taskAssignment?.taskStatus == "Confirmed") ...[
-              ElevatedButton(
-                onPressed: () => showEscrowPayment(context),
-                child: Text(
-                  "Proceed to Agreement"
+              SizedBox(height: 10),
+              Center(
+                child: ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all(Color(0XFF170A66)),
+                  ),
+                  onPressed: () => showLegalTermAgreement(context),
+                  child: Text(
+                    "Proceed to Agreement",
+                    style: GoogleFonts.roboto(
+                      fontSize: 16,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold
+                    ),
+                  )
                 )
               )
             ]
@@ -456,6 +477,49 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
       default:
         return Colors.grey;
     } 
+  }
+
+  void showLegalTermAgreement(BuildContext parentContext) {
+    showDialog(
+      context: parentContext,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text("Terms and Conditions"),
+          content: SizedBox(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height * 0.1,
+            child: Column(
+              children: [
+                Text("Please Read the Legal Terms and Conditions Before Proceeding with Engaging with Your Task."),
+                SizedBox(height: 10),
+                InkWell(
+                    onTap: () => {Navigator.of(context).push(MaterialPageRoute(builder: (context) => LegalTermsAndConditionsScreen()))},
+                    child: Text(
+                      "NearByTask Legal Terms and Conditions",
+                      style: TextStyle(
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline
+                      ),
+                    )
+                ),
+              ]
+            )
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                  "I agree"
+              )
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text("Close"),
+            ),
+          ],
+        );
+      }
+    );
   }
 
   Widget _buildInfoRow(IconData? label, Color color, String value) {
@@ -485,392 +549,275 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     );
   }
 
-  String _handleTaskStatusChange(String newStatus) {
-    // setState(() {
-    //   taskAssignment?.taskStatus = newStatus;
-    // });
-    switch (newStatus) {
-      case "Reject Tasker":
-        showRejectionOrCancellationForm("Rejected");
-        return "Rejected";
-      case "Cancel the Task":
-        showRejectionOrCancellationForm("Cancelled");
-        return "Cancelled";
-      case "Confirm Tasker":
-        showEscrowPayment(context);
-        return "Confirmed";
-      case "Completed":
-        //TODO: implement this later for Client
+  // String _handleTaskStatusChange(String newStatus) {
+  //   // setState(() {
+  //   //   taskAssignment?.taskStatus = newStatus;
+  //   // });
+  //   switch (newStatus) {
+  //     case "Reject Tasker":
+  //       showRejectionOrCancellationForm("Rejected");
+  //       return "Rejected";
+  //     case "Cancel the Task":
+  //       showRejectionOrCancellationForm("Cancelled");
+  //       return "Cancelled";
+  //     case "Confirm Tasker":
+  //       showEscrowPayment(context);
+  //       return "Confirmed";
+  //     case "Completed":
+  //       //TODO: implement this later for Client
+  //
+  //       return "Completed";
+  //   }
+  //   return "";
+  // }
 
-        return "Completed";
-    }
-    return "";
-  }
-
-  void showEscrowPayment(BuildContext parentContext) {  // Add parentContext parameter
-    showDialog(
-      context: parentContext,  // Use parentContext here
-      builder: (BuildContext dialogContext) {  // Rename the inner context
-        return AlertDialog(
-          title: Text(
-            "Pay Your Tasker Upfront.",
-            style: GoogleFonts.roboto(
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF0272B1),
-            ),
-            textAlign: TextAlign.center,
-          ),
-          content: Text(
-            "In order for the tasker to start their task, you need to deposit your negotiated and agreed contract price.",
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () async {
-                setState(() {
-                  processingData = true;
-                });
-
-                try {
-                  Navigator.of(dialogContext).pop();  // Use dialogContext to pop the dialog
-                  ScaffoldMessenger.of(parentContext).showMaterialBanner(  // Use parentContext here
-                    MaterialBanner(
-                      backgroundColor: Color(0xFFD6932A),
-                      content: Text("Please Wait while we process your transaction."),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(parentContext).hideCurrentMaterialBanner();
-                          },
-                          child: Text("Dismiss"),
-                        ),
-                      ],
-                    ),
-                  );
-
-                  // Auto-dismiss the banner after 10 seconds
-                  Future.delayed(Duration(seconds: 10), () {
-                    ScaffoldMessenger.of(parentContext)
-                        .hideCurrentMaterialBanner();
-                    debugPrint("Material Banner Dismissed!");
-                  });
-
-                  Map<String, dynamic> result = await taskRequestController.depositAmountToEscrow(
-                    taskAssignment?.task?.contactPrice.toDouble() ?? 0.00,
-                    taskAssignment?.taskTakenId ?? 0,
-                  );
-
-                  if (result.containsKey("message")) {
-                    ScaffoldMessenger.of(parentContext)
-                        .hideCurrentMaterialBanner();
-                    debugPrint("Material Banner Dismissed!");
-                    ScaffoldMessenger.of(parentContext).showMaterialBanner(
-                      MaterialBanner(
-                        content: Text("You will be redirected to the escrow payment page."),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              ScaffoldMessenger.of(parentContext).hideCurrentMaterialBanner();
-                            },
-                            child: Text("Dismiss"),
-                          ),
-                        ],
-                      ),
-                    );
-
-                    // Auto-dismiss the banner after 10 seconds
-                    Future.delayed(Duration(seconds: 5), () {
-                      ScaffoldMessenger.of(parentContext).hideCurrentMaterialBanner();
-                      debugPrint("Material Banner Dismissed!");
-                    });
-                    Navigator.push(
-                      parentContext,  // Use parentContext for navigation
-                      MaterialPageRoute(
-                        builder: (context) => EscrowPaymentScreen(
-                          paymentUrl: result['payment_url'],
-                          contractPrice: taskAssignment?.task?.contactPrice.toDouble() ?? 0.00,
-                          taskTitle: taskAssignment?.task?.title ?? "Untitled Task",
-                        ),
-                      ),
-                    );
-                  } else if (result.containsKey("error")) {
-                    ScaffoldMessenger.of(parentContext)
-                        .hideCurrentMaterialBanner();
-                    debugPrint("Material Banner Dismissed!");
-                    ScaffoldMessenger.of(parentContext).showMaterialBanner(
-                      MaterialBanner(
-                        content: Text(result['error']),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              ScaffoldMessenger.of(parentContext).hideCurrentMaterialBanner();
-                            },
-                            child: Text("Dismiss"),
-                          ),
-                        ],
-                      ),
-                    );
-
-                    // Auto-dismiss the banner after 10 seconds
-                    Future.delayed(Duration(seconds: 10), () {
-                      ScaffoldMessenger.of(parentContext).hideCurrentMaterialBanner();
-                      debugPrint("Material Banner Dismissed!");
-                    });
-                  }
-                } catch (e, stackTrace) {
-                  debugPrint(e.toString());
-                  debugPrintStack(stackTrace: stackTrace);
-                  ScaffoldMessenger.of(parentContext).showMaterialBanner(
-                    MaterialBanner(
-                      content: Text("An Error Occurred while we process your transaction. Please Try Again."),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(parentContext).hideCurrentMaterialBanner();
-                          },
-                          child: Text("Dismiss"),
-                        ),
-                      ],
-                    ),
-                  );
-
-                  // Auto-dismiss the banner after 10 seconds
-                  Future.delayed(Duration(seconds: 10), () {
-                    ScaffoldMessenger.of(parentContext)
-                        .hideCurrentMaterialBanner();
-                    debugPrint("Material Banner Dismissed!");
-                  });
-                } finally {
-                  setState(() {
-                    processingData = false;
-                  });
-                }
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Row(
-                  children: [
-                    Icon(FontAwesomeIcons.moneyBillTransfer, color: Colors.green, size: 20),
-                    SizedBox(width: 20),
-                    Text(
-                      "Pay Your Tasker Now",
-                      style: GoogleFonts.roboto(fontSize: 14, color: Colors.green),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),  // Use dialogContext here
-              child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Row(
-                  children: [
-                    Icon(FontAwesomeIcons.ban, color: Colors.red, size: 20),
-                    SizedBox(width: 20),
-                    Text(
-                      "Cancel",
-                      style: GoogleFonts.roboto(fontSize: 14, color: Colors.red),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-  void showCompletedTaskPayment() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            "Does your Tasker Finished Your Task?",
-            style: GoogleFonts.roboto(
-              fontSize: 30,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF0272B1),
-            ),
-          ),
-          content: Text(
-            "If your tasker had finished your task, check first the following: \n 1. Work Quality \n 2. Tasker's Attitude \n"
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(), //A function where the escrow payment will be released to the tasker and they will provide a feedback of their work.
-              child: Row(
-                children: [
-                  Icon(
-                    FontAwesomeIcons.moneyBillTransfer,
-                    color: Colors.green.shade900,
-                    size: 20,
-                  ),
-                  SizedBox(
-                    width: 20,
-                  ),
-                  Text(
-                    "Release Funds",
-                    style: GoogleFonts.roboto(
-                      fontSize: 14,
-                      color: Colors.green.shade900,
-                    )
-                  )
-                ]
-              )
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Row(
-                children: [
-                  Icon(
-                    FontAwesomeIcons.ban,
-                    color: Colors.red.shade900,
-                    size: 20,
-                  ),
-                  SizedBox(
-                    width: 20,
-                  ),
-                  Text(
-                    "Cancel",
-                    style: GoogleFonts.roboto(
-                      fontSize: 14,
-                      color: Colors.red.shade900
-                    ),
-                  )
-                ]
-              )
-            )
-          ],
-        );
-      }
-    );
-  }
-  void showRejectionOrCancellationForm(String status){
-    showDialog(
-      context: context,
-      builder: (BuildContext context){
-        return AlertDialog(
-          title: Text(
-            "You are going to ${status == "Rejected" ? "Reject a Tasker" : "Cancel your Task."}",
-            style: GoogleFonts.roboto(
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0272B1)
-            ),
-          ),
-          content: SizedBox(
-            height: MediaQuery.of(context).size.height * 0.3,
-            width: 250,
-            child: Column(
-              children: <Widget>[
-                SizedBox(height: 10),
-                Text("Why are you rejecting a Tasker/Cancelling a Task?"),
-                SizedBox(height: 10),
-                DropdownMenu(
-                  hintText: "Please select a reason",
-                  dropdownMenuEntries: rejectionReasons.map((rejectionReason) {
-                    return DropdownMenuEntry(
-                      value: rejectionReason,
-                      label: rejectionReason,
-                    );
-                  }).toList(),
-                  onSelected: (String? value) {
-                    debugPrint(value);
-                    if (value == 'Others (please specify)') {
-                      setState(() {
-                        rejectFormField = true;
-                      });
-                    }else{
-                      setState(() {
-                        rejectFormField = false;
-                      });
-                    }
-                  },
-                  controller: taskRequestController.rejectionController,
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  maxLines: 4,
-                  enabled: rejectFormField,
-                  decoration: InputDecoration(
-                    labelText: "Others (please specify)",
-                    border: OutlineInputBorder(),
-                    ),
-                  controller: taskRequestController.otherReasonController,
-                ),
-              ]
-            )
-          ),
-          actions: <Widget> [
-            StatefulBuilder(
-              builder: (BuildContext context, StateSetter setState) {
-                return TextButton(
-                  onPressed: processingData ? null : () async{
-                    setState(() => processingData = true);
-                    String rejectOrCancel = await taskRequestController.rejectTasker(widget.taskTakenId, status);
-                    setState(() => processingData = false);
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(rejectOrCancel),
-                      ),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Row(
-                      children: [
-                        Icon(
-                          FontAwesomeIcons.share,
-                          color: Colors.green,
-                          size: 20,
-                        ),
-                        SizedBox(width: 20,),
-                        Text(
-                          processingData ? "Please Wait..." : status == "Rejected" ? "Send Rejection Notice" : "Send Cancellation Notice",
-                          style: GoogleFonts.roboto(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: processingData ? Colors.black38 : Colors.green
-                          ),
-                        )
-                      ]
-                    )
-                  )
-                );
-              }
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Row(
-                  children: [
-                    Icon(
-                      FontAwesomeIcons.ban,
-                      color: Colors.red,
-                      size: 20,
-                    ),
-                    SizedBox(width: 20,),
-                    Text(
-                      "Cancel",
-                      style: GoogleFonts.roboto(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red
-                      ),
-                    )
-                  ]
-                )
-              )
-            ),
-          ]
-        );
-      }
-    );
-  }
+  // void acceptTasker(BuildContext parentContext) {  // Add parentContext parameter
+  //   showDialog(
+  //     context: parentContext,  // Use parentContext here
+  //     builder: (BuildContext dialogContext) {  // Rename the inner context
+  //       return AlertDialog(
+  //         title: Text(
+  //           "Are You Sure You Want to Accept This Tasker?",
+  //           style: GoogleFonts.roboto(
+  //             fontSize: 30,
+  //             fontWeight: FontWeight.bold,
+  //             color: Color(0xFF0272B1),
+  //           ),
+  //           textAlign: TextAlign.center,
+  //         ),
+  //         content: Text(
+  //           "Once you accept this tasker, the task will be taken and it will not be available to other Taskers.",
+  //         ),
+  //         actions: <Widget>[
+  //           TextButton(
+  //             onPressed: () async {
+  //               debugPrint("Hi");
+  //             },
+  //             child: Padding(
+  //               padding: const EdgeInsets.all(10.0),
+  //               child: Row(
+  //                 children: [
+  //                   Icon(FontAwesomeIcons.moneyBillTransfer, color: Colors.green, size: 20),
+  //                   SizedBox(width: 20),
+  //                   Text(
+  //                     "I Accept the Tasker",
+  //                     style: GoogleFonts.roboto(fontSize: 14, color: Colors.green),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ),
+  //           ),
+  //           TextButton(
+  //             onPressed: () => Navigator.of(dialogContext).pop(),  // Use dialogContext here
+  //             child: Padding(
+  //               padding: const EdgeInsets.all(10.0),
+  //               child: Row(
+  //                 children: [
+  //                   Icon(FontAwesomeIcons.ban, color: Colors.red, size: 20),
+  //                   SizedBox(width: 20),
+  //                   Text(
+  //                     "Cancel",
+  //                     style: GoogleFonts.roboto(fontSize: 14, color: Colors.red),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
+  // void showCompletedTaskPayment() {
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: Text(
+  //           "Does your Tasker Finished Your Task?",
+  //           style: GoogleFonts.roboto(
+  //             fontSize: 30,
+  //             fontWeight: FontWeight.bold,
+  //             color: Color(0xFF0272B1),
+  //           ),
+  //         ),
+  //         content: Text(
+  //           "If your tasker had finished your task, check first the following: \n 1. Work Quality \n 2. Tasker's Attitude \n"
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.of(context).pop(), //A function where the escrow payment will be released to the tasker and they will provide a feedback of their work.
+  //             child: Row(
+  //               children: [
+  //                 Icon(
+  //                   FontAwesomeIcons.moneyBillTransfer,
+  //                   color: Colors.green.shade900,
+  //                   size: 20,
+  //                 ),
+  //                 SizedBox(
+  //                   width: 20,
+  //                 ),
+  //                 Text(
+  //                   "Release Funds",
+  //                   style: GoogleFonts.roboto(
+  //                     fontSize: 14,
+  //                     color: Colors.green.shade900,
+  //                   )
+  //                 )
+  //               ]
+  //             )
+  //           ),
+  //           TextButton(
+  //             onPressed: () => Navigator.of(context).pop(),
+  //             child: Row(
+  //               children: [
+  //                 Icon(
+  //                   FontAwesomeIcons.ban,
+  //                   color: Colors.red.shade900,
+  //                   size: 20,
+  //                 ),
+  //                 SizedBox(
+  //                   width: 20,
+  //                 ),
+  //                 Text(
+  //                   "Cancel",
+  //                   style: GoogleFonts.roboto(
+  //                     fontSize: 14,
+  //                     color: Colors.red.shade900
+  //                   ),
+  //                 )
+  //               ]
+  //             )
+  //           )
+  //         ],
+  //       );
+  //     }
+  //   );
+  // }
+  // void showRejectionOrCancellationForm(String status){
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context){
+  //       return AlertDialog(
+  //         title: Text(
+  //           "You are going to ${status == "Rejected" ? "Reject a Tasker" : "Cancel your Task."}",
+  //           style: GoogleFonts.roboto(
+  //               fontSize: 30,
+  //               fontWeight: FontWeight.bold,
+  //               color: Color(0xFF0272B1)
+  //           ),
+  //         ),
+  //         content: SizedBox(
+  //           height: MediaQuery.of(context).size.height * 0.3,
+  //           width: 250,
+  //           child: Column(
+  //             children: <Widget>[
+  //               SizedBox(height: 10),
+  //               Text("Why are you rejecting a Tasker/Cancelling a Task?"),
+  //               SizedBox(height: 10),
+  //               DropdownMenu(
+  //                 hintText: "Please select a reason",
+  //                 dropdownMenuEntries: rejectionReasons.map((rejectionReason) {
+  //                   return DropdownMenuEntry(
+  //                     value: rejectionReason,
+  //                     label: rejectionReason,
+  //                   );
+  //                 }).toList(),
+  //                 onSelected: (String? value) {
+  //                   debugPrint(value);
+  //                   if (value == 'Others (please specify)') {
+  //                     setState(() {
+  //                       rejectFormField = true;
+  //                     });
+  //                   }else{
+  //                     setState(() {
+  //                       rejectFormField = false;
+  //                     });
+  //                   }
+  //                 },
+  //                 controller: taskRequestController.rejectionController,
+  //               ),
+  //               SizedBox(height: 10),
+  //               TextField(
+  //                 maxLines: 4,
+  //                 enabled: rejectFormField,
+  //                 decoration: InputDecoration(
+  //                   labelText: "Others (please specify)",
+  //                   border: OutlineInputBorder(),
+  //                   ),
+  //                 controller: taskRequestController.otherReasonController,
+  //               ),
+  //             ]
+  //           )
+  //         ),
+  //         actions: <Widget> [
+  //           StatefulBuilder(
+  //             builder: (BuildContext context, StateSetter setState) {
+  //               return TextButton(
+  //                 onPressed: processingData ? null : () async{
+  //                   setState(() => processingData = true);
+  //                   String rejectOrCancel = await taskRequestController.rejectTasker(widget.taskTakenId, status);
+  //                   setState(() => processingData = false);
+  //
+  //                   ScaffoldMessenger.of(context).showSnackBar(
+  //                     SnackBar(
+  //                       content: Text(rejectOrCancel),
+  //                     ),
+  //                   );
+  //                 },
+  //                 child: Padding(
+  //                   padding: const EdgeInsets.all(10.0),
+  //                   child: Row(
+  //                     children: [
+  //                       Icon(
+  //                         FontAwesomeIcons.share,
+  //                         color: Colors.green,
+  //                         size: 20,
+  //                       ),
+  //                       SizedBox(width: 20,),
+  //                       Text(
+  //                         processingData ? "Please Wait..." : status == "Rejected" ? "Send Rejection Notice" : "Send Cancellation Notice",
+  //                         style: GoogleFonts.roboto(
+  //                             fontSize: 14,
+  //                             fontWeight: FontWeight.bold,
+  //                             color: processingData ? Colors.black38 : Colors.green
+  //                         ),
+  //                       )
+  //                     ]
+  //                   )
+  //                 )
+  //               );
+  //             }
+  //           ),
+  //           TextButton(
+  //             onPressed: () {
+  //               Navigator.of(context).pop();
+  //             },
+  //             child: Padding(
+  //               padding: const EdgeInsets.all(10.0),
+  //               child: Row(
+  //                 children: [
+  //                   Icon(
+  //                     FontAwesomeIcons.ban,
+  //                     color: Colors.red,
+  //                     size: 20,
+  //                   ),
+  //                   SizedBox(width: 20,),
+  //                   Text(
+  //                     "Cancel",
+  //                     style: GoogleFonts.roboto(
+  //                       fontSize: 14,
+  //                       fontWeight: FontWeight.bold,
+  //                       color: Colors.red
+  //                     ),
+  //                   )
+  //                 ]
+  //               )
+  //             )
+  //           ),
+  //         ]
+  //       );
+  //     }
+  //   );
+  // }
 }

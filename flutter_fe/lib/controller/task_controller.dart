@@ -7,10 +7,13 @@ import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/service/task_information.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:flutter_fe/controller/escrow_management_controller.dart';
 
 class TaskController {
   final JobPostService _jobPostService = JobPostService();
   final TaskDetailsService _taskDetailsService = TaskDetailsService();
+  final EscrowManagementController _escrowManagementController =
+      EscrowManagementController();
   final jobIdController = TextEditingController();
   final jobTitleController = TextEditingController();
   final jobSpecializationController = TextEditingController();
@@ -39,30 +42,45 @@ class TaskController {
       // Parse the price as an integer
       final priceText = contactPriceController.text.trim();
       final priceInt = int.tryParse(priceText) ?? 0;
-      final task = TaskModel(
-          id: 0,
-          clientId: userId,
-          title: jobTitleController.text.trim(),
-          specialization: specialization,
-          description: jobDescriptionController.text.trim(),
-          location: jobLocationController.text.trim(),
-          duration: durationInt.toString(),
-          // Use the parsed integer value
-          period: period,
-          urgency: urgency,
-          contactPrice: priceInt,
-          // Use the parsed integer value
-          remarks: jobRemarksController.text.trim(),
-          taskBeginDate: jobTaskBeginDateController.text.trim(),
-          workType: workType, // New field
-          status: "Available");
 
-      print('Task data: ${task.toJson()}');
-      return await _jobPostService.postJob(task, userId);
+      debugPrint(_escrowManagementController.tokenCredits.value.toString());
+      if (_escrowManagementController.tokenCredits.value - priceInt <
+          _escrowManagementController.tokenCredits.value) {
+        return {
+          "success": false,
+          "error":
+              "You don't have enough tokens to post your needed task. Please Deposit First Your Desired Amount of Tokens."
+        };
+      } else {
+        final task = TaskModel(
+            id: 0,
+            clientId: userId,
+            title: jobTitleController.text.trim(),
+            specialization: specialization,
+            description: jobDescriptionController.text.trim(),
+            location: jobLocationController.text.trim(),
+            duration: durationInt.toString(),
+            // Use the parsed integer value
+            period: period,
+            urgency: urgency,
+            contactPrice: priceInt,
+            // Use the parsed integer value
+            remarks: jobRemarksController.text.trim(),
+            taskBeginDate: jobTaskBeginDateController.text.trim(),
+            workType: workType, // New field
+            status: "Available");
+
+        print('Task data: ${task.toJson()}');
+        return await _jobPostService.postJob(task, userId);
+      }
     } catch (e, stackTrace) {
-      print('Error in postJob: $e');
+      debugPrint('Error in postJob: $e');
       debugPrint(stackTrace.toString());
-      return {'success': false, 'error': 'Error: $e'};
+      return {
+        'success': false,
+        'error':
+            'An Error Occurred while Posting Your Task. Please Try Again. If Issue Persists, contact our support.'
+      };
     }
   }
 
@@ -104,28 +122,6 @@ class TaskController {
     }
     return false;
   }
-
-  Future<bool> acceptRequest(int taskTakenId, String value, String role) async {
-    debugPrint("Assigning task...");
-    final assignedTask =
-        await _jobPostService.acceptRequest(taskTakenId, value, role);
-    if (assignedTask.containsKey('message')) {
-      return assignedTask['message'] = true;
-    }
-    return false;
-  }
-
-  Future<String> fetchIsApplied(
-      int? taskId, int? clientId, int? taskerId) async {
-    final assignedTask =
-        await _jobPostService.fetchIsApplied(taskId, clientId, taskerId);
-
-    debugPrint("Is applied response: ${assignedTask.toString()}");
-    return assignedTask.containsKey('message')
-        ? assignedTask['message'].toString()
-        : assignedTask['error'].toString();
-  }
-
 
   Future<String> assignTask(int? taskId, int? clientId, int? taskerId) async {
     if (taskId == null || clientId == null || taskerId == null) {
@@ -169,13 +165,43 @@ class TaskController {
     }
   }
 
+  Future<bool> acceptRequest(int taskTakenId, String value, String role) async {
+    debugPrint("Assigning task...");
+    final assignedTask =
+        await _jobPostService.acceptRequest(taskTakenId, value, role);
+    if (assignedTask.containsKey('message')) {
+      return assignedTask['message'] = true;
+    }
+    return false;
+  }
+
+  Future<String> fetchIsApplied(
+      int? taskId, int? clientId, int? taskerId) async {
+    final assignedTask =
+        await _jobPostService.fetchIsApplied(taskId, clientId, taskerId);
+
+    debugPrint("Is applied response: ${assignedTask.toString()}");
+    return assignedTask.containsKey('message')
+        ? assignedTask['message'].toString()
+        : assignedTask['error'].toString();
+  }
+
   // Method to update a task
   Future<Map<String, dynamic>> updateTask(
       int taskId, Map<String, dynamic> taskData) async {
+    debugPrint("Updating task with ID: $taskId");
     try {
-      debugPrint("Updating task with ID: $taskId");
-      final result = await _jobPostService.updateTask(taskId, taskData);
-      return result;
+      if (_escrowManagementController.tokenCredits.value -
+              taskData['proposed_price'] <
+          _escrowManagementController.tokenCredits.value) {
+        return {
+          "success": false,
+          "error":
+              "You don't have enough tokens to post your needed task. Please Deposit First Your Desired Amount of Tokens."
+        };
+      } else {
+        return await _jobPostService.updateTask(taskId, taskData);
+      }
     } catch (e, stackTrace) {
       debugPrint("Error updating task: $e");
       debugPrintStack(stackTrace: stackTrace);

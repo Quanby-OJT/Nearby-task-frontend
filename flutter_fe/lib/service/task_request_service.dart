@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/config/url_strategy.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/model/task_request.dart';
 import 'package:flutter_fe/model/user_model.dart';
@@ -8,7 +9,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 
 class TaskRequestService {
-  static const String apiUrl = "http://localhost:5000/connect";
+  static String url = apiUrl ?? "http://localhost:5000/connect";
   static final storage = GetStorage();
 
   Future<String?> getUserId() async => storage.read('user_id')?.toString();
@@ -66,10 +67,10 @@ class TaskRequestService {
     try {
       String formattedEndpoint =
           endpoint.startsWith('/') ? endpoint : '/$endpoint';
-      debugPrint('Making GET request to: $apiUrl$formattedEndpoint');
+      debugPrint('Making GET request to: $url$formattedEndpoint');
 
       final response = await http.get(
-        Uri.parse('$apiUrl$formattedEndpoint'),
+        Uri.parse('$url$formattedEndpoint'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -93,7 +94,7 @@ class TaskRequestService {
       String formattedEndpoint =
           endpoint.startsWith('/') ? endpoint : '/$endpoint';
       final response = await http.post(
-        Uri.parse('$apiUrl$formattedEndpoint'),
+        Uri.parse('$url$formattedEndpoint'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -111,12 +112,11 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> _putRequest(
-      {required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _putRequest({required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.put(
-        Uri.parse('$apiUrl$endpoint'),
+        Uri.parse('$url$endpoint'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -294,40 +294,43 @@ class TaskRequestService {
             status: taskData['status'],
             duration: '',
             taskBeginDate: '',
-            workType: '');
+            workType: ''
+        );
       }
 
       // Fallback if task data is not found
       return TaskModel(
-          id: taskId,
-          title: "Task #$taskId",
-          description: "No details available",
-          location: "",
-          contactPrice: 0,
-          urgency: "Unknown",
-          specialization: '',
-          period: '',
-          status: '',
-          duration: '',
-          taskBeginDate: '',
-          workType: '');
+        id: taskId,
+        title: "Task #$taskId",
+        description: "No details available",
+        location: "",
+        contactPrice: 0,
+        urgency: "Unknown",
+        specialization: '',
+        period: '',
+        status: '',
+        duration: '',
+        taskBeginDate: '',
+        workType: ''
+      );
     } catch (e, stackTrace) {
       debugPrint("Error creating TaskModel: $e");
       debugPrintStack(stackTrace: stackTrace);
       // Return minimal task model
       return TaskModel(
-          id: taskId,
-          title: "Task #$taskId",
-          description: "No details available",
-          location: "",
-          contactPrice: 0,
-          urgency: "Unknown",
-          specialization: '',
-          period: '',
-          status: '',
-          duration: '',
-          taskBeginDate: '',
-          workType: '');
+        id: taskId,
+        title: "Task #$taskId",
+        description: "No details available",
+        location: "",
+        contactPrice: 0,
+        urgency: "Unknown",
+        specialization: '',
+        period: '',
+        status: '',
+        duration: '',
+        taskBeginDate: '',
+        workType: ''
+      );
     }
   }
 
@@ -399,8 +402,7 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> depositEscrowPayment(
-      double contractPrice, int taskTakenId) async {
+  Future<Map<String, dynamic>> depositEscrowPayment(double depositAmount) async {
     try {
       final userId = await getUserId();
       if (userId == null) {
@@ -409,15 +411,13 @@ class TaskRequestService {
           'error': 'Please log in to deposit payments.',
         };
       }
-      debugPrint("Depositing escrow payment with price: $contractPrice");
+      debugPrint("Depositing escrow payment with price: $depositAmount");
 
       return await _postRequest(
         endpoint: '/deposit-escrow-payment',
         body: {
-          'task_taken_id': taskTakenId,
           'client_id': int.parse(userId),
-          'amount': contractPrice,
-          'status': 'Confirmed'
+          'amount': depositAmount,
         },
       );
     } catch (e) {
@@ -425,6 +425,26 @@ class TaskRequestService {
       return {
         'success': false,
         'error': 'Failed to accept request: $e',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> getTokenBalance() async {
+    try {
+      final userId = await getUserId();
+      if (userId == null) {
+        return {
+          'success': false,
+          'error': 'Please log in to check balance.',
+        };
+      }
+      debugPrint("Checking token balance for user with ID: $userId");
+      return await _getRequest('/get-token-balance/$userId');
+    } catch (e) {
+      debugPrint("Error checking token balance: $e");
+      return {
+        'success': false,
+        'error': 'Failed to check balance: $e',
       };
     }
   }
@@ -458,16 +478,16 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> rejectTaskerOrCancelTask(
-      int requestId, String rejectOrCancel, String rejectionReason) async {
-    try {
+  Future<Map<String, dynamic>> rejectTaskerOrCancelTask(int requestId, String rejectOrCancel, String rejectionReason) async {
+    try{
       return await _putRequest(
-          endpoint: "/update-status-tasker/$requestId",
-          body: {
-            "task_status": rejectOrCancel,
-            "reason_for_rejection_or_cancellation": rejectionReason
-          });
-    } catch (e, stackTrace) {
+        endpoint: "/update-status-tasker/$requestId",
+        body: {
+          "task_status": rejectOrCancel,
+          "reason_for_rejection_or_cancellation": rejectionReason
+        }
+      );
+    }catch(e, stackTrace) {
       debugPrint("Error rejecting tasker: $e");
       debugPrintStack(stackTrace: stackTrace);
       return {

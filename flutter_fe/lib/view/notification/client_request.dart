@@ -148,7 +148,7 @@ class _ClientRequestState extends State<ClientRequest> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          "N/A",
+                                          _taskInformation!.title ?? "NULL",
                                           style: GoogleFonts.montserrat(
                                             color: const Color(0xFF03045E),
                                             fontSize: 14,
@@ -289,7 +289,14 @@ class _ClientRequestState extends State<ClientRequest> {
                                       debugPrint(
                                           "Reject request result: $result");
                                       if (result) {
-                                        Navigator.pop(context);
+                                        if (!mounted) return;
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text("Sample"),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
                                       } else {
                                         setState(() {
                                           _isLoading = false;

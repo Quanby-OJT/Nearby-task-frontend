@@ -61,10 +61,11 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
 
       // Check if task is assigned
       if (response != null) {
+        final TaskModel taskModel = response as TaskModel;
         final isAssigned =
-            await _jobPostService.isTaskAssigned(response.id, widget.taskId);
+            await _jobPostService.isTaskAssigned(taskModel.id, widget.taskId);
         setState(() {
-          _taskInformation = response;
+          _taskInformation = taskModel;
           _isAssigned = isAssigned;
           _isLoading = false;
         });

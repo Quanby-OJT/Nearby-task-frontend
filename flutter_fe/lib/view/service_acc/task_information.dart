@@ -50,30 +50,30 @@ class _TaskInformationState extends State<TaskInformation> {
         _isLoading = false;
       });
     }
-    _fetchIfTaskIsAssigned();
+    // _fetchIfTaskIsAssigned();
   }
 
-  Future<void> _fetchIfTaskIsAssigned() async {
-    debugPrint("Task Information from the widget: ${widget.taskID}");
-    try {
-      final String response = await taskController.fetchIsApplied(
-        widget.taskID ?? 0,
-        _taskInformation!.clientId,
-        storage.read('user_id') ?? 0,
-      );
-      if (response == 'True') {
-        setState(() {
-          _isApplying = true;
-        });
-      }
-    } catch (e) {
-      debugPrint("Error fetching task details: $e");
-      setState(() {
-        _isLoading = false;
-        _isApplying = false; // Optionally reset on error
-      });
-    }
-  }
+  // Future<void> _fetchIfTaskIsAssigned() async {
+  //   debugPrint("Task Information from the widget: ${widget.taskID}");
+  //   try {
+  //     final String response = await taskController.fetchIsApplied(
+  //       widget.taskID ?? 0,
+  //       _taskInformation!.clientId,
+  //       storage.read('user_id') ?? 0,
+  //     );
+  //     if (response == 'True') {
+  //       setState(() {
+  //         _isApplying = true;
+  //       });
+  //     }
+  //   } catch (e) {
+  //     debugPrint("Error fetching task details: $e");
+  //     setState(() {
+  //       _isLoading = false;
+  //       _isApplying = false; // Optionally reset on error
+  //     });
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -125,8 +125,7 @@ class _TaskInformationState extends State<TaskInformation> {
                                         ),
                                         Row(
                                           children: [
-                                            if (_taskInformation!.status !=
-                                                null)
+                                            if (_taskInformation!.status != null)
                                               Flexible(
                                                 child: Text(
                                                   _taskInformation!.status!,
@@ -251,7 +250,7 @@ class _TaskInformationState extends State<TaskInformation> {
                                 widget.taskID ?? 0,
                                 _taskInformation!.clientId,
                                 userId,
-                                widget.role,
+                                // widget.role,
                               );
 
                               debugPrint("Assign task result: $result");

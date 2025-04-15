@@ -20,7 +20,7 @@ class ReportController {
     try {
       debugPrint("Fetching taskers...");
       final response = await http.get(
-        Uri.parse("${ReportService.apiUrl}/taskers"),
+        Uri.parse("${ReportService.url}/taskers"),
         headers: {
           'Authorization': "Bearer ${ReportService.token}",
         },
@@ -52,7 +52,7 @@ class ReportController {
     try {
       debugPrint("Fetching clients...");
       final response = await http.get(
-        Uri.parse("${ReportService.apiUrl}/clients"),
+        Uri.parse("${ReportService.url}/clients"),
         headers: {
           'Authorization': "Bearer ${ReportService.token}",
         },
@@ -84,7 +84,7 @@ class ReportController {
     try {
       debugPrint("Fetching report history for user: $userId");
       final response = await http.get(
-        Uri.parse("${ReportService.apiUrl}/reportHistory?userId=$userId"),
+        Uri.parse("${ReportService.url}/reportHistory?userId=$userId"),
         headers: {
           'Authorization': "Bearer ${ReportService.token}",
         },

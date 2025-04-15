@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/config/url_strategy.dart';
 import 'package:flutter_fe/model/report_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:get_storage/get_storage.dart';
 
 class ReportService {
-  static const String apiUrl = "http://localhost:5000/connect";
+  static String url = apiUrl ?? "http://localhost:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -14,7 +15,7 @@ class ReportService {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse("$apiUrl/reports"),
+        Uri.parse("$url/reports"),
       );
 
       request.headers['Authorization'] = "Bearer $token";
