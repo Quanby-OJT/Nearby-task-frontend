@@ -1,35 +1,49 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { NgApexchartsModule } from 'ng-apexcharts';
-import { ApexOptions } from 'ng-apexcharts';
+import { ReportService } from '../../../../services/reportANDanalysis.services';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-job',
-  imports: [NgApexchartsModule],
+  standalone: true,
+  imports: [NgApexchartsModule, CommonModule],
   templateUrl: './job.component.html',
   styleUrl: './job.component.css'
 })
-export class JobComponent {
-  chartOptions: ApexOptions = {
-    series: [44, 55, 13, 43, 22],
-    chart: {
-      type: 'pie',
-      height: 350
-    },
-    labels: ['Team A', 'Team B', 'Team C', 'Team D', 'Team E'],
-    colors: ['#8586EC', '#4CAF50', '#FFC107', '#FF5722', '#2196F3'],
-    responsive: [{
-      breakpoint: 480,
-      options: {
-        chart: {
-          width: 200
-        },
-        legend: {
-          position: 'bottom'
+export class JobComponent implements OnInit {
+  rankedSpecializations: { specialization: string; total_requested: number; total_applied: number }[] = [];
+  monthlyTrends: { [key: string]: { [key: string]: number } } = {};
+  chartSeries: { name: string; data: number[] }[] = [];
+  chartCategories: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  constructor(private reportService: ReportService) {}
+
+  ngOnInit(): void {
+    this.fetchSpecializations();
+  }
+
+  fetchSpecializations(): void {
+    this.reportService.getSpecialization('requested').subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.rankedSpecializations = response.rankedSpecializations;
+          this.monthlyTrends = response.monthlyTrends;
+          console.log("Ranked Specializations:", this.rankedSpecializations); // Debug
+          this.updateChart();
+        } else {
+          console.error("Response unsuccessful:", response);
         }
+      },
+      error: (error: any) => {
+        console.error('Error fetching specialization data:', error);
       }
-    }],
-    legend: {
-      position: 'bottom'
-    }
-  };
+    });
+  }
+
+  updateChart(): void {
+    this.chartSeries = this.rankedSpecializations.map(spec => ({
+      name: spec.specialization,
+      data: this.chartCategories.map(month => this.monthlyTrends[spec.specialization]?.[month] || 0)
+    }));
+  }
 }

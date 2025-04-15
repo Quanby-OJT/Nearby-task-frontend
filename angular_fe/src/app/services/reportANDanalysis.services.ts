@@ -20,10 +20,19 @@ export class ReportService {
     });
   }
   
-  getSpecialization(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/getReportAnalysisSpecialization`, {
+  getSpecialization(trendType: 'requested' | 'applied' = 'applied'): Observable<{
+    success: boolean;
+    rankedSpecializations: { specialization: string; total_requested: number; total_applied: number }[];
+    monthlyTrends: { [key: string]: { [key: string]: number } };
+  }> {
+    return this.http.get<{
+      success: boolean;
+      rankedSpecializations: { specialization: string; total_requested: number; total_applied: number }[];
+      monthlyTrends: { [key: string]: { [key: string]: number } };
+    }>(`${this.apiUrl}/getReportAnalysisSpecialization`, {
       headers: this.getHeader(),
-      withCredentials: true
+      withCredentials: true,
+      params: { trendType }
     });
   }
 }
