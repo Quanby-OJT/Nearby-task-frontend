@@ -48,7 +48,7 @@ class TaskController {
           "success": false,
           "error": "You don't have enough tokens to post your needed task. Please Deposit First Your Desired Amount of Tokens."
         };
-      }else{
+      } else {
         final task = TaskModel(
             id: 0,
             clientId: userId,
@@ -73,7 +73,11 @@ class TaskController {
     } catch (e, stackTrace) {
       debugPrint('Error in postJob: $e');
       debugPrint(stackTrace.toString());
-      return {'success': false, 'error': 'An Error Occurred while Posting Your Task. Please Try Again. If Issue Persists, contact our support.'};
+      return {
+        'success': false,
+        'error':
+            'An Error Occurred while Posting Your Task. Please Try Again. If Issue Persists, contact our support.'
+      };
     }
   }
 
@@ -109,25 +113,12 @@ class TaskController {
 
   Future<bool> updateNotif(int taskTakenId) async {
     debugPrint("Assigning task...");
-    final assignedTask =
-        await _jobPostService.assignTask(taskTakenId, null, null);
-    if (assignedTask.containsKey('message')) {
-      return assignedTask['message'] = true;
+    final updateNotif = await _jobPostService.updateNotification(taskTakenId);
+    if (updateNotif.containsKey('message')) {
+      return updateNotif['message'] = true;
     }
     return false;
   }
-
-  Future<String> fetchIsApplied(
-      int? taskId, int? clientId, int? taskerId) async {
-    final assignedTask =
-        await _jobPostService.assignTask(taskId, clientId, taskerId);
-
-    debugPrint("Is applied response: ${assignedTask.toString()}");
-    return assignedTask.containsKey('message')
-        ? assignedTask['message'].toString()
-        : assignedTask['error'].toString();
-  }
-
 
   Future<String> assignTask(int? taskId, int? clientId, int? taskerId) async {
     if (taskId == null || clientId == null || taskerId == null) {
@@ -172,21 +163,24 @@ class TaskController {
   }
 
   Future<bool> acceptRequest(int taskTakenId, String value, String role) async {
-    if(taskTakenId == 0 || value.isEmpty || role.isEmpty) {
-      return false;
+    debugPrint("Assigning task...");
+    final assignedTask =
+        await _jobPostService.acceptRequest(taskTakenId, value, role);
+    if (assignedTask.containsKey('message')) {
+      return assignedTask['message'] = true;
     }
-    try{
-      Map<String, dynamic> updateResult = await _jobPostService.acceptRequest(taskTakenId, value, role);
-      debugPrint("Accept request response: $updateResult");
+    return false;
+  }
 
-      if(updateResult.containsKey('message')) return updateResult['success'];
-      debugPrint("Error in task controller acceptRequest: ${updateResult['error']}");
-      return false;
-    }catch(e, stackTrace){
-      debugPrint("Error in task controller acceptRequest: $e");
-      debugPrintStack(stackTrace: stackTrace);
-      return false;
-    }
+  Future<String> fetchIsApplied(
+      int? taskId, int? clientId, int? taskerId) async {
+    final assignedTask =
+        await _jobPostService.fetchIsApplied(taskId, clientId, taskerId);
+
+    debugPrint("Is applied response: ${assignedTask.toString()}");
+    return assignedTask.containsKey('message')
+        ? assignedTask['message'].toString()
+        : assignedTask['error'].toString();
   }
 
   Future<bool> rateTheTasker(int taskTakenId, int taskerId, int rating, String feedback) async {
@@ -209,15 +203,19 @@ class TaskController {
   }
 
   // Method to update a task
-  Future<Map<String, dynamic>> updateTask(int taskId, Map<String, dynamic> taskData) async {
+  Future<Map<String, dynamic>> updateTask(
+      int taskId, Map<String, dynamic> taskData) async {
     debugPrint("Updating task with ID: $taskId");
     try {
-      if(_escrowManagementController.tokenCredits.value - taskData['proposed_price'] < _escrowManagementController.tokenCredits.value) {
+      if (_escrowManagementController.tokenCredits.value -
+              taskData['proposed_price'] <
+          _escrowManagementController.tokenCredits.value) {
         return {
           "success": false,
-          "error": "You don't have enough tokens to post your needed task. Please Deposit First Your Desired Amount of Tokens."
+          "error":
+              "You don't have enough tokens to post your needed task. Please Deposit First Your Desired Amount of Tokens."
         };
-      }else{
+      } else {
         return await _jobPostService.updateTask(taskId, taskData);
       }
     } catch (e, stackTrace) {
@@ -270,7 +268,8 @@ class TaskController {
   }
 
   //All Messages to client/tasker
-  Future<List<TaskAssignment>?> getAllAssignedTasks(BuildContext context, int userId) async {
+  Future<List<TaskAssignment>?> getAllAssignedTasks(
+      BuildContext context, int userId) async {
     final assignedTasks = await TaskDetailsService().getAllTakenTasks();
     debugPrint(assignedTasks.toString());
 
@@ -381,22 +380,23 @@ class TaskController {
     }
   }
 
-//Update Task Status in Conversation. To be Retired
-//   Future<void> updateTaskStatus(BuildContext context, int taskTakenId, String? newStatus) async {
-//     try {
-//       final response =
-//           await _taskDetailsService.updateTaskStatus(taskTakenId, newStatus);
-//
-//       if (response.containsKey("message")) {
-//         debugPrint('Task status updated successfully');
-//       } else {
-//         debugPrint('Failed to update task status: ${response["error"]}');
-//       }
-//     } catch (e, stackTrace) {
-//       debugPrint('Error updating task status: $e');
-//       debugPrintStack(stackTrace: stackTrace);
-//     }
-//   }
+//Update Task Status in Conversation
+  Future<void> updateTaskStatus(
+      BuildContext context, int taskTakenId, String? newStatus) async {
+    try {
+      final response =
+          await _taskDetailsService.updateTaskStatus(taskTakenId, newStatus);
+
+      if (response.containsKey("message")) {
+        debugPrint('Task status updated successfully');
+      } else {
+        debugPrint('Failed to update task status: ${response["error"]}');
+      }
+    } catch (e, stackTrace) {
+      debugPrint('Error updating task status: $e');
+      debugPrintStack(stackTrace: stackTrace);
+    }
+  }
 
   // Method to check if a task is already assigned to a tasker
   Future<bool> isTaskAssignedToTasker(int taskId, int taskerId) async {

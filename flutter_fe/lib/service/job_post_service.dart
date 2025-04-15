@@ -660,7 +660,6 @@ class JobPostService {
     }
   }
 
-
   Future<Map<String, dynamic>> updateNotification(int taskTakenId) async {
     try {
       debugPrint("Updating notification with ID: $taskTakenId");
@@ -684,7 +683,9 @@ class JobPostService {
   Future<Map<String, dynamic>> acceptRequest(int taskTakenId, String value, String role) async {
     try {
       debugPrint("Accepting task with ID: $taskTakenId $value $role");
-      return await _putRequest(endpoint: '/acceptRequest/$taskTakenId', body: {"value": value, "role": role});
+      return await _putRequest(
+          endpoint: '/acceptRequest/$taskTakenId',
+          body: {"value": value, "role": role});
     } catch (e) {
       debugPrint('Error accepting task: $e');
       debugPrintStack();
@@ -709,6 +710,25 @@ class JobPostService {
       debugPrintStack();
       return {'success': false, 'error': 'Error: $e'};
     }
+  }
+
+  Future<Map<String, dynamic>> fetchIsApplied(
+      int? taskId, int? clientId, int? taskerId) async {
+    final userId = await getUserId();
+    if (userId == null) {
+      return {
+        'success': false,
+        'message': 'Please log in to like jobs',
+        'requiresLogin': true
+      };
+    }
+
+    debugPrint("Sending task request...");
+    debugPrint("Task ID: $taskId, Client ID: $clientId, Tasker ID: $taskerId");
+
+    final response = await _getRequest(
+        "/fetchIsApplied?task_id=$taskId&client_id=$clientId&tasker_id=$taskerId");
+    return response;
   }
 
   Future<Map<String, dynamic>> requestTask(int taskId, int taskerId) async {
@@ -737,7 +757,6 @@ class JobPostService {
       // Proceed with task assignment if not already assigned
       final response = await http.post(
         Uri.parse('$apiUrl/requestTask/$taskId'),
-
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -782,7 +801,10 @@ class JobPostService {
       int taskId, Map<String, dynamic> taskData) async {
     try {
       debugPrint("Updating task with ID: $taskId");
-      return await _putRequest(endpoint: '/updateTask/$taskId', body: taskData,);
+      return await _putRequest(
+        endpoint: '/updateTask/$taskId',
+        body: taskData,
+      );
     } catch (e) {
       debugPrint('Error updating task: $e');
       debugPrintStack();
