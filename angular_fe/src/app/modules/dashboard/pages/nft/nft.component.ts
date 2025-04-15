@@ -36,7 +36,7 @@ export class NftComponent implements OnInit {
       },
       {
         id: 34356772,
-        title: 'Pupaks',
+        title: 'Number of Admins',
         price: 548.79,
         last_bid: 0.35,
         image: './assets/images/img-02.jpg',

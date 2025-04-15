@@ -47,7 +47,7 @@ export class RevenueChart implements OnInit, OnDestroy {
       stroke: {
         curve: 'smooth',
         width: 2,       
-        colors: ['#3B82F6'] 
+        colors: ['#DE6FA1']
       },
       xaxis: {
         categories: timeLabels
@@ -64,7 +64,7 @@ export class RevenueChart implements OnInit, OnDestroy {
           formatter: (val: number) => `${val}` 
         }
       },
-      colors: ['#3B82F6'] 
+      colors: ['#DE6FA1']
     };
   }
 

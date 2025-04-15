@@ -4,7 +4,7 @@ import { JobComponent } from "./job/job.component";
 import { SpecializationComponent } from './specialization/specialization.component';
 import { BestTaskerComponent } from "./best-tasker/best-tasker.component";
 import { BestClientComponent } from "./best-client/best-client.component";
-
+import { DepositorComponent } from './depositor/depositor.component';
 
 @Component({
   selector: 'app-report',
@@ -12,7 +12,8 @@ import { BestClientComponent } from "./best-client/best-client.component";
     JobComponent,
     SpecializationComponent, 
     BestTaskerComponent, 
-    BestClientComponent],
+    BestClientComponent,
+    DepositorComponent],
   templateUrl: './report.component.html',
   styleUrl: './report.component.css'
 })

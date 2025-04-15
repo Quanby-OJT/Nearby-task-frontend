@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { NgApexchartsModule } from 'ng-apexcharts';
+import { ApexOptions } from 'ng-apexcharts';
 
 @Component({
   selector: 'app-specialization',
@@ -9,7 +10,7 @@ import { NgApexchartsModule } from 'ng-apexcharts';
   styleUrls: ['./specialization.component.scss']
 })
 export class SpecializationComponent {
-  chartOptions = {
+  chartOptions: ApexOptions = {
     series: [44, 55, 13, 43, 22],
     chart: {
       type: 'pie',
