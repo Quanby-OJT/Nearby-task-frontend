@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { ReportService } from '../../../../services/reportANDanalysis.services';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-job',
   standalone: true,
-  imports: [NgApexchartsModule, CommonModule],
+  imports: [NgApexchartsModule, CommonModule, FormsModule],
   templateUrl: './job.component.html',
   styleUrl: './job.component.css'
 })
@@ -15,6 +16,8 @@ export class JobComponent implements OnInit {
   monthlyTrends: { [key: string]: { [key: string]: number } } = {};
   chartSeries: { name: string; data: number[] }[] = [];
   chartCategories: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  selectedMonth: string | null = null;
+  months: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   constructor(private reportService: ReportService) {}
 
@@ -23,7 +26,7 @@ export class JobComponent implements OnInit {
   }
 
   fetchSpecializations(): void {
-    this.reportService.getSpecialization('requested').subscribe({
+    this.reportService.getSpecialization('requested', this.selectedMonth || undefined).subscribe({
       next: (response) => {
         if (response.success) {
           this.rankedSpecializations = response.rankedSpecializations;
@@ -38,6 +41,10 @@ export class JobComponent implements OnInit {
         console.error('Error fetching specialization data:', error);
       }
     });
+  }
+
+  onMonthChange(): void {
+    this.fetchSpecializations();
   }
 
   updateChart(): void {
