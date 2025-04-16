@@ -20,7 +20,11 @@ export class ReportService {
     });
   }
   
-  getSpecialization(trendType: 'requested' | 'applied' = 'applied', month?: string): Observable<{  success: boolean; rankedSpecializations: { specialization: string; total_requested: number; total_applied: number }[]; monthlyTrends: { [key: string]: { [key: string]: number } };}> {
+  getSpecialization(trendType: 'requested' | 'applied' = 'applied', month?: string): Observable<{
+    success: boolean;
+    rankedSpecializations: { specialization: string; total_requested: number; total_applied: number }[];
+    monthlyTrends: { [key: string]: { [key: string]: number } };
+  }> {
     return this.http.get<{
       success: boolean;
       rankedSpecializations: { specialization: string; total_requested: number; total_applied: number }[];
@@ -32,7 +36,11 @@ export class ReportService {
     });
   }
 
-  getTopDepositors(): Observable<{ success: boolean; rankedDepositors: { userName: string; amount: number; month: string }[];  monthlyTrends: { [userName: string]: { [month: string]: number } };}> {
+  getTopDepositors(): Observable<{
+    success: boolean;
+    rankedDepositors: { userName: string; amount: number; month: string }[];
+    monthlyTrends: { [userName: string]: { [month: string]: number } };
+  }> {
     return this.http.get<{
       success: boolean;
       rankedDepositors: { userName: string; amount: number; month: string }[];
@@ -43,11 +51,27 @@ export class ReportService {
     });
   }
 
-  getTopTasker(): Observable<{success: boolean; taskers: { userName: string; specialization: string; taskCount: number }[];}> {
+  getTopTasker(): Observable<{
+    success: boolean;
+    taskers: { userName: string; specialization: string; taskCount: number }[];
+  }> {
     return this.http.get<{
       success: boolean;
       taskers: { userName: string; specialization: string; taskCount: number }[];
     }>(`${this.apiUrl}/getTopTasker`, {
+      headers: this.getHeader(),
+      withCredentials: true,
+    });
+  }
+
+  getTopClient(): Observable<{
+    success: boolean;
+    clients: { userName: string; address: string; taskCount: number; gender: string }[];
+  }> {
+    return this.http.get<{
+      success: boolean;
+      clients: { userName: string; address: string; taskCount: number; gender: string }[];
+    }>(`${this.apiUrl}/getTopClient`, {
       headers: this.getHeader(),
       withCredentials: true,
     });
