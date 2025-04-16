@@ -119,6 +119,7 @@ class _FillUpClientState extends State<FillUpClient> {
 
   Future<void> _saveUserWithImages() async {
     // Ensure both profile and ID images are provided
+    debugPrint('Profile Image: $_selectedImage');
     if ((_selectedImage == null && _existingProfileImageUrl == null) ||
         (_selectedImageID == null && _existingIDImageUrl == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -162,7 +163,7 @@ class _FillUpClientState extends State<FillUpClient> {
                   colorScheme: ColorScheme.light(primary: Color(0xFF0272B1))),
               child: Stepper(
                 type: StepperType.horizontal,
-                currentStep: currentStep,
+                currentStep: currentStep >= getSteps().length ? 0 : currentStep,
                 onStepTapped: (step) => setState(() => currentStep = step),
                 onStepContinue: () {
                   if (currentStep == 0) {
@@ -185,11 +186,12 @@ class _FillUpClientState extends State<FillUpClient> {
                             content: Text('Please select a profile picture')),
                       );
                     }
-                  } else if (currentStep == 2) {
+                  } else if (currentStep >= getSteps().length - 1) {
                     if (_selectedImageID != null ||
                         _existingIDImageUrl != null) {
                       _saveUserWithImages();
                     } else {
+                      setState(() => currentStep += 1);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Please upload an ID image')),
                       );

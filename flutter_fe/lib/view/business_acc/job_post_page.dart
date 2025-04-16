@@ -943,10 +943,7 @@ class _JobPostPageState extends State<JobPostPage> {
   }
 
   Widget _buildTaskCard(TaskModel task) {
-    String priceDisplay = task.contactPrice != null
-        ? NumberFormat.currency(locale: 'en_US', symbol: '₱', decimalDigits: 0)
-            .format(task.contactPrice!.roundToDouble())
-        : 'N/A';
+    String priceDisplay = "${task.contactPrice} Credits";
 
     return Card(
       elevation: 2,
@@ -989,7 +986,7 @@ class _JobPostPageState extends State<JobPostPage> {
               ),
               SizedBox(height: 8),
               _buildTaskInfoRow(
-                icon: FontAwesomeIcons.pesoSign,
+                icon: FontAwesomeIcons.coins,
                 color: Colors.green[400]!,
                 text: priceDisplay,
               ),

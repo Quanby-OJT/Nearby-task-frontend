@@ -567,9 +567,9 @@ class JobPostService {
       debugPrint(
           "No existing assignment found for task $taskId and tasker $taskerId");
       return false;
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('Error checking existing assignment: $e');
-      debugPrintStack();
+      debugPrintStack(stackTrace: stackTrace);
       // In case of error, return false and log the error
       // This is safer than returning true as it won't block valid assignments
       return false;

@@ -151,8 +151,9 @@ class AuthenticationController {
             return WelcomePageViewMain();
           }));
         }
-      } catch (e) {
+      } catch (e, stackTrace) {
         debugPrint("Server logout error: $e");
+        debugPrintStack(stackTrace: stackTrace);
         // Don't show this error to the user since they're already logged out locally
       }
     } catch (e, stackTrace) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
+import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/view/business_acc/create_escrow_token.dart';
 
 import 'package:flutter_fe/view/business_acc/notif_screen.dart';
@@ -12,6 +13,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_fe/view/service_acc/notif_screen.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../business_acc/home_page.dart';
 
 class NavUserScreen extends StatefulWidget implements PreferredSizeWidget {
   const NavUserScreen({super.key});
@@ -31,6 +34,13 @@ class _NavUserScreenState extends State<NavUserScreen> {
   String _fullName = "Loading...";
   String _role = "Loading...";
   String _image = "";
+  String? _existingProfileImageUrl = "";
+  String? _existingIDImageUrl = "";
+  bool _documentValid = false;
+  bool _isLoading = true;
+  bool _isUploadDialogShown = false;
+  bool _showButton = false;
+  final _clientServices = ClientServices();
 
   final GlobalKey _moreVertKey = GlobalKey();
 
@@ -202,6 +212,7 @@ class _NavUserScreenState extends State<NavUserScreen> {
         _moreVertKey.currentContext!.findRenderObject() as RenderBox;
     final position = renderBox.localToGlobal(Offset.zero);
     final screenWidth = MediaQuery.of(context).size.width;
+    final GetStorage storage = GetStorage();
 
     // Set menu width to half the screen width
     final double menuWidth = screenWidth / 2;
@@ -288,6 +299,14 @@ class _NavUserScreenState extends State<NavUserScreen> {
                       leading: Icon(FontAwesomeIcons.coins),
                       title: Text('Add NearByTask Tokens'),
                       onTap: () {
+                        if (_existingProfileImageUrl == null ||
+                            _existingIDImageUrl == null ||
+                            _existingProfileImageUrl!.isEmpty ||
+                            _existingIDImageUrl!.isEmpty ||
+                            !_documentValid) {
+                          overlayEntry.remove();
+                          return _showWarningDialog();
+                        }
                         Navigator.push(context, MaterialPageRoute(builder: (context) {
                           return EscrowTokenScreen();
                         }));
@@ -340,4 +359,94 @@ class _NavUserScreenState extends State<NavUserScreen> {
     // Add the overlay entry to the overlay
     overlayState.insert(overlayEntry);
   }
+
+  void _showWarningDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text("Account Verification"),
+        content: const Text(
+            "Upload your Profile and ID images to complete your account. Verification will follow."),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FillUpClient()),
+              );
+              if (result == true) {
+                setState(() {
+                  _isLoading = true;
+                });
+
+                await _fetchUserIDImage();
+              } else {
+                setState(() {
+                  _isUploadDialogShown = false;
+                });
+              }
+            },
+            child: const Text("Verify Account"),
+          ),
+          TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                // Reset the flag when user cancels
+                setState(() {
+                  _isUploadDialogShown = false;
+                });
+              },
+              child: Text('Cancel')),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _fetchUserIDImage() async {
+    try {
+      int userId = int.parse(storage.read('user_id').toString());
+      if (userId == null) {
+        debugPrint("User ID not found in storage po");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to load user image. Please try again."),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+
+      AuthenticatedUser? user =
+      await _profileController.getAuthenticatedUser(context, userId);
+      debugPrint(user.toString());
+
+      final response = await _clientServices.fetchUserIDImage(userId);
+
+      if (response['success']) {
+        setState(() {
+          _user = user;
+          _existingProfileImageUrl = user?.user.image;
+          _existingIDImageUrl = response['url'];
+          _documentValid = response['status'];
+
+          _isLoading = false;
+
+          debugPrint(
+              "Successfully loaded user image" + _existingProfileImageUrl!);
+          debugPrint("Successfully loaded ID image" + _existingIDImageUrl!);
+
+          // if (_existingProfileImageUrl != null && _existingIDImageUrl != null) {
+          //   _showButton = true;
+          // }
+        });
+      }
+    } catch (e) {
+      debugPrint("Error fetching ID image: $e");
+    }
+  }
+
+
 }

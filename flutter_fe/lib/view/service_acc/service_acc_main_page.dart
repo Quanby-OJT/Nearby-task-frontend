@@ -7,6 +7,7 @@ import 'package:flutter_fe/view/service_acc/like_screen.dart';
 import 'package:flutter_fe/view/service_acc/record.dart';
 import 'package:flutter_fe/view/service_acc/schedule_management_page.dart';
 import 'package:flutter_fe/view/service_acc/task_requests_screen.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 
 class ServiceAccMain extends StatefulWidget {
@@ -62,23 +63,23 @@ class _ServiceAccMainState extends State<ServiceAccMain> {
           // type: BottomNavigationBarType.fixed,
           tabs: const [
             GButton(
-              icon: Icons.home,
+              icon: FontAwesomeIcons.house,
               text: 'Home',
             ),
             GButton(
-              icon: Icons.schedule,
+              icon: FontAwesomeIcons.clock,
               text: 'Schedule',
             ),
             GButton(
-              icon: Icons.message,
+              icon: FontAwesomeIcons.solidMessage,
               text: 'Chat',
             ),
             GButton(
-              icon: Icons.favorite,
+              icon: FontAwesomeIcons.solidHeart,
               text: 'Likes',
             ),
             GButton(
-              icon: Icons.person,
+              icon: FontAwesomeIcons.listCheck,
               text: 'Profile',
             )
           ],

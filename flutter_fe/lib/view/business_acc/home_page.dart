@@ -233,6 +233,10 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  ///I think pwede tong isahan na lang na page, para di bloated tingnan.
+  ///
+  /// -Ces
+  ///
   void _showWarningDialog() {
     showDialog(
       context: context,
