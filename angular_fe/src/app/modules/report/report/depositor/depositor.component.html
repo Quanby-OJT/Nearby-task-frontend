@@ -51,47 +51,4 @@
       </div>
     </div>
   </div>
-
-  <!-- Pagination Section -->
-  <div class="flex justify-between items-center bg-white w-full">
-    <!-- Logs per page selector -->
-    <div class="text-muted-foreground flex items-center justify-between py-3 px-5 text-xs">
-      <div class="flex items-center gap-2">
-        Show
-        <select class="w-[140px] p-2 border rounded-md" (change)="updateItemsPerPage($event)">
-          <option value="10" selected>10</option>
-          <option value="20">20</option>
-          <option value="30">30</option>
-          <option value="50">50</option>
-        </select>
-        per page
-      </div>
-    </div>
-
-    <!-- Pagination controls -->
-    <div class="flex items-center justify-end gap-4 sticky bottom-0 left-0 right-0 bg-white p-2">
-      <!-- Show current range of logs -->
-      <span class="text-sm border w-32 text-center">
-        {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ currentPage * itemsPerPage > totalItems ? totalItems : currentPage * itemsPerPage }} of {{ totalItems }}
-      </span>
-
-      <!-- Pagination buttons -->
-      <div class="inline-flex items-center gap-2">
-        <!-- Previous page button -->
-        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300" (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1">
-          ◀
-        </button>
-
-        <!-- Page number buttons -->
-        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-sm bg-primary text-white">
-          {{ currentPage }}
-        </button>
-
-        <!-- Next page button -->
-        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300" (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages">
-          ▶
-        </button>
-      </div>
-    </div>
-  </div>
 </div>
