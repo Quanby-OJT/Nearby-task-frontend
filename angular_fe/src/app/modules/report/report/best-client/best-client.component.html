@@ -7,7 +7,8 @@
       <!-- Search input -->
       <div class="flex-1 min-w-[200px] lg:min-w-[300px] xl:min-w-[400px]">
         <label class="relative w-full">
-          <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" placeholder="Search client" type="text" />
+          <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" 
+                 placeholder="Search client" type="text" (input)="searchClients($event)" />
         </label>
       </div>
     </div>
@@ -27,8 +28,8 @@
       </thead>
       <tbody>
         <!-- Dynamically display clients -->
-        <tr *ngFor="let client of clients; let i = index" class="border-b">
-          <td class="px-4 py-3 text-center">{{ i + 1 }}</td>
+        <tr *ngFor="let client of displayClients; let i = index" class="border-b">
+          <td class="px-4 py-3 text-center">{{ (currentPage - 1) * clientsPerPage + i + 1 }}</td>
           <td class="px-4 py-3 text-center">{{ client.userName }}</td>
           <td class="px-4 py-3 text-center">{{ client.address }}</td>
           <td class="px-4 py-3 text-center">{{ client.taskCount }}</td>
@@ -44,7 +45,7 @@
     <div class="text-muted-foreground flex items-center justify-between py-3 px-5 text-xs">
       <div class="flex items-center gap-2">
         Show
-        <select class="w-[140px] p-2 border rounded-md">
+        <select class="w-[140px] p-2 border rounded-md" (change)="changeClientsPerPage($event)">
           <option value="10" selected>10</option>
           <option value="20">20</option>
           <option value="30">30</option>
@@ -58,23 +59,31 @@
     <div class="flex items-center justify-end gap-4 sticky bottom-0 left-0 right-0 bg-white p-2">
       <!-- Show current range of logs -->
       <span class="text-sm border w-32 text-center">
-        1 - 5 of 5
+        {{ startIndex }} - {{ endIndex }} of {{ filteredClients.length }}
       </span>
 
       <!-- Pagination buttons -->
       <div class="inline-flex items-center gap-2">
         <!-- Previous page button -->
-        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300">
+        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 disabled:opacity-50"
+                [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
           ◀
         </button>
 
         <!-- Page number buttons -->
-        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-sm bg-primary text-white">
-          1
-        </button>
+        <ng-container *ngFor="let page of paginationButtons">
+          <button *ngIf="page !== '...'"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-sm"
+                  [ngClass]="{'bg-primary text-white': currentPage === page}"
+                  (click)="goToPage(page)">
+            {{ page }}
+          </button>
+          <span *ngIf="page === '...'" class="text-gray-500">...</span>
+        </ng-container>
 
         <!-- Next page button -->
-        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300">
+        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300"
+                [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
           ▶
         </button>
       </div>
