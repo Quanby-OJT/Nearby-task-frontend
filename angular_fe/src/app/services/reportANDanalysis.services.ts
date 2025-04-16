@@ -35,4 +35,19 @@ export class ReportService {
       params: { trendType, ...(month && { month }) }
     });
   }
+
+  getTopDepositors(): Observable<{
+    success: boolean;
+    rankedDepositors: { userName: string; amount: number; month: string }[];
+    monthlyTrends: { [userName: string]: { [month: string]: number } };
+  }> {
+    return this.http.get<{
+      success: boolean;
+      rankedDepositors: { userName: string; amount: number; month: string }[];
+      monthlyTrends: { [userName: string]: { [month: string]: number } };
+    }>(`${this.apiUrl}/getTopDepositors`, {
+      headers: this.getHeader(),
+      withCredentials: true,
+    });
+  }
 }
