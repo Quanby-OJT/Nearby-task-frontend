@@ -46,8 +46,10 @@ class _ClientRequestState extends State<ClientRequest> {
 
   Future<void> _updateNotif() async {
     try {
+      final int userId = storage.read("user_id");
       final response = await taskController.updateNotif(
         widget.requestID ?? 0,
+        userId,
       );
       debugPrint("Update notification response: ${response.toString()}");
       if (!response) {
@@ -388,7 +390,7 @@ class _ClientRequestState extends State<ClientRequest> {
                                   width: double.infinity,
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(10),
-                                    color: Colors.yellow,
+                                    color: Colors.red,
                                   ),
                                   child: TextButton(
                                     onPressed: () {},
@@ -400,7 +402,7 @@ class _ClientRequestState extends State<ClientRequest> {
                                       ),
                                     ),
                                     child: Text(
-                                      'Accepted',
+                                      'Cancel',
                                       style: GoogleFonts.montserrat(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,

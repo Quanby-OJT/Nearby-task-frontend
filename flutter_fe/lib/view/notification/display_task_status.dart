@@ -44,8 +44,10 @@ class _DisplayTaskStatusState extends State<DisplayTaskStatus> {
 
   Future<void> _updateNotif() async {
     try {
+      final int userId = storage.read("user_id");
       final response = await taskController.updateNotif(
         widget.requestID ?? 0,
+        userId,
       );
       debugPrint("Update notification response: ${response.toString()}");
       if (!response) {

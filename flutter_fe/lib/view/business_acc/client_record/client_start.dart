@@ -6,6 +6,7 @@ import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/view/business_acc/client_record/client_finish.dart';
 import 'package:flutter_fe/view/business_acc/client_record/client_ongoing.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:get_storage/get_storage.dart';
@@ -234,7 +235,7 @@ class _ClientStartState extends State<ClientStart> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          "Tasker Profile",
+                                          "Ede Profile",
                                           style: GoogleFonts.montserrat(
                                             color: const Color(0xFF03045E),
                                             fontSize: 14,
@@ -303,6 +304,7 @@ class _ClientStartState extends State<ClientStart> {
                                             MaterialPageRoute(
                                                 builder: (context) =>
                                                     ClientOngoing(
+                                                        role: _role,
                                                         ongoingID:
                                                             _requestInformation!
                                                                 .task_taken_id!)));

@@ -81,8 +81,6 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
 
         debugPrint("Role: ${_role}");
         debugPrint("Print Id then: ${_user?.user.id}");
-
-        debugPrint("Fetched user data: ${_user?.user.id}");
       });
     } catch (e) {
       debugPrint("Error fetching user data: $e");
@@ -162,8 +160,12 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
           }
           try {
             // Check if the task has ever been assigned to this tasker
+
+            final userId = await storage.read('user_id');
+
+            debugPrint("Checking task ${task.id} for tasker $taskerId");
             return await jobPostService.hasTaskEverBeenAssignedToTasker(
-                task.id!, taskerId);
+                task.id!, taskerId, userId! as int);
           } catch (e) {
             debugPrint("Error checking task ${task.id}: $e");
             return false; // On error, assume not assigned to show the task
@@ -256,13 +258,17 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
   Future<void> _assignTask(UserModel tasker) async {
     if (_isAssigning) return;
 
+    // Filter available tasks concurrently for current tasker and client
+    debugPrint(
+        "Filtering available tasks for tasker ${tasker.id} and client ${_user?.user.id}");
+
     debugPrint("Assigning task to tasker ${tasker.id}");
     setState(() {
       _isAssigning = true;
     });
 
     try {
-      // Use preloaded tasks if available, else fetch
+      // Use preloaded tasks if available, else fetch. Fetch All posted tasks
       List<TaskModel> clientTasks =
           _preloadedTasks ?? await _fetchClientTasks();
 
@@ -276,9 +282,11 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
         return;
       }
 
-      // Filter available tasks concurrently
       final availableTasks =
           await _filterAvailableTasks(clientTasks, widget.tasker.id!);
+
+      debugPrint(
+          "Available tasks: ${clientTasks.length} tasks ${widget.tasker.id}");
 
       if (availableTasks.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -343,7 +351,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
         if (isSuccess) {
           final jobPostService = JobPostService();
           jobPostService.updateAssignmentCache(
-              selectedTask.id!, tasker.id ?? 0, true);
+              selectedTask.id!, tasker.id ?? 0, true, clientId!);
           TaskCache.clear(); // Invalidate cache
           _preloadClientTasks(); // Refresh preloaded tasks
         }

@@ -17,17 +17,15 @@ class JobPostService {
   static final storage = GetStorage();
   static final token = storage.read('session');
 
-  // Cache to track assignments already made in this session
   final Map<String, bool> _assignmentCache = {};
 
-  // Helper to generate cache key for task-tasker pair
-  String _getAssignmentCacheKey(int taskId, int taskerId) {
-    return "$taskId-$taskerId";
+  String _getAssignmentCacheKey(int taskId, int taskerId, String userId) {
+    return "$taskId-$taskerId-$userId";
   }
 
-  // Public method to update the assignment cache
-  void updateAssignmentCache(int taskId, int taskerId, bool isAssigned) {
-    String cacheKey = _getAssignmentCacheKey(taskId, taskerId);
+  void updateAssignmentCache(
+      int taskId, int taskerId, bool isAssigned, String userId) {
+    String cacheKey = _getAssignmentCacheKey(taskId, taskerId, userId);
     _assignmentCache[cacheKey] = isAssigned;
   }
 
@@ -36,15 +34,12 @@ class JobPostService {
     final responseBody = jsonDecode(response.body);
     if (response.statusCode >= 200 && response.statusCode < 300) {
       debugPrint(responseBody.toString());
-      // Ensure the response includes a success flag
       Map<String, dynamic> result = {...responseBody};
-      // If the response doesn't have a 'success' key, add it
       if (!result.containsKey('success')) {
         result['success'] = true;
       }
       return result;
     } else {
-      // Return error with success flag set to false
       return {
         "success": false,
         "error": responseBody["error"] ?? "Unknown error",
@@ -123,19 +118,14 @@ class JobPostService {
 
   Future<Map<String, dynamic>> postJob(TaskModel task, int userId) async {
     try {
-      // Log the request for debugging
       debugPrint("Posting job with data: ${task.toJson()}");
 
-      // Make sure duration and proposed_price are properly formatted
       var taskData = task.toJson();
 
-      // Ensure duration is an integer
       if (taskData['duration'] is String) {
         taskData['duration'] =
             int.tryParse(taskData['duration'] as String) ?? 0;
       }
-
-      // Ensure proposed_price is an integer
       if (taskData['proposed_price'] == null) {
         taskData['proposed_price'] = 0;
       } else if (taskData['proposed_price'] is String) {
@@ -143,7 +133,6 @@ class JobPostService {
             int.tryParse(taskData['proposed_price'] as String) ?? 0;
       }
 
-      // Print the final data being sent
       debugPrint("Posting job with data: ${taskData}");
 
       Map<String, dynamic> response = await _postRequest(
@@ -151,7 +140,6 @@ class JobPostService {
         body: {...taskData, "user_id": userId},
       );
 
-      // Ensure the success field is always a boolean
       return {
         'success': response.containsKey('success')
             ? response['success'] == true
@@ -203,9 +191,6 @@ class JobPostService {
   Future<TaskAssignment?> fetchTaskInformation(int taskID) async {
     try {
       Map<String, dynamic> response = await _getRequest("/displayTask/$taskID");
-      //debugPrint("Assigned Task Information Retrieved: ${response.toString()}");
-
-      // Check if response contains the "tasks" key and it's a Map
       if (response.containsKey("tasks") && response["tasks"] is Map) {
         Map<String, dynamic> taskData =
             response["tasks"] as Map<String, dynamic>;
@@ -218,7 +203,6 @@ class JobPostService {
             taskTakenId: taskData['task_taken_id'] ?? 0);
       }
 
-      // Return null if no tasks found or invalid format
       debugPrint("No valid task data found in response");
       return null;
     } catch (e, stackTrace) {
@@ -234,7 +218,6 @@ class JobPostService {
           await _getRequest("/display-assigned-task/$taskTakenID");
       debugPrint("Assigned Task Information Retrieved: ${response.toString()}");
 
-      // Check if response is not empty and is a Map
       if (response['success']) {
         debugPrint("Mapped: ${response.toString()}");
         return TaskAssignment(
@@ -256,7 +239,6 @@ class JobPostService {
             taskTakenId: 0);
       }
 
-      // Return null if no valid data found
       debugPrint("No valid task data found in response");
       return null;
     } catch (e, stackTrace) {
@@ -279,18 +261,15 @@ class JobPostService {
       final allJobsResponse = await _getRequest(
           "/displayTaskWithSpecialization?specialization=$specialization");
 
-      // Log responses for debugging
       debugPrint("Liked Jobs Response: $likedJobsResponse");
       debugPrint("All Jobs Response: $allJobsResponse");
 
-      // Check if allJobsResponse is a valid Map with tasks
       if (allJobsResponse.containsKey("error")) {
         debugPrint(
             "Error fetching jobs: ${allJobsResponse['error'] ?? 'Invalid response'}");
         return [];
       }
 
-      // Ensure 'tasks' exists and is a List
       final tasks = allJobsResponse["tasks"];
       if (tasks == null || tasks is! List) {
         debugPrint(
@@ -319,18 +298,15 @@ class JobPostService {
       final likedJobsResponse = await _getRequest("/displayLikedJob/$userId");
       final allJobsResponse = await _getRequest("/displayTask");
 
-      // Log responses for debugging
       debugPrint("Liked Jobs Response: $likedJobsResponse");
       debugPrint("All Jobs Response: $allJobsResponse");
 
-      // Check if allJobsResponse is a valid Map with tasks
       if (allJobsResponse.containsKey("error")) {
         debugPrint(
             "Error fetching jobs: ${allJobsResponse['error'] ?? 'Invalid response'}");
         return [];
       }
 
-      // Ensure 'tasks' exists and is a List
       final tasks = allJobsResponse["tasks"];
       if (tasks == null || tasks is! List) {
         debugPrint(
@@ -349,9 +325,7 @@ class JobPostService {
   }
 
   Future<Map<String, dynamic>> saveLikedJob(int jobId) async {
-    // debugPrint(jobId.toString());
     final userId = await getUserId();
-    // debugPrint(userId);
     if (userId == null) {
       return {
         'success': false,
@@ -392,10 +366,8 @@ class JobPostService {
 
   Future<List<TaskModel>> fetchCreatedTasksByClient(int clientId) async {
     try {
-      // First try with the updated API endpoint
       final response = await _getRequest("/getCreatedTaskByClient/$clientId");
 
-      // Log response for debugging
       debugPrint("Created Tasks Response: $response");
 
       if (response.containsKey("success") &&
@@ -406,9 +378,6 @@ class JobPostService {
             .map((task) => TaskModel.fromJson(task as Map<String, dynamic>))
             .toList();
       } else {
-        // If the new endpoint fails, fall back to the general task endpoint
-        // and filter by client_id
-        debugPrint("Falling back to general task endpoint");
         final allTasksResponse = await _getRequest("/displayTask");
 
         if (allTasksResponse.containsKey("tasks") &&
@@ -416,9 +385,7 @@ class JobPostService {
           final List<dynamic> allTasks =
               allTasksResponse["tasks"] as List<dynamic>;
 
-          // Filter tasks by client_id
           final filteredTasks = allTasks.where((task) {
-            // Check if task is a Map and has client_id that matches
             return task is Map<String, dynamic> &&
                 task.containsKey("client_id") &&
                 task["client_id"] == clientId;
@@ -440,7 +407,6 @@ class JobPostService {
     }
   }
 
-  //Not sure if this will work. Needs more debugging.
   Future<List<TaskModel>> fetchUserLikedJobs() async {
     try {
       String? userId = await getUserId();
@@ -487,7 +453,6 @@ class JobPostService {
     try {
       debugPrint("Checking if task $taskId is assigned to tasker $taskerId");
 
-      // First approach: Check in task-taken with tasker ID
       try {
         final takenTasksResponse =
             await _getRequest("/task-taken/tasker/$taskerId");
@@ -508,10 +473,8 @@ class JobPostService {
         }
       } catch (e) {
         debugPrint("Error checking task-taken: $e");
-        // Continue with other checks
       }
 
-      // Second approach: Direct check with the backend
       try {
         final directCheck = await _postRequest(
             endpoint: "/check-task-assignment/$taskId/$taskerId",
@@ -525,10 +488,8 @@ class JobPostService {
         }
       } catch (e) {
         debugPrint("Direct check failed: $e");
-        // Continue with other checks
       }
 
-      // Third approach: Check if task is assigned to anyone
       try {
         final taskStatus = await _getRequest("/displayTask/$taskId");
         if (taskStatus.containsKey('tasks') &&
@@ -548,7 +509,6 @@ class JobPostService {
     } catch (e) {
       debugPrint('Error checking task assignment: $e');
       debugPrintStack();
-      // In case of error, return true to prevent potential duplicate assignments
       return true;
     }
   }
@@ -557,13 +517,10 @@ class JobPostService {
     try {
       debugPrint(
           "Checking for existing assignment between task $taskId and tasker $taskerId");
-
-      // First approach: Direct database check
       final response = await _postRequest(
           endpoint: "/check-task-assignment/$taskId/$taskerId",
           body: {"tasker_id": taskerId, "task_id": taskId});
 
-      // Log the response for debugging
       debugPrint("Check assignment response: $response");
 
       if (response.containsKey('exists') && response['exists'] == true) {
@@ -571,7 +528,6 @@ class JobPostService {
         return true;
       }
 
-      // Second approach: Check in taken-tasks
       final takenTasksResponse = await _getRequest("/taken-tasks");
 
       if (takenTasksResponse.containsKey('data') &&
@@ -579,7 +535,6 @@ class JobPostService {
         List<dynamic> takenTasks = takenTasksResponse['data'];
 
         for (var task in takenTasks) {
-          // Check both post_task_id and task_id fields in case API uses different names
           final taskIdField =
               task['post_task_id'] ?? task['task_id'] ?? task['id'];
           final taskerIdField = task['tasker_id'] ?? task['id'];
@@ -591,7 +546,6 @@ class JobPostService {
         }
       }
 
-      // Third approach: Check in task_assignments
       final assignmentsResponse =
           await _getRequest("/check-task-assignment/$taskId/$taskerId");
 
@@ -615,42 +569,38 @@ class JobPostService {
     } catch (e) {
       debugPrint('Error checking existing assignment: $e');
       debugPrintStack();
-      // In case of error, return false and log the error
-      // This is safer than returning true as it won't block valid assignments
       return false;
     }
   }
 
-  // Method to check if a task has ever been assigned to a specific tasker
-  Future<bool> hasTaskEverBeenAssignedToTasker(int taskId, int taskerId) async {
+  Future<bool> hasTaskEverBeenAssignedToTasker(
+      int taskId, int taskerId, userId) async {
     try {
       debugPrint(
-          "Checking if task $taskId has ever been assigned to tasker $taskerId");
+          "Checking if task $taskId has ever been assigned to tasker $taskerId, user ID: $userId");
 
-      // Check cache first for performance
-      String cacheKey = _getAssignmentCacheKey(taskId, taskerId);
+      String cacheKey =
+          _getAssignmentCacheKey(taskId, taskerId, userId.toString());
       if (_assignmentCache.containsKey(cacheKey)) {
         return _assignmentCache[cacheKey]!;
       }
 
-      // Skip the non-existent endpoints and directly use the task-taken endpoint
-      // which is working based on the error logs
       try {
-        final userId = await getUserId();
         if (userId != null) {
-          final takenTasksResponse =
-              await _getRequest("/task-taken/tasker/$userId");
+          final takenTasksResponse = await _getRequest(
+              "/task-taken/tasker/$taskerId?userId=$userId&taskId=$taskId");
 
           if (takenTasksResponse.containsKey('tasks') &&
               takenTasksResponse['tasks'] is List) {
             List<dynamic> takenTasks = takenTasksResponse['tasks'];
 
             for (var task in takenTasks) {
+              debugPrint("Checking task po ${task['id']} for tasker $taskerId");
               final taskIdField =
                   task['post_task_id'] ?? task['task_id'] ?? task['id'];
               if (taskIdField == taskId) {
                 debugPrint("Task $taskId is assigned to tasker $taskerId");
-                _assignmentCache[cacheKey] = true; // Cache the result
+                _assignmentCache[cacheKey] = true;
                 return true;
               }
             }
@@ -658,29 +608,22 @@ class JobPostService {
         }
       } catch (e) {
         debugPrint("Error checking task-taken: $e");
-        // Continue with fallback approach
       }
 
-      // If we reach here, assume the task has never been assigned to this tasker
-      // This is a safe fallback that will allow tasks to be shown
       debugPrint("Task $taskId has never been assigned to tasker $taskerId");
-      _assignmentCache[cacheKey] = false; // Cache the result
+      _assignmentCache[cacheKey] = false;
       return false;
     } catch (e) {
       debugPrint('Error checking task assignment history: $e');
       debugPrintStack();
-      // In case of error, return false to allow the task to be shown
-      // This is safer than returning true which would hide tasks
       return false;
     }
   }
 
-  // Method to check if a task is assigned to anyone
   Future<bool> isTaskAssigned(int taskId, int taskerId) async {
     try {
       debugPrint("Checking if task $taskId is assigned to anyone");
 
-      // First approach: Check in task-assignments
       final response =
           await _getRequest("/check-task-assignment/$taskId/$taskerId");
 
@@ -688,7 +631,6 @@ class JobPostService {
           response['assignments'] is List) {
         List<dynamic> assignments = response['assignments'];
 
-        // Check if this task is assigned to anyone
         for (var assignment in assignments) {
           if (assignment['task_id'] == taskId ||
               assignment['post_task_id'] == taskId) {
@@ -699,7 +641,6 @@ class JobPostService {
         }
       }
 
-      // Second approach: Check in task-taken with tasker ID
       try {
         final userId = await getUserId();
         if (userId != null) {
@@ -723,7 +664,6 @@ class JobPostService {
         }
       } catch (e) {
         debugPrint("Error checking task-taken: $e");
-        // Continue with other checks
       }
 
       debugPrint("Task $taskId is not assigned to anyone");
@@ -758,11 +698,12 @@ class JobPostService {
     });
   }
 
-  Future<Map<String, dynamic>> updateNotification(int taskTakenId) async {
+  Future<Map<String, dynamic>> updateNotification(
+      int taskTakenId, int userId) async {
     try {
-      debugPrint("Updating notification with ID: $taskTakenId");
+      debugPrint("Updating notification with ID: $taskTakenId and $userId");
       final response = await http.put(
-        Uri.parse('$url/updateNotification/$taskTakenId'),
+        Uri.parse('$url/updateNotification/$taskTakenId?userId=$userId'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
@@ -813,7 +754,6 @@ class JobPostService {
 
   Future<Map<String, dynamic>> requestTask(int taskId, int taskerId) async {
     try {
-      // First check if task is already assigned
       final taskResponse = await http.get(
         Uri.parse('${apiUrl}/tasks/$taskId'),
         headers: {
@@ -834,7 +774,6 @@ class JobPostService {
         }
       }
 
-      // Proceed with task assignment if not already assigned
       final response = await http.post(
         Uri.parse('$apiUrl/requestTask/$taskId'),
         headers: {
@@ -852,7 +791,6 @@ class JobPostService {
     }
   }
 
-  // Method to update a task
   Future<Map<String, dynamic>> updateTask(
       int taskId, Map<String, dynamic> taskData) async {
     try {
@@ -868,7 +806,6 @@ class JobPostService {
     }
   }
 
-  // Method to disable a task
   Future<Map<String, dynamic>> disableTask(int taskId,
       [String status = "cancelled"]) async {
     try {
@@ -891,7 +828,6 @@ class JobPostService {
     }
   }
 
-  // Method to fetch valid task statuses
   Future<List<String>> fetchValidTaskStatuses() async {
     try {
       final response = await _getRequest("/task-statuses");
@@ -900,16 +836,13 @@ class JobPostService {
         return (response["statuses"] as List).map((s) => s.toString()).toList();
       }
 
-      // If we can't get the valid statuses, return some common ones
       return ["ACTIVE", "INACTIVE", "COMPLETED", "CANCELLED"];
     } catch (e) {
       debugPrint('Error fetching valid task statuses: $e');
-      // Return default values if we can't get them from the server
       return ["ACTIVE", "INACTIVE", "COMPLETED", "CANCELLED"];
     }
   }
 
-  // Method to delete a task
   Future<Map<String, dynamic>> deleteTask(int taskId) async {
     try {
       debugPrint("Deleting task with ID: $taskId");

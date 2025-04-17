@@ -3,6 +3,7 @@ import 'package:flutter_fe/controller/notificationController.dart';
 import 'package:flutter_fe/view/business_acc/client_record/client_ongoing.dart';
 import 'package:flutter_fe/view/notification/client_request.dart';
 import 'package:flutter_fe/view/notification/display_task_status.dart';
+import 'package:flutter_fe/view/service_acc/tasker_record/tasker_pending.dart';
 import 'package:flutter_fe/view/service_acc/tasker_record/tasker_start.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -135,6 +136,22 @@ class _NotifScreenTaskerState extends State<NotifSTaskerScreen> {
                             child: InkWell(
                               borderRadius: BorderRadius.circular(12),
                               onTap: () async {
+                                if (request["status"] == "Pending") {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => TaskerPending(
+                                        requestID: request["id"],
+                                        role: request["role"],
+                                      ),
+                                    ),
+                                  ).then((value) {
+                                    setState(() {
+                                      _isLoading = true;
+                                    });
+                                    _fetchRequests();
+                                  });
+                                }
                                 if (request["status"] == "Rejected") {
                                   Navigator.push(
                                     context,

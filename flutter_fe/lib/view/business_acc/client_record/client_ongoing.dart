@@ -30,7 +30,8 @@ class _ClientOngoingState extends State<ClientOngoing> {
   AuthenticatedUser? tasker;
   Duration? _timeRemaining;
   Timer? _timer;
-  final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+  final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey =
+      GlobalKey<ScaffoldMessengerState>();
 
   @override
   void initState() {
@@ -142,7 +143,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
 
       // If user cancelled the bottom sheet, do nothing
       if (result == null) return;
-      
+
       // Check if we have the necessary information
       if (_requestInformation?.task_taken_id == null || widget.role == null) {
         if (mounted) {
@@ -152,18 +153,18 @@ class _ClientOngoingState extends State<ClientOngoing> {
         }
         return;
       }
-      
+
       // Store the necessary information before navigation
       final int taskTakenId = _requestInformation!.task_taken_id!;
       final String role = widget.role!;
-      
+
       // Show loading indicator
       if (mounted) {
         setState(() {
           _isLoading = true;
         });
       }
-      
+
       // IMPORTANT: Navigate to the finish screen FIRST, before making the API call
       // This avoids the context issue completely
       if (mounted) {
@@ -177,7 +178,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
           ),
         );
       }
-      
+
       // Now make the API call after navigation, so we don't need to use context anymore
       final String value = 'Finish';
       try {
@@ -186,7 +187,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
           value,
           role,
         );
-        
+
         debugPrint("Finish request result: ${requestResult.toString()}");
         // We don't need to do anything with the result since we've already navigated
       } catch (e) {
@@ -195,13 +196,13 @@ class _ClientOngoingState extends State<ClientOngoing> {
       }
     } catch (e) {
       debugPrint("Error in feedback sheet: $e");
-      
+
       // Only update UI if the widget is still mounted
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
-        
+
         _scaffoldMessengerKey.currentState?.showSnackBar(
           SnackBar(content: Text('Error occurred')),
         );
@@ -665,7 +666,7 @@ class __FeedbackBottomSheetState extends State<_FeedbackBottomSheet> {
                     );
                     return;
                   }
-                  
+
                   // Simply return the data and close the bottom sheet
                   Navigator.pop(context, {
                     'rating': _rating,
