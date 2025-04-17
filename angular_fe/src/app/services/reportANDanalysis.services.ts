@@ -35,4 +35,45 @@ export class ReportService {
       params: { trendType, ...(month && { month }) }
     });
   }
+
+  getTopDepositors(): Observable<{
+    success: boolean;
+    rankedDepositors: { userName: string; amount: number; month: string }[];
+    monthlyTrends: { [userName: string]: { [month: string]: number } };
+  }> {
+    return this.http.get<{
+      success: boolean;
+      rankedDepositors: { userName: string; amount: number; month: string }[];
+      monthlyTrends: { [userName: string]: { [month: string]: number } };
+    }>(`${this.apiUrl}/getTopDepositors`, {
+      headers: this.getHeader(),
+      withCredentials: true,
+    });
+  }
+
+  getTopTasker(): Observable<{
+    success: boolean;
+    taskers: { userName: string; specialization: string; taskCount: number }[];
+  }> {
+    return this.http.get<{
+      success: boolean;
+      taskers: { userName: string; specialization: string; taskCount: number }[];
+    }>(`${this.apiUrl}/getTopTasker`, {
+      headers: this.getHeader(),
+      withCredentials: true,
+    });
+  }
+
+  getTopClient(): Observable<{
+    success: boolean;
+    clients: { userName: string; address: string; taskCount: number; gender: string }[];
+  }> {
+    return this.http.get<{
+      success: boolean;
+      clients: { userName: string; address: string; taskCount: number; gender: string }[];
+    }>(`${this.apiUrl}/getTopClient`, {
+      headers: this.getHeader(),
+      withCredentials: true,
+    });
+  }
 }
