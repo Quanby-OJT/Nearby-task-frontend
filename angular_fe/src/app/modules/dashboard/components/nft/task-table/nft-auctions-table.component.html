@@ -1,38 +1,24 @@
-<div class="bg-background flex-col rounded-lg px-8 py-8 shadow-md sm:flex-row">
-  <div class="mb-4 flex items-center justify-between">
-    <div class="flex-col items-center">
-      <h3 class="text-md text-foreground font-bold">Available Tasks</h3>
-    </div>
-    <div>
-      <select
-        name=""
-        id=""
-        class="bg-card text-muted-foreground hover:bg-muted hover:text-foreground flex-none rounded-md px-4 pr-10 text-xs font-semibold">
-        <option value="Today" selected>Today</option>
-        <option value="Week">Week</option>
-        <option value="Month">Month</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="relative overflow-x-auto">
+<!-- Available Tasks Section -->
+<div class="bg-background flex-col rounded-lg px-8 py-8 shadow-md sm:flex-row" style="height: 543px;">
+  <h1 class="text-[#8586EC] text-2xl font-bold text-center">Available Tasks</h1>
+  <div class="relative" style="height: calc(100% - 40px); overflow-y: auto;">
     <table class="w-full table-auto">
-      <thead class="text-muted-foreground text-xs uppercase">
-        <tr>
-          <th class="py-3 text-left">Client Name</th>
-          <th class="py-3 text-right">Job Title</th>
-          <th class="py-3 text-right">Date Posted</th>
-          <th class="py-3 text-right">Status</th>
+      <thead class="text-muted-foreground text-xs uppercase sticky top-0 bg-background">
+        <tr class="text-[#8586EC]">
+          <th class="py-3 px-4 text-center">Client Name</th>
+          <th class="py-3 px-4 text-center">Job Title</th>
+          <th class="py-3 px-4 text-center">Date Posted</th>
+          <th class="py-3 px-4 text-center">Status</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let data of TaskTaken">
-          <td class="py-3 text-left">{{data.client}}</td>
-          <td class="py-3 text-right">{{data.tasker}}</td>
-          <td class="py-3 text-right">{{data.ending_in}}</td>
-          <td class="py-3 text-right">{{data.status}}</td>
+        <tr *ngFor="let data of taskTableData" class="text-xm">
+          <td class="py-3 px-5 text-center">{{ data.client }}</td>
+          <td class="py-3 px-5 text-center">{{ data.tasker }}</td>
+          <td class="py-3 px-5 text-center">{{ data.ending_in }}</td>
+          <td class="py-3 px-5 text-center">{{ data.status }}</td>
         </tr>
-      </tbody>  
+      </tbody>
     </table>
   </div>
 </div>
