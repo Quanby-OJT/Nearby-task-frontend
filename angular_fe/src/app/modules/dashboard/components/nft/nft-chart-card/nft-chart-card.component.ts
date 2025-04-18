@@ -4,11 +4,11 @@ import { NgApexchartsModule } from 'ng-apexcharts';
 import { ChartOptions } from '../../../../../shared/models/chart-options';
 import { TaskService } from 'src/app/services/task.service';
 import { ChartComponent } from 'ng-apexcharts';
-
+import { CommonModule } from '@angular/common';
 @Component({
   selector: '[nft-chart-card]',
   templateUrl: './nft-chart-card.component.html',
-  imports: [AngularSvgIconModule, NgApexchartsModule],
+  imports: [AngularSvgIconModule, NgApexchartsModule, CommonModule],
   standalone: true
 })
 export class NftChartCardComponent implements OnInit, OnDestroy {
@@ -16,6 +16,7 @@ export class NftChartCardComponent implements OnInit, OnDestroy {
   public chartOptions: ChartOptions;
   public selectedFilter: 'daily' | 'monthly' | 'yearly' = 'daily';
   private tasks: any[] = [];
+  public isLoading: boolean = true; // Add loading state
 
   constructor(private taskService: TaskService) {
     this.chartOptions = {
@@ -97,16 +98,19 @@ export class NftChartCardComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.isLoading = true; // Set loading to true before fetching
     this.taskService.getTasks().subscribe({
       next: (response) => {
         this.tasks = response.tasks || [];
         console.log('Tasks loaded:', this.tasks);
         this.updateChartData();
+        this.isLoading = false; // Set loading to false after data is fetched
       },
       error: (err) => {
         console.error('Error fetching tasks:', err);
         this.tasks = [];
         this.updateChartData();
+        this.isLoading = false; // Set loading to false on error
       }
     });
   }

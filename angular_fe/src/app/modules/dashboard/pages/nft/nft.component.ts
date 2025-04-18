@@ -6,6 +6,7 @@ import { NftSingleCardComponent } from '../../components/nft/single-card/nft-sin
 import { Nft } from '../../models/nft';
 import { UserChartCardComponent } from '../../components/nft/user-chart-card/user-chart-card.component';
 import { UserAccountService } from 'src/app/services/userAccount';
+import { CommonModule } from '@angular/common';
 
 @Component({
   standalone: true,
@@ -17,6 +18,7 @@ import { UserAccountService } from 'src/app/services/userAccount';
     NftChartCardComponent,
     NftAuctionsTableComponent,
     UserChartCardComponent,
+    CommonModule
   ],
 })
 export class NftComponent implements OnInit {
@@ -25,6 +27,7 @@ export class NftComponent implements OnInit {
   moderatorCount: number = 0;
   clientCount: number = 0;
   taskerCount: number = 0;
+  isLoading: boolean = true; // Add loading state
 
   constructor(private userAccountService: UserAccountService) {
     this.nft = [
@@ -57,6 +60,7 @@ export class NftComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.isLoading = true; // Set loading to true before fetching
     this.userAccountService.getAllUsers().subscribe(
       data => {
         const users = data.users;
@@ -64,10 +68,11 @@ export class NftComponent implements OnInit {
         this.moderatorCount = users.filter((user: { user_role: string }) => user.user_role === 'Moderator').length;
         this.clientCount = users.filter((user: { user_role: string }) => user.user_role === 'Client').length;
         this.taskerCount = users.filter((user: { user_role: string }) => user.user_role === 'Tasker').length;
+        this.isLoading = false; // Set loading to false after data is fetched
       },
       error => {
         console.error('Error fetching users:', error);
-        // Counts remain 0 if there's an error
+        this.isLoading = false; // Set loading to false on error
       }
     );
   }

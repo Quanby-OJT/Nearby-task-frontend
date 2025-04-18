@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { NgFor } from '@angular/common';
+import { CommonModule, NgFor } from '@angular/common';
 import { TaskService } from 'src/app/services/task.service';
 
 interface TaskTableData {
@@ -12,21 +12,29 @@ interface TaskTableData {
 @Component({
   selector: '[nft-auctions-table]',
   templateUrl: './nft-auctions-table.component.html',
-  imports: [NgFor],
+  imports: [NgFor, CommonModule],
   standalone: true
 })
 export class NftAuctionsTableComponent implements OnInit {
   public taskTableData: TaskTableData[] = [];
+  public isLoading: boolean = true; // Initialize loading state
 
   constructor(private taskService: TaskService) {}
 
   ngOnInit(): void {
+    this.fetchTasks();
+  }
+
+  private fetchTasks(): void {
+    this.isLoading = true; 
     this.taskService.getTasks().subscribe({
       next: (response) => {
         this.taskTableData = this.mapTasksToTableData(response.tasks);
+        this.isLoading = false;
       },
       error: (err) => {
         console.error('Error fetching tasks:', err);
+        this.isLoading = false; 
       }
     });
   }
