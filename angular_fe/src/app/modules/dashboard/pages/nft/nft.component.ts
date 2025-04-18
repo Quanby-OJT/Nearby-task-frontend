@@ -5,6 +5,7 @@ import { NftHeaderComponent } from '../../components/nft/header/nft-header.compo
 import { NftSingleCardComponent } from '../../components/nft/single-card/nft-single-card.component';
 import { Nft } from '../../models/nft';
 import { UserChartCardComponent } from '../../components/nft/user-chart-card/user-chart-card.component';
+import { UserAccountService } from 'src/app/services/userAccount';
 
 @Component({
   standalone: true,
@@ -20,8 +21,12 @@ import { UserChartCardComponent } from '../../components/nft/user-chart-card/use
 })
 export class NftComponent implements OnInit {
   nft: Array<Nft>;
+  adminCount: number = 0;
+  moderatorCount: number = 0;
+  clientCount: number = 0;
+  taskerCount: number = 0;
 
-  constructor() {
+  constructor(private userAccountService: UserAccountService) {
     this.nft = [
       {
         id: 34356771,
@@ -51,5 +56,19 @@ export class NftComponent implements OnInit {
     ];
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.userAccountService.getAllUsers().subscribe(
+      data => {
+        const users = data.users;
+        this.adminCount = users.filter((user: { user_role: string }) => user.user_role === 'Admin').length;
+        this.moderatorCount = users.filter((user: { user_role: string }) => user.user_role === 'Moderator').length;
+        this.clientCount = users.filter((user: { user_role: string }) => user.user_role === 'Client').length;
+        this.taskerCount = users.filter((user: { user_role: string }) => user.user_role === 'Tasker').length;
+      },
+      error => {
+        console.error('Error fetching users:', error);
+        // Counts remain 0 if there's an error
+      }
+    );
+  }
 }
