@@ -13,10 +13,10 @@
 
       <tbody *ngIf="!isLoading">
         <tr *ngFor="let data of taskTableData" class="text-xm">
-          <td class="py-3 px-5 text-center">{{ data.client }}</td>
-          <td class="py-3 px-5 text-center">{{ data.tasker }}</td>
-          <td class="py-3 px-5 text-center">{{ data.ending_in }}</td>
-          <td class="py-3 px-5 text-center">{{ data.status }}</td>
+          <td class="py-3 px-5 text-center text-xs">{{ data.client }}</td>
+          <td class="py-3 px-5 text-center text-xs">{{ data.tasker }}</td>
+          <td class="py-3 px-5 text-center text-xs">{{ data.ending_in }}</td>
+          <td class="py-3 px-5 text-center text-xs">{{ data.status }}</td>
         </tr>
       </tbody>
     </table>
