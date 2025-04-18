@@ -149,10 +149,4 @@ export class MyProfileComponent implements OnInit { // Implement OnInit
     });
   }
 
-  /* ngOnInit() { // Removed ngOnInit logic
-    this.route.params.subscribe(params => {
-      this.userId = params['id'];
-      console.log('User ID:', this.userId);
-    });
-  }*/
 }
