@@ -14,6 +14,7 @@ class TaskerModel {
   final String payPeriod;
   final DateTime birthDate;
   final bool? group;
+  final double? rating;
   UserModel? user;
 
   TaskerModel({
@@ -30,6 +31,7 @@ class TaskerModel {
     this.taskerDocuments,
     this.socialMediaLinks,
     this.user,
+    this.rating,
   });
 
   @override
@@ -60,6 +62,7 @@ class TaskerModel {
           : DateTime.now(),
       group: json['group'] ?? false,
       user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
+      rating: json['rating'] ?? 0.0
     );
   }
 

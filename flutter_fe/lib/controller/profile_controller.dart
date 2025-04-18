@@ -1357,6 +1357,7 @@ class ProfileController {
         wage: double.parse(cleanedWage),
         payPeriod: payPeriodController.text,
         birthDate: DateTime.parse(birthdateController.text),
+        user: null
       );
 
       Map<String, dynamic> resultData = await ProfileService.updateTasker(

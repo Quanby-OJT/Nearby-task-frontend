@@ -42,8 +42,8 @@ class TaskController {
       final priceText = contactPriceController.text.trim();
       final priceInt = int.tryParse(priceText) ?? 0;
 
-      debugPrint(_escrowManagementController.tokenCredits.value.toString());
-      if(_escrowManagementController.tokenCredits.value - priceInt < _escrowManagementController.tokenCredits.value){
+      debugPrint(priceInt.toString());
+      if(_escrowManagementController.tokenCredits.value - priceInt > _escrowManagementController.tokenCredits.value){
         return {
           "success": false,
           "error": "You don't have enough tokens to post your needed task. Please Deposit First Your Desired Amount of Tokens."

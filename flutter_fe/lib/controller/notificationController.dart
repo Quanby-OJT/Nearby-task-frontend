@@ -29,6 +29,7 @@ class NotificationController {
   Future<Map<String, dynamic>> getOngoingRequests(int userId) async {
     try {
       final data = await _notificationService.getOngoingRequests(userId);
+      debugPrint(data.toString());
       return data;
     } catch (e, st) {
       debugPrint("Controller error: $e\nStacktrace: $st");

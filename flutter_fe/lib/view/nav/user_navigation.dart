@@ -50,6 +50,49 @@ class _NavUserScreenState extends State<NavUserScreen> {
     _fetchUserData();
   }
 
+  Future<void> _fetchUserIDImage() async {
+    try {
+      int userId = int.parse(storage.read('user_id').toString());
+      if (userId == 0) {
+        debugPrint("User ID not found in storage po");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to load user image. Please try again."),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+
+      AuthenticatedUser? user =
+      await _profileController.getAuthenticatedUser(context, userId);
+      debugPrint(user.toString());
+
+      final response = await _clientServices.fetchUserIDImage(userId);
+
+      if (response['success']) {
+        setState(() {
+          _user = user;
+          _existingProfileImageUrl = user?.user.image;
+          _existingIDImageUrl = response['url'];
+          _documentValid = response['status'];
+
+          _isLoading = false;
+
+          debugPrint("Successfully loaded user image" + _existingProfileImageUrl!);
+          debugPrint("Successfully loaded ID image" + _existingIDImageUrl!);
+
+          // if (_existingProfileImageUrl != null && _existingIDImageUrl != null) {
+          //   _showButton = true;
+          // }
+        });
+      }
+    } catch (e) {
+      debugPrint("Error fetching ID image: $e");
+    }
+  }
+
   Future<void> _fetchUserData() async {
     try {
       final dynamic userId = storage.read("user_id");
@@ -295,24 +338,26 @@ class _NavUserScreenState extends State<NavUserScreen> {
                         }
                       },
                     ),
+                  if(_role == "Client")...[
                     ListTile(
                       leading: Icon(FontAwesomeIcons.coins),
                       title: Text('Add NearByTask Tokens'),
                       onTap: () {
-                        if (_existingProfileImageUrl == null ||
-                            _existingIDImageUrl == null ||
-                            _existingProfileImageUrl!.isEmpty ||
-                            _existingIDImageUrl!.isEmpty ||
-                            !_documentValid) {
-                          overlayEntry.remove();
-                          return _showWarningDialog();
-                        }
+                        // if (_existingProfileImageUrl == null ||
+                        //     _existingIDImageUrl == null ||
+                        //     _existingProfileImageUrl!.isEmpty ||
+                        //     _existingIDImageUrl!.isEmpty ||
+                        //     !_documentValid) {
+                        //   overlayEntry.remove();
+                        //   return _showWarningDialog();
+                        // }
                         Navigator.push(context, MaterialPageRoute(builder: (context) {
                           return EscrowTokenScreen();
                         }));
                         overlayEntry.remove();
                       }
                     ),
+                  ],
                     ListTile(
                       leading: Icon(Icons.settings),
                       title: Text('Settings'),
@@ -403,50 +448,4 @@ class _NavUserScreenState extends State<NavUserScreen> {
       ),
     );
   }
-
-  Future<void> _fetchUserIDImage() async {
-    try {
-      int userId = int.parse(storage.read('user_id').toString());
-      if (userId == null) {
-        debugPrint("User ID not found in storage po");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Failed to load user image. Please try again."),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
-          ),
-        );
-        return;
-      }
-
-      AuthenticatedUser? user =
-      await _profileController.getAuthenticatedUser(context, userId);
-      debugPrint(user.toString());
-
-      final response = await _clientServices.fetchUserIDImage(userId);
-
-      if (response['success']) {
-        setState(() {
-          _user = user;
-          _existingProfileImageUrl = user?.user.image;
-          _existingIDImageUrl = response['url'];
-          _documentValid = response['status'];
-
-          _isLoading = false;
-
-          debugPrint(
-              "Successfully loaded user image" + _existingProfileImageUrl!);
-          debugPrint("Successfully loaded ID image" + _existingIDImageUrl!);
-
-          // if (_existingProfileImageUrl != null && _existingIDImageUrl != null) {
-          //   _showButton = true;
-          // }
-        });
-      }
-    } catch (e) {
-      debugPrint("Error fetching ID image: $e");
-    }
-  }
-
-
 }

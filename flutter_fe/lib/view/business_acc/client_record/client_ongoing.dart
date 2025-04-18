@@ -187,63 +187,6 @@ class _ClientOngoingState extends State<ClientOngoing> {
     );
   }
 
-  Future<void> _handleFileADispute() async {
-    if (_requestInformation == null || _requestInformation!.task_taken_id == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Task information not available')),
-      );
-      return;
-    }
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => _FeedbackBottomSheet(
-        onSubmit: (int rating, String feedback, String? report) async {
-          setState(() {
-            _isLoading = true;
-          });
-          try {
-            bool result = await taskController.acceptRequest(
-              _requestInformation?.task_taken_id ?? 0,
-              'Disputed',
-              widget.role ?? '',
-            );
-
-            if (result) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ClientFinish(
-                    finishID: _requestInformation?.task_taken_id ?? 0,
-                    role: widget.role,
-                  ),
-                ),
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Failed to finish task')),
-              );
-            }
-          } catch (e, stackTrace) {
-            debugPrint("Error finishing task: $e.");
-            debugPrintStack(stackTrace: stackTrace);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error occurred')),
-            );
-          } finally {
-            setState(() {
-              _isLoading = false;
-            });
-          }
-        },
-      ),
-    );
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -480,7 +423,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
               elevation: 2,
             ),
             child: Text(
-              'Finish Task and Release Payment',
+              _requestInformation?.task_status != 'Disputed' ? 'Finish Task and Release Payment' : 'Settle Dispute and Release Payment',
               style: GoogleFonts.montserrat(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -490,8 +433,9 @@ class _ClientOngoingState extends State<ClientOngoing> {
 
           ),
            SizedBox(height: 16),
+          if(_requestInformation?.task_status != 'Disputed')
           ElevatedButton(
-            onPressed: _handleFileADispute,
+            onPressed: () => _disputeAlertDialog(context),
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFFA73140),
               padding: EdgeInsets.symmetric(vertical: 16),
@@ -514,8 +458,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
     );
   }
 
-  Widget _buildTaskInfoRow(
-      {required IconData icon, required String label, required String value}) {
+  Widget _buildTaskInfoRow({required IconData icon, required String label, required String value}) {
     return Row(
       children: [
         Icon(icon, color: Colors.grey[600], size: 20),
@@ -542,8 +485,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
     );
   }
 
-  Widget _buildProfileInfoRow(String label, String value,
-      {bool isVerified = false}) {
+  Widget _buildProfileInfoRow(String label, String value,{bool isVerified = false}) {
     return Row(
       children: [
         Text(
@@ -580,6 +522,87 @@ class _ClientOngoingState extends State<ClientOngoing> {
           ),
         ),
       ],
+    );
+  }
+
+  void _disputeAlertDialog(BuildContext parentContext) {
+    showDialog(
+      context: context,
+      builder: (BuildContext childContext){
+        return AlertDialog(
+          title: Text('File a Dispute'),
+          content: Text(
+            'Do you had dispute/s with your tasker when it comes to: \n 1. Quality of their Work? \n 2. Their availability? \n 3. Others?'
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: Color(0XFFD43D4D),
+                )
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                setState(() {
+                  _isLoading = true;
+                });
+                try {
+                  bool result = await taskController.acceptRequest(
+                    _requestInformation?.task_taken_id ?? 0,
+                    'Disputed',
+                    widget.role ?? '',
+                  );
+
+                  if (result) {
+                    Navigator.pop(context);
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context){
+                        return AlertDialog(
+                          title: Text("Your Task is Now Open to Dispute"),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text("Okay")
+                            )
+                          ]
+                        );
+                      }
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed to finish task')),
+                    );
+                  }
+                } catch (e, stackTrace) {
+                  debugPrint("Error finishing task: $e.");
+                  debugPrintStack(stackTrace: stackTrace);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error occurred')),
+                  );
+                } finally {
+                  setState(() {
+                    _isLoading = false;
+                  });
+                }
+              },
+              child: Text(
+                "Yes",
+                style: TextStyle(
+                  color: Color(0XFF4DBF66),
+                )
+              )
+            )
+          ]
+        );
+      }
     );
   }
 }

@@ -275,7 +275,7 @@ class _JobPostPageState extends State<JobPostPage> {
               }
             }
           }
-          _message = result['message'] ?? 'Failed to post task';
+          _message = result['error'] ?? 'Failed to post task';
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
