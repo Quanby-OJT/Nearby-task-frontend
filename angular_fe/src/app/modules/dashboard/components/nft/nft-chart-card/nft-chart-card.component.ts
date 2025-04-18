@@ -104,13 +104,13 @@ export class NftChartCardComponent implements OnInit, OnDestroy {
         this.tasks = response.tasks || [];
         console.log('Tasks loaded:', this.tasks);
         this.updateChartData();
-        this.isLoading = false; // Set loading to false after data is fetched
+        this.isLoading = false; 
       },
       error: (err) => {
         console.error('Error fetching tasks:', err);
         this.tasks = [];
         this.updateChartData();
-        this.isLoading = false; // Set loading to false on error
+        this.isLoading = false; 
       }
     });
   }

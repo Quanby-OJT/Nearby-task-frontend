@@ -27,7 +27,7 @@ export class NftComponent implements OnInit {
   moderatorCount: number = 0;
   clientCount: number = 0;
   taskerCount: number = 0;
-  isLoading: boolean = true; // Add loading state
+  isLoading: boolean = true; 
 
   constructor(private userAccountService: UserAccountService) {
     this.nft = [
@@ -60,7 +60,7 @@ export class NftComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.isLoading = true; // Set loading to true before fetching
+    this.isLoading = true; 
     this.userAccountService.getAllUsers().subscribe(
       data => {
         const users = data.users;
@@ -68,11 +68,11 @@ export class NftComponent implements OnInit {
         this.moderatorCount = users.filter((user: { user_role: string }) => user.user_role === 'Moderator').length;
         this.clientCount = users.filter((user: { user_role: string }) => user.user_role === 'Client').length;
         this.taskerCount = users.filter((user: { user_role: string }) => user.user_role === 'Tasker').length;
-        this.isLoading = false; // Set loading to false after data is fetched
+        this.isLoading = false; 
       },
       error => {
         console.error('Error fetching users:', error);
-        this.isLoading = false; // Set loading to false on error
+        this.isLoading = false; 
       }
     );
   }
