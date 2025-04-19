@@ -684,7 +684,7 @@ class JobPostService {
     try {
       int clientId = await storage.read('user_id');
       return await _putRequest(
-          endpoint: '/acceptRequest/$taskTakenId',
+          endpoint: '/update-request/$taskTakenId',
           body: {"value": value, "role": role, "client_id": clientId});
     } catch (e) {
       debugPrint('Error accepting task: $e');
