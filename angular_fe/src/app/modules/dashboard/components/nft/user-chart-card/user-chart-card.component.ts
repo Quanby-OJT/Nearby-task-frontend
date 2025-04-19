@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ChartComponent, NgApexchartsModule } from 'ng-apexcharts';
 import { ApexNonAxisChartSeries, ApexChart, ApexResponsive, ApexLegend } from 'ng-apexcharts';
@@ -23,7 +24,7 @@ export type ChartOptions = {
 @Component({
   selector: '[user-chart-card]',
   standalone: true,
-  imports: [NgApexchartsModule],
+  imports: [NgApexchartsModule, CommonModule],
   templateUrl: './user-chart-card.component.html',
   styleUrls: ['./user-chart-card.component.css'],
 })
@@ -55,6 +56,9 @@ export class UserChartCardComponent implements OnInit {
     },
   };
 
+  // loading state
+  public isLoading: boolean = true; 
+
   constructor(private userAccountService: UserAccountService) {}
 
   ngOnInit(): void {
@@ -62,14 +66,17 @@ export class UserChartCardComponent implements OnInit {
   }
 
   private fetchUserRoleDistribution(): void {
+    this.isLoading = true; // Set loading to true before fetching
     this.userAccountService.getAllUsers().subscribe({
       next: (response) => {
         const users = response.users || [];
         const roleDistribution = this.calculateRoleDistribution(users);
         this.updateChartSeries(roleDistribution);
+        this.isLoading = false; 
       },
       error: (error) => {
         console.error('Error fetching users:', error);
+        this.isLoading = false; 
       },
     });
   }
@@ -105,11 +112,10 @@ export class UserChartCardComponent implements OnInit {
         roleCount[normalizedRole]++;
       } else {
         console.warn(`Unknown role encountered: ${user.user_role}`);
-        // Optionally handle unknown roles (e.g., log or ignore)
       }
     });
 
-    return roleCount; // Return raw counts
+    return roleCount;
   }
 
   private updateChartSeries(roleDistribution: RoleDistribution): void {

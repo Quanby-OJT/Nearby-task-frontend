@@ -52,9 +52,9 @@ export class ProfileMenuComponent implements OnInit {
 
   public profileMenu = [
     {
-      title: 'Your Profile',
+      title: 'My Profile',
       icon: './assets/icons/heroicons/outline/user-circle.svg',
-      link: '/profile',
+      link: '/profile-menu/my-profile',
     },
     {
       title: 'Log out',
