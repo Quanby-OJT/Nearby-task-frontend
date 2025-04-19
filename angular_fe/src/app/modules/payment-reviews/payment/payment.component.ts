@@ -13,13 +13,14 @@ export class PaymentComponent implements OnInit {
   paymentLogs: any[] = [];
   filteredPaymentLogs: any[] = [];
   displayPaymentLogs: any[] = [];
-  paginationButtons: (number | string)[] = [];
+  currentSearchText: string = '';
+  currentFilterType: string = '';
   logsPerPage: number = 10;
   currentPage: number = 1;
   totalPages: number = 1;
   startIndex: number = 1;
   endIndex: number = 0;
-  currentSearchText: string = '';
+  paginationButtons: (number | string)[] = [];
 
   constructor(private paymentService: PaymentService) {}
 
@@ -41,15 +42,24 @@ export class PaymentComponent implements OnInit {
     this.applyFilters();
   }
 
+  filterLogs(event: Event) {
+    this.currentFilterType = (event.target as HTMLSelectElement).value;
+    this.applyFilters();
+  }
+
   applyFilters() {
     let tempLogs = [...this.paymentLogs];
 
     if (this.currentSearchText) {
+      const searchTerms = this.currentSearchText.split(/\s+/).filter(term => term);
       tempLogs = tempLogs.filter(log => {
         const fullName = log.user_name.toLowerCase();
-        const searchTerms = this.currentSearchText.split(/\s+/).filter(term => term);
         return searchTerms.every(term => fullName.includes(term));
       });
+    }
+
+    if (this.currentFilterType) {
+      tempLogs = tempLogs.filter(log => log.payment_type === this.currentFilterType);
     }
 
     this.filteredPaymentLogs = tempLogs;
@@ -59,12 +69,11 @@ export class PaymentComponent implements OnInit {
 
   updatePage() {
     this.totalPages = Math.ceil(this.filteredPaymentLogs.length / this.logsPerPage);
-    this.displayPaymentLogs = this.filteredPaymentLogs.slice(
-      (this.currentPage - 1) * this.logsPerPage,
-      this.currentPage * this.logsPerPage
-    );
-    this.startIndex = (this.currentPage - 1) * this.logsPerPage + 1;
-    this.endIndex = Math.min(this.currentPage * this.logsPerPage, this.filteredPaymentLogs.length);
+    const start = (this.currentPage - 1) * this.logsPerPage;
+    const end = start + this.logsPerPage;
+    this.displayPaymentLogs = this.filteredPaymentLogs.slice(start, end);
+    this.startIndex = start + 1;
+    this.endIndex = Math.min(end, this.filteredPaymentLogs.length);
     this.makePaginationButtons();
   }
 

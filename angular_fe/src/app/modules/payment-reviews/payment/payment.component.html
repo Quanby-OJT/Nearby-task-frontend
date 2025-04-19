@@ -1,4 +1,3 @@
-<!--Header page navigation-->
 <div class="mb-4 flex justify-between w-full max-w-[1440px] mx-auto px-4">
   <div>
     <h3 class="text-foreground font-semibold">Payment Reviews</h3>
@@ -8,25 +7,27 @@
   </div>
 </div>
 
-<!-- Bottom Container -->
 <div class="border-muted-200 bg-white w-full max-w-[1440px] mx-auto flex-col rounded-xl border-4 min-h-[400px] shadow-md">
 
-<!-- Main container with search, filter, table, and pagination -->
 <div class="border-muted-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
-  <!-- Search and Filter Section -->
   <div class="flex flex-wrap items-center justify-between gap-2 py-3 px-5">
     <div class="text-muted-foreground text-sm font-medium"></div>
     <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-      <!-- Search input -->
       <div class="flex-1 min-w-[200px] lg:min-w-[300px] xl:min-w-[400px]">
         <label class="relative w-full">
           <input name="search" (input)="searchLogs($event)" class="w-full py-2 pl-8 pr-2 border rounded-md" placeholder="Search Users Name" type="text" />
         </label>
       </div>
+      <div class="flex-1 min-w-[200px] lg:min-w-[200px] xl:min-w-[200px]">
+        <select (change)="filterLogs($event)" class="w-full py-2 px-2 border rounded-md">
+          <option value="">All Payment Types</option>
+          <option value="Client Deposit">Client Deposit</option>
+          <option value="Release of Payment to Tasker">Release of Payment to Tasker</option>
+        </select>
+      </div>
     </div>
   </div>
 
-  <!-- Table to display logs -->
   <div class="overflow-x-auto w-full">
     <table class="w-full border-collapse border-0 text-left text-sm">
       <thead class="border-b">
@@ -52,14 +53,12 @@
     </table>
   </div>
 
-  <!-- Pagination Section -->
   <div class="flex justify-between items-center bg-white w-full">
-    <!-- Logs per page selector -->
     <div class="text-muted-foreground flex items-center justify-between py-3 px-5 text-xs">
       <div class="flex items-center gap-2">
         Show
         <select (change)="changeLogsPerPage($event)" class="w-[140px] p-2 border rounded-md">
-          <option value="10">10</option>
+          <option value="10" selected>10</option>
           <option value="20">20</option>
           <option value="30">30</option>
           <option value="50">50</option>
@@ -68,21 +67,16 @@
       </div>
     </div>
 
-    <!-- Pagination controls -->
     <div class="flex items-center justify-end gap-4 sticky bottom-0 left-0 right-0 bg-white p-2">
-      <!-- Show current range of logs -->
       <span class="text-sm border w-32 text-center">
         {{ startIndex }} - {{ endIndex }} of {{ filteredPaymentLogs.length }}
       </span>
 
-      <!-- Pagination buttons -->
       <div class="inline-flex items-center gap-2">
-        <!-- Previous page button -->
         <button (click)="previousPage()" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300">
           ◀
         </button>
 
-        <!-- Page number buttons -->
         <button *ngFor="let page of paginationButtons" 
                 [disabled]="page === '...'" 
                 (click)="goToPage(page)" 
@@ -92,7 +86,6 @@
           {{ page }}
         </button>
 
-        <!-- Next page button -->
         <button (click)="nextPage()" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300">
           ▶
         </button>
