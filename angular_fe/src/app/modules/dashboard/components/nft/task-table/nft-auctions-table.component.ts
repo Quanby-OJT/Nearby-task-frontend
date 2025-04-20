@@ -17,7 +17,7 @@ interface TaskTableData {
 })
 export class NftAuctionsTableComponent implements OnInit {
   public taskTableData: TaskTableData[] = [];
-  public isLoading: boolean = true; // Initialize loading state
+  public isLoading: boolean = true; 
 
   constructor(private taskService: TaskService) {}
 
@@ -42,8 +42,8 @@ export class NftAuctionsTableComponent implements OnInit {
   private mapTasksToTableData(tasks: any[]): TaskTableData[] {
     return tasks.map(task => {
       const clientName = `${task.clients.user.first_name} ${task.clients.user.middle_name ? task.clients.user.middle_name + ' ' : ''}${task.clients.user.last_name}`;
-      const tasker = task.task_title; // Mapping task_title to "Job Title"
-      const ending_in = task.task_begin_date; // Mapping task_begin_date to "Date Posted"
+      const tasker = task.task_title; 
+      const ending_in = task.task_begin_date; 
       const status = task.status;
       return { client: clientName, tasker, ending_in, status };
     });
