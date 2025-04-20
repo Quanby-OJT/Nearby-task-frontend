@@ -160,7 +160,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
       this.updatePage();
     }
   }
-  
+
   banUser(id: number): void {
     Swal.fire({
       title: 'Are you sure to ban?',
@@ -223,17 +223,78 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
     });
   }
 
-  viewConversation(conversation: string): void {
-    Swal.fire({
-      title: 'Conversation',
-      text: conversation,
-      icon: 'info',
-      confirmButtonText: 'Close',
-      confirmButtonColor: '#3085d6',
-      width: '600px',
-      customClass: {
-        htmlContainer: 'text-left whitespace-pre-wrap'
-      }
-    });
+  viewConversation(taskTakenId: number, viewingUserId: number): void {
+    console.log('Viewing conversation for task_taken_id:', taskTakenId);
+    console.log('Viewing user_id:', viewingUserId);
+
+    this.userConversationService.getTaskConversations(taskTakenId).subscribe(
+        (response) => {
+            if (response && response.data) {
+                const messages = response.data;
+                console.log('Messages received:', messages);
+
+                const messagesHtml = messages.map((msg: any) => {
+                    const messageUserId = Number(msg.user_id);
+                    // Message is from the user whose conversation we're viewing
+                    const isViewingUser = messageUserId === viewingUserId;
+                    console.log(`Message User ID: ${messageUserId}, Viewing User ID: ${viewingUserId}, isViewingUser: ${isViewingUser}`);
+                    
+                    const alignment = isViewingUser ? 'right' : 'left';
+                    const bgColor = isViewingUser ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-800';
+                    const margin = isViewingUser ? 'ml-auto' : 'mr-auto';
+                    const roundedCorners = isViewingUser ? 'rounded-tl-lg rounded-bl-lg rounded-br-lg' : 'rounded-tr-lg rounded-br-lg rounded-bl-lg';
+
+                    const userName = msg.user
+                        ? `${msg.user.first_name || ''} ${msg.user.middle_name || ''} ${msg.user.last_name || ''}`.trim()
+                        : 'Unknown User';
+
+                    const timestamp = msg.created_at || 'No Timestamp';
+
+                    return `
+                        <div class="flex justify-${alignment} mb-4">
+                            <div class="${margin} max-w-[70%]">
+                                <div class="font-semibold text-sm mb-1 ${alignment === 'right' ? 'text-right' : 'text-left'}">
+                                    ${userName}
+                                </div>
+                                <div class="${bgColor} ${roundedCorners} px-4 py-2">
+                                    ${msg.conversation}
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1 ${alignment === 'right' ? 'text-right' : 'text-left'}">
+                                    ${timestamp}
+                                </div>
+                            </div>
+                        </div>`;
+                }).join('');
+
+                const html = `
+                    <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
+                        ${messagesHtml}
+                    </div>
+                `;
+
+                Swal.fire({
+                    title: 'User Conversation',
+                    html: html,
+                    width: '800px',
+                    confirmButtonText: 'Close',
+                    confirmButtonColor: '#3085d6',
+                    customClass: {
+                        htmlContainer: 'text-left'
+                    },
+                    didOpen: () => {
+                        const container = document.querySelector('.swal2-html-container > div');
+                        if (container) {
+                            container.scrollTop = container.scrollHeight;
+                        }
+                    }
+                });
+            } else {
+                Swal.fire('Error', 'No messages found', 'error');
+            }
+        },
+        (error) => {
+            Swal.fire('Error', 'Failed to load conversation', 'error');
+        }
+    );
   }
 }
