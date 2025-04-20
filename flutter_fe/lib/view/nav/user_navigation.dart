@@ -388,7 +388,7 @@ class _NavUserScreenState extends State<NavUserScreen> {
                       leading: Icon(Icons.logout),
                       title: Text('Logout'),
                       onTap: () {
-                        _authController.logout(context);
+                        _authController.logout(context, () => mounted);
                         overlayEntry.remove();
                       },
                     ),

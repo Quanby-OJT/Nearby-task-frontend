@@ -1152,6 +1152,7 @@ class ProfileController {
         group: taskerGroupController.text.trim() == 'true',
         birthDate: DateTime.parse(birthdateController.text),
         user: user,
+        rating: 0
       );
 
       AddressModel address = AddressModel(
@@ -1357,7 +1358,8 @@ class ProfileController {
         wage: double.parse(cleanedWage),
         payPeriod: payPeriodController.text,
         birthDate: DateTime.parse(birthdateController.text),
-        user: null
+        user: null,
+        rating: 0
       );
 
       Map<String, dynamic> resultData = await ProfileService.updateTasker(

@@ -343,6 +343,7 @@ class TaskController {
           birthDate: DateTime.now(),
           group: false,
           user: taskerUser,
+          rating: 0
         );
 
         // Create TaskAssignment with the correct taskTakenId

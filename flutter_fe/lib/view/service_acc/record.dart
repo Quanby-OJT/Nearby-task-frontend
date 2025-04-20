@@ -8,6 +8,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../controller/escrow_management_controller.dart';
+import 'package:intl/intl.dart';
 
 class RecordTaskerPage extends StatefulWidget {
   const RecordTaskerPage({super.key});
@@ -32,6 +33,10 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
   Future<void> _loadData() async {
     await _escrowManagementController.fetchTokenBalance();
     setState(() => _isLoading = false);
+  }
+  String formatCurrency(double amount) {
+    final format = NumberFormat.currency(locale: 'en_PH', symbol: '₱');
+    return format.format(amount);
   }
 
   @override
@@ -83,7 +88,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                           ),
                           textAlign: TextAlign.center,
                         ) :
-                        _escrowManagementController.tokenCredits.value == 0 ?
+                        _escrowManagementController.tokenCredits.value == 0.0 ?
                         Text(
                           "You don't have any NearByTask Credits to your account. Earn More by taking more tasks.",
                           textAlign: TextAlign.center,
@@ -97,13 +102,13 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                           TextSpan(
                             children: [
                               TextSpan(
-                                text: 'You Currently Have: ',
+                                text: 'You Had Earned: ',
                                 style: TextStyle(
                                   fontSize: 16,
                                 )
                               ),
                               TextSpan(
-                                text: '${_escrowManagementController.tokenCredits.value} NearByTask Credits',
+                                text: '${formatCurrency(_escrowManagementController.tokenCredits.value.toDouble())} to your Existing Wallet.',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,

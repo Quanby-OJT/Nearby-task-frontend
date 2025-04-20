@@ -588,7 +588,7 @@ class _HomePageState extends State<HomePage> {
                                             Row(
                                               children: [
                                                 ...List.generate(5, (index) {
-                                                  double rating = 4.5;
+                                                  double rating = task.rating ?? 0.0;
                                                   return Icon(
                                                     index < rating.floor()
                                                         ? Icons.star
@@ -601,7 +601,7 @@ class _HomePageState extends State<HomePage> {
                                                 }),
                                                 SizedBox(width: 8),
                                                 Text(
-                                                  "4.5",
+                                                    (task.rating.toDouble() ?? 0.0) != 0.0 ? task.rating.toDouble().toString() : "No Reviews",
                                                   style: TextStyle(
                                                     color: Colors.white,
                                                     fontSize: 16,
