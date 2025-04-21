@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
+import 'package:flutter_fe/model/feedback_model.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
@@ -33,6 +34,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   final ClientServices _clientServices = ClientServices();
   final AuthenticationController _authController = AuthenticationController();
   List<AuthenticatedUser> taskers = [];
+  List<TaskerFeedback> taskerFeedback = [];
   String? _errorMessage;
   int? cardNumber = 0;
 
@@ -673,71 +675,43 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                       color: Color(0xFF0272B1),
                                     ),
                                   ),
-
+                                  SizedBox(height: 10),
+                                  _buildReviewItem("Juan Dela Cruz", "Highly recommended!", 5),
                                   Spacer(),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      // ElevatedButton.icon(
-                                      //   onPressed: () {
-                                      //     if (_existingProfileImageUrl == null ||
-                                      //         _existingIDImageUrl == null ||
-                                      //         _existingProfileImageUrl!.isEmpty ||
-                                      //         _existingIDImageUrl!.isEmpty ||
-                                      //         !_documentValid) {
-                                      //       _showWarningDialog();
-                                      //     } else {
-                                      //       _showRatingDialog(tasker.user);
-                                      //     }
-                                      //   },
-                                      //   icon: Icon(Icons.star, size: 20),
-                                      //   label: Text('Rate'),
-                                      //   style: ElevatedButton.styleFrom(
-                                      //     backgroundColor: Colors.amber,
-                                      //     foregroundColor: Colors.white,
-                                      //     padding: EdgeInsets.symmetric(
-                                      //         horizontal: 16, vertical: 12),
-                                      //     shape: RoundedRectangleBorder(
-                                      //       borderRadius:
-                                      //       BorderRadius.circular(12),
-                                      //     ),
-                                      //   ),
-                                      // ),
-                                      // SizedBox(width: 12),
-                                      OutlinedButton.icon(
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  TaskerProfilePage(
-                                                    tasker: tasker.user,
-                                                    isSaved: false,
-                                                  ),
-                                            ),
-                                          );
-                                        },
-                                        icon: Icon(Icons.person, size: 20),
-                                        label: Text('Profile'),
-                                        style: OutlinedButton.styleFrom(
-                                          side: BorderSide(
-                                              color: Color(0xFF0272B1)),
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 16, vertical: 12),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                            BorderRadius.circular(12),
+                                  Center(
+                                    child: OutlinedButton.icon(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                TaskerProfilePage(
+                                                  tasker: tasker.user,
+                                                  isSaved: false,
+                                                ),
                                           ),
+                                        );
+                                      },
+                                      icon: Icon(Icons.person, size: 20),
+                                      label: Text('Profile'),
+                                      style: OutlinedButton.styleFrom(
+                                        side: BorderSide(
+                                            color: Color(0xFF0272B1)),
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 12),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                          BorderRadius.circular(12),
                                         ),
                                       ),
-                                    ],
+                                    ),
                                   ),
-                                ],
+                                ]
                               ),
                             ),
                           ),
                         ),
-                      ),
+                      )
                     );
                   },
                 ),
