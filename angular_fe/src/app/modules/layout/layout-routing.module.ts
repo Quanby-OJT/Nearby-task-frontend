@@ -25,6 +25,11 @@ const routes: Routes = [
     loadChildren: () => import('../task-management/task-routing.module').then((m) => m.TaskRoutingModule),
   },
   {
+    path: 'profile-menu',
+    component: LayoutComponent,
+    loadChildren: () => import('./components/navbar/profile-menu/profile-routing.module').then((m) => m.ProfileRoutingModule),
+  },
+  {
     path: 'payment-reviews',
     component: LayoutComponent,
     loadChildren: () => import('../payment-reviews/payment-routing.module').then((m) => m.PaymentRoutingModule),

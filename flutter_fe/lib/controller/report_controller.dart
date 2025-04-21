@@ -80,7 +80,6 @@ class ReportController {
     }
   }
 
-  // In report_controller.dart
   Future<void> fetchReportHistory(int userId) async {
     try {
       debugPrint("Fetching report history for user: $userId");
@@ -133,8 +132,84 @@ class ReportController {
     selectedImages.removeAt(index);
   }
 
+  Future<void> submitReport({
+    required BuildContext context,
+    required StateSetter setModalState,
+    required String reason,
+    required List<XFile> images,
+    required int reportedBy,
+    required int reportedWhom,
+  }) async {
+    if (reason.isEmpty) {
+      errors['reason'] = 'Please enter a reason';
+      return;
+    }
+
+    if (reportedWhom == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Unable to determine the user to report'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final report = ReportModel(
+      reason: reason,
+      images: images,
+      reportedBy: reportedBy,
+      reportedWhom: reportedWhom,
+    );
+
+    try {
+      final result = await _reportService.submitReport(report);
+      debugPrint("Backend response: $result");
+
+      if (result['success']) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? "Report Submitted!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+        clearForm();
+      } else {
+        if (result.containsKey('errors') && result['errors'] is List) {
+          for (var error in result['errors']) {
+            if (error is Map<String, dynamic> &&
+                error.containsKey('path') &&
+                error.containsKey('msg')) {
+              errors[error['path']] = error['msg'];
+            }
+          }
+          setModalState(() {});
+        } else if (result.containsKey('message')) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message']),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (error, stackTrace) {
+      debugPrint(error.toString());
+      debugPrintStack(stackTrace: stackTrace);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error submitting report: $error'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   void validateAndSubmit(BuildContext context, StateSetter setModalState,
       int reportedBy, int? reportedWhom) {
+    // This method is no longer needed since we're using submitReport directly
+    // Keeping it for reference in case other parts of the app use it
     errors.clear();
 
     if (reasonController.text.trim().isEmpty) {
@@ -155,16 +230,18 @@ class ReportController {
       return;
     }
 
-    _submitReport(context, setModalState, reportedBy, reportedWhom!);
+    _submitReport(context, setModalState, reasonController.text.trim(),
+        reportedBy, reportedWhom!);
   }
 
+  // Update start: Update _submitReport to accept the reason as a parameter
   Future<void> _submitReport(BuildContext context, StateSetter setModalState,
-      int reportedBy, int reportedWhom) async {
+      String reason, int reportedBy, int reportedWhom) async {
     final report = ReportModel(
-      reason: reasonController.text.trim(),
+      reason: reason, // Use the passed reason instead of reasonController
       images: selectedImages,
-      reportedBy: reportedBy, // Pass the current user's user_id
-      reportedWhom: reportedWhom, // Pass the selected user's user_id
+      reportedBy: reportedBy,
+      reportedWhom: reportedWhom,
     );
 
     debugPrint("JSON Data being sent to backend: ${report.toJson()}");

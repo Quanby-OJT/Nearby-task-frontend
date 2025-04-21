@@ -1,0 +1,52 @@
+<div class="border-muted-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
+  <!-- Month Filter -->
+  <div class="mb-4 flex items-center justify-center w-1/4">
+    <label for="monthFilter" class="mr-2 whitespace-nowrap">Filter by Month:</label>
+    <select id="monthFilter" [(ngModel)]="selectedMonth" (change)="onMonthChange()" class="py-1 px-2 border rounded-md w-32 text-sm">
+      <option [ngValue]="null">All Months</option>
+      <option *ngFor="let month of months" [ngValue]="month">{{ month }}</option>
+    </select>
+  </div>
+
+  <div class="flex flex-col lg:flex-row gap-4">
+    <!-- Table section -->
+    <div class="w-full lg:w-1/2">
+      <div class="overflow-x-auto w-full">
+        <table class="w-full border-collapse text-left text-sm">
+          <thead class="border-b">
+            <tr class="bg-gray-100">
+              <th class="px-2 py-2 w-[40px]">No</th>
+              <th class="px-2 py-2 text-center min-w-[100px]">Specialization</th>
+              <th class="px-2 py-2 text-center min-w-[100px]">Total Requested</th>
+              <th class="px-2 py-2 text-center min-w-[100px]">Total Applied</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let spec of rankedSpecializations; let i = index" class="border-b">
+              <td class="px-2 py-2 text-center">{{ i + 1 }}</td>
+              <td class="px-2 py-2 text-center">{{ spec.specialization }}</td>
+              <td class="px-2 py-2 text-center">{{ spec.total_requested }}</td>
+              <td class="px-2 py-2 text-center">{{ spec.total_applied }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Chart section -->
+    <div class="w-full lg:w-1/2 bg-background rounded-lg px-4 py-4 shadow-md">
+      <div id="chart" class="mt-4">
+        <apx-chart
+          [series]="chartSeries"
+          [chart]="{ type: 'area', height: 350, zoom: { enabled: false } }"
+          [xaxis]="{ categories: chartCategories }"
+          [stroke]="{ curve: 'smooth' }"
+          [title]="{ text: 'Top Requested Job', align: 'left' }"
+          [grid]="{ row: { colors: ['#f3f3f3', 'transparent'], opacity: 0.5 } }"
+          [colors]="['#8586EC', '#4CAF50', '#FFC107', '#FF5722', '#2196F3', '#00BCD4', '#9C27B0', '#E91E63', '#3F51B5', '#F44336']"
+          [legend]="{ position: 'bottom' }">
+        </apx-chart>
+      </div>
+    </div>
+  </div>
+</div>

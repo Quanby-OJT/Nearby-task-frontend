@@ -1,0 +1,92 @@
+<!-- Main container with search, filter, table, and pagination -->
+<div class="border-muted-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
+  <!-- Search and Filter Section -->
+  <div class="flex flex-wrap items-center justify-between gap-2 py-3 px-5">
+    <div class="text-muted-foreground text-sm font-medium"></div>
+    <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+      <!-- Search input -->
+      <div class="flex-1 min-w-[200px] lg:min-w-[300px] xl:min-w-[400px]">
+        <label class="relative w-full">
+          <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" 
+                 placeholder="Search client" type="text" (input)="searchClients($event)" />
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table to display logs -->
+  <div class="overflow-x-auto w-full">
+    <table class="w-full border-collapse border-0 text-left text-sm">
+      <thead class="border-b">
+        <tr class="bg-gray-100">
+          <th class="px-4 py-2 w-[80px] lg:w-[100px]">No</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">User Name</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Address</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Overall Task Requested</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Gender</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Dynamically display clients -->
+        <tr *ngFor="let client of displayClients; let i = index" class="border-b">
+          <td class="px-4 py-3 text-center">{{ (currentPage - 1) * clientsPerPage + i + 1 }}</td>
+          <td class="px-4 py-3 text-center">{{ client.userName }}</td>
+          <td class="px-4 py-3 text-center">{{ client.address }}</td>
+          <td class="px-4 py-3 text-center">{{ client.taskCount }}</td>
+          <td class="px-4 py-3 text-center">{{ client.gender }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination Section -->
+  <div class="flex justify-between items-center bg-white w-full">
+    <!-- Logs per page selector -->
+    <div class="text-muted-foreground flex items-center justify-between py-3 px-5 text-xs">
+      <div class="flex items-center gap-2">
+        Show
+        <select class="w-[140px] p-2 border rounded-md" (change)="changeClientsPerPage($event)">
+          <option value="10" selected>10</option>
+          <option value="20">20</option>
+          <option value="30">30</option>
+          <option value="50">50</option>
+        </select>
+        per page
+      </div>
+    </div>
+
+    <!-- Pagination controls -->
+    <div class="flex items-center justify-end gap-4 sticky bottom-0 left-0 right-0 bg-white p-2">
+      <!-- Show current range of logs -->
+      <span class="text-sm border w-32 text-center">
+        {{ startIndex }} - {{ endIndex }} of {{ filteredClients.length }}
+      </span>
+
+      <!-- Pagination buttons -->
+      <div class="inline-flex items-center gap-2">
+        <!-- Previous page button -->
+        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 disabled:opacity-50"
+                [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+          ◀
+        </button>
+
+        <!-- Page number buttons -->
+        <ng-container *ngFor="let page of paginationButtons">
+          <button *ngIf="page !== '...'"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-sm"
+                  [ngClass]="{'bg-primary text-white': currentPage === page}"
+                  (click)="goToPage(page)">
+            {{ page }}
+          </button>
+          <span *ngIf="page === '...'" class="text-gray-500">...</span>
+        </ng-container>
+
+        <!-- Next page button -->
+        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300"
+                [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+          ▶
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

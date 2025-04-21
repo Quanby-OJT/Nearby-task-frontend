@@ -108,7 +108,7 @@ class _NavUserScreenState extends State<NavUserScreen> {
 
       AuthenticatedUser? user =
           await _profileController.getAuthenticatedUser(context, userId);
-      debugPrint(user.toString());
+      debugPrint("Current User: " + user.toString());
 
       if (user == null) {
         setState(() {

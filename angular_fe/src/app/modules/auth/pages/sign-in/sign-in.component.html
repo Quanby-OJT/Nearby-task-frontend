@@ -1,11 +1,11 @@
 <!-- login form -->
 <form class="my-10 space-y-6" [formGroup]="form" (ngSubmit)="onSubmit()">
   <div class="text-center font-mono">
-    <h2 class="text-foreground mb-1 text-5xl pb-13 text-indigo-900">Login</h2>
+    <h2 class="text-foreground mb-1 text-5xl pb-13 text-indigo-900"><strong>Login</strong></h2>
   </div>
 
   <!-- <div>
-    <p>Email: daniel.brown&#64;example.com</p>
+    <p>Email: daniel.brown@example.com</p>
     <p>Password: Brown</p>
   </div>
 
@@ -39,7 +39,7 @@
           [type]="passwordTextType ? 'text' : 'password'"
           id="password"
           [ngClass]="{ 'is__invalid-input': submitted && f['password'].errors }"
-          class="peer block"
+          class="peer block w-full pr-10"
           placeholder=" "
           formControlName="password" />
         <label
@@ -48,6 +48,44 @@
           class="bg-background text-muted-foreground peer-focus:text-primary absolute top-2 left-1 z-10 origin-[0] -translate-y-4 scale-95 transform px-2 text-sm duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-95 peer-focus:px-2">
           Password
         </label>
+        <!-- Toggle Button -->
+        <button
+          type="button"
+          (click)="togglePasswordTextType()"
+          [attr.aria-label]="passwordTextType ? 'Hide password' : 'Show password'"
+          class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 focus:outline-none">
+          <svg
+            *ngIf="!passwordTextType"
+            class="h-5 w-5"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+          <svg
+            *ngIf="passwordTextType"
+            class="h-5 w-5"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+          </svg>
+        </button>
       </div>
       <div *ngIf="submitted && f['password'].errors" class="is__invalid-error">
         <div *ngIf="f['password'].errors['required']">Required field</div>  
@@ -65,21 +103,21 @@
   </div>
 
   <!-- Submit Button -->
-  <div class="pt-5">
   <div>
-    <app-button full impact="bold" shape="rounded" size="medium" class="py-2">Sign in</app-button>
+    <div>
+      <app-button full impact="bold" shape="rounded" size="medium" class="py-2">Sign in</app-button>
+    </div>
+    <!-- <div routerLink="/dashboard" class="py-2">
+      <app-button full impact="bold" tone="light" shape="rounded" size="medium">
+        <svg-icon src="assets/icons/google-logo.svg" [svgClass]="'h-6 w-6 mr-2'"> </svg-icon>
+        Log in with Google
+      </app-button>
+    </div> -->
   </div>
-  <!-- <div routerLink="/dashboard" class="py-2">
-    <app-button full impact="bold" tone="light" shape="rounded" size="medium">
-      <svg-icon src="assets/icons/google-logo.svg" [svgClass]="'h-6 w-6 mr-2'"> </svg-icon>
-      Log in with Google
-    </app-button>
-  </div> -->
-</div>
 
-<app-button routerLink="/auth/forgot-password" impact="none" tone="primary" shape="rounded" size="small">
-  Forgot your password?
-</app-button>
+  <app-button routerLink="/auth/forgot-password" impact="none" tone="primary" shape="rounded" size="small">
+    Forgot your password?
+  </app-button>
   <!-- Sign-up -->
   <!-- <div class="text-muted-foreground flex items-center text-sm">
     Not a Member yet?

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/conversation.dart';
 import 'package:flutter_fe/model/task_model.dart';
@@ -9,10 +10,15 @@ import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/chat/task_details_screen.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:flutter_fe/controller/report_controller.dart';
 
 class IndividualChatScreen extends StatefulWidget {
   final String? taskTitle;
+  // Selected user Start, it links to the selected user
   final int? taskTakenId;
+  // Selected user End
   final int? taskId;
   const IndividualChatScreen({
     super.key,
@@ -29,11 +35,14 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   final List<Conversation> _messages = [];
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  // Logged In UserId Start
   final storage = GetStorage();
   final ConversationController conversationController = ConversationController();
   final JobPostService jobPostService = JobPostService();
+  final ReportController reportController = ReportController();
   TaskModel? task;
   Timer? _timer;
+  int? otherUserId;
 
   @override
   void initState() {
@@ -43,23 +52,48 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
     _timer = Timer.periodic(Duration(seconds: 3), (timer) {
       loadConversationHistory();
     });
+    // Fetch report history when screen initializes
+    _fetchReportHistory();
   }
 
   Future<void> loadInitialData() async {
     final task = await jobPostService.fetchTaskInformation(widget.taskTakenId ?? 0);
     setState(() {
+      // Selected User Start
       this.task = task?.task;
+
+      // Selected User End
     });
     await loadConversationHistory();
   }
 
   Future<void> loadConversationHistory() async {
+    debugPrint('Loading messages for taskTakenId: ${widget.taskTakenId}');
     //debugPrint(widget.taskTitle.toString() + " | Task Taken ID: " + widget.taskTakenId.toString());
-    final messages = await conversationController.getMessages(context, widget.taskTakenId ?? 0);
+    final messages = await conversationController.getMessages(
+        context, widget.taskTakenId ?? 0);
     setState(() {
       _messages.clear();
-      _messages.addAll(messages); // No type error: messages is List<Conversation>
+      _messages
+          .addAll(messages); // No type error: messages is List<Conversation>
+
+      int loggedinUserId = storage.read('user_id');
+      for (var message in _messages) {
+        if (message.userId != loggedinUserId) {
+          otherUserId = message.userId;
+          break;
+        }
+      }
+      debugPrint(
+          'Logged-in User ID: $loggedinUserId, Other User ID: $otherUserId');
     });
+  }
+
+  // Add method to fetch report history
+  Future<void> _fetchReportHistory() async {
+    int userId = storage.read('user_id');
+    await reportController.fetchReportHistory(userId);
+    setState(() {});
   }
 
   @override
@@ -222,7 +256,8 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                         message: message,
                         profile: message.user ??
                             UserModel(
-                              firstName: message.user?.firstName ?? "Loading...",
+                              firstName:
+                                  message.user?.firstName ?? "Loading...",
                               middleName: '',
                               lastName: '',
                               email: '',
@@ -237,6 +272,10 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
             controller: conversationController,
             taskTakenId: widget.taskTakenId ?? 0,
             onMessageSent: loadConversationHistory,
+            selectedImages: reportController.selectedImages,
+            imageUploadError: reportController.imageUploadError,
+            onPickImages: () => reportController.pickImages(context),
+            onRemoveImage: reportController.removeImage,
           ),
         ],
       ),
@@ -244,6 +283,9 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   }
 
   void _showReportModal(BuildContext context) {
+    // Reset the form state each time the modal is opened
+    reportController.clearForm();
+
     final TextEditingController reasonController = TextEditingController();
     showModalBottomSheet(
       enableDrag: true,
@@ -270,7 +312,8 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(left: 40, right: 40, top: 20),
+                            padding: const EdgeInsets.only(
+                                left: 40, right: 40, top: 20),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -295,7 +338,8 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                             ),
                           ),
                           Padding(
-                            padding: const EdgeInsets.only(left: 40, right: 40, top: 20),
+                            padding: const EdgeInsets.only(
+                                left: 40, right: 40, top: 20),
                             child: TextField(
                               controller: reasonController,
                               maxLines: 5,
@@ -317,9 +361,149 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
+                                  borderSide: BorderSide(
+                                      color: Color(0xFF0272B1), width: 2),
                                 ),
                               ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                left: 40, right: 40, top: 20, bottom: 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Upload Proof (Limited to 5 images only)',
+                                  style: TextStyle(
+                                    color: Color(0xFF0272B1),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(height: 10),
+                                Container(
+                                  alignment: Alignment.centerLeft,
+                                  child: ElevatedButton.icon(
+                                    onPressed: () async {
+                                      await reportController
+                                          .pickImages(context);
+                                      setModalState(() {});
+                                    },
+                                    icon: Icon(Icons.upload_file,
+                                        color: Colors.white),
+                                    label: Text(
+                                      'Upload Images',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Color(0xFF0272B1),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      padding:
+                                          EdgeInsets.only(left: 16, right: 16),
+                                      alignment: Alignment.centerLeft,
+                                      minimumSize: Size(150, 50),
+                                    ),
+                                  ),
+                                ),
+                                if (reportController.imageUploadError !=
+                                    null) ...[
+                                  SizedBox(height: 5),
+                                  Text(
+                                    reportController.imageUploadError!,
+                                    style: TextStyle(
+                                        color: Colors.red, fontSize: 12),
+                                  ),
+                                ],
+                                if (reportController
+                                    .selectedImages.isNotEmpty) ...[
+                                  SizedBox(height: 10),
+                                  SizedBox(
+                                    height: 140,
+                                    child: ListView.builder(
+                                      scrollDirection: Axis.horizontal,
+                                      itemCount: reportController
+                                          .selectedImages.length,
+                                      itemBuilder: (context, index) {
+                                        return FutureBuilder<Uint8List>(
+                                          future: reportController
+                                              .selectedImages[index]
+                                              .readAsBytes(),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.connectionState ==
+                                                ConnectionState.waiting) {
+                                              return SizedBox(
+                                                height: 100,
+                                                width: 100,
+                                                child: Center(
+                                                    child:
+                                                        CircularProgressIndicator()),
+                                              );
+                                            }
+                                            if (snapshot.hasError) {
+                                              return SizedBox(
+                                                height: 100,
+                                                width: 100,
+                                                child: Center(
+                                                    child: Text(
+                                                        'Error loading image')),
+                                              );
+                                            }
+                                            return Padding(
+                                              padding: const EdgeInsets.only(
+                                                  right: 10),
+                                              child: Column(
+                                                children: [
+                                                  Stack(
+                                                    children: [
+                                                      Image.memory(
+                                                        snapshot.data!,
+                                                        height: 100,
+                                                        width: 100,
+                                                        fit: BoxFit.cover,
+                                                      ),
+                                                      Positioned(
+                                                        top: 0,
+                                                        right: 0,
+                                                        child: GestureDetector(
+                                                          onTap: () {
+                                                            setModalState(() {
+                                                              reportController
+                                                                  .removeImage(
+                                                                      index);
+                                                            });
+                                                          },
+                                                          child: Container(
+                                                            color: Colors.red,
+                                                            child: Icon(
+                                                              Icons.close,
+                                                              color:
+                                                                  Colors.white,
+                                                              size: 20,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  SizedBox(height: 5),
+                                                  Text(
+                                                    'Image ${index + 1}',
+                                                    style: TextStyle(
+                                                        color: Colors.grey),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
                         ],
@@ -327,12 +511,15 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(left: 40, right: 40, bottom: 20),
+                    padding:
+                        const EdgeInsets.only(left: 40, right: 40, bottom: 20),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         ElevatedButton(
                           onPressed: () {
+                            // Clear the form on cancel
+                            reportController.clearForm();
                             Navigator.pop(context);
                           },
                           style: ElevatedButton.styleFrom(
@@ -340,7 +527,8 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 15),
                           ),
                           child: Text(
                             'Cancel',
@@ -353,18 +541,86 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                         SizedBox(width: 10),
                         ElevatedButton(
                           onPressed: () {
-                            // Simulate report submission without backend
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Report submitted: ${reasonController.text}')),
+                            // Show confirmation dialog
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext dialogContext) {
+                                return AlertDialog(
+                                  title: Text("Confirm Report"),
+                                  content: Text(
+                                      "Reporting is a serious action, are you sure about this report?"),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(dialogContext)
+                                            .pop(); // Close the dialog
+                                      },
+                                      child: Text("No"),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(dialogContext)
+                                            .pop(); // Close the dialog
+
+                                        // Validate the description
+                                        if (reasonController.text
+                                            .trim()
+                                            .isEmpty) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  'Please enter a report description'),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                          return;
+                                        }
+
+                                        // Get the user IDs
+                                        final int loggedinUserId =
+                                            storage.read('user_id');
+                                        final int selectedUserId =
+                                            otherUserId ?? 0;
+
+                                        // Validate the reported user ID
+                                        if (selectedUserId == 0) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  'Unable to determine the user to report. Please send a message first.'),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                          return;
+                                        }
+
+                                        // Pass the data to the ReportController
+                                        reportController.submitReport(
+                                          context: context,
+                                          setModalState: setModalState,
+                                          reason: reasonController.text.trim(),
+                                          images:
+                                              reportController.selectedImages,
+                                          reportedBy: loggedinUserId,
+                                          reportedWhom: selectedUserId,
+                                        );
+                                      },
+                                      child: Text("Yes"),
+                                    ),
+                                  ],
+                                );
+                              },
                             );
-                            Navigator.pop(context);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Color(0xFF0272B1),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 15),
                           ),
                           child: Text(
                             'Submit',
@@ -383,7 +639,10 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
           },
         );
       },
-    );
+    ).whenComplete(() {
+      // Clear the form when the modal is closed
+      reportController.clearForm();
+    });
   }
 
   void _showReportHistoryModal(BuildContext context) {
@@ -406,12 +665,43 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
               ),
               SizedBox(height: 20),
               Expanded(
-                child: Center(
-                  child: Text(
-                    "No report history available yet.",
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                ),
+                child: reportController.reportHistory.isEmpty
+                    ? Center(
+                        child: Text(
+                          "No report history available yet.",
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: reportController.reportHistory.length,
+                        itemBuilder: (context, index) {
+                          final report = reportController.reportHistory[index];
+                          return Card(
+                            margin: EdgeInsets.symmetric(vertical: 5),
+                            child: ListTile(
+                              title: Text(
+                                "Report #${report.reportId ?? 'N/A'}",
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                      "Reason: ${report.reason ?? 'No reason provided'}"),
+                                  Text(
+                                      "Reported By: ${report.reportedByName ?? 'Unknown'}"),
+                                  Text(
+                                      "Reported Whom: ${report.reportedWhomName ?? 'Unknown'}"),
+                                  Text(
+                                      "Created At: ${report.createdAt ?? 'N/A'}"),
+                                  Text(
+                                      "Status: ${report.status != null ? (report.status! ? 'Resolved' : 'Pending') : 'N/A'}"),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
               ),
               SizedBox(height: 10),
               Align(
@@ -449,11 +739,19 @@ class _MessageBar extends StatelessWidget {
   final ConversationController controller;
   final int taskTakenId;
   final VoidCallback onMessageSent;
+  final List<XFile> selectedImages;
+  final String? imageUploadError;
+  final VoidCallback onPickImages;
+  final Function(int) onRemoveImage;
 
   const _MessageBar({
     required this.controller,
     required this.taskTakenId,
     required this.onMessageSent,
+    required this.selectedImages,
+    required this.imageUploadError,
+    required this.onPickImages,
+    required this.onRemoveImage,
   });
 
   void _submitMessage(BuildContext context) {
@@ -465,7 +763,6 @@ class _MessageBar extends StatelessWidget {
     });
   }
 
-  //Text Form Field
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -475,6 +772,10 @@ class _MessageBar extends StatelessWidget {
           padding: const EdgeInsets.all(8.0),
           child: Row(
             children: [
+              IconButton(
+                icon: Icon(Icons.attach_file),
+                onPressed: onPickImages,
+              ),
               Expanded(
                 child: TextFormField(
                   controller: controller.conversationMessage,
@@ -510,10 +811,20 @@ class _ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Determine if the message is from the current user
-    bool isMine = message.userId == GetStorage().read('user_id');
-    //debugPrint(isMine.toString());
+    // Logged In UserId Start
+    // Store the other user id and logged in user id in a variable
+    final selectedUserId = message.userId;
+    final loggedinUserId = GetStorage().read('user_id');
 
+    debugPrint("----------Start----------");
+    debugPrint("Selected User Id: $selectedUserId");
+    debugPrint("Logged In User Id: $loggedinUserId");
+    debugPrint("-----------End-----------");
+    // Determine if the message is from the current user
+    bool isMine = selectedUserId == loggedinUserId;
+    // Logged In UserId End
+    //debugPrint(isMine.toString());
+    // debugPrint('Message userId: $selectedUserId, Logged-in userId: $loggedinUserId');
     // Define the message bubble widget (used in both cases)
     Widget messageBubble = Flexible(
       child: Container(
@@ -550,7 +861,8 @@ class _ChatBubble extends StatelessWidget {
           children: [
             CircleAvatar(
               child: Text(profile.firstName.isNotEmpty
-                  ? profile.firstName.substring(0, profile.firstName.length > 1 ? 2 : 1)
+                  ? profile.firstName
+                      .substring(0, profile.firstName.length > 1 ? 2 : 1)
                   : 'U'),
             ),
             const SizedBox(width: 12),

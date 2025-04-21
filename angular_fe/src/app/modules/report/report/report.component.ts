@@ -1,17 +1,25 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { AnalysisComponent } from './analysis/analysis.component';
-import { ReportsComponent } from "./reports/reports.component";
+import { JobComponent } from "./job/job.component";
+import { SpecializationComponent } from './specialization/specialization.component';
+import { BestTaskerComponent } from "./best-tasker/best-tasker.component";
+import { BestClientComponent } from "./best-client/best-client.component";
+import { DepositorComponent } from './depositor/depositor.component';
 
 @Component({
   selector: 'app-report',
-  imports: [CommonModule, AnalysisComponent, ReportsComponent],
+  imports: [CommonModule,
+    JobComponent,
+    SpecializationComponent, 
+    BestTaskerComponent, 
+    BestClientComponent,
+    DepositorComponent],
   templateUrl: './report.component.html',
   styleUrl: './report.component.css'
 })
 export class ReportComponent {
 
-  currentTab: String ="ReportTab";
+  currentTab: String ="MostFamousSpecialization";
   changeTab(option: String){
     this.currentTab = option;
   }

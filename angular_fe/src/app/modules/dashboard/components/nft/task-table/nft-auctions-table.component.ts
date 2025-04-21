@@ -1,64 +1,51 @@
-import { NgFor } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { CommonModule, NgFor } from '@angular/common';
+import { TaskService } from 'src/app/services/task.service';
+
+interface TaskTableData {
+  client: string;
+  tasker: string;
+  ending_in: string;
+  status: string;
+}
 
 @Component({
   selector: '[nft-auctions-table]',
   templateUrl: './nft-auctions-table.component.html',
-  imports: [NgFor],
+  imports: [NgFor, CommonModule],
+  standalone: true
 })
 export class NftAuctionsTableComponent implements OnInit {
-  public TaskTaken = [
-    {
-      client: 'Mike Smith',
-      tasker: 'Jenny Wilson',
-      ending_in: '1h 05m 00s',
-      status: 'Cancelled'
-    },
-    {
-      client: 'Sarah Johnson',
-      tasker: 'Tom Brown',
-      ending_in: '2h 30m 00s',
-      status: 'Completed'
-    },
-    {
-      client: 'John Doe',
-      tasker: 'Emma Davis',
-      ending_in: '45m 20s',
-      status: 'Ongoing'
-    },
-    {
-      client: 'Lisa Anderson',
-      tasker: 'Mark Taylor',
-      ending_in: '3h 15m 00s',
-      status: 'Ongoing'
-    },
-    {
-      client: 'Kora Doe',
-      tasker: 'Bell Davis',
-      ending_in: '4 days 50s',
-      status: 'Ongoing'
-    },
-    {
-      client: 'Baron Kevin',
-      tasker: 'Dein Braken',
-      ending_in: '10 days 30s',
-      status: 'Completed'
-    },
-    {
-      client: 'Steiin Kloe',
-      tasker: 'Emma Davis',
-      ending_in: '45m 20s',
-      status: 'Ongoing'
-    },
-    {
-      client: 'Sarah Johnson',
-      tasker: 'Tom Brown',
-      ending_in: '2h 30m 00s',
-      status: 'Completed'
-    },
-  ];
+  public taskTableData: TaskTableData[] = [];
+  public isLoading: boolean = true; 
 
-  constructor() {}
+  constructor(private taskService: TaskService) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.fetchTasks();
+  }
+
+  private fetchTasks(): void {
+    this.isLoading = true; 
+    this.taskService.getTasks().subscribe({
+      next: (response) => {
+        this.taskTableData = this.mapTasksToTableData(response.tasks);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error fetching tasks:', err);
+        this.isLoading = false; 
+      }
+    });
+  }
+
+  private mapTasksToTableData(tasks: any[]): TaskTableData[] {
+    return tasks.map(task => {
+      const clientName = `${task.clients.user.first_name} ${task.clients.user.middle_name ? task.clients.user.middle_name + ' ' : ''}${task.clients.user.last_name}`;
+      const tasker = task.task_title; 
+      const ending_in = task.task_begin_date; 
+      const status = task.status;
+      return { client: clientName, tasker, ending_in, status };
+    });
+  }
 }

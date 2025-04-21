@@ -1,0 +1,54 @@
+<!-- Main container with search, filter, table, and pagination -->
+<div class="border-muted-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
+  <!-- Main content area with table and chart -->
+  <div class="flex flex-col lg:flex-row gap-4">
+    <!-- Table section (left side) -->
+    <div class="w-full lg:w-1/2">
+      <div class="overflow-x-auto w-full">
+        <table class="w-full border-collapse text-left text-sm">
+          <thead class="border-b">
+            <tr class="bg-gray-100">
+              <th class="px-2 py-2 w-[40px]">No</th>
+              <th class="px-2 py-2 text-center min-w-[100px]">Depositor</th>
+              <th class="px-2 py-2 text-center min-w-[100px]">Amount Deposited</th>
+              <th class="px-2 py-2 text-center min-w-[100px]">Month Deposited</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Dynamically render depositors -->
+            <tr *ngFor="let depositor of paginatedDepositors; let i = index" class="border-b">
+              <td class="px-2 py-2 text-center">{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
+              <td class="px-2 py-2 text-center">{{ depositor.userName }}</td>
+              <td class="px-2 py-2 text-center">{{ depositor.amount }}</td>
+              <td class="px-2 py-2 text-center">{{ depositor.month }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Chart section (right side) -->
+    <div class="w-full lg:w-1/2 bg-background rounded-lg px-4 py-4 shadow-md">
+      <div class="mb-2 flex items-center justify-between">
+        <div class="flex flex-col">
+          <div class="flex flex-col items-start space-y-2">
+          </div>
+        </div>
+      </div>
+
+      <!-- Spline Area Chart -->
+      <div id="chart" class="mt-4">
+        <apx-chart
+          [series]="chartOptions.series"
+          [chart]="chartOptions.chart"
+          [xaxis]="chartOptions.xaxis"
+          [stroke]="chartOptions.stroke"
+          [title]="chartOptions.title"
+          [grid]="chartOptions.grid"
+          [colors]="chartOptions.colors"
+          [legend]="chartOptions.legend">
+        </apx-chart>
+      </div>
+    </div>
+  </div>
+</div>
