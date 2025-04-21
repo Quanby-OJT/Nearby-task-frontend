@@ -9,7 +9,6 @@ import { SessionLocalStorage } from 'src/services/sessionStorage';
 })
 export class FeedbackService {
 
-
     private apiUrl = 'http://localhost:5000/connect';
 
     constructor(
@@ -23,7 +22,6 @@ export class FeedbackService {
             'Authorization': `Bearer ${this.sessionStorage.getSessionToken()}`
         })
     }
-
 
     getFeedback(): Observable<any> {
         return this.http.get(`${this.apiUrl}/get-all-tasker-feedback`, { 
