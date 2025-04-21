@@ -44,8 +44,8 @@ class _LikeScreenState extends State<LikeScreen> {
     String query = _searchController.text.trim().toLowerCase();
     setState(() {
       _filteredJobs = _likedJobs.where((task) {
-        return task.title!.toLowerCase().contains(query) ||
-            task.description!.toLowerCase().contains(query);
+        return task.title.toLowerCase().contains(query) ||
+            task.description.toLowerCase().contains(query);
       }).toList();
     });
 
@@ -117,7 +117,7 @@ class _LikeScreenState extends State<LikeScreen> {
         _user = user;
         _isLoading = false;
 
-        _role = _user?.user?.role ?? '';
+        _role = _user?.user.role ?? '';
         debugPrint("Role: $_role");
       });
     } catch (e) {
@@ -357,7 +357,7 @@ class _LikeScreenState extends State<LikeScreen> {
             context,
             MaterialPageRoute(
               builder: (context) =>
-                  TaskInformation(taskID: task.id as int, role: _role),
+                  TaskInformation(taskID: task.id, role: _role),
             ),
           );
           print('Card tapped: ${task.id}');
@@ -395,19 +395,18 @@ class _LikeScreenState extends State<LikeScreen> {
                                 ),
                                 Row(
                                   children: [
-                                    if (task.status != null)
-                                      Flexible(
-                                        child: Text(
-                                          task.status!,
-                                          style: GoogleFonts.montserrat(
-                                            color: Color.fromARGB(
-                                                255, 57, 209, 11),
-                                            fontSize: 8,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
+                                    Flexible(
+                                      child: Text(
+                                        task.status!,
+                                        style: GoogleFonts.montserrat(
+                                          color:
+                                              Color.fromARGB(255, 57, 209, 11),
+                                          fontSize: 8,
+                                          fontWeight: FontWeight.w500,
                                         ),
+                                        overflow: TextOverflow.ellipsis,
                                       ),
+                                    ),
                                   ],
                                 ),
                               ],
@@ -428,16 +427,15 @@ class _LikeScreenState extends State<LikeScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (task.contactPrice != null)
-                            Text(
-                              '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice!.roundToDouble())}',
-                              style: GoogleFonts.montserrat(
-                                color: const Color(0xFF03045E),
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              overflow: TextOverflow.ellipsis,
+                          Text(
+                            '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice!.roundToDouble())}',
+                            style: GoogleFonts.montserrat(
+                              color: const Color(0xFF03045E),
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
                             ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ],
                       ),
                     ),
@@ -520,7 +518,7 @@ class _LikeScreenState extends State<LikeScreen> {
       if (confirm == null || !confirm) return;
 
       // Process the unlike action
-      final result = await _jobService.unlikeJob(job.id!);
+      final result = await _jobService.unlikeJob(job.id);
 
       if (result['success']) {
         // Remove from local list
@@ -572,24 +570,21 @@ class _LikeScreenState extends State<LikeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (job.location != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Text(
-                    'Company: ${job.location}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text(
+                  'Company: ${job.location}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-              if (job.description != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Text('Description: ${job.description}'),
-                ),
-              if (job.contactPrice != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Text('Salary: \$${job.contactPrice}'),
-                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text('Description: ${job.description}'),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text('Salary: \$${job.contactPrice}'),
+              ),
               // Add more job details as needed
             ],
           ),

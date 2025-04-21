@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/view/fill_up/fill_up_tasker.dart';
 import 'package:flutter_fe/view/service_acc/fill_up.dart';
 
 class NearbyTaskRules extends StatefulWidget {

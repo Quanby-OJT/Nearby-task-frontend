@@ -42,10 +42,10 @@ class TaskModel {
       "specialization": specialization,
       "task_description": description,
       "location": location,
-      "duration": duration != null ? int.tryParse(duration!) ?? 0 : 0,
+      "duration": duration != null ? int.tryParse(duration) ?? 0 : 0,
       "num_of_days": period,
       "urgent": urgency == "Urgent", // Convert string to boolean
-      "proposed_price": contactPrice != null ? contactPrice : 0,
+      "proposed_price": contactPrice ?? 0,
       "remarks": remarks,
       "task_begin_date": taskBeginDate,
       "id": id,

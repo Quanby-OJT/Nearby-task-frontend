@@ -26,7 +26,7 @@ class _DisplayListRecordConfirmedState
   final List<Map<String, dynamic>> requestData = [];
 
   // Track the selected tab index
-  int _selectedTabIndex = 0;
+  final int _selectedTabIndex = 0;
 
   @override
   void initState() {
@@ -37,14 +37,6 @@ class _DisplayListRecordConfirmedState
   Future<void> _fetchRequests() async {
     try {
       int userId = storage.read("user_id");
-
-      if (userId == null) {
-        debugPrint("User ID is null");
-        setState(() {
-          _isLoading = false;
-        });
-        return;
-      }
       final response =
           await _notificationController.getConfirmedRequests(userId);
 
@@ -81,7 +73,7 @@ class _DisplayListRecordConfirmedState
   String truncateText(String? text, int maxLength) {
     final safeText = text ?? "No description";
     if (safeText.length <= maxLength) return safeText;
-    return safeText.substring(0, maxLength) + "...";
+    return "${safeText.substring(0, maxLength)}...";
   }
 
   // Method to build content based on the selected tab

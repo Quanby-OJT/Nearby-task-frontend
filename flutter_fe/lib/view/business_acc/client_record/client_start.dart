@@ -31,8 +31,8 @@ class _ClientStartState extends State<ClientStart> {
   ClientRequestModel? _requestInformation;
   bool _isLoading = true;
   final storage = GetStorage();
-  bool _isApplying = false;
-  bool _isEditing = false;
+  final bool _isApplying = false;
+  final bool _isEditing = false;
 
   AuthenticatedUser? tasker;
 
@@ -152,7 +152,7 @@ class _ClientStartState extends State<ClientStart> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          "${_taskInformation!.title}",
+                                          _taskInformation!.title,
                                           style: GoogleFonts.montserrat(
                                             color: const Color(0xFF03045E),
                                             fontSize: 14,

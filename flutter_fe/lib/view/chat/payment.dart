@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class EscrowPaymentScreen extends StatefulWidget {
@@ -46,7 +45,9 @@ class _EscrowPaymentScreenState extends State<EscrowPaymentScreen> {
               _isLoading = false;
             });
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error loading payment page: ${error.description}')),
+              SnackBar(
+                  content:
+                      Text('Error loading payment page: ${error.description}')),
             );
           },
         ),
@@ -84,8 +85,7 @@ class _EscrowPaymentScreenState extends State<EscrowPaymentScreen> {
       body: Stack(
         children: [
           WebViewWidget(controller: _controller),
-          if (_isLoading)
-            const Center(child: CircularProgressIndicator()),
+          if (_isLoading) const Center(child: CircularProgressIndicator()),
         ],
       ),
     );

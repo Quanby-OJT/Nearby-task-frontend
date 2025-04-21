@@ -39,7 +39,7 @@ class _NavUserScreenState extends State<NavUserScreen> {
   bool _documentValid = false;
   bool _isLoading = true;
   bool _isUploadDialogShown = false;
-  bool _showButton = false;
+  final bool _showButton = false;
   final _clientServices = ClientServices();
 
   final GlobalKey _moreVertKey = GlobalKey();
@@ -66,7 +66,7 @@ class _NavUserScreenState extends State<NavUserScreen> {
       }
 
       AuthenticatedUser? user =
-      await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(context, userId);
       debugPrint(user.toString());
 
       final response = await _clientServices.fetchUserIDImage(userId);
@@ -80,8 +80,9 @@ class _NavUserScreenState extends State<NavUserScreen> {
 
           _isLoading = false;
 
-          debugPrint("Successfully loaded user image" + _existingProfileImageUrl!);
-          debugPrint("Successfully loaded ID image" + _existingIDImageUrl!);
+          debugPrint(
+              "Successfully loaded user image${_existingProfileImageUrl!}");
+          debugPrint("Successfully loaded ID image${_existingIDImageUrl!}");
 
           // if (_existingProfileImageUrl != null && _existingIDImageUrl != null) {
           //   _showButton = true;
@@ -108,7 +109,7 @@ class _NavUserScreenState extends State<NavUserScreen> {
 
       AuthenticatedUser? user =
           await _profileController.getAuthenticatedUser(context, userId);
-      debugPrint("Current User: " + user.toString());
+      debugPrint("Current User: $user");
 
       if (user == null) {
         setState(() {
@@ -338,26 +339,26 @@ class _NavUserScreenState extends State<NavUserScreen> {
                         }
                       },
                     ),
-                  if(_role == "Client")...[
-                    ListTile(
-                      leading: Icon(FontAwesomeIcons.coins),
-                      title: Text('Add NearByTask Tokens'),
-                      onTap: () {
-                        // if (_existingProfileImageUrl == null ||
-                        //     _existingIDImageUrl == null ||
-                        //     _existingProfileImageUrl!.isEmpty ||
-                        //     _existingIDImageUrl!.isEmpty ||
-                        //     !_documentValid) {
-                        //   overlayEntry.remove();
-                        //   return _showWarningDialog();
-                        // }
-                        Navigator.push(context, MaterialPageRoute(builder: (context) {
-                          return EscrowTokenScreen();
-                        }));
-                        overlayEntry.remove();
-                      }
-                    ),
-                  ],
+                    if (_role == "Client") ...[
+                      ListTile(
+                          leading: Icon(FontAwesomeIcons.coins),
+                          title: Text('Add NearByTask Tokens'),
+                          onTap: () {
+                            // if (_existingProfileImageUrl == null ||
+                            //     _existingIDImageUrl == null ||
+                            //     _existingProfileImageUrl!.isEmpty ||
+                            //     _existingIDImageUrl!.isEmpty ||
+                            //     !_documentValid) {
+                            //   overlayEntry.remove();
+                            //   return _showWarningDialog();
+                            // }
+                            Navigator.push(context,
+                                MaterialPageRoute(builder: (context) {
+                              return EscrowTokenScreen();
+                            }));
+                            overlayEntry.remove();
+                          }),
+                    ],
                     ListTile(
                       leading: Icon(Icons.settings),
                       title: Text('Settings'),
