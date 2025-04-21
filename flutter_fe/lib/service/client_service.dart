@@ -90,7 +90,7 @@ class ClientServices {
     }
   }
 
-  Future<List<UserModel>> fetchAllTasker() async {
+  Future<List<TaskerModel>> fetchAllTasker() async {
     final userId = await getUserId();
     if (userId == null) {
       debugPrint("Cannot fetch taskers: User ID is null");
@@ -146,7 +146,7 @@ class ClientServices {
           })
           .map((tasker) {
             try {
-              return UserModel.fromJson(tasker);
+              return TaskerModel.fromJson(tasker);
             } catch (e) {
               debugPrint("Error parsing tasker: $e");
               debugPrint("Problematic tasker data: $tasker");
@@ -154,7 +154,7 @@ class ClientServices {
             }
           })
           .where((tasker) => tasker != null)
-          .cast<UserModel>()
+          .cast<TaskerModel>()
           .toList();
 
       debugPrint("Filtered Taskers Count: ${taskerList.length}");
@@ -341,7 +341,7 @@ class ClientServices {
     }
   }
 
-  Future<List<UserModel>> fetchTaskersBySpecialization(
+  Future<List<TaskerModel>> fetchTaskersBySpecialization(
       String specialization) async {
     try {
       final response = await dio
@@ -354,7 +354,7 @@ class ClientServices {
         return data
             .map((json) {
               try {
-                return UserModel.fromJson(json);
+                return TaskerModel.fromJson(json);
               } catch (e) {
                 debugPrint("Error parsing tasker: $e");
                 debugPrint("Problematic tasker data: $json");
@@ -362,7 +362,7 @@ class ClientServices {
               }
             })
             .where((tasker) => tasker != null)
-            .cast<UserModel>()
+            .cast<TaskerModel>()
             .toList();
       } else {
         throw Exception('Failed to fetch taskers');
