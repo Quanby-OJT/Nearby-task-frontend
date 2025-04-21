@@ -124,8 +124,7 @@ class TaskDetailsService {
     }
   }
 
-  static Future<Map<String, dynamic>> sendMessage(
-      Conversation conversation) async {
+  static Future<Map<String, dynamic>> sendMessage(Conversation conversation) async {
     try {
       return await _postRequest(
           endpoint: "/send-message", body: conversation.toJson());

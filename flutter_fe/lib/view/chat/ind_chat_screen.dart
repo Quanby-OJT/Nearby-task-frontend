@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/cupertino.dart';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/conversation.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/controller/conversation_controller.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/chat/task_details_screen.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -35,9 +37,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   final ScrollController _scrollController = ScrollController();
   // Logged In UserId Start
   final storage = GetStorage();
-  // Logged In UserId End
-  final ConversationController conversationController =
-      ConversationController();
+  final ConversationController conversationController = ConversationController();
   final JobPostService jobPostService = JobPostService();
   final ReportController reportController = ReportController();
   TaskModel? task;
@@ -57,8 +57,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   }
 
   Future<void> loadInitialData() async {
-    final task =
-        await jobPostService.fetchTaskInformation(widget.taskTakenId ?? 0);
+    final task = await jobPostService.fetchTaskInformation(widget.taskTakenId ?? 0);
     setState(() {
       // Selected User Start
       this.task = task?.task;
@@ -109,7 +108,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+       appBar: AppBar(
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -132,15 +131,13 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
               children: [
                 // (1) Info Icon (unchanged)
                 IconButton(
-                  icon: Icon(Icons.info_outline, color: Color(0xFF0272B1)),
+                  icon: Icon(FontAwesomeIcons.circleInfo, color: Color(0xFF0272B1)),
                   onPressed: () {
                     debugPrint(widget.taskTakenId.toString());
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => TaskDetailsScreen(
-                          taskTakenId: widget.taskTakenId ?? 0,
-                        ),
+                        builder: (context) => TaskDetailsScreen(taskTakenId: widget.taskTakenId ?? 0),
                       ),
                     );
                   },
@@ -166,12 +163,10 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.white
-                                      .withOpacity(_isHovering ? 0.4 : 0.2),
+                                  color: Colors.white.withValues(),
                                   blurRadius: _isHovering ? 0 : 6,
                                   spreadRadius: _isHovering ? 2 : 0,
-                                  offset:
-                                      _isHovering ? Offset(0, 0) : Offset(0, 3),
+                                  offset: _isHovering ? Offset(0, 0) : Offset(0, 3),
                                 ),
                               ],
                             ),
@@ -188,8 +183,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                                   value: 'report_user',
                                   child: Row(
                                     children: [
-                                      Icon(Icons.report,
-                                          color: Colors.redAccent),
+                                      Icon(Icons.report, color: Colors.redAccent),
                                       SizedBox(width: 10),
                                       Text('Report User'),
                                     ],
@@ -740,6 +734,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   }
 }
 
+//For inputting the text.
 class _MessageBar extends StatelessWidget {
   final ConversationController controller;
   final int taskTakenId;
@@ -807,6 +802,7 @@ class _MessageBar extends StatelessWidget {
   }
 }
 
+//For each messages. The Bubble alignment is determined if the message is from the current user.
 class _ChatBubble extends StatelessWidget {
   final Conversation message;
   final UserModel profile;

@@ -12,8 +12,7 @@ import 'package:flutter_fe/controller/escrow_management_controller.dart';
 class TaskController {
   final JobPostService _jobPostService = JobPostService();
   final TaskDetailsService _taskDetailsService = TaskDetailsService();
-  final EscrowManagementController _escrowManagementController =
-      EscrowManagementController();
+  final EscrowManagementController _escrowManagementController = EscrowManagementController();
   final jobIdController = TextEditingController();
   final jobTitleController = TextEditingController();
   final jobSpecializationController = TextEditingController();
@@ -43,13 +42,11 @@ class TaskController {
       final priceText = contactPriceController.text.trim();
       final priceInt = int.tryParse(priceText) ?? 0;
 
-      debugPrint(_escrowManagementController.tokenCredits.value.toString());
-      if (_escrowManagementController.tokenCredits.value - priceInt <
-          _escrowManagementController.tokenCredits.value) {
+      debugPrint(priceInt.toString());
+      if(_escrowManagementController.tokenCredits.value - priceInt > _escrowManagementController.tokenCredits.value){
         return {
           "success": false,
-          "error":
-              "You don't have enough tokens to post your needed task. Please Deposit First Your Desired Amount of Tokens."
+          "error": "You don't have enough tokens to post your needed task. Please Deposit First Your Desired Amount of Tokens."
         };
       } else {
         final task = TaskModel(
@@ -184,6 +181,25 @@ class TaskController {
     return assignedTask.containsKey('message')
         ? assignedTask['message'].toString()
         : assignedTask['error'].toString();
+  }
+
+  Future<bool> rateTheTasker(int taskTakenId, int taskerId, int rating, String feedback) async {
+    if(taskTakenId == 0 || rating == 0 || feedback.isEmpty) {
+      return false;
+    }
+
+    try{
+      Map<String, dynamic> feedbackResult = await _jobPostService.rateTheTasker(taskTakenId, taskerId, rating, feedback);
+
+      debugPrint("Feedback response: $feedbackResult");
+      if(feedbackResult.containsKey('message')) return feedbackResult['success'];
+      debugPrint("Error in task controller rateTheTasker: ${feedbackResult['error']}");
+      return false;
+    }catch(e, stackTrace){
+      debugPrint("Error in task controller rateTheTasker: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return false;
+    }
   }
 
   // Method to update a task
@@ -327,6 +343,7 @@ class TaskController {
           birthDate: DateTime.now(),
           group: false,
           user: taskerUser,
+          rating: 0
         );
 
         // Create TaskAssignment with the correct taskTakenId

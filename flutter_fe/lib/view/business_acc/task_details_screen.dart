@@ -226,8 +226,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                       // Handle the status change here
                                       print('Status changed to: $newStatus');
                                       // Optionally, update the task's status in your controller/service
-                                      taskController.updateTaskStatus(
-                                          context, widget.taskId, newStatus);
+                                      // taskController.updateTaskStatus(
+                                      //     context, widget.taskId, newStatus);
                                     },
                                     decoration: InputDecoration(
                                       border: OutlineInputBorder(),

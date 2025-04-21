@@ -32,7 +32,7 @@ class _HomePageState extends State<HomePage> {
   final JobPostService jobPostService = JobPostService();
   final ClientServices _clientServices = ClientServices();
   final AuthenticationController _authController = AuthenticationController();
-  List<UserModel> tasker = [];
+  List<TaskerModel> tasker = [];
   List<String> specialization = [];
   String? _errorMessage;
   int? cardNumber = 0;
@@ -100,7 +100,7 @@ class _HomePageState extends State<HomePage> {
         _errorMessage = null;
       });
 
-      List<UserModel> tasks;
+      List<TaskerModel> tasks;
       if (_selectedSpecialization == null || _selectedSpecialization == 'All') {
         tasks = await _clientServices.fetchAllTasker();
       } else {
@@ -145,7 +145,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _saveLikedTasker(UserModel task) async {
+  Future<void> _saveLikedTasker(TaskerModel task) async {
     try {
       debugPrint("Printing...$task");
 
@@ -233,6 +233,10 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  ///I think pwede tong isahan na lang na page, para di bloated tingnan.
+  ///
+  /// -Ces
+  ///
   void _showWarningDialog() {
     showDialog(
       context: context,
@@ -278,11 +282,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _showRatingDialog(UserModel tasker) {
+  void _showRatingDialog(TaskerModel tasker) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Rate ${tasker.firstName}'),
+        title: Text('Rate ${tasker.user?.firstName}'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -484,12 +488,12 @@ class _HomePageState extends State<HomePage> {
                       onSwipe: (previousIndex, targetIndex, swipeDirection) {
                         if (swipeDirection == CardSwiperDirection.left) {
                           debugPrint(
-                              "Swiped Left (Disliked) for tasker: ${tasker[previousIndex].firstName}");
+                              "Swiped Left (Disliked) for tasker: ${tasker[previousIndex].user?.firstName}");
                           _cardCounter();
                         } else if (swipeDirection ==
                             CardSwiperDirection.right) {
                           debugPrint(
-                              "Swiped Right (Liked) for tasker: ${tasker[previousIndex].firstName}");
+                              "Swiped Right (Liked) for tasker: ${tasker[previousIndex].user?.firstName}");
 
                           if (_existingProfileImageUrl == null ||
                               _existingIDImageUrl == null ||
@@ -521,10 +525,10 @@ class _HomePageState extends State<HomePage> {
                                   children: [
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(16),
-                                      child: task.image != null &&
-                                              task.image!.isNotEmpty
+                                      child: task.user?.image != null &&
+                                              task.user?.image!.isNotEmpty
                                           ? Image.network(
-                                              task.image!,
+                                              task.user?.image!,
                                               fit: BoxFit.cover,
                                               width: double.infinity,
                                               height: double.infinity,
@@ -573,7 +577,7 @@ class _HomePageState extends State<HomePage> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              "${task.firstName} ${task.lastName}",
+                                              "${task.user?.firstName} ${task.user?.lastName}",
                                               style: TextStyle(
                                                 fontSize: 24,
                                                 fontWeight: FontWeight.bold,
@@ -584,7 +588,7 @@ class _HomePageState extends State<HomePage> {
                                             Row(
                                               children: [
                                                 ...List.generate(5, (index) {
-                                                  double rating = 4.5;
+                                                  double rating = task.rating ?? 0.0;
                                                   return Icon(
                                                     index < rating.floor()
                                                         ? Icons.star
@@ -597,7 +601,7 @@ class _HomePageState extends State<HomePage> {
                                                 }),
                                                 SizedBox(width: 8),
                                                 Text(
-                                                  "4.5",
+                                                    (task.rating.toDouble() ?? 0.0) != 0.0 ? task.rating.toDouble().toString() : "No Reviews",
                                                   style: TextStyle(
                                                     color: Colors.white,
                                                     fontSize: 16,
@@ -676,7 +680,7 @@ class _HomePageState extends State<HomePage> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        "${task.firstName} ${task.lastName}",
+                                        "${task.user?.firstName} ${task.user?.lastName}",
                                         style: TextStyle(
                                           fontSize: 24,
                                           fontWeight: FontWeight.bold,
@@ -685,12 +689,12 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                       SizedBox(height: 8),
                                       Text(
-                                        "Email: ${task.email}",
+                                        "Email: ${task.user?.email}",
                                         style: TextStyle(fontSize: 16),
                                       ),
                                       SizedBox(height: 8),
                                       Text(
-                                        "Role: ${task.role}",
+                                        "Role: ${task.user?.role}",
                                         style: TextStyle(fontSize: 16),
                                       ),
                                       SizedBox(height: 20),

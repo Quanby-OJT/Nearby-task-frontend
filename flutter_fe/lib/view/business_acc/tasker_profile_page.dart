@@ -5,7 +5,7 @@ import 'package:flutter_fe/service/client_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class TaskerProfilePage extends StatefulWidget {
-  final UserModel tasker;
+  final TaskerModel tasker;
 
   const TaskerProfilePage({super.key, required this.tasker});
 
@@ -104,7 +104,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                             ),
                             SizedBox(height: 16),
                             Text(
-                              "${widget.tasker.firstName} ${widget.tasker.lastName}",
+                              "${widget.tasker.user?.firstName} ${widget.tasker.user?.lastName}",
                               style: GoogleFonts.montserrat(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
@@ -120,7 +120,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
-                                widget.tasker.role,
+                                widget.tasker.user?.role ?? "No Role",
                                 style: GoogleFonts.montserrat(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -145,7 +145,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                       // Contact Information
                       _buildSectionCard("Contact Information", [
                         _buildInfoRow(
-                            Icons.email, "Email", widget.tasker.email),
+                            Icons.email, "Email", widget.tasker.user?.email ?? "N/A"),
                         _buildInfoRow(Icons.phone, "Phone", "+63 XXX XXX XXXX"),
                       ]),
 

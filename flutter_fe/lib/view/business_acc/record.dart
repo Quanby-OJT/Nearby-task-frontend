@@ -88,7 +88,21 @@ class _RecordPageState extends State<RecordPage> {
                             const SizedBox(height: 16),
                             _isLoading ? Text(
                               "Please Wait while we calculate your NearByTask Credits",
-                              style: GoogleFonts.openSans(fontSize: 18),
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.yellow.shade800
+                              ),
+                            ) :
+                            _escrowManagementController.tokenCredits.value == 0 ?
+                            Text(
+                              "You don't have any NearByTask Credits to your account. Add more by depositing the amount in order to use the system.",
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.roboto(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0XFFB62C5C)
+                                )
                             ) :
                             Text.rich(
                               TextSpan(children: [
