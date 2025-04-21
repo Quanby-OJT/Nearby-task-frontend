@@ -7,6 +7,9 @@ import 'package:flutter_fe/view/business_acc/client_record/display_list_reject.d
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../controller/escrow_management_controller.dart';
+import 'package:intl/intl.dart';
+
 class RecordTaskerPage extends StatefulWidget {
   const RecordTaskerPage({super.key});
 
@@ -16,12 +19,24 @@ class RecordTaskerPage extends StatefulWidget {
 
 class _RecordTaskerPageState extends State<RecordTaskerPage> {
   final storage = GetStorage();
+  final _escrowManagementController = EscrowManagementController();
 
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
+  }
+  Future<void> _loadData() async {
+    await _escrowManagementController.fetchTokenBalance();
+    setState(() => _isLoading = false);
+  }
+  String formatCurrency(double amount) {
+    final format = NumberFormat.currency(locale: 'en_PH', symbol: '₱');
+    return format.format(amount);
   }
 
   @override
@@ -63,14 +78,46 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                     width: double.infinity,
                     child: Column(
                       children: [
-                        Text(
-                          '',
-                          style: GoogleFonts.montserrat(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 18,
-                            color: Color(0xFF0272B1),
+                        //UI Must be improved.
+                        _isLoading ? Text(
+                          'Please Wait while we calculate your NearByTask Credits',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.yellow.shade800
                           ),
-                        ),
+                          textAlign: TextAlign.center,
+                        ) :
+                        _escrowManagementController.tokenCredits.value == 0.0 ?
+                        Text(
+                          "You don't have any NearByTask Credits to your account. Earn More by taking more tasks.",
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.roboto(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0XFFB62C5C)
+                          )
+                        ) :
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: 'You Had Earned: ',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                )
+                              ),
+                              TextSpan(
+                                text: '${formatCurrency(_escrowManagementController.tokenCredits.value.toDouble())} to your Existing Wallet.',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.yellow.shade800
+                                )
+                              )
+                            ]
+                          )
+                        )
                       ],
                     ),
                   ),

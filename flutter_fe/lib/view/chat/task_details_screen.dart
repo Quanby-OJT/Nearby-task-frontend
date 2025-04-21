@@ -158,10 +158,10 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
               )
             ),
             Divider(height:30),
-            _buildInfoRow(FontAwesomeIcons.user, Colors.black, "${taskAssignment?.tasker?.user?.firstName} ${taskAssignment?.tasker?.user?.middleName ?? ''} ${taskAssignment?.tasker?.user?.lastName}" ?? "N/A"),
-            _buildInfoRow(FontAwesomeIcons.phone, Colors.blue, taskAssignment?.tasker?.user?.contact.toString() ?? "N/A"),
-            _buildInfoRow(FontAwesomeIcons.envelope, Color(0XFFE04556), taskAssignment?.tasker?.user?.email ?? "N/A"),
-            _buildInfoRow(FontAwesomeIcons.locationPin, Color(0XFFE04556), address ?? "N/A"),
+            _buildInfoRowIcon(FontAwesomeIcons.user, Colors.black, "${taskAssignment?.tasker?.user?.firstName} ${taskAssignment?.tasker?.user?.middleName ?? ''} ${taskAssignment?.tasker?.user?.lastName}" ?? "N/A"),
+            _buildInfoRowIcon(FontAwesomeIcons.phone, Colors.blue, taskAssignment?.tasker?.user?.contact.toString() ?? "N/A"),
+            _buildInfoRowIcon(FontAwesomeIcons.envelope, Color(0XFFE04556), taskAssignment?.tasker?.user?.email ?? "N/A"),
+            _buildInfoRowIcon(FontAwesomeIcons.locationPin, Color(0XFFE04556), address ?? "N/A"),
             Divider(height: 30),
             Text(
               "About Me",
@@ -177,7 +177,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                 fontSize: 16,
               ),
             ),
-            _buildInfoRow(FontAwesomeIcons.toolbox, Color(0XFF3C28CC), taskAssignment?.tasker?.specialization ?? "N/A"),
+            _buildInfoRowIcon(FontAwesomeIcons.toolbox, Color(0XFF3C28CC), taskAssignment?.tasker?.specialization ?? "N/A"),
             Text(
               "Skills",
               style: GoogleFonts.roboto(
@@ -204,110 +204,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
               )).toList(),
             ),
             Divider(height: 30),
-            Text(
-              "What will you do to the tasker?",
-              style: GoogleFonts.roboto(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: Color(0XFF03045E)
-              ),
-            ),
-            // if(taskAssignment?.taskStatus == "Pending") ...[
-            //   ElevatedButton(
-            //     onPressed: () => acceptTasker(context),
-            //     style: ButtonStyle(
-            //       backgroundColor: WidgetStateProperty.all(Color(0XFF3E9B52)),
-            //     ),
-            //     child: Row(
-            //       children: [
-            //         Icon(
-            //           FontAwesomeIcons.check,
-            //           color: Colors.white,
-            //         ),
-            //         SizedBox(width: 10,),
-            //         Text(
-            //           "Accept Tasker",
-            //           style: GoogleFonts.roboto(
-            //               fontSize: 16,
-            //               color: Colors.white,
-            //               fontWeight: FontWeight.bold
-            //           ),
-            //         )
-            //       ],
-            //     )
-            //   ),
-            //   SizedBox(width: 5,),
-            //   ElevatedButton(
-            //       onPressed: () => showRejectionOrCancellationForm("Reject"),
-            //       style: ButtonStyle(
-            //         backgroundColor: WidgetStateProperty.all(Color(0XFFD43D4D)),
-            //       ),
-            //       child: Row(
-            //         children: [
-            //           Icon(
-            //             FontAwesomeIcons.trash,
-            //             color: Colors.white,
-            //           ),
-            //           SizedBox(width: 10,),
-            //           Text(
-            //             "Reject Tasker",
-            //             style: GoogleFonts.roboto(
-            //                 fontSize: 16,
-            //                 color: Colors.white,
-            //                 fontWeight: FontWeight.bold
-            //             ),
-            //           )
-            //         ],
-            //       )
-            //   ),
-            //   ElevatedButton(
-            //     onPressed: () => showRejectionOrCancellationForm("Cancel"),
-            //     style: ButtonStyle(
-            //       backgroundColor: WidgetStateProperty.all(Color(0XFFD43D4D)),
-            //     ),
-            //     child: Row(
-            //       children: [
-            //         Icon(
-            //           FontAwesomeIcons.ban,
-            //           color: Colors.white,
-            //         ),
-            //         SizedBox(width: 10,),
-            //         Text(
-            //           "Cancel the Task",
-            //           style: GoogleFonts.roboto(
-            //               fontSize: 16,
-            //               color: Colors.white,
-            //               fontWeight: FontWeight.bold
-            //           ),
-            //         )
-            //       ],
-            //     )
-            //   ),
-            // ],
-            // const SizedBox(height: 20),
-            // ///
-            // /// If Tasker finishes the task on time, or the task in itself reaches its dealine, this button must appear.
-            // ///
-            // /// -Ces
-            //
-            // if(taskAssignment?.taskStatus == "Completed")...[
-            //   Center(
-            //     child: ElevatedButton(
-            //       style: ButtonStyle(
-            //         backgroundColor: WidgetStateProperty.all(Color(0XFF3E9B52)),
-            //       ),
-            //       onPressed: () => showCompletedTaskPayment(),
-            //       child: Text(
-            //         "Release Payment",
-            //         style: GoogleFonts.roboto(
-            //           fontSize: 16,
-            //           color: Colors.white,
-            //           fontWeight: FontWeight.bold
-            //         ),
-            //       )
-            //     )
-            //   )
-            // ]
           ]
         ),
       )
@@ -352,12 +248,12 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
               softWrap: true,
               textAlign: TextAlign.justify,
             ),
-            _buildInfoRow(
-                FontAwesomeIcons.locationPin, Colors.red, taskAssignment?.task?.location ?? "N/A"),
-            _buildInfoRow(FontAwesomeIcons.gears, Colors.blue, taskAssignment?.task?.specialization ?? "N/A"),
-            _buildInfoRow(
-                FontAwesomeIcons.moneyBill,
-                Colors.green,
+            _buildInfoRowIcon(
+                FontAwesomeIcons.locationPin, Color(0XFFD43D4D), taskAssignment?.task?.location ?? "N/A"),
+            _buildInfoRowIcon(FontAwesomeIcons.screwdriverWrench, Color(0XFF3C3C54), taskAssignment?.task?.specialization ?? "N/A"),
+            _buildInfoRowIcon(
+                FontAwesomeIcons.coins,
+                Color(0XFFB58326),
                 "₱ ${
                     NumberFormat(
                         "#,##0.00", "en_PH").format(
@@ -366,19 +262,16 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                 }"
             ),
             Divider(height: 30),
-            _buildInfoRow(FontAwesomeIcons.calendar, Colors.red, "${taskAssignment?.task?.duration} ${taskAssignment?.task?.period}"),
-            _buildInfoRow(FontAwesomeIcons.clock, Colors.redAccent, taskAssignment?.task?.urgency ?? "N/A"),
-            _buildInfoRow(FontAwesomeIcons.userGroup, Colors.black45, taskAssignment?.task?.workType ?? "N/A"),
-            _buildInfoRow(FontAwesomeIcons.calendarDay, Colors.red, taskAssignment?.task?.taskBeginDate ?? "N/A"),
+            _buildInfoRowIcon(FontAwesomeIcons.calendar, Color(0XFF331FB3), "${taskAssignment?.task?.duration} ${taskAssignment?.task?.period}"),
+            _buildInfoRowIcon(Icons.alarm, Color(0XFF3E9B52), taskAssignment?.task?.urgency ?? "N/A"),
+            _buildInfoRowIcon(FontAwesomeIcons.userGroup, Colors.black45, taskAssignment?.task?.workType ?? "N/A"),
+            _buildInfoRowIcon(FontAwesomeIcons.calendarDay, Colors.red, taskAssignment?.task?.taskBeginDate ?? "N/A"),
             if(role == "Tasker") ...[
-              _buildInfoRow(
-                  FontAwesomeIcons.toolbox, Colors.black, taskAssignment?.task?.status ?? "Unknown Status"),
+              _buildInfoRowIcon(
+                  FontAwesomeIcons.a, Colors.black, taskAssignment?.task?.status ?? "Unknown Status"),
             ],
-            _buildInfoRow(
-                FontAwesomeIcons.paperclip, Colors.brown, taskAssignment?.task?.remarks ?? "N/A"),
+            _buildInfoRow("Tasker Status", selectedTaskStatus),
             Divider(height: 30),
-            // _buildInfoRow(
-                //     "Tasker Status", taskAssignment?.taskStatus ?? "Unknown Status"),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
@@ -386,8 +279,11 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                   padding: EdgeInsets.symmetric(vertical: 6),
                   child: Text(
                     "Your Current Application Status: ",
-                    style: TextStyle(
-                      fontSize: 16)
+                    style: GoogleFonts.roboto(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0XFF03045E)
+                    )
                   ),
                 ),
                 Container(
@@ -522,7 +418,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     );
   }
 
-  Widget _buildInfoRow(IconData? label, Color color, String value) {
+  Widget _buildInfoRowIcon(IconData? label, Color color, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -549,275 +445,33 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     );
   }
 
-  // String _handleTaskStatusChange(String newStatus) {
-  //   // setState(() {
-  //   //   taskAssignment?.taskStatus = newStatus;
-  //   // });
-  //   switch (newStatus) {
-  //     case "Reject Tasker":
-  //       showRejectionOrCancellationForm("Rejected");
-  //       return "Rejected";
-  //     case "Cancel the Task":
-  //       showRejectionOrCancellationForm("Cancelled");
-  //       return "Cancelled";
-  //     case "Confirm Tasker":
-  //       showEscrowPayment(context);
-  //       return "Confirmed";
-  //     case "Completed":
-  //       //TODO: implement this later for Client
-  //
-  //       return "Completed";
-  //   }
-  //   return "";
-  // }
-
-  // void acceptTasker(BuildContext parentContext) {  // Add parentContext parameter
-  //   showDialog(
-  //     context: parentContext,  // Use parentContext here
-  //     builder: (BuildContext dialogContext) {  // Rename the inner context
-  //       return AlertDialog(
-  //         title: Text(
-  //           "Are You Sure You Want to Accept This Tasker?",
-  //           style: GoogleFonts.roboto(
-  //             fontSize: 30,
-  //             fontWeight: FontWeight.bold,
-  //             color: Color(0xFF0272B1),
-  //           ),
-  //           textAlign: TextAlign.center,
-  //         ),
-  //         content: Text(
-  //           "Once you accept this tasker, the task will be taken and it will not be available to other Taskers.",
-  //         ),
-  //         actions: <Widget>[
-  //           TextButton(
-  //             onPressed: () async {
-  //               debugPrint("Hi");
-  //             },
-  //             child: Padding(
-  //               padding: const EdgeInsets.all(10.0),
-  //               child: Row(
-  //                 children: [
-  //                   Icon(FontAwesomeIcons.moneyBillTransfer, color: Colors.green, size: 20),
-  //                   SizedBox(width: 20),
-  //                   Text(
-  //                     "I Accept the Tasker",
-  //                     style: GoogleFonts.roboto(fontSize: 14, color: Colors.green),
-  //                   ),
-  //                 ],
-  //               ),
-  //             ),
-  //           ),
-  //           TextButton(
-  //             onPressed: () => Navigator.of(dialogContext).pop(),  // Use dialogContext here
-  //             child: Padding(
-  //               padding: const EdgeInsets.all(10.0),
-  //               child: Row(
-  //                 children: [
-  //                   Icon(FontAwesomeIcons.ban, color: Colors.red, size: 20),
-  //                   SizedBox(width: 20),
-  //                   Text(
-  //                     "Cancel",
-  //                     style: GoogleFonts.roboto(fontSize: 14, color: Colors.red),
-  //                   ),
-  //                 ],
-  //               ),
-  //             ),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
-  // void showCompletedTaskPayment() {
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         title: Text(
-  //           "Does your Tasker Finished Your Task?",
-  //           style: GoogleFonts.roboto(
-  //             fontSize: 30,
-  //             fontWeight: FontWeight.bold,
-  //             color: Color(0xFF0272B1),
-  //           ),
-  //         ),
-  //         content: Text(
-  //           "If your tasker had finished your task, check first the following: \n 1. Work Quality \n 2. Tasker's Attitude \n"
-  //         ),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: () => Navigator.of(context).pop(), //A function where the escrow payment will be released to the tasker and they will provide a feedback of their work.
-  //             child: Row(
-  //               children: [
-  //                 Icon(
-  //                   FontAwesomeIcons.moneyBillTransfer,
-  //                   color: Colors.green.shade900,
-  //                   size: 20,
-  //                 ),
-  //                 SizedBox(
-  //                   width: 20,
-  //                 ),
-  //                 Text(
-  //                   "Release Funds",
-  //                   style: GoogleFonts.roboto(
-  //                     fontSize: 14,
-  //                     color: Colors.green.shade900,
-  //                   )
-  //                 )
-  //               ]
-  //             )
-  //           ),
-  //           TextButton(
-  //             onPressed: () => Navigator.of(context).pop(),
-  //             child: Row(
-  //               children: [
-  //                 Icon(
-  //                   FontAwesomeIcons.ban,
-  //                   color: Colors.red.shade900,
-  //                   size: 20,
-  //                 ),
-  //                 SizedBox(
-  //                   width: 20,
-  //                 ),
-  //                 Text(
-  //                   "Cancel",
-  //                   style: GoogleFonts.roboto(
-  //                     fontSize: 14,
-  //                     color: Colors.red.shade900
-  //                   ),
-  //                 )
-  //               ]
-  //             )
-  //           )
-  //         ],
-  //       );
-  //     }
-  //   );
-  // }
-  // void showRejectionOrCancellationForm(String status){
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context){
-  //       return AlertDialog(
-  //         title: Text(
-  //           "You are going to ${status == "Rejected" ? "Reject a Tasker" : "Cancel your Task."}",
-  //           style: GoogleFonts.roboto(
-  //               fontSize: 30,
-  //               fontWeight: FontWeight.bold,
-  //               color: Color(0xFF0272B1)
-  //           ),
-  //         ),
-  //         content: SizedBox(
-  //           height: MediaQuery.of(context).size.height * 0.3,
-  //           width: 250,
-  //           child: Column(
-  //             children: <Widget>[
-  //               SizedBox(height: 10),
-  //               Text("Why are you rejecting a Tasker/Cancelling a Task?"),
-  //               SizedBox(height: 10),
-  //               DropdownMenu(
-  //                 hintText: "Please select a reason",
-  //                 dropdownMenuEntries: rejectionReasons.map((rejectionReason) {
-  //                   return DropdownMenuEntry(
-  //                     value: rejectionReason,
-  //                     label: rejectionReason,
-  //                   );
-  //                 }).toList(),
-  //                 onSelected: (String? value) {
-  //                   debugPrint(value);
-  //                   if (value == 'Others (please specify)') {
-  //                     setState(() {
-  //                       rejectFormField = true;
-  //                     });
-  //                   }else{
-  //                     setState(() {
-  //                       rejectFormField = false;
-  //                     });
-  //                   }
-  //                 },
-  //                 controller: taskRequestController.rejectionController,
-  //               ),
-  //               SizedBox(height: 10),
-  //               TextField(
-  //                 maxLines: 4,
-  //                 enabled: rejectFormField,
-  //                 decoration: InputDecoration(
-  //                   labelText: "Others (please specify)",
-  //                   border: OutlineInputBorder(),
-  //                   ),
-  //                 controller: taskRequestController.otherReasonController,
-  //               ),
-  //             ]
-  //           )
-  //         ),
-  //         actions: <Widget> [
-  //           StatefulBuilder(
-  //             builder: (BuildContext context, StateSetter setState) {
-  //               return TextButton(
-  //                 onPressed: processingData ? null : () async{
-  //                   setState(() => processingData = true);
-  //                   String rejectOrCancel = await taskRequestController.rejectTasker(widget.taskTakenId, status);
-  //                   setState(() => processingData = false);
-  //
-  //                   ScaffoldMessenger.of(context).showSnackBar(
-  //                     SnackBar(
-  //                       content: Text(rejectOrCancel),
-  //                     ),
-  //                   );
-  //                 },
-  //                 child: Padding(
-  //                   padding: const EdgeInsets.all(10.0),
-  //                   child: Row(
-  //                     children: [
-  //                       Icon(
-  //                         FontAwesomeIcons.share,
-  //                         color: Colors.green,
-  //                         size: 20,
-  //                       ),
-  //                       SizedBox(width: 20,),
-  //                       Text(
-  //                         processingData ? "Please Wait..." : status == "Rejected" ? "Send Rejection Notice" : "Send Cancellation Notice",
-  //                         style: GoogleFonts.roboto(
-  //                             fontSize: 14,
-  //                             fontWeight: FontWeight.bold,
-  //                             color: processingData ? Colors.black38 : Colors.green
-  //                         ),
-  //                       )
-  //                     ]
-  //                   )
-  //                 )
-  //               );
-  //             }
-  //           ),
-  //           TextButton(
-  //             onPressed: () {
-  //               Navigator.of(context).pop();
-  //             },
-  //             child: Padding(
-  //               padding: const EdgeInsets.all(10.0),
-  //               child: Row(
-  //                 children: [
-  //                   Icon(
-  //                     FontAwesomeIcons.ban,
-  //                     color: Colors.red,
-  //                     size: 20,
-  //                   ),
-  //                   SizedBox(width: 20,),
-  //                   Text(
-  //                     "Cancel",
-  //                     style: GoogleFonts.roboto(
-  //                       fontSize: 14,
-  //                       fontWeight: FontWeight.bold,
-  //                       color: Colors.red
-  //                     ),
-  //                   )
-  //                 ]
-  //               )
-  //             )
-  //           ),
-  //         ]
-  //       );
-  //     }
-  //   );
-  // }
+  Widget _buildInfoRow(String label, String value){
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.roboto(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0XFF03045E)
+            )
+          ),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+                value,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                softWrap: true
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

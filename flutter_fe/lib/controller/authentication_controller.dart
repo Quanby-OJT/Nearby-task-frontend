@@ -114,14 +114,13 @@ class AuthenticationController {
         MaterialPageRoute(builder: (context) => WelcomePageViewMain()));
   }
 
-  Future<void> logout(BuildContext context) async {
+  Future<void> logout(BuildContext context, bool Function() isMounted) async {
     try {
       final storedUserId = storage.read('user_id');
       if (storedUserId == null) {
         debugPrint("No user ID found in storage");
         // Even if no user ID, still navigate to welcome page
         await storage.erase();
-
         Navigator.push(context, MaterialPageRoute(builder: (context) {
           return WelcomePageViewMain();
         }));
@@ -147,12 +146,15 @@ class AuthenticationController {
 
         if (response.containsKey("message")) {
           await storage.erase();
-          Navigator.push(context, MaterialPageRoute(builder: (context) {
-            return WelcomePageViewMain();
-          }));
+          if(isMounted()){
+            Navigator.push(context, MaterialPageRoute(builder: (context) {
+              return WelcomePageViewMain();
+            }));
+          }
         }
-      } catch (e) {
+      } catch (e, stackTrace) {
         debugPrint("Server logout error: $e");
+        debugPrintStack(stackTrace: stackTrace);
         // Don't show this error to the user since they're already logged out locally
       }
     } catch (e, stackTrace) {
