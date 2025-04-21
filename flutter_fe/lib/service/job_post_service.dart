@@ -712,8 +712,18 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> fetchIsApplied(
-      int? taskId, int? clientId, int? taskerId) async {
+  Future<Map<String, dynamic>> getAllTaskerFeedback(int taskerId) async {
+    try {
+      debugPrint("Fetching all feedback for tasker with ID: $taskerId");
+      return await _getRequest('/get-taskers-feedback/$taskerId');
+    }catch(e, stackTrace){
+      debugPrint('Error fetching all feedback: $e');
+      debugPrintStack(stackTrace: stackTrace);
+      return {'success': false, 'error': 'Error: $e'};
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchIsApplied(int? taskId, int? clientId, int? taskerId) async {
     final userId = await getUserId();
     if (userId == null) {
       return {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flip_card/flip_card.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
+import 'package:flutter_fe/controller/task_request_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
@@ -31,6 +32,7 @@ class _HomePageState extends State<HomePage> {
   final CardSwiperController controller = CardSwiperController();
   final JobPostService jobPostService = JobPostService();
   final ClientServices _clientServices = ClientServices();
+  final TaskRequestController taskRequestController = TaskRequestController();
   final AuthenticationController _authController = AuthenticationController();
   List<TaskerModel> tasker = [];
   List<String> specialization = [];
@@ -59,6 +61,18 @@ class _HomePageState extends State<HomePage> {
     _fetchTasker();
     _fetchUserIDImage();
   }
+
+  // Future<void> _fetchTaskerFeedback(int taskerId) async {
+  //   try {
+  //     final result = await taskRequestController.getFeedbacks(taskerId);
+  //     if (result.isNotEmpty) {
+  //       set
+  //     }
+  //   }catch(e, stackTrace){
+  //     debugPrint("Error in _fetchTaskerFeedback: $e");
+  //     debugPrintStack(stackTrace: stackTrace);
+  //   }
+  // }
 
   Future<void> fetchSpecialization() async {
     try {
@@ -282,50 +296,50 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _showRatingDialog(TaskerModel tasker) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Rate ${tasker.user?.firstName}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('How would you rate your experience?'),
-            SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (index) {
-                return IconButton(
-                  icon: Icon(
-                    index < _currentRating ? Icons.star : Icons.star_border,
-                    color: Colors.amber,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _currentRating = index + 1;
-                    });
-                  },
-                );
-              }),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await _submitRating(tasker.id!, _currentRating);
-              Navigator.pop(context);
-            },
-            child: Text('Submit'),
-          ),
-        ],
-      ),
-    );
-  }
+  // void _showRatingDialog(TaskerModel tasker) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: Text('Rate ${tasker.user?.firstName}'),
+  //       content: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           Text('How would you rate your experience?'),
+  //           SizedBox(height: 20),
+  //           Row(
+  //             mainAxisAlignment: MainAxisAlignment.center,
+  //             children: List.generate(5, (index) {
+  //               return IconButton(
+  //                 icon: Icon(
+  //                   index < _currentRating ? Icons.star : Icons.star_border,
+  //                   color: Colors.amber,
+  //                 ),
+  //                 onPressed: () {
+  //                   setState(() {
+  //                     _currentRating = index + 1;
+  //                   });
+  //                 },
+  //               );
+  //             }),
+  //           ),
+  //         ],
+  //       ),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context),
+  //           child: Text('Cancel'),
+  //         ),
+  //         ElevatedButton(
+  //           onPressed: () async {
+  //             await _submitRating(tasker.id!, _currentRating);
+  //             Navigator.pop(context);
+  //           },
+  //           child: Text('Submit'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Future<void> _submitRating(int taskerId, double rating) async {
     try {
@@ -694,44 +708,41 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                       SizedBox(height: 8),
                                       Text(
-                                        "Role: ${task.user?.role}",
+                                        "Specialization: ${task.specialization}",
                                         style: TextStyle(fontSize: 16),
                                       ),
                                       SizedBox(height: 20),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          ElevatedButton.icon(
-                                            onPressed: () {
-                                              if (_existingProfileImageUrl ==
-                                                      null ||
-                                                  _existingIDImageUrl == null ||
-                                                  _existingProfileImageUrl!
-                                                      .isEmpty ||
-                                                  _existingIDImageUrl!
-                                                      .isEmpty ||
-                                                  !_documentValid) {
-                                                _showWarningDialog();
-                                              } else {
-                                                _showRatingDialog(task);
-                                              }
-                                            },
-                                            icon: Icon(Icons.star,
-                                                color: Colors.white),
-                                            label: Text('Rate Tasker'),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.amber,
-                                              foregroundColor: Colors.white,
-                                              padding: EdgeInsets.symmetric(
-                                                  horizontal: 20, vertical: 10),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
-                                              ),
-                                            ),
-                                          ),
-                                          SizedBox(width: 10),
+                                      Center(
+                                        child:
+                                          // ElevatedButton.icon(
+                                          //   onPressed: () {
+                                          //     if (_existingProfileImageUrl ==
+                                          //             null ||
+                                          //         _existingIDImageUrl == null ||
+                                          //         _existingProfileImageUrl!
+                                          //             .isEmpty ||
+                                          //         _existingIDImageUrl!
+                                          //             .isEmpty ||
+                                          //         !_documentValid) {
+                                          //       _showWarningDialog();
+                                          //     } else {
+                                          //       _showRatingDialog(task);
+                                          //     }
+                                          //   },
+                                          //   icon: Icon(Icons.star,
+                                          //       color: Colors.white),
+                                          //   label: Text('Rate Tasker'),
+                                          //   style: ElevatedButton.styleFrom(
+                                          //     backgroundColor: Colors.amber,
+                                          //     foregroundColor: Colors.white,
+                                          //     padding: EdgeInsets.symmetric(
+                                          //         horizontal: 20, vertical: 10),
+                                          //     shape: RoundedRectangleBorder(
+                                          //       borderRadius:
+                                          //           BorderRadius.circular(10),
+                                          //     ),
+                                          //   ),
+                                          // ),
                                           ElevatedButton.icon(
                                             onPressed: () {
                                               if (_existingProfileImageUrl ==
@@ -769,7 +780,23 @@ class _HomePageState extends State<HomePage> {
                                               ),
                                             ),
                                           ),
-                                        ],
+                                      ),
+                                      SizedBox(height: 8),
+                                      Text(
+                                        "What Other Clients Say About this Tasker?",
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF0272B1),
+                                        ),
+                                      ),
+                                      Card(
+                                        color: Color(0XFFECECF5),
+                                        child: Column(
+                                          children: [
+
+                                          ]
+                                        )
                                       ),
                                       Spacer(),
                                       Center(

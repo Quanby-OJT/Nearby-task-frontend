@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/model/feedback_model.dart';
 import 'package:flutter_fe/model/task_request.dart';
+import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/service/task_request_service.dart';
 
 class TaskRequestController {
   final TaskRequestService _requestService = TaskRequestService();
   final TextEditingController rejectionController = TextEditingController();
   final TextEditingController otherReasonController = TextEditingController();
+  final JobPostService jobPostService = JobPostService();
 
   Future<List<TaskRequest>> getTaskerRequests() async {
     try {
@@ -81,6 +84,18 @@ class TaskRequestController {
       debugPrint("Error in TaskRequestController.rejectTasker: $e");
       debugPrintStack(stackTrace: stackTrace);
       return "An Error Occured. Please Try Again.";
+    }
+  }
+
+  Future<List<TaskerFeedback>> getFeedbacks(int taskerId) async {
+    try {
+      debugPrint("TaskRequestController: Fetching feedbacks from database for tasker ID: $taskerId");
+      Map<String, dynamic> feedbacks = await jobPostService.getAllTaskerFeedback(taskerId);
+      debugPrint("TaskRequestController: Fetched ${feedbacks.length} feedbacks");
+      return feedbacks.values.map((feedback) => TaskerFeedback.fromJson(feedback)).toList();
+    } catch (e) {
+      debugPrint("Error in TaskRequestController.getFeedbacks: $e");
+      return [];
     }
   }
 }
