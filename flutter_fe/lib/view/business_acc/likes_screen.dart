@@ -5,6 +5,8 @@ import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
+import 'package:flutter_fe/view/business_acc/business_acc_main_page.dart';
+import 'package:flutter_fe/view/business_acc/home_page.dart';
 import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
@@ -301,7 +303,7 @@ class _LikesScreenState extends State<LikesScreen> {
             const Icon(Icons.favorite_border, size: 64, color: Colors.grey),
             const SizedBox(height: 16),
             const Text(
-              'You haven\'t liked any Tasks yet',
+              'You haven\'t liked any of the Taskers yet',
               style: TextStyle(fontSize: 18, color: Colors.grey),
             ),
             const SizedBox(height: 16),
@@ -309,12 +311,12 @@ class _LikesScreenState extends State<LikesScreen> {
               onPressed: () {
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => ServiceAccMain()),
+                  MaterialPageRoute(builder: (context) => BusinessAccMain()),
                   (route) =>
                       false, // Removes all previous routes from the stack
                 );
               },
-              child: const Text('Browse Tasks'),
+              child: const Text('Browse Your Taskers'),
             ),
           ],
         ),
