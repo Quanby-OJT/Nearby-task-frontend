@@ -1142,18 +1142,17 @@ class ProfileController {
       );
 
       TaskerModel tasker = TaskerModel(
-        id: userId,
-        bio: bioController.text.trim(),
-        specialization: specializationIdController.text.trim(),
-        skills: skillsController.text.trim(),
-        availability: availabilityController.text.trim() == 'true',
-        wage: double.tryParse(wageController.text.trim()) ?? 0.0,
-        payPeriod: payPeriodController.text.trim(),
-        group: taskerGroupController.text.trim() == 'true',
-        birthDate: DateTime.parse(birthdateController.text),
-        user: user,
-        rating: 0
-      );
+          id: userId,
+          bio: bioController.text.trim(),
+          specialization: specializationIdController.text.trim(),
+          skills: skillsController.text.trim(),
+          availability: availabilityController.text.trim() == 'true',
+          wage: double.tryParse(wageController.text.trim()) ?? 0.0,
+          payPeriod: payPeriodController.text.trim(),
+          group: taskerGroupController.text.trim() == 'true',
+          birthDate: DateTime.parse(birthdateController.text),
+          user: user,
+          rating: 0);
 
       AddressModel address = AddressModel(
         id: userId,
@@ -1286,8 +1285,8 @@ class ProfileController {
     if (!context.mounted) return;
 
     String role = await storage.read('role');
-    debugPrint("TESDA File: ${documentFile}");
-    debugPrint("Profile Image: ${profileImage}");
+    debugPrint("TESDA File: $documentFile");
+    debugPrint("Profile Image: $profileImage");
 
     UserModel user = UserModel(
       firstName: '',
@@ -1345,22 +1344,21 @@ class ProfileController {
       };
 
       TaskerModel tasker = TaskerModel(
-        id: taskerId,
-        bio: bioController.text,
-        group: false,
-        specialization: specializationController.text,
-        skills: skillsController.text,
-        address: address,
-        taskerDocuments: documentFile.toString(),
-        availability:
-            availabilityController.text == "I am available" ? true : false,
-        socialMediaLinks: socials,
-        wage: double.parse(cleanedWage),
-        payPeriod: payPeriodController.text,
-        birthDate: DateTime.parse(birthdateController.text),
-        user: null,
-        rating: 0
-      );
+          id: taskerId,
+          bio: bioController.text,
+          group: false,
+          specialization: specializationController.text,
+          skills: skillsController.text,
+          address: address,
+          taskerDocuments: documentFile.toString(),
+          availability:
+              availabilityController.text == "I am available" ? true : false,
+          socialMediaLinks: socials,
+          wage: double.parse(cleanedWage),
+          payPeriod: payPeriodController.text,
+          birthDate: DateTime.parse(birthdateController.text),
+          user: null,
+          rating: 0);
 
       Map<String, dynamic> resultData = await ProfileService.updateTasker(
           tasker, user, documentFile, profileImage);

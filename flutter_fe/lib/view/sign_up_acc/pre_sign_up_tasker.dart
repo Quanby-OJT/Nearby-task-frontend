@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/view/sign_up_acc/sign_up_client.dart';
 import 'package:flutter_fe/view/sign_up_acc/sign_up_solo_tasker.dart';
-import 'package:flutter_fe/view/sign_up_acc/sign_up_group_tasker.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class PreSignUpTasker extends StatefulWidget {

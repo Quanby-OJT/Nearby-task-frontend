@@ -321,7 +321,7 @@ class ApiService {
       final token = await AuthService.getSessionToken();
       final request = http.MultipartRequest(
         "PUT",
-        Uri.parse("$apiUrl/update-tasker-with-image-profile/${userId}"),
+        Uri.parse("$apiUrl/update-tasker-with-image-profile/$userId"),
       );
 
       request.headers.addAll({
@@ -391,7 +391,7 @@ class ApiService {
       final token = await AuthService.getSessionToken();
       final request = http.MultipartRequest(
         "PUT",
-        Uri.parse("$apiUrl/update-tasker-with-file-profile/${userId}"),
+        Uri.parse("$apiUrl/update-tasker-with-file-profile/$userId"),
       );
 
       request.headers.addAll({

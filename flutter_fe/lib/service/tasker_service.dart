@@ -118,9 +118,6 @@ class TaskerService {
       TaskerModel tasker, AddressModel address, File? file, File? image) async {
     try {
       String? token = await AuthService.getSessionToken();
-      if (token == null) {
-        return {"errors": "Authentication token not found"};
-      }
 
       var request = http.MultipartRequest(
         "PUT",

@@ -32,7 +32,7 @@ class _DisplayListRecordFinishState extends State<DisplayListRecordFinish> {
   String? role;
 
   // Track the selected tab index
-  int _selectedTabIndex = 0;
+  final int _selectedTabIndex = 0;
 
   @override
   void initState() {
@@ -62,14 +62,6 @@ class _DisplayListRecordFinishState extends State<DisplayListRecordFinish> {
   Future<void> _fetchRequests() async {
     try {
       int userId = storage.read("user_id");
-
-      if (userId == null) {
-        debugPrint("User ID is null");
-        setState(() {
-          _isLoading = false;
-        });
-        return;
-      }
       final response = await _notificationController.getFinishRequests(userId);
 
       debugPrint("Fetched requests from finish: ${response.toString()}");
@@ -105,7 +97,7 @@ class _DisplayListRecordFinishState extends State<DisplayListRecordFinish> {
   String truncateText(String? text, int maxLength) {
     final safeText = text ?? "No description";
     if (safeText.length <= maxLength) return safeText;
-    return safeText.substring(0, maxLength) + "...";
+    return "${safeText.substring(0, maxLength)}...";
   }
 
   // Method to build content based on the selected tab

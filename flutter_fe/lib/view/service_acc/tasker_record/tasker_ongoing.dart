@@ -95,8 +95,8 @@ class _TaskerOngoingState extends State<TaskerOngoing> {
   void _startCountdownTimer() {
     if (_taskInformation?.duration != null &&
         _taskInformation?.period != null) {
-      int durationInDays = int.parse(_taskInformation!.duration!);
-      String period = _taskInformation!.period!.toLowerCase();
+      int durationInDays = int.parse(_taskInformation!.duration);
+      String period = _taskInformation!.period.toLowerCase();
 
       // Convert duration to days based on period
       if (period.contains('week')) {

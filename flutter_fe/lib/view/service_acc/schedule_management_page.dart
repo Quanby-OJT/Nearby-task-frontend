@@ -30,20 +30,19 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
   Future<void> _loadSchedule() async {
     Map<DateTime, List<TimeSlot>> schedule =
         await _taskerSchedulerController.getTaskerSchedule();
-    if (schedule != null) {
-      _availabilitySlots.addAll(schedule.map((key, value) => MapEntry(
-            key,
-            value
-                .map((slot) => TimeSlot(
-                      startTime: slot.startTime,
-                      endTime: slot.endTime,
-                      isAvailable: slot.isAvailable,
-                    ))
-                .toList(),
-          )));
-      setState(() {}); // Update UI after loading data
-    }
+    _availabilitySlots.addAll(schedule.map((key, value) => MapEntry(
+          key,
+          value
+              .map((slot) => TimeSlot(
+                    startTime: slot.startTime,
+                    endTime: slot.endTime,
+                    isAvailable: slot.isAvailable,
+                  ))
+              .toList(),
+        )));
+    setState(() {}); // Update UI after loading data
   }
+
   //Main Screen
   @override
   Widget build(BuildContext context) {
@@ -85,7 +84,7 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
             ),
             eventLoader: (day) {
               return _availabilitySlots[
-                          DateTime(day.year, day.month, day.day)] ??
+                      DateTime(day.year, day.month, day.day)] ??
                   [];
             },
           ),
@@ -100,22 +99,24 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
                 String result = await _taskerSchedulerController
                     .setTaskerSchedule(_availabilitySlots);
                 ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(result),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
+                  SnackBar(
+                    content: Text(result),
+                    backgroundColor: Colors.green,
+                  ),
+                );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("No availability slots selected"),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
+                  SnackBar(
+                    content: Text("No availability slots selected"),
+                    backgroundColor: Colors.red,
+                  ),
+                );
               }
             },
-            style: ButtonStyle( // Assuming ButtonStyle is correctly defined
-              backgroundColor: WidgetStateProperty.all<Color>(Color(0XFF170A66)),
+            style: ButtonStyle(
+              // Assuming ButtonStyle is correctly defined
+              backgroundColor:
+                  WidgetStateProperty.all<Color>(Color(0XFF170A66)),
             ),
             child: Text(
               "Set Schedule",

@@ -18,13 +18,12 @@ class ConversationController {
       taskTakenId: taskTaken,
     );
 
-    debugPrint("Sending Message for Task Taken ID of: " + taskTaken.toString());
-    debugPrint("User ID: " + userId.toString());
-    debugPrint("Conversation Message: " + conversationMessage.text);
+    debugPrint("Sending Message for Task Taken ID of: $taskTaken");
+    debugPrint("User ID: $userId");
+    debugPrint("Conversation Message: ${conversationMessage.text}");
     Map<String, dynamic> messageSent =
         await ApiService.sendMessage(conversation);
 //     Map<String, dynamic> messageSent = await TaskDetailsService.sendMessage(conversation);
-
 
     if (messageSent.containsKey('message')) {
       // Optionally notify success if needed
@@ -35,8 +34,8 @@ class ConversationController {
     }
   }
 
-
-  Future<List<Conversation>> getMessages(BuildContext context, int taskTakenId) async {
+  Future<List<Conversation>> getMessages(
+      BuildContext context, int taskTakenId) async {
     debugPrint(taskTakenId.toString());
     final messages = await TaskDetailsService.getMessages(taskTakenId);
     //debugPrint(messages.toString());
