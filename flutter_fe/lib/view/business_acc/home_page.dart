@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
-import 'package:flutter_fe/controller/task_request_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
@@ -31,11 +30,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   final CardSwiperController controller = CardSwiperController();
   final JobPostService jobPostService = JobPostService();
   final ClientServices _clientServices = ClientServices();
-  final TaskRequestController taskRequestController = TaskRequestController();
   final AuthenticationController _authController = AuthenticationController();
   List<AuthenticatedUser> taskers = [];
   String? _errorMessage;
   int? cardNumber = 0;
+  late TaskerModel task;
 
   AuthenticatedUser? _user;
   String? _existingProfileImageUrl;
@@ -107,18 +106,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  // Future<void> _fetchTaskerFeedback(int taskerId) async {
-  //   try {
-  //     final result = await taskRequestController.getFeedbacks(taskerId);
-  //     if (result.isNotEmpty) {
-  //       set
-  //     }
-  //   }catch(e, stackTrace){
-  //     debugPrint("Error in _fetchTaskerFeedback: $e");
-  //     debugPrintStack(stackTrace: stackTrace);
-  //   }
-  // }
-
   Future<void> fetchSpecialization() async {
     try {
       setState(() {
@@ -149,7 +136,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         _errorMessage = null;
       });
 
-      List<UserModel> fetchedTaskers;
+      List<TaskerModel> fetchedTaskers;
       if (_selectedSpecialization == null || _selectedSpecialization == 'All') {
         fetchedTaskers = await _clientServices.fetchAllTasker();
       } else {
@@ -159,7 +146,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
       setState(() {
         taskers = fetchedTaskers
-            .map((tasker) => AuthenticatedUser(user: tasker))
+            .map((tasker) => AuthenticatedUser(user: tasker.user!))
             .toList();
         cardNumber = fetchedTaskers.length;
         _isLoading = false;
@@ -250,50 +237,50 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-  // void _showRatingDialog(TaskerModel tasker) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) => AlertDialog(
-  //       title: Text('Rate ${tasker.user?.firstName}'),
-  //       content: Column(
-  //         mainAxisSize: MainAxisSize.min,
-  //         children: [
-  //           Text('How would you rate your experience?'),
-  //           SizedBox(height: 20),
-  //           Row(
-  //             mainAxisAlignment: MainAxisAlignment.center,
-  //             children: List.generate(5, (index) {
-  //               return IconButton(
-  //                 icon: Icon(
-  //                   index < _currentRating ? Icons.star : Icons.star_border,
-  //                   color: Colors.amber,
-  //                 ),
-  //                 onPressed: () {
-  //                   setState(() {
-  //                     _currentRating = index + 1;
-  //                   });
-  //                 },
-  //               );
-  //             }),
-  //           ),
-  //         ],
-  //       ),
-  //       actions: [
-  //         TextButton(
-  //           onPressed: () => Navigator.pop(context),
-  //           child: Text('Cancel'),
-  //         ),
-  //         ElevatedButton(
-  //           onPressed: () async {
-  //             await _submitRating(tasker.id!, _currentRating);
-  //             Navigator.pop(context);
-  //           },
-  //           child: Text('Submit'),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
+  void _showRatingDialog(TaskerModel tasker) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Rate ${tasker.user?.firstName}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('How would you rate your experience?'),
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(5, (index) {
+                return IconButton(
+                  icon: Icon(
+                    index < _currentRating ? Icons.star : Icons.star_border,
+                    color: Colors.amber,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _currentRating = index + 1;
+                    });
+                  },
+                );
+              }),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await _submitRating(tasker.id!, _currentRating);
+              Navigator.pop(context);
+            },
+            child: Text('Submit'),
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<void> _submitRating(int taskerId, double rating) async {
     try {
@@ -645,6 +632,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                             fontSize: 16,
                                             color: Colors.grey[800]),
                                       ),
+                                    ),
                                       SizedBox(height: 8),
                                       Text(
                                         "Email: ${task.user?.email}",
@@ -652,41 +640,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                       ),
                                       SizedBox(height: 8),
                                       Text(
-                                        "Specialization: ${task.specialization}",
+                                        "Role: ${task.user?.role}",
                                         style: TextStyle(fontSize: 16),
                                       ),
                                       SizedBox(height: 20),
-                                      Center(
-                                        child:
-                                          // ElevatedButton.icon(
-                                          //   onPressed: () {
-                                          //     if (_existingProfileImageUrl ==
-                                          //             null ||
-                                          //         _existingIDImageUrl == null ||
-                                          //         _existingProfileImageUrl!
-                                          //             .isEmpty ||
-                                          //         _existingIDImageUrl!
-                                          //             .isEmpty ||
-                                          //         !_documentValid) {
-                                          //       _showWarningDialog();
-                                          //     } else {
-                                          //       _showRatingDialog(task);
-                                          //     }
-                                          //   },
-                                          //   icon: Icon(Icons.star,
-                                          //       color: Colors.white),
-                                          //   label: Text('Rate Tasker'),
-                                          //   style: ElevatedButton.styleFrom(
-                                          //     backgroundColor: Colors.amber,
-                                          //     foregroundColor: Colors.white,
-                                          //     padding: EdgeInsets.symmetric(
-                                          //         horizontal: 20, vertical: 10),
-                                          //     shape: RoundedRectangleBorder(
-                                          //       borderRadius:
-                                          //           BorderRadius.circular(10),
-                                          //     ),
-                                          //   ),
-                                          // ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          SizedBox(width: 10),
                                           ElevatedButton.icon(
                                             onPressed: () {
                                               if (_existingProfileImageUrl ==
@@ -704,7 +666,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                   MaterialPageRoute(
                                                     builder: (context) =>
                                                         TaskerProfilePage(
-                                                            tasker: task),
+                                                            tasker: task.user!, isSaved: false),
                                                   ),
                                                 );
                                               }
@@ -724,23 +686,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                               ),
                                             ),
                                           ),
-                                      ),
-                                      SizedBox(height: 8),
-                                      Text(
-                                        "What Other Clients Say About this Tasker?",
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF0272B1),
-                                        ),
-                                      ),
-                                      Card(
-                                        color: Color(0XFFECECF5),
-                                        child: Column(
-                                          children: [
-
-                                          ]
-                                        )
+                                        ],
                                       ),
                                       Spacer(),
                                       Center(
@@ -763,17 +709,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                       ),
                                     ],
                                   ),
-                                ),
+                                ]),
                               ),
                             ),
                           ),
-                        );
+                    ));
                       },
                     ),
                   ),
               ],
             )
-          : null,
     );
   }
 }
