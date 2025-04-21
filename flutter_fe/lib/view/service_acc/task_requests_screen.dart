@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/foundation.dart';
 
 class TaskRequestsScreen extends StatefulWidget {
-  const TaskRequestsScreen({Key? key}) : super(key: key);
+  const TaskRequestsScreen({super.key});
 
   @override
   State<TaskRequestsScreen> createState() => _TaskRequestsScreenState();

@@ -12,10 +12,10 @@ class BusinessTaskDetail extends StatefulWidget {
   final TaskModel? task; // Optional task model if already loaded
 
   const BusinessTaskDetail({
-    Key? key,
+    super.key,
     required this.taskID,
     this.task,
-  }) : super(key: key);
+  });
 
   @override
   State<BusinessTaskDetail> createState() => _BusinessTaskDetailState();
@@ -75,8 +75,8 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Delete'),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text('Delete'),
           ),
         ],
       ),
@@ -123,7 +123,7 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
     if (taskToDisplay?.contactPrice != null) {
       try {
         priceDisplay = NumberFormat("#,##0.00", "en_US")
-            .format(taskToDisplay!.contactPrice!.roundToDouble());
+            .format(taskToDisplay!.contactPrice.roundToDouble());
       } catch (e) {
         priceDisplay = taskToDisplay!.contactPrice.toString();
       }
@@ -146,8 +146,7 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            EditTaskPage(task: taskToDisplay!),
+                        builder: (context) => EditTaskPage(task: taskToDisplay),
                       ),
                     );
                     if (result == true) {
@@ -194,7 +193,7 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
                               taskToDisplay.description ?? "N/A"),
                           _buildInfoRow("Contract Price", "₱ $priceDisplay"),
                           _buildInfoRow("Duration",
-                              taskToDisplay.duration?.toString() ?? "N/A"),
+                              taskToDisplay.duration.toString() ?? "N/A"),
                           _buildInfoRow(
                               "Period", taskToDisplay.period ?? "N/A"),
                           _buildInfoRow(

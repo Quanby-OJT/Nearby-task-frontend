@@ -48,11 +48,11 @@ class _RecordPageState extends State<RecordPage> {
     }
   }
 
-  String _fullName = 'Loading...';
-  String _role = 'Loading...';
-  String _image = '';
+  final String _fullName = 'Loading...';
+  final String _role = 'Loading...';
+  final String _image = '';
 
-  bool _isLoading = true;
+  final bool _isLoading = true;
 
   @override
   Widget build(BuildContext context) {
