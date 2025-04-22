@@ -250,72 +250,72 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-  void _showRatingDialog(UserModel tasker) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Rate ${tasker.firstName}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('How would you rate your experience?'),
-            SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (index) {
-                return IconButton(
-                  icon: Icon(
-                    index < _currentRating ? Icons.star : Icons.star_border,
-                    color: Colors.amber,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _currentRating = index + 1;
-                    });
-                  },
-                );
-              }),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await _submitRating(tasker.id!, _currentRating);
-              Navigator.pop(context);
-            },
-            child: Text('Submit'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _submitRating(int taskerId, double rating) async {
-    try {
-      final result = await _clientServices.submitTaskerRating(taskerId, rating);
-      if (result['success']) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Rating submitted successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        await _fetchTaskers();
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error submitting rating'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
+  // void _showRatingDialog(UserModel tasker) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: Text('Rate ${tasker.firstName}'),
+  //       content: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           Text('How would you rate your experience?'),
+  //           SizedBox(height: 20),
+  //           Row(
+  //             mainAxisAlignment: MainAxisAlignment.center,
+  //             children: List.generate(5, (index) {
+  //               return IconButton(
+  //                 icon: Icon(
+  //                   index < _currentRating ? Icons.star : Icons.star_border,
+  //                   color: Colors.amber,
+  //                 ),
+  //                 onPressed: () {
+  //                   setState(() {
+  //                     _currentRating = index + 1;
+  //                   });
+  //                 },
+  //               );
+  //             }),
+  //           ),
+  //         ],
+  //       ),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context),
+  //           child: Text('Cancel'),
+  //         ),
+  //         ElevatedButton(
+  //           onPressed: () async {
+  //             await _submitRating(tasker.id!, _currentRating);
+  //             Navigator.pop(context);
+  //           },
+  //           child: Text('Submit'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+  //
+  // Future<void> _submitRating(int taskerId, double rating) async {
+  //   try {
+  //     final result = await _clientServices.submitTaskerRating(taskerId, rating);
+  //     if (result['success']) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text('Rating submitted successfully!'),
+  //           backgroundColor: Colors.green,
+  //         ),
+  //       );
+  //       await _fetchTaskers();
+  //     }
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Error submitting rating'),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
