@@ -343,33 +343,80 @@ class ClientServices {
 
   Future<List<TaskerModel>> fetchTaskersBySpecialization(
       String specialization) async {
+    final userId = await getUserId();
+    if (userId == null) {
+      debugPrint("Cannot fetch taskers: User ID is null");
+      return [];
+    }
+
     try {
-      final response = await dio
-          .get('/taskers', queryParameters: {'specialization': specialization});
+      debugPrint("Fetching all taskers for user ID: $userId");
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data['data'];
-
-        // Ensure proper type conversion and error handling
-        return data
-            .map((json) {
-              try {
-                return TaskerModel.fromJson(json);
-              } catch (e) {
-                debugPrint("Error parsing tasker: $e");
-                debugPrint("Problematic tasker data: $json");
-                return null; // Skip invalid entries
-              }
-            })
-            .where((tasker) => tasker != null)
-            .cast<TaskerModel>()
-            .toList();
-      } else {
-        throw Exception('Failed to fetch taskers');
+      // Get all taskers
+      final allTaskersResponse = await _getRequest(
+        '/client/getAllTaskerbySpecialization?specialization=$specialization',
+      );
+      if (allTaskersResponse.containsKey("error")) {
+        debugPrint(
+            "Error fetching all taskers: ${allTaskersResponse["error"]}");
+        return [];
       }
-    } catch (e) {
-      debugPrint('Error fetching taskers by specialization: $e');
-      rethrow;
+
+      // Get saved/liked taskers
+      final savedTaskResponse =
+          await _getRequest("/client/getsavedTask/$userId");
+      if (savedTaskResponse.containsKey("error")) {
+        debugPrint(
+            "Error fetching saved taskers: ${savedTaskResponse["error"]}");
+        return [];
+      }
+
+      // Extract taskers from response
+      final allTaskers = allTaskersResponse["taskers"] as List<dynamic>? ?? [];
+      debugPrint("All Taskers Count: ${allTaskers.length}");
+
+      if (allTaskers.isEmpty) {
+        debugPrint("No taskers returned from API");
+        return [];
+      }
+
+      // Extract liked tasker IDs
+      final likedTaskerIds =
+          (savedTaskResponse["liked_tasks"] as List<dynamic>? ?? [])
+              .map<int>((task) => task["tasker_id"] as int)
+              .toSet();
+      debugPrint("Liked Tasker IDs: $likedTaskerIds");
+
+      // Filter out liked taskers and convert to UserModel
+      final taskerList = allTaskers
+          .where((tasker) {
+            final taskerId = tasker["user_id"];
+            final isNotLiked =
+                taskerId is int && !likedTaskerIds.contains(taskerId);
+            if (!isNotLiked) {
+              debugPrint("Filtering out already liked tasker: $taskerId");
+            }
+            return isNotLiked;
+          })
+          .map((tasker) {
+            try {
+              return TaskerModel.fromJson(tasker);
+            } catch (e) {
+              debugPrint("Error parsing tasker: $e");
+              debugPrint("Problematic tasker data: $tasker");
+              return null;
+            }
+          })
+          .where((tasker) => tasker != null)
+          .cast<TaskerModel>()
+          .toList();
+
+      debugPrint("Filtered Taskers Count: ${taskerList.length}");
+      return taskerList;
+    } catch (e, st) {
+      debugPrint("Error fetching taskers: $e");
+      debugPrint(st.toString());
+      return [];
     }
   }
 

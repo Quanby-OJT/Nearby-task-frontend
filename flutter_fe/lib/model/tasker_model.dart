@@ -42,28 +42,36 @@ class TaskerModel {
   // Factory method to map JSON to TaskerModel
   factory TaskerModel.fromJson(Map<String, dynamic> json) {
     debugPrint('JSON Data: $json');
-    return TaskerModel(
-      id: json['tasker_id'] ?? 0,
-      bio: json['bio'] ?? '',
-      skills: json['skills'] ?? '',
-      availability: json['availability'] ?? false,
-      socialMediaLinks: json['social_media_links'] != null
-          ? Map<String, String>.from(json['social_media_links'])
-          : null,
-      address: json['address'] != null
-          ? Map<String, String>.from(json['address'])
-          : null,
-      specialization: json['tasker_specialization']['specialization'] ?? '',
-      taskerDocuments: json['tesda_document_link'] ?? '',
-      wage: json['wage_per_hour'].toDouble() ?? 0.0,
-      payPeriod: json['pay_period'] ?? "",
-      birthDate: json['birthdate'] != null
-          ? DateTime.parse(json['birthdate'])
-          : DateTime.now(),
-      group: json['group'] ?? false,
-      user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
-      rating: json['rating'].toDouble() ?? 0.0
-    );
+    try {
+      return TaskerModel(
+          id: json['tasker_id'] ?? 0,
+          bio: json['bio'] ?? '',
+          skills: json['skills'] ?? '',
+          availability: json['availability'] ?? false,
+          socialMediaLinks: json['social_media_links'] != null
+              ? Map<String, String>.from(json['social_media_links'])
+              : null,
+          address: json['address'] != null
+              ? Map<String, String>.from(json['address'])
+              : null,
+          specialization: json['tasker_specialization'] != null &&
+                  json['tasker_specialization'] is Map
+              ? json['tasker_specialization']['specialization'] ?? ''
+              : json['specialization'] ?? '',
+          taskerDocuments: json['tesda_document_link'] ?? '',
+          wage: (json['wage_per_hour'] ?? 0).toDouble(),
+          payPeriod: json['pay_period'] ?? "",
+          birthDate: json['birthdate'] != null
+              ? DateTime.parse(json['birthdate'])
+              : DateTime.now(),
+          group: json['group'] ?? false,
+          user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
+          rating: (json['rating'] ?? 0).toDouble());
+    } catch (e) {
+      debugPrint("Error parsing tasker: $e");
+      debugPrint("Problematic tasker data: $json");
+      rethrow;
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -78,7 +86,6 @@ class TaskerModel {
       "tesda_documents_link": taskerDocuments,
       "social_media_links": socialMediaLinks ?? {},
       "address": address ?? {},
-
 
       // remove kasi nasa user na siya
       "group": group,
