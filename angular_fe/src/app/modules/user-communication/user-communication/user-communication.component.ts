@@ -32,7 +32,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.conversationSubscription = this.userConversationService.getUserLogs().subscribe(
+    this.conversationSubscription = this.userConversationService.getUserConversation().subscribe(
       (response) => {
         console.log('Raw response:', response);
         if (response && response.data) {
@@ -176,7 +176,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
           if (response) {
             Swal.fire('Banned!', 'User has been banned.', 'success').then(() => {
               // Refresh the conversation list after banning
-              this.userConversationService.getUserLogs().subscribe((response) => {
+              this.userConversationService.getUserConversation().subscribe((response) => {
                 if (response && response.data) {
                   this.conversation = response.data;
                   this.filteredConversations = [...this.conversation];
@@ -207,7 +207,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
           if (response) {
             Swal.fire('Warned!', 'User has been warned.', 'success').then(() => {
               // Refresh the conversation list after warning
-              this.userConversationService.getUserLogs().subscribe((response) => {
+              this.userConversationService.getUserConversation().subscribe((response) => {
                 if (response && response.data) {
                   this.conversation = response.data;
                   this.filteredConversations = [...this.conversation];

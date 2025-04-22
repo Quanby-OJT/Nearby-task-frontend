@@ -17,8 +17,7 @@ export class UserConversationService {
     });
   }
 
-  // Get the conversation from the backend server
-  getUserLogs(): Observable<any> {
+  getUserConversation(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/getUserConversation`, {
       headers: this.getHeaders(),
       withCredentials: true
