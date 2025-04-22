@@ -176,7 +176,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget buildFilePreview(dynamic file, int index) {
-    debugPrint("File: " + file.toString());
+    debugPrint("File: $file");
 
     if (file is String && file.isNotEmpty) {
       Uri? fileUri = Uri.tryParse(file);

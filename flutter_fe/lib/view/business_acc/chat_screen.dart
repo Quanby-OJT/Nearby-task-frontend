@@ -35,7 +35,7 @@ class _ChatScreenState extends State<ChatScreen> {
   String? _errorMessage;
   int? cardNumber = 0;
   bool _isUploadDialogShown = false;
-  bool _showButton = false;
+  final bool _showButton = false;
   bool _isLoading = true;
 
   AuthenticatedUser? _user;
@@ -446,17 +446,6 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _fetchUserIDImage() async {
     try {
       int userId = int.parse(storage.read('user_id').toString());
-      if (userId == null) {
-        debugPrint("User ID not found in storage po");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Failed to load user image. Please try again."),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
-          ),
-        );
-        return;
-      }
 
       AuthenticatedUser? user =
           await _profileController.getAuthenticatedUser(context, userId);

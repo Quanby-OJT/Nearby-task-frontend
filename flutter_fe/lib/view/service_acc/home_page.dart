@@ -80,22 +80,11 @@ class _HomePageState extends State<HomePage> {
   Future<void> _saveLikedJob(TaskModel task) async {
     try {
       debugPrint("Printing...$task");
-      if (task.id == null) {
-        print("Cannot save task: Task ID is null for task: ${task.title}");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Cannot like job: Invalid job ID"),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
-          ),
-        );
-        return;
-      }
 
       JobPostService jobPostService = JobPostService();
 
       // Call the service method to save the liked job - now passing an int
-      final result = await jobPostService.saveLikedJob(task.id!);
+      final result = await jobPostService.saveLikedJob(task.id);
 
       if (result['success']) {
         // Show success indicator
@@ -134,17 +123,6 @@ class _HomePageState extends State<HomePage> {
   Future<void> _fetchUserIDImage() async {
     try {
       int userId = int.parse(storage.read('user_id').toString());
-      if (userId == null) {
-        debugPrint("User ID not found in storage po");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Failed to load user image. Please try again."),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
-          ),
-        );
-        return;
-      }
 
       AuthenticatedUser? user =
           await _profileController.getAuthenticatedUser(context, userId);
@@ -162,8 +140,8 @@ class _HomePageState extends State<HomePage> {
           _isLoading = false;
 
           debugPrint(
-              "Successfully loaded user image" + _existingProfileImageUrl!);
-          debugPrint("Successfully loaded ID image" + _existingIDImageUrl!);
+              "Successfully loaded user image${_existingProfileImageUrl!}");
+          debugPrint("Successfully loaded ID image${_existingIDImageUrl!}");
 
           if (_existingProfileImageUrl != null && _existingIDImageUrl != null) {
             _showButton = true;
@@ -342,7 +320,7 @@ class _HomePageState extends State<HomePage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  '\₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice!.roundToDouble())}',
+                                  '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice.roundToDouble())}',
                                   style: GoogleFonts.openSans(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,

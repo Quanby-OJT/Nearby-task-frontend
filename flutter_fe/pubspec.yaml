@@ -99,6 +99,8 @@ flutter:
     - assets/tesda_skills.json
     - assets/images/default-profile.jpg
     - assets/svg/logo.svg
+    - assets/lottie/like.json
+    - assets/lottie/dislike.json
     - .env
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/report_model.dart';
 import 'package:flutter_fe/service/report_service.dart';

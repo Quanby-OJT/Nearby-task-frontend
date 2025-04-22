@@ -225,7 +225,7 @@ class _FillUpTaskerLoginState extends State<FillUpTaskerLogin> {
           _controller.countryController.text =
               user.tasker?.address?['country'] ?? '';
 
-          _fetchDocumentLink(user.tasker!.id!);
+          _fetchDocumentLink(user.tasker!.id);
         });
       }
     } catch (error) {

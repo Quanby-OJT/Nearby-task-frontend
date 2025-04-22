@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -7,7 +5,6 @@ import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_fe/model/task_model.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:dio/dio.dart';
 import '../config/url_strategy.dart';
@@ -73,7 +70,8 @@ class ClientServices {
     }
   }
 
-  Future<Map<String, dynamic>> _putRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _putRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.put(
@@ -104,7 +102,6 @@ class ClientServices {
 
       // Get all taskers
       final allTaskersResponse = await _getRequest("/client/getAllTaskers");
-      debugPrint("All Tasker Raw Data: ${allTaskersResponse['taskers']}");
       if (allTaskersResponse.containsKey("error")) {
         debugPrint(
             "Error fetching all taskers: ${allTaskersResponse["error"]}");
@@ -121,9 +118,8 @@ class ClientServices {
       }
 
       // Extract taskers from response
-      final allTaskers = allTaskersResponse['taskers'] as List<dynamic>;
+      final allTaskers = allTaskersResponse["taskers"] as List<dynamic>? ?? [];
       debugPrint("All Taskers Count: ${allTaskers.length}");
-      debugPrint("All Taskers: $allTaskers");
 
       if (allTaskers.isEmpty) {
         debugPrint("No taskers returned from API");
@@ -132,7 +128,7 @@ class ClientServices {
 
       // Extract liked tasker IDs
       final likedTaskerIds =
-          (savedTaskResponse["liked_tasks"] as List<dynamic>)
+          (savedTaskResponse["liked_tasks"] as List<dynamic>? ?? [])
               .map<int>((task) => task["tasker_id"] as int)
               .toSet();
       debugPrint("Liked Tasker IDs: $likedTaskerIds");
@@ -140,7 +136,7 @@ class ClientServices {
       // Filter out liked taskers and convert to UserModel
       final taskerList = allTaskers
           .where((tasker) {
-            final taskerId = tasker["tasker_id"];
+            final taskerId = tasker["user_id"];
             final isNotLiked =
                 taskerId is int && !likedTaskerIds.contains(taskerId);
             if (!isNotLiked) {
@@ -151,9 +147,8 @@ class ClientServices {
           .map((tasker) {
             try {
               return TaskerModel.fromJson(tasker);
-            } catch (e, stackTrace) {
+            } catch (e) {
               debugPrint("Error parsing tasker: $e");
-              debugPrintStack(stackTrace: stackTrace);
               debugPrint("Problematic tasker data: $tasker");
               return null;
             }
@@ -163,7 +158,6 @@ class ClientServices {
           .toList();
 
       debugPrint("Filtered Taskers Count: ${taskerList.length}");
-      debugPrint("Filtered Taskers: $taskerList");
       return taskerList;
     } catch (e, st) {
       debugPrint("Error fetching taskers: $e");
@@ -218,7 +212,8 @@ class ClientServices {
     }
   }
 
-  Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> _deleteRequest(
+      String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
       final request = http.Request("DELETE", Uri.parse('$url$endpoint'))
@@ -315,7 +310,8 @@ class ClientServices {
     }
   }
 
-  Future<Map<String, dynamic>> submitTaskerRating(int taskerId, double rating) async {
+  Future<Map<String, dynamic>> submitTaskerRating(
+      int taskerId, double rating) async {
     try {
       final response = await http.post(
         Uri.parse('rate-tasker'),
@@ -345,7 +341,8 @@ class ClientServices {
     }
   }
 
-  Future<List<TaskerModel>> fetchTaskersBySpecialization(String specialization) async {
+  Future<List<TaskerModel>> fetchTaskersBySpecialization(
+      String specialization) async {
     try {
       final response = await dio
           .get('/taskers', queryParameters: {'specialization': specialization});

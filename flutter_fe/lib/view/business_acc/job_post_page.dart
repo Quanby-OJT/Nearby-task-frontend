@@ -30,7 +30,8 @@ class _JobPostPageState extends State<JobPostPage> {
   final JobPostService jobPostService = JobPostService();
   final ClientServices _clientServices = ClientServices();
   final ProfileController _profileController = ProfileController();
-  final EscrowManagementController _escrowManagementController = EscrowManagementController();
+  final EscrowManagementController _escrowManagementController =
+      EscrowManagementController();
   final GetStorage storage = GetStorage();
   final TextEditingController _searchController = TextEditingController();
   ClientModel? clientModel;
@@ -46,7 +47,7 @@ class _JobPostPageState extends State<JobPostPage> {
   List<String> specialization = [];
   List<TaskModel?> clientTasks = [];
   List<TaskModel?> _filteredTasks = [];
-  Map<String, String> _errors = {};
+  final Map<String, String> _errors = {};
   String? _existingProfileImageUrl;
   String? _existingIDImageUrl;
   AuthenticatedUser? _user;
@@ -73,9 +74,11 @@ class _JobPostPageState extends State<JobPostPage> {
 
   Future<void> fetchSpecialization() async {
     try {
-      List<SpecializationModel> fetchedSpecializations = await jobPostService.getSpecializations();
+      List<SpecializationModel> fetchedSpecializations =
+          await jobPostService.getSpecializations();
       setState(() {
-        specialization = fetchedSpecializations.map((spec) => spec.specialization).toList();
+        specialization =
+            fetchedSpecializations.map((spec) => spec.specialization).toList();
         debugPrint("Specializations: $specialization");
       });
     } catch (error, stackTrace) {
@@ -141,8 +144,8 @@ class _JobPostPageState extends State<JobPostPage> {
     setState(() {
       _filteredTasks = clientTasks.where((task) {
         if (task == null) return false;
-        return (task.title?.toLowerCase().contains(query) ?? false) ||
-            (task.description?.toLowerCase().contains(query) ?? false);
+        return (task.title.toLowerCase().contains(query) ?? false) ||
+            (task.description.toLowerCase().contains(query) ?? false);
       }).toList();
     });
   }
@@ -198,9 +201,6 @@ class _JobPostPageState extends State<JobPostPage> {
       }
       if (selectedTimePeriod == null) {
         _errors['time_period'] = "Please Indicate the Time Period.";
-      }
-      if (selectedWorkType == null) {
-        _errors['work_type'] = "Please Indicate the Work Type (Solo or Group).";
       }
 
       if (_errors.isNotEmpty) {
@@ -329,7 +329,7 @@ class _JobPostPageState extends State<JobPostPage> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => BusinessTaskDetail(task: task, taskID: task.id!),
+        builder: (context) => BusinessTaskDetail(task: task, taskID: task.id),
       ),
     );
     if (result == true) {
@@ -778,138 +778,148 @@ class _JobPostPageState extends State<JobPostPage> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        toolbarHeight: 80,
-        title: Align(
-          alignment: Alignment.centerLeft,
-          child: Padding(
-            padding: EdgeInsets.only(left: 20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Posted Tasks',
-                  style: GoogleFonts.montserrat(
-                    color: Color(0xFF0272B1),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 20,
-                  ),
-                ),
-                SizedBox(height: 5),
-                Text.rich(
-                  TextSpan(
-                    style: GoogleFonts.openSans(
-                      color: Colors.black,
-                      fontSize: 14,
-                    ),
-                    children: <TextSpan>[
-                      TextSpan(text: 'You Currently Have '),
-                      TextSpan(text: '${_escrowManagementController.tokenCredits.value} NearByTask Credits', style: TextStyle(fontWeight: FontWeight.bold, )),
-                    ],
-                  )
-                )
-              ],
-              ),
-            )
-        )
-      ),
-      body: _isLoading ? Center(
-        child: CircularProgressIndicator(),
-      ) : clientTasks.isEmpty
-          ? const Center(child: Text("No tasks available"))
-          : Column(
-        children: [
-          // Search Bar
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.white,
-                hintText: 'Search tasks...',
-                hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
-                prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[200]!),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
-                ),
-              ),
-              style: GoogleFonts.montserrat(fontSize: 14),
-            ),
-          ),
-          // Task Count
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Align(
+          backgroundColor: Colors.white,
+          toolbarHeight: 80,
+          title: Align(
               alignment: Alignment.centerLeft,
-              child: Text(
-                'Found ${_filteredTasks.length} tasks',
-                style: GoogleFonts.montserrat(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ),
-          ),
-          // Task List
-          Expanded(
-            child: _isLoading
-                ? Center(
-                    child: CircularProgressIndicator(color: Color(0xFF0272B1)))
-                : _filteredTasks.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.task_alt,
-                              size: 64,
-                              color: Colors.grey[400],
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              'No tasks found',
-                              style: GoogleFonts.montserrat(
-                                fontSize: 18,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'Create a new task to get started!',
-                              style: GoogleFonts.montserrat(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : RefreshIndicator(
-                        onRefresh: fetchCreatedTasks,
+              child: Padding(
+                padding: EdgeInsets.only(left: 20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Posted Tasks',
+                      style: GoogleFonts.montserrat(
                         color: Color(0xFF0272B1),
-                        child: ListView.builder(
-                          padding: EdgeInsets.all(16),
-                          itemCount: _filteredTasks.length,
-                          itemBuilder: (context, index) {
-                            final task = _filteredTasks[index];
-                            if (task == null) return SizedBox.shrink();
-                            return _buildTaskCard(task);
-                          },
+                        fontWeight: FontWeight.w600,
+                        fontSize: 20,
+                      ),
+                    ),
+                    SizedBox(height: 5),
+                    Text.rich(TextSpan(
+                      style: GoogleFonts.openSans(
+                        color: Colors.black,
+                        fontSize: 14,
+                      ),
+                      children: <TextSpan>[
+                        TextSpan(text: 'You Currently Have '),
+                        TextSpan(
+                            text:
+                                '${_escrowManagementController.tokenCredits.value} NearByTask Credits',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            )),
+                      ],
+                    ))
+                  ],
+                ),
+              ))),
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : clientTasks.isEmpty
+              ? const Center(child: Text("No tasks available"))
+              : Column(
+                  children: [
+                    // Search Bar
+                    Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.white,
+                          hintText: 'Search tasks...',
+                          hintStyle:
+                              GoogleFonts.montserrat(color: Colors.grey[400]),
+                          prefixIcon:
+                              Icon(Icons.search, color: Colors.grey[400]),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey[200]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide:
+                                BorderSide(color: Color(0xFF0272B1), width: 2),
+                          ),
+                        ),
+                        style: GoogleFonts.montserrat(fontSize: 14),
+                      ),
+                    ),
+                    // Task Count
+                    Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Found ${_filteredTasks.length} tasks',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
                         ),
                       ),
-          ),
-        ],
-      ),
+                    ),
+                    // Task List
+                    Expanded(
+                      child: _isLoading
+                          ? Center(
+                              child: CircularProgressIndicator(
+                                  color: Color(0xFF0272B1)))
+                          : _filteredTasks.isEmpty
+                              ? Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.task_alt,
+                                        size: 64,
+                                        color: Colors.grey[400],
+                                      ),
+                                      SizedBox(height: 16),
+                                      Text(
+                                        'No tasks found',
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 18,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                      SizedBox(height: 8),
+                                      Text(
+                                        'Create a new task to get started!',
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 14,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : RefreshIndicator(
+                                  onRefresh: fetchCreatedTasks,
+                                  color: Color(0xFF0272B1),
+                                  child: ListView.builder(
+                                    padding: EdgeInsets.all(16),
+                                    itemCount: _filteredTasks.length,
+                                    itemBuilder: (context, index) {
+                                      final task = _filteredTasks[index];
+                                      if (task == null)
+                                        return SizedBox.shrink();
+                                      return _buildTaskCard(task);
+                                    },
+                                  ),
+                                ),
+                    ),
+                  ],
+                ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
