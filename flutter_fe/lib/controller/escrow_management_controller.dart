@@ -13,25 +13,30 @@ class EscrowManagementController {
   ValueNotifier<int> tokenCredits = ValueNotifier(0);
   IOWebSocketChannel? _channel;
 
-  EscrowManagementController(){
+  EscrowManagementController() {
     amountController.addListener(() {
       calculateTokens();
     });
     fetchTokenBalance();
   }
 
-  void calculateTokens(){
-    if(amountController.text.isNotEmpty) {
+  void calculateTokens() {
+    if (amountController.text.isNotEmpty) {
       try {
         debugPrint("Amount: ${amountController.text}");
-        String cleanedAmount = amountController.text.replaceAll("₱", "").replaceAll(",", "");
+        String cleanedAmount =
+            amountController.text.replaceAll("₱", "").replaceAll(",", "");
         debugPrint("Amount: $cleanedAmount");
         double.parse(cleanedAmount);
       } catch (e) {
         return;
       }
-      tokenCredits.value = (double.parse(amountController.text.replaceAll("₱", "").replaceAll(",", "")) * tokenRate).toInt();
-    }else {
+      tokenCredits.value = (double.parse(amountController.text
+                  .replaceAll("₱", "")
+                  .replaceAll(",", "")) *
+              tokenRate)
+          .toInt();
+    } else {
       tokenCredits.value = 0;
     }
   }
@@ -50,38 +55,43 @@ class EscrowManagementController {
     }
   }
 
-  Future<Map<String, dynamic>> depositAmountToEscrow() async{
-    try{
+  Future<Map<String, dynamic>> depositAmountToEscrow() async {
+    try {
       // debugPrint("TaskRequestController: Depositing amount to escrow");
       // debugPrint("TaskRequestController: Contract Price: $contractPrice");
       // debugPrint("TaskRequestController: Task Taken ID: $taskTakenId");
-      var response = await _requestService.depositEscrowPayment(double.parse(amountController.text.replaceAll("₱", "").replaceAll(",", "")));
+      var response = await _requestService.depositEscrowPayment(double.parse(
+          amountController.text.replaceAll("₱", "").replaceAll(",", "")));
 
-      if(response['success']){
+      if (response['success']) {
         await fetchTokenBalance();
-        return {"message": response['message'], "payment_url": response['payment_url']};
-      }else{
+        return {
+          "message": response['message'],
+          "payment_url": response['payment_url']
+        };
+      } else {
         return {"error": response['error']};
       }
-    }catch(e, st){
+    } catch (e, st) {
       debugPrint(e.toString());
       debugPrintStack(stackTrace: st);
       return {"error": 'Error depositing amount to escrow. Please try again.'};
     }
   }
 
-  Future<String> releaseEscrowPayment(int taskTakenId) async{
-    try{
-      debugPrint("TaskRequestController: Releasing escrow payment for task taken with ID $taskTakenId");
+  Future<String> releaseEscrowPayment(int taskTakenId) async {
+    try {
+      debugPrint(
+          "TaskRequestController: Releasing escrow payment for task taken with ID $taskTakenId");
       var response = await _requestService.releaseEscrowPayment(taskTakenId);
-      if(response.containsKey("message")){
+      if (response.containsKey("message")) {
         return response["message"];
-      }else if(response.containsKey("error")){
+      } else if (response.containsKey("error")) {
         return response["error"];
-      }else{
+      } else {
         return "Unknown Error";
       }
-    }catch(e, stackTrace){
+    } catch (e, stackTrace) {
       debugPrint("Error in TaskRequestController.releaseEscrowPayment: $e");
       debugPrintStack(stackTrace: stackTrace);
       return "An Error Occured while releasing your payment. Please Try Again.";
@@ -95,7 +105,7 @@ class EscrowManagementController {
 
       final data = jsonDecode(message);
 
-      if(data['amount'] != null){
+      if (data['amount'] != null) {
         tokenCredits.value = data['amount'];
       }
     }, onError: (error) {
