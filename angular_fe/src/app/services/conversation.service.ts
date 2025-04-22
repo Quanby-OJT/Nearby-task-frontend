@@ -1,7 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { SessionLocalStorage } from 'src/services/sessionStorage';
 
 @Injectable({
   providedIn: 'root',
@@ -10,13 +9,11 @@ export class UserConversationService {
 
   private apiUrl = 'http://localhost:5000/connect';
   
-  constructor(
-    private http: HttpClient, private sessionStorage: SessionLocalStorage) {}
+  constructor(private http: HttpClient) {}
 
   private getHeaders(): HttpHeaders {
     return new HttpHeaders({
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${this.sessionStorage.getSessionToken()}`
     });
   }
 
@@ -29,16 +26,23 @@ export class UserConversationService {
   }
 
   banUser(id: number): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/banUser/${id}`, {},{
+    return this.http.post<any>(`${this.apiUrl}/banUser/${id}`, {}, {
       headers: this.getHeaders(),
       withCredentials: true 
     });
   }
 
   warnUser(id: number): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/warnUser/${id}`, {},{
+    return this.http.post<any>(`${this.apiUrl}/warnUser/${id}`, {}, {
       headers: this.getHeaders(),
       withCredentials: true 
+    });
+  }
+
+  getTaskConversations(taskTakenId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/messages/${taskTakenId}`, {
+      headers: this.getHeaders(),
+      withCredentials: true
     });
   }
 }
