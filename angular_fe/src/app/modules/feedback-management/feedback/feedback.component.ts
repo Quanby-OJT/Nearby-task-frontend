@@ -1,11 +1,151 @@
-import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { FeedbackService } from 'src/app/services/feedback.service';
 
 @Component({
   selector: 'app-feedback',
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './feedback.component.html',
   styleUrl: './feedback.component.css'
 })
-export class FeedbackComponent {
+export class FeedbackComponent implements OnInit {
+  feedbacks: any[] = [];
+  filteredFeedbacks: any[] = [];
+  displayFeedbacks: any[] = [];
+  currentSearchText: string = '';
+  currentFilterType: string = '';
+  logsPerPage: number = 10;
+  currentPage: number = 1;
+  totalPages: number = 1;
+  startIndex: number = 1;
+  endIndex: number = 0;
+  paginationButtons: (number | string)[] = [];
 
+  constructor(private feedbackService: FeedbackService) {}
+
+  ngOnInit(): void {
+    this.feedbackService.getFeedback().subscribe(
+      (response: any) => {
+        console.log('Received feedback data:', response);
+        this.feedbacks = response.feedbacks || [];
+        this.filteredFeedbacks = [...this.feedbacks];
+        this.updatePage();
+      },
+      (error) => {
+        console.error('Error fetching feedbacks', error);
+        this.feedbacks = [];
+        this.filteredFeedbacks = [];
+        this.displayFeedbacks = [];
+        this.updatePage();
+      }
+    );
+  }
+
+  searchFeedback(event: Event) {
+      this.currentSearchText = (event.target as HTMLInputElement).value.trim().toLowerCase();
+      this.applyFilters();
+  }
+
+  applyFilters() {
+    let tempFeedbacks = [...this.feedbacks];
+
+    if (this.currentSearchText) {
+      const searchTerms = this.currentSearchText.split(/\s+/).filter(term => term);
+      tempFeedbacks = tempFeedbacks.filter(feedback => {
+        const firstName = feedback.tasker?.user?.first_name?.toLowerCase() || '';
+        const middleName = feedback.tasker?.user?.middle_name?.toLowerCase() || '';
+        const lastName = feedback.tasker?.user?.last_name?.toLowerCase() || '';
+        
+        const fullName = [firstName, middleName, lastName].filter(name => name).join(' ');
+
+        return searchTerms.every(term => fullName.includes(term));
+      });
+    }
+
+    if (this.currentFilterType) {
+      tempFeedbacks = tempFeedbacks.filter(feedback => feedback.reported === this.currentFilterType);
+    }
+
+    this.filteredFeedbacks = tempFeedbacks;
+    this.currentPage = 1;
+    this.updatePage();
+  }
+
+  updatePage() {
+    this.totalPages = Math.ceil(this.filteredFeedbacks.length / this.logsPerPage);
+    if (this.totalPages === 0) {
+        this.totalPages = 1;
+    }
+    this.currentPage = Math.max(1, Math.min(this.currentPage, this.totalPages));
+
+    const start = (this.currentPage - 1) * this.logsPerPage;
+    const end = start + this.logsPerPage;
+    this.displayFeedbacks = this.filteredFeedbacks.slice(start, end);
+    this.startIndex = this.filteredFeedbacks.length === 0 ? 0 : start + 1;
+    this.endIndex = Math.min(end, this.filteredFeedbacks.length);
+    this.makePaginationButtons();
+  }
+
+  makePaginationButtons() {
+    const maxButtons = 3;
+    this.paginationButtons = [];
+
+    if (this.totalPages <= 1) return;
+
+    let startPage = Math.max(1, this.currentPage - 1);
+    let endPage = Math.min(this.totalPages, startPage + maxButtons - 1);
+
+    if (endPage === this.totalPages) {
+        startPage = Math.max(1, this.totalPages - maxButtons + 1);
+    }
+    
+    if (startPage === 1) {
+       endPage = Math.min(this.totalPages, maxButtons);
+    }
+
+    if (startPage > 1) {
+      this.paginationButtons.push(1);
+      if (startPage > 2) {
+        this.paginationButtons.push('...');
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      this.paginationButtons.push(i);
+    }
+
+    if (endPage < this.totalPages) {
+      if (endPage < this.totalPages - 1) {
+        this.paginationButtons.push('...');
+      }
+      this.paginationButtons.push(this.totalPages);
+    }
+  }
+
+  changeLogsPerPage(event: Event) {
+    this.logsPerPage = parseInt((event.target as HTMLSelectElement).value, 10);
+    this.currentPage = 1;
+    this.updatePage();
+  }
+
+  previousPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.updatePage();
+    }
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.updatePage();
+    }
+  }
+
+  goToPage(page: number | string) {
+    if (typeof page === 'number' && page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.updatePage();
+    }
+  }
 }
