@@ -10,6 +10,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../controller/escrow_management_controller.dart';
 import 'package:intl/intl.dart';
 
+import '../../model/tasker_feedback.dart';
+import '../../service/tasker_service.dart';
+
 class RecordTaskerPage extends StatefulWidget {
   const RecordTaskerPage({super.key});
 
@@ -20,6 +23,7 @@ class RecordTaskerPage extends StatefulWidget {
 class _RecordTaskerPageState extends State<RecordTaskerPage> {
   final storage = GetStorage();
   final _escrowManagementController = EscrowManagementController();
+  List<TaskerFeedback> taskerFeedback = [];
 
   bool _isLoading = true;
 
@@ -29,6 +33,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
     });
+    getAllTaskerReviews();
   }
   Future<void> _loadData() async {
     await _escrowManagementController.fetchTokenBalance();
@@ -37,6 +42,21 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
   String formatCurrency(double amount) {
     final format = NumberFormat.currency(locale: 'en_PH', symbol: '₱');
     return format.format(amount);
+  }
+
+  Future<void> getAllTaskerReviews() async {
+    try {
+      final taskerId = storage.read('user_id');
+      final taskerService = TaskerService();
+      final taskerReviews = await taskerService.getTaskerFeedback(taskerId);
+
+      setState(() {
+        taskerFeedback = taskerReviews;
+      });
+    }catch(e, stackTrace){
+      debugPrint("Error fetching tasker reviews: $e");
+      debugPrintStack(stackTrace: stackTrace);
+    }
   }
 
   @override
@@ -68,60 +88,80 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
             child: Column(
               children: [
                 Expanded(
-                    child: Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.all(16.0),
-                    width: double.infinity,
-                    child: Column(
-                      children: [
-                        //UI Must be improved.
-                        _isLoading ? Text(
-                          'Please Wait while we calculate your NearByTask Credits',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.yellow.shade800
-                          ),
-                          textAlign: TextAlign.center,
-                        ) :
-                        _escrowManagementController.tokenCredits.value == 0.0 ?
-                        Text(
-                          "You don't have any NearByTask Credits to your account. Earn More by taking more tasks.",
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.roboto(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0XFFB62C5C)
-                          )
-                        ) :
-                        Text.rich(
-                          TextSpan(
-                            children: [
-                              TextSpan(
-                                text: 'You Had Earned: ',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                )
-                              ),
-                              TextSpan(
-                                text: '${formatCurrency(_escrowManagementController.tokenCredits.value.toDouble())} to your Existing Wallet.',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.yellow.shade800
-                                )
-                              )
-                            ]
-                          )
-                        )
-                      ],
+                  child: Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  ),
-                ))
+                    child: Container(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          //UI Must be improved.
+                          _isLoading ? Text(
+                            'Please Wait while we calculate your NearByTask Credits',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.yellow.shade800
+                            ),
+                            textAlign: TextAlign.center,
+                          ) :
+                          _escrowManagementController.tokenCredits.value == 0.0 ?
+                          Text(
+                            "You don't have any NearByTask Credits to your account. Earn More by taking more tasks.",
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.poppins(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0XFFB62C5C)
+                            )
+                          ) :
+                          Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'You Had Earned: ',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                  )
+                                ),
+                                TextSpan(
+                                  text: '${formatCurrency(_escrowManagementController.tokenCredits.value.toDouble())} to your Existing Wallet.',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.yellow.shade800
+                                  )
+                                ),
+                              ]
+                            )
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            "Your Reviews from Your Clients:",
+                            style: GoogleFonts.montserrat(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0XFF331FB3)
+                            ),
+                            textAlign: TextAlign.start,
+                          ),
+                          SizedBox(height: 10),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              child: Column(
+                                children: taskerFeedback.map((feedback) => _buildReviewItem(
+                                  "${feedback.client.user!.firstName} ${feedback.client.user!.lastName}",
+                                  feedback.comment, feedback.rating.toInt())).toList(),
+                              ),
+                            ),
+                          )
+                        ]
+                      ),
+                    ),
+                  )
+                ),
               ],
             ),
           )),
@@ -355,6 +395,48 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReviewItem(String reviewer, String comment, int rating) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                reviewer,
+                style: GoogleFonts.montserrat(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              Row(
+                children: List.generate(
+                  5,
+                      (index) => Icon(
+                    index < rating ? Icons.star : Icons.star_border,
+                    color: Colors.amber,
+                    size: 16,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            comment,
+            style: GoogleFonts.montserrat(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          ),
+          Divider(height: 3, color: Colors.grey[300])
         ],
       ),
     );

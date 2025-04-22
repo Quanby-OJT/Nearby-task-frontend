@@ -8,14 +8,18 @@ import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/service/tasker_service.dart';
 import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/nav/user_navigation.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:flip_card/flip_card.dart';
 import '../../controller/profile_controller.dart';
+import '../../model/tasker_feedback.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -30,10 +34,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   final CardSwiperController controller = CardSwiperController();
   final JobPostService jobPostService = JobPostService();
   final ClientServices _clientServices = ClientServices();
-  final AuthenticationController _authController = AuthenticationController();
+  final TaskerService _taskerService = TaskerService();
   List<AuthenticatedUser> taskers = [];
+  List<TaskerFeedback> taskerFeedback = [];
   String? _errorMessage;
   int? cardNumber = 0;
+  Map<int, List<TaskerFeedback>> _taskerFeedbacks = {};
+
 
   AuthenticatedUser? _user;
   String? _existingProfileImageUrl;
@@ -150,6 +157,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         cardNumber = fetchedTaskers.length;
         _isLoading = false;
       });
+
+      // Fetch feedback for each tasker in parallel to improve performance
+      final feedbackFutures = fetchedTaskers.map((tasker) => _taskerService.getTaskerFeedback(tasker.id)).toList();
+      final allFeedbacks = await Future.wait(feedbackFutures);
+      setState(() {
+        _taskerFeedbacks = Map.fromIterables(fetchedTaskers.map((t) => t.id), allFeedbacks);
+      });
     } catch (error) {
       setState(() {
         _isLoading = false;
@@ -236,72 +250,72 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-  void _showRatingDialog(UserModel tasker) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Rate ${tasker.firstName}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('How would you rate your experience?'),
-            SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (index) {
-                return IconButton(
-                  icon: Icon(
-                    index < _currentRating ? Icons.star : Icons.star_border,
-                    color: Colors.amber,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _currentRating = index + 1;
-                    });
-                  },
-                );
-              }),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await _submitRating(tasker.id!, _currentRating);
-              Navigator.pop(context);
-            },
-            child: Text('Submit'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _submitRating(int taskerId, double rating) async {
-    try {
-      final result = await _clientServices.submitTaskerRating(taskerId, rating);
-      if (result['success']) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Rating submitted successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        await _fetchTaskers();
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error submitting rating'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
+  // void _showRatingDialog(UserModel tasker) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: Text('Rate ${tasker.firstName}'),
+  //       content: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           Text('How would you rate your experience?'),
+  //           SizedBox(height: 20),
+  //           Row(
+  //             mainAxisAlignment: MainAxisAlignment.center,
+  //             children: List.generate(5, (index) {
+  //               return IconButton(
+  //                 icon: Icon(
+  //                   index < _currentRating ? Icons.star : Icons.star_border,
+  //                   color: Colors.amber,
+  //                 ),
+  //                 onPressed: () {
+  //                   setState(() {
+  //                     _currentRating = index + 1;
+  //                   });
+  //                 },
+  //               );
+  //             }),
+  //           ),
+  //         ],
+  //       ),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context),
+  //           child: Text('Cancel'),
+  //         ),
+  //         ElevatedButton(
+  //           onPressed: () async {
+  //             await _submitRating(tasker.id!, _currentRating);
+  //             Navigator.pop(context);
+  //           },
+  //           child: Text('Submit'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+  //
+  // Future<void> _submitRating(int taskerId, double rating) async {
+  //   try {
+  //     final result = await _clientServices.submitTaskerRating(taskerId, rating);
+  //     if (result['success']) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text('Rating submitted successfully!'),
+  //           backgroundColor: Colors.green,
+  //         ),
+  //       );
+  //       await _fetchTaskers();
+  //     }
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Error submitting rating'),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -544,7 +558,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           children: [
                                             ...List.generate(5, (index) {
                                               double rating =
-                                                  tasker.tasker?.rating ?? 4.5;
+                                                  tasker.tasker?.rating ?? 0.0;
                                               return Icon(
                                                 index < rating.floor()
                                                     ? Icons.star
@@ -557,7 +571,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                             }),
                                             SizedBox(width: 8),
                                             Text(
-                                              "${tasker.tasker?.rating ?? 4.5}",
+                                              tasker.tasker?.rating != 0 ? "${tasker.tasker?.rating ?? 0.0}" : "No Ratings Yet",
                                               style: TextStyle(
                                                 color: Colors.white,
                                                 fontSize: 14,
@@ -589,8 +603,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) => TaskerProfilePage(
-                                            tasker: tasker.user,
+                                            tasker: tasker.tasker!,
                                             isSaved: false,
+                                            taskerId: tasker.tasker?.id,
                                           ),
                                         ),
                                       );
@@ -660,72 +675,82 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                             fontSize: 16,
                                             color: Colors.grey[800]),
                                       ),
+                                      SizedBox(width: 8),
                                     ],
                                   ),
-                                  Spacer(),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      ElevatedButton.icon(
-                                        onPressed: () {
-                                          if (_existingProfileImageUrl == null ||
-                                              _existingIDImageUrl == null ||
-                                              _existingProfileImageUrl!.isEmpty ||
-                                              _existingIDImageUrl!.isEmpty ||
-                                              !_documentValid) {
-                                            _showWarningDialog();
-                                          } else {
-                                            _showRatingDialog(tasker.user);
-                                          }
-                                        },
-                                        icon: Icon(Icons.star, size: 20),
-                                        label: Text('Rate'),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.amber,
-                                          foregroundColor: Colors.white,
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 16, vertical: 12),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                            BorderRadius.circular(12),
-                                          ),
-                                        ),
+                                  SizedBox(height: 10),
+                                  if (_taskerFeedbacks[tasker.tasker?.id] != null && _taskerFeedbacks[tasker.tasker?.id]!.isNotEmpty)...[                                    SizedBox(height: 10),
+                                    Text(
+                                      "What Other People Say About this Tasker?",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF0272B1),
                                       ),
-                                      SizedBox(width: 12),
-                                      OutlinedButton.icon(
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  TaskerProfilePage(
-                                                    tasker: tasker.user,
-                                                    isSaved: false,
-                                                  ),
+                                    ),
+                                    Column(
+                                      children: _taskerFeedbacks[tasker.tasker?.id]!
+                                          .take(3) // Limit to a maximum of 3 reviews
+                                          .map((feedback) => _buildReviewItem(
+                                        "${feedback.client.user!.firstName} ${feedback.client.user!.lastName}",
+                                        feedback.comment,
+                                        feedback.rating.toInt(), // Convert double to int for star display
+                                      )).toList(),
+                                    )
+                                  ]
+                                  else
+                                    Center(
+                                      child: Column(
+                                        children: [
+                                          Icon(Icons.sentiment_dissatisfied, size: 60, color: Colors.grey[400]),
+                                          SizedBox(height: 16),
+                                          Text(
+                                            "This tasker has no reviews Yet. You can help him motivate by 'swiping-right' them",
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.grey[600],
                                             ),
-                                          );
-                                        },
-                                        icon: Icon(Icons.person, size: 20),
-                                        label: Text('Profile'),
-                                        style: OutlinedButton.styleFrom(
-                                          side: BorderSide(
-                                              color: Color(0xFF0272B1)),
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 16, vertical: 12),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                            BorderRadius.circular(12),
+                                          )
+                                        ],
+                                      )
+                                    ),
+                                  Spacer(),
+                                  Center(
+                                    child: OutlinedButton.icon(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                TaskerProfilePage(
+                                                  tasker: tasker.tasker!,
+                                                  isSaved: false,
+                                                  taskerId: tasker.tasker?.id,
+                                                ),
                                           ),
+                                        );
+                                      },
+                                      icon: Icon(FontAwesomeIcons.user, size: 20),
+                                      label: Text('Learn More About this Tasker'),
+                                      style: OutlinedButton.styleFrom(
+                                        side: BorderSide(
+                                            color: Color(0xFF0272B1)),
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 12),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                          BorderRadius.circular(12),
                                         ),
                                       ),
-                                    ],
+                                    ),
                                   ),
-                                ],
+                                ]
                               ),
                             ),
                           ),
                         ),
-                      ),
+                      )
                     );
                   },
                 ),
@@ -770,6 +795,47 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ],
       )
           : null,
+    );
+  }
+
+  Widget _buildReviewItem(String reviewer, String comment, int rating) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                reviewer,
+                style: GoogleFonts.montserrat(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Spacer(),
+              Row(
+                children: List.generate(
+                  5,
+                      (index) => Icon(
+                    index < rating ? Icons.star : Icons.star_border,
+                    color: Colors.amber,
+                    size: 16,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            comment,
+            style: GoogleFonts.montserrat(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

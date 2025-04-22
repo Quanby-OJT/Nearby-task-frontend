@@ -12,6 +12,7 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 import 'dart:io';
 import 'package:flutter_fe/model/tasker_scheduler.dart';
+import 'package:flutter_fe/model/tasker_feedback.dart';
 
 import '../model/address.dart';
 import '../model/tasker_model.dart';
@@ -53,8 +54,7 @@ class TaskerService {
     }
   }
 
-  static Future<Map<String, dynamic>> _postRequest(
-      {required String endpoint, required Map<String, dynamic> body}) async {
+  static Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     final response = await http.post(Uri.parse("$url$endpoint"),
         headers: {
@@ -66,8 +66,7 @@ class TaskerService {
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> _deleteRequest(
-      String endpoint, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
       final request = http.Request("DELETE", Uri.parse('$url$endpoint'))
@@ -334,6 +333,25 @@ class TaskerService {
       return [];
     } catch (e, stackTrace) {
       debugPrint("Error getting tasker schedule: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return [];
+    }
+  }
+
+  Future<List<TaskerFeedback>> getTaskerFeedback(int taskerId) async {
+    try {
+      var response = await _getRequest("/get-taskers-feedback/$taskerId");
+      if (response.containsKey("tasker_feedback")) {
+        List<TaskerFeedback> feedbacks = [];
+        for (var feedback in response["tasker_feedback"]) {
+          feedbacks.add(TaskerFeedback.fromJson(feedback));
+        }
+        debugPrint("Feedback Data: $feedbacks");
+        return feedbacks;
+      }
+      return [];
+    } catch (e, stackTrace) {
+      debugPrint("Error getting tasker feedback: $e");
       debugPrintStack(stackTrace: stackTrace);
       return [];
     }
