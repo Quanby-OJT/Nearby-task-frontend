@@ -314,6 +314,45 @@ class JobPostService {
     }
   }
 
+  Future<List<TaskModel>> fetchJobsBySpecialization(
+      String specialization) async {
+    try {
+      final userId = await getUserId();
+      if (userId == null) {
+        debugPrint("User ID is null, returning empty list");
+        return [];
+      }
+
+      final likedJobsResponse = await _getRequest("/displayLikedJob/$userId");
+      final allJobsResponse = await _getRequest(
+          "/displayTaskWithSpecialization?specialization=$specialization");
+
+      debugPrint("Liked Jobs Response: $likedJobsResponse");
+      debugPrint("All Jobs Response: $allJobsResponse");
+
+      if (allJobsResponse.containsKey("error")) {
+        debugPrint(
+            "Error fetching jobs: ${allJobsResponse['error'] ?? 'Invalid response'}");
+        return [];
+      }
+
+      final tasks = allJobsResponse["tasks"];
+      if (tasks == null || tasks is! List) {
+        debugPrint(
+            "Unexpected response format: 'tasks' is missing or not a list");
+        return [];
+      }
+
+      return tasks
+          .map((task) => TaskModel.fromJson(task as Map<String, dynamic>))
+          .toList();
+    } catch (e, st) {
+      debugPrint("Exception in fetchAllJobs: $e");
+      debugPrintStack(stackTrace: st);
+      return [];
+    }
+  }
+
   Future<List<TaskModel>> fetchAllJobs() async {
     try {
       final userId = await getUserId();
@@ -650,11 +689,12 @@ class JobPostService {
     });
   }
 
-  Future<Map<String, dynamic>> updateNotification(int taskTakenId) async {
+  Future<Map<String, dynamic>> updateNotification(
+      int taskTakenId, int userId) async {
     try {
-      debugPrint("Updating notification with ID: $taskTakenId");
+      debugPrint("Updating notification with ID: $taskTakenId and $userId");
       final response = await http.put(
-        Uri.parse('$url/updateNotification/$taskTakenId'),
+        Uri.parse('$url/updateNotification/$taskTakenId?userId=$userId'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"

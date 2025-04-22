@@ -62,6 +62,16 @@ class NotificationService {
     }
   }
 
+  Future<Map<String, dynamic>> getPendingRequests(int userId) async {
+    try {
+      final data = await _getRequest("/notifications-tasker-pending/$userId");
+      return data;
+    } catch (e, st) {
+      debugPrint("Service error: $e\nStacktrace: $st");
+      return {"error": "An error occurred while getting pending requests"};
+    }
+  }
+
   Future<Map<String, dynamic>> getOngoingRequests(int userId) async {
     try {
       final data = await _getRequest("/notifications-tasker-ongoing/$userId");

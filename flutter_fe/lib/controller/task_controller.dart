@@ -114,9 +114,10 @@ class TaskController {
     }
   }
 
-  Future<bool> updateNotif(int taskTakenId) async {
+  Future<bool> updateNotif(int taskTakenId, int userId) async {
     debugPrint("Assigning task...");
-    final updateNotif = await _jobPostService.updateNotification(taskTakenId);
+    final updateNotif =
+        await _jobPostService.updateNotification(taskTakenId, userId);
     if (updateNotif.containsKey('message')) {
       return updateNotif['message'] = true;
     }

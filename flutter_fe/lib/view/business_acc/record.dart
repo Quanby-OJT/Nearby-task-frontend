@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/controller/escrow_management_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_coinfirmed.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_finish.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_ongoing.dart';
+import 'package:flutter_fe/view/business_acc/client_record/display_list_pendin.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -89,32 +91,19 @@ class _RecordPageState extends State<RecordPage> {
                         _isLoading
                             ? Text(
                                 "Please Wait while we calculate your NearByTask Credits",
-                                style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.yellow.shade800),
+                                style: GoogleFonts.openSans(fontSize: 18),
                               )
-                            : _escrowManagementController.tokenCredits.value ==
-                                    0
-                                ? Text(
-                                    "You don't have any NearByTask Credits to your account. Add more by depositing the amount in order to use the system.",
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.roboto(
+                            : Text.rich(TextSpan(children: [
+                                TextSpan(
+                                    text: "You Have: ",
+                                    style: GoogleFonts.roboto(fontSize: 18)),
+                                TextSpan(
+                                    style: GoogleFonts.openSans(
                                         fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0XFFB62C5C)))
-                                : Text.rich(TextSpan(children: [
-                                    TextSpan(
-                                        text: "You Have: ",
-                                        style:
-                                            GoogleFonts.roboto(fontSize: 18)),
-                                    TextSpan(
-                                        style: GoogleFonts.openSans(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold),
-                                        text:
-                                            '${_escrowManagementController.tokenCredits.value} NearByTask Credits'),
-                                  ]))
+                                        fontWeight: FontWeight.bold),
+                                    text:
+                                        '${_escrowManagementController.tokenCredits.value} NearByTask Credits'),
+                              ]))
                       ],
                     ),
                   ),
@@ -133,6 +122,60 @@ class _RecordPageState extends State<RecordPage> {
                 scrollDirection: Axis.horizontal,
                 shrinkWrap: true,
                 children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        hoverColor: Colors.yellow.withOpacity(0.1),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DisplayListRecordPending(),
+                            ),
+                          ).then((value) {
+                            setState(() {
+                              _isLoading = true;
+                            });
+                          });
+                        },
+                        child: Container(
+                          width: 150, // Width of each card
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.yellow.withOpacity(0.1),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Pending Task',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.yellow,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              // Optionally, add more details like a count or icon
+                              Icon(
+                                Icons.task,
+                                color: Colors.yellow,
+                                size: 24,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Card(
