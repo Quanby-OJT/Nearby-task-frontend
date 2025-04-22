@@ -1,27 +1,24 @@
 <div class="bg-background flex-col rounded-lg px-8 py-8 shadow-md sm:flex-row" style="height: 543px;">
-  <h1 class="text-[#DE6FA1] text-2xl font-bold text-center">Available Tasks</h1>
+  <h1 class="text-[#5F50E7] text-2xl font-bold text-start font-barlow">Available Tasks</h1>
   <div class="relative" style="height: calc(100% - 40px); overflow-y: auto;">
     <table class="w-full table-auto">
       <thead class="text-muted-foreground text-xs uppercase sticky top-0 bg-background">
-        <tr class="text-[#DE6FA1] text-2xls">
+        <tr class="text-[#B174ED] text-2xls font-barlow">
           <th class="py-3 px-4 text-center">Client Name</th>
           <th class="py-3 px-4 text-center">Job Title</th>
-          <th class="py-3 px-4 text-center">Date Posted</th>
-          <th class="py-3 px-4 text-center">Status</th>
+          <th class="py-3 px-8   text-center">Date Posted</th>
         </tr>
       </thead>
 
       <tbody *ngIf="!isLoading">
-        <tr *ngFor="let data of taskTableData" class="text-xm">
+        <tr *ngFor="let data of taskTableData" class="text-xm font-montserrat">
           <td class="py-3 px-5 text-center text-xs">{{ data.client }}</td>
           <td class="py-3 px-5 text-center text-xs">{{ data.tasker }}</td>
           <td class="py-3 px-5 text-center text-xs">{{ data.ending_in }}</td>
-          <td class="py-3 px-5 text-center text-xs">{{ data.status }}</td>
         </tr>
       </tbody>
     </table>
 
-   
          <div *ngIf="isLoading" class="flex justify-center items-center mt-35">
           <div role="status">
             <svg aria-hidden="true" class="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">

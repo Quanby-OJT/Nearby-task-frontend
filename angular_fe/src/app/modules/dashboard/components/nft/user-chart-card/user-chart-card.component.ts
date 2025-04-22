@@ -37,7 +37,7 @@ export class UserChartCardComponent implements OnInit {
     },
     labels: ['Admin', 'Moderator', 'Client', 'Tasker'],
     colors: ['#8586EC', '#8586EC', '#C2C3F6', '#E1E1FA'],
-    //  colors: ['#03045E', '#3C28CC', '#8586EC', '#DA5896'],
+    // colors: ['#EC5987', '#F07DA1', '#F5A1BB', '#F9C5D5'],
     responsive: [
       {
         breakpoint: 480,
