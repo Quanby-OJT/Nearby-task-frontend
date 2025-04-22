@@ -12,7 +12,8 @@ import 'package:flutter_fe/controller/escrow_management_controller.dart';
 class TaskController {
   final JobPostService _jobPostService = JobPostService();
   final TaskDetailsService _taskDetailsService = TaskDetailsService();
-  final EscrowManagementController _escrowManagementController = EscrowManagementController();
+  final EscrowManagementController _escrowManagementController =
+      EscrowManagementController();
   final jobIdController = TextEditingController();
   final jobTitleController = TextEditingController();
   final jobSpecializationController = TextEditingController();
@@ -43,10 +44,12 @@ class TaskController {
       final priceInt = int.tryParse(priceText) ?? 0;
 
       debugPrint(priceInt.toString());
-      if(_escrowManagementController.tokenCredits.value - priceInt > _escrowManagementController.tokenCredits.value){
+      if (_escrowManagementController.tokenCredits.value - priceInt >
+          _escrowManagementController.tokenCredits.value) {
         return {
           "success": false,
-          "error": "You don't have enough tokens to post your needed task. Please Deposit First Your Desired Amount of Tokens."
+          "error":
+              "You don't have enough tokens to post your needed task. Please Deposit First Your Desired Amount of Tokens."
         };
       } else {
         final task = TaskModel(
@@ -120,46 +123,15 @@ class TaskController {
     return false;
   }
 
-  Future<String> assignTask(int? taskId, int? clientId, int? taskerId) async {
-    if (taskId == null || clientId == null || taskerId == null) {
-      return "Invalid task, client, or tasker ID";
-    }
-
-    try {
-      debugPrint("Assigning task $taskId to tasker $taskerId...");
-
-      // Double-check for existing assignments first (fail-safe)
-      if (await isTaskAssignedToTasker(taskId, taskerId)) {
-        return "This task is already assigned to this tasker";
-      }
-
-      // Do a final check before proceeding
-      final assignmentExists =
-          await _jobPostService.checkExistingAssignment(taskId, taskerId);
-      if (assignmentExists) {
-        return "This task is already assigned to this tasker (found during final check)";
-      }
-
-      // If no existing assignment found, proceed with assignment
-      final assignedTask =
-          await _jobPostService.assignTask(taskId, clientId, taskerId);
-
-      // Log full response for debugging
-      debugPrint("Assignment response: $assignedTask");
-
-      if (!assignedTask['success']) {
-        // Handle error case
-        return assignedTask['message'] ??
-            assignedTask['error'] ??
-            "Failed to assign task. It may already be assigned.";
-      }
-
-      // Handle success case
-      return assignedTask['message'] ?? "Task assigned successfully";
-    } catch (e) {
-      debugPrint("Error in task controller assignTask: $e");
-      return "An error occurred while assigning the task: $e";
-    }
+  Future<String> assignTask(
+      int? taskId, int? clientId, int? taskerId, String role) async {
+    debugPrint("Assigning task...");
+    debugPrint("Role: $role");
+    final assignedTask =
+        await _jobPostService.assignTask(taskId!, clientId!, taskerId!, role);
+    return assignedTask.containsKey('message')
+        ? assignedTask['message'].toString()
+        : assignedTask['error'].toString();
   }
 
   Future<bool> acceptRequest(int taskTakenId, String value, String role) async {
@@ -183,19 +155,23 @@ class TaskController {
         : assignedTask['error'].toString();
   }
 
-  Future<bool> rateTheTasker(int taskTakenId, int taskerId, int rating, String feedback) async {
-    if(taskTakenId == 0 || rating == 0 || feedback.isEmpty) {
+  Future<bool> rateTheTasker(
+      int taskTakenId, int taskerId, int rating, String feedback) async {
+    if (taskTakenId == 0 || rating == 0 || feedback.isEmpty) {
       return false;
     }
 
-    try{
-      Map<String, dynamic> feedbackResult = await _jobPostService.rateTheTasker(taskTakenId, taskerId, rating, feedback);
+    try {
+      Map<String, dynamic> feedbackResult = await _jobPostService.rateTheTasker(
+          taskTakenId, taskerId, rating, feedback);
 
       debugPrint("Feedback response: $feedbackResult");
-      if(feedbackResult.containsKey('message')) return feedbackResult['success'];
-      debugPrint("Error in task controller rateTheTasker: ${feedbackResult['error']}");
+      if (feedbackResult.containsKey('message'))
+        return feedbackResult['success'];
+      debugPrint(
+          "Error in task controller rateTheTasker: ${feedbackResult['error']}");
       return false;
-    }catch(e, stackTrace){
+    } catch (e, stackTrace) {
       debugPrint("Error in task controller rateTheTasker: $e");
       debugPrintStack(stackTrace: stackTrace);
       return false;
@@ -333,18 +309,17 @@ class TaskController {
           accStatus: '',
         );
         TaskerModel tasker = TaskerModel(
-          id: 0,
-          bio: '',
-          specialization: '',
-          skills: '',
-          availability: false,
-          wage: 0.0,
-          payPeriod: '',
-          birthDate: DateTime.now(),
-          group: false,
-          user: taskerUser,
-          rating: 0
-        );
+            id: 0,
+            bio: '',
+            specialization: '',
+            skills: '',
+            availability: false,
+            wage: 0.0,
+            payPeriod: '',
+            birthDate: DateTime.now(),
+            group: false,
+            user: taskerUser,
+            rating: 0);
 
         // Create TaskAssignment with the correct taskTakenId
         TaskAssignment assignment = TaskAssignment(

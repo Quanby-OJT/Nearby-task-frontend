@@ -47,11 +47,11 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
   }
 
   Future<void> _initDeepLinkListener() async {
-    final _appLinks = AppLinks();
+    final appLinks = AppLinks();
 
     // Handle initial link (app opened via deep link)
     try {
-      final Uri? initialUri = await _appLinks.getInitialLink();
+      final Uri? initialUri = await appLinks.getInitialLink();
       if (initialUri != null) {
         _handleDeepLink(initialUri);
       }
@@ -62,7 +62,7 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
     }
 
     // Listen for links while app is running
-    _linkSubscription = _appLinks.uriLinkStream.listen(
+    _linkSubscription = appLinks.uriLinkStream.listen(
       (Uri? uri) {
         if (uri != null) {
           _handleDeepLink(uri);
@@ -230,7 +230,7 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                       ),
                     ),
                     SizedBox(height: 20),
-                    Container(
+                    SizedBox(
                       height: 50,
                       width: double.infinity,
                       child: ElevatedButton(

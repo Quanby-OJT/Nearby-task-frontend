@@ -111,8 +111,8 @@ class ProfileService {
         };
       }
 
-      var request = http.MultipartRequest(
-          'PUT', Uri.parse('$url/user/tasker/$userId'));
+      var request =
+          http.MultipartRequest('PUT', Uri.parse('$url/user/tasker/$userId'));
       request.headers['Authorization'] = 'Bearer $token';
       request.headers['Content-Type'] = 'multipart/form-data';
 
@@ -208,7 +208,7 @@ class ProfileService {
     // Add tasker data as a JSON string in a form field
     request.fields.addAll({
       ...client.toJson().map((key, value) => MapEntry(key, value.toString())),
-      "user_id": await storage.read("user_id").toString()
+      "user_id": storage.read("user_id").toString()
     });
 
     // Add each document file to the 'documents' field

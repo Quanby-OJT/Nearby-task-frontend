@@ -191,7 +191,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Text(
-                                        task.status!.toUpperCase(),
+                                        task.status.toUpperCase(),
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,

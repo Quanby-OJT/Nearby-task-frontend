@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
-import 'package:flutter_fe/view/nav/user_navigation.dart';
 
 class EmailVerificationPage extends StatefulWidget {
   final String token;

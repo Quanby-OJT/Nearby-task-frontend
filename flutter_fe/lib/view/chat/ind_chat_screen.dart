@@ -37,7 +37,8 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   final ScrollController _scrollController = ScrollController();
   // Logged In UserId Start
   final storage = GetStorage();
-  final ConversationController conversationController = ConversationController();
+  final ConversationController conversationController =
+      ConversationController();
   final JobPostService jobPostService = JobPostService();
   final ReportController reportController = ReportController();
   TaskModel? task;
@@ -57,7 +58,8 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   }
 
   Future<void> loadInitialData() async {
-    final task = await jobPostService.fetchTaskInformation(widget.taskTakenId ?? 0);
+    final task =
+        await jobPostService.fetchTaskInformation(widget.taskTakenId ?? 0);
     setState(() {
       // Selected User Start
       this.task = task?.task;
@@ -108,7 +110,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-       appBar: AppBar(
+      appBar: AppBar(
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -131,13 +133,15 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
               children: [
                 // (1) Info Icon (unchanged)
                 IconButton(
-                  icon: Icon(FontAwesomeIcons.circleInfo, color: Color(0xFF0272B1)),
+                  icon: Icon(FontAwesomeIcons.circleInfo,
+                      color: Color(0xFF0272B1)),
                   onPressed: () {
                     debugPrint(widget.taskTakenId.toString());
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => TaskDetailsScreen(taskTakenId: widget.taskTakenId ?? 0),
+                        builder: (context) => TaskDetailsScreen(
+                            taskTakenId: widget.taskTakenId ?? 0),
                       ),
                     );
                   },
@@ -145,7 +149,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                 // (2) Report Icon (updated)
                 StatefulBuilder(
                   builder: (BuildContext context, StateSetter setState) {
-                    bool _isHovering = false;
+                    bool isHovering = false;
 
                     return ClipOval(
                       child: Material(
@@ -155,7 +159,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                           onTap: () {},
                           onHover: (isHovering) {
                             setState(() {
-                              _isHovering = isHovering;
+                              isHovering = isHovering;
                             });
                           },
                           child: Container(
@@ -164,9 +168,10 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.white.withValues(),
-                                  blurRadius: _isHovering ? 0 : 6,
-                                  spreadRadius: _isHovering ? 2 : 0,
-                                  offset: _isHovering ? Offset(0, 0) : Offset(0, 3),
+                                  blurRadius: isHovering ? 0 : 6,
+                                  spreadRadius: isHovering ? 2 : 0,
+                                  offset:
+                                      isHovering ? Offset(0, 0) : Offset(0, 3),
                                 ),
                               ],
                             ),
@@ -183,7 +188,8 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                                   value: 'report_user',
                                   child: Row(
                                     children: [
-                                      Icon(Icons.report, color: Colors.redAccent),
+                                      Icon(Icons.report,
+                                          color: Colors.redAccent),
                                       SizedBox(width: 10),
                                       Text('Report User'),
                                     ],

@@ -87,8 +87,7 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> _postRequest(
-      {required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     try {
       String formattedEndpoint =
@@ -192,7 +191,7 @@ class TaskRequestService {
             // Print the first 200 chars of the item for debugging
             final itemStr = item.toString();
             debugPrint(
-                "Mapping task_taken item: ${itemStr.length > 200 ? itemStr.substring(0, 200) + '...' : itemStr}");
+                "Mapping task_taken item: ${itemStr.length > 200 ? '${itemStr.substring(0, 200)}...' : itemStr}");
 
             // Extract task_taken_id - this is the primary key we need for updates
             final int taskTakenId = item['id'] ?? item['task_taken_id'] ?? 0;
@@ -294,43 +293,40 @@ class TaskRequestService {
             status: taskData['status'],
             duration: '',
             taskBeginDate: '',
-            workType: ''
-        );
+            workType: '');
       }
 
       // Fallback if task data is not found
       return TaskModel(
-        id: taskId,
-        title: "Task #$taskId",
-        description: "No details available",
-        location: "",
-        contactPrice: 0,
-        urgency: "Unknown",
-        specialization: '',
-        period: '',
-        status: '',
-        duration: '',
-        taskBeginDate: '',
-        workType: ''
-      );
+          id: taskId,
+          title: "Task #$taskId",
+          description: "No details available",
+          location: "",
+          contactPrice: 0,
+          urgency: "Unknown",
+          specialization: '',
+          period: '',
+          status: '',
+          duration: '',
+          taskBeginDate: '',
+          workType: '');
     } catch (e, stackTrace) {
       debugPrint("Error creating TaskModel: $e");
       debugPrintStack(stackTrace: stackTrace);
       // Return minimal task model
       return TaskModel(
-        id: taskId,
-        title: "Task #$taskId",
-        description: "No details available",
-        location: "",
-        contactPrice: 0,
-        urgency: "Unknown",
-        specialization: '',
-        period: '',
-        status: '',
-        duration: '',
-        taskBeginDate: '',
-        workType: ''
-      );
+          id: taskId,
+          title: "Task #$taskId",
+          description: "No details available",
+          location: "",
+          contactPrice: 0,
+          urgency: "Unknown",
+          specialization: '',
+          period: '',
+          status: '',
+          duration: '',
+          taskBeginDate: '',
+          workType: '');
     }
   }
 
@@ -479,15 +475,14 @@ class TaskRequestService {
   }
 
   Future<Map<String, dynamic>> rejectTaskerOrCancelTask(int requestId, String rejectOrCancel, String rejectionReason) async {
-    try{
+    try {
       return await _putRequest(
-        endpoint: "/update-status-tasker/$requestId",
-        body: {
-          "task_status": rejectOrCancel,
-          "reason_for_rejection_or_cancellation": rejectionReason
-        }
-      );
-    }catch(e, stackTrace) {
+          endpoint: "/update-status-tasker/$requestId",
+          body: {
+            "task_status": rejectOrCancel,
+            "reason_for_rejection_or_cancellation": rejectionReason
+          });
+    } catch (e, stackTrace) {
       debugPrint("Error rejecting tasker: $e");
       debugPrintStack(stackTrace: stackTrace);
       return {

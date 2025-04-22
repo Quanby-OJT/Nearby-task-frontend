@@ -71,7 +71,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
     _locationController = TextEditingController(text: widget.task.location);
     _durationController = TextEditingController(text: widget.task.duration);
     _priceController =
-        TextEditingController(text: widget.task.contactPrice?.toString());
+        TextEditingController(text: widget.task.contactPrice.toString());
     _remarksController = TextEditingController(text: widget.task.remarks);
     _startDateController =
         TextEditingController(text: widget.task.taskBeginDate);
@@ -116,8 +116,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
         "work_type": _selectedWorkType,
       };
 
-      final result =
-          await _taskController.updateTask(widget.task.id!, taskData);
+      final result = await _taskController.updateTask(widget.task.id, taskData);
 
       if (result['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(

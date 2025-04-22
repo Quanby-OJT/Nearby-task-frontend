@@ -36,30 +36,27 @@
       <thead class="border-b">
         <tr class="bg-gray-100">
           <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">User No</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">User Name</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Client Name</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Tasker Name</th>
           <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Conversation</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">User Role</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Email</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Date Created</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Status</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Task Created Date</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Task Status</th>
           <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Action</th>
         </tr>
       </thead>
       <tbody>
-        <!-- Record 1 -->
         <tr *ngFor="let convo of displayConversations" class="border-b">
           <td class="px-4 py-3 text-center">{{ convo.user_id }}</td>
-          <td class="px-4 py-3 text-center">{{ convo.user.first_name }} {{ convo.user.middle_name }} {{ convo.user.last_name }}</td>
+          <td class="px-4 py-3 text-center">{{ convo.task_taken.clients.user.first_name }} {{ convo.task_taken.clients.user.middle_name }} {{ convo.task_taken.clients.user.last_name }}</td>
+          <td class="px-4 py-3 text-center">{{ convo.task_taken.tasker.user.first_name }} {{ convo.task_taken.tasker.user.middle_name }} {{ convo.task_taken.tasker.user.last_name }}</td>
           <td class="px-4 py-3 text-center">
             <div class="flex justify-between items-center mx-auto whitespace-pre-wrap break-words">
               <span class="line-clamp-1 max-w-[150px] text-left">{{ convo.conversation }}</span>
-              <a href="javascript:void(0)" class="text-blue-500 hover:underline text-right" (click)="viewConversation(convo.conversation)">View</a>
+              <a href="javascript:void(0)" class="text-blue-500 hover:underline text-right" (click)="viewConversation(convo.task_taken.task_taken_id, convo.user_id)">View</a>
             </div>
           </td>
-          <td class="px-4 py-3 text-center">{{ convo.user.user_role }}</td>
-          <td class="px-4 py-3 text-center">{{ convo.user.email }}</td>
-          <td class="px-4 py-3 text-center">{{ convo.created_at }}</td>
-          <td class="px-4 py-3 text-center">{{ convo.user.acc_status }}</td>
+          <td class="px-4 py-3 text-center">{{ convo.task_taken.created_at }}</td>
+          <td class="px-4 py-3 text-center">{{ convo.task_taken.task_status }}</td>
           <td class="px-4 py-3 text-center">
             <div class="flex gap-2">
               <span class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-red-500" (click)="banUser(convo.user_id)">Ban</span>

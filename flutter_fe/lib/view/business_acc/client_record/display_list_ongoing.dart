@@ -29,7 +29,7 @@ class _DisplayListRecordOngoingState extends State<DisplayListRecordOngoing> {
   final List<Map<String, dynamic>> requestData = [];
 
   // Track the selected tab index
-  int _selectedTabIndex = 0;
+  final int _selectedTabIndex = 0;
 
   final ProfileController _userController = ProfileController();
   AuthenticatedUser? _user;
@@ -106,101 +106,98 @@ class _DisplayListRecordOngoingState extends State<DisplayListRecordOngoing> {
     return Container(
       color: Colors.blue[50],
       child: _isLoading
-        ? const Center(
-          child: CircularProgressIndicator()
-        )
-        : requestData.isEmpty
-        ? _buildEmptyState("No ongoing tasks available!")
-        : ListView.builder(
-          itemCount: requestData.length,
-          itemBuilder: (context, index) {
-            final request = requestData[index];
-            return Card(
-              margin:
-                  EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: () {
-                  if (role == "Client") {
-                    debugPrint("Role: $role");
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => ClientOngoing(
-                                ongoingID: request["id"],
-                                role: role)));
-                  } else {
-                    debugPrint("Tasker role");
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => TaskerOngoing(
-                                ongoingID: request["id"],
-                                role: role)));
-                  }
-                },
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment:
-                            MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            truncateText(
-                              request["title"] ?? "No title",
-                              20,
-                            ),
-                            style: GoogleFonts.montserrat(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue[800],
+          ? const Center(child: CircularProgressIndicator())
+          : requestData.isEmpty
+              ? _buildEmptyState("No ongoing tasks available!")
+              : ListView.builder(
+                  itemCount: requestData.length,
+                  itemBuilder: (context, index) {
+                    final request = requestData[index];
+                    return Card(
+                        margin:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () {
+                            if (role == "Client") {
+                              debugPrint("Role: $role");
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => ClientOngoing(
+                                          ongoingID: request["id"],
+                                          role: role)));
+                            } else {
+                              debugPrint("Tasker role");
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => TaskerOngoing(
+                                          ongoingID: request["id"],
+                                          role: role)));
+                            }
+                          },
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      truncateText(
+                                        request["title"] ?? "No title",
+                                        20,
+                                      ),
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.blue[800],
+                                      ),
+                                    ),
+                                    Chip(
+                                      label: Text(
+                                        request["status"],
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 10,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      backgroundColor: Colors.orange[300],
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 0),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  "${request["role"]}: ${request["clientName"]}",
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 14,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  "Date: ${request["date"]}",
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          Chip(
-                            label: Text(
-                              request["status"],
-                              style: GoogleFonts.montserrat(
-                                fontSize: 10,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            backgroundColor: Colors.orange[300],
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 0),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        "${request["role"]}: ${request["clientName"]}",
-                        style: GoogleFonts.montserrat(
-                          fontSize: 14,
-                          color: Colors.grey[700],
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        "Date: ${request["date"]}",
-                        style: GoogleFonts.montserrat(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
+                        ));
+                  },
                 ),
-              )
-            );
-          },
-        ),
     );
   }
 
