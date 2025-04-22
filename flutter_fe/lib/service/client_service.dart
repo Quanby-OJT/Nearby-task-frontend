@@ -228,7 +228,7 @@ class ClientServices {
     }
   }
 
-  Future<List<UserModel>> fetchUserLikedTasks() async {
+  Future<List<TaskerModel>> fetchUserLikedTasks() async {
     final userId = await getUserId();
     if (userId == null) return [];
 
@@ -250,7 +250,7 @@ class ClientServices {
             final jobId = job["user_id"];
             return jobId is int && likedJobIds.contains(jobId);
           })
-          .map((job) => UserModel.fromJson(job))
+          .map((job) => TaskerModel.fromJson(job))
           .toList();
       return filteredJobs;
     } catch (e) {

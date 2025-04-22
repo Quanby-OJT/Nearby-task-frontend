@@ -13,6 +13,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/task_model.dart';
 
+import '../../model/tasker_feedback.dart';
+import '../../model/tasker_model.dart';
+
 class LikesScreen extends StatefulWidget {
   const LikesScreen({super.key});
 
@@ -27,8 +30,8 @@ class _LikesScreenState extends State<LikesScreen> {
   final ProfileController _profileController = ProfileController();
   final GetStorage storage = GetStorage();
   bool _isLoading = true;
-  List<UserModel> _likedTasks = [];
-  List<UserModel> _filteredTasks = [];
+  List<TaskerModel> _likedTasks = [];
+  List<TaskerModel> _filteredTasks = [];
   String? _errorMessage;
   int savedTasksCount = 0;
   String? _existingProfileImageUrl;
@@ -54,8 +57,8 @@ class _LikesScreenState extends State<LikesScreen> {
     String query = _searchController.text.trim().toLowerCase();
     setState(() {
       _filteredTasks = _likedTasks.where((task) {
-        return (task.firstName?.toLowerCase().contains(query) ?? false) ||
-            (task.email?.toLowerCase().contains(query) ?? false);
+        return (task.user?.firstName.toLowerCase().contains(query) ?? false) ||
+            (task.user?.email.toLowerCase().contains(query) ?? false);
       }).toList();
       savedTasksCount = _filteredTasks.length;
     });
@@ -525,7 +528,7 @@ class _LikesScreenState extends State<LikesScreen> {
     );
   }
 
-  Widget _buildTaskerCard(UserModel tasker) {
+  Widget _buildTaskerCard(TaskerModel tasker) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -543,9 +546,9 @@ class _LikesScreenState extends State<LikesScreen> {
                 height: 48,
                 decoration: BoxDecoration(
                   color: Colors.grey[200],
-                  image: tasker.image != null && tasker.image!.isNotEmpty
+                  image: tasker.user?.image != null && tasker.user?.image!.isNotEmpty
                       ? DecorationImage(
-                          image: NetworkImage(tasker.image!),
+                          image: NetworkImage(tasker.user?.image!),
                           fit: BoxFit.cover,
                           onError: (exception, stackTrace) =>
                               AssetImage('assets/images/image1.jpg'),
@@ -564,7 +567,7 @@ class _LikesScreenState extends State<LikesScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    tasker.firstName ?? 'Unknown Tasker',
+                    tasker.user?.firstName ?? 'Unknown Tasker',
                     style: GoogleFonts.montserrat(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -574,7 +577,7 @@ class _LikesScreenState extends State<LikesScreen> {
                   ),
                   SizedBox(height: 4),
                   Text(
-                    tasker.email ?? 'No email',
+                    tasker.user?.email ?? 'No email',
                     style: GoogleFonts.montserrat(
                       fontSize: 12,
                       color: Colors.grey[600],
@@ -582,10 +585,10 @@ class _LikesScreenState extends State<LikesScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   SizedBox(height: 4),
-                  if (tasker.accStatus != null)
+                  if (tasker.user?.accStatus != null)
                     Chip(
                       label: Text(
-                        tasker.accStatus!,
+                        tasker.user!.accStatus!,
                         style: GoogleFonts.montserrat(
                           fontSize: 10,
                           color: Colors.green[700],
@@ -602,7 +605,7 @@ class _LikesScreenState extends State<LikesScreen> {
               children: [
                 IconButton(
                   icon: Icon(Icons.favorite, color: Colors.red[400], size: 24),
-                  onPressed: () => _unlikeJob(tasker),
+                  onPressed: () => _unlikeJob(tasker.user!),
                 ),
                 SizedBox(height: 8),
                 IconButton(
@@ -613,8 +616,9 @@ class _LikesScreenState extends State<LikesScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) =>
-                            TaskerProfilePage(tasker: tasker, isSaved: true),
-                      ),
+                            TaskerProfilePage(tasker: tasker, isSaved: true, taskerId: tasker.id,
+                        ),
+                      )
                     );
                   },
                 ),

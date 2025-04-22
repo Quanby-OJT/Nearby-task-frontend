@@ -1,24 +1,21 @@
-import 'package:flutter_fe/model/tasker_model.dart';
+import 'package:flutter_fe/model/client_model.dart';
 
 class TaskerFeedback{
-  final TaskerModel tasker;
+  final ClientModel client;
   final double rating;
   final String comment;
-  final DateTime timestamp;
 
   TaskerFeedback({
-    required this.tasker,
+    required this.client,
     required this.rating,
     required this.comment,
-    required this.timestamp,
   });
 
   factory TaskerFeedback.fromJson(Map<String, dynamic> json) {
     return TaskerFeedback(
-      tasker: TaskerModel.fromJson(json['tasker']),
-      rating: json['rating'],
+      client: ClientModel.fromJson(json['task_taken']['clients']),
+      rating: json['rating'].toDouble(),
       comment: json['feedback'],
-      timestamp: DateTime.parse(json['timestamp']),
     );
   }
 }

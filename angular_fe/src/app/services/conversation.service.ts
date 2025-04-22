@@ -8,7 +8,7 @@ import { Observable } from 'rxjs';
 export class UserConversationService {
 
   private apiUrl = 'http://localhost:5000/connect';
-  
+
   constructor(private http: HttpClient) {}
 
   private getHeaders(): HttpHeaders {
@@ -18,7 +18,7 @@ export class UserConversationService {
   }
 
   // Get the conversation from the backend server
-  getUserLogs(): Observable<any> {
+  getUserConversation(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/getUserConversation`, {
       headers: this.getHeaders(),
       withCredentials: true
@@ -28,14 +28,14 @@ export class UserConversationService {
   banUser(id: number): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/banUser/${id}`, {}, {
       headers: this.getHeaders(),
-      withCredentials: true 
+      withCredentials: true
     });
   }
 
   warnUser(id: number): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/warnUser/${id}`, {}, {
       headers: this.getHeaders(),
-      withCredentials: true 
+      withCredentials: true
     });
   }
 
