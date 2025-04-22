@@ -41,7 +41,7 @@ class _TaskerPendingState extends State<TaskerPending> {
 
   Future<void> _updateNotif() async {
     try {
-      final int userId = storage.read("user_id");
+      final int userId = storage.read("user_id") ?? 0;
       final response = await taskController.updateNotif(
         widget.requestID ?? 0,
         userId,
@@ -57,16 +57,16 @@ class _TaskerPendingState extends State<TaskerPending> {
 
   Future<void> _fetchUserDetails() async {
     try {
-      int userId = storage.read("user_id");
+      int userId = storage.read("user_id") ?? 0;
       AuthenticatedUser? user =
           await _profileController.getAuthenticatedUser(context, userId);
 
       setState(() {
         tasker = user;
-        _userRole = user?.user.role;
+        _userRole = user?.user.role ?? 'Unknown';
       });
 
-      debugPrint("Fetched user totoo madami details: ${_userRole}");
+      debugPrint("Fetched user details: $_userRole");
     } catch (e) {
       debugPrint("Error fetching user details: $e");
       setState(() {
@@ -82,7 +82,7 @@ class _TaskerPendingState extends State<TaskerPending> {
 
       setState(() {
         tasker = user;
-        _role = user?.user.role;
+        _role = user?.user.role ?? 'Unknown';
       });
     } catch (e) {
       debugPrint("Error fetching tasker details: $e");
@@ -100,15 +100,15 @@ class _TaskerPendingState extends State<TaskerPending> {
         _requestInformation = response;
       });
       debugPrint(
-          "Fetched request totoo details: ${_requestInformation?.requested_from}");
+          "Fetched request details: ${_requestInformation?.requested_from ?? 'Unknown'}");
       await _fetchTaskDetails();
       if (widget.role == "Tasker") {
-        await _fetchTaskerDetails(_requestInformation!.tasker_id as int);
+        await _fetchTaskerDetails(_requestInformation?.tasker_id ?? 0);
       } else {
-        await _fetchTaskerDetails(_requestInformation!.client_id as int);
+        await _fetchTaskerDetails(_requestInformation?.client_id ?? 0);
       }
     } catch (e) {
-      debugPrint("Error fetching task details: $e");
+      debugPrint("Error fetching request details: $e");
       setState(() {
         _isLoading = false;
       });
@@ -118,7 +118,7 @@ class _TaskerPendingState extends State<TaskerPending> {
   Future<void> _fetchTaskDetails() async {
     try {
       final response = await _jobPostService
-          .fetchTaskInformation(_requestInformation!.task_id as int);
+          .fetchTaskInformation(_requestInformation?.task_id ?? 0);
       setState(() {
         _taskInformation = response?.task;
         _isLoading = false;
@@ -158,7 +158,9 @@ class _TaskerPendingState extends State<TaskerPending> {
               final String value = 'Reject';
               debugPrint("Reject request role: $_role");
               bool result = await taskController.acceptRequest(
-                  _requestInformation!.task_taken_id!, value, _role!);
+                  _requestInformation?.task_taken_id ?? 0,
+                  value,
+                  _role ?? 'Unknown');
               debugPrint("Reject request result: $result");
               if (result) {
                 Navigator.pop(context);
@@ -208,23 +210,23 @@ class _TaskerPendingState extends State<TaskerPending> {
               debugPrint("Accept request role: $_role");
               final String value = 'Accept';
               bool result = await taskController.acceptRequest(
-                  _requestInformation!.task_taken_id!, value, _role!);
+                  _requestInformation?.task_taken_id ?? 0,
+                  value,
+                  _role ?? 'Unknown');
               setState(() {
                 _isLoading = false;
               });
               if (result) {
-                // Navigate to IndividualChatScreen and wait for it to return
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => IndividualChatScreen(
-                      taskTitle: _taskInformation!.title,
-                      taskTakenId: _requestInformation!.task_taken_id,
-                      taskId: _requestInformation!.client_id,
+                      taskTitle: _taskInformation?.title ?? 'Task',
+                      taskTakenId: _requestInformation?.task_taken_id ?? 0,
+                      taskId: _requestInformation?.client_id ?? 0,
                     ),
                   ),
                 );
-                // Refresh data after returning
                 setState(() {
                   _isLoading = true;
                 });
@@ -232,7 +234,6 @@ class _TaskerPendingState extends State<TaskerPending> {
                 setState(() {
                   _isLoading = false;
                 });
-                // Show success message
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Task accepted successfully')),
                 );
@@ -241,7 +242,7 @@ class _TaskerPendingState extends State<TaskerPending> {
                   SnackBar(content: Text('Failed to accept task')),
                 );
               }
-              Navigator.pop(context, true); // Close the dialog
+              Navigator.pop(context, true);
             },
             child:
                 Text('Yes', style: GoogleFonts.montserrat(color: Colors.red)),
@@ -250,7 +251,6 @@ class _TaskerPendingState extends State<TaskerPending> {
       ),
     );
 
-    // This part seems redundant since the dialog already handles the action
     if (confirm == true) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Task accepted')),
@@ -281,7 +281,7 @@ class _TaskerPendingState extends State<TaskerPending> {
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: Color(0xFF03045E)))
-          : _taskInformation == null
+          : _taskInformation == null || _requestInformation == null
               ? Center(
                   child: Text(
                     'No task information available',
@@ -297,19 +297,15 @@ class _TaskerPendingState extends State<TaskerPending> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Status Section
                         _buildStatusSection(),
                         SizedBox(height: 16),
-                        // Task Card
                         _buildTaskCard(),
                         SizedBox(height: 16),
-                        // Client Profile Card
                         _buildProfileCard(),
-                        if (_requestInformation!.task_status == "Pending") ...[
+                        if (_requestInformation?.task_status == "Pending") ...[
                           SizedBox(height: 24),
-                          // Action Buttons
                           _buildActionButtons(
-                              _requestInformation!.requested_from!),
+                              _requestInformation?.requested_from ?? 'Unknown'),
                         ],
                       ],
                     ),
@@ -345,7 +341,7 @@ class _TaskerPendingState extends State<TaskerPending> {
           ),
           SizedBox(height: 8),
           Text(
-            'The task is Pending to Confirm. Waiting for the your confirmation.',
+            'The task is Pending to Confirm. Waiting for your confirmation.',
             textAlign: TextAlign.center,
             style: GoogleFonts.montserrat(
               fontSize: 14,
@@ -379,7 +375,7 @@ class _TaskerPendingState extends State<TaskerPending> {
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    _taskInformation!.title ?? 'Task',
+                    _taskInformation?.title ?? 'Task',
                     style: GoogleFonts.montserrat(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -405,7 +401,7 @@ class _TaskerPendingState extends State<TaskerPending> {
             _buildTaskInfoRow(
               icon: Icons.info,
               label: 'Status',
-              value: _requestInformation?.task_status ?? 'Confirmed',
+              value: _requestInformation?.task_status ?? 'Pending',
             ),
           ],
         ),
@@ -438,7 +434,7 @@ class _TaskerPendingState extends State<TaskerPending> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.role! == "Tasker"
+                      widget.role == "Tasker"
                           ? "Tasker Profile"
                           : "Client Profile",
                       style: GoogleFonts.montserrat(

@@ -6,7 +6,7 @@ import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_coinfirmed.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_finish.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_ongoing.dart';
-import 'package:flutter_fe/view/business_acc/client_record/display_list_pendin.dart';
+import 'package:flutter_fe/view/business_acc/client_record/display_list_pending.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 

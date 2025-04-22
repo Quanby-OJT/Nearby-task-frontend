@@ -48,8 +48,6 @@ class _LikeScreenState extends State<LikeScreen> {
             task.description.toLowerCase().contains(query);
       }).toList();
     });
-
-    _applyFilters();
     _updateSavedJobs();
   }
 
@@ -95,18 +93,6 @@ class _LikeScreenState extends State<LikeScreen> {
     });
   }
 
-  void _applyFilters() {
-    setState(() {
-      if (selectedFilters.isNotEmpty) {
-        _filteredJobs = _filteredJobs.where((task) {
-          int priceFilter = _getPriceFilter(task.contactPrice);
-          return selectedFilters.contains(priceFilter);
-        }).toList();
-      }
-      _updateSavedJobs();
-    });
-  }
-
   Future<void> _fetchUserData() async {
     try {
       int userId = storage.read("user_id");
@@ -124,54 +110,6 @@ class _LikeScreenState extends State<LikeScreen> {
       print("Error fetching user data: $e");
       setState(() => _isLoading = false);
     }
-  }
-
-  void _openFilterModal() {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Container(
-              padding: EdgeInsets.all(20),
-              height: 250,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Text(
-                      "Filter by Price",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Wrap(
-                    spacing: 10,
-                    children: [
-                      _buildFilterChip(500, setModalState),
-                      _buildFilterChip(700, setModalState),
-                      _buildFilterChip(10000, setModalState),
-                      _buildFilterChip(20000, setModalState),
-                      _buildFilterChip(30000, setModalState),
-                      _buildFilterChip(50000, setModalState),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _applyFilters();
-                    },
-                    child: Text("Apply Filters"),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
   }
 
   // Function to build a filter chip
@@ -204,14 +142,6 @@ class _LikeScreenState extends State<LikeScreen> {
               controller: _searchController,
               decoration: InputDecoration(
                 prefixIcon: Icon(Icons.search, color: Colors.grey),
-                suffixIcon: IconButton(
-                    onPressed: () {
-                      _openFilterModal();
-                    },
-                    icon: Icon(
-                      Icons.filter_list,
-                      color: Colors.grey,
-                    )),
                 filled: true,
                 fillColor: Color(0xFFF1F4FF),
                 hintText: 'Search jobs...',
@@ -335,15 +265,6 @@ class _LikeScreenState extends State<LikeScreen> {
         },
       ),
     );
-  }
-
-  int _getPriceFilter(int? price) {
-    if (price == null) return 0;
-    if (price <= 500) return 500;
-    if (price <= 700) return 700;
-    if (price <= 20000) return 20000;
-    if (price <= 300000) return 30000;
-    return 100000;
   }
 
   Widget _buildJobCard(TaskModel task) {
