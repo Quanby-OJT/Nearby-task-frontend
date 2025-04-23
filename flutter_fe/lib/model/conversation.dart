@@ -31,7 +31,7 @@ class Conversation {
 
   factory Conversation.fromJson(Map<String, dynamic> json) {
     return Conversation(
-        user: json['user'],
+        user: UserModel.fromJson(json['user']),
         userId: json['user_id'],
         taskTaken: json['task_taken'],
         conversationMessage: json['conversation'],

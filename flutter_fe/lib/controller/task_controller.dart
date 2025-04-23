@@ -244,7 +244,7 @@ class TaskController {
   }
 
   //All Messages to client/tasker
-  Future<List<TaskAssignment>?> getAllAssignedTasks(
+  Future<List<TaskAssignment>> getAllAssignedTasks(
       BuildContext context, int userId) async {
     final assignedTasks = await TaskDetailsService().getAllTakenTasks();
     debugPrint(assignedTasks.toString());
@@ -339,7 +339,7 @@ class TaskController {
             content: Text(assignedTasks['error'] ??
                 "Something Went Wrong while Retrieving Your Tasks.")),
       );
-      return null;
+      return [];
     }
   }
 
