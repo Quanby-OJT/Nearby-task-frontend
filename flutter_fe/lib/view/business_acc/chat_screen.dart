@@ -78,6 +78,7 @@ class _ChatScreenState extends State<ChatScreen> {
       setState(() {
         taskAssignments = fetchedAssignments;
         _isLoading = false;
+        filteredTaskAssignments = fetchedAssignments; // Initialize filtered list
       });
     }
   }
