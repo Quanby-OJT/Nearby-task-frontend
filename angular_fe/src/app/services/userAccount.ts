@@ -70,8 +70,9 @@ export class UserAccountService {
     });
   }
 
+  // This is for the User Account Update
   updateUserAccount(userID: number, userData: FormData): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/updateUserInfo/${userID}`, userData, {
+    return this.http.put<any>(`${this.apiUrl}/updateAuthorityUser/${userID}`, userData, {
       headers: this.getHeaders(),
       withCredentials: true
     });

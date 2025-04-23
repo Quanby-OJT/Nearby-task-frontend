@@ -86,20 +86,17 @@
 
     <!-- Pagination controls -->
     <div class="flex items-center justify-end gap-4 sticky bottom-0 left-0 right-0 bg-white p-2">
-      <!-- Show current range of logs -->
+
       <span class="text-sm border w-32 text-center">
         {{ startIndex }} - {{ endIndex }} of {{ filteredConversations.length }}
       </span>
 
-      <!-- Pagination buttons -->
+
       <div class="inline-flex items-center gap-2">
-        <!-- Previous page button -->
         <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300"
                 [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
           ◀
         </button>
-
-        <!-- Page number buttons -->
         <ng-container *ngFor="let page of paginationButtons">
           <button *ngIf="page !== '...'"
                   class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-sm"
@@ -109,8 +106,6 @@
           </button>
           <span *ngIf="page === '...'">...</span>
         </ng-container>
-
-        <!-- Next page button -->
         <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300"
                 [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
           ▶

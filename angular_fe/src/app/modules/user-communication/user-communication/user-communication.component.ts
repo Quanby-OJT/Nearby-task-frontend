@@ -271,9 +271,8 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
                         ${messagesHtml}
                     </div>
                 `;
-
                 Swal.fire({
-                    title: 'User Conversation',
+                    title: 'Users Conversation',
                     html: html,
                     width: '800px',
                     confirmButtonText: 'Close',
