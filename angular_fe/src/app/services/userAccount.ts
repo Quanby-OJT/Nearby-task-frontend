@@ -105,10 +105,9 @@ export class UserAccountService {
     });
   }
 
-  // Added method to call the correct authority update route
   updateAuthorityUser(userID: number, userData: FormData): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/updateAuthorityUser/${userID}`, userData, {
-      headers: this.getHeaders(), // Ensure headers are sent if needed for auth
+      headers: this.getHeaders(), 
       withCredentials: true
     });
   }

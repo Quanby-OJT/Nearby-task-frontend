@@ -5,12 +5,21 @@ import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
 import { UserAccountService } from 'src/app/services/userAccount';
 import { ButtonComponent } from 'src/app/shared/components/button/button.component';
 import { DataService } from 'src/services/dataStorage';
+import { SessionLocalStorage } from 'src/services/sessionStorage';
 import Swal from 'sweetalert2';
+import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http';
 
 @Component({
   selector: 'app-review',
   standalone: true,
-  imports: [ButtonComponent, RouterOutlet, ReactiveFormsModule, NgIf, NgClass],
+  imports: [
+    ButtonComponent,
+    RouterOutlet,
+    ReactiveFormsModule,
+    NgIf,
+    NgClass,
+    HttpClientModule,
+  ],
   templateUrl: './review.component.html',
   styleUrl: './review.component.css',
 })
@@ -25,8 +34,8 @@ export class ReviewComponent {
   userData: any = null;
   first_name: string = '';
   profileImage: string | null = null;
-  documentUrl: string | null = null; 
-  documentName: string | null = null; 
+  documentUrl: string | null = null;
+  documentName: string | null = null;
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -34,6 +43,8 @@ export class ReviewComponent {
     private router: Router,
     private route: ActivatedRoute,
     private dataService: DataService,
+    private sessionStorage: SessionLocalStorage,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
@@ -78,14 +89,12 @@ export class ReviewComponent {
         console.log('Form value after patching:', this.form.value);
         this.profileImage = response.user.image_link;
 
-        // Fetch the documents for the user
         this.userAccountService.getUserDocuments(userId).subscribe({
           next: (docResponse: any) => {
             console.log('Raw response from getUserDocuments:', docResponse);
 
             let documents: { url: string, name: string }[] = [];
 
-            // Check for documents directly in the response, accounting for the 'user' wrapper
             if (docResponse.user?.client_documents?.length > 0) {
               console.log('Processing Client documents:', docResponse.user.client_documents);
               documents = docResponse.user.client_documents.map((doc: any) => ({
@@ -107,7 +116,6 @@ export class ReviewComponent {
 
             console.log('Final documents array:', documents);
 
-            // If documents are found, set the first document's URL and name
             if (documents.length > 0) {
               this.documentUrl = documents[0].url;
               this.documentName = this.documentUrl.split('/').pop() || documents[0].name;
@@ -168,7 +176,6 @@ export class ReviewComponent {
     }
 
     const userId = Number(this.userId);
-    const email = this.form.value.email;
     this.updateUserAccount(userId);
   }
 
@@ -208,5 +215,56 @@ export class ReviewComponent {
 
   navigateToUsermanagement(): void {
     this.router.navigate(['user-management']);
+  }
+
+  previewDocument(): void {
+    if (!this.documentUrl) {
+      console.error('No document URL available to preview.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'No Document',
+        text: 'There is no document available to preview for this user.',
+      });
+      return;
+    }
+
+    // Extract the file path relative to the bucket (e.g., "users/pdf_272_1745372423708_document_1745372423173.pdf")
+    const urlParts = this.documentUrl.split('/storage/v1/object/public/crud_bucket/');
+    if (urlParts.length < 2) {
+      console.error('Could not extract file path from document URL:', this.documentUrl);
+      Swal.fire({
+        icon: 'error',
+        title: 'Preview Failed',
+        text: 'Invalid document URL format.',
+      });
+      return;
+    }
+
+    const filePath = urlParts[1]; // This should be "users/pdf_272_1745372423708_document_1745372423173.pdf"
+    console.log('Extracted file path:', filePath);
+
+    // Construct the URL to fetch the PDF
+    const url = `http://localhost:5000/connect/viewDocument/${encodeURIComponent(filePath)}`;
+    const token = this.sessionStorage.getSessionToken();
+    if (!token) {
+      console.error('No session token found. Please log in.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Authentication Error',
+        text: 'Please log in to view the document.',
+      });
+      this.router.navigate(['login']);
+      return;
+    }
+
+    // Open the URL in a new tab
+    const newWindow = window.open(url, '_blank');
+    if (!newWindow) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Preview Failed',
+        text: 'Unable to open the document. Please allow pop-ups for this site.',
+      });
+    }
   }
 }
