@@ -131,6 +131,64 @@ class _TaskerPendingState extends State<TaskerPending> {
     }
   }
 
+  Future<void> _handleRejectTask(BuildContext context) async {
+    bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Reject Task',
+          style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+        ),
+        content: Text(
+          'Are you sure you want to reject this task? This action cannot be undone.',
+          style: GoogleFonts.montserrat(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child:
+                Text('No', style: GoogleFonts.montserrat(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () async {
+              setState(() {
+                _isLoading = true;
+              });
+
+              final String value = 'Reject';
+              bool result = await taskController.acceptRequest(
+                  _requestInformation?.task_taken_id ?? 0,
+                  value,
+                  _role ?? 'Unknown');
+              if (result) {
+                Navigator.pop(context);
+                setState(() {
+                  _isLoading = true;
+                });
+                await _fetchRequestDetails();
+                setState(() {
+                  _isLoading = false;
+                });
+              } else {
+                setState(() {
+                  _isLoading = false;
+                });
+              }
+            },
+            child:
+                Text('Yes', style: GoogleFonts.montserrat(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Task rejection requested')),
+      );
+    }
+  }
+
   Future<void> _handleCancelTask(BuildContext context) async {
     bool? confirm = await showDialog<bool>(
       context: context,
@@ -155,15 +213,20 @@ class _TaskerPendingState extends State<TaskerPending> {
                 _isLoading = true;
               });
 
-              final String value = 'Reject';
-              debugPrint("Reject request role: $_role");
+              final String value = 'Cancel';
               bool result = await taskController.acceptRequest(
                   _requestInformation?.task_taken_id ?? 0,
                   value,
                   _role ?? 'Unknown');
-              debugPrint("Reject request result: $result");
               if (result) {
                 Navigator.pop(context);
+                setState(() {
+                  _isLoading = true;
+                });
+                await _fetchRequestDetails();
+                setState(() {
+                  _isLoading = false;
+                });
               } else {
                 setState(() {
                   _isLoading = false;
@@ -179,7 +242,7 @@ class _TaskerPendingState extends State<TaskerPending> {
 
     if (confirm == true) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Task cancellation requested')),
+        SnackBar(content: Text('Task rejection requested')),
       );
     }
   }
@@ -306,6 +369,10 @@ class _TaskerPendingState extends State<TaskerPending> {
                           SizedBox(height: 24),
                           _buildActionButtons(
                               _requestInformation?.requested_from ?? 'Unknown'),
+                        ],
+                        if (_requestInformation?.task_status != "Pending") ...[
+                          SizedBox(height: 16),
+                          _buildActionButton(),
                         ],
                       ],
                     ),
@@ -474,29 +541,57 @@ class _TaskerPendingState extends State<TaskerPending> {
     );
   }
 
+  Widget _buildActionButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () {
+          Navigator.pop(context);
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Color(0xFF03045E),
+          padding: EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 2,
+        ),
+        child: Text(
+          'Back to Tasks',
+          style: GoogleFonts.montserrat(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildActionButtons(String requestedFrom) {
     return Row(
       children: [
-        Expanded(
-          child: OutlinedButton(
-            onPressed: () => _handleCancelTask(context),
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: Colors.red[400]!),
-              padding: EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+        if (requestedFrom != _userRole)
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () => _handleRejectTask(context),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: Colors.red[400]!),
+                padding: EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
-            ),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.montserrat(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.red[400],
+              child: Text(
+                'Reject',
+                style: GoogleFonts.montserrat(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red[400],
+                ),
               ),
             ),
           ),
-        ),
         SizedBox(width: 12),
         if (requestedFrom != _userRole)
           Expanded(
@@ -516,6 +611,27 @@ class _TaskerPendingState extends State<TaskerPending> {
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        if (requestedFrom == _userRole)
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () => _handleCancelTask(context),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: Colors.red[400]!),
+                padding: EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.montserrat(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red[400],
                 ),
               ),
             ),

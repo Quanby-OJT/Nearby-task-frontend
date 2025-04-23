@@ -5,7 +5,6 @@ import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
-import 'package:flutter_fe/service/auth_service.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
@@ -147,7 +146,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         taskers = fetchedTaskers
             .map((tasker) =>
                 AuthenticatedUser(tasker: tasker, user: tasker.user!))
-            .toList();
+            .toList()
+          ..sort((a, b) => b.tasker!.rating.compareTo(a.tasker!.rating));
+
         cardNumber = fetchedTaskers.length;
         _isLoading = false;
       });
@@ -235,73 +236,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ],
       ),
     );
-  }
-
-  void _showRatingDialog(UserModel tasker) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Rate ${tasker.firstName}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('How would you rate your experience?'),
-            SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (index) {
-                return IconButton(
-                  icon: Icon(
-                    index < _currentRating ? Icons.star : Icons.star_border,
-                    color: Colors.amber,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _currentRating = index + 1;
-                    });
-                  },
-                );
-              }),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await _submitRating(tasker.id!, _currentRating);
-              Navigator.pop(context);
-            },
-            child: Text('Submit'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _submitRating(int taskerId, double rating) async {
-    try {
-      final result = await _clientServices.submitTaskerRating(taskerId, rating);
-      if (result['success']) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Rating submitted successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        await _fetchTaskers();
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error submitting rating'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
   }
 
   @override
@@ -545,7 +479,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                         children: [
                                           ...List.generate(5, (index) {
                                             double rating =
-                                                tasker.tasker?.rating ?? 4.5;
+                                                tasker.tasker?.rating ?? 0.0;
                                             return Icon(
                                               index < rating.floor()
                                                   ? Icons.star
@@ -558,7 +492,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           }),
                                           SizedBox(width: 8),
                                           Text(
-                                            "${tasker.tasker?.rating ?? 4.5}",
+                                            "${tasker.tasker?.rating ?? 0.0}",
                                             style: TextStyle(
                                               color: Colors.white,
                                               fontSize: 14,
@@ -667,32 +601,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    ElevatedButton.icon(
-                                      onPressed: () {
-                                        if (_existingProfileImageUrl == null ||
-                                            _existingIDImageUrl == null ||
-                                            _existingProfileImageUrl!.isEmpty ||
-                                            _existingIDImageUrl!.isEmpty ||
-                                            !_documentValid) {
-                                          _showWarningDialog();
-                                        } else {
-                                          _showRatingDialog(tasker.user);
-                                        }
-                                      },
-                                      icon: Icon(Icons.star, size: 20),
-                                      label: Text('Rate'),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.amber,
-                                        foregroundColor: Colors.white,
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: 16, vertical: 12),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(width: 12),
                                     OutlinedButton.icon(
                                       onPressed: () {
                                         Navigator.push(

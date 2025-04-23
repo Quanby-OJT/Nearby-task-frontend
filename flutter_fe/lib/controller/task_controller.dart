@@ -292,6 +292,8 @@ class TaskController {
         ClientModel client = ClientModel(
           preferences: '',
           clientAddress: '',
+          amount: 0,
+          rating: 0,
           user: clientUser,
         );
 

@@ -451,14 +451,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                       ),
                                     ),
                                   ),
-                                  Text(
-                                    '\₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice?.roundToDouble() ?? 0)}',
-                                    style: GoogleFonts.openSans(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.green,
-                                    ),
-                                  ),
                                 ],
                               ),
                               SizedBox(height: 16),
@@ -483,19 +475,31 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                 ),
                               ),
                               SizedBox(height: 12),
-                              Row(
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(Icons.location_pin,
-                                      size: 20, color: Colors.grey[600]),
-                                  SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      task.location ?? 'No Location',
-                                      style: GoogleFonts.openSans(
-                                        fontSize: 14,
-                                        color: Colors.grey[600],
-                                      ),
+                                  Text(
+                                    '\₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice?.roundToDouble() ?? 0)}',
+                                    style: GoogleFonts.openSans(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.green,
                                     ),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Icon(Icons.location_pin,
+                                          size: 20, color: Colors.grey[600]),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        task.location ?? 'No Location',
+                                        style: GoogleFonts.openSans(
+                                          fontSize: 14,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),

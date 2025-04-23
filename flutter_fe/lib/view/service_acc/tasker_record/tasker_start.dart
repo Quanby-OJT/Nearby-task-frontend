@@ -114,7 +114,29 @@ class _TaskerStartState extends State<TaskerStart> {
                 Text('No', style: GoogleFonts.montserrat(color: Colors.grey)),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () async {
+              setState(() {
+                _isLoading = true;
+              });
+
+              final String value = 'Cancel';
+              bool result = await taskController.acceptRequest(
+                  _requestInformation?.task_taken_id ?? 0, value, 'Tasker');
+              if (result) {
+                Navigator.pop(context);
+                setState(() {
+                  _isLoading = true;
+                });
+                await _fetchRequestDetails();
+                setState(() {
+                  _isLoading = false;
+                });
+              } else {
+                setState(() {
+                  _isLoading = false;
+                });
+              }
+            },
             child:
                 Text('Yes', style: GoogleFonts.montserrat(color: Colors.red)),
           ),
@@ -212,10 +234,43 @@ class _TaskerStartState extends State<TaskerStart> {
                           // Action Buttons
                           _buildActionButtons(),
                         ],
+                        if (_requestInformation!.task_status !=
+                            "Confirmed") ...[
+                          SizedBox(height: 24),
+                          // Action Buttons
+                          _buildBackButtons(),
+                        ],
                       ],
                     ),
                   ),
                 ),
+    );
+  }
+
+  Widget _buildBackButtons() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () {
+          Navigator.pop(context);
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Color(0xFF03045E),
+          padding: EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 2,
+        ),
+        child: Text(
+          'Back to Confirmed Tasks',
+          style: GoogleFonts.montserrat(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+      ),
     );
   }
 

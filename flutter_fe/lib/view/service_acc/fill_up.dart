@@ -236,18 +236,10 @@ class _FillUpTaskerLoginState extends State<FillUpTaskerLogin> {
   Future<void> _fetchDocumentLink(int taskerId) async {
     try {
       final response = await _controller.getDocumentLink(taskerId);
+      debugPrint('Document link response: ${response?.valid}');
 
       if (response == null) {
         debugPrint('Document link response is null');
-        setState(() {
-          _existingPDFUrl = null;
-          _documentValid = false;
-        });
-        return;
-      }
-
-      if (response is! Map<String, dynamic>) {
-        debugPrint('Invalid response type: ${response.runtimeType}');
         setState(() {
           _existingPDFUrl = null;
           _documentValid = false;
@@ -1235,9 +1227,7 @@ class _FillUpTaskerLoginState extends State<FillUpTaskerLogin> {
                         ),
                         SizedBox(height: 10),
                         ElevatedButton.icon(
-                          onPressed: _documentValid
-                              ? null
-                              : _pickFile, // Disable if _documentValid is true
+                          onPressed: _documentValid ? null : _pickFile,
                           icon: const Icon(Icons.upload_file,
                               color: Colors.white),
                           label: const Text("Select PDF"),

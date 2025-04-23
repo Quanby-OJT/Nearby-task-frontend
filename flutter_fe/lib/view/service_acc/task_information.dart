@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
+import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/client_model.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
-import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,6 +12,7 @@ import 'package:google_fonts/google_fonts.dart';
 class TaskInformation extends StatefulWidget {
   final int? taskID;
   final String role;
+
   const TaskInformation({super.key, this.taskID, required this.role});
 
   @override
@@ -20,57 +22,79 @@ class TaskInformation extends StatefulWidget {
 class _TaskInformationState extends State<TaskInformation> {
   final JobPostService _jobPostService = JobPostService();
   final TaskController taskController = TaskController();
+  final ProfileController _profileController = ProfileController();
+  AuthenticatedUser? _client;
   TaskModel? _taskInformation;
-  ClientModel? clientModel;
   bool _isLoading = true;
+  bool _hasError = false;
+  String _errorMessage = '';
   final storage = GetStorage();
   bool _isApplying = false;
-  bool _isEditing = false;
 
   @override
   void initState() {
     super.initState();
     _fetchTaskDetails();
-
-    debugPrint("Task ID from the widget: ${widget.taskID}");
   }
 
   Future<void> _fetchTaskDetails() async {
+    setState(() {
+      _isLoading = true;
+      _hasError = false;
+    });
+
     try {
       final response =
           await _jobPostService.fetchTaskInformation(widget.taskID ?? 0);
+      if (response == null) {
+        throw Exception('No task information available');
+      }
       setState(() {
-        _taskInformation = response?.task;
-        clientModel = response?.client;
+        _taskInformation = response.task;
         _isLoading = false;
+        _fetchClientDetails(_taskInformation!.clientId);
+      });
+      await _fetchIfTaskIsAssigned();
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _hasError = true;
+        _errorMessage = e.toString();
+      });
+    }
+  }
+
+  Future<void> _fetchClientDetails(userId) async {
+    try {
+      AuthenticatedUser? user =
+          await _profileController.getAuthenticatedUser(context, userId);
+      debugPrint(user.toString());
+      setState(() {
+        _client = user;
       });
     } catch (e) {
-      debugPrint("Error fetching task details: $e");
+      debugPrint("Error fetching client details: $e");
       setState(() {
         _isLoading = false;
       });
     }
-    _fetchIfTaskIsAssigned();
   }
 
   Future<void> _fetchIfTaskIsAssigned() async {
-    debugPrint("Task Information from the widget: ${widget.taskID}");
+    if (_taskInformation == null) return;
+
     try {
-      final String response = await taskController.fetchIsApplied(
+      final response = await taskController.fetchIsApplied(
         widget.taskID ?? 0,
         _taskInformation!.clientId,
         storage.read('user_id') ?? 0,
       );
-      if (response == 'True') {
-        setState(() {
-          _isApplying = true;
-        });
-      }
-    } catch (e) {
-      debugPrint("Error fetching task details: $e");
       setState(() {
-        _isLoading = false;
-        _isApplying = false; // Optionally reset on error
+        _isApplying = response == 'True';
+      });
+    } catch (e) {
+      setState(() {
+        _isApplying = false;
       });
     }
   }
@@ -79,257 +103,307 @@ class _TaskInformationState extends State<TaskInformation> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: Text(
-        'Task Information',
-        style: const TextStyle(
-          color: Color(0xFF03045E),
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
+        title: Text(
+          'Task Information',
+          style: GoogleFonts.montserrat(
+            color: const Color(0xFF03045E),
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-      )),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _taskInformation == null
-              ? const Center(child: Text('No task information available'))
-              : Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        elevation: 2,
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Row(
-                                children: [
-                                  SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          _taskInformation!.title ?? "N/A",
-                                          style: GoogleFonts.montserrat(
-                                            color: const Color(0xFF03045E),
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        Row(
-                                          children: [
-                                            if (_taskInformation!.status !=
-                                                null)
-                                              Flexible(
-                                                child: Text(
-                                                  _taskInformation!.status!,
-                                                  style: GoogleFonts.montserrat(
-                                                    color: Color.fromARGB(
-                                                        255, 57, 209, 11),
-                                                    fontSize: 8,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 20),
-                              _buildInfoRow("Required Tasker",
-                                  _taskInformation!.workType ?? "N/A"),
-                              const SizedBox(height: 10),
-                              _buildInfoRow("Specialization",
-                                  _taskInformation!.specialization ?? "N/A"),
-                              const SizedBox(height: 10),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12.0),
-                                child: Row(
-                                  spacing: 5,
-                                  children: [
-                                    Icon(
-                                      Icons.location_pin,
-                                      size: 20,
-                                    ),
-                                    Text(
-                                      _taskInformation!.location ?? "Location",
-                                      style: GoogleFonts.openSans(),
-                                    )
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              _buildInfoRow("Contact Price",
-                                  _taskInformation!.contactPrice.toString()),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    // about the client profile
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Card(
-                        color: Color.fromARGB(255, 239, 254, 255),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        elevation: 2,
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Row(
-                                children: [
-                                  SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Client Profile",
-                                          style: GoogleFonts.montserrat(
-                                            color: const Color(0xFF03045E),
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 20),
-                              _buildInfoRow("Name", "Mike Smith"),
-                              const SizedBox(height: 10),
-                              _buildInfoRow("Account", "Verified"),
-                              const SizedBox(height: 10),
-                              _buildInfoRow("Email", "mike.smith@example.com"),
-                              const SizedBox(height: 10),
-                              _buildInfoRow("Phone", "+1234567890"),
-                              const SizedBox(height: 10),
-                              _buildInfoRow("Status", "Active"),
-                              const SizedBox(height: 10),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0, vertical: 16),
-                      child: Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: _isApplying
-                              ? const Color.fromARGB(255, 203, 4, 4)
-                              : const Color(0xFF03045E),
-                        ),
-                        child: TextButton(
-                          onPressed: () async {
-                            int userId = storage.read('user_id') ?? 0;
-                            if (_taskInformation != null) {
-                              String result = await taskController.assignTask(
-                                widget.taskID ?? 0,
-                                _taskInformation!.clientId,
-                                userId,
-                                widget.role,
-                              );
-
-                              debugPrint("Assign task result: $result");
-
-                              if (result ==
-                                  'A New Conversation Has been Opened.') {
-                                setState(() {
-                                  _isApplying = !_isApplying;
-                                });
-                              }
-                            }
-                          },
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 20),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: Text(
-                            _isApplying ? "Cancel" : "Apply Now",
-                            style: GoogleFonts.montserrat(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    )
-                  ],
-                ),
+        elevation: 0,
+        backgroundColor: Colors.white,
+      ),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return RefreshIndicator(
+              onRefresh: _fetchTaskDetails,
+              child: _buildBody(constraints),
+            );
+          },
+        ),
+      ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Row(
+  Widget _buildBody(BoxConstraints constraints) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_hasError) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Error: $_errorMessage',
+              style: GoogleFonts.montserrat(color: Colors.red),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _fetchTaskDetails,
+              child: Text('Retry', style: GoogleFonts.montserrat()),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_taskInformation == null) {
+      return Center(
+        child: Text(
+          'No task information available',
+          style: GoogleFonts.montserrat(fontSize: 16),
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "$label: ",
-            style: GoogleFonts.montserrat(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          Text(
-            value,
-            style: GoogleFonts.montserrat(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            value,
-            style:
-                GoogleFonts.openSans(fontWeight: FontWeight.bold, fontSize: 16),
-          )
+          _buildTaskCard(constraints),
+          const SizedBox(height: 16),
+          _buildClientCard(constraints),
+          const SizedBox(height: 16),
+          _buildApplyButton(),
         ],
       ),
     );
   }
 
+  Widget _buildTaskCard(BoxConstraints constraints) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _taskInformation!.title ?? 'Untitled Task',
+              style: GoogleFonts.montserrat(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF03045E),
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (_taskInformation!.status != null)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusColor(_taskInformation!.status!),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  _taskInformation!.status!,
+                  style: GoogleFonts.montserrat(
+                    color: Colors.white,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            const SizedBox(height: 16),
+            _buildInfoRow(
+              icon: FontAwesomeIcons.briefcase,
+              label: 'Required Tasker',
+              value: _taskInformation!.workType ?? 'N/A',
+            ),
+            _buildInfoRow(
+              icon: FontAwesomeIcons.screwdriverWrench,
+              label: 'Specialization',
+              value: _taskInformation!.specialization ?? 'N/A',
+            ),
+            _buildInfoRow(
+              icon: FontAwesomeIcons.locationPin,
+              label: 'Location',
+              value: _taskInformation!.location ?? 'Not specified',
+            ),
+            _buildInfoRow(
+              icon: FontAwesomeIcons.pesoSign,
+              label: 'Contract Price',
+              value: _taskInformation!.contactPrice?.toString() ?? 'N/A',
+            ),
+            _buildInfoRow(
+              icon: FontAwesomeIcons.fileAlt,
+              label: 'Description',
+              value:
+                  _taskInformation!.description ?? 'No description available',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildClientCard(BoxConstraints constraints) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: const Color(0xFFF5F9FF),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Client Information',
+              style: GoogleFonts.montserrat(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF03045E),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildInfoRow(
+              icon: FontAwesomeIcons.user,
+              label: 'Name',
+              value: (_client?.user?.firstName ?? '') +
+                      ' ' +
+                      (_client?.user?.middleName ?? '') +
+                      ' ' +
+                      (_client?.user?.lastName ?? '') ??
+                  'N/A',
+            ),
+            _buildInfoRow(
+              icon: FontAwesomeIcons.checkCircle,
+              label: 'Account Status',
+              value: _client?.user?.accStatus ?? 'Verified',
+            ),
+            _buildInfoRow(
+              icon: FontAwesomeIcons.envelope,
+              label: 'Email',
+              value: _client?.user?.email ?? 'N/A',
+            ),
+            _buildInfoRow(
+              icon: FontAwesomeIcons.phone,
+              label: 'Phone',
+              value: _client?.user?.contact ?? 'N/A',
+            ),
+            _buildInfoRow(
+              icon: FontAwesomeIcons.solidStar,
+              label: 'Rating',
+              value: _client?.client?.rating.toString() ?? 'N/A',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          FaIcon(icon, size: 18, color: const Color(0xFF03045E)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildApplyButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _isApplying || _taskInformation == null
+            ? null
+            : () async {
+                setState(() {
+                  _isLoading = true;
+                });
+                try {
+                  final result = await taskController.assignTask(
+                    widget.taskID ?? 0,
+                    _taskInformation!.clientId,
+                    storage.read('user_id') ?? 0,
+                    widget.role,
+                  );
+                  if (result == 'A New Conversation Has been Opened.') {
+                    setState(() {
+                      _isApplying = true;
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Successfully applied for task')),
+                    );
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error applying for task: $e')),
+                  );
+                } finally {
+                  setState(() {
+                    _isLoading = false;
+                  });
+                }
+              },
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          backgroundColor: _isApplying ? Colors.grey : const Color(0xFF03045E),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        child: Text(
+          _isApplying ? 'Applied' : 'Apply Now',
+          style: GoogleFonts.montserrat(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
   Color statusColor(String taskStatus) {
-    switch (taskStatus) {
-      case "Available":
-        return Color(0XFF2E763E);
-      case "Already Taken":
-        return Color(0XFFD6932A);
-      case "Closed":
-        return Color(0XFFD43D4D);
-      case "On Hold":
-        return Color(0XFF2C648C);
-      case "Reported":
-        return Color(0XFF7A2532);
+    switch (taskStatus.toLowerCase()) {
+      case 'available':
+        return const Color(0xFF2E763E);
+      case 'already taken':
+        return const Color(0xFFD6932A);
+      case 'closed':
+        return const Color(0xFFD43D4D);
+      case 'on hold':
+        return const Color(0xFF2C648C);
+      case 'reported':
+        return const Color(0xFF7A2532);
       default:
-        return Color(0XFFD43D4D);
+        return Colors.grey;
     }
   }
 }
