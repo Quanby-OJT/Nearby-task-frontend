@@ -51,157 +51,195 @@ class _RecordPageState extends State<RecordPage> {
               textAlign: TextAlign.center,
               style: GoogleFonts.montserrat(
                 color: Color(0xFF0272B1),
-                fontWeight: FontWeight.w600,
-                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
         ),
         body: Column(children: [
-          Expanded(
-              child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
+          Container(
+            color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 16.0, top: 20.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Task Credits',
+                  style: GoogleFonts.montserrat(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: Colors.black54,
+                  ),
+                ),
               ),
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  Expanded(
-                      child: Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          _isLoading
+              ? Container(
+                  color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 16.0),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Calculating NearByTask credits...",
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.yellow.shade800),
+                      ),
                     ),
-                    child: Container(
-                      padding: const EdgeInsets.all(16.0),
-                      width: double.infinity,
-                      child: Column(
-                        children: [
-                          Text(
-                            'Task Record',
-                            style: GoogleFonts.montserrat(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 18,
-                              color: Color(0xFF0272B1),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          _isLoading
-                            ? Text(
-                                "Please Wait while we calculate your NearByTask Credits",
-                                style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.yellow.shade800),
-                              )
-                            : _escrowManagementController.tokenCredits.value == 0
-                            ? Text(
+                  ),
+                )
+              : _escrowManagementController.tokenCredits.value == 0
+                  ? Container(
+                      color: Colors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 16.0),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
                               "You don't have any NearByTask Credits to your account. Add more by depositing the amount in order to use the system.",
                               textAlign: TextAlign.center,
                               style: GoogleFonts.roboto(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0XFFB62C5C)
-                              )
-                              )
-                            : Text.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: "You Have: ",
-                                    style:
-                                      GoogleFonts.roboto(fontSize: 18)),
-                                  TextSpan(
-                                    style: GoogleFonts.openSans(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold),
-                                    text:
-                                      '${_escrowManagementController.tokenCredits.value} NearByTask Credits'),
-                                  ]
-                                )
-                            )
-                        ],
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0XFFB62C5C))),
+                        ),
+                      ),
+                    )
+                  : Container(
+                      color: Colors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 16.0),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text.rich(TextSpan(children: [
+                            TextSpan(
+                                style: GoogleFonts.openSans(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF0272B1)),
+                                text:
+                                    '₱${_escrowManagementController.tokenCredits.value} NearByTask Credits'),
+                          ])),
+                        ),
                       ),
                     ),
-                  ))
-                ],
-              ),
-            )
-          ),
-          //Client Task Progress
+          Expanded(
+              flex: 5,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                ),
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    Expanded(
+                        child: Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.all(16.0),
+                        width: double.infinity,
+                        child: Column(
+                          children: [],
+                        ),
+                      ),
+                    ))
+                  ],
+                ),
+              )),
           Container(
             color: Colors.white,
-            padding: const EdgeInsets.all(16.0),
-            alignment: Alignment.center,
-            child: SizedBox(
-              height: 250,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 16.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text("Task Progress",
+                    textAlign: TextAlign.start,
+                    style: GoogleFonts.montserrat(
+                      backgroundColor: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black54,
+                    )),
+              ),
+            ),
+          ),
+          //Client Task Progress
+          Expanded(
+            flex: 3,
+            child: Container(
+              color: Colors.white,
+              padding: const EdgeInsets.all(16.0),
+              alignment: Alignment.center,
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 shrinkWrap: true,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        hoverColor: Colors.yellow.withOpacity(0.1),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => DisplayListRecordOngoing(),
-                            ),
-                          ).then((value) {
-                            setState(() {
-                              _isLoading = true;
-                            });
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(20),
+                      hoverColor: Colors.yellow.withOpacity(0.1),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DisplayListRecordOngoing(),
+                          ),
+                        ).then((value) {
+                          setState(() {
+                            _isLoading = true;
                           });
-                        },
-                        child: Container(
-                          width: 150, // Width of each card
-                          padding: const EdgeInsets.all(16.0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.yellow.withOpacity(0.1),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Ongoing Task',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.yellow,
-                                ),
-                                textAlign: TextAlign.center,
+                        });
+                      },
+                      child: Container(
+                        width: 150, // Width of each card
+                        padding: const EdgeInsets.all(16.0),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          color: Colors.orange.shade300,
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Ongoing Task',
+                              style: GoogleFonts.montserrat(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
                               ),
-                              const SizedBox(height: 8),
-                              // Optionally, add more details like a count or icon
-                              Icon(
-                                Icons.task,
-                                color: Colors.yellow,
-                                size: 24,
-                              ),
-                            ],
-                          ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
+                            // Optionally, add more details like a count or icon
+                            Icon(
+                              Icons.handyman,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    padding: const EdgeInsets.only(left: 16.0),
                     child: Card(
                       elevation: 4,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(20),
                       ),
                       child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(20),
                         hoverColor: Colors.green.withOpacity(0.1),
                         onTap: () {
                           Navigator.push(
@@ -219,8 +257,8 @@ class _RecordPageState extends State<RecordPage> {
                           width: 150, // Width of each card
                           padding: const EdgeInsets.all(16.0),
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.green.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                            color: Colors.green.shade300,
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -230,15 +268,15 @@ class _RecordPageState extends State<RecordPage> {
                                 style: GoogleFonts.montserrat(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.green,
+                                  color: Colors.white,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 8),
                               // Optionally, add more details like a count or icon
                               Icon(
-                                Icons.task,
-                                color: Colors.green,
+                                Icons.handshake,
+                                color: Colors.white,
                                 size: 24,
                               ),
                             ],
@@ -248,14 +286,14 @@ class _RecordPageState extends State<RecordPage> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    padding: const EdgeInsets.only(left: 16.0),
                     child: Card(
                       elevation: 4,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(20),
                       ),
                       child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(20),
                         hoverColor: Colors.blue.withOpacity(0.1),
                         onTap: () {
                           Navigator.push(
@@ -273,8 +311,8 @@ class _RecordPageState extends State<RecordPage> {
                           width: 150, // Width of each card
                           padding: const EdgeInsets.all(16.0),
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.blue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                            color: Colors.blue.shade300,
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -284,15 +322,15 @@ class _RecordPageState extends State<RecordPage> {
                                 style: GoogleFonts.montserrat(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.blue,
+                                  color: Colors.white,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 8),
                               // Optionally, add more details like a count or icon
                               Icon(
-                                Icons.task,
-                                color: Colors.blue,
+                                Icons.check,
+                                color: Colors.white,
                                 size: 24,
                               ),
                             ],
@@ -302,14 +340,14 @@ class _RecordPageState extends State<RecordPage> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    padding: const EdgeInsets.only(left: 16.0),
                     child: Card(
                       elevation: 4,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(20),
                       ),
                       child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(20),
                         hoverColor: Colors.red.withOpacity(0.1),
                         onTap: () {
                           Navigator.push(
@@ -327,8 +365,8 @@ class _RecordPageState extends State<RecordPage> {
                           width: 150, // Width of each card
                           padding: const EdgeInsets.all(16.0),
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.red.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                            color: Colors.red.shade300,
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -338,15 +376,15 @@ class _RecordPageState extends State<RecordPage> {
                                 style: GoogleFonts.montserrat(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.red,
+                                  color: Colors.white,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 8),
                               // Optionally, add more details like a count or icon
                               Icon(
-                                Icons.task,
-                                color: Colors.red,
+                                Icons.cancel,
+                                color: Colors.white,
                                 size: 24,
                               ),
                             ],
