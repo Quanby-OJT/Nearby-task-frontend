@@ -1,3 +1,5 @@
+import 'package:flutter/cupertino.dart';
+
 class UserModel {
   final int? id;
   final String firstName;
@@ -33,6 +35,7 @@ class UserModel {
   // Factory constructor to handle image as either URL or binary data, this is for the display record part
   // This is for the display record part
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    debugPrint("User Data: $json");
     return UserModel(
       id: int.tryParse(json['user_id'].toString()) ??
           0, // Handle string-to-int conversion

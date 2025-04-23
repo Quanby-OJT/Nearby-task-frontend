@@ -347,14 +347,12 @@ class _ClientRequestState extends State<ClientRequest> {
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) =>
-                                                IndividualChatScreen(
-                                              taskTitle:
-                                                  _taskInformation!.title,
-                                              taskTakenId: _requestInformation!
-                                                  .task_taken_id,
-                                              taskId: _requestInformation!
-                                                  .client_id,
-                                            ),
+                                              IndividualChatScreen(
+                                                taskTitle:_taskInformation!.title,
+                                                taskTakenId: _requestInformation!.task_taken_id ?? 0,
+                                                taskId: _requestInformation!.client_id ?? 0,
+                                                taskTakenStatus: "",
+                                              ),
                                           ),
                                         ).then((value) {
                                           setState(() {
