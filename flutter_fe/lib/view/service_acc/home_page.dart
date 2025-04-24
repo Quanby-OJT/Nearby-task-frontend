@@ -37,13 +37,6 @@ class _HomePageState extends State<HomePage> {
   bool _showButton = false;
 
   List<TaskModel> tasks = [];
-  List<String> searchCategories = [
-    'All',
-    'Cleaning',
-    'Delivery',
-    'Repair',
-    'Moving'
-  ];
   List<String> selectedCategories = [];
   bool _isLoading = true;
 

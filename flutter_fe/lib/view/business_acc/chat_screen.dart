@@ -684,7 +684,7 @@ class _ChatScreenState extends State<ChatScreen> {
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
-                  "You Don't Have Messages Yet, You can Start a Conversation by either checking your Task Request and Accept a Tasker, or wait for your tasker to accept your needed task.",
+                  "You don't have messages yet. Check your task requests to accept a tasker, or wait for them to accept your task.",
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 16),
                 ),
@@ -864,6 +864,10 @@ class _ChatScreenState extends State<ChatScreen> {
               onPressed: () {
                 // TODO: Implement delete action here
                 conversationController.deleteMessage(context, taskTakenId);
+                Navigator.of(context).pop(); // Dismiss the dialog
+                setState(() {
+                  _fetchTaskAssignments();
+                });
               },
             ),
           ],

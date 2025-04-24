@@ -49,6 +49,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
       final taskerId = storage.read('user_id');
       final taskerService = TaskerService();
       final taskerReviews = await taskerService.getTaskerFeedback(taskerId);
+      debugPrint("Tasker Reviews: $taskerReviews");
 
       setState(() {
         taskerFeedback = taskerReviews;
@@ -152,7 +153,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                             child: SingleChildScrollView(
                               child: Column(
                                 children: taskerFeedback.map((feedback) => _buildReviewItem(
-                                  "${feedback.client.user!.firstName} ${feedback.client.user!.lastName}",
+                                  "${feedback.client.user?.firstName} ${feedback.client.user?.lastName}",
                                   feedback.comment, feedback.rating.toInt())).toList(),
                               ),
                             ),
