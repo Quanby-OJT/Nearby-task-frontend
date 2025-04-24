@@ -53,7 +53,7 @@
           <td class="px-4 py-3 text-center pl-13">{{ log.logged_out ? log.logged_out : 'Empty' }}</td>
           <td class="px-4 py-3 text-center pl-10">
             <span class="py-1 text-sm text-center font-semibold rounded-lg text-white"
-                  [ngClass]="log.user.status ? 'px-7 bg-[oklch(0.792_0.209_151.711)]' : 'px-7 bg-[oklch(0.712_0.194_13.428)]'">
+                  [ngClass]="log.user.status ? 'px-7 bg-green-400' : 'px-7 bg-red-400'">
               {{ log.user.status ? 'Online' : 'Offline' }}
             </span>
           </td>
