@@ -156,6 +156,17 @@ class TaskController {
         : assignedTask['error'].toString();
   }
 
+  Future<String> fetchIsAppliedID(
+      int? taskId, int? clientId, int? taskerId) async {
+    final assignedTask =
+        await _jobPostService.fetchIsApplied(taskId, clientId, taskerId);
+
+    debugPrint("Is applied response sample: ${assignedTask.toString()}");
+    return assignedTask.containsKey('task') && assignedTask['task'] != null
+        ? assignedTask['task']['task_taken_id'].toString()
+        : assignedTask['error'].toString();
+  }
+
   Future<bool> rateTheTasker(
       int taskTakenId, int taskerId, int rating, String feedback) async {
     if (taskTakenId == 0 || rating == 0 || feedback.isEmpty) {

@@ -94,6 +94,7 @@ class _TaskerPendingState extends State<TaskerPending> {
 
   Future<void> _fetchRequestDetails() async {
     try {
+      debugPrint("Fetching request details for task ID: ${widget.requestID}");
       final response =
           await _jobPostService.fetchRequestInformation(widget.requestID ?? 0);
       setState(() {
@@ -101,6 +102,9 @@ class _TaskerPendingState extends State<TaskerPending> {
       });
       debugPrint(
           "Fetched request details: ${_requestInformation?.requested_from ?? 'Unknown'}");
+      debugPrint(
+          "Fetched request status: ${_requestInformation?.task_status ?? 'Unknown'}");
+
       await _fetchTaskDetails();
       if (widget.role == "Tasker") {
         await _fetchTaskerDetails(_requestInformation?.tasker_id ?? 0);

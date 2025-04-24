@@ -544,7 +544,10 @@ class _ClientStartState extends State<ClientStart> {
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.clock,
               label: 'Period',
-              value: _taskInformation!.period ?? 'N/A',
+              value: (_taskInformation!.duration +
+                      ' ' +
+                      _taskInformation!.period) ??
+                  'N/A',
             ),
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.info,
@@ -641,68 +644,77 @@ class _ClientStartState extends State<ClientStart> {
   }
 
   Widget _buildConfirmedActionButtons() {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: OutlinedButton(
-            onPressed: _handleCancelTask,
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: Colors.red),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-            ),
-            child: Text(
-              'Cancel Task',
-              style: GoogleFonts.montserrat(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.red,
+        Column(
+          children: [
+            Container(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _handleStartTask,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF03045E),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  elevation: 2,
+                ),
+                child: Text(
+                  'Start Task',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
-          ),
+          ],
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: ElevatedButton(
-            onPressed: _handleStartTask,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF03045E),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              elevation: 2,
-            ),
-            child: Text(
-              'Start Task',
-              style: GoogleFonts.montserrat(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: _handleCancelTask,
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.red),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                child: Text(
+                  'Cancel Task',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.red,
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: ElevatedButton(
-            onPressed: _handleRescheduleTask,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.yellow[700],
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              elevation: 2,
-            ),
-            child: Text(
-              'Reschedule',
-              style: GoogleFonts.montserrat(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.black,
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: _handleRescheduleTask,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.yellow[700],
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  elevation: 2,
+                ),
+                child: Text(
+                  'Reschedule',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
+                  ),
+                ),
               ),
             ),
-          ),
+          ],
         ),
       ],
     );

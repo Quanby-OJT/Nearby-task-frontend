@@ -215,8 +215,6 @@ class _TaskerOngoingState extends State<TaskerOngoing> {
                         // Client Profile Card
                         _buildProfileCard(),
                         SizedBox(height: 24),
-                        // Action Button
-                        _buildActionButton(),
                       ],
                     ),
                   ),
@@ -386,31 +384,6 @@ class _TaskerOngoingState extends State<TaskerOngoing> {
             SizedBox(height: 8),
             _buildProfileInfoRow('Account', 'Verified', isVerified: true),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: _handleFinishTask,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Color(0xFF03045E),
-          padding: EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 2,
-        ),
-        child: Text(
-          'Finish Task',
-          style: GoogleFonts.montserrat(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
         ),
       ),
     );
