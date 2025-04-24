@@ -604,8 +604,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => TaskerProfilePage(
-                                          tasker: tasker.user,
+                                          tasker: tasker.tasker!,
                                           isSaved: false,
+                                          taskerId: tasker.tasker?.id,
                                         ),
                                       ),
                                     );
@@ -724,31 +725,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    ElevatedButton.icon(
-                                      onPressed: () {
-                                        if (_existingProfileImageUrl == null ||
-                                            _existingIDImageUrl == null ||
-                                            _existingProfileImageUrl!.isEmpty ||
-                                            _existingIDImageUrl!.isEmpty ||
-                                            !_documentValid) {
-                                          _showWarningDialog();
-                                        } else {
-                                          _showRatingDialog(tasker.user);
-                                        }
-                                      },
-                                      icon: Icon(Icons.star, size: 20),
-                                      label: Text('Rate'),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.amber,
-                                        foregroundColor: Colors.white,
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: 16, vertical: 12),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                        ),
-                                      ),
-                                    ),
                                     SizedBox(width: 12),
                                     OutlinedButton.icon(
                                       onPressed: () {
@@ -756,9 +732,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) =>
-                                                TaskerProfilePage(
-                                              tasker: tasker.user,
+                                            TaskerProfilePage(
+                                              tasker: tasker.tasker!,
                                               isSaved: false,
+                                              taskerId: tasker.tasker?.id,
                                             ),
                                           ),
                                         );

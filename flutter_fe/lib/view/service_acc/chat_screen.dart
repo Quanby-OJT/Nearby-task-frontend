@@ -676,14 +676,15 @@ class _ChatScreenState extends State<ChatScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Icon(
-                Icons.message,
+                FontAwesomeIcons.signalMessenger,
                 size: 100,
                 color: Color(0xFF0272B1),
               ),
+              SizedBox(height: 16),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
-                  "You Don't Have Messages Yet, You can Start a Conversation By 'Right-Swiping' Your Favorite Task in hand.",
+                  "No messages yet. Check notifications for client requests or await client task acceptance.",
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 16),
                 ),
@@ -833,22 +834,65 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  void showMessageOptions(BuildContext context, int taskTakenId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+              'Delete Conversation',
+              style: GoogleFonts.montserrat(
+                  fontWeight: FontWeight.bold
+              )
+          ),
+          content: Text('Are you sure you want to delete this conversation? This cannot be undone.'),
+          actions: <Widget>[
+            TextButton(
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: Colors.grey),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(); // Dismiss the dialog
+              },
+            ),
+            TextButton(
+              child: Text(
+                'Delete',
+                style: TextStyle(color: Colors.red),
+              ),
+              onPressed: () {
+                // TODO: Implement delete action here
+                conversationController.deleteMessage(context, taskTakenId);
+                Navigator.of(context).pop(); // Dismiss the dialog
+                setState(() {
+                  _fetchTaskAssignments();
+                });
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget conversationCard(TaskAssignment taskTaken) {
-    return Card(
+    return Container(
       margin: EdgeInsets.only(bottom: 12),
       child: InkWell(
+        onLongPress: () => showMessageOptions(context, taskTaken.taskTakenId),
         onTap: () {
           Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) =>
-                      IndividualChatScreen(
-                        taskTakenId: taskTaken.taskTakenId,
-                        taskId: taskTaken.task?.id ?? 0,
-                        taskTitle: taskTaken.task?.title ?? '',
-                        taskTakenStatus: taskTaken.taskStatus,
-                      )
-              )
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                IndividualChatScreen(
+                  taskTakenId: taskTaken.taskTakenId,
+                  taskId: taskTaken.task?.id ?? 0,
+                  taskTitle: taskTaken.task?.title ?? '',
+                  taskTakenStatus: taskTaken.taskStatus,
+                )
+            )
           );
         },
         child: Padding(
