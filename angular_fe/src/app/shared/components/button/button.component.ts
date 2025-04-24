@@ -65,7 +65,7 @@ export class ButtonComponent implements OnInit {
       none: 'bg-transparent text-muted-foreground hover:bg-muted focus-visible:ring-muted',
     },
     blue: {
-      bold: 'bg-[#5F50E7] text-white hover:bg-[#4F40D7] focus-visible:ring-[#5F50E7] cursor-pointer',
+      bold: 'bg-[#5F50E7] text-white hover:bg-[#4F40D7] focus-visible:ring-[#5F50E7] cursor-pointer hover:scale-105 transition-transform duration-500',
       light: 'bg-[#5F50E7]/20 text-[#5F50E7] hover:bg-[#5F50E7]/30 focus-visible:ring-[#5F50E7]',
       none: 'bg-transparent text-[#5F50E7] hover:bg-[#5F50E7]/10 focus-visible:ring-[#5F50E7]',
     },

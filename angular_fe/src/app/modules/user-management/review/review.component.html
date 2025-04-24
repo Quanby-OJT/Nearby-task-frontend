@@ -6,8 +6,8 @@
     </div>
   </div>
   <!-- Back Button -->
-  <div class="">
-    <app-button full impact="bold" shape="rounded" size="medium" (click)="navigateToUsermanagement()">Back</app-button>
+  <div class="hover:scale-120 transition-transform duration-500">
+    <app-button full impact="bold" shape="rounded" size="medium" (click)="navigateToUsermanagement()" tone="blue">Back</app-button>
   </div>
 </div>
 
@@ -152,7 +152,7 @@
               <button *ngIf="documentUrl"
                 type="button" 
                 (click)="previewDocument()"
-                class="bg-main-color block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                class="bg-[#EC5987] block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-[#EC5987] focus:outline-none focus:ring-4 focus:ring-[#EC5987] dark:bg-[#EC5987] dark:hover:bg-[#EC5987] dark:focus:ring-[#EC5987] hover:scale-105 transition-transform duration-500">
                 Preview Documents
               </button>
               <!-- Show No Document pag wala -->
@@ -163,7 +163,7 @@
                 No Documents Available
               </button>
             </div>
-            <app-button full impact="bold" shape="rounded" size="medium">Update User</app-button>
+            <app-button full impact="bold" shape="rounded" size="medium" tone="blue">Update User</app-button>
           </div>
         </div>
       </div>
