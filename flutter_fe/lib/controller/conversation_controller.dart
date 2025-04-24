@@ -6,11 +6,12 @@ import '../model/conversation.dart';
 
 class ConversationController {
   final TextEditingController conversationMessage = TextEditingController();
+  final TextEditingController searchConversation = TextEditingController();
   final storage = GetStorage();
 
   Future<void> sendMessage(BuildContext context, int taskTaken) async {
     int userId = await storage.read('user_id');
-    debugPrint("$userId $taskTaken");
+    debugPrint("Sending a Message with the Following Data: \n User ID: $userId \n Task Taken ID: $taskTaken");
 
     final conversation = Conversation(
       conversationMessage: conversationMessage.text,

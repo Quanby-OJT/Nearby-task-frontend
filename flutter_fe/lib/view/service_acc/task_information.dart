@@ -217,15 +217,15 @@ class _TaskInformationState extends State<TaskInformation> {
                                 ],
                               ),
                               SizedBox(height: 20),
-                              _buildInfoRow("Name", "Mike Smith"),
+                              _buildInfoRow("Name", "${clientModel?.user?.firstName ?? ''} ${clientModel?.user?.lastName}"),
                               const SizedBox(height: 10),
                               _buildInfoRow("Account", "Verified"),
                               const SizedBox(height: 10),
-                              _buildInfoRow("Email", "mike.smith@example.com"),
+                              _buildInfoRow("Email", clientModel?.user?.email ?? "Unknown Email"),
                               const SizedBox(height: 10),
-                              _buildInfoRow("Phone", "+1234567890"),
+                              _buildInfoRow("Phone", clientModel?.user?.contact ?? "Unknown Contact Number"),
                               const SizedBox(height: 10),
-                              _buildInfoRow("Status", "Active"),
+                              _buildInfoRow("Status", clientModel?.user?.accStatus ?? "Unknown Status"),
                               const SizedBox(height: 10),
                             ],
                           ),
@@ -293,13 +293,6 @@ class _TaskInformationState extends State<TaskInformation> {
         children: [
           Text(
             "$label: ",
-            style: GoogleFonts.montserrat(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          Text(
-            value,
             style: GoogleFonts.montserrat(
               fontSize: 12,
               fontWeight: FontWeight.w500,

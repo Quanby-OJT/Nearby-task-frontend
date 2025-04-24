@@ -32,7 +32,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.conversationSubscription = this.userConversationService.getUserLogs().subscribe(
+    this.conversationSubscription = this.userConversationService.getUserConversation().subscribe(
       (response) => {
         console.log('Raw response:', response);
         if (response && response.data) {
@@ -176,7 +176,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
           if (response) {
             Swal.fire('Banned!', 'User has been banned.', 'success').then(() => {
               // Refresh the conversation list after banning
-              this.userConversationService.getUserLogs().subscribe((response) => {
+              this.userConversationService.getUserConversation().subscribe((response) => {
                 if (response && response.data) {
                   this.conversation = response.data;
                   this.filteredConversations = [...this.conversation];
@@ -196,7 +196,6 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
     Swal.fire({
       title: 'Are you sure to warn this user?',
       text: 'This action cannot be undone!',
-      icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
@@ -207,7 +206,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
           if (response) {
             Swal.fire('Warned!', 'User has been warned.', 'success').then(() => {
               // Refresh the conversation list after warning
-              this.userConversationService.getUserLogs().subscribe((response) => {
+              this.userConversationService.getUserConversation().subscribe((response) => {
                 if (response && response.data) {
                   this.conversation = response.data;
                   this.filteredConversations = [...this.conversation];
@@ -238,7 +237,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
                     // Message is from the user whose conversation we're viewing
                     const isViewingUser = messageUserId === viewingUserId;
                     console.log(`Message User ID: ${messageUserId}, Viewing User ID: ${viewingUserId}, isViewingUser: ${isViewingUser}`);
-                    
+
                     const alignment = isViewingUser ? 'right' : 'left';
                     const bgColor = isViewingUser ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-800';
                     const margin = isViewingUser ? 'ml-auto' : 'mr-auto';

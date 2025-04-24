@@ -778,6 +778,7 @@ class _JobPostPageState extends State<JobPostPage> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
+        automaticallyImplyLeading: false,
           backgroundColor: Colors.white,
           toolbarHeight: 80,
           title: Align(

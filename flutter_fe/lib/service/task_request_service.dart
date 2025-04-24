@@ -87,8 +87,7 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> _postRequest(
-      {required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     try {
       String formattedEndpoint =
@@ -112,8 +111,7 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> _putRequest(
-      {required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _putRequest({required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.put(
@@ -400,8 +398,7 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> depositEscrowPayment(
-      double depositAmount) async {
+  Future<Map<String, dynamic>> depositEscrowPayment(double depositAmount) async {
     try {
       final userId = await getUserId();
       if (userId == null) {
@@ -477,8 +474,7 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> rejectTaskerOrCancelTask(
-      int requestId, String rejectOrCancel, String rejectionReason) async {
+  Future<Map<String, dynamic>> rejectTaskerOrCancelTask(int requestId, String rejectOrCancel, String rejectionReason) async {
     try {
       return await _putRequest(
           endpoint: "/update-status-tasker/$requestId",
