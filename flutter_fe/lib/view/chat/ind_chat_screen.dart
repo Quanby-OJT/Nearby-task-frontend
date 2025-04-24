@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/conversation.dart';
+import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/controller/conversation_controller.dart';
@@ -16,21 +17,22 @@ import 'package:flutter_fe/controller/report_controller.dart';
 
 class IndividualChatScreen extends StatefulWidget {
   final String? taskTitle;
-  // Selected user Start, it links to the selected user
-  final int? taskTakenId;
-  // Selected user End
-  final int? taskId;
+  final int taskTakenId;
+  final int taskId;
+  final String taskTakenStatus;
   const IndividualChatScreen({
     super.key,
     this.taskTitle,
     required this.taskTakenId,
     required this.taskId,
+    required this.taskTakenStatus
   });
 
   @override
   State<IndividualChatScreen> createState() => _IndividualChatScreenState();
 }
 
+//Main Screen
 class _IndividualChatScreenState extends State<IndividualChatScreen> {
   final List<Conversation> _messages = [];
   final TextEditingController _textController = TextEditingController();
@@ -237,7 +239,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Icon(
-                          Icons.message,
+                          FontAwesomeIcons.message,
                           size: 100,
                           color: Color(0xFF0272B1),
                         ),
@@ -274,6 +276,17 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                     },
                   ),
           ),
+          widget.taskTakenStatus == "Completed" ?
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            color: Color(0XFFECECF5),
+            child: const Text(
+              "The Task has already been done. Thank you for Helping them.",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0XFF3E9B52)),
+              textAlign: TextAlign.center,
+            ),
+          ) :
           _MessageBar(
             controller: conversationController,
             taskTakenId: widget.taskTakenId ?? 0,
@@ -822,10 +835,10 @@ class _ChatBubble extends StatelessWidget {
     final selectedUserId = message.userId;
     final loggedinUserId = GetStorage().read('user_id');
 
-    debugPrint("----------Start----------");
-    debugPrint("Selected User Id: $selectedUserId");
-    debugPrint("Logged In User Id: $loggedinUserId");
-    debugPrint("-----------End-----------");
+    // debugPrint("----------Start----------");
+    // debugPrint("Selected User Id: $selectedUserId");
+    // debugPrint("Logged In User Id: $loggedinUserId");
+    // debugPrint("-----------End-----------");
     // Determine if the message is from the current user
     bool isMine = selectedUserId == loggedinUserId;
     // Logged In UserId End
@@ -834,9 +847,12 @@ class _ChatBubble extends StatelessWidget {
     // Define the message bubble widget (used in both cases)
     Widget messageBubble = Flexible(
       child: Container(
+        width: (message.conversationMessage?.length ?? 0) < 20
+            ? null
+            : MediaQuery.of(context).size.width * 0.7,
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
-          color: isMine ? Theme.of(context).primaryColor : Colors.grey[300],
+          color: isMine ? Color(0XFF2A1999) : Color(0XFFB3B3C0),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
@@ -864,12 +880,13 @@ class _ChatBubble extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 18),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            CircleAvatar(
-              child: Text(profile.firstName.isNotEmpty
-                  ? profile.firstName
-                      .substring(0, profile.firstName.length > 1 ? 2 : 1)
-                  : 'U'),
+            ClipOval(
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: profile.image.toString().isNotEmpty ? Image.network(profile.image, fit: BoxFit.cover) : Image.asset('assets/images/default-profile.jpg', fit: BoxFit.cover)),
             ),
             const SizedBox(width: 12),
             messageBubble,

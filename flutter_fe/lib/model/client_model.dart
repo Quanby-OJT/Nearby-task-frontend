@@ -1,4 +1,5 @@
 import 'package:flutter_fe/model/user_model.dart';
+import 'package:get/get.dart';
 
 class ClientModel{
   final String preferences;
@@ -25,8 +26,8 @@ class ClientModel{
 
   factory ClientModel.fromJson(Map<String, dynamic> json){
     return ClientModel(
-        preferences: json['preferences'] as String,
-        clientAddress: json['client_address'] as String,
+      preferences: json['preferences'] != null ? json['preferences'] as String : '',
+      clientAddress: json['client_address'] != null ? json['client_address'] as String : '',
     );
   }
 }
