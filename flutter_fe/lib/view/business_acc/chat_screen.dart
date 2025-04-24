@@ -57,6 +57,14 @@ class _ChatScreenState extends State<ChatScreen> {
     conversationController.searchConversation.addListener(filterMessages);
   }
 
+  @override
+  void dispose() {
+    reportController.reasonController.dispose();
+    conversationController.searchConversation.dispose();
+    _selectedReportCategory = null;
+    super.dispose();
+  }
+
   void filterMessages() {
     String query = conversationController.searchConversation.text.toLowerCase();
     setState(() {
@@ -617,14 +625,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   @override
-  void dispose() {
-    reportController.reasonController.dispose();
-    conversationController.searchConversation.dispose();
-    _selectedReportCategory = null;
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
@@ -676,14 +676,15 @@ class _ChatScreenState extends State<ChatScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Icon(
-                Icons.message,
+                FontAwesomeIcons.signalMessenger,
                 size: 100,
                 color: Color(0xFF0272B1),
               ),
+              SizedBox(height: 10),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
-                  "You Don't Have Messages Yet, You can Start a Conversation By 'Right-Swiping' Your Favorite Task in hand.",
+                  "You Don't Have Messages Yet, You can Start a Conversation by either checking your Task Request and Accept a Tasker, or wait for your tasker to accept your needed task.",
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 16),
                 ),
@@ -822,7 +823,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   if(taskAssignment == null){
                     return SizedBox.shrink();
                   } else {
-                    return ConversationCard(taskAssignment);
+                    return conversationCard(taskAssignment);
                   }
                 }
               )
@@ -833,8 +834,46 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget ConversationCard(TaskAssignment taskTaken) {
-    return Card(
+  void showMessageOptions(BuildContext context, int taskTakenId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Delete Conversation',
+            style: GoogleFonts.montserrat(
+              fontWeight: FontWeight.bold
+            )
+          ),
+          content: Text('Are you sure you want to delete this conversation? This cannot be undone.'),
+          actions: <Widget>[
+            TextButton(
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: Colors.grey),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(); // Dismiss the dialog
+              },
+            ),
+            TextButton(
+              child: Text(
+                'Delete',
+                style: TextStyle(color: Colors.red),
+              ),
+              onPressed: () {
+                // TODO: Implement delete action here
+                conversationController.deleteMessage(context, taskTakenId);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget conversationCard(TaskAssignment taskTaken) {
+    return Container(
       margin: EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: () {
@@ -851,6 +890,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 )
               );
         },
+        onLongPress: () => showMessageOptions(context, taskTaken.taskTakenId),
         child: Padding(
           padding: EdgeInsets.all(16),
           child: Column(

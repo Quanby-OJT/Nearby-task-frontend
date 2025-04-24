@@ -683,7 +683,7 @@ class _ChatScreenState extends State<ChatScreen> {
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
-                  "You Don't Have Messages Yet, You can Start a Conversation By 'Right-Swiping' Your Favorite Task in hand.",
+                  "You Don't Have Messages Yet, Please Wait for your Client to Accept Your Application.",
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 16),
                 ),
@@ -833,10 +833,49 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  void showMessageOptions(BuildContext context, int taskTakenId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+              'Delete Conversation',
+              style: GoogleFonts.montserrat(
+                  fontWeight: FontWeight.bold
+              )
+          ),
+          content: Text('Are you sure you want to delete this conversation? This cannot be undone.'),
+          actions: <Widget>[
+            TextButton(
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: Colors.grey),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(); // Dismiss the dialog
+              },
+            ),
+            TextButton(
+              child: Text(
+                'Delete',
+                style: TextStyle(color: Colors.red),
+              ),
+              onPressed: () {
+                // TODO: Implement delete action here
+                conversationController.deleteMessage(context, taskTakenId);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget conversationCard(TaskAssignment taskTaken) {
-    return Card(
+    return Container(
       margin: EdgeInsets.only(bottom: 12),
       child: InkWell(
+        onLongPress: () => showMessageOptions(context, taskTaken.taskTakenId),
         onTap: () {
           Navigator.push(
               context,

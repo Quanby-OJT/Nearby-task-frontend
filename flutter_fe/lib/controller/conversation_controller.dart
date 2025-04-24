@@ -61,6 +61,19 @@ class ConversationController {
     }
   }
 
+  Future<void> deleteMessage(BuildContext context, int messageId) async {
+    final messageDeleted = await TaskDetailsService.deleteMessage(messageId);
+    if (messageDeleted.containsKey('message')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(messageDeleted['message'])),
+      );
+    }else{
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(messageDeleted['error'])),
+      );
+    }
+  }
+
   void dispose() {
     conversationMessage.dispose();
   }
