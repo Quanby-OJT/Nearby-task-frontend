@@ -174,7 +174,7 @@ layer(base);
     --foreground: #0c1420;
     --card: #f1f5f9;
     --card-foreground: #000000;
-    --primary: #e11d48;
+    --primary: #0272B1;
     --primary-foreground: #ffffff;
     --muted: #cfd9e5;
     --muted-foreground: #3d3d3d;
@@ -222,8 +222,8 @@ layer(base);
     --border: #232b3d;
   }
 
-  :root[data-theme='red'] {
-    --primary: #cc0033;
+  :root[data-theme='blue'] {
+    --primary: #0272B1;
   }
 
   .dark[data-theme='red'] {
