@@ -42,7 +42,9 @@
                 [ngClass]="{ 'is__invalid-input': submitted && f['firstName'].errors }"
                 class="peer block"
                 placeholder=" "
-                formControlName="firstName"/>
+                formControlName="firstName"
+                [disabled]="true"
+                readonly/>
             </div>
           </div>
 
@@ -55,7 +57,9 @@
                 [ngClass]="{ 'is__invalid-input': submitted && f['middleName'].errors }"
                 class="peer block"
                 placeholder=" "
-                formControlName="middleName"/>
+                formControlName="middleName"
+                [disabled]="true"
+                readonly/>
             </div>
           </div>
           <div class="form__group mb-5">
@@ -67,7 +71,9 @@
                 [ngClass]="{ 'is__invalid-input': submitted && f['lastName'].errors }"
                 class="peer block"
                 placeholder=" "
-                formControlName="lastName" />
+                formControlName="lastName" 
+                [disabled]="true"
+                readonly/>
             </div>
           </div>
 
@@ -80,7 +86,9 @@
                 [ngClass]="{ 'is__invalid-input': submitted && f['bday'].errors }"
                 class="peer block"
                 placeholder=" "
-                formControlName="bday" />
+                formControlName="bday"
+                [disabled]="true"
+                readonly/>
             </div>
           </div>
 
@@ -93,7 +101,9 @@
                 [ngClass]="{ 'is__invalid-input': submitted && f['email'].errors }"
                 class="peer block"
                 placeholder=" "
-                formControlName="email" />
+                formControlName="email"
+                [disabled]="true"
+                readonly/>
             </div>
           </div>
 

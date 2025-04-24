@@ -6,7 +6,7 @@
     </div>
   </div>
   <div>
-    <app-button full impact="bold" shape="rounded" size="medium" (click)="navigateToUsermanagement()">Back</app-button>
+    <app-button full impact="bold" shape="rounded" size="medium" tone="blue" (click)="navigateToUsermanagement()">Back</app-button>
   </div>
 </div>
 
@@ -122,7 +122,7 @@
                 class="peer block"
                 placeholder=" "
                 formControlName="bday"
-              />
+                [max]="today" />
               <label
                 for="bday"
                 [ngClass]="{ 'peer-focus:text-destructive!': submitted && f['bday'].errors }"
@@ -210,7 +210,7 @@
           </div>
 
           <div>
-            <app-button full impact="bold" shape="rounded" size="medium" type="submit">Update User</app-button>
+            <app-button full impact="bold" shape="rounded" size="medium" type="submit" tone="blue">Update User</app-button>
           </div>
         </div>
       </div>

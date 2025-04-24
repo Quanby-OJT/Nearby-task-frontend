@@ -6,7 +6,7 @@ type ButtonProps = {
   impact: 'bold' | 'light' | 'none';
   size: 'small' | 'medium' | 'large';
   shape: 'square' | 'rounded' | 'pill';
-  tone: 'primary' | 'danger' | 'success' | 'warning' | 'info' | 'light';
+  tone: 'primary' | 'danger' | 'success' | 'warning' | 'info' | 'light' | 'blue' | 'pink';
   shadow: 'none' | 'small' | 'medium' | 'large';
 };
 
@@ -64,6 +64,16 @@ export class ButtonComponent implements OnInit {
       light: 'bg-muted/20 text-muted-foreground hover:bg-muted focus-visible:ring-muted',
       none: 'bg-transparent text-muted-foreground hover:bg-muted focus-visible:ring-muted',
     },
+    blue: {
+      bold: 'bg-[#5F50E7] text-white hover:bg-[#4F40D7] focus-visible:ring-[#5F50E7] cursor-pointer',
+      light: 'bg-[#5F50E7]/20 text-[#5F50E7] hover:bg-[#5F50E7]/30 focus-visible:ring-[#5F50E7]',
+      none: 'bg-transparent text-[#5F50E7] hover:bg-[#5F50E7]/10 focus-visible:ring-[#5F50E7]',
+    },
+    pink: {
+      bold: 'bg-[#EC5987] text-white hover:bg-[#4F40D7] focus-visible:ring-[#EC5987] cursor-pointer',
+      light: 'bg-[#EC5987]/20 text-[#5F50E7] hover:bg-[#F07DA1]/30 focus-visible:ring-[#EC5987]',
+      none: 'bg-transparent text-[#5F50E7] hover:bg-[#F07DA1]/10 focus-visible:ring-[#EC5987]',
+    }
   };
 
   sizeClasses: Record<ButtonProps['size'], string> = {

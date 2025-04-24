@@ -26,6 +26,8 @@ export class UpdateUserComponent {
   first_name: string = '';
   profileImage: string | null = null;
   isLoading: boolean = true;
+  today: string;
+ // Add property for current date
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -34,7 +36,10 @@ export class UpdateUserComponent {
     private route: ActivatedRoute,
     private dataService: DataService,
     private cdRef: ChangeDetectorRef
-  ) {}
+  ) {[]
+    const now= new Date();
+    this.today = now.toISOString().split('T')[0];
+  }
 
   ngOnInit(): void {
     this.formValidation();
