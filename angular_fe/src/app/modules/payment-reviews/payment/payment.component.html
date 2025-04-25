@@ -5,6 +5,14 @@
       <a href="#" class="hover:text-primary">Dashboards > Payment Reviews</a>
     </div>
   </div>
+  <div class="flex space-x-4">
+    <button class="bg-[#E23670] text-[#F9F9F9] hover:bg-[#F07DA1] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportCSV()">
+      Export CSV
+    </button>
+    <button class="bg-[#E23670] text-[#F9F9F9] hover:bg-[#F07DA1] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportPDF()">
+      Export PDF
+    </button>
+  </div>
 </div>
 
 <div class="border-muted-200 bg-white w-full max-w-[1440px] mx-auto flex-col rounded-xl border-4 min-h-[400px] shadow-md">
@@ -37,12 +45,12 @@
           <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Amount</th>
           <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Payment Type</th>
           <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Created At</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Deposite Date</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Deposit Date</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let log of displayPaymentLogs; let i = index" class="border-b">
-          <td class="px-4 py-3 text-center">{{ (currentPage - 1) * logsPerPage + i + 1 }}</td>
+          <td class="px-4 py-3 text-center">{{ (currentPage - 1) * this.logsPerPage + i + 1 }}</td>
           <td class="px-4 py-3 text-center">{{ log.user_name }}</td>
           <td class="px-4 py-3 text-center">{{ log.amount }}</td>
           <td class="px-4 py-3 text-center">{{ log.payment_type }}</td>

@@ -153,7 +153,7 @@ export class TaskComponent implements OnInit {
 
   exportCSV() {
     const headers = ['No', 'Client Id', 'Client', 'Task Title', 'Specialization', 'Proposed Price', 'Location', 'Urgent', 'Status'];
-    const rows = this.filteredTasks.map((task, index) => {
+    const rows = this.displayedTasks.map((task, index) => {
       const row = [
         index + 1,
         task?.clients?.client_id ?? task.client_id ?? '',
@@ -183,7 +183,7 @@ export class TaskComponent implements OnInit {
     doc.setFontSize(20);
     doc.text(title, 170, 45);
     const columns = ['No', 'Client Id', 'Client', 'Task Title', 'Specialization', 'Proposed Price', 'Location', 'Urgent', 'Status'];
-    const rows = this.filteredTasks.map((task, index) => [
+    const rows = this.displayedTasks.map((task, index) => [
       index + 1,
       task?.clients?.client_id ?? task.client_id ?? '',
       `${task.clients.user.first_name} ${task.clients.user.middle_name || ''} ${task.clients.user.last_name}`,

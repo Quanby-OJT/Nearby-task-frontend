@@ -42,7 +42,7 @@ export class Menu {
           icon: 'assets/icons/heroicons/outline/shield-exclamation.svg',
           label: 'User Complaints',
           route: '/complaints',
-          role: ['Moderator'],
+          role: ['Moderator', 'Admin'],
         },
         {
           icon: 'assets/icons/heroicons/outline/menu.svg',

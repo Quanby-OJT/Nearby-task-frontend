@@ -6,6 +6,14 @@
       <a href="#" class="hover:text-primary">Dashboards > User Logs</a>
     </div>
   </div>
+  <div class="flex space-x-4">
+    <button class="bg-[#E23670] text-[#F9F9F9] hover:bg-[#F07DA1] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportCSV()">
+      Export CSV
+    </button>
+    <button class="bg-[#E23670] text-[#F9F9F9] hover:bg-[#F07DA1] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportPDF()">
+      Export PDF
+    </button>
+  </div>
 </div>
 
 <!-- Main container with search, filter, table, and pagination -->

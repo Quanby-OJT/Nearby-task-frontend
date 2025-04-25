@@ -301,7 +301,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
 
   exportCSV() {
     const headers = ['User No', 'Client Name', 'Tasker Name', 'Conversation', 'Task Created Date', 'Task Status'];
-    const rows = this.filteredConversations.map((convo) => {
+    const rows = this.displayConversations.map((convo) => {
       const row = [
         convo.user_id ?? '',
         `"${convo.task_taken.clients.user.first_name} ${convo.task_taken.clients.user.middle_name || ''} ${convo.task_taken.clients.user.last_name}"`,
@@ -328,7 +328,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
     doc.setFontSize(20);
     doc.text(title, 170, 45);
     const columns = ['User No', 'Client Name', 'Tasker Name', 'Conversation', 'Task Created Date', 'Task Status'];
-    const rows = this.filteredConversations.map((convo) => [
+    const rows = this.displayConversations.map((convo) => [
       convo.user_id ?? '',
       `${convo.task_taken.clients.user.first_name} ${convo.task_taken.clients.user.middle_name || ''} ${convo.task_taken.clients.user.last_name}`,
       `${convo.task_taken.tasker.user.first_name} ${convo.task_taken.tasker.user.middle_name || ''} ${convo.task_taken.tasker.user.last_name}`,

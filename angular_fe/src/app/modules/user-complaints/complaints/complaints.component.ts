@@ -6,6 +6,9 @@ import { ReportService } from 'src/app/services/report.service';
 import { Subscription } from 'rxjs';
 import { SessionLocalStorage } from 'src/services/sessionStorage';
 import { AuthService } from 'src/app/services/auth.service';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { saveAs } from 'file-saver';
 
 @Component({
   selector: 'app-complaints',
@@ -77,17 +80,14 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
     this.applyFilters();
   }
 
-  // Handle the status filter when the user selects an option from the dropdown
   filterReports(event: Event) {
     this.currentStatusFilter = (event.target as HTMLSelectElement).value;
     this.applyFilters();
   }
 
-  // Combine search and filter logic to update filteredReports
   applyFilters() {
     let tempReports = [...this.reports];
 
-    // Apply search filter if there's a search term
     if (this.currentSearchText) {
       tempReports = tempReports.filter(report => {
         const reporterFullName = [
@@ -106,7 +106,6 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
       });
     }
 
-    // Apply status filter if a status is selected
     if (this.currentStatusFilter) {
       tempReports = tempReports.filter(report => {
         const reportStatus = report.status ? 'processed' : 'pending';
@@ -170,7 +169,6 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Modal methods
   openModal(reportId: number) {
     this.selectedReport = this.reports.find(report => report.report_id === reportId);
     this.isModalOpen = true;
@@ -186,7 +184,6 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
       this.reportService.updateReportStatus(reportId, true).subscribe({
         next: (response) => {
           if (response.success) {
-        
             const reportIndex = this.reports.findIndex(r => r.report_id === reportId);
             if (reportIndex !== -1) {
               this.reports[reportIndex].status = true;
@@ -210,7 +207,6 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
       this.reportService.updateReportStatus(reportId, false).subscribe({
         next: (response) => {
           if (response.success) {
-           
             const reportIndex = this.reports.findIndex(r => r.report_id === reportId);
             if (reportIndex !== -1) {
               this.reports[reportIndex].status = false;
@@ -227,5 +223,88 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
         }
       });
     }
+  }
+
+  exportCSV() {
+    const isAdmin = this.userRole === 'Admin';
+    const headers = isAdmin
+      ? ['No', 'Reporter Name', 'Violator Name', 'Reporter Role', 'Violator Role', 'Date', 'Status', 'Handled By']
+      : ['No', 'Reporter Name', 'Violator Name', 'Reporter Role', 'Violator Role', 'Date', 'Status'];
+    const rows = this.displayReports.map((report, index) => {
+      const reporterName = report.reporter
+        ? `${report.reporter.first_name || ''} ${report.reporter.middle_name || ''} ${report.reporter.last_name || ''}`.trim()
+        : '';
+      const violatorName = report.violator
+        ? `${report.violator.first_name || ''} ${report.violator.middle_name || ''} ${report.violator.last_name || ''}`.trim()
+        : '';
+      const handledBy = report.action_by
+        ? `${report.actionBy.first_name || ''} ${report.actionBy.middle_name || ''} ${report.actionBy.last_name || ''}`.trim()
+        : 'null';
+      const baseRow = [
+        index + 1,
+        `"${reporterName}"`,
+        `"${violatorName}"`,
+        `"${report.reporter?.user_role || ''}"`,
+        `"${report.violator?.user_role || ''}"`,
+        `"${report.created_at || ''}"`,
+        report.status ? 'Processed' : 'Pending',
+      ];
+      if (isAdmin) {
+        baseRow.push(`"${handledBy}"`);
+      }
+      console.log('CSV Row:', baseRow);
+      return baseRow;
+    });
+    const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    saveAs(blob, 'UserComplaints.csv');
+  }
+
+  exportPDF() {
+    const isAdmin = this.userRole === 'Admin';
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'px',
+      format: 'a4',
+    });
+    const title = 'User Complaints';
+    doc.setFontSize(20);
+    doc.text(title, 170, 45);
+    const headers = isAdmin
+      ? ['No', 'Reporter Name', 'Violator Name', 'Reporter Role', 'Violator Role', 'Date', 'Status', 'Handled By']
+      : ['No', 'Reporter Name', 'Violator Name', 'Reporter Role', 'Violator Role', 'Date', 'Status'];
+    const rows = this.displayReports.map((report, index) => {
+      const reporterName = report.reporter
+        ? `${report.reporter.first_name || ''} ${report.reporter.middle_name || ''} ${report.reporter.last_name || ''}`.trim()
+        : '';
+      const violatorName = report.violator
+        ? `${report.violator.first_name || ''} ${report.violator.middle_name || ''} ${report.violator.last_name || ''}`.trim()
+        : '';
+      const handledBy = report.action_by
+        ? `${report.actionBy.first_name || ''} ${report.actionBy.middle_name || ''} ${report.actionBy.last_name || ''}`.trim()
+        : 'null';
+      const baseRow = [
+        index + 1,
+        reporterName,
+        violatorName,
+        report.reporter?.user_role || '',
+        report.violator?.user_role || '',
+        report.created_at || '',
+        report.status ? 'Processed' : 'Pending',
+      ];
+      if (isAdmin) {
+        baseRow.push(handledBy);
+      }
+      return baseRow;
+    });
+    autoTable(doc, {
+      startY: 100,
+      head: [headers],
+      body: rows,
+      theme: 'grid',
+      styles: { fontSize: 8, cellPadding: 5, textColor: 'black' },
+      headStyles: { fillColor: [60, 33, 146], textColor: 'white' },
+    });
+    doc.save('UserComplaints.pdf');
   }
 }
