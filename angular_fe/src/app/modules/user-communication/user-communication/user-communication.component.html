@@ -35,7 +35,7 @@
     <table class="w-full border-collapse border-0 text-left text-sm">
       <thead class="border-b">
         <tr class="bg-gray-100">
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">User No</th>
+          <th class="px-4 py-2 text-center min-w-[2px] lg:min-w-[2px] xl:min-w-[2px]">User No</th>
           <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Client Name</th>
           <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Tasker Name</th>
           <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Conversation</th>
@@ -59,8 +59,8 @@
           <td class="px-4 py-3 text-center">{{ convo.task_taken.task_status }}</td>
           <td class="px-4 py-3 text-center">
             <div class="flex gap-2">
-              <span class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-red-500" (click)="banUser(convo.user_id)">Ban</span>
-              <span class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-yellow-300" (click)="warnUser(convo.user_id)">Warn</span>
+              <span class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-red-400" (click)="banUser(convo.user_id)">Ban</span>
+              <span class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-yellow-400" (click)="warnUser(convo.user_id)">Warn</span>
             </div>
           </td>
         </tr>

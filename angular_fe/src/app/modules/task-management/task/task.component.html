@@ -39,7 +39,7 @@
           <th class="px-4 py-2 min-w-[200px] lg:min-w-[250px] xl:min-w-[300px]">Client</th>
           <th class="px-4 py-2 min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Task Title</th>
           <th class="px-4 py-2 min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Specialization</th>
-          <th class="px-4 py-2 min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Contact Price</th>
+          <th class="px-4 py-2 min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Proposed Price</th>
           <th class="px-4 py-2 min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Location</th>
           <th class="px-4 py-2 min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Urgent</th>
           <th class="px-9 py-2 min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Status</th>
@@ -59,12 +59,12 @@
           </td>
           <td class="px-4 py-3">{{ task.task_title }}</td>
           <td class="px-4 py-3">{{ task.specialization }}</td>
-          <td class="px-4 py-3">{{ task.contact_price }}</td>
+          <td class="px-4 py-3">{{ task.proposed_price }}</td>
           <td class="px-4 py-3">{{ task.location }}</td>
           <td class="px-4 py-3">{{ task.urgent }}</td>
           <td class="px-4 py-3">
-            <span [style.backgroundColor]="task?.status === 'active' ? 'oklch(0.792 0.209 151.711)' : 'oklch(0.712 0.194 13.428)'" 
-                  class="px-4 py-1 rounded text-white inline-block text-center w-[100px]">
+            <span [style.backgroundColor]="task?.status === 'Available' ? 'oklch(0.792 0.209 151.711)' : 'oklch(0.712 0.194 13.428)'" 
+                  class="px-4 py-1 rounded-lg text-white inline-block text-center w-[100px]">
               {{ task.status ? task.status : 'null'}}
             </span> 
           </td>

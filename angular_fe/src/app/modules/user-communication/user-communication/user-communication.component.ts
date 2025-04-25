@@ -255,7 +255,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
                                 <div class="font-semibold text-sm mb-1 ${alignment === 'right' ? 'text-right' : 'text-left'}">
                                     ${userName}
                                 </div>
-                                <div class="${bgColor} ${roundedCorners} px-4 py-2">
+                                <div class="${bgColor} ${roundedCorners} px-4 py-2 text-justify">
                                     ${msg.conversation}
                                 </div>
                                 <div class="text-xs text-gray-500 mt-1 ${alignment === 'right' ? 'text-right' : 'text-left'}">
