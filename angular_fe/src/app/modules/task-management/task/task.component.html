@@ -5,6 +5,14 @@
       <a href="#" class="hover:text-primary">Dashboards > Task Management</a>
     </div>
   </div>
+  <div class="flex space-x-4">
+    <button class="bg-[#E23670] text-[#F9F9F9] hover:bg-[#F07DA1] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportCSV()">
+      Export CSV
+    </button>
+    <button class="bg-[#E23670] text-[#F9F9F9] hover:bg-[#F07DA1] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportPDF()">
+      Export PDF
+    </button>
+  </div>
 </div>
 
 <div class="border-muted/20 bg-background flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
@@ -24,7 +32,7 @@
         <option value="Already Taken">Already Taken</option>
         <option value="Closed">Closed </option>
         <option value="On Hold">On Hold</option>
-        <option value="Reported">Reporte</option>
+        <option value="Reported">Reported</option>
       </select>
     </div>
   </div>
@@ -77,59 +85,58 @@
               </button>
             </div>
           </td>
-          
         </tr>
       </tbody>
     </table>
   </div>
 
- <!-- Pagination Controls -->
-<div class="flex justify-between items-center bg-white w-100%">
-  <div class="text-muted-foreground flex items-center justify-between py-3 px-5 text-xs">
-    <div class="flex items-center gap-2">
-      Show
-      <select class="w-23 p-5 border rounded-md" (change)="changeTasksPerPage($event)">
-        <option value="10" selected>10</option>
-        <option value="20">20</option>
-        <option value="30">30</option>
-        <option value="50">50</option>
-      </select>
-      per page
+  <!-- Pagination Controls -->
+  <div class="flex justify-between items-center bg-white w-100%">
+    <div class="text-muted-foreground flex items-center justify-between py-3 px-5 text-xs">
+      <div class="flex items-center gap-2">
+        Show
+        <select class="w-23 p-5 border rounded-md" (change)="changeTasksPerPage($event)">
+          <option value="10" selected>10</option>
+          <option value="20">20</option>
+          <option value="30">30</option>
+          <option value="50">50</option>
+        </select>
+        per page
+      </div>
     </div>
-  </div>
-  
-  <div class="flex items-center justify-end gap-4 sticky bottom-0 left-0 right-0 bg-white p-2">
-    <span class="text-sm border w-32 text-center">
-      {{ (currentPage - 1) * tasksPerPage + 1 }} - 
-      {{ Math.min(currentPage * tasksPerPage, filteredTasks.length) }} of {{ filteredTasks.length }}
-    </span>
+    
+    <div class="flex items-center justify-end gap-4 sticky bottom-0 left-0 right-0 bg-white p-2">
+      <span class="text-sm border w-32 text-center">
+        {{ (currentPage - 1) * tasksPerPage + 1 }} - 
+        {{ Math.min(currentPage * tasksPerPage, filteredTasks.length) }} of {{ filteredTasks.length }}
+      </span>
 
-    <!-- Pagination Component -->
-    <div class="inline-flex items-center gap-2">
-      <!-- Previous Button -->
-      <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 disabled:opacity-50"
-        [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
-        ◀
-      </button>
-
-      <!-- Dynamic Pagination Buttons -->
-      <ng-container *ngFor="let page of paginationButtons">
-        <button *ngIf="page !== '...'"
-          class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-sm"
-          [ngClass]="{'bg-primary text-white': currentPage === page}"
-          (click)="goToPage(page)">
-          {{ page }}
+      <!-- Pagination Component -->
+      <div class="inline-flex items-center gap-2">
+        <!-- Previous Button -->
+        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 disabled:opacity-50"
+          [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+          ◀
         </button>
 
-        <span *ngIf="page === '...'" class="text-gray-500">...</span>
-      </ng-container>
+        <!-- Dynamic Pagination Buttons -->
+        <ng-container *ngFor="let page of paginationButtons">
+          <button *ngIf="page !== '...'"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-sm"
+            [ngClass]="{'bg-primary text-white': currentPage === page}"
+            (click)="goToPage(page)">
+            {{ page }}
+          </button>
 
-      <!-- Next Button -->
-      <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300"
-        [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
-        ▶
-      </button>
+          <span *ngIf="page === '...'" class="text-gray-500">...</span>
+        </ng-container>
+
+        <!-- Next Button -->
+        <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300"
+          [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+          ▶
+        </button>
+      </div>
     </div>
   </div>
-</div>
 </div>

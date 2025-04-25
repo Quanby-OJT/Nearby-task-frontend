@@ -4,6 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { TaskService } from 'src/app/services/task.service';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { saveAs } from 'file-saver';
 
 @Component({
   selector: 'app-task',
@@ -146,5 +149,59 @@ export class TaskComponent implements OnInit {
 
   disableTask(taskId: string) {
     this.route.navigate(['tasks-management/task-disable', taskId]);
+  }
+
+  exportCSV() {
+    const headers = ['No', 'Client Id', 'Client', 'Task Title', 'Specialization', 'Proposed Price', 'Location', 'Urgent', 'Status'];
+    const rows = this.filteredTasks.map((task, index) => {
+      const row = [
+        index + 1,
+        task?.clients?.client_id ?? task.client_id ?? '',
+        `"${task.clients.user.first_name} ${task.clients.user.middle_name || ''} ${task.clients.user.last_name}"`,
+        `"${task.task_title || ''}"`, // Wrap in quotes to handle commas
+        task.specialization || '',
+        task.proposed_price || 0,
+        `"${task.location || ''}"`, // Wrap in quotes to handle commas in location
+        task.urgent ? 'Yes' : 'No', // Convert boolean to "Yes" or "No"
+        task.status || 'null', // Ensure status is a string like "Available"
+      ];
+      console.log('CSV Row:', row); // Debug log to verify data
+      return row;
+    });
+    const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    saveAs(blob, 'Tasks.csv');
+  }
+
+  exportPDF() {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'px',
+      format: 'a4',
+    });
+    const title = 'Task Management';
+    doc.setFontSize(20);
+    doc.text(title, 170, 45);
+    const columns = ['No', 'Client Id', 'Client', 'Task Title', 'Specialization', 'Proposed Price', 'Location', 'Urgent', 'Status'];
+    const rows = this.filteredTasks.map((task, index) => [
+      index + 1,
+      task?.clients?.client_id ?? task.client_id ?? '',
+      `${task.clients.user.first_name} ${task.clients.user.middle_name || ''} ${task.clients.user.last_name}`,
+      task.task_title || '',
+      task.specialization || '',
+      task.proposed_price || 0,
+      task.location || '', // No quotes needed for PDF
+      task.urgent ? 'Yes' : 'No',
+      task.status || 'null',
+    ]);
+    autoTable(doc, {
+      startY: 100,
+      head: [columns],
+      body: rows,
+      theme: 'grid',
+      styles: { fontSize: 8, cellPadding: 5, textColor: 'black' },
+      headStyles: { fillColor: [60, 33, 146], textColor: 'white' },
+    });
+    doc.save('Tasks.pdf');
   }
 }
