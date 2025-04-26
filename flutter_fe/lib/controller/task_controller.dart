@@ -86,6 +86,17 @@ class TaskController {
     }
   }
 
+  Future<String> fetchIsAppliedID(
+      int? taskId, int? clientId, int? taskerId) async {
+    final assignedTask =
+        await _jobPostService.fetchIsApplied(taskId, clientId, taskerId);
+
+    debugPrint("Is applied response sample: ${assignedTask.toString()}");
+    return assignedTask.containsKey('task') && assignedTask['task'] != null
+        ? assignedTask['task']['task_taken_id'].toString()
+        : assignedTask['error'].toString();
+  }
+
   Future<List<TaskModel?>> getJobsforClient(
       BuildContext context, int clientId) async {
     final clientTask = await _jobPostService.fetchJobsForClient(clientId);
@@ -116,9 +127,10 @@ class TaskController {
     }
   }
 
-  Future<bool> updateNotif(int taskTakenId) async {
+  Future<bool> updateNotif(int taskTakenId, int userId) async {
     debugPrint("Assigning task...");
-    final updateNotif = await _jobPostService.updateNotification(taskTakenId);
+    final updateNotif =
+        await _jobPostService.updateNotification(taskTakenId, userId);
     if (updateNotif.containsKey('message')) {
       return updateNotif['message'] = true;
     }

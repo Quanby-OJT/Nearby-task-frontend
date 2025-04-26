@@ -31,8 +31,8 @@ class _ClientRequestState extends State<ClientRequest> {
   ClientRequestModel? _requestInformation;
   bool _isLoading = true;
   final storage = GetStorage();
-  final bool _isApplying = false;
-  final bool _isEditing = false;
+  bool _isApplying = false;
+  bool _isEditing = false;
 
   @override
   void initState() {
@@ -46,8 +46,10 @@ class _ClientRequestState extends State<ClientRequest> {
 
   Future<void> _updateNotif() async {
     try {
+      final int userId = storage.read("user_id");
       final response = await taskController.updateNotif(
         widget.requestID ?? 0,
+        userId,
       );
       debugPrint("Update notification response: ${response.toString()}");
       if (!response) {
@@ -148,7 +150,7 @@ class _ClientRequestState extends State<ClientRequest> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          _taskInformation!.title ?? "NULL",
+                                          "N/A",
                                           style: GoogleFonts.montserrat(
                                             color: const Color(0xFF03045E),
                                             fontSize: 14,
@@ -290,14 +292,7 @@ class _ClientRequestState extends State<ClientRequest> {
                                       debugPrint(
                                           "Reject request result: $result");
                                       if (result) {
-                                        if (!mounted) return;
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text("Sample"),
-                                            backgroundColor: Colors.red,
-                                          ),
-                                        );
+                                        Navigator.pop(context);
                                       } else {
                                         setState(() {
                                           _isLoading = false;
@@ -348,12 +343,17 @@ class _ClientRequestState extends State<ClientRequest> {
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) =>
-                                              IndividualChatScreen(
-                                                taskTitle:_taskInformation!.title,
-                                                taskTakenId: _requestInformation!.task_taken_id ?? 0,
-                                                taskId: _requestInformation!.client_id ?? 0,
-                                                taskTakenStatus: "",
-                                              ),
+                                                IndividualChatScreen(
+                                              taskTitle:
+                                                  _taskInformation!.title,
+                                              taskTakenId: _requestInformation!
+                                                  .task_taken_id as int,
+                                              taskId: _requestInformation!
+                                                  .client_id as int,
+                                              taskTakenStatus:
+                                                  _requestInformation!
+                                                      .task_status as String,
+                                            ),
                                           ),
                                         ).then((value) {
                                           setState(() {
@@ -394,7 +394,7 @@ class _ClientRequestState extends State<ClientRequest> {
                                   width: double.infinity,
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(10),
-                                    color: Colors.yellow,
+                                    color: Colors.red,
                                   ),
                                   child: TextButton(
                                     onPressed: () {},
@@ -406,7 +406,7 @@ class _ClientRequestState extends State<ClientRequest> {
                                       ),
                                     ),
                                     child: Text(
-                                      'Accepted',
+                                      'Cancel',
                                       style: GoogleFonts.montserrat(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
