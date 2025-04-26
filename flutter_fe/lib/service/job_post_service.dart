@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/specialization.dart';
@@ -146,6 +147,43 @@ class JobPostService {
       return _handleResponse(response);
     } catch (e) {
       return {"error": "Request failed: $e"};
+    }
+  }
+
+  Future<Map<String, dynamic>> _multipartRequest({
+    required String endpoint,
+    required Map<String, String> body,
+    File? file, // Make file optional
+  }) async {
+    final token = await AuthService.getSessionToken();
+    try {
+      var request = http.MultipartRequest('PUT', Uri.parse('$url$endpoint'))
+        ..headers.addAll({"Authorization": "Bearer $token"});
+
+      body.forEach((key, value) {
+        request.fields[key] = value;
+      });
+
+      if (file != null) {
+        // Only add file if it's not null
+        var stream = http.ByteStream(file.openRead());
+        var length = await file.length();
+        var multipartFile = http.MultipartFile(
+          'imageEvidence', // Make sure this matches the backend's expected field name
+          stream,
+          length,
+          filename: file.path.split('/').last,
+        );
+        request.files.add(multipartFile);
+      }
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+      return _handleResponse(response);
+    } catch (e, stackTrace) {
+      debugPrint(e.toString());
+      debugPrint(stackTrace.toString());
+      return {"error": "Request failed. Please Try Again."};
     }
   }
 
@@ -678,6 +716,28 @@ class JobPostService {
           endpoint: '/update-request/$taskTakenId',
           body: {"value": value, "role": role, "client_id": clientId});
     } catch (e) {
+      debugPrint('Error accepting task: $e');
+      debugPrintStack();
+      return {'success': false, 'error': 'Error: $e'};
+    }
+  }
+
+  Future<Map<String, dynamic>> raiseADispute(
+      int taskTakenId, String value, String role, File imageEvidence) async {
+     try {
+        int clientId = await storage.read('user_id');
+        // Use multipart request if there's a file to upload
+        if (imageEvidence.existsSync()) {
+          return await _multipartRequest(
+              endpoint: '/update-request/$taskTakenId',
+              body: {"value": value, "role": role, "client_id": clientId.toString()},
+              file: imageEvidence);
+        }
+        // Fallback to regular PUT request if no file
+        return await _putRequest(
+            endpoint: '/update-request/$taskTakenId',
+            body: {"value": value, "role": role, "client_id": clientId});
+      } catch (e) {
       debugPrint('Error accepting task: $e');
       debugPrintStack();
       return {'success': false, 'error': 'Error: $e'};

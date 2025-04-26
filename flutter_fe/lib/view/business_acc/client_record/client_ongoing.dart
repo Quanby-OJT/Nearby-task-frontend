@@ -216,10 +216,11 @@ class _ClientOngoingState extends State<ClientOngoing> {
             _isLoading = true;
           });
           try {
-            bool result = await taskController.acceptRequest(
+            bool result = await taskController.raiseADispute(
               _requestInformation?.task_taken_id ?? 0,
-              'Finish',
+              'Disputed',
               widget.role ?? '',
+              imageEvidence ?? File(''),
             );
 
             if (result) {
@@ -234,7 +235,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
               );
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Failed to finish task')),
+                SnackBar(content: Text('Failed to raise dispute. Please Try Again.')),
               );
             }
           } catch (e, stackTrace) {
