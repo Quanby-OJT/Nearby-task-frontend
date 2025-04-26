@@ -81,6 +81,17 @@
               </button>
             </td>
           </tr>
+          <!-- Placeholder rows to ensure total rows match reportsPerPage -->
+          <tr *ngFor="let placeholder of placeholderRows">
+            <td class="px-4 py-3 text-center"></td>
+            <td class="px-4 py-3 text-center"></td>
+            <td class="px-4 py-3 text-center"></td>
+            <td class="px-4 py-3 text-center"></td>
+            <td class="px-4 py-3 text-center"></td>
+            <td class="px-4 py-3 text-center"></td>
+            <td class="px-4 py-3 text-center"></td>
+            <td class="flex items-center justify-center pt-3 pb-0"></td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -169,6 +180,17 @@
               <span [ngClass]="{'bg-green-500': report.status, 'bg-yellow-500': !report.status}" class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-yellow-500">{{ report.status ? 'Processed' : 'Pending' }}</span>
             </td>
             <td class="px-4 py-3 text-center"> {{ report.action_by ? report.actionBy.first_name + " " + report.actionBy.middle_name + " " + report.actionBy.last_name  : 'null' }} </td>
+          </tr>
+          <!-- Placeholder rows to ensure total rows match reportsPerPage -->
+          <tr *ngFor="let placeholder of placeholderRows" class="border-b">
+            <td class="px-4 py-3 text-center"></td>
+            <td class="px-4 py-3 text-center"></td>
+            <td class="px-4 py-3 text-center"></td>
+            <td class="px-4 py-3 text-center"></td>
+            <td class="px-4 py-3 text-center"></td>
+            <td class="px-4 py-3 text-center"></td>
+            <td class="px-4 py-3 text-center"></td>
+            <td class="px-4 py-3 text-center"></td>
           </tr>
         </tbody>
       </table>

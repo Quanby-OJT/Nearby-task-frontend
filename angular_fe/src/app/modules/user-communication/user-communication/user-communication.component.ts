@@ -18,6 +18,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
   conversation: any[] = [];
   filteredConversations: any[] = [];
   displayConversations: any[] = [];
+  placeholderRows: any[] = []; 
   paginationButtons: (number | string)[] = [];
   conversationsPerPage: number = 10;
   currentPage: number = 1;
@@ -118,6 +119,11 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
     );
     this.startIndex = (this.currentPage - 1) * this.conversationsPerPage + 1;
     this.endIndex = Math.min(this.currentPage * this.conversationsPerPage, this.filteredConversations.length);
+
+   
+    const placeholderCount = this.conversationsPerPage - this.displayConversations.length;
+    this.placeholderRows = Array(placeholderCount).fill({});
+
     this.makePaginationButtons();
   }
 

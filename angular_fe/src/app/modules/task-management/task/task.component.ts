@@ -26,17 +26,18 @@ export class TaskComponent implements OnInit {
   totalPages: number = 1;
   currentSearchText: string = '';
   currentStatusFilter: string = '';
+  // New property for placeholder rows
+  placeholderRows: any[] = [];
 
   constructor(
     private route: Router,
     private taskService: TaskService
   ) {
-    // Listen for navigation events to refresh tasks
     this.route.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe(() => {
         if (this.route.url === '/tasks-management') {
-          this.fetchTasks(); // Refresh tasks when navigating back
+          this.fetchTasks();
         }
       });
   }
@@ -48,7 +49,7 @@ export class TaskComponent implements OnInit {
   fetchTasks(): void {
     this.taskService.getTasks().subscribe(
       (response) => {
-        console.log('Fetched tasks:', response.tasks); 
+        console.log('Fetched tasks:', response.tasks);
         this.tasks = response.tasks;
         this.filteredTasks = response.tasks;
         this.updatePagination();
@@ -70,28 +71,17 @@ export class TaskComponent implements OnInit {
   applyFilters() {
     let tempTasks = [...this.tasks];
 
-    // Apply search filter if there's a search term
     if (this.currentSearchText) {
       tempTasks = tempTasks.filter(task => {
-        // Ensure all name parts are strings and handle null/undefined
         const firstName = (task.clients.user.first_name || '').toLowerCase();
         const middleName = (task.clients.user.middle_name || '').toLowerCase();
         const lastName = (task.clients.user.last_name || '').toLowerCase();
-
-        // Create full name with proper spacing
-        const fullName = [firstName, middleName, lastName]
-          .filter(name => name) // Remove empty strings
-          .join(' ');
-
-        // Split search terms to allow matching individual words
+        const fullName = [firstName, middleName, lastName].filter(name => name).join(' ');
         const searchTerms = this.currentSearchText.split(/\s+/).filter(term => term);
-
-        // Check if all search terms are present in the full name
         return searchTerms.every(term => fullName.includes(term));
       });
     }
 
-    // Apply status filter if a status is selected
     if (this.currentStatusFilter) {
       tempTasks = tempTasks.filter(task => {
         const taskStatus = task.status?.toLowerCase();
@@ -110,6 +100,9 @@ export class TaskComponent implements OnInit {
       (this.currentPage - 1) * this.tasksPerPage,
       this.currentPage * this.tasksPerPage
     );
+    // Calculate and generate placeholder rows
+    const placeholderCount = this.tasksPerPage - this.displayedTasks.length;
+    this.placeholderRows = Array(placeholderCount).fill({});
     this.generatePagination();
   }
 
@@ -117,17 +110,17 @@ export class TaskComponent implements OnInit {
     let maxPagesToShow = 3;
     let startPage = Math.max(1, this.currentPage - 1);
     let endPage = Math.min(this.totalPages, startPage + maxPagesToShow - 1);
-  
+
     this.paginationButtons = [];
-  
+
     if (startPage > 2) {
       this.paginationButtons.push('...');
     }
-  
+
     for (let i = startPage; i <= endPage; i++) {
       this.paginationButtons.push(i);
     }
-  
+
     if (endPage < this.totalPages - 1) {
       this.paginationButtons.push('...');
     }
@@ -158,14 +151,13 @@ export class TaskComponent implements OnInit {
         index + 1,
         task?.clients?.client_id ?? task.client_id ?? '',
         `"${task.clients.user.first_name} ${task.clients.user.middle_name || ''} ${task.clients.user.last_name}"`,
-        `"${task.task_title || ''}"`, // Wrap in quotes to handle commas
+        `"${task.task_title || ''}"`,
         task.specialization || '',
         task.proposed_price || 0,
-        `"${task.location || ''}"`, // Wrap in quotes to handle commas in location
-        task.urgent ? 'Yes' : 'No', // Convert boolean to "Yes" or "No"
-        task.status || 'null', // Ensure status is a string like "Available"
+        `"${task.location || ''}"`,
+        task.urgent ? 'Yes' : 'No',
+        task.status || 'null',
       ];
-      console.log('CSV Row:', row); // Debug log to verify data
       return row;
     });
     const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
@@ -190,7 +182,7 @@ export class TaskComponent implements OnInit {
       task.task_title || '',
       task.specialization || '',
       task.proposed_price || 0,
-      task.location || '', // No quotes needed for PDF
+      task.location || '',
       task.urgent ? 'Yes' : 'No',
       task.status || 'null',
     ]);

@@ -36,6 +36,7 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
   isModalOpen: boolean = false;
   selectedReport: any = null;
   userRole: string | undefined;
+  placeholderRows: any[] = []; // Added for placeholder rows
 
   private reportsSubscription!: Subscription;
 
@@ -126,6 +127,11 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
     );
     this.startIndex = (this.currentPage - 1) * this.reportsPerPage + 1;
     this.endIndex = Math.min(this.currentPage * this.reportsPerPage, this.filteredReports.length);
+    
+    // Calculate the number of empty rows based on reportsPerPage
+    const placeholderCount = this.reportsPerPage - this.displayReports.length;
+    this.placeholderRows = Array(placeholderCount).fill({});
+    
     this.makePaginationButtons();
   }
 

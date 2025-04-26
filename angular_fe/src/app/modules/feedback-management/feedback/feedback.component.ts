@@ -23,6 +23,7 @@ export class FeedbackComponent implements OnInit {
   startIndex: number = 1;
   endIndex: number = 0;
   paginationButtons: (number | string)[] = [];
+  placeholderRows: any[] = []; // Added for placeholder rows
 
   constructor(private feedbackService: FeedbackService) {}
 
@@ -86,6 +87,11 @@ export class FeedbackComponent implements OnInit {
     this.displayFeedbacks = this.filteredFeedbacks.slice(start, end);
     this.startIndex = this.filteredFeedbacks.length === 0 ? 0 : start + 1;
     this.endIndex = Math.min(end, this.filteredFeedbacks.length);
+    
+    // Calculate the number of empty rows based on logsPerPage
+    const placeholderCount = this.logsPerPage - this.displayFeedbacks.length;
+    this.placeholderRows = Array(placeholderCount).fill({});
+    
     this.makePaginationButtons();
   }
 

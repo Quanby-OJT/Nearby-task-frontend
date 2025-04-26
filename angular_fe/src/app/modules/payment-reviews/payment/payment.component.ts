@@ -24,6 +24,7 @@ export class PaymentComponent implements OnInit {
   startIndex: number = 1;
   endIndex: number = 0;
   paginationButtons: (number | string)[] = [];
+  placeholderRows: any[] = []; // Added for placeholder rows
 
   constructor(private paymentService: PaymentService) {}
 
@@ -77,6 +78,11 @@ export class PaymentComponent implements OnInit {
     this.displayPaymentLogs = this.filteredPaymentLogs.slice(start, end);
     this.startIndex = start + 1;
     this.endIndex = Math.min(end, this.filteredPaymentLogs.length);
+    
+    // Calculate the number of empty rows based on logsPerPage
+    const placeholderCount = this.logsPerPage - this.displayPaymentLogs.length;
+    this.placeholderRows = Array(placeholderCount).fill({});
+    
     this.makePaginationButtons();
   }
 

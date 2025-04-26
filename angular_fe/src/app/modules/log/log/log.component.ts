@@ -25,6 +25,7 @@ export class LogComponent implements OnInit, OnDestroy {
   endIndex: number = 0;
   currentSearchText: string = '';
   currentStatusFilter: string = '';
+  placeholderRows: any[] = []; // Added for placeholder rows
 
   private logsSubscription!: Subscription;
 
@@ -104,6 +105,11 @@ export class LogComponent implements OnInit, OnDestroy {
     );
     this.startIndex = (this.currentPage - 1) * this.logsPerPage + 1;
     this.endIndex = Math.min(this.currentPage * this.logsPerPage, this.filteredLogs.length);
+    
+    // Calculate the number of empty rows based on logsPerPage
+    const placeholderCount = this.logsPerPage - this.displayLogs.length;
+    this.placeholderRows = Array(placeholderCount).fill({});
+    
     this.makePaginationButtons();
   }
 

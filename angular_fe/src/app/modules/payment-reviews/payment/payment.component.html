@@ -57,6 +57,15 @@
           <td class="px-4 py-3 text-center">{{ log.created_at }}</td>
           <td class="px-4 py-3 text-center">{{ log.deposit_date }}</td>
         </tr>
+        <!-- Placeholder rows to ensure total rows match logsPerPage -->
+        <tr *ngFor="let placeholder of placeholderRows">
+          <td class="px-4 py-3 text-center"></td>
+          <td class="px-4 py-3 text-center"></td>
+          <td class="px-4 py-3 text-center"></td>
+          <td class="px-4 py-3 text-center"></td>
+          <td class="px-4 py-3 text-center"></td>
+          <td class="px-4 py-3 text-center"></td>
+        </tr>
       </tbody>
     </table>
   </div>

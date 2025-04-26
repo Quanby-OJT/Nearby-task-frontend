@@ -75,6 +75,12 @@
             </div>
           </td>
         </tr>
+        
+        <!-- Placeholder rows to maintain fixed table size -->
+        <tr *ngFor="let placeholder of placeholderRows" >
+          <td class="px-4 py-3 text-center" colspan="7"></td>
+        </tr>
+
       </tbody>
     </table>
   </div>
