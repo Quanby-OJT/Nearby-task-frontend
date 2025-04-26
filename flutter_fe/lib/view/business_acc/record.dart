@@ -5,6 +5,7 @@ import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_coinfirmed.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_finish.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_ongoing.dart';
+import 'package:flutter_fe/view/business_acc/client_record/display_list_pending.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -42,95 +43,93 @@ class _RecordPageState extends State<RecordPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
-        title: Center(
-          child: Text(
-            'Record',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.montserrat(
-              color: Color(0xFF0272B1),
-              fontWeight: FontWeight.w600,
-              fontSize: 18,
-            ),
-          ),
-        ),
-      ),
-      body: Column(children: [
-        Container(
-          color: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.only(left: 16.0, top: 20.0),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'You Currently Have:',
-                style: GoogleFonts.montserrat(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  color: Colors.black54,
-                ),
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.white,
+          title: Center(
+            child: Text(
+              'Record',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.montserrat(
+                color: Color(0xFF0272B1),
+                fontWeight: FontWeight.w600,
+                fontSize: 18,
               ),
             ),
           ),
         ),
-        _isLoading
-          ? Container(
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 16.0),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Calculating NearByTask credits...",
-                    style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.yellow.shade800),
+        body: Column(children: [
+          Container(
+            color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 16.0, top: 20.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'You Currently Have:',
+                  style: GoogleFonts.montserrat(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: Colors.black54,
                   ),
                 ),
               ),
-            )
-          : _escrowManagementController.tokenCredits.value == 0
-            ? Container(
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 16.0),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "You don't have any NearByTask Credits to your account. Add more by depositing the amount in order to use the system.",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.roboto(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0XFFB62C5C)
-                    )
-                  ),
-                ),
-              ),
-            )
-          : Container(
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 16.0),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text.rich(TextSpan(children: [
-                    TextSpan(
-                        style: GoogleFonts.openSans(
-                            fontSize: 22,
+            ),
+          ),
+          _isLoading
+              ? Container(
+                  color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 16.0),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Calculating NearByTask credits...",
+                        style: TextStyle(
+                            fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF0272B1)),
-                        text:
-                            '${_escrowManagementController.tokenCredits.value} NearByTask Credits'),
-                  ])),
-                ),
-              ),
-            ),
-        Expanded(
-          child: Container(
+                            color: Colors.yellow.shade800),
+                      ),
+                    ),
+                  ),
+                )
+              : _escrowManagementController.tokenCredits.value == 0
+                  ? Container(
+                      color: Colors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 16.0),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                              "You don't have any NearByTask Credits to your account. Add more by depositing the amount in order to use the system.",
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.roboto(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0XFFB62C5C))),
+                        ),
+                      ),
+                    )
+                  : Container(
+                      color: Colors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 16.0),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text.rich(TextSpan(children: [
+                            TextSpan(
+                                style: GoogleFonts.openSans(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF0272B1)),
+                                text:
+                                    '${_escrowManagementController.tokenCredits.value} NearByTask Credits'),
+                          ])),
+                        ),
+                      ),
+                    ),
+          Expanded(
+              child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
             ),
@@ -157,244 +156,297 @@ class _RecordPageState extends State<RecordPage> {
                           ),
                         ),
                         const SizedBox(height: 16),
-
                       ],
                     ),
                   ),
                 ))
               ],
             ),
-          )
-        ),
-        //Client Task Progress
-        Expanded(
-          child: Container(
-            color: Colors.white,
-            padding: const EdgeInsets.all(16.0),
-            alignment: Alignment.center,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              shrinkWrap: true,
-              children: [
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(20),
-                    hoverColor: Colors.yellow.withOpacity(0.1),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => DisplayListRecordOngoing(),
+          )),
+          //Client Task Progress
+          Expanded(
+            child: Container(
+              color: Colors.white,
+              padding: const EdgeInsets.all(16.0),
+              alignment: Alignment.center,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                shrinkWrap: true,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        hoverColor: Colors.yellow.withOpacity(0.1),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DisplayListRecordPending(),
+                            ),
+                          ).then((value) {
+                            setState(() {
+                              _isLoading = true;
+                            });
+                          });
+                        },
+                        child: Container(
+                          width: 150, // Width of each card
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.yellow.withOpacity(0.1),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Pending Task',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.yellow,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              // Optionally, add more details like a count or icon
+                              Icon(
+                                Icons.task,
+                                color: Colors.yellow,
+                                size: 24,
+                              ),
+                            ],
+                          ),
                         ),
-                      ).then((value) {
-                        setState(() {
-                          _isLoading = true;
-                        });
-                      });
-                    },
-                    child: Container(
-                      width: 150, // Width of each card
-                      padding: const EdgeInsets.all(16.0),
-                      decoration: BoxDecoration(
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        hoverColor: Colors.yellow.withOpacity(0.1),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DisplayListRecordOngoing(),
+                            ),
+                          ).then((value) {
+                            setState(() {
+                              _isLoading = true;
+                            });
+                          });
+                        },
+                        child: Container(
+                          width: 150, // Width of each card
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.yellow.withOpacity(0.1),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Ongoing Task',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.yellow,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              // Optionally, add more details like a count or icon
+                              Icon(
+                                Icons.task,
+                                color: Colors.yellow,
+                                size: 24,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16.0),
+                    child: Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
-                        color: Colors.orange.shade300,
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Ongoing Task',
-                            style: GoogleFonts.montserrat(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 8),
-                          // Optionally, add more details like a count or icon
-                          Icon(
-                            Icons.handyman,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 16.0),
-                  child: Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      hoverColor: Colors.green.withOpacity(0.1),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  DisplayListRecordConfirmed()),
-                        ).then((value) {
-                          setState(() {
-                            _isLoading = true;
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        hoverColor: Colors.green.withOpacity(0.1),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    DisplayListRecordConfirmed()),
+                          ).then((value) {
+                            setState(() {
+                              _isLoading = true;
+                            });
                           });
-                        });
-                      },
-                      child: Container(
-                        width: 150, // Width of each card
-                        padding: const EdgeInsets.all(16.0),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: Colors.green.withOpacity(0.1),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Confirmed Task',
-                              style: GoogleFonts.montserrat(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                        },
+                        child: Container(
+                          width: 150, // Width of each card
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.green.withOpacity(0.1),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Confirmed Task',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              // Optionally, add more details like a count or icon
+                              Icon(
+                                Icons.task,
                                 color: Colors.green,
+                                size: 24,
                               ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 8),
-                            // Optionally, add more details like a count or icon
-                            Icon(
-                              Icons.task,
-                              color: Colors.green,
-                              size: 24,
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      hoverColor: Colors.blue.withOpacity(0.1),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  DisplayListRecordFinish()),
-                        ).then((value) {
-                          setState(() {
-                            _isLoading = true;
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        hoverColor: Colors.blue.withOpacity(0.1),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    DisplayListRecordFinish()),
+                          ).then((value) {
+                            setState(() {
+                              _isLoading = true;
+                            });
                           });
-                        });
-                      },
-                      child: Container(
-                        width: 150, // Width of each card
-                        padding: const EdgeInsets.all(16.0),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: Colors.blue.withOpacity(0.1),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Completed Task',
-                              style: GoogleFonts.montserrat(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                        },
+                        child: Container(
+                          width: 150, // Width of each card
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.blue.withOpacity(0.1),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Completed Task',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              // Optionally, add more details like a count or icon
+                              Icon(
+                                Icons.task,
                                 color: Colors.blue,
+                                size: 24,
                               ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 8),
-                            // Optionally, add more details like a count or icon
-                            Icon(
-                              Icons.task,
-                              color: Colors.blue,
-                              size: 24,
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      hoverColor: Colors.red.withOpacity(0.1),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  DisplayListRecordConfirmed()),
-                        ).then((value) {
-                          setState(() {
-                            _isLoading = true;
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        hoverColor: Colors.red.withOpacity(0.1),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    DisplayListRecordConfirmed()),
+                          ).then((value) {
+                            setState(() {
+                              _isLoading = true;
+                            });
                           });
-                        });
-                      },
-                      child: Container(
-                        width: 150, // Width of each card
-                        padding: const EdgeInsets.all(16.0),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: Colors.red.withOpacity(0.1),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Rejected Task',
-                              style: GoogleFonts.montserrat(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.red,
+                        },
+                        child: Container(
+                          width: 150, // Width of each card
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.red.withOpacity(0.1),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Rejected Task',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.red,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 8),
-                            // Optionally, add more details like a count or icon
-                            Icon(
-                              Icons.task,
-                              color: Colors.red,
-                              size: 24,
-                            ),
-                          ],
+                              const SizedBox(height: 8),
+                              // Optionally, add more details like a count or icon
+                              Icon(
+                                Icons.task,
+                                color: Colors.red,
+                                size: 24,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-      ]
-      )
-    );
+        ]));
   }
 }

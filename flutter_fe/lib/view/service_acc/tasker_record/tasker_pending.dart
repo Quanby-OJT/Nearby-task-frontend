@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
@@ -9,15 +10,16 @@ import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 
-class TaskerStart extends StatefulWidget {
+class TaskerPending extends StatefulWidget {
   final int? requestID;
-  const TaskerStart({super.key, this.requestID});
+  final String role;
+  const TaskerPending({super.key, this.requestID, required this.role});
 
   @override
-  State<TaskerStart> createState() => _TaskerStartState();
+  State<TaskerPending> createState() => _TaskerPendingState();
 }
 
-class _TaskerStartState extends State<TaskerStart> {
+class _TaskerPendingState extends State<TaskerPending> {
   final JobPostService _jobPostService = JobPostService();
   final TaskController taskController = TaskController();
   final ProfileController _profileController = ProfileController();
@@ -26,24 +28,54 @@ class _TaskerStartState extends State<TaskerStart> {
   bool _isLoading = true;
   final storage = GetStorage();
   AuthenticatedUser? tasker;
+  String? _role;
+  String? _userRole;
+
+  String _needToConfirm =
+      'The task is pending confirmation. Waiting for your confirmation.';
+  String _needToBeConfirmed = 'Awaiting confirmation.';
 
   @override
   void initState() {
     super.initState();
     _fetchRequestDetails();
     _updateNotif();
+    _fetchUserDetails();
   }
 
   Future<void> _updateNotif() async {
     try {
-      final int userId = storage.read("user_id");
+      final int userId = storage.read("user_id") ?? 0;
       final response = await taskController.updateNotif(
         widget.requestID ?? 0,
         userId,
       );
-      if (!response) debugPrint("Failed to update notification");
+      debugPrint("Update notification response: ${response.toString()}");
+      if (!response) {
+        debugPrint("Failed to update notification");
+      }
     } catch (e) {
       debugPrint("Error updating notification: $e");
+    }
+  }
+
+  Future<void> _fetchUserDetails() async {
+    try {
+      int userId = storage.read("user_id") ?? 0;
+      AuthenticatedUser? user =
+          await _profileController.getAuthenticatedUser(context, userId);
+
+      setState(() {
+        tasker = user;
+        _userRole = user?.user.role ?? 'Unknown';
+      });
+
+      debugPrint("Fetched user details: $_userRole");
+    } catch (e) {
+      debugPrint("Error fetching user details: $e");
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -51,8 +83,10 @@ class _TaskerStartState extends State<TaskerStart> {
     try {
       AuthenticatedUser? user =
           await _profileController.getAuthenticatedUser(context, userId);
+
       setState(() {
         tasker = user;
+        _role = user?.user.role ?? 'Unknown';
       });
     } catch (e) {
       debugPrint("Error fetching tasker details: $e");
@@ -64,15 +98,25 @@ class _TaskerStartState extends State<TaskerStart> {
 
   Future<void> _fetchRequestDetails() async {
     try {
+      debugPrint("Fetching request details for task ID: ${widget.requestID}");
       final response =
           await _jobPostService.fetchRequestInformation(widget.requestID ?? 0);
       setState(() {
         _requestInformation = response;
       });
+      debugPrint(
+          "Fetched request details: ${_requestInformation?.requested_from ?? 'Unknown'}");
+      debugPrint(
+          "Fetched request status: ${_requestInformation?.task_status ?? 'Unknown'}");
+
       await _fetchTaskDetails();
-      await _fetchTaskerDetails(_requestInformation!.client_id as int);
+      if (widget.role == "Tasker") {
+        await _fetchTaskerDetails(_requestInformation?.tasker_id ?? 0);
+      } else {
+        await _fetchTaskerDetails(_requestInformation?.client_id ?? 0);
+      }
     } catch (e) {
-      debugPrint("Error fetching task details: $e");
+      debugPrint("Error fetching request details: $e");
       setState(() {
         _isLoading = false;
       });
@@ -82,7 +126,7 @@ class _TaskerStartState extends State<TaskerStart> {
   Future<void> _fetchTaskDetails() async {
     try {
       final response = await _jobPostService
-          .fetchTaskInformation(_requestInformation!.task_id as int);
+          .fetchTaskInformation(_requestInformation?.task_id ?? 0);
       setState(() {
         _taskInformation = response?.task;
         _isLoading = false;
@@ -92,6 +136,64 @@ class _TaskerStartState extends State<TaskerStart> {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _handleRejectTask(BuildContext context) async {
+    bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Reject Task',
+          style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+        ),
+        content: Text(
+          'Are you sure you want to reject this task? This action cannot be undone.',
+          style: GoogleFonts.montserrat(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child:
+                Text('No', style: GoogleFonts.montserrat(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () async {
+              setState(() {
+                _isLoading = true;
+              });
+
+              final String value = 'Reject';
+              bool result = await taskController.acceptRequest(
+                  _requestInformation?.task_taken_id ?? 0,
+                  value,
+                  _role ?? 'Unknown');
+              if (result) {
+                Navigator.pop(context);
+                setState(() {
+                  _isLoading = true;
+                });
+                await _fetchRequestDetails();
+                setState(() {
+                  _isLoading = false;
+                });
+              } else {
+                setState(() {
+                  _isLoading = false;
+                });
+              }
+            },
+            child:
+                Text('Yes', style: GoogleFonts.montserrat(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Task rejection requested')),
+      );
     }
   }
 
@@ -121,7 +223,9 @@ class _TaskerStartState extends State<TaskerStart> {
 
               final String value = 'Cancel';
               bool result = await taskController.acceptRequest(
-                  _requestInformation?.task_taken_id ?? 0, value, 'Tasker');
+                  _requestInformation?.task_taken_id ?? 0,
+                  value,
+                  _role ?? 'Unknown');
               if (result) {
                 Navigator.pop(context);
                 setState(() {
@@ -146,37 +250,83 @@ class _TaskerStartState extends State<TaskerStart> {
 
     if (confirm == true) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Task cancellation requested')),
+        SnackBar(content: Text('Task rejection requested')),
       );
     }
   }
 
-  Future<void> _handleRescheduleTask() async {
-    DateTime? selectedDate = await showDatePicker(
+  Future<void> _handleAcceptTask(BuildContext context) async {
+    bool? confirm = await showDialog<bool>(
       context: context,
-      initialDate: DateTime.now().add(Duration(days: 1)),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(Duration(days: 30)),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: ColorScheme.light(
-              primary: Color(0xFF03045E),
-              onPrimary: Colors.white,
-              surface: Colors.white,
-            ),
-            dialogBackgroundColor: Colors.white,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Accept Task',
+          style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+        ),
+        content: Text(
+          'Are you sure you want to accept this task? This action cannot be undone.',
+          style: GoogleFonts.montserrat(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child:
+                Text('No', style: GoogleFonts.montserrat(color: Colors.grey)),
           ),
-          child: child!,
-        );
-      },
+          TextButton(
+            onPressed: () async {
+              setState(() {
+                _isLoading = true;
+              });
+              debugPrint("Accept request role: $_role");
+              final String value = 'Accept';
+              bool result = await taskController.acceptRequest(
+                  _requestInformation?.task_taken_id ?? 0,
+                  value,
+                  _role ?? 'Unknown');
+              setState(() {
+                _isLoading = false;
+              });
+              if (result) {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => IndividualChatScreen(
+                      taskTitle: _taskInformation?.title ?? 'Task',
+                      taskTakenId: _requestInformation?.task_taken_id ?? 0,
+                      taskId: _requestInformation?.client_id ?? 0,
+                      taskTakenStatus:
+                          _requestInformation?.task_status ?? 'Unknown',
+                    ),
+                  ),
+                );
+                setState(() {
+                  _isLoading = true;
+                });
+                await _fetchRequestDetails();
+                setState(() {
+                  _isLoading = false;
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Task accepted successfully')),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Failed to accept task')),
+                );
+              }
+              Navigator.pop(context, true);
+            },
+            child:
+                Text('Yes', style: GoogleFonts.montserrat(color: Colors.red)),
+          ),
+        ],
+      ),
     );
 
-    if (selectedDate != null) {
-      // TODO: Implement actual reschedule API call
-      String formattedDate = DateFormat('yyyy-MM-dd').format(selectedDate);
+    if (confirm == true) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Reschedule requested for $formattedDate')),
+        SnackBar(content: Text('Task accepted')),
       );
     }
   }
@@ -193,7 +343,7 @@ class _TaskerStartState extends State<TaskerStart> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Confirmed Task',
+          'Pending Task',
           style: GoogleFonts.montserrat(
             color: Color(0xFF03045E),
             fontSize: 20,
@@ -204,7 +354,7 @@ class _TaskerStartState extends State<TaskerStart> {
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: Color(0xFF03045E)))
-          : _taskInformation == null
+          : _taskInformation == null || _requestInformation == null
               ? Center(
                   child: Text(
                     'No task information available',
@@ -220,57 +370,24 @@ class _TaskerStartState extends State<TaskerStart> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Status Section
                         _buildStatusSection(),
                         SizedBox(height: 16),
-                        // Task Card
                         _buildTaskCard(),
                         SizedBox(height: 16),
-                        // Client Profile Card
                         _buildProfileCard(),
-                        if (_requestInformation!.task_status ==
-                            "Confirmed") ...[
+                        if (_requestInformation?.task_status == "Pending") ...[
                           SizedBox(height: 24),
-                          // Action Buttons
-                          _buildActionButtons(),
+                          _buildActionButtons(
+                              _requestInformation?.requested_from ?? 'Unknown'),
                         ],
-                        if (_requestInformation!.task_status !=
-                            "Confirmed") ...[
-                          SizedBox(height: 24),
-                          // Action Buttons
-                          _buildBackButtons(),
+                        if (_requestInformation?.task_status != "Pending") ...[
+                          SizedBox(height: 16),
+                          _buildActionButton(),
                         ],
                       ],
                     ),
                   ),
                 ),
-    );
-  }
-
-  Widget _buildBackButtons() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () {
-          Navigator.pop(context);
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Color(0xFF03045E),
-          padding: EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 2,
-        ),
-        child: Text(
-          'Back to Tasks',
-          style: GoogleFonts.montserrat(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-      ),
     );
   }
 
@@ -292,7 +409,7 @@ class _TaskerStartState extends State<TaskerStart> {
           ),
           SizedBox(height: 12),
           Text(
-            'Awaiting Client',
+            'Pending to Confirm',
             style: GoogleFonts.montserrat(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -301,7 +418,9 @@ class _TaskerStartState extends State<TaskerStart> {
           ),
           SizedBox(height: 8),
           Text(
-            'The task is confirmed. Waiting for the client to start the task.',
+            _requestInformation?.requested_from != _userRole
+                ? _needToConfirm
+                : _needToBeConfirmed,
             textAlign: TextAlign.center,
             style: GoogleFonts.montserrat(
               fontSize: 14,
@@ -335,7 +454,7 @@ class _TaskerStartState extends State<TaskerStart> {
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    _taskInformation!.title ?? 'Task',
+                    _taskInformation?.title ?? 'Task',
                     style: GoogleFonts.montserrat(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -361,7 +480,7 @@ class _TaskerStartState extends State<TaskerStart> {
             _buildTaskInfoRow(
               icon: Icons.info,
               label: 'Status',
-              value: _requestInformation?.task_status ?? 'Confirmed',
+              value: _requestInformation?.task_status ?? 'Pending',
             ),
           ],
         ),
@@ -394,7 +513,9 @@ class _TaskerStartState extends State<TaskerStart> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Client Profile',
+                      widget.role == "Tasker"
+                          ? "Tasker Profile"
+                          : "Client Profile",
                       style: GoogleFonts.montserrat(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -432,51 +553,101 @@ class _TaskerStartState extends State<TaskerStart> {
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () {
+          Navigator.pop(context);
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Color(0xFF03045E),
+          padding: EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 2,
+        ),
+        child: Text(
+          'Back to Tasks',
+          style: GoogleFonts.montserrat(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(String requestedFrom) {
     return Row(
       children: [
-        Expanded(
-          child: OutlinedButton(
-            onPressed: () => _handleCancelTask(context),
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: Colors.red[400]!),
-              padding: EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+        if (requestedFrom != _userRole)
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () => _handleRejectTask(context),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: Colors.red[400]!),
+                padding: EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
-            ),
-            child: Text(
-              'Cancel Task',
-              style: GoogleFonts.montserrat(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.red[400],
+              child: Text(
+                'Reject',
+                style: GoogleFonts.montserrat(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red[400],
+                ),
               ),
             ),
           ),
-        ),
         SizedBox(width: 12),
-        Expanded(
-          child: ElevatedButton(
-            onPressed: _handleRescheduleTask,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue[600],
-              padding: EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+        if (requestedFrom != _userRole)
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () => _handleAcceptTask(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue[600],
+                padding: EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 2,
               ),
-              elevation: 2,
-            ),
-            child: Text(
-              'Reschedule',
-              style: GoogleFonts.montserrat(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
+              child: Text(
+                'Accept',
+                style: GoogleFonts.montserrat(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
-        ),
+        if (requestedFrom == _userRole)
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () => _handleCancelTask(context),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: Colors.red[400]!),
+                padding: EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.montserrat(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red[400],
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }

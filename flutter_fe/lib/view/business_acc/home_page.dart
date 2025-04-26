@@ -41,7 +41,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   int? cardNumber = 0;
   Map<int, List<TaskerFeedback>> _taskerFeedbacks = {};
 
-
   AuthenticatedUser? _user;
   String? _existingProfileImageUrl;
   String? _existingIDImageUrl;
@@ -154,16 +153,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         taskers = fetchedTaskers
             .map((tasker) =>
                 AuthenticatedUser(tasker: tasker, user: tasker.user!))
-            .toList();
+            .toList()
+          ..sort((a, b) => b.tasker!.rating.compareTo(a.tasker!.rating));
+
         cardNumber = fetchedTaskers.length;
         _isLoading = false;
-      });
-
-      // Fetch feedback for each tasker in parallel to improve performance
-      final feedbackFutures = fetchedTaskers.map((tasker) => _taskerService.getTaskerFeedback(tasker.id)).toList();
-      final allFeedbacks = await Future.wait(feedbackFutures);
-      setState(() {
-        _taskerFeedbacks = Map.fromIterables(fetchedTaskers.map((t) => t.id), allFeedbacks);
       });
     } catch (error) {
       setState(() {
@@ -732,7 +726,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) =>
-                                            TaskerProfilePage(
+                                                TaskerProfilePage(
                                               tasker: tasker.tasker!,
                                               isSaved: false,
                                               taskerId: tasker.tasker?.id,
@@ -827,7 +821,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               Row(
                 children: List.generate(
                   5,
-                      (index) => Icon(
+                  (index) => Icon(
                     index < rating ? Icons.star : Icons.star_border,
                     color: Colors.amber,
                     size: 16,
