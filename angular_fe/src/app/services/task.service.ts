@@ -33,9 +33,9 @@ export class TaskService {
   }
 
   disableTask(id: string): Observable<any> {
-    return this.http.put(`${this.apiUrl}/disableTask/${id}`, {}, { 
+    return this.http.patch(`${this.apiUrl}/displayTask/${id}`, {}, { 
       headers: this.getHeaders(),
-      withCredentials: true // This enables sending cookies with the request
+      withCredentials: true 
     });
   }
 }
