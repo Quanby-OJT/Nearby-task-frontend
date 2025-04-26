@@ -9,6 +9,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-complaints',
@@ -33,7 +34,6 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
   endIndex: number = 0;
   currentSearchText: string = '';
   currentStatusFilter: string = '';
-  isModalOpen: boolean = false;
   selectedReport: any = null;
   userRole: string | undefined;
   placeholderRows: any[] = []; // Added for placeholder rows
@@ -177,12 +177,77 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
 
   openModal(reportId: number) {
     this.selectedReport = this.reports.find(report => report.report_id === reportId);
-    this.isModalOpen = true;
-  }
+    if (!this.selectedReport) {
+      Swal.fire('Error', 'Report not found', 'error');
+      return;
+    }
 
-  closeModal() {
-    this.isModalOpen = false;
-    this.selectedReport = null;
+    const handledBy = this.selectedReport.action_by
+      ? `${this.selectedReport.actionBy.first_name || ''} ${this.selectedReport.actionBy.middle_name || ''} ${this.selectedReport.actionBy.last_name || ''}`.trim()
+      : 'Not Handled Yet';
+
+    const htmlContent = `
+      <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
+        <div class="flex mb-4">
+          <div class="font-bold w-32">Report ID:</div>
+          <div>${this.selectedReport.report_id}</div>
+        </div>
+        <div class="flex mb-4">
+          <div class="font-bold w-32">Reporter:</div>
+          <div>${this.selectedReport.reporter.first_name} ${this.selectedReport.reporter.middle_name} ${this.selectedReport.reporter.last_name}</div>
+        </div>
+        <div class="flex mb-4">
+          <div class="font-bold w-32">Violator:</div>
+          <div>${this.selectedReport.violator.first_name} ${this.selectedReport.violator.middle_name} ${this.selectedReport.violator.last_name}</div>
+        </div>
+        <div class="flex mb-4">
+          <div class="font-bold w-32">Reason:</div>
+          <div>${this.selectedReport.reason}</div>
+        </div>
+        <div class="flex mb-4">
+          <div class="font-bold w-32">Status:</div>
+          <div>${this.selectedReport.status ? 'Processed' : 'Pending'}</div>
+        </div>
+        <div class="flex mb-4">
+          <div class="font-bold w-32">Created At:</div>
+          <div>${this.selectedReport.created_at}</div>
+        </div>
+        <div class="flex mb-4">
+          <div class="font-bold w-32">Handled By:</div>
+          <div>${handledBy}</div>
+        </div>
+      </div>
+    `;
+
+    Swal.fire({
+      title: 'Report Details',
+      html: htmlContent,
+      width: '800px',
+      showCancelButton: true,
+      confirmButtonText: 'Ban',
+      confirmButtonColor: '#d33',
+      cancelButtonText: 'Unban',
+      cancelButtonColor: '#28a745',
+      showCloseButton: true,
+      showDenyButton: true,
+      denyButtonText: 'Close',
+      denyButtonColor: '#3085d6',
+      customClass: {
+        htmlContainer: 'text-left'
+      },
+      didOpen: () => {
+        const container = document.querySelector('.swal2-html-container > div');
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+        }
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.banUser(this.selectedReport.report_id);
+      } else if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
+        this.unbanUser(this.selectedReport.report_id);
+      }
+    });
   }
 
   banUser(reportId: number) {
@@ -190,19 +255,22 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
       this.reportService.updateReportStatus(reportId, true).subscribe({
         next: (response) => {
           if (response.success) {
-            const reportIndex = this.reports.findIndex(r => r.report_id === reportId);
-            if (reportIndex !== -1) {
-              this.reports[reportIndex].status = true;
-              this.selectedReport.status = true;
-              this.applyFilters();
-            }
-            this.closeModal();
+            Swal.fire('Banned!', 'User has been banned.', 'success').then(() => {
+              // Refresh the report list after banning
+              this.reportService.getReport().subscribe((response) => {
+                if (response.success) {
+                  this.reports = response.reports;
+                  this.filteredReports = [...this.reports];
+                  this.updatePage();
+                }
+              });
+            });
           } else {
-            console.error('Failed to ban user:', response.message);
+            Swal.fire('Error!', 'Failed to ban the user.', 'error');
           }
         },
         error: (err) => {
-          console.error('Error banning user:', err);
+          Swal.fire('Error!', 'Error banning user.', 'error');
         }
       });
     }
@@ -213,19 +281,22 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
       this.reportService.updateReportStatus(reportId, false).subscribe({
         next: (response) => {
           if (response.success) {
-            const reportIndex = this.reports.findIndex(r => r.report_id === reportId);
-            if (reportIndex !== -1) {
-              this.reports[reportIndex].status = false;
-              this.selectedReport.status = false;
-              this.applyFilters(); 
-            }
-            this.closeModal();
+            Swal.fire('Unbanned!', 'User has been unbanned.', 'success').then(() => {
+              // Refresh the report list after unbanning
+              this.reportService.getReport().subscribe((response) => {
+                if (response.success) {
+                  this.reports = response.reports;
+                  this.filteredReports = [...this.reports];
+                  this.updatePage();
+                }
+              });
+            });
           } else {
-            console.error('Failed to unban user:', response.message);
+            Swal.fire('Error!', 'Failed to unban the user.', 'error');
           }
         },
         error: (err) => {
-          console.error('Error unbanning user:', err);
+          Swal.fire('Error!', 'Error unbanning user.', 'error');
         }
       });
     }
