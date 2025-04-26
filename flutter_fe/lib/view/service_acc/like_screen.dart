@@ -38,6 +38,7 @@ class _LikeScreenState extends State<LikeScreen> {
     super.initState();
     _loadLikedJobs();
     _searchController.addListener(_filterTaskFunction);
+    _fetchUserData();
   }
 
   void _filterTaskFunction() {
@@ -49,7 +50,6 @@ class _LikeScreenState extends State<LikeScreen> {
       }).toList();
     });
 
-    _applyFilters();
     _updateSavedJobs();
   }
 
@@ -88,22 +88,9 @@ class _LikeScreenState extends State<LikeScreen> {
     }
   }
 
-  // Function to simulate a saved job count update
   void _updateSavedJobs() {
     setState(() {
       savedJobsCount = _filteredJobs.length;
-    });
-  }
-
-  void _applyFilters() {
-    setState(() {
-      if (selectedFilters.isNotEmpty) {
-        _filteredJobs = _filteredJobs.where((task) {
-          int priceFilter = _getPriceFilter(task.contactPrice);
-          return selectedFilters.contains(priceFilter);
-        }).toList();
-      }
-      _updateSavedJobs();
     });
   }
 
@@ -118,8 +105,8 @@ class _LikeScreenState extends State<LikeScreen> {
         _isLoading = false;
 
         _role = _user?.user.role ?? '';
-        debugPrint("Role: $_role");
       });
+      debugPrint("Role is sample: $_role");
     } catch (e) {
       print("Error fetching user data: $e");
       setState(() => _isLoading = false);
@@ -144,26 +131,6 @@ class _LikeScreenState extends State<LikeScreen> {
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
-                  ),
-                  SizedBox(height: 10),
-                  Wrap(
-                    spacing: 10,
-                    children: [
-                      _buildFilterChip(500, setModalState),
-                      _buildFilterChip(700, setModalState),
-                      _buildFilterChip(10000, setModalState),
-                      _buildFilterChip(20000, setModalState),
-                      _buildFilterChip(30000, setModalState),
-                      _buildFilterChip(50000, setModalState),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _applyFilters();
-                    },
-                    child: Text("Apply Filters"),
                   ),
                 ],
               ),
@@ -337,20 +304,11 @@ class _LikeScreenState extends State<LikeScreen> {
     );
   }
 
-  int _getPriceFilter(int? price) {
-    if (price == null) return 0;
-    if (price <= 500) return 500;
-    if (price <= 700) return 700;
-    if (price <= 20000) return 20000;
-    if (price <= 300000) return 30000;
-    return 100000;
-  }
-
   Widget _buildJobCard(TaskModel task) {
     return Card(
       color: Color.fromARGB(255, 239, 254, 255),
       elevation: 2, // No shadow, as requested
-      margin: const EdgeInsets.only(top: 16), // Fixed typo from 'custom'
+      margin: const EdgeInsets.only(top: 16),
       child: InkWell(
         onTap: () {
           Navigator.push(

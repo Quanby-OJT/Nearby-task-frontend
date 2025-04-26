@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/view/business_acc/client_record/client_ongoing.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
@@ -10,19 +11,214 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/business_acc/client_record/client_finish.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:async';
 
-class ClientOngoing extends StatefulWidget {
-  final int? ongoingID;
-  final String? role;
-  const ClientOngoing({super.key, this.ongoingID, this.role});
+import 'package:image_picker/image_picker.dart';
+
+class _DisputeBottomSheet extends StatefulWidget {
+  final Function(String reasonForDispute, String raisedBy, File? imageEvidence)
+      onDisputeSubmit;
+
+  const _DisputeBottomSheet({required this.onDisputeSubmit});
 
   @override
-  State<ClientOngoing> createState() => _ClientOngoingState();
+  __DisputeBottomSheetState createState() => __DisputeBottomSheetState();
 }
 
-class _ClientOngoingState extends State<ClientOngoing> {
+class __DisputeBottomSheetState extends State<_DisputeBottomSheet> {
+  final TextEditingController _disputeTypeController = TextEditingController();
+  final TextEditingController _disputeDetailsController =
+      TextEditingController();
+  File? _imageEvidence;
+
+  final ImagePicker _picker = ImagePicker();
+
+  @override
+  void dispose() {
+    _disputeTypeController.dispose();
+    _disputeDetailsController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+
+    setState(() {
+      if (pickedFile != null) {
+        _imageEvidence = File(pickedFile.path);
+      } else {
+        print('No image selected.');
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+        left: 16,
+        right: 16,
+        top: 16,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Text(
+                'File a Dispute',
+                style: GoogleFonts.montserrat(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF03045E),
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Reason for Dispute',
+              style: GoogleFonts.montserrat(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF03045E),
+              ),
+            ),
+            SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              value: _disputeTypeController.text.isEmpty
+                  ? '--Select Reason of Dispute--'
+                  : _disputeTypeController.text,
+              items: <String>[
+                '--Select Reason of Dispute--',
+                'Poor Quality of Work',
+                'Tasker is Unavailable',
+                'Task Still Not Completed',
+                'Tasker Did Not Finish what\'s Required',
+                'Others (Provide Details)'
+              ].map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child:
+                      Text(value, style: GoogleFonts.montserrat(fontSize: 14)),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                setState(() {
+                  _disputeTypeController.text = newValue ?? '';
+                });
+              },
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+            // Dispute Field
+            Text(
+              'Details of the Dispute',
+              style: GoogleFonts.montserrat(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF03045E),
+              ),
+            ),
+            SizedBox(height: 8),
+            TextField(
+              controller: _disputeDetailsController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                hintText: 'Provide Details About the Dispute',
+                hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Color(0xFF03045E)),
+                ),
+              ),
+              style: GoogleFonts.montserrat(fontSize: 14),
+            ),
+            SizedBox(height: 16),
+            Text('Provide some Evidence',
+                style: GoogleFonts.montserrat(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF03045E))),
+            SizedBox(height: 8),
+            GestureDetector(
+              onTap: _pickImage,
+              child: Container(
+                height: 100,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey[300]!),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: _imageEvidence != null
+                    ? Image.file(_imageEvidence!, fit: BoxFit.cover)
+                    : Icon(Icons.add_photo_alternate,
+                        size: 40, color: Colors.grey[400]),
+              ),
+            ),
+            SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  widget.onDisputeSubmit(_disputeTypeController.text,
+                      _disputeTypeController.text, _imageEvidence);
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF03045E),
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 2,
+                ),
+                child: Text(
+                  'Open a Dispute',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ClientReview extends StatefulWidget {
+  final int? requestID;
+  final String? role;
+  const ClientReview({super.key, this.requestID, this.role});
+
+  @override
+  State<ClientReview> createState() => _ClientReviewState();
+}
+
+class _ClientReviewState extends State<ClientReview> {
   final JobPostService _jobPostService = JobPostService();
   final TaskController taskController = TaskController();
   final ProfileController _profileController = ProfileController();
@@ -30,9 +226,10 @@ class _ClientOngoingState extends State<ClientOngoing> {
   ClientRequestModel? _requestInformation;
   bool _isLoading = true;
   final storage = GetStorage();
-  AuthenticatedUser? tasker;
+  AuthenticatedUser? client;
   Duration? _timeRemaining;
   Timer? _timer;
+  String _requestStatus = 'Unknown';
 
   @override
   void initState() {
@@ -51,10 +248,10 @@ class _ClientOngoingState extends State<ClientOngoing> {
       AuthenticatedUser? user =
           await _profileController.getAuthenticatedUser(context, userId);
       setState(() {
-        tasker = user;
+        client = user;
       });
     } catch (e) {
-      debugPrint("Error fetching tasker details: $e");
+      debugPrint("Error fetching client details: $e");
       setState(() {
         _isLoading = false;
       });
@@ -64,12 +261,15 @@ class _ClientOngoingState extends State<ClientOngoing> {
   Future<void> _fetchRequestDetails() async {
     try {
       final response =
-          await _jobPostService.fetchRequestInformation(widget.ongoingID ?? 0);
+          await _jobPostService.fetchRequestInformation(widget.requestID ?? 0);
       setState(() {
         _requestInformation = response;
+        _requestStatus = _requestInformation?.task_status ?? 'Unknown';
       });
+
+      debugPrint("Fetched request status of this task: $_requestStatus");
       await _fetchTaskDetails();
-      await _fetchTaskerDetails(_requestInformation!.tasker_id as int);
+      await _fetchTaskerDetails(_requestInformation!.client_id as int);
     } catch (e) {
       debugPrint("Error fetching task details: $e");
       setState(() {
@@ -86,48 +286,12 @@ class _ClientOngoingState extends State<ClientOngoing> {
         _taskInformation = response?.task;
         _isLoading = false;
       });
-      _startCountdownTimer();
     } catch (e) {
       debugPrint("Error fetching task details: $e");
       setState(() {
         _isLoading = false;
       });
     }
-  }
-
-  void _startCountdownTimer() {
-    if (_taskInformation?.duration != null &&
-        _taskInformation?.period != null) {
-      int durationInDays = int.parse(_taskInformation!.duration);
-      String period = _taskInformation!.period.toLowerCase();
-
-      if (period.contains('week')) {
-        durationInDays *= 7;
-      } else if (period.contains('month')) {
-        durationInDays *= 30;
-      }
-
-      DateTime endDate = DateTime.now().add(Duration(days: durationInDays));
-      _timeRemaining = endDate.difference(DateTime.now());
-
-      _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-        setState(() {
-          _timeRemaining = endDate.difference(DateTime.now());
-          if (_timeRemaining!.isNegative) {
-            _timeRemaining = Duration.zero;
-            timer.cancel();
-          }
-        });
-      });
-    }
-  }
-
-  String _formatDuration(Duration duration) {
-    if (duration.isNegative) return 'Time’s up!';
-    final days = duration.inDays;
-    final hours = duration.inHours % 24;
-    final minutes = duration.inMinutes % 60;
-    return '${days}d ${hours}h ${minutes}m';
   }
 
   Future<void> _handleFinishTask() async {
@@ -199,69 +363,6 @@ class _ClientOngoingState extends State<ClientOngoing> {
     );
   }
 
-  Future<void> _handleTaskDispute() async {
-    if (_requestInformation == null ||
-        _requestInformation!.task_taken_id == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Task information not available')),
-      );
-      return;
-    }
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => _DisputeBottomSheet(
-        onDisputeSubmit: (String reasonForDispute, String raisedBy,
-            File? imageEvidence) async {
-          setState(() {
-            _isLoading = true;
-          });
-          try {
-            bool result = await taskController.acceptRequest(
-              _requestInformation?.task_taken_id ?? 0,
-              'Finish',
-              widget.role ?? '',
-            );
-
-            if (result) {
-              if (!mounted) return;
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ClientFinish(
-                    finishID: _requestInformation?.task_taken_id ?? 0,
-                    role: widget.role,
-                  ),
-                ),
-              );
-            } else {
-              if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Failed to finish task')),
-              );
-            }
-          } catch (e, stackTrace) {
-            debugPrint("Error finishing task: $e.");
-            debugPrintStack(stackTrace: stackTrace);
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Error occurred')),
-              );
-            }
-          } finally {
-            setState(() {
-              _isLoading = false;
-            });
-          }
-        },
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -274,7 +375,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Ongoing Task',
+          'Review Task',
           style: GoogleFonts.montserrat(
             color: Color(0xFF03045E),
             fontSize: 20,
@@ -301,13 +402,17 @@ class _ClientOngoingState extends State<ClientOngoing> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildTimerSection(),
+                        // Timer Section
+                        if (_requestStatus == 'Review') _buildReviewSection(),
                         SizedBox(height: 16),
+                        // Task Card
                         _buildTaskCard(),
                         SizedBox(height: 16),
+                        // Client Profile Card
                         _buildProfileCard(),
                         SizedBox(height: 24),
-                        _buildActionButton(),
+                        // Action Button
+                        _buildFinishActionButton(context),
                       ],
                     ),
                   ),
@@ -315,50 +420,41 @@ class _ClientOngoingState extends State<ClientOngoing> {
     );
   }
 
-  Widget _buildTimerSection() {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF03045E), Color(0xFF0A2472)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+  Widget _buildReviewSection() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.blue[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue[100]!),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.hourglass_empty,
+            color: Colors.blue[600],
+            size: 40,
           ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              Icons.timer,
-              color: Colors.white,
-              size: 40,
+          SizedBox(height: 12),
+          Text(
+            'Make You Review',
+            style: GoogleFonts.montserrat(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.blue[800],
             ),
-            SizedBox(height: 12),
-            Text(
-              'Time Remaining',
-              style: GoogleFonts.montserrat(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            "Make sure to review the task before clicking the button below.",
+            textAlign: TextAlign.center,
+            style: GoogleFonts.montserrat(
+              fontSize: 14,
+              color: Colors.grey[600],
             ),
-            SizedBox(height: 8),
-            Text(
-              _timeRemaining != null
-                  ? _formatDuration(_timeRemaining!)
-                  : 'Calculating...',
-              style: GoogleFonts.montserrat(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -444,7 +540,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Tasker Profile',
+                      'Client Profile',
                       style: GoogleFonts.montserrat(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -464,16 +560,16 @@ class _ClientOngoingState extends State<ClientOngoing> {
             ),
             SizedBox(height: 16),
             _buildProfileInfoRow(
-                'Name', tasker?.user.firstName ?? 'Not available'),
+                'Name', client?.user.firstName ?? 'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow(
-                'Email', tasker?.user.email ?? 'Not available'),
+                'Email', client?.user.email ?? 'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow(
-                'Phone', tasker?.user.contact ?? 'Not available'),
+                'Phone', client?.user.contact ?? 'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow(
-                'Status', tasker?.user.accStatus ?? 'Not available'),
+                'Status', client?.user.accStatus ?? 'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow('Account', 'Verified', isVerified: true),
           ],
@@ -482,13 +578,142 @@ class _ClientOngoingState extends State<ClientOngoing> {
     );
   }
 
-  Widget _buildActionButton() {
-    return Column(children: [
-      ElevatedButton(
-        onPressed: _handleFinishTask,
+  void _showActionBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+      ),
+      builder: (BuildContext context) {
+        return Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              ElevatedButton(
+                onPressed: _handleFinishTask,
+                style: ElevatedButton.styleFrom(
+                  minimumSize: Size(double.infinity, 50),
+                  backgroundColor: Color(0xFF3E9B52),
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 2,
+                ),
+                child: Text(
+                  _requestInformation?.task_status != 'Disputed'
+                      ? 'Finish Task and Release Payment'
+                      : 'Settle Dispute and Release Payment',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              if (_requestInformation?.task_status != 'Disputed')
+                SizedBox(height: 16),
+              if (_requestInformation?.task_status != 'Disputed')
+                ElevatedButton(
+                  onPressed: _handleTaskDispute,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFFA73140),
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 2,
+                    minimumSize: Size(double.infinity, 50),
+                  ),
+                  child: Text(
+                    'File a Dispute',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              SizedBox(height: 16), // Extra padding at the bottom
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _handleTaskDispute() async {
+    if (_requestInformation == null ||
+        _requestInformation!.task_taken_id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Task information not available')),
+      );
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => _DisputeBottomSheet(
+        onDisputeSubmit: (String reasonForDispute, String raisedBy,
+            File? imageEvidence) async {
+          setState(() {
+            _isLoading = true;
+          });
+          try {
+            bool result = await taskController.acceptRequest(
+              _requestInformation?.task_taken_id ?? 0,
+              'Finish',
+              widget.role ?? '',
+            );
+
+            if (result) {
+              if (!mounted) return;
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ClientFinish(
+                    finishID: _requestInformation?.task_taken_id ?? 0,
+                    role: widget.role,
+                  ),
+                ),
+              );
+            } else {
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Failed to finish task')),
+              );
+            }
+          } catch (e, stackTrace) {
+            debugPrint("Error finishing task: $e.");
+            debugPrintStack(stackTrace: stackTrace);
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error occurred')),
+              );
+            }
+          } finally {
+            setState(() {
+              _isLoading = false;
+            });
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildFinishActionButton(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () => _showActionBottomSheet(context),
         style: ElevatedButton.styleFrom(
-          minimumSize: Size(double.infinity, 50),
-          backgroundColor: Color(0xFF3E9B52),
+          backgroundColor: Color(0xFF03045E),
           padding: EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -496,9 +721,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
           elevation: 2,
         ),
         child: Text(
-          _requestInformation?.task_status != 'Disputed'
-              ? 'Finish Task and Release Payment'
-              : 'Settle Dispute and Release Payment',
+          'Finish Task',
           style: GoogleFonts.montserrat(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -506,29 +729,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
           ),
         ),
       ),
-      SizedBox(height: 16),
-      if (_requestInformation?.task_status != 'Disputed')
-        ElevatedButton(
-          onPressed: _handleTaskDispute,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xFFA73140),
-            padding: EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            elevation: 2,
-            minimumSize: Size(double.infinity, 50),
-          ),
-          child: Text(
-            'File a Dispute',
-            style: GoogleFonts.montserrat(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-        ),
-    ]);
+    );
   }
 
   Widget _buildTaskInfoRow(
@@ -759,200 +960,6 @@ class __FeedbackBottomSheetState extends State<_FeedbackBottomSheet> {
                 ),
                 child: Text(
                   'Submit Feedback & Release Payment',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _DisputeBottomSheet extends StatefulWidget {
-  final Function(String reasonForDispute, String raisedBy, File? imageEvidence)
-      onDisputeSubmit;
-
-  const _DisputeBottomSheet({required this.onDisputeSubmit});
-
-  @override
-  __DisputeBottomSheetState createState() => __DisputeBottomSheetState();
-}
-
-class __DisputeBottomSheetState extends State<_DisputeBottomSheet> {
-  final TextEditingController _disputeTypeController = TextEditingController();
-  final TextEditingController _disputeDetailsController =
-      TextEditingController();
-  File? _imageEvidence;
-
-  final ImagePicker _picker = ImagePicker();
-
-  @override
-  void dispose() {
-    _disputeTypeController.dispose();
-    _disputeDetailsController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-
-    setState(() {
-      if (pickedFile != null) {
-        _imageEvidence = File(pickedFile.path);
-      } else {
-        print('No image selected.');
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: 16,
-        right: 16,
-        top: 16,
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Text(
-                'File a Dispute',
-                style: GoogleFonts.montserrat(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF03045E),
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Reason for Dispute',
-              style: GoogleFonts.montserrat(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF03045E),
-              ),
-            ),
-            SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              value: _disputeTypeController.text.isEmpty
-                  ? '--Select Reason of Dispute--'
-                  : _disputeTypeController.text,
-              items: <String>[
-                '--Select Reason of Dispute--',
-                'Poor Quality of Work',
-                'Tasker is Unavailable',
-                'Task Still Not Completed',
-                'Tasker Did Not Finish what\'s Required',
-                'Others (Provide Details)'
-              ].map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child:
-                      Text(value, style: GoogleFonts.montserrat(fontSize: 14)),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _disputeTypeController.text = newValue ?? '';
-                });
-              },
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-            // Dispute Field
-            Text(
-              'Details of the Dispute',
-              style: GoogleFonts.montserrat(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF03045E),
-              ),
-            ),
-            SizedBox(height: 8),
-            TextField(
-              controller: _disputeDetailsController,
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: 'Provide Details About the Dispute',
-                hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Color(0xFF03045E)),
-                ),
-              ),
-              style: GoogleFonts.montserrat(fontSize: 14),
-            ),
-            SizedBox(height: 16),
-            Text('Provide some Evidence',
-                style: GoogleFonts.montserrat(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF03045E))),
-            SizedBox(height: 8),
-            GestureDetector(
-              onTap: _pickImage,
-              child: Container(
-                height: 100,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[300]!),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: _imageEvidence != null
-                    ? Image.file(_imageEvidence!, fit: BoxFit.cover)
-                    : Icon(Icons.add_photo_alternate,
-                        size: 40, color: Colors.grey[400]),
-              ),
-            ),
-            SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  widget.onDisputeSubmit(_disputeTypeController.text,
-                      _disputeTypeController.text, _imageEvidence);
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF03045E),
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 2,
-                ),
-                child: Text(
-                  'Open a Dispute',
                   style: GoogleFonts.montserrat(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
