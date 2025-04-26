@@ -6,11 +6,12 @@ import Swal from 'sweetalert2';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
+import { AngularSvgIconModule } from 'angular-svg-icon';
 
 @Component({
   selector: 'app-user-communication',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, AngularSvgIconModule],
   templateUrl: './user-communication.component.html',
   styleUrls: ['./user-communication.component.css'],
 })

@@ -10,6 +10,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import Swal from 'sweetalert2';
+import { AngularSvgIconModule } from 'angular-svg-icon';
 
 @Component({
   selector: 'app-complaints',
@@ -17,7 +18,8 @@ import Swal from 'sweetalert2';
   imports: [
     CommonModule,
     ClientComplaintComponent,
-    TaskerComplaintComponent
+    TaskerComplaintComponent,
+    AngularSvgIconModule
   ],
   templateUrl: './complaints.component.html',
   styleUrls: ['./complaints.component.css']

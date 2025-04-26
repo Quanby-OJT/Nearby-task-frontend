@@ -4,10 +4,11 @@ import { FeedbackService } from 'src/app/services/feedback.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
+import { AngularSvgIconModule } from 'angular-svg-icon';
 
 @Component({
   selector: 'app-feedback',
-  imports: [CommonModule],
+  imports: [CommonModule, AngularSvgIconModule],
   templateUrl: './feedback.component.html',
   styleUrl: './feedback.component.css'
 })

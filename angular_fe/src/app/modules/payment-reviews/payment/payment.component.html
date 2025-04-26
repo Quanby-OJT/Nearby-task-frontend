@@ -23,6 +23,9 @@
     <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
       <div class="flex-1 min-w-[200px] lg:min-w-[300px] xl:min-w-[400px]">
         <label class="relative w-full">
+          <div class="absolute left-2.5 top-1/2 -translate-y-1/2">
+            <svg-icon src="./assets/icons/heroicons/outline/magnifying-glass.svg" [svgClass]="'h-4 w-4'"> </svg-icon>
+          </div>
           <input name="search" (input)="searchLogs($event)" class="w-full py-2 pl-8 pr-2 border rounded-md" placeholder="Search Users Name" type="text" />
         </label>
       </div>

@@ -4,11 +4,12 @@ import { PaymentService } from 'src/app/services/payment.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
+import { AngularSvgIconModule } from 'angular-svg-icon';
 
 @Component({
   selector: 'app-payment',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, AngularSvgIconModule],
   templateUrl: './payment.component.html',
   styleUrls: ['./payment.component.css']
 })

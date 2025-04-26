@@ -5,11 +5,12 @@ import { UserLogService } from 'src/app/services/log.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
+import { AngularSvgIconModule } from 'angular-svg-icon';
 
 @Component({
   selector: 'app-log',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, AngularSvgIconModule],
   templateUrl: './log.component.html',
   styleUrl: './log.component.css',
 })
