@@ -104,10 +104,6 @@ class _TaskerPendingState extends State<TaskerPending> {
       setState(() {
         _requestInformation = response;
       });
-      debugPrint(
-          "Fetched request details: ${_requestInformation?.requested_from ?? 'Unknown'}");
-      debugPrint(
-          "Fetched request status: ${_requestInformation?.task_status ?? 'Unknown'}");
 
       await _fetchTaskDetails();
       if (widget.role == "Tasker") {
