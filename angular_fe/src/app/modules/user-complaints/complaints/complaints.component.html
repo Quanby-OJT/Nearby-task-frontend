@@ -53,19 +53,19 @@
     <div class="overflow-x-auto w-full">
       <table class="w-full border-collapse border-0 text-left text-sm">
         <thead class="border-b">
-          <tr class="bg-gray-100">
-            <th class="px-4 py-2 w-[80px] lg:w-[100px]">No</th>
-            <th class="px-4 py-2 text-center min-w-[140px] lg:min-w-[300px] xl:min-w-[250px]">Reporter Name</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Violator Name</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Reporter Role</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Violator Role</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Date</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Status</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Action</th>
+          <tr>
+            <th class="px-4 py-2 w-[80px] lg:w-[100px] ">Id</th>
+            <th class="px-4 py-2 text-center min-w-[140px] lg:min-w-[300px] xl:min-w-[250px] ">Reporter Name</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Violator Name</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Reporter Role</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Violator Role</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Date</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Status</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Action</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let report of displayReports; let i = index" class="border-b">
+          <tr *ngFor="let report of displayReports; let i = index">
             <td class="px-4 py-3 text-center">{{ i + 1 }}</td>
             <td class="px-4 py-3 text-center">{{ report.reporter.first_name }} {{ report.reporter.middle_name }} {{ report.reporter.last_name }}</td>
             <td class="px-4 py-3 text-center">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.violator.last_name }}</td>
@@ -146,15 +146,15 @@
     <div class="overflow-x-auto w-full">
       <table class="w-full border-collapse border-0 text-left text-sm">
         <thead class="border-b">
-          <tr class="bg-gray-100">
-            <th class="px-4 py-2 w-[80px] lg:w-[100px]">No</th>
-            <th class="px-4 py-2 text-center min-w-[140px] lg:min-w-[300px] xl:min-w-[250px]">Reporter Name</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Violator Name</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Reporter Role</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Violator Role</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Date</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Status</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Handled By</th>
+          <tr>
+            <th class="px-4 py-2 w-[80px] lg:w-[100px]  ">Id</th>
+            <th class="px-4 py-2 text-center min-w-[140px] lg:min-w-[300px] xl:min-w-[250px] ">Reporter Name</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Violator Name</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Reporter Role</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Violator Role</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Date</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Status</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Handled By</th>
           </tr>
         </thead>
         <tbody>
