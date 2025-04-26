@@ -20,13 +20,12 @@ class IndividualChatScreen extends StatefulWidget {
   final int taskTakenId;
   final int taskId;
   final String taskTakenStatus;
-  const IndividualChatScreen({
-    super.key,
-    this.taskTitle,
-    required this.taskTakenId,
-    required this.taskId,
-    required this.taskTakenStatus
-  });
+  const IndividualChatScreen(
+      {super.key,
+      this.taskTitle,
+      required this.taskTakenId,
+      required this.taskId,
+      required this.taskTakenStatus});
 
   @override
   State<IndividualChatScreen> createState() => _IndividualChatScreenState();
@@ -276,26 +275,29 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                     },
                   ),
           ),
-          widget.taskTakenStatus == "Completed" ?
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            color: Color(0XFFECECF5),
-            child: const Text(
-              "The Task has already been done. Thank you for Helping them.",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0XFF3E9B52)),
-              textAlign: TextAlign.center,
-            ),
-          ) :
-          _MessageBar(
-            controller: conversationController,
-            taskTakenId: widget.taskTakenId ?? 0,
-            onMessageSent: loadConversationHistory,
-            selectedImages: reportController.selectedImages,
-            imageUploadError: reportController.imageUploadError,
-            onPickImages: () => reportController.pickImages(context),
-            onRemoveImage: reportController.removeImage,
-          ),
+          widget.taskTakenStatus == "Completed"
+              ? Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  color: Color(0XFFECECF5),
+                  child: const Text(
+                    "The Task has already been done. Thank you for Helping them.",
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0XFF3E9B52)),
+                    textAlign: TextAlign.center,
+                  ),
+                )
+              : _MessageBar(
+                  controller: conversationController,
+                  taskTakenId: widget.taskTakenId ?? 0,
+                  onMessageSent: loadConversationHistory,
+                  selectedImages: reportController.selectedImages,
+                  imageUploadError: reportController.imageUploadError,
+                  onPickImages: () => reportController.pickImages(context),
+                  onRemoveImage: reportController.removeImage,
+                ),
         ],
       ),
     );
@@ -884,9 +886,12 @@ class _ChatBubble extends StatelessWidget {
           children: [
             ClipOval(
               child: SizedBox(
-                width: 40,
-                height: 40,
-                child: profile.image.toString().isNotEmpty ? Image.network(profile.image, fit: BoxFit.cover) : Image.asset('assets/images/default-profile.jpg', fit: BoxFit.cover)),
+                  width: 40,
+                  height: 40,
+                  child: profile.image.toString().isNotEmpty
+                      ? Image.network(profile.image, fit: BoxFit.cover)
+                      : Image.asset('assets/images/default-profile.jpg',
+                          fit: BoxFit.cover)),
             ),
             const SizedBox(width: 12),
             messageBubble,
