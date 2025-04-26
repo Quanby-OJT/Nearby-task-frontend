@@ -18,14 +18,14 @@ export class LogComponent implements OnInit, OnDestroy {
   filteredLogs: any[] = [];
   displayLogs: any[] = [];
   paginationButtons: (number | string)[] = [];
-  logsPerPage: number = 10;
+  logsPerPage: number = 5;
   currentPage: number = 1;
   totalPages: number = 1;
   startIndex: number = 1;
   endIndex: number = 0;
   currentSearchText: string = '';
   currentStatusFilter: string = '';
-  placeholderRows: any[] = []; // Added for placeholder rows
+  placeholderRows: any[] = []; 
 
   private logsSubscription!: Subscription;
 

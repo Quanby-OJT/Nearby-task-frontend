@@ -20,7 +20,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
   displayConversations: any[] = [];
   placeholderRows: any[] = []; 
   paginationButtons: (number | string)[] = [];
-  conversationsPerPage: number = 10;
+  conversationsPerPage: number = 5;
   currentPage: number = 1;
   totalPages: number = 1;
   startIndex: number = 1;

@@ -18,7 +18,7 @@ export class PaymentComponent implements OnInit {
   displayPaymentLogs: any[] = [];
   currentSearchText: string = '';
   currentFilterType: string = '';
-  logsPerPage: number = 10;
+  logsPerPage: number = 5;
   currentPage: number = 1;
   totalPages: number = 1;
   startIndex: number = 1;

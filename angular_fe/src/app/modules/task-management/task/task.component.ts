@@ -21,7 +21,7 @@ export class TaskComponent implements OnInit {
   filteredTasks: any[] = [];
   displayedTasks: any[] = [];
   paginationButtons: (number | string)[] = [];
-  tasksPerPage: number = 10;
+  tasksPerPage: number = 5;
   currentPage: number = 1;
   totalPages: number = 1;
   currentSearchText: string = '';

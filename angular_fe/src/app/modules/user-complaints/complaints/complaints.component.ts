@@ -27,7 +27,7 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
   filteredReports: any[] = [];
   displayReports: any[] = [];
   paginationButtons: (number | string)[] = [];
-  reportsPerPage: number = 10;
+  reportsPerPage: number = 5;
   currentPage: number = 1;
   totalPages: number = 1;
   startIndex: number = 1;
