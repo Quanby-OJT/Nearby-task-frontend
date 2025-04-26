@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ClientComplaintComponent } from './client-complaint/client-complaint.component';
 import { TaskerComplaintComponent } from './tasker-complaint/tasker-complaint.component';
@@ -40,6 +40,10 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
 
   private reportsSubscription!: Subscription;
 
+  // References to child components
+  @ViewChild(ClientComplaintComponent) clientComplaintComponent!: ClientComplaintComponent;
+  @ViewChild(TaskerComplaintComponent) taskerComplaintComponent!: TaskerComplaintComponent;
+
   constructor(
     private reportService: ReportService,
     private sessionStorage: SessionLocalStorage,
@@ -74,6 +78,7 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
     if (this.reportsSubscription) {
       this.reportsSubscription.unsubscribe();
     }
+    this.stopAutoSwipe();
   }
 
   searchReports(event: Event) {
@@ -383,5 +388,24 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
       headStyles: { fillColor: [60, 33, 146], textColor: 'white' },
     });
     doc.save('UserComplaints.pdf');
+  }
+
+  // Auto-swipe control forwarded to child components
+  startAutoSwipe() {
+    if (this.clientComplaintComponent) {
+      this.clientComplaintComponent.startAutoSwipe();
+    }
+    if (this.taskerComplaintComponent) {
+      this.taskerComplaintComponent.startAutoSwipe();
+    }
+  }
+
+  stopAutoSwipe() {
+    if (this.clientComplaintComponent) {
+      this.clientComplaintComponent.stopAutoSwipe();
+    }
+    if (this.taskerComplaintComponent) {
+      this.taskerComplaintComponent.stopAutoSwipe();
+    }
   }
 }

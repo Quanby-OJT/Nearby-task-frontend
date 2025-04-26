@@ -12,12 +12,11 @@ import { ReportService } from 'src/app/services/report.service';
 export class TaskerComplaintComponent implements AfterViewInit {
   @ViewChild('taskerSwiperWrapper') taskerSwiperWrapper!: ElementRef;
 
-  currentIndex = 0;
+  currentIndex: number = 0; // Manage own index
   totalCards = 0;
-  autoSwipeInterval: any;
   reports: any[] = [];
+  autoSwipeInterval: any;
 
-  // Added to emit the report ID to the parent component
   @Output() reportSelected = new EventEmitter<number>();
 
   constructor(
@@ -50,10 +49,9 @@ export class TaskerComplaintComponent implements AfterViewInit {
       const cards = this.taskerSwiperWrapper.nativeElement.querySelectorAll('.tasker-swiper-card');
       this.totalCards = cards.length;
       this.updateSwiper();
-      this.startAutoSwipe();
-
-      this.taskerSwiperWrapper.nativeElement.addEventListener('mouseenter', () => this.stopAutoSwipe());
-      this.taskerSwiperWrapper.nativeElement.addEventListener('mouseleave', () => this.startAutoSwipe());
+      if (this.totalCards > 0) {
+        this.startAutoSwipe();
+      }
     });
   }
 
@@ -65,7 +63,6 @@ export class TaskerComplaintComponent implements AfterViewInit {
   updateSwiper() {
     if (this.taskerSwiperWrapper && this.taskerSwiperWrapper.nativeElement) {
       const cardWidth = this.taskerSwiperWrapper.nativeElement.querySelector('.tasker-swiper-card')?.offsetWidth || 0;
-   
       this.taskerSwiperWrapper.nativeElement.style.transition = 'none';
       this.taskerSwiperWrapper.nativeElement.offsetHeight;
       this.taskerSwiperWrapper.nativeElement.style.transition = 'transform 100ms ease-in-out';
@@ -74,20 +71,34 @@ export class TaskerComplaintComponent implements AfterViewInit {
     }
   }
 
-  nextSlide() {
+  startAutoSwipe() {
+    this.autoSwipeInterval = setInterval(() => {
+      this.currentIndex++;
+      if (this.currentIndex >= this.totalCards) {
+        this.currentIndex = 0;
+      }
+      this.updateSwiper();
+    }, 3000);
+  }
+
+  stopAutoSwipe() {
+    clearInterval(this.autoSwipeInterval);
+  }
+
+  swipePrev() {
+    this.currentIndex--;
+    if (this.currentIndex < 0) {
+      this.currentIndex = this.totalCards - 1;
+    }
+    this.updateSwiper();
+  }
+
+  swipeNext() {
     this.currentIndex++;
     if (this.currentIndex >= this.totalCards) {
       this.currentIndex = 0;
     }
     this.updateSwiper();
-  }
-
-  startAutoSwipe() {
-    this.autoSwipeInterval = setInterval(() => this.nextSlide(), 3000);
-  }
-
-  stopAutoSwipe() {
-    clearInterval(this.autoSwipeInterval);
   }
 
   ngOnDestroy() {
@@ -96,5 +107,13 @@ export class TaskerComplaintComponent implements AfterViewInit {
 
   selectAction(reportId: number) {
     this.reportSelected.emit(reportId);
+  }
+
+  onSwipePrev() {
+    this.swipePrev();
+  }
+
+  onSwipeNext() {
+    this.swipeNext();
   }
 }
