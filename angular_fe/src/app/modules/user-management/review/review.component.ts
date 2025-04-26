@@ -7,7 +7,7 @@ import { ButtonComponent } from 'src/app/shared/components/button/button.compone
 import { DataService } from 'src/services/dataStorage';
 import { SessionLocalStorage } from 'src/services/sessionStorage';
 import Swal from 'sweetalert2';
-import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Component({
   selector: 'app-review',
@@ -17,8 +17,7 @@ import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http'
     RouterOutlet,
     ReactiveFormsModule,
     NgIf,
-    NgClass,
-    HttpClientModule,
+    NgClass
   ],
   templateUrl: './review.component.html',
   styleUrl: './review.component.css',
@@ -36,6 +35,7 @@ export class ReviewComponent {
   profileImage: string | null = null;
   documentUrl: string | null = null;
   documentName: string | null = null;
+  isImage: boolean = false; 
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -121,9 +121,15 @@ export class ReviewComponent {
               this.documentName = this.documentUrl.split('/').pop() || documents[0].name;
               console.log('Document URL set:', this.documentUrl);
               console.log('Document Name set:', this.documentName);
+
+              // Determine if the file is an image based on its extension
+              const extension = this.documentUrl.split('.').pop()?.toLowerCase();
+              this.isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(extension || '');
+              console.log('Is file an image?', this.isImage);
             } else {
               this.documentUrl = null;
               this.documentName = null;
+              this.isImage = false;
               console.log('No documents found for this user.');
             }
           },
@@ -131,6 +137,7 @@ export class ReviewComponent {
             console.error('Error fetching documents:', err);
             this.documentUrl = null;
             this.documentName = null;
+            this.isImage = false;
             Swal.fire({
               icon: 'error',
               title: 'Error',
@@ -228,7 +235,6 @@ export class ReviewComponent {
       return;
     }
 
-    // Extract the file path relative to the bucket (e.g., "users/pdf_272_1745372423708_document_1745372423173.pdf")
     const urlParts = this.documentUrl.split('/storage/v1/object/public/crud_bucket/');
     if (urlParts.length < 2) {
       console.error('Could not extract file path from document URL:', this.documentUrl);
@@ -240,7 +246,7 @@ export class ReviewComponent {
       return;
     }
 
-    const filePath = urlParts[1]; // This should be "users/pdf_272_1745372423708_document_1745372423173.pdf"
+    const filePath = urlParts[1]; 
     console.log('Extracted file path:', filePath);
 
     // Construct the URL to fetch the PDF
@@ -264,6 +270,28 @@ export class ReviewComponent {
         icon: 'error',
         title: 'Preview Failed',
         text: 'Unable to open the document. Please allow pop-ups for this site.',
+      });
+    }
+  }
+
+  previewImage(): void {
+    if (!this.documentUrl) {
+      console.error('No image URL available to preview.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'No Image',
+        text: 'There is no image available to preview for this user.',
+      });
+      return;
+    }
+
+    // Directly open the image URL in a new tab
+    const newWindow = window.open(this.documentUrl, '_blank');
+    if (!newWindow) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Preview Failed',
+        text: 'Unable to open the image. Please allow pop-ups for this site.',
       });
     }
   }

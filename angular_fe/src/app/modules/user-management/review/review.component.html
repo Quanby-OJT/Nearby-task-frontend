@@ -148,14 +148,20 @@
           <!-- Submit Button -->
           <div class="">
             <div class="mb-5">
-              <!-- Show Document if May Document -->
-              <button *ngIf="documentUrl"
+              <!-- Show Document or Image Button if Document Exists -->
+              <button *ngIf="documentUrl && !isImage"
                 type="button" 
                 (click)="previewDocument()"
                 class="bg-[#EC5987] block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-[#EC5987] focus:outline-none focus:ring-4 focus:ring-[#EC5987] dark:bg-[#EC5987] dark:hover:bg-[#EC5987] dark:focus:ring-[#EC5987] hover:scale-105 transition-transform duration-500">
                 Preview Documents
               </button>
-              <!-- Show No Document pag wala -->
+              <button *ngIf="documentUrl && isImage"
+                type="button" 
+                (click)="previewImage()"
+                class="bg-[#EC5987] block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-[#EC5987] focus:outline-none focus:ring-4 focus:ring-[#EC5987] dark:bg-[#EC5987] dark:hover:bg-[#EC5987] dark:focus:ring-[#EC5987] hover:scale-105 transition-transform duration-500">
+                Preview Image
+              </button>
+              <!-- Show No Document if No Document Exists -->
               <button *ngIf="!documentUrl"
                 type="button"
                 disabled
