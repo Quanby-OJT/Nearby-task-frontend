@@ -65,7 +65,7 @@ export class TaskerComplaintComponent implements AfterViewInit {
       const cardWidth = this.taskerSwiperWrapper.nativeElement.querySelector('.tasker-swiper-card')?.offsetWidth || 0;
       this.taskerSwiperWrapper.nativeElement.style.transition = 'none';
       this.taskerSwiperWrapper.nativeElement.offsetHeight;
-      this.taskerSwiperWrapper.nativeElement.style.transition = 'transform 100ms ease-in-out';
+      this.taskerSwiperWrapper.nativeElement.style.transition = 'transform 1200ms ease-in-out';
       this.taskerSwiperWrapper.nativeElement.style.transform = `translateX(-${this.currentIndex * cardWidth}px)`;
       this.cdr.detectChanges();
     }
@@ -78,7 +78,7 @@ export class TaskerComplaintComponent implements AfterViewInit {
         this.currentIndex = 0;
       }
       this.updateSwiper();
-    }, 3000);
+    }, 4000);
   }
 
   stopAutoSwipe() {
