@@ -10,25 +10,6 @@ final router = GoRouter(
     GoRoute(
       path: '/',
       builder: (context, state) => const WelcomePageViewMain(),
-      //builder: (context, state) => const EscrowTokenScreen()
-    ),
-    GoRoute(
-      path: '/verify',
-      builder: (context, state) {
-        final token = state.uri.queryParameters['token'];
-        final email = state.uri.queryParameters['email'];
-
-        if (token == null || email == null) {
-          return const WelcomePageViewMain();
-        }
-
-        debugPrint('Token: $token, Email: $email');
-
-        return EmailVerificationPage(
-          token: token,
-          email: email,
-        );
-      },
     ),
   ],
 );

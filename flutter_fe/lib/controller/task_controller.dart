@@ -182,6 +182,8 @@ class TaskController {
 
   Future<bool> rateTheTasker(
       int taskTakenId, int taskerId, int rating, String feedback) async {
+    debugPrint(
+        "Rating: $rating, Feedback: $feedback, Taken ID: $taskTakenId, Tasker ID: $taskerId");
     if (taskTakenId == 0 || rating == 0 || feedback.isEmpty) {
       return false;
     }

@@ -597,38 +597,6 @@ class JobPostService {
         // Continue with other checks
       }
 
-      // Second approach: Direct check with the backend
-      // try {
-      //   final directCheck = await _postRequest(
-      //       endpoint: "/check-task-assignment/$taskId/$taskerId",
-      //       body: {"tasker_id": taskerId, "task_id": taskId});
-      //
-      //   if (directCheck.containsKey('exists') &&
-      //       directCheck['exists'] == true) {
-      //     debugPrint(
-      //         "Task $taskId is already assigned to tasker $taskerId (from direct check)");
-      //     return true;
-      //   }
-      // } catch (e) {
-      //   debugPrint("Direct check failed: $e");
-      //   // Continue with other checks
-      // }
-
-      // Third approach: Check if task is assigned to anyone
-      // try {
-      //   final taskStatus = await _getRequest("/displayTask/$taskId");
-      //   if (taskStatus.containsKey('tasks') &&
-      //       taskStatus['tasks'] is Map &&
-      //       taskStatus['tasks']['status'] != null &&
-      //       taskStatus['tasks']['status'].toString().toLowerCase() !=
-      //           'active') {
-      //     debugPrint("Task $taskId is already assigned (from task status)");
-      //     return true;
-      //   }
-      // } catch (e) {
-      //   debugPrint("Task status check failed: $e");
-      // }
-
       debugPrint("Task $taskId is not assigned to tasker $taskerId");
       return false;
     } catch (e) {
@@ -657,44 +625,6 @@ class JobPostService {
         return true;
       }
 
-      // // Second approach: Check in taken-tasks
-      // final takenTasksResponse = await _getRequest("/taken-tasks");
-      //
-      // if (takenTasksResponse.containsKey('data') &&
-      //     takenTasksResponse['data'] is List) {
-      //   List<dynamic> takenTasks = takenTasksResponse['data'];
-      //
-      //   for (var task in takenTasks) {
-      //     // Check both post_task_id and task_id fields in case API uses different names
-      //     final taskIdField =
-      //         task['post_task_id'] ?? task['task_id'] ?? task['id'];
-      //     final taskerIdField = task['tasker_id'] ?? task['id'];
-      //
-      //     if (taskIdField == taskId && taskerIdField == taskerId) {
-      //       debugPrint("Found existing assignment in taken tasks");
-      //       return true;
-      //     }
-      //   }
-      // }
-      //
-      // // Third approach: Check in task_assignments
-      // final assignmentsResponse =
-      //     await _getRequest("/check-task-assignment/$taskId/$taskerId");
-      //
-      // if (assignmentsResponse.containsKey('assignments') &&
-      //     assignmentsResponse['assignments'] is List) {
-      //   List<dynamic> assignments = assignmentsResponse['assignments'];
-      //
-      //   for (var assignment in assignments) {
-      //     if ((assignment['task_id'] == taskId ||
-      //             assignment['post_task_id'] == taskId) &&
-      //         assignment['tasker_id'] == taskerId) {
-      //       debugPrint("Found existing assignment in assignments list");
-      //       return true;
-      //     }
-      //   }
-      // }
-
       debugPrint(
           "No existing assignment found for task $taskId and tasker $taskerId");
       return false;
@@ -719,6 +649,7 @@ class JobPostService {
 
     debugPrint("Sending task request...");
     debugPrint("Task ID: $taskId, Client ID: $clientId, Tasker ID: $taskerId");
+    debugPrint("Role poo: $role");
 
     return _postRequest(endpoint: "/assign-task", body: {
       "tasker_id": taskerId,
@@ -880,32 +811,8 @@ class JobPostService {
     }
   }
 
-  // Future<Map<String, dynamic>> assignTask(
-  //     int taskId, int clientId, int taskerId, String role) async {
-  //   final userId = await getUserId();
-  //   if (userId == null) {
-  //     return {
-  //       'success': false,
-  //       'message': 'Please log in to like jobs',
-  //       'requiresLogin': true
-  //     };
-  //   }
-  //
-  //   debugPrint("Sending task request...");
-  //   debugPrint("Task ID: $taskId, Client ID: $clientId, Tasker ID: $taskerId");
-  //
-  //   return _postRequest(endpoint: "/assign-task", body: {
-  //     "tasker_id": taskerId,
-  //     "client_id": clientId,
-  //     "task_id": taskId,
-  //     "role": role,
-  //     // Backend expects task_status field, not status
-  //     "task_status": "Pending"
-  //   });
-  // }
-
-  // Method to update a task
-  Future<Map<String, dynamic>> updateTask(int taskId, Map<String, dynamic> taskData) async {
+  Future<Map<String, dynamic>> updateTask(
+      int taskId, Map<String, dynamic> taskData) async {
     try {
       debugPrint("Updating task with ID: $taskId");
       return await _putRequest(

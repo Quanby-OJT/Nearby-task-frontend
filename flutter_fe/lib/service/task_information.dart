@@ -44,7 +44,8 @@ class TaskDetailsService {
     }
   }
 
-  static Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  static Future<Map<String, dynamic>> _postRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     final response = await http.post(Uri.parse("$url$endpoint"),
         headers: {
@@ -58,11 +59,13 @@ class TaskDetailsService {
 
   static Future<Map<String, dynamic>> _deleteRequest(String endpoint) async {
     final token = await AuthService.getSessionToken();
-    final response = await http.delete(Uri.parse("$url$endpoint"),
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json"
-        },);
+    final response = await http.delete(
+      Uri.parse("$url$endpoint"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json"
+      },
+    );
     return _handleResponse(response);
   }
 
@@ -90,7 +93,8 @@ class TaskDetailsService {
   }
 
   //This is for client.
-  Future<Map<String, dynamic>> updateTaskStatus(int taskTakenId, String? newStatus) async {
+  Future<Map<String, dynamic>> updateTaskStatus(
+      int taskTakenId, String? newStatus) async {
     try {
       return await _postRequest(endpoint: "/update-status-client", body: {
         "task_id": taskTakenId,
@@ -104,7 +108,8 @@ class TaskDetailsService {
   }
 
   //Client/Tasker Conversation
-  static Future<Map<String, dynamic>> sendMessage(Conversation conversation) async {
+  static Future<Map<String, dynamic>> sendMessage(
+      Conversation conversation) async {
     try {
       return await _postRequest(
           endpoint: "/send-message", body: conversation.toJson());
@@ -166,7 +171,7 @@ class TaskDetailsService {
       debugPrint(st.toString());
       return {
         "error":
-        "An error occurred while deleting your message. Please try again."
+            "An error occurred while deleting your message. Please try again."
       };
     }
   }

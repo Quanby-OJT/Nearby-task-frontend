@@ -38,6 +38,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
   AuthenticatedUser? tasker;
   Duration? _timeRemaining;
   Timer? _timer;
+  String _requestStatus = 'Unknown';
 
   @override
   void initState() {
@@ -72,6 +73,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
           await _jobPostService.fetchRequestInformation(widget.ongoingID ?? 0);
       setState(() {
         _requestInformation = response;
+        _requestStatus = _requestInformation?.task_status ?? 'Unknown';
       });
       await _fetchTaskDetails();
       await _fetchTaskerDetails(_requestInformation!.tasker_id as int);
@@ -170,6 +172,11 @@ class _ClientOngoingState extends State<ClientOngoing> {
                 rating,
                 feedback);
             if (result && result2) {
+              if (!mounted) return;
+
+              setState(() {
+                _requestStatus = 'Completed';
+              });
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -180,6 +187,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
                 ),
               );
             } else {
+              if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Failed to finish task')),
               );
@@ -187,9 +195,11 @@ class _ClientOngoingState extends State<ClientOngoing> {
           } catch (e, stackTrace) {
             debugPrint("Error finishing task: $e.");
             debugPrintStack(stackTrace: stackTrace);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error occurred')),
-            );
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error occurred')),
+              );
+            }
           } finally {
             setState(() {
               _isLoading = false;
@@ -230,6 +240,10 @@ class _ClientOngoingState extends State<ClientOngoing> {
             );
 
             if (result) {
+              if (!mounted) return;
+              setState(() {
+                _requestStatus = 'Completed';
+              });
               Navigator.push(
                 childContext,
                 MaterialPageRoute(
@@ -304,17 +318,86 @@ class _ClientOngoingState extends State<ClientOngoing> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildTimerSection(),
+                        if (_requestStatus != 'Completed') _buildTimerSection(),
+                        if (_requestStatus == 'Completed')
+                          _buildCompletionSection(),
                         SizedBox(height: 16),
                         _buildTaskCard(),
                         SizedBox(height: 16),
                         _buildProfileCard(),
                         SizedBox(height: 24),
-                        _buildActionButton(),
+                        if (_requestStatus != 'Completed') _buildActionButton(),
+                        if (_requestStatus == 'Completed') _buildBackButton(),
                       ],
                     ),
                   ),
                 ),
+    );
+  }
+
+  Widget _buildCompletionSection() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.green[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.green[100]!),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.check_circle,
+            color: Colors.green[600],
+            size: 48,
+          ),
+          SizedBox(height: 12),
+          Text(
+            'Task Completed!',
+            style: GoogleFonts.montserrat(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.green[800],
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Congratulations on successfully completing this task!',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.montserrat(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBackButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () {
+          Navigator.pop(context); // Return to previous screen
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Color(0xFF03045E),
+          padding: EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 2,
+        ),
+        child: Text(
+          'Back to Tasks',
+          style: GoogleFonts.montserrat(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+      ),
     );
   }
 
@@ -602,77 +685,6 @@ class _ClientOngoingState extends State<ClientOngoing> {
       ],
     );
   }
-
-  // void _disputeAlertDialog(BuildContext parentContext) {
-  //   showDialog(
-  //       context: context,
-  //       builder: (BuildContext childContext) {
-  //         return AlertDialog(
-  //             title: Text('File a Dispute'),
-  //             content: Text(
-  //                 'Do you had dispute/s with your tasker when it comes to: \n 1. Quality of their Work? \n 2. Their availability? \n 3. Others?'),
-  //             actions: [
-  //               TextButton(
-  //                 onPressed: () {
-  //                   Navigator.of(context).pop();
-  //                 },
-  //                 child: Text('Cancel',
-  //                     style: TextStyle(
-  //                       color: Color(0XFFD43D4D),
-  //                     )),
-  //               ),
-  //               TextButton(
-  //                   onPressed: () async {
-  //                     setState(() {
-  //                       _isLoading = true;
-  //                     });
-  //                     try {
-  //                       bool result = await taskController.acceptRequest(
-  //                         _requestInformation?.task_taken_id ?? 0,
-  //                         'Disputed',
-  //                         widget.role ?? '',
-  //                       );
-  //
-  //                       if (result) {
-  //                         Navigator.pop(context);
-  //                         showDialog(
-  //                             context: context,
-  //                             builder: (BuildContext context) {
-  //                               return AlertDialog(
-  //                                   title: Text(
-  //                                       "Your Task is Now Open to Dispute"),
-  //                                   actions: [
-  //                                     TextButton(
-  //                                         onPressed: () {
-  //                                           Navigator.of(context).pop();
-  //                                         },
-  //                                         child: Text("Okay"))
-  //                                   ]);
-  //                             });
-  //                       } else {
-  //                         ScaffoldMessenger.of(context).showSnackBar(
-  //                           SnackBar(content: Text('Failed to finish task')),
-  //                         );
-  //                       }
-  //                     } catch (e, stackTrace) {
-  //                       debugPrint("Error finishing task: $e.");
-  //                       debugPrintStack(stackTrace: stackTrace);
-  //                       ScaffoldMessenger.of(context).showSnackBar(
-  //                         SnackBar(content: Text('Error occurred')),
-  //                       );
-  //                     } finally {
-  //                       setState(() {
-  //                         _isLoading = false;
-  //                       });
-  //                     }
-  //                   },
-  //                   child: Text("Yes",
-  //                       style: TextStyle(
-  //                         color: Color(0XFF4DBF66),
-  //                       )))
-  //             ]);
-  //       });
-  // }
 }
 
 //Finish Task and Release Payment
@@ -849,7 +861,6 @@ class __FeedbackBottomSheetState extends State<_FeedbackBottomSheet> {
   }
 }
 
-//Finish Task and Release Payment
 class _DisputeBottomSheet extends StatefulWidget {
   final Function(String reasonForDispute, String raisedBy, List<File> imageEvidence) onDisputeSubmit;
 
@@ -891,7 +902,6 @@ class __DisputeBottomSheetState extends State<_DisputeBottomSheet> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -927,7 +937,9 @@ class __DisputeBottomSheetState extends State<_DisputeBottomSheet> {
             ),
             SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              value: _disputeTypeController.text.isEmpty ? '--Select Reason of Dispute--' : _disputeTypeController.text,
+              value: _disputeTypeController.text.isEmpty
+                  ? '--Select Reason of Dispute--'
+                  : _disputeTypeController.text,
               items: <String>[
                 '--Select Reason of Dispute--',
                 'Poor Quality of Work',
@@ -938,7 +950,8 @@ class __DisputeBottomSheetState extends State<_DisputeBottomSheet> {
               ].map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
-                  child: Text(value, style: GoogleFonts.montserrat(fontSize: 14)),
+                  child:
+                      Text(value, style: GoogleFonts.montserrat(fontSize: 14)),
                 );
               }).toList(),
               onChanged: (String? newValue) {
@@ -953,8 +966,7 @@ class __DisputeBottomSheetState extends State<_DisputeBottomSheet> {
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!
-                  ),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
                 ),
               ),
             ),
@@ -991,14 +1003,11 @@ class __DisputeBottomSheetState extends State<_DisputeBottomSheet> {
               style: GoogleFonts.montserrat(fontSize: 14),
             ),
             SizedBox(height: 16),
-            Text(
-              'Provide some Evidence',
-              style: GoogleFonts.montserrat(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF03045E)
-              )
-            ),
+            Text('Provide some Evidence',
+                style: GoogleFonts.montserrat(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF03045E))),
             SizedBox(height: 8),
             GestureDetector(
               onTap: _pickImage,

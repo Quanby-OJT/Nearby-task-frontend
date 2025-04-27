@@ -1,25 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/notificationController.dart';
 import 'package:flutter_fe/view/business_acc/client_record/client_ongoing.dart';
+import 'package:flutter_fe/view/business_acc/client_record/client_review.dart';
 import 'package:flutter_fe/view/notification/client_request.dart';
 import 'package:flutter_fe/view/service_acc/tasker_record/tasker_ongoing.dart';
+import 'package:flutter_fe/view/service_acc/tasker_record/tasker_pending.dart';
+import 'package:flutter_fe/view/service_acc/tasker_record/tasker_review.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../controller/profile_controller.dart';
 import '../../../model/auth_user.dart';
 
-class DisplayListRecordOngoing extends StatefulWidget {
-  const DisplayListRecordOngoing({super.key});
+class DisplayListRecordReview extends StatefulWidget {
+  const DisplayListRecordReview({super.key});
 
   @override
-  State<DisplayListRecordOngoing> createState() =>
-      _DisplayListRecordOngoingState();
+  State<DisplayListRecordReview> createState() =>
+      _DisplayListRecordReviewState();
 }
 
-class _DisplayListRecordOngoingState extends State<DisplayListRecordOngoing> {
-  // Mock data for all notifications
-  final List<Map<String, dynamic>> notifications = [];
+class _DisplayListRecordReviewState extends State<DisplayListRecordReview> {
   final NotificationController _notificationController =
       NotificationController();
   final storage = GetStorage();
@@ -63,7 +64,7 @@ class _DisplayListRecordOngoingState extends State<DisplayListRecordOngoing> {
   Future<void> _fetchRequests() async {
     try {
       int userId = storage.read("user_id");
-      final response = await _notificationController.getOngoingRequests(userId);
+      final response = await _notificationController.getReviewRequests(userId);
 
       debugPrint(response.toString());
 
@@ -108,7 +109,7 @@ class _DisplayListRecordOngoingState extends State<DisplayListRecordOngoing> {
       child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : requestData.isEmpty
-              ? _buildEmptyState("No ongoing tasks available!")
+              ? _buildEmptyState("No review tasks available!")
               : ListView.builder(
                   itemCount: requestData.length,
                   itemBuilder: (context, index) {
@@ -128,8 +129,8 @@ class _DisplayListRecordOngoingState extends State<DisplayListRecordOngoing> {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => ClientOngoing(
-                                          ongoingID: request["id"],
+                                      builder: (context) => ClientReview(
+                                          requestID: request["id"],
                                           role: role))).then((value) {
                                 setState(() {
                                   _isLoading = true;
@@ -141,8 +142,8 @@ class _DisplayListRecordOngoingState extends State<DisplayListRecordOngoing> {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => TaskerOngoing(
-                                          ongoingID: request["id"],
+                                      builder: (context) => TaskerReview(
+                                          requestID: request["id"],
                                           role: role))).then((value) {
                                 setState(() {
                                   _isLoading = true;
@@ -260,7 +261,7 @@ class _DisplayListRecordOngoingState extends State<DisplayListRecordOngoing> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Ongoing Task',
+          'Review Task',
           style: GoogleFonts.montserrat(
             color: Color(0xFF0272B1),
             fontWeight: FontWeight.w600,
