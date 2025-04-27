@@ -30,7 +30,6 @@ class __DisputeBottomSheetState extends State<_DisputeBottomSheet> {
   final TextEditingController _disputeDetailsController =
       TextEditingController();
   File? _imageEvidence;
-
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -70,20 +69,18 @@ class __DisputeBottomSheetState extends State<_DisputeBottomSheet> {
               child: Text(
                 'File a Dispute',
                 style: GoogleFonts.montserrat(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF03045E),
-                ),
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF03045E)),
               ),
             ),
             SizedBox(height: 16),
             Text(
               'Reason for Dispute',
               style: GoogleFonts.montserrat(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF03045E),
-              ),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF03045E)),
             ),
             SizedBox(height: 8),
             DropdownButtonFormField<String>(
@@ -121,14 +118,12 @@ class __DisputeBottomSheetState extends State<_DisputeBottomSheet> {
               ),
             ),
             SizedBox(height: 16),
-            // Dispute Field
             Text(
               'Details of the Dispute',
               style: GoogleFonts.montserrat(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF03045E),
-              ),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF03045E)),
             ),
             SizedBox(height: 8),
             TextField(
@@ -187,17 +182,15 @@ class __DisputeBottomSheetState extends State<_DisputeBottomSheet> {
                   backgroundColor: Color(0xFF03045E),
                   padding: EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                      borderRadius: BorderRadius.circular(12)),
                   elevation: 2,
                 ),
                 child: Text(
                   'Open a Dispute',
                   style: GoogleFonts.montserrat(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white),
                 ),
               ),
             ),
@@ -294,9 +287,109 @@ class _ClientReviewState extends State<ClientReview> {
     }
   }
 
-  Future<void> _handleFinishTask() async {
-    debugPrint("_requestInformation: $_requestInformation");
+  Future<bool> _handleFinishTask() async {
+    if (_requestInformation == null ||
+        _requestInformation!.task_taken_id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Task information not available')),
+      );
+      return false;
+    }
 
+    final BuildContext outerContext = context;
+    return await showModalBottomSheet<bool>(
+      context: outerContext,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext bottomSheetContext) => _FeedbackBottomSheet(
+        onFeedbackSubmit: (int rating, String feedback, String? report,
+            Function(bool) onComplete) async {
+          setState(() {
+            _isLoading = true;
+          });
+          try {
+            bool result = await taskController.acceptRequest(
+              _requestInformation?.task_taken_id ?? 0,
+              'Finish',
+              widget.role ?? '',
+            );
+
+            bool result2 = await taskController.rateTheTasker(
+              _requestInformation?.task_taken_id ?? 0,
+              _requestInformation?.tasker_id ?? 0,
+              rating,
+              feedback,
+            );
+
+            final bool success = result && result2;
+
+            if (!mounted) {
+              Navigator.pop(bottomSheetContext, success);
+              return;
+            }
+
+            setState(() {
+              _isLoading = false;
+              if (success) {
+                _requestStatus = 'Completed';
+              }
+            });
+
+            Navigator.pop(bottomSheetContext, success);
+
+            if (success) {
+              final int finishId = _requestInformation?.task_taken_id ?? 0;
+              final String? role = widget.role;
+
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ClientFinish(
+                    finishID: finishId,
+                    role: role,
+                  ),
+                ),
+              );
+
+              if (!mounted) return;
+              await _fetchRequestDetails();
+            } else {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  ScaffoldMessenger.of(outerContext).showSnackBar(
+                    SnackBar(content: Text('Failed to finish task')),
+                  );
+                }
+              });
+            }
+          } catch (e, stackTrace) {
+            debugPrint("Error finishing task: $e.");
+            debugPrintStack(stackTrace: stackTrace);
+
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+              });
+
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  ScaffoldMessenger.of(outerContext).showSnackBar(
+                    SnackBar(content: Text('Error occurred')),
+                  );
+                }
+              });
+
+              Navigator.pop(bottomSheetContext, false);
+            }
+          }
+        },
+      ),
+    ).then((value) => value ?? false);
+  }
+
+  Future<void> _handleTaskDispute() async {
     if (_requestInformation == null ||
         _requestInformation!.task_taken_id == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -311,49 +404,43 @@ class _ClientReviewState extends State<ClientReview> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => _FeedbackBottomSheet(
-        onFeedbackSubmit: (int rating, String feedback, String? report) async {
+      builder: (context) => _DisputeBottomSheet(
+        onDisputeSubmit: (String reasonForDispute, String raisedBy,
+            File? imageEvidence) async {
           setState(() {
             _isLoading = true;
           });
           try {
             bool result = await taskController.acceptRequest(
               _requestInformation?.task_taken_id ?? 0,
-              'Finish',
+              'Disputed',
               widget.role ?? '',
             );
 
-            bool result2 = await taskController.rateTheTasker(
-                _requestInformation?.task_taken_id ?? 0,
-                _requestInformation?.tasker_id ?? 0,
-                rating,
-                feedback);
-            if (result && result2) {
+            if (result) {
               if (!mounted) return;
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ClientFinish(
-                    finishID: _requestInformation?.task_taken_id ?? 0,
-                    role: widget.role,
-                  ),
-                ),
-              );
+              setState(() {
+                _requestStatus = 'Disputed';
+                _isLoading = false;
+              });
+              await _fetchRequestDetails();
             } else {
               if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Failed to finish task')),
+                SnackBar(content: Text('Failed to file dispute')),
               );
+              setState(() {
+                _isLoading = false;
+              });
             }
           } catch (e, stackTrace) {
-            debugPrint("Error finishing task: $e.");
+            debugPrint("Error filing dispute: $e.");
             debugPrintStack(stackTrace: stackTrace);
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Error occurred')),
               );
             }
-          } finally {
             setState(() {
               _isLoading = false;
             });
@@ -377,10 +464,9 @@ class _ClientReviewState extends State<ClientReview> {
         title: Text(
           'Review Task',
           style: GoogleFonts.montserrat(
-            color: Color(0xFF03045E),
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
+              color: Color(0xFF03045E),
+              fontSize: 20,
+              fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
       ),
@@ -391,9 +477,7 @@ class _ClientReviewState extends State<ClientReview> {
                   child: Text(
                     'No task information available',
                     style: GoogleFonts.montserrat(
-                      fontSize: 16,
-                      color: Colors.grey[600],
-                    ),
+                        fontSize: 16, color: Colors.grey[600]),
                   ),
                 )
               : SingleChildScrollView(
@@ -402,16 +486,14 @@ class _ClientReviewState extends State<ClientReview> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Timer Section
                         if (_requestStatus == 'Review') _buildReviewSection(),
+                        if (_requestStatus == 'Completed')
+                          _buildCompletionSection(),
                         SizedBox(height: 16),
-                        // Task Card
                         _buildTaskCard(),
                         SizedBox(height: 16),
-                        // Client Profile Card
                         _buildProfileCard(),
                         SizedBox(height: 24),
-                        // Action Button
                         _buildFinishActionButton(context),
                       ],
                     ),
@@ -438,21 +520,54 @@ class _ClientReviewState extends State<ClientReview> {
           ),
           SizedBox(height: 12),
           Text(
-            'Make You Review',
+            'Make Your Review',
             style: GoogleFonts.montserrat(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.blue[800],
-            ),
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.blue[800]),
           ),
           SizedBox(height: 8),
           Text(
             "Make sure to review the task before clicking the button below.",
             textAlign: TextAlign.center,
+            style:
+                GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompletionSection() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.green[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.green[100]!),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.check_circle,
+            color: Colors.green[600],
+            size: 48,
+          ),
+          SizedBox(height: 12),
+          Text(
+            'Task Completed!',
             style: GoogleFonts.montserrat(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Colors.green[800]),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Congratulations on successfully completing this task!',
+            textAlign: TextAlign.center,
+            style:
+                GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
       ),
@@ -483,10 +598,9 @@ class _ClientReviewState extends State<ClientReview> {
                   child: Text(
                     _taskInformation!.title ?? 'Task',
                     style: GoogleFonts.montserrat(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF03045E),
-                    ),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF03045E)),
                   ),
                 ),
               ],
@@ -542,17 +656,14 @@ class _ClientReviewState extends State<ClientReview> {
                     Text(
                       'Client Profile',
                       style: GoogleFonts.montserrat(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF03045E),
-                      ),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF03045E)),
                     ),
                     Text(
                       'Details',
                       style: GoogleFonts.montserrat(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
+                          fontSize: 12, color: Colors.grey[600]),
                     ),
                   ],
                 ),
@@ -592,51 +703,61 @@ class _ClientReviewState extends State<ClientReview> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               ElevatedButton(
-                onPressed: _handleFinishTask,
+                onPressed: _requestStatus == 'Completed'
+                    ? () => Navigator.pop(context)
+                    : () async {
+                        final result = await _handleFinishTask();
+                        if (result) {
+                          Navigator.pop(
+                              context); // Pop action bottom sheet on success
+                        }
+                      },
                 style: ElevatedButton.styleFrom(
                   minimumSize: Size(double.infinity, 50),
-                  backgroundColor: Color(0xFF3E9B52),
+                  backgroundColor: _requestStatus == 'Completed'
+                      ? Colors.grey[600]
+                      : Color(0xFF3E9B52),
                   padding: EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                      borderRadius: BorderRadius.circular(12)),
                   elevation: 2,
                 ),
                 child: Text(
-                  _requestInformation?.task_status != 'Disputed'
-                      ? 'Finish Task and Release Payment'
-                      : 'Settle Dispute and Release Payment',
+                  _requestStatus == 'Completed'
+                      ? 'Back to Task'
+                      : _requestInformation?.task_status != 'Disputed'
+                          ? 'Finish Task and Release Payment'
+                          : 'Settle Dispute and Release Payment',
                   style: GoogleFonts.montserrat(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white),
                 ),
               ),
-              if (_requestInformation?.task_status != 'Disputed')
+              if (_requestInformation?.task_status != 'Disputed' &&
+                  _requestStatus != 'Completed')
                 SizedBox(height: 16),
-              if (_requestInformation?.task_status != 'Disputed')
+              if (_requestInformation?.task_status != 'Disputed' &&
+                  _requestStatus != 'Completed')
                 ElevatedButton(
                   onPressed: _handleTaskDispute,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xFFA73140),
                     padding: EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                        borderRadius: BorderRadius.circular(12)),
                     elevation: 2,
                     minimumSize: Size(double.infinity, 50),
                   ),
                   child: Text(
                     'File a Dispute',
                     style: GoogleFonts.montserrat(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white),
                   ),
                 ),
-              SizedBox(height: 16), // Extra padding at the bottom
+              SizedBox(height: 16),
             ],
           ),
         );
@@ -644,89 +765,24 @@ class _ClientReviewState extends State<ClientReview> {
     );
   }
 
-  Future<void> _handleTaskDispute() async {
-    if (_requestInformation == null ||
-        _requestInformation!.task_taken_id == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Task information not available')),
-      );
-      return;
-    }
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => _DisputeBottomSheet(
-        onDisputeSubmit: (String reasonForDispute, String raisedBy,
-            File? imageEvidence) async {
-          setState(() {
-            _isLoading = true;
-          });
-          try {
-            bool result = await taskController.acceptRequest(
-              _requestInformation?.task_taken_id ?? 0,
-              'Finish',
-              widget.role ?? '',
-            );
-
-            if (result) {
-              if (!mounted) return;
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ClientFinish(
-                    finishID: _requestInformation?.task_taken_id ?? 0,
-                    role: widget.role,
-                  ),
-                ),
-              );
-            } else {
-              if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Failed to finish task')),
-              );
-            }
-          } catch (e, stackTrace) {
-            debugPrint("Error finishing task: $e.");
-            debugPrintStack(stackTrace: stackTrace);
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Error occurred')),
-              );
-            }
-          } finally {
-            setState(() {
-              _isLoading = false;
-            });
-          }
-        },
-      ),
-    );
-  }
-
   Widget _buildFinishActionButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () => _showActionBottomSheet(context),
+        onPressed: () => _requestStatus == 'Completed'
+            ? Navigator.pop(context)
+            : _showActionBottomSheet(context),
         style: ElevatedButton.styleFrom(
           backgroundColor: Color(0xFF03045E),
           padding: EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           elevation: 2,
         ),
         child: Text(
-          'Finish Task',
+          _requestStatus == 'Completed' ? 'Back to Task' : 'Finish Task',
           style: GoogleFonts.montserrat(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
+              fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
         ),
       ),
     );
@@ -741,19 +797,17 @@ class _ClientReviewState extends State<ClientReview> {
         Text(
           '$label: ',
           style: GoogleFonts.montserrat(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Colors.grey[600],
-          ),
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[600]),
         ),
         Expanded(
           child: Text(
             value,
             style: GoogleFonts.montserrat(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF03045E),
-            ),
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF03045E)),
           ),
         ),
       ],
@@ -767,10 +821,9 @@ class _ClientReviewState extends State<ClientReview> {
         Text(
           '$label: ',
           style: GoogleFonts.montserrat(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Colors.grey[600],
-          ),
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[600]),
         ),
         Expanded(
           child: Row(
@@ -779,20 +832,16 @@ class _ClientReviewState extends State<ClientReview> {
                 child: Text(
                   value,
                   style: GoogleFonts.montserrat(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF03045E),
-                  ),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF03045E)),
                 ),
               ),
               if (isVerified)
                 Padding(
                   padding: EdgeInsets.only(left: 8),
-                  child: Icon(
-                    Icons.verified,
-                    color: Colors.green[400],
-                    size: 18,
-                  ),
+                  child:
+                      Icon(Icons.verified, color: Colors.green[400], size: 18),
                 ),
             ],
           ),
@@ -802,9 +851,9 @@ class _ClientReviewState extends State<ClientReview> {
   }
 }
 
-//Finish Task and Release Payment
 class _FeedbackBottomSheet extends StatefulWidget {
-  final Function(int rating, String feedback, String? report) onFeedbackSubmit;
+  final Function(int rating, String feedback, String? report,
+      Function(bool) onComplete) onFeedbackSubmit;
 
   const _FeedbackBottomSheet({required this.onFeedbackSubmit});
 
@@ -842,13 +891,11 @@ class __FeedbackBottomSheetState extends State<_FeedbackBottomSheet> {
             Text(
               'Rate & Review Tasker',
               style: GoogleFonts.montserrat(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF03045E),
-              ),
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF03045E)),
             ),
             SizedBox(height: 16),
-            // Rating Stars
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(5, (index) {
@@ -868,14 +915,12 @@ class __FeedbackBottomSheetState extends State<_FeedbackBottomSheet> {
               }),
             ),
             SizedBox(height: 16),
-            // Feedback Field
             Text(
               'Feedback',
               style: GoogleFonts.montserrat(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF03045E),
-              ),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF03045E)),
             ),
             SizedBox(height: 8),
             TextField(
@@ -904,10 +949,9 @@ class __FeedbackBottomSheetState extends State<_FeedbackBottomSheet> {
               Text(
                 'Report Issue',
                 style: GoogleFonts.montserrat(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.red[700],
-                ),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.red[700]),
               ),
               SizedBox(height: 8),
               TextField(
@@ -947,24 +991,30 @@ class __FeedbackBottomSheetState extends State<_FeedbackBottomSheet> {
                     _rating,
                     _feedbackController.text,
                     _isSatisfied ? null : _reportController.text,
+                    (bool success) {
+                      if (success) {
+                        Navigator.pop(context,
+                            true); // Pop feedback bottom sheet with true
+                      } else {
+                        Navigator.pop(context,
+                            false); // Pop feedback bottom sheet with false
+                      }
+                    },
                   );
-                  Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF03045E),
                   padding: EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                      borderRadius: BorderRadius.circular(12)),
                   elevation: 2,
                 ),
                 child: Text(
                   'Submit Feedback & Release Payment',
                   style: GoogleFonts.montserrat(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white),
                 ),
               ),
             ),
