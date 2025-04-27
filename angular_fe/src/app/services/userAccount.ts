@@ -112,4 +112,17 @@ export class UserAccountService {
       withCredentials: true
     });
   }
+
+  // New methods for forgot password - Modified to remove headers and withCredentials
+  sendOtp(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/forgot-password/send-otp`, { email });
+  }
+
+  verifyOtp(email: string, otp: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/forgot-password/verify-otp`, { email, otp });
+  }
+
+  resetPassword(email: string, newPassword: string, confirmPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/forgot-password/reset-password`, { email, newPassword, confirmPassword });
+  }
 }
