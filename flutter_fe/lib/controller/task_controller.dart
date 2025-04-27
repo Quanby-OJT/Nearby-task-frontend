@@ -169,12 +169,13 @@ class TaskController {
         : assignedTask['error'].toString();
   }
 
-  Future<bool> raiseADispute(int taskTakenId, String value, String role, File imageEvidence) async {
+  Future<bool> raiseADispute(int taskTakenId, String value, String role, String reasonForDispute, String disputeDetails, List<File> imageEvidence) async {
     debugPrint("Assigning task...");
-    final assignedTask =
-    await _jobPostService.raiseADispute(taskTakenId, value, role, imageEvidence);
-    if (assignedTask.containsKey('message')) {
-      return assignedTask['message'] = true;
+    debugPrint("Role: $role");
+    debugPrint("Image Evidence: $imageEvidence");
+    final assignedTask = await _jobPostService.raiseADispute(taskTakenId, value, role, imageEvidence, reasonForDispute, disputeDetails);
+    if (assignedTask['success']) {
+      return true;
     }
     return false;
   }

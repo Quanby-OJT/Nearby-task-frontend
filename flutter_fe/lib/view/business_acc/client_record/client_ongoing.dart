@@ -1,6 +1,9 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/view/business_acc/client_record/display_list_ongoing.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
@@ -12,6 +15,8 @@ import 'package:flutter_fe/view/business_acc/client_record/client_finish.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:async';
+
+import 'display_list_coinfirmed.dart';
 
 class ClientOngoing extends StatefulWidget {
   final int? ongoingID;
@@ -210,38 +215,43 @@ class _ClientOngoingState extends State<ClientOngoing> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => _DisputeBottomSheet(
-        onDisputeSubmit: (String reasonForDispute, String raisedBy, File? imageEvidence) async {
+      builder: (childContext) => _DisputeBottomSheet(
+        onDisputeSubmit: (String reasonForDispute, String disputeDetails, List<File> imageEvidence) async {
           setState(() {
             _isLoading = true;
           });
           try {
-            bool result = await taskController.raiseADispute(
-              _requestInformation?.task_taken_id ?? 0,
+            bool result = await taskController.raiseADispute(_requestInformation?.task_taken_id ?? 0,
               'Disputed',
               widget.role ?? '',
-              imageEvidence ?? File(''),
+              reasonForDispute,
+              disputeDetails,
+              imageEvidence
             );
 
             if (result) {
               Navigator.push(
-                context,
+                childContext,
                 MaterialPageRoute(
-                  builder: (context) => ClientFinish(
-                    finishID: _requestInformation?.task_taken_id ?? 0,
-                    role: widget.role,
-                  ),
+                  builder: (context) => DisplayListRecordOngoing()
                 ),
               );
+              ScaffoldMessenger.of(childContext).showMaterialBanner(
+                MaterialBanner(
+                  backgroundColor: Color(0XFFD6932A),
+                    content: Text("Dispute has been Raised. Wait for the Tasker to respond."),
+                    actions: [TextButton(onPressed: Navigator.of(childContext).pop, child: Text('Dismiss'))]
+                )
+              );
             } else {
-              ScaffoldMessenger.of(context).showSnackBar(
+              ScaffoldMessenger.of(childContext).showSnackBar(
                 SnackBar(content: Text('Failed to raise dispute. Please Try Again.')),
               );
             }
           } catch (e, stackTrace) {
             debugPrint("Error finishing task: $e.");
             debugPrintStack(stackTrace: stackTrace);
-            ScaffoldMessenger.of(context).showSnackBar(
+            ScaffoldMessenger.of(childContext).showSnackBar(
               SnackBar(content: Text('Error occurred')),
             );
           } finally {
@@ -254,6 +264,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
     );
   }
 
+  //General Information About the Task and Tasker
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -840,7 +851,7 @@ class __FeedbackBottomSheetState extends State<_FeedbackBottomSheet> {
 
 //Finish Task and Release Payment
 class _DisputeBottomSheet extends StatefulWidget {
-  final Function(String reasonForDispute, String raisedBy, File? imageEvidence) onDisputeSubmit;
+  final Function(String reasonForDispute, String raisedBy, List<File> imageEvidence) onDisputeSubmit;
 
   const _DisputeBottomSheet({required this.onDisputeSubmit});
 
@@ -851,7 +862,7 @@ class _DisputeBottomSheet extends StatefulWidget {
 class __DisputeBottomSheetState extends State<_DisputeBottomSheet> {
   final TextEditingController _disputeTypeController = TextEditingController();
   final TextEditingController _disputeDetailsController = TextEditingController();
-  File? _imageEvidence;
+  List<File> _imageEvidence = [];
 
   final ImagePicker _picker = ImagePicker();
 
@@ -862,16 +873,22 @@ class __DisputeBottomSheetState extends State<_DisputeBottomSheet> {
     super.dispose();
   }
 
-  Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+  Future _pickImage() async {
+    final pickedFile = await _picker.pickMultiImage(
+      imageQuality: 100,
+      maxWidth: 1000,
+      maxHeight: 1000,
+    );
 
-    setState(() {
-      if (pickedFile != null) {
-        _imageEvidence = File(pickedFile.path);
-      } else {
-        print('No image selected.');
+    List<XFile> xFilePick = pickedFile;
+
+    if(xFilePick.isNotEmpty){
+      for(int i = 0; i < xFilePick.length; i++){
+        setState(() {
+          _imageEvidence.add(File(xFilePick[i].path));
+        });
       }
-    });
+    }
   }
 
 
@@ -914,7 +931,7 @@ class __DisputeBottomSheetState extends State<_DisputeBottomSheet> {
               items: <String>[
                 '--Select Reason of Dispute--',
                 'Poor Quality of Work',
-                'Tasker is Unavailable',
+                'Breach of Contract',
                 'Task Still Not Completed',
                 'Tasker Did Not Finish what\'s Required',
                 'Others (Provide Details)'
@@ -986,14 +1003,47 @@ class __DisputeBottomSheetState extends State<_DisputeBottomSheet> {
             GestureDetector(
               onTap: _pickImage,
               child: Container(
-                height: 100,
+                height: 120,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey[300]!),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: _imageEvidence != null
-                    ? Image.file(_imageEvidence!, fit: BoxFit.cover)
+                    ? SizedBox(
+                        width: 300.0, // To show images in particular area only
+                        child: _imageEvidence.isEmpty  // If no images is selected
+                            ? const Center(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(FontAwesomeIcons.fileImage, size: 40, color: Colors.grey),
+                                    SizedBox(width: 8),
+                                    Text('Upload Photos (Screenshots, Actual Work)', style: TextStyle(fontSize: 16, color: Colors.grey))
+                                  ]
+                                )
+                        )
+                        // If atleast 1 images is selected
+                            : GridView.builder(
+                          itemCount: _imageEvidence.length,
+                          gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3
+                            // Horizontally only 3 images will show
+                          ),
+                          itemBuilder: (BuildContext context, int index) {
+                            // TO show selected file
+                            return Center(
+                                child: kIsWeb
+                                    ? Image.network(
+                                    _imageEvidence[index].path)
+                                    : Image.file(_imageEvidence[index]));
+                            // If you are making the web app then you have to
+                            // use image provider as network image or in
+                            // android or iOS it will as file only
+                          },
+                        ),
+                      )
                     : Icon(Icons.add_photo_alternate, size: 40, color: Colors.grey[400]),
               ),
             ),
@@ -1004,7 +1054,7 @@ class __DisputeBottomSheetState extends State<_DisputeBottomSheet> {
                 onPressed: () {
                   widget.onDisputeSubmit(
                     _disputeTypeController.text,
-                    _disputeTypeController.text,
+                    _disputeDetailsController.text,
                     _imageEvidence
                   );
                   Navigator.pop(context);
