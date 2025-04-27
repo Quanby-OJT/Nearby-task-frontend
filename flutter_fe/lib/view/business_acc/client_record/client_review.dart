@@ -708,8 +708,7 @@ class _ClientReviewState extends State<ClientReview> {
                     : () async {
                         final result = await _handleFinishTask();
                         if (result) {
-                          Navigator.pop(
-                              context); // Pop action bottom sheet on success
+                          Navigator.pop(context);
                         }
                       },
                 style: ElevatedButton.styleFrom(
