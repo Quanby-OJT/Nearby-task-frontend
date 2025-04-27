@@ -1,25 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/notificationController.dart';
+import 'package:flutter_fe/controller/profile_controller.dart';
+import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/view/business_acc/client_record/client_ongoing.dart';
+import 'package:flutter_fe/view/business_acc/client_record/client_rejected.dart';
 import 'package:flutter_fe/view/notification/client_request.dart';
-import 'package:flutter_fe/view/service_acc/tasker_record/tasker_ongoing.dart';
+import 'package:flutter_fe/view/notification/display_task_status.dart';
+import 'package:flutter_fe/view/service_acc/tasker_record/tasker_pending.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../controller/profile_controller.dart';
-import '../../../model/auth_user.dart';
-
-class DisplayListRecordOngoing extends StatefulWidget {
-  const DisplayListRecordOngoing({super.key});
+class DisplayListRecordPending extends StatefulWidget {
+  const DisplayListRecordPending({super.key});
 
   @override
-  State<DisplayListRecordOngoing> createState() =>
-      _DisplayListRecordOngoingState();
+  State<DisplayListRecordPending> createState() =>
+      _DisplayListRecordPendingState();
 }
 
-class _DisplayListRecordOngoingState extends State<DisplayListRecordOngoing> {
-  // Mock data for all notifications
-  final List<Map<String, dynamic>> notifications = [];
+class _DisplayListRecordPendingState extends State<DisplayListRecordPending> {
   final NotificationController _notificationController =
       NotificationController();
   final storage = GetStorage();
@@ -29,7 +28,7 @@ class _DisplayListRecordOngoingState extends State<DisplayListRecordOngoing> {
   final List<Map<String, dynamic>> requestData = [];
 
   // Track the selected tab index
-  final int _selectedTabIndex = 0;
+  int _selectedTabIndex = 0;
 
   final ProfileController _userController = ProfileController();
   AuthenticatedUser? _user;
@@ -63,7 +62,15 @@ class _DisplayListRecordOngoingState extends State<DisplayListRecordOngoing> {
   Future<void> _fetchRequests() async {
     try {
       int userId = storage.read("user_id");
-      final response = await _notificationController.getOngoingRequests(userId);
+
+      if (userId == null) {
+        debugPrint("User ID is null");
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+      final response = await _notificationController.getPendingRequests(userId);
 
       debugPrint(response.toString());
 
@@ -98,7 +105,7 @@ class _DisplayListRecordOngoingState extends State<DisplayListRecordOngoing> {
   String truncateText(String? text, int maxLength) {
     final safeText = text ?? "No description";
     if (safeText.length <= maxLength) return safeText;
-    return "${safeText.substring(0, maxLength)}...";
+    return safeText.substring(0, maxLength) + "...";
   }
 
   // Method to build content based on the selected tab
@@ -108,7 +115,7 @@ class _DisplayListRecordOngoingState extends State<DisplayListRecordOngoing> {
       child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : requestData.isEmpty
-              ? _buildEmptyState("No ongoing tasks available!")
+              ? _buildEmptyState("No pending tasks available!")
               : ListView.builder(
                   itemCount: requestData.length,
                   itemBuilder: (context, index) {
@@ -123,33 +130,18 @@ class _DisplayListRecordOngoingState extends State<DisplayListRecordOngoing> {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(12),
                           onTap: () {
-                            if (role == "Client") {
-                              debugPrint("Role: $role");
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => ClientOngoing(
-                                          ongoingID: request["id"],
-                                          role: role))).then((value) {
-                                setState(() {
-                                  _isLoading = true;
-                                });
-                                _fetchRequests();
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => TaskerPending(
+                                          requestID: request["id"],
+                                          role: request["role"],
+                                        ))).then((value) {
+                              setState(() {
+                                _isLoading = true;
                               });
-                            } else {
-                              debugPrint("Tasker role");
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => TaskerOngoing(
-                                          ongoingID: request["id"],
-                                          role: role))).then((value) {
-                                setState(() {
-                                  _isLoading = true;
-                                });
-                                _fetchRequests();
-                              });
-                            }
+                              _fetchRequests();
+                            });
                           },
                           child: Padding(
                             padding: EdgeInsets.all(16),
@@ -254,13 +246,12 @@ class _DisplayListRecordOngoingState extends State<DisplayListRecordOngoing> {
     );
   }
 
-  //Main Application
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Ongoing Task',
+          'Pending Task',
           style: GoogleFonts.montserrat(
             color: Color(0xFF0272B1),
             fontWeight: FontWeight.w600,

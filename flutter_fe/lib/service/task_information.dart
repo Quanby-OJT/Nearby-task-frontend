@@ -57,38 +57,21 @@ class TaskDetailsService {
     return _handleResponse(response);
   }
 
-  static Future<Map<String, dynamic>> _deleteRequest(
-      String endpoint, Map<String, dynamic> body) async {
+  static Future<Map<String, dynamic>> _deleteRequest(String endpoint) async {
     final token = await AuthService.getSessionToken();
-    try {
-      final request = http.Request("DELETE", Uri.parse('$url$endpoint'))
-        ..headers["Authorization"] = "Bearer $token"
-        ..headers["Content-Type"] = "application/json"
-        ..body = jsonEncode(body);
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
-      return _handleResponse(response);
-    } catch (e) {
-      return {"error": "Request failed: $e"};
-    }
+    final response = await http.delete(
+      Uri.parse("$url$endpoint"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json"
+      },
+    );
+    return _handleResponse(response);
   }
 
   static Future<TaskModel?> fetchTaskDetails(int taskId) async {
     try {
-      // final url = Uri.parse("$apiUrl/displayLikedJob/$taskId");
-      //
-      // final response = await http.get(url);
-      //
-      // if (response.statusCode == 200) {
-      //   final Map<String, dynamic> jsonData = jsonDecode(response.body);
-      //
-      //   if (jsonData.containsKey('tasks') && jsonData['tasks'].isNotEmpty) {
-      //     return TaskModel.fromJson(jsonData['tasks'][0]);
-      //   }
-      // }
-
       final data = await _getRequest("$url/displayLikedJob/$taskId");
-
       return TaskModel.fromJson(data['tasks'][0]);
     } catch (e) {
       debugPrint("Exception in fetchTaskDetails: $e");
@@ -124,7 +107,9 @@ class TaskDetailsService {
     }
   }
 
-  static Future<Map<String, dynamic>> sendMessage(Conversation conversation) async {
+  //Client/Tasker Conversation
+  static Future<Map<String, dynamic>> sendMessage(
+      Conversation conversation) async {
     try {
       return await _postRequest(
           endpoint: "/send-message", body: conversation.toJson());
@@ -174,6 +159,19 @@ class TaskDetailsService {
       return {
         "error":
             "An error occurred while retrieving your conversation. Please try again."
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> deleteMessage(int messageId) async {
+    try {
+      return await _deleteRequest("/delete-message/$messageId");
+    } catch (e, st) {
+      debugPrint(e.toString());
+      debugPrint(st.toString());
+      return {
+        "error":
+            "An error occurred while deleting your message. Please try again."
       };
     }
   }

@@ -10,16 +10,16 @@ import 'package:flutter_fe/view/business_acc/client_record/client_finish.dart';
 import 'package:get_storage/get_storage.dart';
 import 'dart:async';
 
-class TaskerOngoing extends StatefulWidget {
-  final int? ongoingID;
+class TaskerReview extends StatefulWidget {
+  final int? requestID;
   final String? role;
-  const TaskerOngoing({super.key, this.ongoingID, this.role});
+  const TaskerReview({super.key, this.requestID, this.role});
 
   @override
-  State<TaskerOngoing> createState() => _TaskerOngoingState();
+  State<TaskerReview> createState() => _TaskerReviewState();
 }
 
-class _TaskerOngoingState extends State<TaskerOngoing> {
+class _TaskerReviewState extends State<TaskerReview> {
   final JobPostService _jobPostService = JobPostService();
   final TaskController taskController = TaskController();
   final ProfileController _profileController = ProfileController();
@@ -30,7 +30,6 @@ class _TaskerOngoingState extends State<TaskerOngoing> {
   AuthenticatedUser? client;
   Duration? _timeRemaining;
   Timer? _timer;
-  String _requestStatus = 'Unknown';
 
   @override
   void initState() {
@@ -62,13 +61,10 @@ class _TaskerOngoingState extends State<TaskerOngoing> {
   Future<void> _fetchRequestDetails() async {
     try {
       final response =
-          await _jobPostService.fetchRequestInformation(widget.ongoingID ?? 0);
+          await _jobPostService.fetchRequestInformation(widget.requestID ?? 0);
       setState(() {
         _requestInformation = response;
-        _requestStatus = _requestInformation?.task_status ?? 'Unknown';
       });
-
-      debugPrint("Fetched request status of this task: $_requestStatus");
       await _fetchTaskDetails();
       await _fetchTaskerDetails(_requestInformation!.client_id as int);
     } catch (e) {
@@ -87,75 +83,8 @@ class _TaskerOngoingState extends State<TaskerOngoing> {
         _taskInformation = response?.task;
         _isLoading = false;
       });
-      _startCountdownTimer();
     } catch (e) {
       debugPrint("Error fetching task details: $e");
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  void _startCountdownTimer() {
-    if (_taskInformation?.duration != null &&
-        _taskInformation?.period != null) {
-      int durationInDays = int.parse(_taskInformation!.duration);
-      String period = _taskInformation!.period.toLowerCase();
-
-      if (period.contains('week')) {
-        durationInDays *= 7;
-      } else if (period.contains('month')) {
-        durationInDays *= 30;
-      }
-
-      DateTime endDate = DateTime.now().add(Duration(days: durationInDays));
-      _timeRemaining = endDate.difference(DateTime.now());
-
-      _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-        setState(() {
-          _timeRemaining = endDate.difference(DateTime.now());
-          if (_timeRemaining!.isNegative) {
-            _timeRemaining = Duration.zero;
-            timer.cancel();
-          }
-        });
-      });
-    }
-  }
-
-  String _formatDuration(Duration duration) {
-    if (duration.isNegative) return 'Time’s up!';
-    final days = duration.inDays;
-    final hours = duration.inHours % 24;
-    final minutes = duration.inMinutes % 60;
-    return '${days}d ${hours}h ${minutes}m';
-  }
-
-  Future<void> _handleFinishTask() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final String value = 'Review';
-      bool result = await taskController.acceptRequest(
-        _requestInformation!.task_taken_id!,
-        value,
-        widget.role!,
-      );
-      if (result) {
-        _fetchRequestDetails();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to review task')),
-        );
-      }
-    } catch (e) {
-      debugPrint("Error reviewing task: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error occurred')),
-      );
-    } finally {
       setState(() {
         _isLoading = false;
       });
@@ -201,20 +130,16 @@ class _TaskerOngoingState extends State<TaskerOngoing> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Timer Section
-                        if (_requestStatus == 'Ongoing') _buildTimerSection(),
-                        if (_requestStatus == 'Review') _buildReviewSection(),
-                        SizedBox(height: 16),
                         // Task Card
+                        _buildReviewSection(),
+                        SizedBox(height: 16),
                         _buildTaskCard(),
                         SizedBox(height: 16),
                         // Client Profile Card
                         _buildProfileCard(),
                         SizedBox(height: 24),
                         // Action Button
-                        _requestStatus == 'Ongoing'
-                            ? _buildFinishActionButton()
-                            : _buildReviewActionButton(),
+                        _buildActionButton(),
                       ],
                     ),
                   ),
@@ -257,54 +182,6 @@ class _TaskerOngoingState extends State<TaskerOngoing> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildTimerSection() {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF03045E), Color(0xFF0A2472)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              Icons.timer,
-              color: Colors.white,
-              size: 40,
-            ),
-            SizedBox(height: 12),
-            Text(
-              'Time Remaining',
-              style: GoogleFonts.montserrat(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              _timeRemaining != null
-                  ? _formatDuration(_timeRemaining!)
-                  : 'Calculating...',
-              style: GoogleFonts.montserrat(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -428,32 +305,7 @@ class _TaskerOngoingState extends State<TaskerOngoing> {
     );
   }
 
-  Widget _buildFinishActionButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: _handleFinishTask,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Color(0xFF03045E),
-          padding: EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 2,
-        ),
-        child: Text(
-          'Finish Task',
-          style: GoogleFonts.montserrat(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildReviewActionButton() {
+  Widget _buildActionButton() {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(

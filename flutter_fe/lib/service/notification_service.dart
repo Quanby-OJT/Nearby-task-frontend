@@ -21,6 +21,16 @@ class NotificationService {
     }
   }
 
+  Future<Map<String, dynamic>> getPendingRequests(int userId) async {
+    try {
+      final data = await _getRequest("/notifications-tasker-pending/$userId");
+      return data;
+    } catch (e, st) {
+      debugPrint("Service error: $e\nStacktrace: $st");
+      return {"error": "An error occurred while getting pending requests"};
+    }
+  }
+
   Future<Map<String, dynamic>> _getRequest(String endpoint) async {
     final token = await AuthService.getSessionToken();
     try {
@@ -69,6 +79,16 @@ class NotificationService {
     } catch (e, st) {
       debugPrint("Service error: $e\nStacktrace: $st");
       return {"error": "An error occurred while getting ongoing requests"};
+    }
+  }
+
+  Future<Map<String, dynamic>> getReviewRequests(int userId) async {
+    try {
+      final data = await _getRequest("/notifications-tasker-review/$userId");
+      return data;
+    } catch (e, st) {
+      debugPrint("Service error: $e\nStacktrace: $st");
+      return {"error": "An error occurred while getting review requests"};
     }
   }
 

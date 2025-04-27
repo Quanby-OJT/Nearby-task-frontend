@@ -36,7 +36,11 @@ class _ClientRejectedState extends State<ClientRejected> {
 
   Future<void> _updateNotif() async {
     try {
-      final response = await taskController.updateNotif(widget.requestID ?? 0);
+      final int userId = storage.read("user_id");
+      final response = await taskController.updateNotif(
+        widget.requestID ?? 0,
+        userId,
+      );
       if (!response) debugPrint("Failed to update notification");
     } catch (e) {
       debugPrint("Error updating notification: $e");

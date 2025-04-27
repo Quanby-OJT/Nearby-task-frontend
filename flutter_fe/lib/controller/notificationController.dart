@@ -26,6 +26,27 @@ class NotificationController {
     }
   }
 
+  Future<Map<String, dynamic>> getPendingRequests(int userId) async {
+    try {
+      final data = await _notificationService.getPendingRequests(userId);
+      return data;
+    } catch (e, st) {
+      debugPrint("Controller error: $e\nStacktrace: $st");
+      return {"error": "An error occurred while getting pending requests"};
+    }
+  }
+
+  Future<Map<String, dynamic>> getReviewRequests(int userId) async {
+    try {
+      final data = await _notificationService.getReviewRequests(userId);
+      debugPrint(data.toString());
+      return data;
+    } catch (e, st) {
+      debugPrint("Controller error: $e\nStacktrace: $st");
+      return {"error": "An error occurred while getting ongoing requests"};
+    }
+  }
+
   Future<Map<String, dynamic>> getOngoingRequests(int userId) async {
     try {
       final data = await _notificationService.getOngoingRequests(userId);
