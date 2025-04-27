@@ -18,15 +18,34 @@ export class ForgotPasswordComponent implements OnInit {
   newPassword: string = '';
   confirmPassword: string = '';
 
+  // Object to track password validation requirements
+  passwordValidation = {
+    minLength: false,
+    lowercase: false,
+    uppercase: false,
+    number: false,
+    specialChar: false,
+    noSpaces: false,
+  };
+
   constructor(private userAccountService: UserAccountService, private router: Router) {}
 
   ngOnInit(): void {}
 
+  // Validate password requirements as the user types
+  validatePassword() {
+    this.passwordValidation.minLength = this.newPassword.length >= 8;
+    this.passwordValidation.lowercase = /[a-z]/.test(this.newPassword);
+    this.passwordValidation.uppercase = /[A-Z]/.test(this.newPassword);
+    this.passwordValidation.number = /\d/.test(this.newPassword);
+    this.passwordValidation.specialChar = /[!@#$%^&*()]/.test(this.newPassword);
+    this.passwordValidation.noSpaces = !/\s/.test(this.newPassword);
+  }
+
   async nextStep(form: NgForm) {
     if (this.currentStep === 1) {
       if (!form.valid) {
-        alert('Please enter a valid email address.');
-        return;
+        return; // Let the template handle the error display
       }
       const trimmedEmail = this.email.trim();
       console.log(`Sending OTP request for email: "${trimmedEmail}"`);
@@ -43,8 +62,7 @@ export class ForgotPasswordComponent implements OnInit {
       }
     } else if (this.currentStep === 2) {
       if (!form.valid) {
-        alert('Please enter a valid 6-digit OTP.');
-        return;
+        return; // Let the template handle the error display
       }
       const trimmedOtp = this.otp.trim();
       console.log(`Verifying OTP: "${trimmedOtp}" for email: "${this.email}"`);
@@ -66,14 +84,25 @@ export class ForgotPasswordComponent implements OnInit {
 
   async submit() {
     if (this.currentStep === 3) {
+      // Check if fields are empty
       if (!this.newPassword || !this.confirmPassword) {
         alert('Please fill in both password fields.');
         return;
       }
+
+      // Check if passwords match
       if (this.newPassword !== this.confirmPassword) {
         alert('Passwords do not match.');
         return;
       }
+
+      // Validate password requirements
+      const passwordRegex = /^(?!.*\s)(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()]).{8,}$/;
+      if (!passwordRegex.test(this.newPassword)) {
+        alert('Password must be at least 8 characters long, contain at least one lowercase letter, one uppercase letter, one number, one special character (!@#$%^&*()), and no spaces.');
+        return;
+      }
+
       try {
         await this.userAccountService.resetPassword(this.email, this.newPassword, this.confirmPassword).toPromise();
         alert('Password reset successfully. Please log in with your new password.');
