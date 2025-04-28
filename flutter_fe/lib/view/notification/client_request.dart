@@ -31,8 +31,8 @@ class _ClientRequestState extends State<ClientRequest> {
   ClientRequestModel? _requestInformation;
   bool _isLoading = true;
   final storage = GetStorage();
-  bool _isApplying = false;
-  bool _isEditing = false;
+  final bool _isApplying = false;
+  final bool _isEditing = false;
 
   @override
   void initState() {

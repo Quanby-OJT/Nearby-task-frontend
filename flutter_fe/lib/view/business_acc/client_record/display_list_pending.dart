@@ -28,7 +28,7 @@ class _DisplayListRecordPendingState extends State<DisplayListRecordPending> {
   final List<Map<String, dynamic>> requestData = [];
 
   // Track the selected tab index
-  int _selectedTabIndex = 0;
+  final int _selectedTabIndex = 0;
 
   final ProfileController _userController = ProfileController();
   AuthenticatedUser? _user;
@@ -62,14 +62,6 @@ class _DisplayListRecordPendingState extends State<DisplayListRecordPending> {
   Future<void> _fetchRequests() async {
     try {
       int userId = storage.read("user_id");
-
-      if (userId == null) {
-        debugPrint("User ID is null");
-        setState(() {
-          _isLoading = false;
-        });
-        return;
-      }
       final response = await _notificationController.getPendingRequests(userId);
 
       debugPrint(response.toString());
@@ -105,7 +97,7 @@ class _DisplayListRecordPendingState extends State<DisplayListRecordPending> {
   String truncateText(String? text, int maxLength) {
     final safeText = text ?? "No description";
     if (safeText.length <= maxLength) return safeText;
-    return safeText.substring(0, maxLength) + "...";
+    return "${safeText.substring(0, maxLength)}...";
   }
 
   // Method to build content based on the selected tab

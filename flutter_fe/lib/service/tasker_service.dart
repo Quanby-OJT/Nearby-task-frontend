@@ -2,15 +2,11 @@ import 'dart:io';
 
 import 'package:flutter_fe/config/url_strategy.dart';
 import 'package:flutter_fe/model/user_model.dart';
-import 'package:flutter_fe/service/api_service.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/service/profile_service.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/auth_service.dart';
-import 'dart:io';
 import 'package:flutter_fe/model/tasker_scheduler.dart';
 import 'package:flutter_fe/model/tasker_feedback.dart';
 
@@ -20,8 +16,6 @@ import '../model/tasker_model.dart';
 class TaskerService {
   static final storage = GetStorage();
   static final String url = apiUrl ?? "http://localhost:5000/connect";
-
-  final ProfileService _profileService = ProfileService();
 
   static Map<String, dynamic> _handleResponse(http.Response response) {
     debugPrint(response.body);

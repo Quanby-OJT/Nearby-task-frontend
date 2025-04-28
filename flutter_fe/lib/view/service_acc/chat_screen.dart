@@ -653,9 +653,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ],
           ),
         ),
-        floatingActionButton: (taskAssignments != null &&
-                taskAssignments!.isNotEmpty &&
-                !_isModalOpen)
+        floatingActionButton: (taskAssignments.isNotEmpty && !_isModalOpen)
             ? FloatingActionButton(
                 onPressed: () {
                   _showReportModal();

@@ -778,7 +778,7 @@ class _JobPostPageState extends State<JobPostPage> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        automaticallyImplyLeading: false,
+          automaticallyImplyLeading: false,
           backgroundColor: Colors.white,
           toolbarHeight: 80,
           title: Align(
@@ -912,8 +912,9 @@ class _JobPostPageState extends State<JobPostPage> {
                                     itemCount: _filteredTasks.length,
                                     itemBuilder: (context, index) {
                                       final task = _filteredTasks[index];
-                                      if (task == null)
+                                      if (task == null) {
                                         return SizedBox.shrink();
+                                      }
                                       return _buildTaskCard(task);
                                     },
                                   ),
