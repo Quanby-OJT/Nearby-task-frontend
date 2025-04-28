@@ -1,11 +1,13 @@
 <div class="min-h-screen w-full bg-gray-50 p-4">
   <!-- Month Filter -->
-  <div class="mb-4 flex items-center justify-center w-1/4">
+  <div class="flex justify-end mb-4 w-full">
+    <div class="flex items-end w-1/4">
     <label for="monthFilter" class="mr-2 whitespace-nowrap">Filter by Month:</label>
     <select id="monthFilter" [(ngModel)]="selectedMonth" (change)="onMonthChange()" class="py-1 px-2 border rounded-md w-32 text-sm">
       <option [ngValue]="null">All Months</option>
       <option *ngFor="let month of months" [ngValue]="month">{{ month }}</option>
     </select>
+  </div>
   </div>
 
    <!-- Chart section -->
@@ -39,7 +41,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let spec of rankedSpecializations; let i = index" class="border-b">
+            <tr *ngFor="let spec of rankedSpecializations; let i = index" class="hover:bg-card/50 h-[60px]">
               <td class="px-2 py-2 text-center">{{ i + 1 }}</td>
               <td class="px-2 py-2 text-center">{{ spec.specialization }}</td>
               <td class="px-2 py-2 text-center">{{ spec.total_requested }}</td>

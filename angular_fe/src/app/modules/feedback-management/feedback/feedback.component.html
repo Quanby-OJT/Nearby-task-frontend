@@ -47,7 +47,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let feedback of displayFeedbacks; let i = index">
+        <tr *ngFor="let feedback of displayFeedbacks; let i = index" class="hover:bg-card/50 h-[60px]">
           <td class="px-4 py-3 text-center">{{ i + 1 }}</td>
           <td class="px-4 py-3 text-center">{{ feedback.tasker.user.first_name }} {{ feedback.tasker.user.middle_name }} {{ feedback.tasker.user.last_name }}</td>
           <td class="px-4 py-3 text-center">{{ feedback.feedback }}</td>

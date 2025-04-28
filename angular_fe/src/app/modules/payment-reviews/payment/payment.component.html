@@ -52,7 +52,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let log of displayPaymentLogs; let i = index">
+        <tr *ngFor="let log of displayPaymentLogs; let i = index" class="hover:bg-card/50 h-[60px]">
           <td class="px-4 py-3 text-center">{{ (currentPage - 1) * this.logsPerPage + i + 1 }}</td>
           <td class="px-4 py-3 text-center">{{ log.user_name }}</td>
           <td class="px-4 py-3 text-center">{{ log.amount }}</td>

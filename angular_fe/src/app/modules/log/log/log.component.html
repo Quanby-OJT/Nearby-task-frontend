@@ -56,7 +56,7 @@
       </thead>
       <tbody>
         <!-- Loop through logs to show each row -->
-        <tr *ngFor="let log of displayLogs; let i = index">
+        <tr *ngFor="let log of displayLogs; let i = index" class="hover:bg-card/50 h-[60px]">
           <td class="px-4 py-3 text-center font-normal">{{ i + 1 }}</td>
           <td class="px-4 py-3 text-center font-normal">{{ log.user.first_name }} {{ log.user.middle_name }} {{ log.user.last_name }}</td>
           <td class="px-4 py-3 text-center pl-10 font-normal">{{ log.user.user_role ? log.user.user_role : 'Null' }}</td>
@@ -88,7 +88,7 @@
     <div class="text-muted-foreground flex items-center justify-between py-3 px-5 text-xs">
       <div class="flex items-center gap-2">
         Show
-        <select class="w-35 p-5 border rounded-md" (change)="changeLogsPerPage($event)">
+        <select class="w-[140px] p-2 border rounded-md" (change)="changeLogsPerPage($event)">
           <option value="5" selected>5</option>
           <option value="10">10</option>
           <option value="20">20</option>

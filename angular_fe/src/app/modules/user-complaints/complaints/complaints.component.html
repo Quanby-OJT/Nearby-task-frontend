@@ -68,7 +68,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let report of displayReports; let i = index">
+          <tr *ngFor="let report of displayReports; let i = index" class="hover:bg-card/50 h-[60px]">
             <td class="px-4 py-3 text-center">{{ i + 1 }}</td>
             <td class="px-4 py-3 text-center">{{ report.reporter.first_name }} {{ report.reporter.middle_name }} {{ report.reporter.last_name }}</td>
             <td class="px-4 py-3 text-center">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.violator.last_name }}</td>
@@ -103,7 +103,7 @@
       <div class="text-muted-foreground flex items-center justify-between py-3 px-5 text-xs">
         <div class="flex items-center gap-2">
           Show
-          <select class="w-35 p-5 border rounded-md" (change)="changeReportsPerPage($event)">
+          <select class="w-[140px] p-2 border rounded-md" (change)="changeReportsPerPage($event)">
             <option value="5" selected>5</option>
             <option value="10">10</option>
             <option value="20">20</option>
@@ -176,7 +176,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let report of displayReports; let i = index" class="border-b">
+          <tr *ngFor="let report of displayReports; let i = index" class="border-b hover:bg-card/50 h-[60px]">
             <td class="px-4 py-3 text-center">{{ i + 1 }}</td>
             <td class="px-4 py-3 text-center">{{ report.reporter.first_name }} {{ report.reporter.middle_name }} {{ report.reporter.last_name }}</td>
             <td class="px-4 py-3 text-center">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.violator.last_name }}</td>
@@ -207,7 +207,7 @@
       <div class="text-muted-foreground flex items-center justify-between py-3 px-5 text-xs">
         <div class="flex items-center gap-2">
           Show
-          <select class="w-35 p-5 border rounded-md" (change)="changeReportsPerPage($event)">
+          <select class="w-[140px] p-2 border rounded-md" (change)="changeReportsPerPage($event)">
             <option value="10" selected>10</option>
             <option value="20">20</option>
             <option value="30">30</option>

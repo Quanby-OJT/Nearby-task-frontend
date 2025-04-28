@@ -13,7 +13,7 @@ export class BestClientComponent implements OnInit {
   filteredClients: { userName: string; address: string; taskCount: number; gender: string }[] = [];
   displayClients: { userName: string; address: string; taskCount: number; gender: string }[] = [];
   paginationButtons: (number | string)[] = [];
-  clientsPerPage: number = 10;
+  clientsPerPage: number = 5;
   currentPage: number = 1;
   totalPages: number = 1;
   startIndex: number = 1;

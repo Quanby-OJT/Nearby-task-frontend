@@ -60,7 +60,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let task of displayedTasks; let i = index">
+        <tr *ngFor="let task of displayedTasks; let i = index" class="hover:bg-card/50 h-[60px]">
           <td class="px-4 py-3 text-center">{{ i + 1 }}</td>
           <td class="px-4 py-3 text-center">{{ task?.clients?.client_id ?? task.client_id ?? '' }}</td>
           <td class="px-4 py-3 text-center">{{ task.clients.user.first_name }} {{ task.clients.user.middle_name || '' }} {{ task.clients.user.last_name }}</td>
@@ -70,15 +70,17 @@
           <td class="px-4 py-3 text-center">{{ task.location || '' }}</td>
           <td class="px-4 py-3 text-center">{{ task.urgent ? 'Yes' : 'No' }}</td>
           <td class="px-4 py-3 text-center">
-            <span class="py-1 px-7 text-sm font-semibold rounded-lg text-white"
-                  [ngClass]="{
-                    'bg-green-500 w-100px': task.status === 'Available',
-                    'bg-red-400 w-300px': task.status === 'Closed',
-                    'bg-blue-500 w-100px': task.status === 'Completed'
-                  }">
-              {{ task.status || 'null' }}
-            </span>
+          <span
+            class="py-1 text-sm font-semibold rounded-lg text-white inline-block text-center w-32"
+            [ngClass]="{
+              'bg-green-500': task.status === 'Available',
+              'bg-red-400': task.status === 'Closed',
+              'bg-yellow-400': task.status === 'Already Taken'
+            }">
+            {{ task.status || 'Empty' }}
+          </span>
           </td>
+
           <td class="flex items-center justify-center pt-3 pb-0">
             <button (click)="disableTask(task.task_id)" class="p-0 border-none bg-transparent cursor-pointer">
               <span class="text-[#F9F9F9] bg-red-400 w-300px py-1 px-7 text-sm font-semibold rounded-lg">Disable</span>

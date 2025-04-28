@@ -32,7 +32,7 @@
           </thead>
           <tbody>
             <!-- Dynamically render depositors -->
-            <tr *ngFor="let depositor of paginatedDepositors; let i = index" class="border-b">
+            <tr *ngFor="let depositor of paginatedDepositors; let i = index" class="hover:bg-card/50 h-[60px]">
               <td class="px-2 py-2 text-center">{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
               <td class="px-2 py-2 text-center">{{ depositor.userName }}</td>
               <td class="px-2 py-2 text-center">{{ depositor.amount }}</td>
