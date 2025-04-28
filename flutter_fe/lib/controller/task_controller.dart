@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/client_model.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
@@ -165,6 +167,17 @@ class TaskController {
     return assignedTask.containsKey('message')
         ? assignedTask['message'].toString()
         : assignedTask['error'].toString();
+  }
+
+  Future<bool> raiseADispute(int taskTakenId, String value, String role, String reasonForDispute, String disputeDetails, List<File> imageEvidence) async {
+    debugPrint("Assigning task...");
+    debugPrint("Role: $role");
+    debugPrint("Image Evidence: $imageEvidence");
+    final assignedTask = await _jobPostService.raiseADispute(taskTakenId, value, role, imageEvidence, reasonForDispute, disputeDetails);
+    if (assignedTask['success']) {
+      return true;
+    }
+    return false;
   }
 
   Future<bool> rateTheTasker(

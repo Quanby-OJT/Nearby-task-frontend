@@ -16,7 +16,7 @@ export class NftChartCardComponent implements OnInit, OnDestroy {
   public chartOptions: ChartOptions;
   public selectedFilter: 'daily' | 'monthly' | 'yearly' = 'daily';
   private tasks: any[] = [];
-  public isLoading: boolean = true; // Add loading state
+  public isLoading: boolean = true; 
 
   constructor(private taskService: TaskService) {
     this.chartOptions = {
@@ -46,7 +46,7 @@ export class NftChartCardComponent implements OnInit, OnDestroy {
       stroke: {
         curve: 'smooth',
         width: 2,
-        colors: ['#DE6FA1']
+        colors: ['#5F50E7']
       },
       xaxis: {
         categories: [],
@@ -70,7 +70,7 @@ export class NftChartCardComponent implements OnInit, OnDestroy {
           formatter: (val: number) => `${val} tasks`
         }
       },
-      colors: ['#DE6FA1'],
+      colors: ['#5F50E7'],
       legend: {
         show: false
       },
@@ -98,7 +98,7 @@ export class NftChartCardComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.isLoading = true; // Set loading to true before fetching
+    this.isLoading = true; 
     this.taskService.getTasks().subscribe({
       next: (response) => {
         this.tasks = response.tasks || [];
@@ -226,15 +226,15 @@ export class NftChartCardComponent implements OnInit, OnDestroy {
     const data: number[] = [];
     const sortedKeys = Object.keys(taskCounts).sort();
     
-    // Determine current period (4th slot)
-    const now = new Date('2025-04-16'); // Based on your data's latest date
+    
+    const now = new Date('2025-04-16'); 
     let currentKey: string;
     if (groupBy === 'day') {
-      currentKey = now.toISOString().split('T')[0]; // e.g., '2025-04-16'
+      currentKey = now.toISOString().split('T')[0]; 
     } else if (groupBy === 'month') {
-      currentKey = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`; // e.g., '2025-04'
+      currentKey = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
     } else {
-      currentKey = now.getFullYear().toString(); // e.g., '2025'
+      currentKey = now.getFullYear().toString(); 
     }
 
     // Get up to 3 past periods with data

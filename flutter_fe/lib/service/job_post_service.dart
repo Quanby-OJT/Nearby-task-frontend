@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/specialization.dart';
@@ -188,9 +189,50 @@ class JobPostService {
     }
   }
 
+  Future<Map<String, dynamic>> _multipartRequest({
+    required String endpoint,
+    required Map<String, String> body,
+    required String fileField,
+    List<File>? files, // Make file optional
+  }) async {
+    final token = await AuthService.getSessionToken();
+    try {
+      var request = http.MultipartRequest('PUT', Uri.parse('$url$endpoint'))
+        ..headers.addAll({"Authorization": "Bearer $token"});
+      body.forEach((key, value) {
+        request.fields[key] = value;
+      });
+
+      if (files != null && files.isNotEmpty) {
+        for (var file in files) {
+          var stream = http.ByteStream(file.openRead());
+          var length = await file.length();
+          var multipartFile = http.MultipartFile(
+            fileField, // Match backend field name
+            stream,
+            length,
+            filename: file.path.split('/').last,
+          );
+          request.files.add(multipartFile);
+        }
+      } else {
+        debugPrint("No files provided");
+      }
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+      return _handleResponse(response);
+    } catch (e, stackTrace) {
+      debugPrint(e.toString());
+      debugPrint(stackTrace.toString());
+      return {"error": "Request failed. Please Try Again."};
+    }
+  }
+
   Future<Map<String, dynamic>> _putRequest(
       {required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
+    debugPrint(body.toString());
     try {
       final response = await http.put(
         Uri.parse('$url$endpoint'),
@@ -267,8 +309,7 @@ class JobPostService {
 
   Future<ClientRequestModel> fetchRequestInformation(int requestID) async {
     try {
-      Map<String, dynamic> response =
-          await _getRequest("/displayRequest/$requestID");
+      Map<String, dynamic> response = await _getRequest("/displayRequest/$requestID");
       debugPrint("Request Data Retrieved: ${response.toString()}");
 
       if (response.containsKey("request") && response["request"] is Map) {
@@ -485,7 +526,6 @@ class JobPostService {
     }
   }
 
-  //Not sure if this will work. Needs more debugging.
   Future<List<TaskModel>> fetchUserLikedJobs() async {
     try {
       String? userId = await getUserId();
@@ -596,8 +636,7 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> assignTask(
-      int taskId, int clientId, int taskerId, String role) async {
+  Future<Map<String, dynamic>> assignTask(int taskId, int clientId, int taskerId, String role) async {
     final userId = await getUserId();
     if (userId == null) {
       return {
@@ -620,8 +659,7 @@ class JobPostService {
     });
   }
 
-  Future<Map<String, dynamic>> updateNotification(
-      int taskTakenId, int userId) async {
+  Future<Map<String, dynamic>> updateNotification(int taskTakenId, int userId) async {
     try {
       debugPrint("Updating notification with ID: $taskTakenId and $userId");
       final response = await http.put(
@@ -641,8 +679,7 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> acceptRequest(
-      int taskTakenId, String value, String role) async {
+  Future<Map<String, dynamic>> acceptRequest(int taskTakenId, String value, String role) async {
     try {
       int clientId = await storage.read('user_id');
       return await _putRequest(
@@ -655,8 +692,49 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> rateTheTasker(
-      int taskTakenId, int taskerId, int rating, String feedback) async {
+  Future<Map<String, dynamic>> raiseADispute(int taskTakenId, String value, String role, List<File> imageEvidence, String disputeReason, String disputeDetails) async {
+    try {
+      int clientId = await storage.read('user_id');
+
+      if(imageEvidence.length > 10){
+        return {'success': false, 'error': 'Maximum Number of Pictures is only 10.'};
+      }
+
+      if (imageEvidence.isNotEmpty) {
+        return await _multipartRequest(
+            endpoint: '/update-request/$taskTakenId',
+            body: {
+              "value": value,
+              "role": role,
+              "client_id": clientId.toString(),
+              "reason_for_dispute": disputeReason,
+              "dispute_details": disputeDetails
+            },
+            fileField: 'imageEvidence',
+            files: imageEvidence
+        );
+      }
+      // Fallback to regular PUT request if no file
+      return await _putRequest(
+        endpoint: '/update-request/$taskTakenId',
+        body: {
+          "value": value,
+          "role": role,
+          "client_id": clientId,
+          "reason_for_dispute": disputeReason,
+          "dispute_details": disputeDetails
+        }
+      );
+
+      return {'success': false, };
+    } catch (e) {
+      debugPrint('Error raising a dispute: $e');
+      debugPrintStack();
+      return {'success': false, 'error': 'Error: $e'};
+    }
+  }
+
+  Future<Map<String, dynamic>> rateTheTasker(int taskTakenId, int taskerId, int rating, String feedback) async {
     try {
       debugPrint(
           "Rating the tasker with rating: $rating and feedback: $feedback");
@@ -673,8 +751,7 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> fetchIsApplied(
-      int? taskId, int? clientId, int? taskerId) async {
+  Future<Map<String, dynamic>> fetchIsApplied(int? taskId, int? clientId, int? taskerId) async {
     final userId = await getUserId();
     if (userId == null) {
       return {
@@ -749,8 +826,7 @@ class JobPostService {
   }
 
   // Method to disable a task
-  Future<Map<String, dynamic>> disableTask(int taskId,
-      [String status = "cancelled"]) async {
+  Future<Map<String, dynamic>> disableTask(int taskId, [String status = "cancelled"]) async {
     try {
       debugPrint("Disabling task with ID: $taskId with status: $status");
       final response = await http.put(

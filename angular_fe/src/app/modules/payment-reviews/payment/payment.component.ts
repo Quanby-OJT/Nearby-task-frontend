@@ -1,11 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PaymentService } from 'src/app/services/payment.service';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { saveAs } from 'file-saver';
+import { AngularSvgIconModule } from 'angular-svg-icon';
 
 @Component({
   selector: 'app-payment',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, AngularSvgIconModule],
   templateUrl: './payment.component.html',
   styleUrls: ['./payment.component.css']
 })
@@ -15,12 +19,13 @@ export class PaymentComponent implements OnInit {
   displayPaymentLogs: any[] = [];
   currentSearchText: string = '';
   currentFilterType: string = '';
-  logsPerPage: number = 10;
+  logsPerPage: number = 5;
   currentPage: number = 1;
   totalPages: number = 1;
   startIndex: number = 1;
   endIndex: number = 0;
   paginationButtons: (number | string)[] = [];
+  placeholderRows: any[] = []; // Added for placeholder rows
 
   constructor(private paymentService: PaymentService) {}
 
@@ -74,6 +79,11 @@ export class PaymentComponent implements OnInit {
     this.displayPaymentLogs = this.filteredPaymentLogs.slice(start, end);
     this.startIndex = start + 1;
     this.endIndex = Math.min(end, this.filteredPaymentLogs.length);
+    
+    // Calculate the number of empty rows based on logsPerPage
+    const placeholderCount = this.logsPerPage - this.displayPaymentLogs.length;
+    this.placeholderRows = Array(placeholderCount).fill({});
+    
     this.makePaginationButtons();
   }
 
@@ -128,5 +138,53 @@ export class PaymentComponent implements OnInit {
       this.currentPage = page;
       this.updatePage();
     }
+  }
+
+  exportCSV() {
+    const headers = ['No', 'User Name', 'Amount', 'Payment Type', 'Created At', 'Deposit Date'];
+    const rows = this.displayPaymentLogs.map((log, index) => {
+      const row = [
+        (this.currentPage - 1) * this.logsPerPage + index + 1,
+        `"${log.user_name || ''}"`, // Wrap in quotes to handle potential commas
+        log.amount || 0,
+        `"${log.payment_type || ''}"`, // Wrap in quotes to handle potential commas
+        `"${log.created_at || ''}"`, // Wrap in quotes to handle commas in timestamps
+        `"${log.deposit_date || ''}"`, // Wrap in quotes to handle commas in timestamps
+      ];
+      console.log('CSV Row:', row); // Debug log to verify data
+      return row;
+    });
+    const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    saveAs(blob, 'PaymentReviews.csv');
+  }
+
+  exportPDF() {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'px',
+      format: 'a4',
+    });
+    const title = 'Payment Reviews';
+    doc.setFontSize(20);
+    doc.text(title, 170, 45);
+    const columns = ['No', 'User Name', 'Amount', 'Payment Type', 'Created At', 'Deposit Date'];
+    const rows = this.displayPaymentLogs.map((log, index) => [
+      (this.currentPage - 1) * this.logsPerPage + index + 1,
+      log.user_name || '',
+      log.amount || 0,
+      log.payment_type || '',
+      log.created_at || '',
+      log.deposit_date || '',
+    ]);
+    autoTable(doc, {
+      startY: 100,
+      head: [columns],
+      body: rows,
+      theme: 'grid',
+      styles: { fontSize: 8, cellPadding: 5, textColor: 'black' },
+      headStyles: { fillColor: [60, 33, 146], textColor: 'white' },
+    });
+    doc.save('PaymentReviews.pdf');
   }
 }

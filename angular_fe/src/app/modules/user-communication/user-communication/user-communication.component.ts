@@ -3,11 +3,15 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { UserConversationService } from 'src/app/services/conversation.service';
 import Swal from 'sweetalert2';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { saveAs } from 'file-saver';
+import { AngularSvgIconModule } from 'angular-svg-icon';
 
 @Component({
   selector: 'app-user-communication',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, AngularSvgIconModule],
   templateUrl: './user-communication.component.html',
   styleUrls: ['./user-communication.component.css'],
 })
@@ -15,8 +19,9 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
   conversation: any[] = [];
   filteredConversations: any[] = [];
   displayConversations: any[] = [];
+  placeholderRows: any[] = []; 
   paginationButtons: (number | string)[] = [];
-  conversationsPerPage: number = 10;
+  conversationsPerPage: number = 5;
   currentPage: number = 1;
   totalPages: number = 1;
   startIndex: number = 1;
@@ -115,6 +120,11 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
     );
     this.startIndex = (this.currentPage - 1) * this.conversationsPerPage + 1;
     this.endIndex = Math.min(this.currentPage * this.conversationsPerPage, this.filteredConversations.length);
+
+   
+    const placeholderCount = this.conversationsPerPage - this.displayConversations.length;
+    this.placeholderRows = Array(placeholderCount).fill({});
+
     this.makePaginationButtons();
   }
 
@@ -255,7 +265,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
                                 <div class="font-semibold text-sm mb-1 ${alignment === 'right' ? 'text-right' : 'text-left'}">
                                     ${userName}
                                 </div>
-                                <div class="${bgColor} ${roundedCorners} px-4 py-2">
+                                <div class="${bgColor} ${roundedCorners} px-4 py-2 text-justify">
                                     ${msg.conversation}
                                 </div>
                                 <div class="text-xs text-gray-500 mt-1 ${alignment === 'right' ? 'text-right' : 'text-left'}">
@@ -270,9 +280,8 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
                         ${messagesHtml}
                     </div>
                 `;
-
                 Swal.fire({
-                    title: 'User Conversation',
+                    title: 'Users Conversation',
                     html: html,
                     width: '800px',
                     confirmButtonText: 'Close',
@@ -295,5 +304,53 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
             Swal.fire('Error', 'Failed to load conversation', 'error');
         }
     );
+  }
+
+  exportCSV() {
+    const headers = ['User No', 'Client Name', 'Tasker Name', 'Conversation', 'Task Created Date', 'Task Status'];
+    const rows = this.displayConversations.map((convo) => {
+      const row = [
+        convo.user_id ?? '',
+        `"${convo.task_taken.clients.user.first_name} ${convo.task_taken.clients.user.middle_name || ''} ${convo.task_taken.clients.user.last_name}"`,
+        `"${convo.task_taken.tasker.user.first_name} ${convo.task_taken.tasker.user.middle_name || ''} ${convo.task_taken.tasker.user.last_name}"`,
+        `"${convo.conversation || ''}"`, // Wrap in quotes to handle commas in conversation
+        `"${convo.task_taken.created_at || ''}"`, // Wrap in quotes to handle commas in date
+        convo.task_taken.task_status || '',
+      ];
+      console.log('CSV Row:', row); // Debug log to verify data
+      return row;
+    });
+    const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    saveAs(blob, 'UserConversations.csv');
+  }
+
+  exportPDF() {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'px',
+      format: 'a4',
+    });
+    const title = 'User Conversations';
+    doc.setFontSize(20);
+    doc.text(title, 170, 45);
+    const columns = ['User No', 'Client Name', 'Tasker Name', 'Conversation', 'Task Created Date', 'Task Status'];
+    const rows = this.displayConversations.map((convo) => [
+      convo.user_id ?? '',
+      `${convo.task_taken.clients.user.first_name} ${convo.task_taken.clients.user.middle_name || ''} ${convo.task_taken.clients.user.last_name}`,
+      `${convo.task_taken.tasker.user.first_name} ${convo.task_taken.tasker.user.middle_name || ''} ${convo.task_taken.tasker.user.last_name}`,
+      convo.conversation || '',
+      convo.task_taken.created_at || '',
+      convo.task_taken.task_status || '',
+    ]);
+    autoTable(doc, {
+      startY: 100,
+      head: [columns],
+      body: rows,
+      theme: 'grid',
+      styles: { fontSize: 8, cellPadding: 5, textColor: 'black' },
+      headStyles: { fillColor: [60, 33, 146], textColor: 'white' },
+    });
+    doc.save('UserConversations.pdf');
   }
 }

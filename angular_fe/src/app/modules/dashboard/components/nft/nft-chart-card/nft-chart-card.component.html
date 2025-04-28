@@ -3,41 +3,37 @@
   <div class="mb-2 flex items-center justify-between">
     <div class="flex flex-col">
       <div class="flex flex-col items-start space-y-2">
-        <span class="text-[#DE6FA1] text-4xl font-semibold">Created Tasks</span>
-        <div class="flex items-center rounded-md bg-[#DE6FA1]/25 py-1 pr-2 pl-1 text-xs font-semibold text-[#DE6FA1] w-fit">
+        <span class="text-[#5F50E7] text-2xl font-semibold font-poppins">Created Tasks</span>
+        <div class="flex items-center rounded-md bg-[#C5BEF7]/25 py-1 pr-2 pl-1 text-xs font-semibold text-[#B174ED] w-fit">
           (5-Point View)
         </div>
       </div>
     </div>
-    <div
-      class="rounded-xs bg-card text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer px-1 py-1 text-center text-xs">
-      <svg-icon src="assets/icons/heroicons/outline/dots-horizontal.svg" [svgClass]="'h-3 w-3'"></svg-icon>
-    </div>
   </div>
 
   <!-- end Card Header -->
-  <div class="mb-3 grid grid-cols-3 items-center justify-between gap-2 text-center">
+  <div class="mb-3 grid grid-cols-3 items-center justify-between gap-2 text-center ">
     <div (click)="setFilter('daily')" class="cursor-pointer rounded-md p-0.5 text-sm"
-         [class.bg-[#DE6FA1]]="selectedFilter === 'daily'"
+         [class.bg-[#5F50E7]]="selectedFilter === 'daily'"
          [class.text-white]="selectedFilter === 'daily'"
          [class.text-gray-400]="selectedFilter !== 'daily'"
-         [class.hover:bg-[#DE6FA1]]="selectedFilter !== 'daily'"
+         [class.hover:bg-[#5F50E7]]="selectedFilter !== 'daily'"
          [class.hover:text-white]="selectedFilter !== 'daily'">
       Daily
     </div>
     <div (click)="setFilter('monthly')" class="cursor-pointer rounded-md p-0.5 text-sm"
-         [class.bg-[#DE6FA1]]="selectedFilter === 'monthly'"
+         [class.bg-[#5F50E7]]="selectedFilter === 'monthly'"
          [class.text-white]="selectedFilter === 'monthly'"
          [class.text-gray-400]="selectedFilter !== 'monthly'"
-         [class.hover:bg-[#DE6FA1]]="selectedFilter !== 'monthly'"
+         [class.hover:bg-[#5F50E7]]="selectedFilter !== 'monthly'"
          [class.hover:text-white]="selectedFilter !== 'monthly'">
       Monthly
     </div>
     <div (click)="setFilter('yearly')" class="cursor-pointer rounded-md p-0.5 text-sm"
-         [class.bg-[#DE6FA1]]="selectedFilter === 'yearly'"
+         [class.bg-[#5F50E7]]="selectedFilter === 'yearly'"
          [class.text-white]="selectedFilter === 'yearly'"
          [class.text-gray-400]="selectedFilter !== 'yearly'"
-         [class.hover:bg-[#DE6FA1]]="selectedFilter !== 'yearly'"
+         [class.hover:bg-[#5F50E7]]="selectedFilter !== 'yearly'"
          [class.hover:text-white]="selectedFilter !== 'yearly'">
       Yearly
     </div>

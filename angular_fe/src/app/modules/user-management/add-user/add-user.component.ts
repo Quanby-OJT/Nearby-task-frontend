@@ -13,18 +13,24 @@ import Swal from 'sweetalert2';
   styleUrl: './add-user.component.css',
 })
 export class AddUserComponent {
+[x: string]: any;
   form!: FormGroup;
   submitted = false;
   imagePreview: string | null = null;
   selectedFile: File | null = null; // Store the selected file for submission
   duplicateEmailError: any = null;
   success_message: any = null;
+  today: string; // Add property for current date
 
   constructor(
     private _formBuilder: FormBuilder,
     private UserAccountService: UserAccountService,
     private router: Router
-  ) {}
+  ) {[]
+    // Initialize today with current date in YYYY-MM-DD format
+    const now = new Date();
+    this.today = now.toISOString().split('T')[0];
+  }
 
   ngOnInit(): void {
     this.formValidation();
@@ -166,7 +172,7 @@ export class AddUserComponent {
         Swal.fire({
           icon: 'success',
           title: 'Success',
-          text: 'User added successfully! Please provide the credentials to the user.',
+          text: 'User added successfully! This user can now login',
         }).then(() => {
           this.form.reset();
           this.submitted = false;

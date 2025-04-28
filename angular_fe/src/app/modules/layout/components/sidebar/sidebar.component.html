@@ -1,6 +1,6 @@
 <nav
   [ngClass]="menuService.showSideBar ? 'w-52 xl:w-64' : 'w-[70px]'"
-  class="scrollbar-thumb--sm scrollbar-track-rounded scrollbar-thin scrollbar-track-transparent scrollbar-thumb-card hidden h-full flex-col justify-between overflow-auto bg-blue-900 pt-3 shadow-md transition-all duration-300 lg:flex">
+  class="scrollbar-thumb--sm scrollbar-track-rounded scrollbar-thin scrollbar-track-transparent scrollbar-thumb-card hidden h-full flex-col justify-between overflow-auto bg-[#3C28CC] pt-3 shadow-md transition-all duration-300 lg:flex">
   <div class="px-4">
     <!-- Logo -->
     <div class="relative h-10">
@@ -8,7 +8,7 @@
         <a
           (click)="toggleSidebar()"
           class="flex cursor-pointer items-center justify-center rounded-sm p-2 focus:outline-hidden focus:ring-1">
-          <img class="h-9 w-9 rounded-md" src="assets/icons/Nearbytask.svg" alt="" />
+          <img class="h-9 w-9 rounded-md" src="assets/icons/Nearbytask.svg" alt="" href="#"/>
         </a>
         <b class="ml-1 pl-2 text-sm font-bold text-white">
           {{ appJson.displayName }}

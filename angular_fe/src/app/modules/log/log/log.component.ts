@@ -2,11 +2,15 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { UserLogService } from 'src/app/services/log.service';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { saveAs } from 'file-saver';
+import { AngularSvgIconModule } from 'angular-svg-icon';
 
 @Component({
   selector: 'app-log',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, AngularSvgIconModule],
   templateUrl: './log.component.html',
   styleUrl: './log.component.css',
 })
@@ -15,13 +19,14 @@ export class LogComponent implements OnInit, OnDestroy {
   filteredLogs: any[] = [];
   displayLogs: any[] = [];
   paginationButtons: (number | string)[] = [];
-  logsPerPage: number = 10;
+  logsPerPage: number = 5;
   currentPage: number = 1;
   totalPages: number = 1;
   startIndex: number = 1;
   endIndex: number = 0;
   currentSearchText: string = '';
   currentStatusFilter: string = '';
+  placeholderRows: any[] = []; 
 
   private logsSubscription!: Subscription;
 
@@ -101,6 +106,11 @@ export class LogComponent implements OnInit, OnDestroy {
     );
     this.startIndex = (this.currentPage - 1) * this.logsPerPage + 1;
     this.endIndex = Math.min(this.currentPage * this.logsPerPage, this.filteredLogs.length);
+    
+    // Calculate the number of empty rows based on logsPerPage
+    const placeholderCount = this.logsPerPage - this.displayLogs.length;
+    this.placeholderRows = Array(placeholderCount).fill({});
+    
     this.makePaginationButtons();
   }
 
@@ -142,5 +152,65 @@ export class LogComponent implements OnInit, OnDestroy {
       this.currentPage = pageNum;
       this.updatePage();
     }
+  }
+
+  exportCSV() {
+    const headers = ['No', 'User Name', 'User Role', 'Time Start', 'Time End', 'Status'];
+    const rows = this.displayLogs.map((log, index) => {
+      const userName = log.user
+        ? `${log.user.first_name || ''} ${log.user.middle_name || ''} ${log.user.last_name || ''}`.trim()
+        : '';
+      const userRole = log.user.user_role ? log.user.user_role : 'Null';
+      const timeEnd = log.logged_out ? log.logged_out : 'Empty';
+      const status = log.user.status ? 'Online' : 'Offline';
+      return [
+        index + 1,
+        `"${userName}"`,
+        `"${userRole}"`,
+        `"${log.logged_in || ''}"`,
+        `"${timeEnd}"`,
+        `"${status}"`
+      ];
+    });
+    const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    saveAs(blob, 'UserLogs.csv');
+  }
+
+  exportPDF() {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'px',
+      format: 'a4',
+    });
+    const title = 'User Logs';
+    doc.setFontSize(20);
+    doc.text(title, 170, 45);
+    const headers = ['No', 'User Name', 'User Role', 'Time Start', 'Time End', 'Status'];
+    const rows = this.displayLogs.map((log, index) => {
+      const userName = log.user
+        ? `${log.user.first_name || ''} ${log.user.middle_name || ''} ${log.user.last_name || ''}`.trim()
+        : '';
+      const userRole = log.user.user_role ? log.user.user_role : 'Null';
+      const timeEnd = log.logged_out ? log.logged_out : 'Empty';
+      const status = log.user.status ? 'Online' : 'Offline';
+      return [
+        index + 1,
+        userName,
+        userRole,
+        log.logged_in || '',
+        timeEnd,
+        status
+      ];
+    });
+    autoTable(doc, {
+      startY: 100,
+      head: [headers],
+      body: rows,
+      theme: 'grid',
+      styles: { fontSize: 8, cellPadding: 5, textColor: 'black' },
+      headStyles: { fillColor: [60, 33, 146], textColor: 'white' },
+    });
+    doc.save('UserLogs.pdf');
   }
 }
