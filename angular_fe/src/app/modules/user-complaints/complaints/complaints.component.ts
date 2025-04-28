@@ -38,7 +38,7 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
   currentStatusFilter: string = '';
   selectedReport: any = null;
   userRole: string | undefined;
-  placeholderRows: any[] = []; // Added for placeholder rows
+  placeholderRows: any[] = []; 
 
   private reportsSubscription!: Subscription;
 
