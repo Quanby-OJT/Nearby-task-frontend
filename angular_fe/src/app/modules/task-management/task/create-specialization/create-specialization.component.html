@@ -1,0 +1,71 @@
+<div class="mb-4 flex justify-between w-full max-w-[1440px] mx-auto px-4">
+    <div>
+      <h3 class="text-foreground font-semibold">Task Management</h3>
+      <div class="text-muted-foreground text-xs font-medium">
+        <a href="#" class="hover:text-primary">Dashboards > Task Management > Create Specialization</a>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Start Form -->
+  <div class="overflow-x-auto w-full max-w-[1440px] mx-auto px-4">
+    <form class="w-full border-collapse border-0 text-left text-sm bg-white p-6 rounded-lg shadow-md">
+      <!-- Buttons for navigation -->
+      <div class="flex justify-end mb-4">
+        <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-110 transition-transform duration-500 w-28" (click)="taskListPage()">
+          <span class="text-sm">Back</span>
+        </button>
+      </div>
+  
+      <!-- Unified Background for Specialization List & Form -->
+      <div class="bg-gray-100 p-6 rounded-lg">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Specialization List (Left) -->
+          <div>
+            <h2 class="text-lg font-semibold mb-3">Specialization List</h2>
+            <div class="overflow-x-auto">
+              <table class="w-full border-collapse border border-gray-300">
+                <thead>
+                  <tr class="bg-gray-100">
+                    <th class="border border-gray-300 p-2 text-left text-sm font-medium">Specialization Name</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="border border-gray-300 p-2 text-sm text-gray-500">No specializations available</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+  
+          <!-- Specialization Form (Right) -->
+          <div class="flex flex-col justify-between">
+            <div>
+              <h2 class="text-lg font-semibold mb-3">Add New Specialization</h2>
+              <div class="grid grid-cols-1 gap-4">
+                <div>
+                  <input
+                    type="text"
+                    name=""
+                    class="w-full p-2 border border-gray-400 rounded-md"
+                    placeholder="Enter specialization name"
+                 
+                  />
+                </div>
+              </div>
+            </div>
+  
+            <!-- Buttons (Below Form) -->
+            <div class="mt-6 flex gap-4">
+              <button
+                class="w-full bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-105 transition-transform duration-500">
+                Add Specialization
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+  <!-- End Form -->
