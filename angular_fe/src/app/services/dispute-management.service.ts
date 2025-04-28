@@ -1,31 +1,47 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { environment } from 'src/environments/environment';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { SessionLocalStorage } from 'src/services/sessionStorage';
+import { Observable } from 'rxjs';
 
-export class DisputeManagementService{
+@Injectable({
+  providedIn: 'root'
+})
+export class DisputeManagementService {
+  private apiUrl = 'http://localhost:5000/connect'
 
-  private apiUrl = 'http://localhost:5000/connect';
+  constructor(
+    private http: HttpClient,
+    private sessionStorage: SessionLocalStorage
+  ) { }
 
-  constructor(private http: HttpClient, private sessionStorage: SessionLocalStorage) {}
-
-  private getHeaders(): HttpHeaders {
+  private getHeader(): HttpHeaders {
     return new HttpHeaders({
-      'Content-Type': 'application/json',
       'Authorization': `Bearer ${this.sessionStorage.getSessionToken()}`
-    });
+    })
   }
 
-  getDisputes(): Observable<any> {
-    return this.http.get<any>(`${environment.apiUrl}/disputes`, { headers: this.getHeaders(), withCredentials: true });
+  private getAllDisputes(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/get-all-disputes`, {
+      headers: this.getHeader(),
+      withCredentials: true
+    })
   }
 
-  getDisputeById(disputeId: number): Observable<any> {
-    return this.http.get<any>(`${environment.apiUrl}/disputes/${disputeId}`, { headers: this.getHeaders(), withCredentials: true });
+  private getDisputeDetails(id: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/get-dispute/${id}`, {
+      headers: this.getHeader(),
+      withCredentials: true
+    })
   }
 
-  updateDisputeStatus(disputeId: number, status: string): Observable<any> {
-    return this.http.patch<any>(`${environment.apiUrl}/disputes/${disputeId}`, { status }, { headers: this.getHeaders(), withCredentials: true });
+  private updateADispute(id: number, task_status: string, moderator_action: string, addl_dispute_notes?: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/update-dispute/${id}`, {
+      task_status,
+      moderator_action,
+      addl_dispute_notes
+    }, {
+      headers: this.getHeader(),
+      withCredentials: true
+    })
   }
 }

@@ -1,0 +1,29 @@
+<div class="overflow-x-auto">
+  <table class="min-w-full table-auto border-collapse bg-white">
+    <thead class="bg-gray-100">
+      <tr>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Dispute ID</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Task Taken ID</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Reason for Dispute</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Dispute Details</th>
+        <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Action</th>
+      </tr>
+    </thead>
+    <tbody class="bg-white divide-y divide-gray-200">
+      <tr *ngFor="let dispute of disputes" class="hover:bg-gray-50">
+        <td class="px-6 py-4 whitespace-nowrap">{{ dispute.disputeId }}</td>
+        <td class="px-6 py-4 whitespace-nowrap">{{ dispute.taskTakenId }}</td>
+        <td class="px-6 py-4">{{ dispute.reason }}</td>
+        <td class="px-6 py-4">{{ dispute.details }}</td>
+        <td class="px-6 py-4 whitespace-nowrap">
+          <button class="bg-blue-500 text-white px-4 py-2 rounded-md mr-2 hover:bg-blue-600">
+            View Dispute Details
+          </button>
+          <button class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600">
+            Archive Dispute
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
