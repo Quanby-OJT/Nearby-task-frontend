@@ -436,11 +436,11 @@ class _TaskInformationState extends State<TaskInformation> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: statusColor(_taskInformation!.status!),
+                color: statusColor(_taskInformation!.status),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                _taskInformation!.status!,
+                _taskInformation!.status,
                 style: GoogleFonts.montserrat(
                   color: Colors.white,
                   fontSize: 12,
@@ -503,7 +503,7 @@ class _TaskInformationState extends State<TaskInformation> {
               icon: FontAwesomeIcons.user,
               label: 'Name',
               value:
-                  '${_client?.user?.firstName ?? ''} ${_client?.user?.middleName ?? ''} ${_client?.user?.lastName ?? ''}',
+                  '${_client?.user.firstName ?? ''} ${_client?.user.middleName ?? ''} ${_client?.user.lastName ?? ''}',
             ),
             _buildInfoRow(
               icon: FontAwesomeIcons.checkCircle,

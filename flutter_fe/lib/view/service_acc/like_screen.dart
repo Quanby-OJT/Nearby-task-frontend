@@ -3,13 +3,10 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
-import 'package:flutter_fe/view/nav/user_navigation.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/service_acc/task_information.dart';
-import 'package:flutter_fe/view/service_acc/task_requests_screen.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:intl/intl.dart';
 
 class LikeScreen extends StatefulWidget {

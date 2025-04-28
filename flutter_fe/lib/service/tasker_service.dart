@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_fe/config/url_strategy.dart';
+import 'package:flutter_fe/model/timeSlot.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ import 'package:flutter_fe/model/tasker_feedback.dart';
 
 import '../model/address.dart';
 import '../model/tasker_model.dart';
+import '../view/service_acc/schedule_management_page.dart';
 
 class TaskerService {
   static final storage = GetStorage();
@@ -299,41 +301,6 @@ class TaskerService {
     }
   }
 
-  static Future<Map<String, dynamic>> setTaskerSchedule(
-      TaskerScheduler taskerScheduler) async {
-    try {
-      final taskerId = await storage.read("user_id");
-
-      return await _postRequest(
-          endpoint: "/set-tasker-schedule",
-          body: {"tasker_id": taskerId, ...taskerScheduler.toJson()});
-    } catch (e, stackTrace) {
-      debugPrint("Error setting tasker schedule: $e");
-      debugPrintStack(stackTrace: stackTrace);
-      return {"error": "An error occurred while setting tasker schedule."};
-    }
-  }
-
-  static Future<List<TaskerScheduler>> getTaskerSchedule() async {
-    try {
-      final taskerId = await storage.read("user_id");
-      var response = await _getRequest("/get-tasker-schedule/$taskerId");
-
-      if (response.containsKey("tasker_schedule")) {
-        List<TaskerScheduler> schedules = [];
-        for (var schedule in response["tasker_schedule"]) {
-          schedules.add(TaskerScheduler.fromJson(schedule));
-        }
-        return schedules;
-      }
-      return [];
-    } catch (e, stackTrace) {
-      debugPrint("Error getting tasker schedule: $e");
-      debugPrintStack(stackTrace: stackTrace);
-      return [];
-    }
-  }
-
   Future<List<TaskerFeedback>> getTaskerFeedback(int taskerId) async {
     try {
       var response = await _getRequest("/get-taskers-feedback/$taskerId");
@@ -351,5 +318,144 @@ class TaskerService {
       debugPrintStack(stackTrace: stackTrace);
       return [];
     }
+  }
+
+  Future<String> setTaskerSchedule(List<Map<String, dynamic>> schedule) async {
+    try {
+      final taskerId = await storage.read("user_id");
+      if (taskerId == null) {
+        return "Error: Tasker ID not found";
+      }
+
+      final response = await http.post(
+        Uri.parse('$url/set-tasker-schedule'),
+        headers: {
+          "Authorization": "Bearer ${await AuthService.getSessionToken()}",
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({"tasker_id": taskerId, "schedule": schedule}),
+      );
+
+      if (response.statusCode == 200) {
+        return "Schedule set successfully";
+      } else {
+        final error =
+            jsonDecode(response.body)['error'] ?? "Failed to set schedule";
+        return "Error: $error";
+      }
+    } catch (e) {
+      return "Error: $e";
+    }
+  }
+
+  Future<String> editTaskerSchedule(
+      int id, Map<String, dynamic> scheduleData) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$url/edit-tasker-schedule/$id'),
+        headers: {
+          "Authorization": "Bearer ${await AuthService.getSessionToken()}",
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({
+          "tasker_id": await storage.read("user_id"),
+          "schedule": scheduleData,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return "Schedule edited successfully";
+      } else {
+        final error =
+            jsonDecode(response.body)['error'] ?? "Failed to edit schedule";
+        return "Error: $error";
+      }
+    } catch (e) {
+      return "Error: $e";
+    }
+  }
+
+  Future<String> deleteTaskerSchedule(int id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$url/delete-tasker-schedule/$id'),
+        headers: {
+          "Authorization": "Bearer ${await AuthService.getSessionToken()}",
+          "Content-Type": "application/json",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return "Schedule deleted successfully";
+      } else {
+        final error =
+            jsonDecode(response.body)['error'] ?? "Failed to delete schedule";
+        return "Error: $error";
+      }
+    } catch (e) {
+      return "Error: $e";
+    }
+  }
+
+  Future<Map<DateTime, List<TimeSlot>>> getTaskerSchedule() async {
+    try {
+      final taskerId = await storage.read("user_id");
+      if (taskerId == null) {
+        debugPrint("Tasker ID not found");
+        return {};
+      }
+
+      final response = await http.get(
+        Uri.parse('$url/get-tasker-schedule/$taskerId'),
+        headers: {
+          "Authorization": "Bearer ${await AuthService.getSessionToken()}",
+          "Content-Type": "application/json",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        debugPrint("Response data: $data");
+        if (data.containsKey("data")) {
+          final List<dynamic> scheduleData = data["data"];
+          final Map<DateTime, List<TimeSlot>> schedule = {};
+
+          for (var item in scheduleData) {
+            final taskerScheduler = TaskerScheduler.fromJson(item);
+            final date = DateTime.parse(taskerScheduler.dateScheduled);
+            final timeSlot = TimeSlot(
+              id: taskerScheduler.id,
+              tasker_id: taskerScheduler.tasker_id,
+              startTime: _parseTime(taskerScheduler.startTime),
+              endTime: _parseTime(taskerScheduler.endTime),
+              isAvailable: taskerScheduler.isAvailable,
+            );
+
+            final dateKey = DateTime(date.year, date.month, date.day);
+            schedule[dateKey] = schedule[dateKey] ?? [];
+            schedule[dateKey]!.add(timeSlot);
+          }
+
+          debugPrint("Loaded schedules: $schedule");
+          return schedule;
+        }
+        debugPrint("No schedules found in response: $data");
+        return {};
+      } else {
+        debugPrint("Error fetching schedule: ${response.body}");
+        return {};
+      }
+    } catch (e) {
+      debugPrint("Error getting tasker schedule: $e");
+      return {};
+    }
+  }
+
+  TimeOfDay _parseTime(String time) {
+    final parts = time.split(':');
+    return TimeOfDay(
+      hour: int.parse(parts[0]),
+      minute: int.parse(parts[1]),
+    );
   }
 }
