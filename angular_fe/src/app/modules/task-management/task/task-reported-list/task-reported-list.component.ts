@@ -46,7 +46,7 @@ export class TaskReportedListComponent implements OnInit {
     this.taskService.disableTask(this.task.task_id).subscribe({
       next: () => {
         console.log('Task disabled successfully');
-        this.task.status = 'disabled';
+        this.task.status = 'Closed';
         this.cdr.detectChanges(); 
       },
       error: (err) => console.error('Error disabling task:', err)

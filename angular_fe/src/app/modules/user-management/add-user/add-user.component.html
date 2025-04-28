@@ -5,9 +5,11 @@
       <a href="" class="hover:text-primary">Dashboards > User Management > Add User</a>
     </div>
   </div>
-  <!-- Submit Button -->
-  <div class="">
-    <app-button full impact="bold" shape="rounded" size="medium" (click)="navigateToUsermanagement()">Back</app-button>
+
+  <div class="hover:scale-120 transition-transform duration-500">
+    <app-button full impact="bold" shape="rounded" size="medium" tone="blue" (click)="navigateToUsermanagement()">
+      Back
+    </app-button>
   </div>
 </div>
 
@@ -23,7 +25,7 @@
                 [src]="imagePreview || 'https://community.softr.io/uploads/db9110/original/2X/7/74e6e7e382d0ff5d7773ca9a87e6f6f8817a68a6.jpeg'"
                 (error)="imagePreview = null" 
                 alt="Uploaded Image"
-                class="h-full w-full object-cover" />
+                class="h-full w-full object-cover"/>
             </div>
 
             <!-- File Input -->
@@ -119,7 +121,8 @@
                 [ngClass]="{ 'is__invalid-input': submitted && f['bday'].errors }"
                 class="peer block"
                 placeholder=" "
-                formControlName="bday" />
+                formControlName="bday"
+                [max]="today" />
               <label
                 for="bday"
                 [ngClass]="{ 'peer-focus:text-destructive!': submitted && f['bday'].errors }"
@@ -234,7 +237,8 @@
               <label
                 for="confirmPassword"
                 [ngClass]="{ 'peer-focus:text-destructive!': submitted && f['confirmPassword'].errors }"
-                class="bg-background text-muted-foreground peer-focus:text-primary absolute top-2 left-1 z-10 origin-[0] -translate-y-4 scale-95 transform px-2 text-sm duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-95 peer-focus:px-2">
+                class="bg-background text-muted-foreground pact
+                ive top-2 left-1 z-10 origin-[0] -translate-y-4 scale-95 transform px-2 text-sm duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-95 peer-focus:px-2">
                 Confirm Password
               </label>
             </div>
@@ -289,9 +293,12 @@
           </div>
 
           <!-- Submit Button -->
-          <div class="">
-            <app-button full impact="bold" shape="rounded" size="medium">Add User</app-button>
+          <div class="hover:scale-102 transition-transform duration-500">
+            <app-button full impact="bold" shape="rounded" size="medium" tone="blue">
+              Add User
+            </app-button>
           </div>
+
         </div>
       </div>
     </div>

@@ -16,14 +16,14 @@
       </label>
     </div>
     <div class="flex flex-wrap gap-2.5">
-      <select name="role" class="text-muted-foreground w-28! p-2" (change)="onRoleChange($event)">
+      <select name="role" class="text-muted-foreground w-28! p-2 hover: cursor-pointer" (change)="onRoleChange($event)">
         <option value="">All Role</option>
         <option value="1">Client</option>
         <option value="2">Tasker</option>
         <option value="3">Moderator</option>
         <option value="4">Admin</option>
       </select>
-      <select name="account" class="text-muted-foreground w-28! p-2" (change)="onStatusChange($event)">
+      <select name="account" class="text-muted-foreground w-28! p-2 hover: cursor-pointer" (change)="onStatusChange($event)">
         <option value="">All Account</option>
         <option value="1">Pending</option>
         <option value="2">Active</option>
@@ -35,7 +35,7 @@
         <option value="8">Review</option>
       </select>
 
-      <select name="status" class="text-muted-foreground w-28! p-2" (change)="onOnlineChange($event)">
+      <select name="status" class="text-muted-foreground w-28! p-2 hover:cursor-pointer" (change)="onOnlineChange($event)">
         <option value="">All Status</option>
         <option value="1">Online</option>
         <option value="2">Offline</option>

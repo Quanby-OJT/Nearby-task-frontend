@@ -1,11 +1,19 @@
 <div class="mb-4 flex justify-between w-full max-w-[1440px] mx-auto px-4">
-    <div>
-      <h3 class="text-foreground font-semibold">Feedback Management</h3>
-      <div class="text-muted-foreground text-xs font-medium">
-        <a href="#" class="hover:text-primary">Dashboards > Feedback Management</a>
-      </div>
+  <div>
+    <h3 class="text-foreground font-semibold">Feedback Management</h3>
+    <div class="text-muted-foreground text-xs font-medium">
+      <a href="#" class="hover:text-primary">Dashboards > Feedback Management</a>
     </div>
   </div>
+  <div class="flex space-x-4">
+    <button class="bg-[#E23670] text-[#F9F9F9] hover:bg-[#F07DA1] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportCSV()">
+      Export CSV
+    </button>
+    <button class="bg-[#E23670] text-[#F9F9F9] hover:bg-[#F07DA1] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportPDF()">
+      Export PDF
+    </button>
+  </div>
+</div>
 
 <!-- Main container with search, filter, table, and pagination -->
 <div class="border-muted-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
@@ -15,7 +23,9 @@
     <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
       <div class="flex-1 min-w-[200px] lg:min-w-[300px] xl:min-w-[400px]">
         <label class="relative w-full">
-          
+          <div class="absolute left-2.5 top-1/2 -translate-y-1/2">
+            <svg-icon src="./assets/icons/heroicons/outline/magnifying-glass.svg" [svgClass]="'h-4 w-4'"> </svg-icon>
+          </div>
           <input name="search" (input)="searchFeedback($event)" class="w-full py-2 pl-8 pr-2 border rounded-md" placeholder="Search tasker name" type="text" />
         </label>
       </div>
@@ -26,19 +36,18 @@
   <div class="overflow-x-auto w-full">
     <table class="w-full border-collapse border-0 text-left text-sm">
       <thead class="border-b">
-        <tr class="bg-gray-100">
-          <th class="px-4 py-2 w-[80px] lg:w-[100px]">No</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Tasker Name</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Feedback</th>
-          <th class="px-4 py-2 text-center min-w-[140px] lg:min-w-[300px] xl:min-w-[250px]">Rating</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Client</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Reported</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Created At</th>
+        <tr>
+          <th class="px-4 py-2 w-[80px] lg:w-[100px]   ">Id</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Tasker Name</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Feedback</th>
+          <th class="px-4 py-2 text-center min-w-[140px] lg:min-w-[300px] xl:min-w-[250px] ">Rating</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Client</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Reported</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Created At</th>
         </tr>
       </thead>
       <tbody>
-     
-        <tr *ngFor="let feedback of displayFeedbacks; let i = index" class="border-b">
+        <tr *ngFor="let feedback of displayFeedbacks; let i = index" class="hover:bg-card/50 h-[60px]">
           <td class="px-4 py-3 text-center">{{ i + 1 }}</td>
           <td class="px-4 py-3 text-center">{{ feedback.tasker.user.first_name }} {{ feedback.tasker.user.middle_name }} {{ feedback.tasker.user.last_name }}</td>
           <td class="px-4 py-3 text-center">{{ feedback.feedback }}</td>
@@ -47,7 +56,16 @@
           <td class="px-4 py-3 text-center">{{ feedback.reported ? feedback.reported : 'Empty' }}</td>
           <td class="px-4 py-3 text-center">{{ feedback.created_at }}</td>
         </tr>
-
+        <!-- Placeholder rows to ensure total rows match logsPerPage -->
+        <tr *ngFor="let placeholder of placeholderRows">
+          <td class="px-4 py-3 text-center"></td>
+          <td class="px-4 py-3 text-center"></td>
+          <td class="px-4 py-3 text-center"></td>
+          <td class="px-4 py-3 text-center"></td>
+          <td class="px-4 py-3 text-center"></td>
+          <td class="px-4 py-3 text-center"></td>
+          <td class="px-4 py-3 text-center"></td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -58,7 +76,8 @@
       <div class="flex items-center gap-2">
         Show
         <select (change)="changeLogsPerPage($event)" class="w-[140px] p-2 border rounded-md">
-          <option value="10" selected>10</option>
+         <option value="5" selected>5</option>
+          <option value="10">10</option>
           <option value="20">20</option>
           <option value="30">30</option>
           <option value="50">50</option>

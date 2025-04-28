@@ -8,7 +8,7 @@
       <div class="flex-1 min-w-[200px] lg:min-w-[300px] xl:min-w-[400px]">
         <label class="relative w-full">
           <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" 
-                 placeholder="Search client" type="text" (input)="searchClients($event)" />
+                 placeholder="Search client name" type="text" (input)="searchClients($event)" />
         </label>
       </div>
     </div>
@@ -20,7 +20,7 @@
       <thead class="border-b">
         <tr class="bg-gray-100">
           <th class="px-4 py-2 w-[80px] lg:w-[100px]">No</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">User Name</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Client Name</th>
           <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Address</th>
           <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Overall Task Requested</th>
           <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Gender</th>
@@ -28,7 +28,7 @@
       </thead>
       <tbody>
         <!-- Dynamically display clients -->
-        <tr *ngFor="let client of displayClients; let i = index" class="border-b">
+        <tr *ngFor="let client of displayClients; let i = index" class="hover:bg-card/50 h-[60px]">
           <td class="px-4 py-3 text-center">{{ (currentPage - 1) * clientsPerPage + i + 1 }}</td>
           <td class="px-4 py-3 text-center">{{ client.userName }}</td>
           <td class="px-4 py-3 text-center">{{ client.address }}</td>
@@ -46,7 +46,8 @@
       <div class="flex items-center gap-2">
         Show
         <select class="w-[140px] p-2 border rounded-md" (change)="changeClientsPerPage($event)">
-          <option value="10" selected>10</option>
+          <option value="5" selected>5</option>
+          <option value="10">10</option>
           <option value="20">20</option>
           <option value="30">30</option>
           <option value="50">50</option>
