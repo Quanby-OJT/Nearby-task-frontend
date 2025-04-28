@@ -33,6 +33,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
   AuthenticatedUser? tasker;
   Duration? _timeRemaining;
   Timer? _timer;
+  String _requestStatus = 'Unknown';
 
   @override
   void initState() {
@@ -67,6 +68,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
           await _jobPostService.fetchRequestInformation(widget.ongoingID ?? 0);
       setState(() {
         _requestInformation = response;
+        _requestStatus = _requestInformation?.task_status ?? 'Unknown';
       });
       await _fetchTaskDetails();
       await _fetchTaskerDetails(_requestInformation!.tasker_id as int);
@@ -166,6 +168,10 @@ class _ClientOngoingState extends State<ClientOngoing> {
                 feedback);
             if (result && result2) {
               if (!mounted) return;
+
+              setState(() {
+                _requestStatus = 'Completed';
+              });
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -229,6 +235,9 @@ class _ClientOngoingState extends State<ClientOngoing> {
 
             if (result) {
               if (!mounted) return;
+              setState(() {
+                _requestStatus = 'Completed';
+              });
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -301,17 +310,86 @@ class _ClientOngoingState extends State<ClientOngoing> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildTimerSection(),
+                        if (_requestStatus != 'Completed') _buildTimerSection(),
+                        if (_requestStatus == 'Completed')
+                          _buildCompletionSection(),
                         SizedBox(height: 16),
                         _buildTaskCard(),
                         SizedBox(height: 16),
                         _buildProfileCard(),
                         SizedBox(height: 24),
-                        _buildActionButton(),
+                        if (_requestStatus != 'Completed') _buildActionButton(),
+                        if (_requestStatus == 'Completed') _buildBackButton(),
                       ],
                     ),
                   ),
                 ),
+    );
+  }
+
+  Widget _buildCompletionSection() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.green[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.green[100]!),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.check_circle,
+            color: Colors.green[600],
+            size: 48,
+          ),
+          SizedBox(height: 12),
+          Text(
+            'Task Completed!',
+            style: GoogleFonts.montserrat(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.green[800],
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Congratulations on successfully completing this task!',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.montserrat(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBackButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () {
+          Navigator.pop(context); // Return to previous screen
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Color(0xFF03045E),
+          padding: EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 2,
+        ),
+        child: Text(
+          'Back to Tasks',
+          style: GoogleFonts.montserrat(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+      ),
     );
   }
 
