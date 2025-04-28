@@ -31,7 +31,10 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
+                  <tr *ngFor="let specialization of specializations, let i = index">
+                    <td class="p-2 text-sm"> {{ i + 1 }}. {{ specialization.specialization }}</td>
+                  </tr>
+                  <tr *ngIf="!specializations || specializations.length === 0">
                     <td class="border border-gray-300 p-2 text-sm text-gray-500">No specializations available</td>
                   </tr>
                 </tbody>
@@ -47,11 +50,15 @@
                 <div>
                   <input
                     type="text"
-                    name=""
+                    [(ngModel)]="specializationName"
+                    name="specializationName"
                     class="w-full p-2 border border-gray-400 rounded-md"
                     placeholder="Enter specialization name"
-                 
+                    [class.border-red-500]="!specializationName && submitted"
                   />
+                  <div *ngIf="!specializationName && submitted" class="text-red-500 text-xs mt-1">
+                    Specialization name is required.
+                  </div>
                 </div>
               </div>
             </div>
@@ -59,7 +66,10 @@
             <!-- Buttons (Below Form) -->
             <div class="mt-6 flex gap-4">
               <button
-                class="w-full bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-105 transition-transform duration-500">
+                (click)="addSpecialization()"
+                class="w-full bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-105 transition-transform duration-500"
+                [disabled]="!specializationName"
+              >
                 Add Specialization
               </button>
             </div>
