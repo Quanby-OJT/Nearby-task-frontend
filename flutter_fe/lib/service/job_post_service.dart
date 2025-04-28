@@ -309,8 +309,7 @@ class JobPostService {
 
   Future<ClientRequestModel> fetchRequestInformation(int requestID) async {
     try {
-      Map<String, dynamic> response =
-          await _getRequest("/displayRequest/$requestID");
+      Map<String, dynamic> response = await _getRequest("/displayRequest/$requestID");
       debugPrint("Request Data Retrieved: ${response.toString()}");
 
       if (response.containsKey("request") && response["request"] is Map) {

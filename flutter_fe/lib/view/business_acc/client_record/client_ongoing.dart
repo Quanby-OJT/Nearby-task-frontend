@@ -16,8 +16,6 @@ import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:async';
 
-import 'display_list_coinfirmed.dart';
-
 class ClientOngoing extends StatefulWidget {
   final int? ongoingID;
   final String? role;
@@ -71,6 +69,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
     try {
       final response =
           await _jobPostService.fetchRequestInformation(widget.ongoingID ?? 0);
+      debugPrint("Task Status: ${response.task_status}");
       setState(() {
         _requestInformation = response;
         _requestStatus = _requestInformation?.task_status ?? 'Unknown';
@@ -318,9 +317,9 @@ class _ClientOngoingState extends State<ClientOngoing> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (_requestStatus != 'Completed') _buildTimerSection(),
-                        if (_requestStatus == 'Completed')
-                          _buildCompletionSection(),
+                        if (_requestStatus == 'Ongoing') _buildTimerSection(),
+                        if(_requestStatus == 'Disputed') _buildDisputeSection(),
+                        if (_requestStatus == 'Completed') _buildCompletionSection(),
                         SizedBox(height: 16),
                         _buildTaskCard(),
                         SizedBox(height: 16),
@@ -332,6 +331,42 @@ class _ClientOngoingState extends State<ClientOngoing> {
                     ),
                   ),
                 ),
+    );
+  }
+
+  Widget _buildDisputeSection() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.yellow[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.green[100]!),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            FontAwesomeIcons.gavel,
+            color: Colors.yellow[600],
+            size: 48,
+          ),
+          SizedBox(height: 12),
+          Text(
+            'Dispute Raised to this Task!',
+            style: GoogleFonts.montserrat(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Colors.yellow[800]),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Please Wait for Our Team to review your dispute and file Appropriate Action.',
+            textAlign: TextAlign.center,
+            style:
+            GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
+          ),
+        ],
+      ),
     );
   }
 
