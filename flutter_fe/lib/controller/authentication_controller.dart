@@ -9,7 +9,7 @@ import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
 import 'package:get_storage/get_storage.dart';
 
 class AuthenticationController {
-  static const String apiUrl = "http://localhost:5000/connect";
+  static const String apiUrl = "http://192.168.20.48:5000/connect";
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController otpController = TextEditingController();

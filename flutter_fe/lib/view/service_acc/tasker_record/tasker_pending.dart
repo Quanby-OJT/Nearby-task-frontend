@@ -31,9 +31,9 @@ class _TaskerPendingState extends State<TaskerPending> {
   String? _role;
   String? _userRole;
 
-  String _needToConfirm =
+  final String _needToConfirm =
       'The task is pending confirmation. Waiting for your confirmation.';
-  String _needToBeConfirmed = 'Awaiting confirmation.';
+  final String _needToBeConfirmed = 'Awaiting confirmation.';
 
   @override
   void initState() {

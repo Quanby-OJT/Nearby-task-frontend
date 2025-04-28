@@ -43,12 +43,11 @@ class TaskerProfilePage extends StatefulWidget {
   final int? taskerId;
   final bool isSaved;
 
-  const TaskerProfilePage({
-    super.key,
-    required this.tasker,
-    required this.isSaved,
-    required this.taskerId
-  });
+  const TaskerProfilePage(
+      {super.key,
+      required this.tasker,
+      required this.isSaved,
+      required this.taskerId});
 
   @override
   State<TaskerProfilePage> createState() => _TaskerProfilePageState();
@@ -91,7 +90,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
         _user = user;
         _role = user?.user.role;
 
-        debugPrint("Role: ${_role}");
+        debugPrint("Role: $_role");
         debugPrint("Print Id then: ${_user?.user.id}");
       });
     } catch (e) {
@@ -108,7 +107,6 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
       });
 
       //TODO: Implement retrieval of Individual Tasker Information from the API
-
 
       await Future.delayed(Duration(milliseconds: 500));
 
@@ -161,17 +159,14 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
     }
   }
 
-  Future<List<TaskModel>> _filterAvailableTasks(List<TaskModel> tasks, int taskerId) async {
+  Future<List<TaskModel>> _filterAvailableTasks(
+      List<TaskModel> tasks, int taskerId) async {
     debugPrint(
         "Filtering ${tasks.length} available tasks for tasker $taskerId");
     final jobPostService = JobPostService();
     try {
       final assignmentStatuses = await Future.wait(
         tasks.map((task) async {
-          if (task.id == null) {
-            debugPrint("Skipping task with null ID");
-            return true; // Skip tasks with null ID
-          }
           try {
             // Check if the task has ever been assigned to this tasker
 
@@ -179,7 +174,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
 
             debugPrint("Checking task ${task.id} for tasker $taskerId");
             return await jobPostService.hasTaskEverBeenAssignedToTasker(
-                task.id!, taskerId, userId! as int);
+                task.id, taskerId, userId! as int);
           } catch (e) {
             debugPrint("Error checking task ${task.id}: $e");
             return false; // On error, assume not assigned to show the task
@@ -216,7 +211,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
             ),
           ),
         ),
-        content: Container(
+        content: SizedBox(
           width: double.maxFinite,
           height: tasks.length > 3 ? 300 : null,
           child: tasks.isEmpty
@@ -278,7 +273,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
       setState(() {
         taskerFeedback = taskerReviews;
       });
-    }catch(e, stackTrace){
+    } catch (e, stackTrace) {
       debugPrint("Error fetching tasker reviews: $e");
       debugPrintStack(stackTrace: stackTrace);
     }
@@ -313,7 +308,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
       }
 
       final availableTasks =
-          await _filterAvailableTasks(clientTasks, widget.tasker.id!);
+          await _filterAvailableTasks(clientTasks, widget.tasker.id);
 
       debugPrint(
           "Available tasks: ${clientTasks.length} tasks ${widget.tasker.id}");
@@ -358,7 +353,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
 
         // Assign task
         final result = await taskController.assignTask(
-          selectedTask.id!,
+          selectedTask.id,
           int.parse(clientId),
           tasker.id ?? 0,
           _role ?? 'client',
@@ -381,7 +376,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
         if (isSuccess) {
           final jobPostService = JobPostService();
           jobPostService.updateAssignmentCache(
-              selectedTask.id!, tasker.id ?? 0, true, clientId!);
+              selectedTask.id, tasker.id ?? 0, true, clientId);
           TaskCache.clear(); // Invalidate cache
           _preloadClientTasks(); // Refresh preloaded tasks
         }
@@ -516,7 +511,8 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             _buildStatItem("4.8", "Rating", Icons.star),
-                            _buildStatItem(taskerFeedback!.length.toString(), "Jobs", Icons.work),
+                            _buildStatItem(taskerFeedback!.length.toString(),
+                                "Jobs", Icons.work),
                             _buildStatItem("2 yrs", "Experience", Icons.timer),
                           ],
                         ),
@@ -559,10 +555,10 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                         [
                           _buildInfoRow(
                               Icons.badge, "ID", "#${widget.tasker.id}"),
-                          _buildInfoRow(
-                              Icons.location_on, "Location", widget.tasker.address!.values.join(", ")),
-                          _buildInfoRow(
-                              Icons.work, "Specialization", widget.tasker.specialization),
+                          _buildInfoRow(Icons.location_on, "Location",
+                              widget.tasker.address!.values.join(", ")),
+                          _buildInfoRow(Icons.work, "Specialization",
+                              widget.tasker.specialization),
                         ],
                       ),
                     ),
@@ -579,11 +575,11 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                               // Assuming skills is a List<String>
                               return _buildSkillChip(skill);
                             }).toList(),
-                              // _buildSkillChip("Home Cleaning"),
-                              // _buildSkillChip("Gardening"),
-                              // _buildSkillChip("Electrical Work"),
-                              // _buildSkillChip("Plumbing"),
-                              // _buildSkillChip("Painting"),
+                            // _buildSkillChip("Home Cleaning"),
+                            // _buildSkillChip("Gardening"),
+                            // _buildSkillChip("Electrical Work"),
+                            // _buildSkillChip("Plumbing"),
+                            // _buildSkillChip("Painting"),
                           ),
                         ],
                       ),
@@ -646,17 +642,19 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                     // Reviews
                     SliverToBoxAdapter(
                       child: taskerFeedback != null &&
-                            taskerFeedback!.isNotEmpty
-                        ? _buildSectionCard(
-                          "Reviews from Other Clients",
-                          taskerFeedback!
-                            .map((feedback) => _buildReviewItem(
-                              "${feedback.client.user!.firstName} ${feedback.client.user!.lastName}",
-                              feedback.comment,
-                              feedback.rating.toInt())) // Convert double to int for star display
-                            .toList())
-                        : _buildSectionCard("Reviews", [const Text("No reviews yet.")]),
-                      ),
+                              taskerFeedback!.isNotEmpty
+                          ? _buildSectionCard(
+                              "Reviews from Other Clients",
+                              taskerFeedback!
+                                  .map((feedback) => _buildReviewItem(
+                                      "${feedback.client.user!.firstName} ${feedback.client.user!.lastName}",
+                                      feedback.comment,
+                                      feedback.rating
+                                          .toInt())) // Convert double to int for star display
+                                  .toList())
+                          : _buildSectionCard(
+                              "Reviews", [const Text("No reviews yet.")]),
+                    ),
 
                     const SliverToBoxAdapter(child: SizedBox(height: 20)),
                   ],
@@ -811,18 +809,8 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
 
   void _likeTasker() async {
     try {
-      if (widget.tasker.id == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Cannot like tasker: Invalid tasker ID"),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-
       final clientServices = ClientServices();
-      final result = await clientServices.saveLikedTasker(widget.tasker.id!);
+      final result = await clientServices.saveLikedTasker(widget.tasker.id);
 
       if (result.containsKey('message')) {
         ScaffoldMessenger.of(context).showSnackBar(
