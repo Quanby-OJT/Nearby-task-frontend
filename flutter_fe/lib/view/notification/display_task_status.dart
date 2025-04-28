@@ -28,8 +28,8 @@ class _DisplayTaskStatusState extends State<DisplayTaskStatus> {
   ClientRequestModel? _requestInformation;
   bool _isLoading = true;
   final storage = GetStorage();
-  bool _isApplying = false;
-  bool _isEditing = false;
+  final bool _isApplying = false;
+  final bool _isEditing = false;
 
   AuthenticatedUser? tasker;
 
@@ -154,7 +154,7 @@ class _DisplayTaskStatusState extends State<DisplayTaskStatus> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          "${_taskInformation!.title}",
+                                          _taskInformation!.title,
                                           style: GoogleFonts.montserrat(
                                             color: const Color(0xFF03045E),
                                             fontSize: 14,

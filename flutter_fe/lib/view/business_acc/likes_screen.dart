@@ -112,7 +112,7 @@ class _LikesScreenState extends State<LikesScreen> {
           _existingProfileImageUrl = user?.user.image;
           _existingIDImageUrl = response['url'];
           _isLoading = false;
-          _role = _user?.user?.role ?? '';
+          _role = _user?.user.role ?? '';
         });
       }
     } catch (e) {
@@ -548,7 +548,8 @@ class _LikesScreenState extends State<LikesScreen> {
                 height: 48,
                 decoration: BoxDecoration(
                   color: Colors.grey[200],
-                  image: tasker.user?.image != null && tasker.user?.image!.isNotEmpty
+                  image: tasker.user?.image != null &&
+                          tasker.user?.image!.isNotEmpty
                       ? DecorationImage(
                           image: NetworkImage(tasker.user?.image!),
                           fit: BoxFit.cover,
@@ -615,13 +616,14 @@ class _LikesScreenState extends State<LikesScreen> {
                       color: Color(0xFF0272B1), size: 24),
                   onPressed: () {
                     Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            TaskerProfilePage(tasker: tasker, isSaved: true, taskerId: tasker.id,
-                        ),
-                      )
-                    );
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TaskerProfilePage(
+                            tasker: tasker,
+                            isSaved: true,
+                            taskerId: tasker.id,
+                          ),
+                        ));
                   },
                 ),
               ],

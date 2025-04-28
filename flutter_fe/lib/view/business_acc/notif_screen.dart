@@ -4,8 +4,6 @@ import 'package:flutter_fe/view/notification/client_request.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../service/notification_service.dart';
-
 class NotifScreen extends StatefulWidget {
   const NotifScreen({super.key});
 

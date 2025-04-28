@@ -355,7 +355,7 @@ class _LikeScreenState extends State<LikeScreen> {
                                   children: [
                                     Flexible(
                                       child: Text(
-                                        task.status!,
+                                        task.status,
                                         style: GoogleFonts.montserrat(
                                           color:
                                               Color.fromARGB(255, 57, 209, 11),
@@ -386,7 +386,7 @@ class _LikeScreenState extends State<LikeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice!.roundToDouble())}',
+                            '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice.roundToDouble())}',
                             style: GoogleFonts.montserrat(
                               color: const Color(0xFF03045E),
                               fontSize: 20,

@@ -1,8 +1,6 @@
 import 'dart:io';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
-import 'package:flutter_fe/model/user_model.dart';
-import 'package:flutter_fe/view/view_pdf/PDF_viewer.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';

@@ -1,4 +1,4 @@
-class TaskerScheduler{
+class TaskerScheduler {
   final String dateScheduled;
   final String startTime;
   final String endTime;
@@ -8,18 +8,19 @@ class TaskerScheduler{
     required this.dateScheduled,
     required this.startTime,
     required this.endTime,
-    required this.isAvailable
+    required this.isAvailable,
   });
 
-  Map<String, dynamic> toJson(){
+  Map<String, dynamic> toJson() {
     return {
       "scheduled_date": dateScheduled,
       "start_time": startTime,
       "end_time": endTime,
+      "is_available": isAvailable,
     };
   }
 
-  factory TaskerScheduler.fromJson(Map<String, dynamic> json){
+  factory TaskerScheduler.fromJson(Map<String, dynamic> json) {
     return TaskerScheduler(
       dateScheduled: json['scheduled_date'] as String,
       startTime: json['start_time'] as String,

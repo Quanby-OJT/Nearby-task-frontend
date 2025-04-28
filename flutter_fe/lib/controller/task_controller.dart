@@ -193,8 +193,9 @@ class TaskController {
           taskTakenId, taskerId, rating, feedback);
 
       debugPrint("Feedback response: $feedbackResult");
-      if (feedbackResult.containsKey('message'))
+      if (feedbackResult.containsKey('message')) {
         return feedbackResult['success'];
+      }
       debugPrint(
           "Error in task controller rateTheTasker: ${feedbackResult['error']}");
       return false;

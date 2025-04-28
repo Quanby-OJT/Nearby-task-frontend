@@ -39,7 +39,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   List<TaskerFeedback> taskerFeedback = [];
   String? _errorMessage;
   int? cardNumber = 0;
-  Map<int, List<TaskerFeedback>> _taskerFeedbacks = {};
+  final Map<int, List<TaskerFeedback>> _taskerFeedbacks = {};
 
   AuthenticatedUser? _user;
   String? _existingProfileImageUrl;
@@ -50,7 +50,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   bool _isUploadDialogShown = false;
   bool _showButton = false;
 
-  double _currentRating = 0;
+  final double _currentRating = 0;
 
   String? _selectedSpecialization;
   List<String> _specializations = ['All'];
@@ -471,7 +471,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     (context, index, percentThresholdX, percentThresholdY) {
                   final tasker = taskers[index];
                   return Center(
-                    child: Container(
+                    child: SizedBox(
                       width: double.infinity,
                       height: MediaQuery.of(context).size.height * 0.65,
                       child: FlipCard(
