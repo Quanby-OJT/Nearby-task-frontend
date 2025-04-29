@@ -145,6 +145,10 @@ export class TaskComponent implements OnInit {
     this.route.navigate(['tasks-management/task-disable', taskId]);
   }
 
+  createSpecialization() {
+    this.route.navigate(['tasks-management/create-specialization']);
+  }
+
   exportCSV() {
     const headers = ['No', 'Client Id', 'Client', 'Task Title', 'Specialization', 'Proposed Price', 'Location', 'Urgent', 'Status'];
     const rows = this.displayedTasks.map((task, index) => {
