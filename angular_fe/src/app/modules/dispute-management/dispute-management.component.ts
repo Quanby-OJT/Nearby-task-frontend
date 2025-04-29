@@ -96,6 +96,18 @@ export class DisputeManagementComponent {
 
     const htmlContent = `
       <div class="p-6 bg-white rounded-lg shadow-md text-left">
+      <!-- Warning Note Section -->
+      <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+        <div class="flex">
+        <div class="ml-3">
+          <h3 class="text-yellow-800 font-medium">Note to Moderator</h3>
+          <p class="text-yellow-700 text-sm mt-2">
+          PLEASE review all data such as: Task Information, Chat History, and User Reports before you settle this dispute.
+          Additionally, you MUST contact BOTH the client and tasker and LISTEN to their dispute.
+          </p>
+        </div>
+        </div>
+      </div>
       <!-- Task Information Section -->
       <div class="grid grid-cols-1 gap-4 mb-6">
         <div class="border-b pb-4">
@@ -132,19 +144,22 @@ export class DisputeManagementComponent {
           <strong class="text-gray-700">Date Dispute was Raised:</strong>
           <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.created_at || 'N/A'}</span>
           </div>
-        </div>
-        </div>
-      </div>
-
-      <!-- Warning Note Section -->
-      <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-        <div class="flex">
-        <div class="ml-3">
-          <h3 class="text-yellow-800 font-medium">Note to Moderator</h3>
-          <p class="text-yellow-700 text-sm mt-2">
-          PLEASE review all data such as: Task Information, Chat History, before you settle this dispute.
-          Additionally, you must contact the client and tasker and LISTEN to their dispute.
-          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <strong class="text-gray-700">Dispute Pictures:</strong>
+            <div class="sm:col-span-2 flex flex-wrap gap-2">
+              ${Array.isArray(this.disputeDetails.image_proof) && this.disputeDetails.image_proof.length > 0 ?
+                this.disputeDetails.image_proof.map((pic: any) => `
+                  <img
+                    src="${pic}"
+                    alt="Dispute evidence"
+                    class="w-24 h-24 object-cover cursor-pointer rounded"
+                    onclick="window.open('${pic}', '_blank')"
+                  />`
+                ).join('') :
+                '<span class="text-gray-600">No pictures available</span>'
+              }
+            </div>
+          </div>
         </div>
         </div>
       </div>
@@ -208,12 +223,21 @@ export class DisputeManagementComponent {
           cancelButtonColor: '#d33',
         }).then((confirmResult) => {
           if (confirmResult.isConfirmed) {
-            this.updateDispute(
-              this.disputeDetails.dispute_id,
-              result.value.action,
-              result.value.notes
-            );
-            Swal.fire('Updated!', 'The dispute has been updated.', 'success');
+            try {
+              this.updateDispute(
+                this.disputeDetails.dispute_id,
+                result.value.action,
+                result.value.notes
+              );
+              Swal.fire('Updated!', 'The dispute has been updated.', 'success');
+            } catch (error) {
+              Swal.fire({
+                title: 'Error',
+                text: 'An error occurred while updating the dispute. Please try again.',
+                icon: 'error',
+                confirmButtonColor: '#3085d6',
+              });
+            }
           }
         });
       }
@@ -221,10 +245,26 @@ export class DisputeManagementComponent {
   }
 
   updateDispute(dispute_id: number, moderator_action: string, addl_dispute_notes: string, ) {
+    console.log("Updating a dispute with ID:", dispute_id);
     this.disputeService.updateADispute(dispute_id, "Settled", moderator_action, addl_dispute_notes )
   }
 
   archiveDispute(dispute_id: number){
+    this.disputeDetails = this.filteredDisputes.find(dispute => dispute.dispute_id === dispute_id);
+    if (!this.disputeDetails) {
+      Swal.fire('Error', 'Dispute Information Cannot be Displayed', 'error');
+      return;
+    }
+
+    if (!this.disputeDetails.moderator_action || this.disputeDetails.moderator_action === '') {
+      Swal.fire({
+        title: 'Error While Archiving A Dispute',
+        text: 'This dispute cannot be archived because no moderator action has been taken yet.',
+        icon: 'error',
+        confirmButtonColor: '#3085d6',
+      });
+      return;
+    }
     this.disputeService.archiveADispute(dispute_id)
   }
 

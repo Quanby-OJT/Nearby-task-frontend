@@ -62,7 +62,7 @@ class _RecordPageState extends State<RecordPage> {
           Container(
             color: Colors.white,                  
             child: Padding(
-                166731                 padding: const EdgeInsets.only(left: 16.0, top: 20.0),
+                padding: const EdgeInsets.only(left: 16.0, top: 20.0),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
