@@ -1,12 +1,36 @@
-
 <div class="border-muted-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
-    <!-- Chart section (Top Part) -->
-    <div class="w-full mb-6">
-      <div class="bg-white rounded-xl shadow-lg p-6">
-       <div id="chart">
+  <!-- Month Filter and Download Dropdown -->
+  <div class="flex justify-between mb-4 w-full">
+    <div class="flex items-end w-1/4">
+      <label for="monthFilter" class="mr-2 whitespace-nowrap">Filter by Month:</label>
+      <select id="monthFilter" [(ngModel)]="selectedMonth" (change)="onMonthChange()" class="py-1 px-2 border rounded-md w-32 text-sm">
+        <option [ngValue]="null">All Months</option>
+        <option *ngFor="let month of months" [ngValue]="month">{{ month }}</option>
+      </select>
+    </div>
+    <div class="relative w-10 h-15">
+      <img src="https://img.icons8.com/?size=100&id=aVXFISfYjkDv&format=png&color=7950F2" (click)="toggleDropdown()">
+      <div *ngIf="isDropdownOpen" class="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-10">
+        <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" (click)="exportCSV()">Download CSV</button>
+        <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" (click)="exportPDF()">Download PDF</button>
+        <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" (click)="exportPNG()">Download PNG</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart section (Top Part) -->
+  <div class="w-full mb-6">
+    <div class="bg-white rounded-xl shadow-lg p-6">
+      <div id="chart">
         <apx-chart
           [series]="chartOptions.series"
-          [chart]="chartOptions.chart"
+          [chart]="{
+            id: 'depositor-chart',
+            type: 'area',
+            height: 350,
+            zoom: { enabled: false },
+            toolbar: { show: false }
+          }"
           [xaxis]="chartOptions.xaxis"
           [stroke]="chartOptions.stroke"
           [title]="chartOptions.title"
@@ -18,29 +42,28 @@
     </div>
   </div>
 
-    <!-- Table section (Bottom Part) -->
-    <div class="bg-white rounded-xl shadow-lg p-6">
-      <div class="overflow-x-auto w-full">
-        <table class="w-full border-collapse text-left text-sm">
-          <thead class="border-b">
-            <tr class="bg-gray-100">
-              <th class="px-2 py-2 w-[40px]">No</th>
-              <th class="px-2 py-2 text-start min-w-[100px]">Depositor</th>
-              <th class="px-2 py-2 text-start min-w-[100px]">Amount Deposited</th>
-              <th class="px-2 py-2 text-start min-w-[100px]">Month Deposited</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Dynamically render depositors -->
-            <tr *ngFor="let depositor of paginatedDepositors; let i = index" class="hover:bg-card/50 h-[60px]">
-              <td class="px-2 py-2 text-start">{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
-              <td class="px-2 py-2 text-start">{{ depositor.userName }}</td>
-              <td class="px-2 py-2 text-start">{{ depositor.amount }}</td>
-              <td class="px-2 py-2 text-start">{{ depositor.month }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+  <!-- Table section (Bottom Part) -->
+  <div class="bg-white rounded-xl shadow-lg p-6">
+    <div class="overflow-x-auto w-full">
+      <table class="w-full border-collapse text-left text-sm">
+        <thead class="border-b">
+          <tr class="bg-gray-100">
+            <th class="px-2 py-2 w-[40px]">No</th>
+            <th class="px-2 py-2 text-start min-w-[100px]">Depositor</th>
+            <th class="px-2 py-2 text-start min-w-[100px]">Amount Deposited</th>
+            <th class="px-2 py-2 text-start min-w-[100px]">Month Deposited</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Dynamically render depositors -->
+          <tr *ngFor="let depositor of paginatedDepositors; let i = index" class="hover:bg-card/50 h-[60px]">
+            <td class="px-2 py-2 text-start">{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
+            <td class="px-2 py-2 text-start">{{ depositor.userName }}</td>
+            <td class="px-2 py-2 text-start">{{ depositor.amount }}</td>
+            <td class="px-2 py-2 text-start">{{ depositor.month }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-
   </div>
+</div>
