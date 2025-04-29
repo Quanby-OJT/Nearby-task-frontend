@@ -44,4 +44,11 @@ export class DisputeManagementService {
       withCredentials: true
     })
   }
+
+  archiveADispute(id: number) {
+    return this.http.delete(`${this.apiUrl}/archive-dispute/${id}`, {
+      headers: this.getHeader(),
+      withCredentials: true
+    })
+  }
 }

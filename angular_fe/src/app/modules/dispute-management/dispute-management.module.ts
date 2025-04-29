@@ -7,8 +7,8 @@ const routes: Routes = [
       path: '',
       component: DisputeManagementComponent,
       children: [
-        { path: 'dispuite-management', redirectTo: 'dispute-management', pathMatch: 'full' },
-        { path: 'dispuite-management', component: DisputeManagementComponent },
+        { path: 'dispute-management', redirectTo: 'dispute-management', pathMatch: 'full' },
+        { path: 'dispute-management', component: DisputeManagementComponent },
         { path: '**', redirectTo: 'errors/404' },
       ],
     },
