@@ -49,10 +49,15 @@
     <table class="w-full border-collapse border-0 text-left text-sm">
       <thead class="border-b">
         <tr>
-          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Client Name</th>
-          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Tasker Name</th>
-          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Conversation</th>
-          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Action</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">
+            <div class="flex items-center gap-1 cursor-pointer">
+              Client Name
+              <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" class="w-4 h-4" (click)="toggleSort()">
+            </div>
+          </th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Tasker Name</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Conversation</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Action</th>
         </tr>
       </thead>
       <tbody>

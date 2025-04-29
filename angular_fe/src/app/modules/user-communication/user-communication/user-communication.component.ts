@@ -29,6 +29,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
   currentSearchText: string = '';
   currentReportedFilter: string = '';
   currentStatusFilter: string = '';
+  sortDirection: 'asc' | 'desc' = 'desc'; // Default to newest-to-oldest
 
   private conversationSubscription!: Subscription;
 
@@ -79,14 +80,14 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
     this.applyFilters();
   }
 
-  // Apply all filters
+  // Apply all filters and sorting
   applyFilters() {
     let tempConversations = [...this.conversation];
 
     // Apply search filter
     if (this.currentSearchText) {
       tempConversations = tempConversations.filter(convo => {
-        const fullName = `${convo.user.first_name || ''} ${convo.user.middle_name || ''} ${convo.user.last_name || ''}`.toLowerCase();
+        const fullName = `${convo.task_taken.clients.user.first_name || ''} ${convo.task_taken.clients.user.middle_name || ''} ${convo.task_taken.clients.user.last_name || ''}`.toLowerCase();
         const searchTerms = this.currentSearchText.split(/\s+/).filter(term => term);
         return searchTerms.every(term => fullName.includes(term));
       });
@@ -106,9 +107,26 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
       });
     }
 
+    // Apply sorting by Client Name
+    tempConversations.sort((a, b) => {
+      const nameA = `${a.task_taken.clients.user.first_name || ''} ${a.task_taken.clients.user.middle_name || ''} ${a.task_taken.clients.user.last_name || ''}`.toLowerCase();
+      const nameB = `${b.task_taken.clients.user.first_name || ''} ${b.task_taken.clients.user.middle_name || ''} ${b.task_taken.clients.user.last_name || ''}`.toLowerCase();
+      if (this.sortDirection === 'asc') {
+        return nameA.localeCompare(nameB);
+      } else {
+        return nameB.localeCompare(nameA);
+      }
+    });
+
     this.filteredConversations = tempConversations;
     this.currentPage = 1;
     this.updatePage();
+  }
+
+  // Toggle sort direction
+  toggleSort() {
+    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    this.applyFilters();
   }
 
   // Update the displayed conversations based on pagination
@@ -121,7 +139,6 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
     this.startIndex = (this.currentPage - 1) * this.conversationsPerPage + 1;
     this.endIndex = Math.min(this.currentPage * this.conversationsPerPage, this.filteredConversations.length);
 
-   
     const placeholderCount = this.conversationsPerPage - this.displayConversations.length;
     this.placeholderRows = Array(placeholderCount).fill({});
 
@@ -136,23 +153,9 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
 
     this.paginationButtons = [];
 
-    // if (start > 1) {
-    //   this.paginationButtons.push(1);
-    //   if (start > 2) {
-    //     this.paginationButtons.push('...');
-    //   }
-    // }
-
     for (let i = start; i <= end; i++) {
       this.paginationButtons.push(i);
     }
-
-    // if (end < this.totalPages) {
-    //   if (end < this.totalPages - 1) {
-    //     this.paginationButtons.push('...');
-    //   }
-    //   this.paginationButtons.push(this.totalPages);
-    // }
   }
 
   // Change number of conversations per page
@@ -244,7 +247,6 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
 
                 const messagesHtml = messages.map((msg: any) => {
                     const messageUserId = Number(msg.user_id);
-                    // Message is from the user whose conversation we're viewing
                     const isViewingUser = messageUserId === viewingUserId;
                     console.log(`Message User ID: ${messageUserId}, Viewing User ID: ${viewingUserId}, isViewingUser: ${isViewingUser}`);
 
@@ -313,11 +315,11 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
         convo.user_id ?? '',
         `"${convo.task_taken.clients.user.first_name} ${convo.task_taken.clients.user.middle_name || ''} ${convo.task_taken.clients.user.last_name}"`,
         `"${convo.task_taken.tasker.user.first_name} ${convo.task_taken.tasker.user.middle_name || ''} ${convo.task_taken.tasker.user.last_name}"`,
-        `"${convo.conversation || ''}"`, // Wrap in quotes to handle commas in conversation
-        `"${convo.task_taken.created_at || ''}"`, // Wrap in quotes to handle commas in date
+        `"${convo.conversation || ''}"`,
+        `"${convo.task_taken.created_at || ''}"`,
         convo.task_taken.task_status || '',
       ];
-      console.log('CSV Row:', row); // Debug log to verify data
+      console.log('CSV Row:', row);
       return row;
     });
     const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');

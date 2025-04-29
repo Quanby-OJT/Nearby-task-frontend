@@ -43,6 +43,7 @@ export class UsersComponent implements OnInit {
   public PaginationUsers: any[] = [];
   displayedUsers = this.filterService.currentUsers;
   selectedUserId: Number | null = null;
+  sortDirection: 'asc' | 'desc' = 'desc'; // Default to newest-to-oldest
 
   constructor(
     private http: HttpClient,
@@ -220,6 +221,15 @@ export class UsersComponent implements OnInit {
       return 0;
     });
 
+    // Apply sorting based on user_id
+    filtered.sort((a, b) => {
+      if (this.sortDirection === 'asc') {
+        return a.user_id - b.user_id; // Oldest to newest
+      } else {
+        return b.user_id - a.user_id; // Newest to oldest
+      }
+    });
+
     return filtered;
   }
 
@@ -228,6 +238,12 @@ export class UsersComponent implements OnInit {
       ...user,
       selected: checked,
     }));
+  }
+
+  handleSort(direction: 'asc' | 'desc'): void {
+    this.sortDirection = direction;
+    const pageSize = this.filterService.pageSizeField();
+    this.filterService.setCurrentUsers(this.filteredUsers.slice(0, pageSize));
   }
 
   handleRequestError(error: any): void {

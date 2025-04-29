@@ -29,7 +29,7 @@
       <table
         class="text-muted-foreground table w-full table-auto border-collapse border-0 text-left align-middle leading-5">
         <thead class="border-muted/20 border text-xs">
-          <tr app-table-header (onCheck)="toggleUsers($event)"></tr>
+          <tr app-table-header (onCheck)="toggleUsers($event)" (onSort)="handleSort($event)"></tr>
         </thead>
         <tbody class="min-h-[240px]">
           @for (user of filterService.currentUsers(); track $index) {
