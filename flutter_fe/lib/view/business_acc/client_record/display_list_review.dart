@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/notificationController.dart';
-import 'package:flutter_fe/view/business_acc/client_record/client_ongoing.dart';
 import 'package:flutter_fe/view/business_acc/client_record/client_review.dart';
-import 'package:flutter_fe/view/notification/client_request.dart';
-import 'package:flutter_fe/view/service_acc/tasker_record/tasker_ongoing.dart';
-import 'package:flutter_fe/view/service_acc/tasker_record/tasker_pending.dart';
 import 'package:flutter_fe/view/service_acc/tasker_record/tasker_review.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';

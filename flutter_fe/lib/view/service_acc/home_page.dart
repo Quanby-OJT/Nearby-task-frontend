@@ -153,17 +153,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   Future<void> _saveLikedJob(TaskModel task) async {
     try {
-      if (task.id == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Cannot like job: Invalid job ID"),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-
-      final result = await jobPostService.saveLikedJob(task.id!);
+      final result = await jobPostService.saveLikedJob(task.id);
       if (result.containsKey('message') && result['success']) {
         setState(() {
           _showLikeAnimation = true;
@@ -417,7 +407,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     (context, index, percentThresholdX, percentThresholdY) {
                   final task = tasks[index];
                   return Center(
-                    child: Container(
+                    child: SizedBox(
                       width: double.infinity,
                       height: MediaQuery.of(context).size.height * 0.65,
                       child: Card(
@@ -479,7 +469,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    '\₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice?.roundToDouble() ?? 0)}',
+                                    '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice.roundToDouble() ?? 0)}',
                                     style: GoogleFonts.openSans(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,

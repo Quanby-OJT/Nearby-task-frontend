@@ -1,11 +1,7 @@
 import 'dart:async';
-import 'package:flutter_fe/view/sign_in/sign_in.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
-import 'dart:async';
 import 'package:app_links/app_links.dart';
-import 'package:app_links/app_links.dart';
-import 'package:flutter_fe/view/fill_up/nearby_task_rules.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SignUpClientAcc extends StatefulWidget {

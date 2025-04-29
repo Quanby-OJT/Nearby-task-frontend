@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
-import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
-import 'package:flutter_fe/service/auth_service.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/service/tasker_service.dart';
 import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/nav/user_navigation.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -39,7 +36,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   List<TaskerFeedback> taskerFeedback = [];
   String? _errorMessage;
   int? cardNumber = 0;
-  Map<int, List<TaskerFeedback>> _taskerFeedbacks = {};
+  final Map<int, List<TaskerFeedback>> _taskerFeedbacks = {};
 
   AuthenticatedUser? _user;
   String? _existingProfileImageUrl;
@@ -50,7 +47,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   bool _isUploadDialogShown = false;
   bool _showButton = false;
 
-  double _currentRating = 0;
+  final double _currentRating = 0;
 
   String? _selectedSpecialization;
   List<String> _specializations = ['All'];
@@ -471,7 +468,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     (context, index, percentThresholdX, percentThresholdY) {
                   final tasker = taskers[index];
                   return Center(
-                    child: Container(
+                    child: SizedBox(
                       width: double.infinity,
                       height: MediaQuery.of(context).size.height * 0.65,
                       child: FlipCard(

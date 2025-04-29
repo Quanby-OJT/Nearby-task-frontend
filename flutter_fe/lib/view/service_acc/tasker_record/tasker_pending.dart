@@ -8,7 +8,6 @@ import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:intl/intl.dart';
 
 class TaskerPending extends StatefulWidget {
   final int? requestID;
@@ -31,9 +30,9 @@ class _TaskerPendingState extends State<TaskerPending> {
   String? _role;
   String? _userRole;
 
-  String _needToConfirm =
+  final String _needToConfirm =
       'The task is pending confirmation. Waiting for your confirmation.';
-  String _needToBeConfirmed = 'Awaiting confirmation.';
+  final String _needToBeConfirmed = 'Awaiting confirmation.';
 
   @override
   void initState() {

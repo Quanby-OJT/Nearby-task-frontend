@@ -3,11 +3,8 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/client_request.dart';
-import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
-import 'package:flutter_fe/view/business_acc/client_record/client_ongoing.dart';
-import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -28,8 +25,8 @@ class _DisplayTaskStatusState extends State<DisplayTaskStatus> {
   ClientRequestModel? _requestInformation;
   bool _isLoading = true;
   final storage = GetStorage();
-  bool _isApplying = false;
-  bool _isEditing = false;
+  final bool _isApplying = false;
+  final bool _isEditing = false;
 
   AuthenticatedUser? tasker;
 
@@ -154,7 +151,7 @@ class _DisplayTaskStatusState extends State<DisplayTaskStatus> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          "${_taskInformation!.title}",
+                                          _taskInformation!.title,
                                           style: GoogleFonts.montserrat(
                                             color: const Color(0xFF03045E),
                                             fontSize: 14,

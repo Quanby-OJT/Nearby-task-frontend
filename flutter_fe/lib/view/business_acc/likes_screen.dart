@@ -4,18 +4,14 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
-import 'package:flutter_fe/view/business_acc/business_acc_main_page.dart';
-import 'package:flutter_fe/view/business_acc/home_page.dart';
 import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
-import 'package:flutter_fe/view/service_acc/task_information.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/task_model.dart';
 
-import '../../model/tasker_feedback.dart';
 import '../../model/tasker_model.dart';
 
 class LikesScreen extends StatefulWidget {
@@ -112,7 +108,7 @@ class _LikesScreenState extends State<LikesScreen> {
           _existingProfileImageUrl = user?.user.image;
           _existingIDImageUrl = response['url'];
           _isLoading = false;
-          _role = _user?.user?.role ?? '';
+          _role = _user?.user.role ?? '';
         });
       }
     } catch (e) {
@@ -548,7 +544,8 @@ class _LikesScreenState extends State<LikesScreen> {
                 height: 48,
                 decoration: BoxDecoration(
                   color: Colors.grey[200],
-                  image: tasker.user?.image != null && tasker.user?.image!.isNotEmpty
+                  image: tasker.user?.image != null &&
+                          tasker.user?.image!.isNotEmpty
                       ? DecorationImage(
                           image: NetworkImage(tasker.user?.image!),
                           fit: BoxFit.cover,
@@ -615,13 +612,14 @@ class _LikesScreenState extends State<LikesScreen> {
                       color: Color(0xFF0272B1), size: 24),
                   onPressed: () {
                     Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            TaskerProfilePage(tasker: tasker, isSaved: true, taskerId: tasker.id,
-                        ),
-                      )
-                    );
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TaskerProfilePage(
+                            tasker: tasker,
+                            isSaved: true,
+                            taskerId: tasker.id,
+                          ),
+                        ));
                   },
                 ),
               ],

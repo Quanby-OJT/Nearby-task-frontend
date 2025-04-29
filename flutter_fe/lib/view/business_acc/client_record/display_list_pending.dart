@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/notificationController.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
-import 'package:flutter_fe/view/business_acc/client_record/client_ongoing.dart';
-import 'package:flutter_fe/view/business_acc/client_record/client_rejected.dart';
-import 'package:flutter_fe/view/notification/client_request.dart';
-import 'package:flutter_fe/view/notification/display_task_status.dart';
 import 'package:flutter_fe/view/service_acc/tasker_record/tasker_pending.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -28,7 +24,7 @@ class _DisplayListRecordPendingState extends State<DisplayListRecordPending> {
   final List<Map<String, dynamic>> requestData = [];
 
   // Track the selected tab index
-  int _selectedTabIndex = 0;
+  final int _selectedTabIndex = 0;
 
   final ProfileController _userController = ProfileController();
   AuthenticatedUser? _user;
@@ -62,14 +58,6 @@ class _DisplayListRecordPendingState extends State<DisplayListRecordPending> {
   Future<void> _fetchRequests() async {
     try {
       int userId = storage.read("user_id");
-
-      if (userId == null) {
-        debugPrint("User ID is null");
-        setState(() {
-          _isLoading = false;
-        });
-        return;
-      }
       final response = await _notificationController.getPendingRequests(userId);
 
       debugPrint(response.toString());
@@ -105,7 +93,7 @@ class _DisplayListRecordPendingState extends State<DisplayListRecordPending> {
   String truncateText(String? text, int maxLength) {
     final safeText = text ?? "No description";
     if (safeText.length <= maxLength) return safeText;
-    return safeText.substring(0, maxLength) + "...";
+    return "${safeText.substring(0, maxLength)}...";
   }
 
   // Method to build content based on the selected tab
