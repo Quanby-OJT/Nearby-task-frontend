@@ -113,23 +113,23 @@ export class FeedbackComponent implements OnInit {
        endPage = Math.min(this.totalPages, maxButtons);
     }
 
-    if (startPage > 1) {
-      this.paginationButtons.push(1);
-      if (startPage > 2) {
-        this.paginationButtons.push('...');
-      }
-    }
+    // if (startPage > 1) {
+    //   this.paginationButtons.push(1);
+    //   if (startPage > 2) {
+    //     this.paginationButtons.push('...');
+    //   }
+    // }
 
     for (let i = startPage; i <= endPage; i++) {
       this.paginationButtons.push(i);
     }
 
-    if (endPage < this.totalPages) {
-      if (endPage < this.totalPages - 1) {
-        this.paginationButtons.push('...');
-      }
-      this.paginationButtons.push(this.totalPages);
-    }
+    // if (endPage < this.totalPages) {
+    //   if (endPage < this.totalPages - 1) {
+    //     this.paginationButtons.push('...');
+    //   }
+    //   this.paginationButtons.push(this.totalPages);
+    // }
   }
 
   changeLogsPerPage(event: Event) {

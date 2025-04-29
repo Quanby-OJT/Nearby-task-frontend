@@ -114,17 +114,17 @@ export class TaskComponent implements OnInit {
 
     this.paginationButtons = [];
 
-    if (startPage > 2) {
-      this.paginationButtons.push('...');
-    }
+    // if (startPage > 2) {
+    //   this.paginationButtons.push('...');
+    // }
 
     for (let i = startPage; i <= endPage; i++) {
       this.paginationButtons.push(i);
     }
 
-    if (endPage < this.totalPages - 1) {
-      this.paginationButtons.push('...');
-    }
+    // if (endPage < this.totalPages - 1) {
+    //   this.paginationButtons.push('...');
+    // }
   }
 
   changeTasksPerPage(event: Event) {

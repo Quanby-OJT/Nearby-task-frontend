@@ -50,29 +50,25 @@
     <table class="w-full border-collapse border-0 text-left text-sm">
       <thead class="border-b">
         <tr>
-          <th class="px-4 py-2 w-[10px] lg:w-[20px] ">Id</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Client Id</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Client</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Task Title</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Specialization</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Proposed Price</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Location</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Urgent</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Status</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Action</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Client</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Task Title</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Specialization</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Proposed Price</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Location</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Urgent</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Status</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Action</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let task of displayedTasks; let i = index" class="hover:bg-card/50 h-[60px]">
-          <td class="px-4 py-3 text-center">{{ i + 1 }}</td>
-          <td class="px-4 py-3 text-center">{{ task?.clients?.client_id ?? task.client_id ?? '' }}</td>
-          <td class="px-4 py-3 text-center">{{ task.clients.user.first_name }} {{ task.clients.user.middle_name || '' }} {{ task.clients.user.last_name }}</td>
-          <td class="px-4 py-3 text-center">{{ task.task_title || '' }}</td>
-          <td class="px-4 py-3 text-center">{{ task.specialization || '' }}</td>
-          <td class="px-4 py-3 text-center">{{ task.proposed_price || 0 }}</td>
-          <td class="px-4 py-3 text-center">{{ task.location || '' }}</td>
-          <td class="px-4 py-3 text-center">{{ task.urgent ? 'Yes' : 'No' }}</td>
-          <td class="px-4 py-3 text-center">
+          <td class="px-4 py-3 text-start">{{ task.clients.user.first_name }} {{ task.clients.user.middle_name || '' }} {{ task.clients.user.last_name }}</td>
+          <td class="px-4 py-3 text-start">{{ task.task_title || '' }}</td>
+          <td class="px-4 py-3 text-start">{{ task.specialization || '' }}</td>
+          <td class="px-4 py-3 text-start">{{ task.proposed_price || 0 }}</td>
+          <td class="px-4 py-3 text-start">{{ task.location || '' }}</td>
+          <td class="px-4 py-3 text-start">{{ task.urgent ? 'Yes' : 'No' }}</td>
+          <td class="px-4 py-3 text-start">
           <span
             class="py-1 text-sm font-semibold rounded-lg text-white inline-block text-center w-32"
             [ngClass]="{
@@ -83,12 +79,12 @@
           </span>
           </td>
 
-          <td class="flex items-center justify-center pt-3 pb-0">
+          <td class="flex items-start justify-start pt-3 pb-0">
             <button (click)="disableTask(task.task_id)" class="p-0 border-none bg-transparent cursor-pointer">
               <span class="text-[#F9F9F9] bg-red-400 w-300px py-1 px-7 text-sm font-semibold rounded-lg">Disable</span>
             </button>
           </td>
-        </tr>s
+        </tr>
         <!-- Placeholder rows with consistent styling -->
         <tr *ngFor="let placeholder of placeholderRows">
           <td class="px-4 py-3 text-center"></td>

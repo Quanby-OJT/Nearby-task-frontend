@@ -37,24 +37,22 @@
     <table class="w-full border-collapse border-0 text-left text-sm">
       <thead class="border-b">
         <tr>
-          <th class="px-4 py-2 w-[80px] lg:w-[100px]">Id</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Tasker Name</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Feedback</th>
-          <th class="px-4 py-2 text-center min-w-[140px] lg:min-w-[300px] xl:min-w-[250px] ">Rating</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Client</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Reported</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Created At</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Tasker Name</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Feedback</th>
+          <th class="px-4 py-2 text-start min-w-[140px] lg:min-w-[300px] xl:min-w-[250px] ">Rating</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Client</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Reported</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Created At</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let feedback of displayFeedbacks; let i = index" class="hover:bg-card/50 h-[60px]">
-          <td class="px-4 py-3 text-center">{{ i + 1 }}</td>
-          <td class="px-4 py-3 text-center">{{ feedback.tasker.user.first_name }} {{ feedback.tasker.user.middle_name }} {{ feedback.tasker.user.last_name }}</td>
-          <td class="px-4 py-3 text-center">{{ feedback.feedback }}</td>
-          <td class="px-4 py-3 text-center">{{ feedback.rating }}</td>
-          <td class="px-4 py-3 text-center">{{ feedback.task_taken.client.user.first_name }} {{ feedback.task_taken.client.user.middle_name }} {{ feedback.task_taken.client.user.last_name }} </td>
-          <td class="px-4 py-3 text-center">{{ feedback.reported ? feedback.reported : 'Empty' }}</td>
-          <td class="px-4 py-3 text-center">{{ feedback.created_at }}</td>
+          <td class="px-4 py-3 text-start">{{ feedback.tasker.user.first_name }} {{ feedback.tasker.user.middle_name }} {{ feedback.tasker.user.last_name }}</td>
+          <td class="px-4 py-3 text-start">{{ feedback.feedback }}</td>
+          <td class="px-4 py-3 text-start">{{ feedback.rating }}</td>
+          <td class="px-4 py-3 text-start">{{ feedback.task_taken.client.user.first_name }} {{ feedback.task_taken.client.user.middle_name }} {{ feedback.task_taken.client.user.last_name }} </td>
+          <td class="px-4 py-3 text-start">{{ feedback.reported ? feedback.reported : 'Empty' }}</td>
+          <td class="px-4 py-3 text-start">{{ feedback.created_at }}</td>
         </tr>
         <!-- Placeholder rows to ensure total rows match logsPerPage -->
         <tr *ngFor="let placeholder of placeholderRows">

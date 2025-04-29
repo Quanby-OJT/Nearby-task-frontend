@@ -57,32 +57,32 @@
       <table class="w-full border-collapse border-0 text-left text-sm">
         <thead class="border-b">
           <tr>
-            <th class="px-4 py-2 w-[80px] lg:w-[100px] ">Id</th>
-            <th class="px-4 py-2 text-center min-w-[140px] lg:min-w-[300px] xl:min-w-[250px] ">Reporter Name</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Violator Name</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Reporter Role</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Violator Role</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Date</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Status</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Action</th>
+            <th class="px-4 py-2 text-start min-w-[140px] lg:min-w-[300px] xl:min-w-[250px] ">Reporter Name</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Violator Name</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Reporter Role</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Violator Role</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Date</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Status</th>
+            <th class="px-4 py-2 text-start min-w-[80px] lg:min-w-[80px] xl:min-w-[80px] ">Action</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let report of displayReports; let i = index" class="hover:bg-card/50 h-[60px]">
-            <td class="px-4 py-3 text-center">{{ i + 1 }}</td>
-            <td class="px-4 py-3 text-center">{{ report.reporter.first_name }} {{ report.reporter.middle_name }} {{ report.reporter.last_name }}</td>
-            <td class="px-4 py-3 text-center">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.violator.last_name }}</td>
-            <td class="px-4 py-3 text-center">{{ report.reporter.user_role }}</td>
-            <td class="px-4 py-3 text-center">{{ report.violator.user_role }}</td>
-            <td class="px-4 py-3 text-center">{{ report.created_at }}</td>
-            <td class="px-4 py-3 text-center">
+            <td class="px-4 py-3 text-start">{{ report.reporter.first_name }} {{ report.reporter.middle_name }} {{ report.reporter.last_name }}</td>
+            <td class="px-4 py-3 text-start">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.violator.last_name }}</td>
+            <td class="px-4 py-3 text-start">{{ report.reporter.user_role }}</td>
+            <td class="px-4 py-3 text-start">{{ report.violator.user_role }}</td>
+            <td class="px-4 py-3 text-start">{{ report.created_at }}</td>
+            <td class="px-4 py-3 text-start">
               <span [ngClass]="{'bg-green-500': report.status, 'bg-yellow-500': !report.status}" class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-yellow-500">{{ report.status ? 'Processed' : 'Pending' }}</span>
             </td>
-            <td class="flex items-center justify-center pt-3 pb-0">
-              <button (click)="openModal(report.report_id)" class="p-0 border-none bg-transparent cursor-pointer">
-                <img src="https://img.icons8.com/?size=100&id=cRLuJXPEgWhK&format=png&color=0000FF" alt="View Icon" class="w-5 h-5">
+            <td class="flex items-start justify-start pt-3 pb-0 w-20">
+              <button (click)="openModal(report.report_id)" class="flex items-start text-blue-500 hover:opacity-70">
+                <img src="https://img.icons8.com/?size=100&id=cRLuJXPEgWhK&format=png&color=0000FF" alt="View Icon" class="w-5 h-5 mr-2">
+                View
               </button>
             </td>
+            
           </tr>
           <!-- Placeholder rows to ensure total rows match reportsPerPage -->
           <tr *ngFor="let placeholder of placeholderRows">
@@ -165,7 +165,6 @@
       <table class="w-full border-collapse border-0 text-left text-sm">
         <thead class="border-b">
           <tr>
-            <th class="px-4 py-2 w-[80px] lg:w-[100px]  ">Id</th>
             <th class="px-4 py-2 text-center min-w-[140px] lg:min-w-[300px] xl:min-w-[250px] ">Reporter Name</th>
             <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Violator Name</th>
             <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Reporter Role</th>
@@ -176,8 +175,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let report of displayReports; let i = index" class="border-b hover:bg-card/50 h-[60px]">
-            <td class="px-4 py-3 text-center">{{ i + 1 }}</td>
+          <tr *ngFor="let report of displayReports" class="border-b hover:bg-card/50 h-[60px]">
             <td class="px-4 py-3 text-center">{{ report.reporter.first_name }} {{ report.reporter.middle_name }} {{ report.reporter.last_name }}</td>
             <td class="px-4 py-3 text-center">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.violator.last_name }}</td>
             <td class="px-4 py-3 text-center">{{ report.reporter.user_role }}</td>
@@ -188,7 +186,7 @@
             </td>
             <td class="px-4 py-3 text-center"> {{ report.action_by ? report.actionBy.first_name + " " + report.actionBy.middle_name + " " + report.actionBy.last_name  : 'null' }} </td>
           </tr>
-          <!-- Placeholder rows to ensure total rows match reportsPerPage -->
+
           <tr *ngFor="let placeholder of placeholderRows" class="border-b">
             <td class="px-4 py-3 text-center"></td>
             <td class="px-4 py-3 text-center"></td>

@@ -22,7 +22,7 @@
       <div class="grid grid-cols-3 gap-5 p-5">
         <div class="mx-auto w-full max-w-xs">
           <div class="overflow-hidden rounded-lg bg-white shadow-md">
-            <div class="h-50 flex w-full items-center justify-center bg-gray-100">
+            <div class="h-78 flex w-full items-center justify-center bg-gray-100">
               <img
                 [src]="imageUrl ? imageUrl : (profileImage || 'assets/default-avatar.png')"
                 alt="Uploaded Image"
@@ -32,16 +32,6 @@
               <ng-template #noImage>
                 <p class="text-gray-500">No image available</p>
               </ng-template>
-            </div>
-            <div class="p-4">
-              <label for="profileImage" class="block text-center text-sm font-medium text-gray-700">Upload Profile Image</label>
-              <input
-                type="file"
-                id="profileImage"
-                class="mt-2 block w-full cursor-pointer rounded-lg border border-gray-300 p-2 text-sm text-gray-900 focus:outline-none"
-                (change)="onFileChange($event)"
-                accept="image/*"
-              />
             </div>
           </div>
         </div>
@@ -56,6 +46,8 @@
                 class="peer block"
                 placeholder=" "
                 formControlName="firstName"
+                [disabled]="true"
+                readonly
               />
               <label
                 for="firstName"
@@ -79,6 +71,8 @@
                 class="peer block"
                 placeholder=" "
                 formControlName="middleName"
+                [disabled]="true"
+                readonly
               />
               <label
                 for="middleName"
@@ -99,6 +93,8 @@
                 class="peer block"
                 placeholder=" "
                 formControlName="lastName"
+                [disabled]="true"
+                readonly
               />
               <label
                 for="lastName"
@@ -122,7 +118,9 @@
                 class="peer block"
                 placeholder=" "
                 formControlName="bday"
-                [max]="today" />
+                [max]="today" 
+                [disabled]="true"
+                readonly/>
               <label
                 for="bday"
                 [ngClass]="{ 'peer-focus:text-destructive!': submitted && f['bday'].errors }"
@@ -145,6 +143,8 @@
                 class="peer block"
                 placeholder=" "
                 formControlName="email"
+                [disabled]="true"
+                readonly
               />
               <label
                 for="email"
@@ -170,7 +170,8 @@
                   class="peer block w-full rounded border px-3 py-2"
                   formControlName="userRole"
                   [ngClass]="{ 'border-red-500': submitted && f['userRole'].errors }"
-                  required
+                  [disabled]="true"
+                  readonly
                 >
                   <option value="" disabled selected>Select User Role</option>
                   <option value="Client" class="non-interactive" hidden>Client</option>
@@ -191,7 +192,8 @@
                   class="peer block w-full rounded border px-3 py-2"
                   formControlName="status"
                   [ngClass]="{ 'border-red-500': submitted && f['status'].errors }"
-                  required> 
+                  [disabled]="true"
+                  readonly> 
                   <option value="" disabled selected>Select User Status</option>
                   <option value="Active">Active</option>
                   <option value="Pending">Pending</option>

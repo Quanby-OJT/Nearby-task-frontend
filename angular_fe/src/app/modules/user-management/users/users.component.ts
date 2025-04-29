@@ -213,6 +213,13 @@ export class UsersComponent implements OnInit {
       }
     });
 
+    // Sort to prioritize acc_status === 'Review'
+    filtered.sort((a, b) => {
+      if (a.acc_status === 'Review' && b.acc_status !== 'Review') return -1;
+      if (a.acc_status !== 'Review' && b.acc_status === 'Review') return 1;
+      return 0;
+    });
+
     return filtered;
   }
 

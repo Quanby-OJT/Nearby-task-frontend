@@ -149,23 +149,23 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
 
     this.paginationButtons = [];
 
-    if (start > 1) {
-      this.paginationButtons.push(1);
-      if (start > 2) {
-        this.paginationButtons.push('...');
-      }
-    }
+    // if (start > 1) {
+    //   this.paginationButtons.push(1);
+    //   if (start > 2) {
+    //     this.paginationButtons.push('...');
+    //   }
+    // }
 
     for (let i = start; i <= end; i++) {
       this.paginationButtons.push(i);
     }
 
-    if (end < this.totalPages) {
-      if (end < this.totalPages - 1) {
-        this.paginationButtons.push('...');
-      }
-      this.paginationButtons.push(this.totalPages);
-    }
+    // if (end < this.totalPages) {
+    //   if (end < this.totalPages - 1) {
+    //     this.paginationButtons.push('...');
+    //   }
+    //   this.paginationButtons.push(this.totalPages);
+    // }
   }
 
   changeReportsPerPage(event: Event) {
