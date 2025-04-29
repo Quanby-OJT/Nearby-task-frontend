@@ -78,8 +78,7 @@
             [ngClass]="{
               'bg-green-500': task.status === 'Available',
               'bg-red-400': task.status === 'Closed',
-              'bg-yellow-400': task.status === 'Already Taken'
-            }">
+              'bg-yellow-400': task.status === 'Already Taken'}">
             {{ task.status || 'Empty' }}
           </span>
           </td>
@@ -89,7 +88,7 @@
               <span class="text-[#F9F9F9] bg-red-400 w-300px py-1 px-7 text-sm font-semibold rounded-lg">Disable</span>
             </button>
           </td>
-        </tr>
+        </tr>s
         <!-- Placeholder rows with consistent styling -->
         <tr *ngFor="let placeholder of placeholderRows">
           <td class="px-4 py-3 text-center"></td>
@@ -113,7 +112,7 @@
     <div class="text-muted-foreground flex items-center justify-between py-3 px-5 text-xs">
       <div class="flex items-center gap-2">
         Show
-        <select class="w-35 p-5 border rounded-md" (change)="changeTasksPerPage($event)">
+        <select class="w-[140px] p-2 border rounded-md" (change)="changeTasksPerPage($event)">
           <option value="5" selected>5</option>
           <option value="10">10</option>
           <option value="20">20</option>
