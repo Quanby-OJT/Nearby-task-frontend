@@ -13,7 +13,7 @@ export class BestTaskerComponent implements OnInit {
   filteredTaskers: { userName: string; specialization: string; taskCount: number }[] = [];
   displayTaskers: { userName: string; specialization: string; taskCount: number }[] = [];
   paginationButtons: (number | string)[] = [];
-  taskersPerPage: number = 10;
+  taskersPerPage: number = 5;
   currentPage: number = 1;
   totalPages: number = 1;
   startIndex: number = 1;

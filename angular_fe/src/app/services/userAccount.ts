@@ -70,8 +70,9 @@ export class UserAccountService {
     });
   }
 
+  // This is for the User Account Update
   updateUserAccount(userID: number, userData: FormData): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/updateUserInfo/${userID}`, userData, {
+    return this.http.put<any>(`${this.apiUrl}/updateAuthorityUser/${userID}`, userData, {
       headers: this.getHeaders(),
       withCredentials: true
     });
@@ -105,11 +106,23 @@ export class UserAccountService {
     });
   }
 
-  // Added method to call the correct authority update route
   updateAuthorityUser(userID: number, userData: FormData): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/updateAuthorityUser/${userID}`, userData, {
-      headers: this.getHeaders(), // Ensure headers are sent if needed for auth
+      headers: this.getHeaders(), 
       withCredentials: true
     });
+  }
+
+  // New methods for forgot password - Modified to remove headers and withCredentials
+  sendOtp(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/forgot-password/send-otp`, { email });
+  }
+
+  verifyOtp(email: string, otp: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/forgot-password/verify-otp`, { email, otp });
+  }
+
+  resetPassword(email: string, newPassword: string, confirmPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/forgot-password/reset-password`, { email, newPassword, confirmPassword });
   }
 }

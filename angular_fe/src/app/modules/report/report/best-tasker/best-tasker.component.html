@@ -8,7 +8,7 @@
       <div class="flex-1 min-w-[200px] lg:min-w-[300px] xl:min-w-[400px]">
         <label class="relative w-full">
           <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" 
-                 placeholder="Search tasker" type="text" (input)="searchTaskers($event)" />
+                 placeholder="Search tasker name" type="text" (input)="searchTaskers($event)" />
         </label>
       </div>
     </div>
@@ -20,14 +20,14 @@
       <thead class="border-b">
         <tr class="bg-gray-100">
           <th class="px-4 py-2 w-[80px] lg:w-[100px]">No</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">User Name</th>
+          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Tasker Name</th>
           <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Specialization</th>
           <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Overall Task Taken</th>
         </tr>
       </thead>
       <tbody>
         <!-- Dynamically display taskers -->
-        <tr *ngFor="let tasker of displayTaskers; let i = index" class="border-b">
+        <tr *ngFor="let tasker of displayTaskers; let i = index" class="hover:bg-card/50 h-[60px]">
           <td class="px-4 py-3 text-center">{{ (currentPage - 1) * taskersPerPage + i + 1 }}</td>
           <td class="px-4 py-3 text-center">{{ tasker.userName }}</td>
           <td class="px-4 py-3 text-center">{{ tasker.specialization }}</td>
@@ -44,7 +44,8 @@
       <div class="flex items-center gap-2">
         Show
         <select class="w-[140px] p-2 border rounded-md" (change)="changeTaskersPerPage($event)">
-          <option value="10" selected>10</option>
+          <option valie="5" selected>5</option>
+          <option value="10">10</option>
           <option value="20">20</option>
           <option value="30">30</option>
           <option value="50">50</option>
