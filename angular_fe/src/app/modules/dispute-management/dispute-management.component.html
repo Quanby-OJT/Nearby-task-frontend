@@ -1,13 +1,10 @@
-<div class="dispute-management-container">
-  <div class="dispute-management-header">
-    <h1 class = "text-lg font-bold">Dispute Management</h1>
-    <h3 class = "text-s">Manage your disputes efficiently</h3>
+<div class="mb-4 flex justify-between w-full max-w-[1440px] mx-auto px-4">
+  <div>
+    <h3 class="text-foreground font-semibold">Dispute Management</h3>
+    <div class="text-muted-foreground text-xs font-medium">
+      <a href="#" class="hover:text-primary">Manage your disputes efficiently and with fairness for users.</a>
+    </div>
   </div>
-  <div class="dispute-management-content">
-    <ng-content></ng-content>
-  </div>
-<app-dispute-search></app-dispute-search>
-<app-dispute-filter></app-dispute-filter>
-<app-dispute-table>
-</app-dispute-table>
+</div>
 
+<app-dispute-table></app-dispute-table>

@@ -20,21 +20,21 @@ export class DisputeManagementService {
     })
   }
 
-  private getAllDisputes(): Observable<any> {
+  getAllDisputes(): Observable<any> {
     return this.http.get(`${this.apiUrl}/get-all-disputes`, {
       headers: this.getHeader(),
       withCredentials: true
     })
   }
 
-  private getDisputeDetails(id: number): Observable<any> {
+  getDisputeDetails(id: number): Observable<any> {
     return this.http.get(`${this.apiUrl}/get-dispute/${id}`, {
       headers: this.getHeader(),
       withCredentials: true
     })
   }
 
-  private updateADispute(id: number, task_status: string, moderator_action: string, addl_dispute_notes?: string): Observable<any> {
+  updateADispute(id: number, task_status: string, moderator_action: string, addl_dispute_notes?: string): Observable<any> {
     return this.http.patch(`${this.apiUrl}/update-dispute/${id}`, {
       task_status,
       moderator_action,

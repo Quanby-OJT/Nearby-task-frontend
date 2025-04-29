@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/model/timeSlot.dart';
+import 'package:flutter_fe/service/tasker_service.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter_fe/model/tasker_scheduler.dart';
 import 'package:flutter_fe/controller/tasker_scheduler_controller.dart';
@@ -16,8 +19,7 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
   DateTime? _selectedFromDate;
   DateTime? _selectedToDate;
   DateTime? _selectedDay;
-  final TaskerSchedulerController _taskerSchedulerController =
-      TaskerSchedulerController();
+  final TaskerService _taskerSchedulerController = TaskerService();
   final Map<DateTime, List<TimeSlot>> _availabilitySlots = {};
   bool _isLoading = false;
 
@@ -48,7 +50,6 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
             ),
           );
         } else {
-          // Set _selectedDay to a day with schedules for immediate display
           _selectedDay ??= schedule.keys.first;
           _focusedDay = _selectedDay ?? DateTime.now();
         }
@@ -70,12 +71,28 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Schedule Management"),
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.white,
+        title: Column(
+          children: [
+            Text(
+              "Schedule Management",
+              style: GoogleFonts.montserrat(
+                color: Color(0xFF2A1999),
+                fontWeight: FontWeight.w600,
+                fontSize: 18,
+              ),
+              textAlign: TextAlign.left,
+            ),
+            SizedBox(height: 5),
+          ],
+        ),
         actions: [
           IconButton(
             icon: Icon(Icons.refresh),
             onPressed: _loadSchedule,
             tooltip: 'Refresh Schedules',
+            color: Color(0xFF2A1999),
           ),
         ],
       ),
@@ -159,57 +176,6 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
                       )
                     : _buildTimeSlots(),
               ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: ElevatedButton(
-                  onPressed: () async {
-                    if (_availabilitySlots.isNotEmpty) {
-                      setState(() => _isLoading = true);
-                      final List<Map<String, dynamic>> serializedSlots = [];
-                      _availabilitySlots.forEach((date, slots) {
-                        for (var slot in slots) {
-                          serializedSlots.add(TaskerScheduler(
-                            dateScheduled:
-                                '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
-                            startTime: _formatTime(slot.startTime),
-                            endTime: _formatTime(slot.endTime),
-                            isAvailable: slot.isAvailable,
-                          ).toJson());
-                        }
-                      });
-
-                      String result = await _taskerSchedulerController
-                          .setTaskerSchedule(serializedSlots);
-                      setState(() => _isLoading = false);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(result),
-                          backgroundColor: result.contains("Error")
-                              ? Colors.red
-                              : Colors.green,
-                        ),
-                      );
-                      await _loadSchedule();
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("No availability slots selected"),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    }
-                  },
-                  style: ButtonStyle(
-                    backgroundColor:
-                        WidgetStateProperty.all<Color>(Color(0xFF170A66)),
-                  ),
-                  child: Text(
-                    "Set Schedule",
-                    style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
               SizedBox(height: 20),
             ],
           ),
@@ -220,8 +186,8 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
           ? null
           : FloatingActionButton(
               onPressed: _addTimeSlot,
-              child: Icon(Icons.add),
               tooltip: 'Add Time Slot',
+              child: Icon(Icons.add),
             ),
     );
   }
@@ -259,28 +225,14 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            PopupMenuButton<String>(
-                              icon: Icon(Icons.copy),
-                              onSelected: (value) {
-                                if (value == 'weeks') {
-                                  _copySlotToNextWeeks(slot);
-                                } else if (value == 'days') {
-                                  _copySlotToSpecificDay(slot);
-                                }
-                              },
-                              itemBuilder: (context) => [
-                                PopupMenuItem(
-                                    value: 'weeks',
-                                    child: Text('Copy to future weeks')),
-                                PopupMenuItem(
-                                    value: 'days',
-                                    child: Text('Copy to specific day')),
-                              ],
-                            ),
                             IconButton(
                               icon: Icon(Icons.delete),
                               onPressed: () =>
-                                  _deleteTimeSlot(selectedDate, index),
+                                  _deleteTimeSlot(selectedDate, index, slot.id),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.edit),
+                              onPressed: () => _editTimeSlot(slot),
                             ),
                           ],
                         ),
@@ -293,10 +245,109 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
     );
   }
 
+  Future<TimeSlot?> _pickTimeSlot({required TimeOfDay initialStart}) async {
+    final startTime =
+        await showTimePicker(context: context, initialTime: initialStart);
+    if (startTime == null) return null;
+
+    final endTime = await showTimePicker(
+      context: context,
+      initialTime:
+          TimeOfDay(hour: startTime.hour + 1, minute: startTime.minute),
+    );
+    if (endTime == null) return null;
+
+    if (endTime.hour * 60 + endTime.minute <=
+        startTime.hour * 60 + startTime.minute) {
+      _showSnackBar('End time must be after start time', Colors.red);
+      return null;
+    }
+
+    return TimeSlot(
+      id: 0,
+      tasker_id: 0,
+      startTime: startTime,
+      endTime: endTime,
+      isAvailable: true,
+    );
+  }
+
+  void _sortTimeSlots(DateTime date) {
+    _availabilitySlots[date]?.sort((a, b) =>
+        (a.startTime.hour * 60 + a.startTime.minute)
+            .compareTo(b.startTime.hour * 60 + b.startTime.minute));
+  }
+
+  void _showSnackBar(String message, Color backgroundColor) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: backgroundColor),
+    );
+  }
+
+  bool _hasOverlap(DateTime date, TimeSlot newSlot) {
+    final slots = _availabilitySlots[date] ?? [];
+    final newStart = newSlot.startTime.hour * 60 + newSlot.startTime.minute;
+    final newEnd = newSlot.endTime.hour * 60 + newSlot.endTime.minute;
+    for (final slot in slots) {
+      final start = slot.startTime.hour * 60 + slot.startTime.minute;
+      final end = slot.endTime.hour * 60 + slot.endTime.minute;
+      if (newStart < end && newEnd > start) return true;
+    }
+    return false;
+  }
+
   Future<void> _addTimeSlot() async {
+    final newSlot =
+        await _pickTimeSlot(initialStart: const TimeOfDay(hour: 9, minute: 0));
+    if (newSlot == null) return;
+
+    final selectedDate =
+        DateTime(_selectedDay!.year, _selectedDay!.month, _selectedDay!.day);
+
+    if (_hasOverlap(selectedDate, newSlot)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Time slot overlaps with an existing slot'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final serializedSlot = TaskerScheduler(
+      id: 0,
+      tasker_id: 0,
+      dateScheduled:
+          '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}',
+      startTime: _formatTime(newSlot.startTime),
+      endTime: _formatTime(newSlot.endTime),
+      isAvailable: newSlot.isAvailable,
+    ).toJson();
+
+    setState(() => _isLoading = true);
+    final result =
+        await _taskerSchedulerController.setTaskerSchedule([serializedSlot]);
+    setState(() => _isLoading = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result),
+        backgroundColor: result.contains("Error") ? Colors.red : Colors.green,
+      ),
+    );
+
+    if (!result.contains('Error')) {
+      setState(() {
+        _availabilitySlots.putIfAbsent(selectedDate, () => []).add(newSlot);
+        _sortTimeSlots(selectedDate);
+      });
+      await _loadSchedule();
+    }
+  }
+
+  Future<void> _editTimeSlot(TimeSlot slot) async {
     final TimeOfDay? startTime = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay(hour: 9, minute: 0),
+      initialTime: slot.startTime,
     );
 
     if (startTime == null) return;
@@ -309,7 +360,6 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
 
     if (endTime == null) return;
 
-    // Validate endTime > startTime
     if (endTime.hour * 60 + endTime.minute <=
         startTime.hour * 60 + startTime.minute) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -324,107 +374,77 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
     final selectedDate =
         DateTime(_selectedDay!.year, _selectedDay!.month, _selectedDay!.day);
 
-    setState(() {
-      if (!_availabilitySlots.containsKey(selectedDate)) {
-        _availabilitySlots[selectedDate] = [];
-      }
+    TimeSlot updatedSlot = TimeSlot(
+      id: slot.id,
+      tasker_id: slot.tasker_id,
+      startTime: startTime,
+      endTime: endTime,
+      isAvailable: slot.isAvailable,
+    );
 
-      _availabilitySlots[selectedDate]!.add(
-        TimeSlot(
-          startTime: startTime,
-          endTime: endTime,
-          isAvailable: true,
-        ),
-      );
+    setState(() => _isLoading = true);
 
-      _availabilitySlots[selectedDate]!.sort((a, b) {
-        final aMinutes = a.startTime.hour * 60 + a.startTime.minute;
-        final bMinutes = b.startTime.hour * 60 + b.startTime.minute;
-        return aMinutes.compareTo(bMinutes);
+    String formattedDate =
+        '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
+
+    Map<String, dynamic> serializedSlot = {
+      "scheduled_date": formattedDate,
+      "start_time": _formatTime(updatedSlot.startTime),
+      "end_time": _formatTime(updatedSlot.endTime),
+    };
+
+    String result = await _taskerSchedulerController.editTaskerSchedule(
+      slot.id,
+      serializedSlot,
+    );
+    setState(() => _isLoading = false);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result),
+        backgroundColor: result.contains("Error") ? Colors.red : Colors.green,
+      ),
+    );
+
+    if (!result.contains("Error")) {
+      setState(() {
+        int slotIndex = _availabilitySlots[selectedDate]!.indexWhere(
+          (s) => s.id == slot.id,
+        );
+
+        if (slotIndex != -1) {
+          _availabilitySlots[selectedDate]![slotIndex] = updatedSlot;
+
+          _availabilitySlots[selectedDate]!.sort((a, b) {
+            final aMinutes = a.startTime.hour * 60 + a.startTime.minute;
+            final bMinutes = b.startTime.hour * 60 + b.startTime.minute;
+            return aMinutes.compareTo(bMinutes);
+          });
+        }
       });
-    });
+
+      await _loadSchedule();
+    }
   }
 
-  void _deleteTimeSlot(DateTime date, int index) {
+  void _deleteTimeSlot(DateTime date, int index, int id) async {
+    debugPrint("Deleting slot at $date, index $index, id $id");
+
+    String result = await _taskerSchedulerController.deleteTaskerSchedule(id);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result),
+        backgroundColor: result.contains("Error") ? Colors.red : Colors.green,
+      ),
+    );
+    if (result.contains("Error")) return;
+
     setState(() {
       _availabilitySlots[date]!.removeAt(index);
       if (_availabilitySlots[date]!.isEmpty) {
         _availabilitySlots.remove(date);
       }
-    });
-  }
-
-  Future<void> _copySlotToNextWeeks(TimeSlot slot) async {
-    final int? weeks = await showDialog<int>(
-      context: context,
-      builder: (context) => NumberPickerDialog(
-        minValue: 1,
-        maxValue: 12,
-        title: Text('Copy to future weeks'),
-        message: Text('How many weeks ahead?'),
-      ),
-    );
-
-    if (weeks == null) return;
-
-    setState(() {
-      for (int i = 1; i <= weeks; i++) {
-        final futureDate = _selectedDay!.add(Duration(days: 7 * i));
-        final dateKey =
-            DateTime(futureDate.year, futureDate.month, futureDate.day);
-
-        if (!_availabilitySlots.containsKey(dateKey)) {
-          _availabilitySlots[dateKey] = [];
-        }
-
-        _availabilitySlots[dateKey]!.add(
-          TimeSlot(
-            startTime: slot.startTime,
-            endTime: slot.endTime,
-            isAvailable: slot.isAvailable,
-          ),
-        );
-
-        _availabilitySlots[dateKey]!.sort((a, b) {
-          final aMinutes = a.startTime.hour * 60 + a.startTime.minute;
-          final bMinutes = b.startTime.hour * 60 + b.startTime.minute;
-          return aMinutes.compareTo(bMinutes);
-        });
-      }
-    });
-  }
-
-  Future<void> _copySlotToSpecificDay(TimeSlot slot) async {
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: _selectedDay!.add(Duration(days: 1)),
-      firstDate: _selectedDay!.add(Duration(days: 1)),
-      lastDate: _selectedDay!.add(Duration(days: 365)),
-    );
-
-    if (pickedDate == null) return;
-
-    setState(() {
-      final dateKey =
-          DateTime(pickedDate.year, pickedDate.month, pickedDate.day);
-
-      if (!_availabilitySlots.containsKey(dateKey)) {
-        _availabilitySlots[dateKey] = [];
-      }
-
-      _availabilitySlots[dateKey]!.add(
-        TimeSlot(
-          startTime: slot.startTime,
-          endTime: slot.endTime,
-          isAvailable: slot.isAvailable,
-        ),
-      );
-
-      _availabilitySlots[dateKey]!.sort((a, b) {
-        final aMinutes = a.startTime.hour * 60 + a.startTime.minute;
-        final bMinutes = b.startTime.hour * 60 + b.startTime.minute;
-        return aMinutes.compareTo(bMinutes);
-      });
     });
   }
 
@@ -450,29 +470,6 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
       'December'
     ];
     return months[month - 1];
-  }
-}
-
-class TimeSlot {
-  final TimeOfDay startTime;
-  final TimeOfDay endTime;
-  final bool isAvailable;
-
-  TimeSlot({
-    required this.startTime,
-    required this.endTime,
-    this.isAvailable = true,
-  });
-
-  @override
-  String toString() {
-    return 'TimeSlot(start: ${_formatTime(startTime)}, end: ${_formatTime(endTime)}, available: $isAvailable)';
-  }
-
-  String _formatTime(TimeOfDay time) {
-    final hour = time.hour.toString().padLeft(2, '0');
-    final minute = time.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
   }
 }
 

@@ -1,15 +1,19 @@
 import { Component } from '@angular/core';
 import { DisputeTableComponent } from './dispute-table/dispute-table.component';
-import { DisputeSearchComponent } from './dispute-search/dispute-search.component';
-import { DisputeFilterComponent } from './dispute-filter/dispute-filter.component';
+
+
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { saveAs } from 'file-saver';
+import { AngularSvgIconModule } from 'angular-svg-icon';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-dispute-management',
   standalone: true,
-  imports: [DisputeTableComponent, DisputeSearchComponent, DisputeFilterComponent],
+  imports: [DisputeTableComponent],
   templateUrl: './dispute-management.component.html',
   styleUrl: './dispute-management.component.css'
 })
 export class DisputeManagementComponent {
-
 }
