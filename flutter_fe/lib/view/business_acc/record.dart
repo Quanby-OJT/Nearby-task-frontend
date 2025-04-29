@@ -60,9 +60,9 @@ class _RecordPageState extends State<RecordPage> {
         ),
         body: Column(children: [
           Container(
-            color: Colors.white,
+            color: Colors.white,                  
             child: Padding(
-              padding: const EdgeInsets.only(left: 16.0, top: 20.0),
+                166731                 padding: const EdgeInsets.only(left: 16.0, top: 20.0),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(

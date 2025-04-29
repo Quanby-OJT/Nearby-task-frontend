@@ -8,6 +8,7 @@ import { DisputeManagementService } from 'src/app/services/dispute-management.se
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
+import Swal from 'sweetalert2';
 
 
 @Component({
@@ -32,6 +33,10 @@ export class DisputeManagementComponent {
   isLoading: boolean = false;
   paginationButtons: (number | string)[] = [];
   placeholderRows: any[] = []; // Added for placeholder rows
+  disputeDetails: any = null
+  // Add these properties to the class
+  selectedAction: string = '';
+  additionalNotes: string = '';
 
   constructor(private disputeService: DisputeManagementService) {}
 
@@ -83,16 +88,136 @@ export class DisputeManagementComponent {
   }
 
   viewDispute(dispute_id: number) {
-    this.disputeService.getDisputeDetails(dispute_id).subscribe(
-      (response: any) => {
-        console.log('Dispute details:', response);
-        this.disputes = response.disputes || []
+    this.disputeDetails = this.filteredDisputes.find(dispute => dispute.dispute_id === dispute_id);
+    if (!this.disputeDetails) {
+      Swal.fire('Error', 'Dispute Information Cannot be Displayed', 'error');
+      return;
+    }
+
+    const htmlContent = `
+      <div class="p-6 bg-white rounded-lg shadow-md text-left">
+      <!-- Task Information Section -->
+      <div class="grid grid-cols-1 gap-4 mb-6">
+        <div class="border-b pb-4">
+        <h3 class="text-lg font-semibold mb-4">Task Information</h3>
+        <div class="space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <strong class="text-gray-700">Task Title:</strong>
+          <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.task_taken?.post_task?.task_title || 'N/A'}</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <strong class="text-gray-700">Reason for Dispute:</strong>
+          <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.reason_for_dispute || 'N/A'}</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <strong class="text-gray-700">Dispute Details:</strong>
+          <span class="text-gray-600 sm:col-span-2 text-sm">${this.disputeDetails.dispute_details || 'N/A'}</span>
+          </div>
+        </div>
+        </div>
+
+        <!-- Dispute Details Section -->
+        <div class="border-b pb-4">
+        <h3 class="text-lg font-semibold mb-4">Dispute Details</h3>
+        <div class="space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <strong class="text-gray-700">Raised By:</strong>
+          <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.task_taken?.clients?.user?.first_name || 'N/A'} ${this.disputeDetails.task_taken?.clients?.user?.last_name || 'N/A'}</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <strong class="text-gray-700">Moderator Action:</strong>
+          <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.moderator_action || 'No Modertor Action'}</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <strong class="text-gray-700">Date Dispute was Raised:</strong>
+          <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.created_at || 'N/A'}</span>
+          </div>
+        </div>
+        </div>
+      </div>
+
+      <!-- Warning Note Section -->
+      <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+        <div class="flex">
+        <div class="ml-3">
+          <h3 class="text-yellow-800 font-medium">Note to Moderator</h3>
+          <p class="text-yellow-700 text-sm mt-2">
+          PLEASE review all data such as: Task Information, Chat History, before you settle this dispute.
+          Additionally, you must contact the client and tasker and LISTEN to their dispute.
+          </p>
+        </div>
+        </div>
+      </div>
+
+      <!-- Action Form Section -->
+      <div class="space-y-4">
+        <div class="form-group">
+        <label for="moderatorAction" class="block text-gray-700 font-medium mb-2">Resolution Action:</label>
+        <select id="moderatorAction" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" required>
+          <option value="">Select an action</option>
+          <option value="refund_tokens">Refund NearByTask Tokens to Client</option>
+          <option value="release_half">Release Half of the Total Payment to Tasker</option>
+          <option value="release_full">Release Full Payment to Tasker</option>
+        </select>
+        </div>
+        <div class="form-group">
+        <label for="disputeNotes" class="block text-gray-700 font-medium mb-2">Additional Notes:</label>
+        <textarea id="disputeNotes" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" rows="3" required></textarea>
+        </div>
+      </div>
+      </div>
+    `;
+
+    Swal.fire({
+      title: "Dispute Details",
+      html: htmlContent,
+      width: '800px',
+      showCancelButton: true,
+      confirmButtonText: 'Update Dispute',
+      confirmButtonColor: '#3085d6',
+      cancelButtonText: 'Close',
+      cancelButtonColor: '#d33',
+      customClass: {
+        htmlContainer: 'text-left'
       },
-      (error) => {
-        console.error('Error fetching dispute details', error);
-        this.disputes = []
+      preConfirm: () => {
+        const action = document.getElementById('moderatorAction') as HTMLSelectElement;
+        const notes = document.getElementById('disputeNotes') as HTMLTextAreaElement;
+
+        if (!action.value || !notes.value) {
+          Swal.showValidationMessage('Please fill in all fields');
+          return false;
+        }
+
+        return {
+          action: action.value,
+          notes: notes.value
+        };
       }
-    );
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        // Add confirmation modal
+        Swal.fire({
+          title: 'Are you sure?',
+          text: 'This action cannot be undone. Do you want to proceed?',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Yes, update it!',
+          cancelButtonText: 'No, cancel',
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+        }).then((confirmResult) => {
+          if (confirmResult.isConfirmed) {
+            this.updateDispute(
+              this.disputeDetails.dispute_id,
+              result.value.action,
+              result.value.notes
+            );
+            Swal.fire('Updated!', 'The dispute has been updated.', 'success');
+          }
+        });
+      }
+    });
   }
 
   updateDispute(dispute_id: number, moderator_action: string, addl_dispute_notes: string, ) {
