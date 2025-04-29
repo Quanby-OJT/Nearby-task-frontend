@@ -41,7 +41,6 @@
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Feedback</th>
           <th class="px-4 py-2 text-start min-w-[140px] lg:min-w-[300px] xl:min-w-[250px] ">Rating</th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Client</th>
-          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Reported</th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Created At</th>
         </tr>
       </thead>
@@ -51,7 +50,6 @@
           <td class="px-4 py-3 text-start">{{ feedback.feedback }}</td>
           <td class="px-4 py-3 text-start">{{ feedback.rating }}</td>
           <td class="px-4 py-3 text-start">{{ feedback.task_taken.client.user.first_name }} {{ feedback.task_taken.client.user.middle_name }} {{ feedback.task_taken.client.user.last_name }} </td>
-          <td class="px-4 py-3 text-start">{{ feedback.reported ? feedback.reported : 'Empty' }}</td>
           <td class="px-4 py-3 text-start">{{ feedback.created_at }}</td>
         </tr>
         <!-- Placeholder rows to ensure total rows match logsPerPage -->
