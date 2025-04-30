@@ -223,24 +223,13 @@ export class DisputeManagementComponent {
           cancelButtonColor: '#d33',
         }).then((confirmResult) => {
             if (confirmResult.isConfirmed) {
-            Swal.fire({
-              title: 'Please wait...',
-              html: 'Processing your request',
-              allowOutsideClick: false,
-              showConfirmButton: false,
-              didOpen: () => {
-              Swal.showLoading();
-              }
-            });
-
-            this.updateDispute(
-              this.disputeDetails.dispute_id,
-              this.disputeDetails.task_taken.task_taken_id,
-              this.disputeDetails.task_taken.post_task.task_id,
-              result.value.action,
-              result.value.notes
-            );
-            // Note: The success Swal is moved inside the updateDispute subscription
+              this.updateDispute(
+                this.disputeDetails.dispute_id,
+                this.disputeDetails.task_taken.task_taken_id,
+                this.disputeDetails.task_taken.post_task.task_id,
+                result.value.action,
+                result.value.notes
+              );
             }
         });
       }
@@ -252,9 +241,14 @@ export class DisputeManagementComponent {
     this.disputeService.updateADispute(dispute_id, task_taken_id, task_id, "Dispute Settled", moderator_action, addl_dispute_notes )
     .subscribe({
       next: (response) => {
+        Swal.fire({
+          title: "Successfully Updated Dispute",
+          text: response.message,
+          icon: 'success',
+          confirmButtonColor: '#3085d6',
+        })
         console.log('Dispute updated successfully:', response);
-        // Optionally refresh the disputes list
-        this.ngOnInit(); // Reload disputes to reflect changes
+        this.ngOnInit();
       },
       error: (error) => {
         console.error('Error updating dispute:', error);
