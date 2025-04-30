@@ -32,14 +32,23 @@
         [chart]="{
           id: 'specialization-chart',
           type: 'area',
-          height: 400,
+          height: 350,
           zoom: { enabled: false },
           toolbar: {
             show: false
           }
         }"
         [xaxis]="{ categories: chartCategories }"
-        [stroke]="{ curve: 'smooth' }"
+        [stroke]="{ curve: 'smooth', width: 2 }"
+        [fill]="{
+          type: 'gradient',
+          gradient: {
+            shadeIntensity: 1,
+            opacityFrom: 0.7,
+            opacityTo: 0.3,
+            stops: [0, 90, 100]
+          }
+        }"
         [grid]="{ row: { colors: ['#f3f3f3', 'transparent'], opacity: 0.5 } }"
         [legend]="{ position: 'bottom' }"
         [theme]="{ palette: 'palette8' }">
