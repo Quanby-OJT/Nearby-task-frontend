@@ -41,8 +41,8 @@ class _ServiceAccMainState extends State<ServiceAccMain> {
           HomePage(),
           // ScheduleManagement(),
           ChatScreen(),
+          RecordTaskerPage(),
           LikeScreen(),
-          RecordTaskerPage()
         ],
       ),
       bottomNavigationBar: SizedBox(
@@ -72,13 +72,13 @@ class _ServiceAccMainState extends State<ServiceAccMain> {
               text: 'Chat',
             ),
             GButton(
+              icon: FontAwesomeIcons.listCheck,
+              text: 'Tasks',
+            ),
+            GButton(
               icon: FontAwesomeIcons.solidHeart,
               text: 'Likes',
             ),
-            GButton(
-              icon: FontAwesomeIcons.listCheck,
-              text: 'Profile',
-            )
           ],
         ),
       ),

@@ -189,9 +189,10 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                               builder: (context) => DisplayListRecordPending(),
                             ),
                           ).then((value) {
-                            setState(() {
-                              _isLoading = true;
-                            });
+                            // setState(() {
+                            //   _isLoading = true;
+                            // });
+                            _loadData();
                           });
                         },
                         child: Container(
@@ -243,9 +244,10 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                               builder: (context) => DisplayListRecordReview(),
                             ),
                           ).then((value) {
-                            setState(() {
-                              _isLoading = true;
-                            });
+                            // setState(() {
+                            //   _isLoading = true;
+                            // });
+                            _loadData();
                           });
                         },
                         child: Container(
@@ -297,9 +299,10 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                               builder: (context) => DisplayListRecordOngoing(),
                             ),
                           ).then((value) {
-                            setState(() {
-                              _isLoading = true;
-                            });
+                            // setState(() {
+                            //   _isLoading = true;
+                            // });
+                            _loadData();
                           });
                         },
                         child: Container(
@@ -351,9 +354,10 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                                 builder: (context) =>
                                     DisplayListRecordConfirmed()),
                           ).then((value) {
-                            setState(() {
-                              _isLoading = true;
-                            });
+                            // setState(() {
+                            //   _isLoading = true;
+                            // });
+                            _loadData();
                           });
                         },
                         child: Container(
@@ -405,9 +409,10 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                                 builder: (context) =>
                                     DisplayListRecordFinish()),
                           ).then((value) {
-                            setState(() {
-                              _isLoading = true;
-                            });
+                            // setState(() {
+                            //   _isLoading = true;
+                            // });
+                            _loadData();
                           });
                         },
                         child: Container(
@@ -459,9 +464,10 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                                 builder: (context) =>
                                     DisplayListRecordReject()),
                           ).then((value) {
-                            setState(() {
-                              _isLoading = true;
-                            });
+                            // setState(() {
+                            //   _isLoading = true;
+                            // });
+                            _loadData();
                           });
                         },
                         child: Container(

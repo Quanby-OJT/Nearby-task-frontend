@@ -195,9 +195,10 @@ class _RecordPageState extends State<RecordPage> {
                               builder: (context) => DisplayListRecordPending(),
                             ),
                           ).then((value) {
-                            setState(() {
-                              _isLoading = true;
-                            });
+                            // setState(() {
+                            //   _isLoading = true;
+                            // });
+                            _loadData();
                           });
                         },
                         child: Container(
@@ -249,9 +250,10 @@ class _RecordPageState extends State<RecordPage> {
                               builder: (context) => DisplayListRecordReview(),
                             ),
                           ).then((value) {
-                            setState(() {
-                              _isLoading = true;
-                            });
+                            // setState(() {
+                            //   _isLoading = true;
+                            // });
+                            _loadData();
                           });
                         },
                         child: Container(
@@ -303,9 +305,10 @@ class _RecordPageState extends State<RecordPage> {
                               builder: (context) => DisplayListRecordOngoing(),
                             ),
                           ).then((value) {
-                            setState(() {
-                              _isLoading = true;
-                            });
+                            // setState(() {
+                            //   _isLoading = true;
+                            // });
+                            _loadData();
                           });
                         },
                         child: Container(
@@ -357,9 +360,10 @@ class _RecordPageState extends State<RecordPage> {
                                 builder: (context) =>
                                     DisplayListRecordConfirmed()),
                           ).then((value) {
-                            setState(() {
-                              _isLoading = true;
-                            });
+                            // setState(() {
+                            //   _isLoading = true;
+                            // });
+                            _loadData();
                           });
                         },
                         child: Container(
@@ -411,9 +415,10 @@ class _RecordPageState extends State<RecordPage> {
                                 builder: (context) =>
                                     DisplayListRecordFinish()),
                           ).then((value) {
-                            setState(() {
-                              _isLoading = true;
-                            });
+                            // setState(() {
+                            //   _isLoading = true;
+                            // });
+                            _loadData();
                           });
                         },
                         child: Container(
@@ -465,9 +470,10 @@ class _RecordPageState extends State<RecordPage> {
                                 builder: (context) =>
                                     DisplayListRecordConfirmed()),
                           ).then((value) {
-                            setState(() {
-                              _isLoading = true;
-                            });
+                            // setState(() {
+                            //   _isLoading = true;
+                            // });
+                            _loadData();
                           });
                         },
                         child: Container(
