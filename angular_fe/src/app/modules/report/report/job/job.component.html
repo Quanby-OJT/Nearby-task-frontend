@@ -8,41 +8,45 @@
         <option *ngFor="let month of months" [ngValue]="month">{{ month }}</option>
       </select>
     </div>
-    <div class="relative w-10 h-15">
-      <img src="https://img.icons8.com/?size=100&id=aVXFISfYjkDv&format=png&color=7950F2" (click)="toggleDropdown()">
-      <div *ngIf="isDropdownOpen" class="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-10">
-        <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" (click)="exportCSV()">Download CSV</button>
-        <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" (click)="exportPDF()">Download PDF</button>
-        <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" (click)="exportPNG()">Download PNG</button>
-      </div>
-    </div>
   </div>
 
-  <!-- Chart section -->
-  <div class="w-full mb-6">
-    <div class="bg-white rounded-xl shadow-lg p-6">
-      <div id="chart">
-        <apx-chart
-          [series]="chartSeries"
-          [chart]="{
-            id: 'job-chart',
-            type: 'area',
-            height: 350,
-            zoom: { enabled: false },
-            toolbar: {
-              show: false
-            }
-          }"
-          [xaxis]="{ categories: chartCategories }"
-          [stroke]="{ curve: 'smooth' }"
-          [title]="{ text: 'Top Requested Job', align: 'left' }"
-          [grid]="{ row: { colors: ['#f3f3f3', 'transparent'], opacity: 0.5 } }"
-          [legend]="{ position: 'bottom' }"
-          [theme]="{ palette: 'palette8' }">
-        </apx-chart>
+ <!-- Chart section -->
+<div class="w-full mb-6">
+  <div class="bg-white rounded-xl shadow-lg p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-lg font-semibold">Top Applied Job</h2>
+      <div class="relative">
+        <img src="https://img.icons8.com/?size=100&id=aVXFISfYjkDv&format=png&color=7950F2" (click)="toggleDropdown()" class="w-8 h-8 cursor-pointer">
+        <div *ngIf="isDropdownOpen" class="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-10">
+          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" (click)="exportCSV()">Download CSV</button>
+          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" (click)="exportPDF()">Download PDF</button>
+          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" (click)="exportPNG()">Download PNG</button>
+        </div>
       </div>
     </div>
+
+    <!-- Chart -->
+    <div id="chart">
+      <apx-chart
+        [series]="chartSeries"
+        [chart]="{
+          id: 'specialization-chart',
+          type: 'area',
+          height: 400,
+          zoom: { enabled: false },
+          toolbar: {
+            show: false
+          }
+        }"
+        [xaxis]="{ categories: chartCategories }"
+        [stroke]="{ curve: 'smooth' }"
+        [grid]="{ row: { colors: ['#f3f3f3', 'transparent'], opacity: 0.5 } }"
+        [legend]="{ position: 'bottom' }"
+        [theme]="{ palette: 'palette8' }">
+      </apx-chart>
+    </div>
   </div>
+</div>
 
   <!-- Table section -->
   <div class="bg-white rounded-xl shadow-lg p-6">

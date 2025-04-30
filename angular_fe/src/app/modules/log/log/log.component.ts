@@ -26,7 +26,8 @@ export class LogComponent implements OnInit, OnDestroy {
   endIndex: number = 0;
   currentSearchText: string = '';
   currentStatusFilter: string = '';
-  placeholderRows: any[] = []; 
+  placeholderRows: any[] = [];
+  sortDirection: 'asc' | 'desc' = 'desc'; // Default to descending (newest first)
 
   private logsSubscription!: Subscription;
 
@@ -93,9 +94,25 @@ export class LogComponent implements OnInit, OnDestroy {
       });
     }
 
+    // Apply sorting by Time Start (logged_in)
+    tempLogs.sort((a, b) => {
+      const dateA = new Date(a.logged_in).getTime();
+      const dateB = new Date(b.logged_in).getTime();
+      if (this.sortDirection === 'asc') {
+        return dateA - dateB; // Oldest first
+      } else {
+        return dateB - dateA; // Newest first
+      }
+    });
+
     this.filteredLogs = tempLogs;
     this.currentPage = 1;
     this.updatePage();
+  }
+
+  toggleSort() {
+    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    this.applyFilters();
   }
 
   updatePage() {
@@ -121,23 +138,9 @@ export class LogComponent implements OnInit, OnDestroy {
 
     this.paginationButtons = [];
 
-    // if (start > 1) {
-    //   this.paginationButtons.push(1);
-    //   if (start > 2) {
-    //     this.paginationButtons.push('...');
-    //   }
-    // }
-
     for (let i = start; i <= end; i++) {
       this.paginationButtons.push(i);
     }
-
-    // if (end < this.totalPages) {
-    //   if (end < this.totalPages - 1) {
-    //     this.paginationButtons.push('...');
-    //   }
-    //   this.paginationButtons.push(this.totalPages);
-    // }
   }
 
   changeLogsPerPage(event: Event) {

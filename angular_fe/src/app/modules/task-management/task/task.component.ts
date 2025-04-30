@@ -29,6 +29,7 @@ export class TaskComponent implements OnInit {
   currentStatusFilter: string = '';
   // New property for placeholder rows
   placeholderRows: any[] = [];
+  sortDirection: 'asc' | 'desc' = 'desc'; // Default to descending (newest first)
 
   constructor(
     private route: Router,
@@ -90,9 +91,25 @@ export class TaskComponent implements OnInit {
       });
     }
 
+    // Apply sorting by created_at timestamp
+    tempTasks.sort((a, b) => {
+      const dateA = new Date(a.created_at).getTime();
+      const dateB = new Date(b.created_at).getTime();
+      if (this.sortDirection === 'asc') {
+        return dateA - dateB; // Oldest first
+      } else {
+        return dateB - dateA; // Newest first
+      }
+    });
+
     this.filteredTasks = tempTasks;
     this.currentPage = 1;
     this.updatePagination();
+  }
+
+  toggleSort() {
+    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    this.applyFilters();
   }
 
   updatePagination() {
