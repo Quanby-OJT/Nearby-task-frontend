@@ -4,7 +4,6 @@ import 'package:flutter_fe/service/tasker_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter_fe/model/tasker_scheduler.dart';
-import 'package:flutter_fe/controller/tasker_scheduler_controller.dart';
 
 class ScheduleManagement extends StatefulWidget {
   const ScheduleManagement({super.key});
@@ -16,8 +15,6 @@ class ScheduleManagement extends StatefulWidget {
 class _ScheduleManagementState extends State<ScheduleManagement> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
-  DateTime? _selectedFromDate;
-  DateTime? _selectedToDate;
   DateTime? _selectedDay;
   final TaskerService _taskerSchedulerController = TaskerService();
   final Map<DateTime, List<TimeSlot>> _availabilitySlots = {};
@@ -100,36 +97,13 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
         children: [
           Column(
             children: [
-              if (_selectedFromDate != null && _selectedToDate != null)
-                Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Selected Range: ${getMonthName(_selectedFromDate!.month)} ${_selectedFromDate!.day}, ${_selectedFromDate!.year} - '
-                        '${getMonthName(_selectedToDate!.month)} ${_selectedToDate!.day}, ${_selectedToDate!.year}',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.clear),
-                        onPressed: () => setState(() {
-                          _selectedFromDate = null;
-                          _selectedToDate = null;
-                        }),
-                        tooltip: 'Clear Range',
-                      ),
-                    ],
-                  ),
-                ),
               TableCalendar(
                 firstDay: DateTime.now(),
                 lastDay: DateTime.now().add(Duration(days: 365)),
                 focusedDay: _focusedDay,
-                selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                selectedDayPredicate: (day) =>
+                    _selectedDay != null ? isSameDay(_selectedDay, day) : false,
                 calendarFormat: _calendarFormat,
-                rangeStartDay: _selectedFromDate,
-                rangeEndDay: _selectedToDate,
                 onFormatChanged: (format) {
                   setState(() {
                     _calendarFormat = format;
@@ -140,14 +114,6 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
                     _selectedDay = selectedDay;
                     _focusedDay = focusedDay;
                     debugPrint("Selected day: $selectedDay");
-                  });
-                },
-                onRangeSelected: (start, end, focusedDay) {
-                  setState(() {
-                    _selectedFromDate = start;
-                    _selectedToDate = end;
-                    _focusedDay = focusedDay;
-                    debugPrint("Range selected: $start to $end");
                   });
                 },
                 calendarStyle: CalendarStyle(
@@ -182,17 +148,18 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
           if (_isLoading) Center(child: CircularProgressIndicator()),
         ],
       ),
-      floatingActionButton: _selectedDay == null
-          ? null
-          : FloatingActionButton(
-              onPressed: _addTimeSlot,
-              tooltip: 'Add Time Slot',
-              child: Icon(Icons.add),
-            ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _addRangeTimeSlots,
+        tooltip: 'Add Time Slot Range',
+        child: Icon(Icons.add),
+      ),
     );
   }
 
   Widget _buildTimeSlots() {
+    if (_selectedDay == null) {
+      return Center(child: Text('No day selected'));
+    }
     final selectedDate =
         DateTime(_selectedDay!.year, _selectedDay!.month, _selectedDay!.day);
     final slots = _availabilitySlots[selectedDate] ?? [];
@@ -245,88 +212,165 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
     );
   }
 
-  Future<TimeSlot?> _pickTimeSlot({required TimeOfDay initialStart}) async {
-    final startTime =
-        await showTimePicker(context: context, initialTime: initialStart);
-    if (startTime == null) return null;
+  Future<Map<String, dynamic>?> _pickDateAndTimeSlot(String title) async {
+    DateTime? selectedDate;
+    TimeOfDay? startTime;
+    TimeOfDay? endTime;
 
-    final endTime = await showTimePicker(
+    await showDialog(
       context: context,
-      initialTime:
-          TimeOfDay(hour: startTime.hour + 1, minute: startTime.minute),
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextButton(
+              onPressed: () async {
+                final pickedDate = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime.now(),
+                  lastDate: DateTime.now().add(Duration(days: 365)),
+                );
+                if (pickedDate != null) {
+                  selectedDate = pickedDate;
+                }
+              },
+              child: Text(
+                selectedDate == null
+                    ? 'Select Date'
+                    : '${getMonthName(selectedDate!.month)} ${selectedDate!.day}, ${selectedDate!.year}',
+              ),
+            ),
+            SizedBox(height: 16),
+            TextButton(
+              onPressed: () async {
+                final pickedTime = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay(hour: 9, minute: 0),
+                );
+                if (pickedTime != null) {
+                  startTime = pickedTime;
+                }
+              },
+              child: Text(
+                startTime == null
+                    ? 'Select Start Time'
+                    : _formatTime(startTime!),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                final pickedTime = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay(hour: 10, minute: 0),
+                );
+                if (pickedTime != null) {
+                  endTime = pickedTime;
+                }
+              },
+              child: Text(
+                endTime == null ? 'Select End Time' : _formatTime(endTime!),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (selectedDate == null ||
+                  startTime == null ||
+                  endTime == null) {
+                _showSnackBar('Please fill all fields', Colors.red);
+                return;
+              }
+              if (endTime!.hour * 60 + endTime!.minute <=
+                  startTime!.hour * 60 + startTime!.minute) {
+                _showSnackBar('End time must be after start time', Colors.red);
+                return;
+              }
+              Navigator.of(context).pop();
+            },
+            child: Text('OK'),
+          ),
+        ],
+      ),
     );
-    if (endTime == null) return null;
 
-    if (endTime.hour * 60 + endTime.minute <=
-        startTime.hour * 60 + startTime.minute) {
-      _showSnackBar('End time must be after start time', Colors.red);
+    if (selectedDate == null || startTime == null || endTime == null) {
       return null;
     }
 
-    return TimeSlot(
-      id: 0,
-      tasker_id: 0,
-      startTime: startTime,
-      endTime: endTime,
-      isAvailable: true,
-    );
+    return {
+      'date': selectedDate,
+      'timeSlot': TimeSlot(
+        id: 0,
+        tasker_id: 0,
+        startTime: startTime!,
+        endTime: endTime!,
+        isAvailable: true,
+      ),
+    };
   }
 
-  void _sortTimeSlots(DateTime date) {
-    _availabilitySlots[date]?.sort((a, b) =>
-        (a.startTime.hour * 60 + a.startTime.minute)
-            .compareTo(b.startTime.hour * 60 + b.startTime.minute));
-  }
+  Future<void> _addRangeTimeSlots() async {
+    // First dialog: Start date and time slot
+    final startResult =
+        await _pickDateAndTimeSlot('Select Start Date and Time');
+    if (startResult == null) return;
 
-  void _showSnackBar(String message, Color backgroundColor) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: backgroundColor),
-    );
-  }
+    DateTime startDate = startResult['date'];
+    TimeSlot startSlot = startResult['timeSlot'];
 
-  bool _hasOverlap(DateTime date, TimeSlot newSlot) {
-    final slots = _availabilitySlots[date] ?? [];
-    final newStart = newSlot.startTime.hour * 60 + newSlot.startTime.minute;
-    final newEnd = newSlot.endTime.hour * 60 + newSlot.endTime.minute;
-    for (final slot in slots) {
-      final start = slot.startTime.hour * 60 + slot.startTime.minute;
-      final end = slot.endTime.hour * 60 + slot.endTime.minute;
-      if (newStart < end && newEnd > start) return true;
-    }
-    return false;
-  }
+    // Second dialog: End date and time slot
+    final endResult = await _pickDateAndTimeSlot('Select End Date and Time');
+    if (endResult == null) return;
 
-  Future<void> _addTimeSlot() async {
-    final newSlot =
-        await _pickTimeSlot(initialStart: const TimeOfDay(hour: 9, minute: 0));
-    if (newSlot == null) return;
+    DateTime endDate = endResult['date'];
+    TimeSlot endSlot = endResult['timeSlot'];
 
-    final selectedDate =
-        DateTime(_selectedDay!.year, _selectedDay!.month, _selectedDay!.day);
-
-    if (_hasOverlap(selectedDate, newSlot)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Time slot overlaps with an existing slot'),
-          backgroundColor: Colors.red,
-        ),
-      );
+    // Validate date range
+    if (endDate.isBefore(startDate)) {
+      _showSnackBar('End date must be after start date', Colors.red);
       return;
     }
 
-    final serializedSlot = TaskerScheduler(
-      id: 0,
-      tasker_id: 0,
-      dateScheduled:
-          '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}',
-      startTime: _formatTime(newSlot.startTime),
-      endTime: _formatTime(newSlot.endTime),
-      isAvailable: newSlot.isAvailable,
-    ).toJson();
+    // Generate daily slots for the range
+    List<Map<String, dynamic>> serializedSlots = [];
+    DateTime current = startDate;
+    while (!current.isAfter(endDate)) {
+      TimeSlot slot = current.isAtSameMomentAs(startDate)
+          ? startSlot
+          : current.isAtSameMomentAs(endDate)
+              ? endSlot
+              : startSlot; // Use startSlot for intermediate days
+
+      if (!_hasOverlap(current, slot)) {
+        serializedSlots.add(TaskerScheduler(
+          id: 0,
+          tasker_id: 0,
+          dateScheduled:
+              '${current.year}-${current.month.toString().padLeft(2, '0')}-${current.day.toString().padLeft(2, '0')}',
+          startTime: _formatTime(slot.startTime),
+          endTime: _formatTime(slot.endTime),
+          isAvailable: slot.isAvailable,
+        ).toJson());
+      }
+      current = current.add(Duration(days: 1));
+    }
+
+    if (serializedSlots.isEmpty) {
+      _showSnackBar('No valid slots to add due to overlaps', Colors.red);
+      return;
+    }
 
     setState(() => _isLoading = true);
     final result =
-        await _taskerSchedulerController.setTaskerSchedule([serializedSlot]);
+        await _taskerSchedulerController.setTaskerSchedule(serializedSlots);
     setState(() => _isLoading = false);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -336,10 +380,21 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
     );
 
     if (!result.contains('Error')) {
-      setState(() {
-        _availabilitySlots.putIfAbsent(selectedDate, () => []).add(newSlot);
-        _sortTimeSlots(selectedDate);
-      });
+      current = startDate;
+      while (!current.isAfter(endDate)) {
+        TimeSlot slot = current.isAtSameMomentAs(startDate)
+            ? startSlot
+            : current.isAtSameMomentAs(endDate)
+                ? endSlot
+                : startSlot;
+        if (!_hasOverlap(current, slot)) {
+          setState(() {
+            _availabilitySlots.putIfAbsent(current, () => []).add(slot);
+            _sortTimeSlots(current);
+          });
+        }
+        current = current.add(Duration(days: 1));
+      }
       await _loadSchedule();
     }
   }
@@ -362,12 +417,7 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
 
     if (endTime.hour * 60 + endTime.minute <=
         startTime.hour * 60 + startTime.minute) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("End time must be after start time"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showSnackBar('End time must be after start time', Colors.red);
       return;
     }
 
@@ -414,12 +464,7 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
 
         if (slotIndex != -1) {
           _availabilitySlots[selectedDate]![slotIndex] = updatedSlot;
-
-          _availabilitySlots[selectedDate]!.sort((a, b) {
-            final aMinutes = a.startTime.hour * 60 + a.startTime.minute;
-            final bMinutes = b.startTime.hour * 60 + b.startTime.minute;
-            return aMinutes.compareTo(bMinutes);
-          });
+          _sortTimeSlots(selectedDate);
         }
       });
 
@@ -448,6 +493,30 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
     });
   }
 
+  void _sortTimeSlots(DateTime date) {
+    _availabilitySlots[date]?.sort((a, b) =>
+        (a.startTime.hour * 60 + a.startTime.minute)
+            .compareTo(b.startTime.hour * 60 + b.startTime.minute));
+  }
+
+  void _showSnackBar(String message, Color backgroundColor) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: backgroundColor),
+    );
+  }
+
+  bool _hasOverlap(DateTime date, TimeSlot newSlot) {
+    final slots = _availabilitySlots[date] ?? [];
+    final newStart = newSlot.startTime.hour * 60 + newSlot.startTime.minute;
+    final newEnd = newSlot.endTime.hour * 60 + newSlot.endTime.minute;
+    for (final slot in slots) {
+      final start = slot.startTime.hour * 60 + slot.startTime.minute;
+      final end = slot.endTime.hour * 60 + slot.endTime.minute;
+      if (newStart < end && newEnd > start) return true;
+    }
+    return false;
+  }
+
   String _formatTime(TimeOfDay time) {
     final hour = time.hour.toString().padLeft(2, '0');
     final minute = time.minute.toString().padLeft(2, '0');
@@ -470,72 +539,5 @@ class _ScheduleManagementState extends State<ScheduleManagement> {
       'December'
     ];
     return months[month - 1];
-  }
-}
-
-class NumberPickerDialog extends StatefulWidget {
-  final int minValue;
-  final int maxValue;
-  final Widget title;
-  final Widget message;
-
-  const NumberPickerDialog({
-    super.key,
-    required this.minValue,
-    required this.maxValue,
-    required this.title,
-    required this.message,
-  });
-
-  @override
-  _NumberPickerDialogState createState() => _NumberPickerDialogState();
-}
-
-class _NumberPickerDialogState extends State<NumberPickerDialog> {
-  late int _selectedValue;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedValue = widget.minValue;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: widget.title,
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          widget.message,
-          SizedBox(height: 16),
-          DropdownButton<int>(
-            value: _selectedValue,
-            items: List.generate(
-              widget.maxValue - widget.minValue + 1,
-              (index) => DropdownMenuItem(
-                value: widget.minValue + index,
-                child: Text('${widget.minValue + index} weeks'),
-              ),
-            ),
-            onChanged: (value) {
-              setState(() {
-                _selectedValue = value!;
-              });
-            },
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(_selectedValue),
-          child: Text('OK'),
-        ),
-      ],
-    );
   }
 }

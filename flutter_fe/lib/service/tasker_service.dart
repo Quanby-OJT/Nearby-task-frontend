@@ -13,7 +13,6 @@ import 'package:flutter_fe/model/tasker_feedback.dart';
 
 import '../model/address.dart';
 import '../model/tasker_model.dart';
-import '../view/service_acc/schedule_management_page.dart';
 
 class TaskerService {
   static final storage = GetStorage();
