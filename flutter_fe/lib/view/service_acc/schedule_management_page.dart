@@ -4,7 +4,6 @@ import 'package:flutter_fe/service/tasker_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter_fe/model/tasker_scheduler.dart';
-import 'package:flutter_fe/controller/tasker_scheduler_controller.dart';
 
 class ScheduleManagement extends StatefulWidget {
   const ScheduleManagement({super.key});

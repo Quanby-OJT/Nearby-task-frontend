@@ -76,6 +76,7 @@ class _PreSignUpState extends State<PreSignUp> with TickerProviderStateMixin {
     _animationController.forward();
   }
 
+  @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
