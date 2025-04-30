@@ -223,30 +223,39 @@ export class DisputeManagementComponent {
           cancelButtonColor: '#d33',
         }).then((confirmResult) => {
           if (confirmResult.isConfirmed) {
-            try {
-              this.updateDispute(
-                this.disputeDetails.dispute_id,
-                result.value.action,
-                result.value.notes
-              );
-              Swal.fire('Updated!', 'The dispute has been updated.', 'success');
-            } catch (error) {
-              Swal.fire({
-                title: 'Error',
-                text: 'An error occurred while updating the dispute. Please try again.',
-                icon: 'error',
-                confirmButtonColor: '#3085d6',
-              });
-            }
+            this.updateDispute(
+              this.disputeDetails.dispute_id,
+              this.disputeDetails.task_taken.task_taken_id,
+              this.disputeDetails.task_taken.post_task.task_id,
+              result.value.action,
+              result.value.notes
+            );
+            // Note: The success Swal is moved inside the updateDispute subscription
           }
         });
       }
     });
   }
 
-  updateDispute(dispute_id: number, moderator_action: string, addl_dispute_notes: string, ) {
+  updateDispute(dispute_id: number, task_taken_id: number, task_id: number, moderator_action: string, addl_dispute_notes: string, ) {
     console.log("Updating a dispute with ID:", dispute_id);
-    this.disputeService.updateADispute(dispute_id, "Settled", moderator_action, addl_dispute_notes )
+    this.disputeService.updateADispute(dispute_id, task_taken_id, task_id, "Dispute Settled", moderator_action, addl_dispute_notes )
+    .subscribe({
+      next: (response) => {
+        console.log('Dispute updated successfully:', response);
+        // Optionally refresh the disputes list
+        this.ngOnInit(); // Reload disputes to reflect changes
+      },
+      error: (error) => {
+        console.error('Error updating dispute:', error);
+        Swal.fire({
+          title: 'Error',
+          text: 'Failed to update the dispute. Please try again.',
+          icon: 'error',
+          confirmButtonColor: '#3085d6',
+        });
+      }
+    });
   }
 
   archiveDispute(dispute_id: number){

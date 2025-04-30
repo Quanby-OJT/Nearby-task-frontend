@@ -41,20 +41,18 @@
       <table class="w-full border-collapse border-0 text-left text-sm">
         <thead class="border-b">
           <tr>
-            <th class="px-4 py-2 w-[80px] lg:w-[100px]">Id</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[100px] xl:min-w-[250px] ">Task Title</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Raised By</th>
-            <th class="px-4 py-2 text-center min-w-[140px] lg:min-w-[200px] xl:min-w-[250px] ">Reason for Dispute</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Dispute Details</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[150px] xl:min-w-[150px] ">Date Dispute Raised</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[150px] xl:min-w-[250px] ">Action</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[100px] xl:min-w-[250px]">Task Title</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Raised By</th>
+            <th class="px-4 py-2 text-center min-w-[140px] lg:min-w-[200px] xl:min-w-[250px]">Reason for Dispute</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Dispute Details</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[150px] xl:min-w-[150px]">Date Dispute Raised</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[150px] xl:min-w-[150px]">Action</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let dispute of displayDisputes; let i = index" class="hover:bg-card/50 h-[60px]">
-            <td class="px-4 py-3 text-center">{{ i + 1 }}</td>
-            <td class="px-4 py-3 text-center">{{ dispute.task_taken.post_task.task_title }}</td>
-            <td class="px-4 py-3 text-center">{{ dispute.task_taken.clients.user.first_name }} {{ dispute.task_taken.clients.user.middle_name }} {{ dispute.task_taken.clients.user.last_name }} ({{dispute.task_taken.clients.user.user_role}})</td>
+          <tr *ngFor="let dispute of displayDisputes" class="hover:bg-card/50 h-[60px]">
+            <td class="px-4 py-3 text-left">{{ dispute.task_taken.post_task.task_title }}</td>
+            <td class="px-4 py-3 text-left">{{ dispute.task_taken.clients.user.first_name }} {{ dispute.task_taken.clients.user.middle_name }} {{ dispute.task_taken.clients.user.last_name }} ({{dispute.task_taken.clients.user.user_role}})</td>
             <td class="px-4 py-3 text-center">{{ dispute.reason_for_dispute }}</td>
             <td class="px-4 py-3 text-start">{{ dispute.dispute_details }}</td>
             <td class="px-4 py-3 text-center">{{ dispute.created_at }}</td>
