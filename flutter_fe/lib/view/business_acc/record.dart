@@ -23,8 +23,6 @@ class _RecordPageState extends State<RecordPage> {
       EscrowManagementController();
   final ProfileController _profileController = ProfileController();
   AuthenticatedUser? _user;
-  bool isLoading = true;
-
   bool _isLoading = true;
 
   @override
@@ -35,7 +33,14 @@ class _RecordPageState extends State<RecordPage> {
     });
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loadData();
+  }
+
   Future<void> _loadData() async {
+    setState(() => _isLoading = true); // Set loading to true before fetching
     await _escrowManagementController.fetchTokenBalance();
     setState(() => _isLoading = false);
   }

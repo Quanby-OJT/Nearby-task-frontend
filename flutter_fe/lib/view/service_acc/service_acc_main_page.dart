@@ -39,7 +39,7 @@ class _ServiceAccMainState extends State<ServiceAccMain> {
         },
         children: [
           HomePage(),
-          ScheduleManagement(),
+          // ScheduleManagement(),
           ChatScreen(),
           LikeScreen(),
           RecordTaskerPage()
@@ -63,10 +63,10 @@ class _ServiceAccMainState extends State<ServiceAccMain> {
               icon: FontAwesomeIcons.house,
               text: 'Home',
             ),
-            GButton(
-              icon: FontAwesomeIcons.clock,
-              text: 'Schedule',
-            ),
+            // GButton(
+            //   icon: FontAwesomeIcons.clock,
+            //   text: 'Schedule',
+            // ),
             GButton(
               icon: FontAwesomeIcons.solidMessage,
               text: 'Chat',
