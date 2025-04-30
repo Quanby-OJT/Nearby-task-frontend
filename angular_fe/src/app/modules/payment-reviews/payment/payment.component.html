@@ -98,10 +98,10 @@
           ◀
         </button>
 
-        <button *ngFor="let page of paginationButtons" 
-                [disabled]="page === '...'" 
-                (click)="goToPage(page)" 
-                [class.bg-primary]="page === currentPage" 
+        <button *ngFor="let page of paginationButtons"
+                [disabled]="page === '...'"
+                (click)="goToPage(page)"
+                [class.bg-primary]="page === currentPage"
                 [class.text-white]="page === currentPage"
                 class="inline-flex h-8 w-8 items-center justify-center rounded-md text-sm">
           {{ page }}
