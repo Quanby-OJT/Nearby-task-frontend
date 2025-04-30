@@ -1,5 +1,6 @@
-import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ClientComplaintComponent } from './client-complaint/client-complaint.component';
 import { TaskerComplaintComponent } from './tasker-complaint/tasker-complaint.component';
 import { ReportService } from 'src/app/services/report.service';
@@ -17,6 +18,7 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     ClientComplaintComponent,
     TaskerComplaintComponent,
     AngularSvgIconModule
@@ -39,6 +41,10 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
   selectedReport: any = null;
   userRole: string | undefined;
   placeholderRows: any[] = []; 
+
+  @Output() onCheck = new EventEmitter<boolean>();
+  @Output() onSort = new EventEmitter<'asc' | 'desc'>();
+  sortDirection: 'asc' | 'desc' = 'desc';
 
   private reportsSubscription!: Subscription;
 
@@ -93,6 +99,17 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
     this.applyFilters();
   }
 
+  public toggle(event: Event) {
+    const value = (event.target as HTMLInputElement).checked;
+    this.onCheck.emit(value);
+  }
+
+  public toggleSort() {
+    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    this.onSort.emit(this.sortDirection);
+    this.applyFilters();
+  }
+
   applyFilters() {
     let tempReports = [...this.reports];
 
@@ -120,6 +137,19 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
         return reportStatus === this.currentStatusFilter;
       });
     }
+
+    // Apply simple reverse sort
+    if (this.sortDirection === 'desc') {
+      tempReports = tempReports.reverse();
+    }
+
+    // Log sorted reports for debugging
+    console.log(`Sorted reports (${this.sortDirection}):`, tempReports.map(report => ({
+      report_id: report.report_id,
+      reporter: `${report.reporter.first_name} ${report.reporter.last_name}`,
+      violator: `${report.violator.first_name} ${report.violator.last_name}`,
+      status: report.status ? 'Processed' : 'Pending'
+    })));
 
     this.filteredReports = tempReports;
     this.currentPage = 1;
@@ -149,23 +179,9 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
 
     this.paginationButtons = [];
 
-    // if (start > 1) {
-    //   this.paginationButtons.push(1);
-    //   if (start > 2) {
-    //     this.paginationButtons.push('...');
-    //   }
-    // }
-
     for (let i = start; i <= end; i++) {
       this.paginationButtons.push(i);
     }
-
-    // if (end < this.totalPages) {
-    //   if (end < this.totalPages - 1) {
-    //     this.paginationButtons.push('...');
-    //   }
-    //   this.paginationButtons.push(this.totalPages);
-    // }
   }
 
   changeReportsPerPage(event: Event) {

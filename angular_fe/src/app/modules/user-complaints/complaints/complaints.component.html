@@ -9,12 +9,12 @@
 
 <div class="flex w-full max-w-[1440px] mx-auto flex-col pb-3">
   <div class="flex w-full space-x-3">
-    <div class="flex-1 min-w-[300px] w-[50%] max-h-[400px] border border-gray-200 bg-white rounded-xl p-6 shadow-md overflow-auto box-border" (mouseenter)="stopAutoSwipe()" (mouseleave)="startAutoSwipe()">
+    <div class="flex-1 min-w-[300px] w-[50%] max-h-[400px] p-6 overflow-auto box-border" (mouseenter)="stopAutoSwipe()" (mouseleave)="startAutoSwipe()">
       <strong class="text-lg font-semibold">Client Complaints</strong>
       <app-client-complaint (reportSelected)="openModal($event)"></app-client-complaint>
     </div>
 
-    <div class="flex-1 min-w-[300px] w-[50%] max-h-[400px] border border-gray-200 bg-white rounded-xl p-6 shadow-md overflow-auto box-border" (mouseenter)="stopAutoSwipe()" (mouseleave)="startAutoSwipe()">
+    <div class="flex-1 min-w-[300px] w-[50%] max-h-[400px] p-6 overflow-auto box-border" (mouseenter)="stopAutoSwipe()" (mouseleave)="startAutoSwipe()">
       <strong class="text-lg font-semibold">Tasker Complaints</strong>
       <app-tasker-complaint (reportSelected)="openModal($event)"></app-tasker-complaint>
     </div>
@@ -23,10 +23,10 @@
 
 <div class="mb-4 flex justify-end pt-10 w-full max-w-[1440px] mx-auto px-4">
 <div class="flex space-x-4">
-  <button class="bg-[#E23670] text-[#F9F9F9] hover:bg-[#F07DA1] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportCSV()">
+  <button class="bg-[#3C28CC] text-[#F9F9F9] hover:bg-[#5F50E7] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportCSV()">
     Export CSV
   </button>
-  <button class="bg-[#E23670] text-[#F9F9F9] hover:bg-[#F07DA1] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportPDF()">
+  <button class="bg-[#3C28CC] text-[#F9F9F9] hover:bg-[#5F50E7] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportPDF()">
     Export PDF
   </button>
 </div>
@@ -57,13 +57,18 @@
       <table class="w-full border-collapse border-0 text-left text-sm">
         <thead class="border-b">
           <tr>
-            <th class="px-4 py-2 text-start min-w-[140px] lg:min-w-[300px] xl:min-w-[250px] ">Reporter Name</th>
-            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Violator Name</th>
-            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Reporter Role</th>
-            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Violator Role</th>
-            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Date</th>
-            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Status</th>
-            <th class="px-4 py-2 text-start min-w-[80px] lg:min-w-[80px] xl:min-w-[80px] ">Action</th>
+            <th class="px-4 py-2 text-start min-w-[140px] lg:min-w-[300px] xl:min-w-[250px]">
+              <div class="flex items-center gap-1 cursor-pointer">
+                Reporter Name
+                <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" class="w-4 h-4" (click)="toggleSort()">
+              </div>
+            </th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Violator Name</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Reporter Role</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Violator Role</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Date</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Status</th>
+            <th class="px-4 py-2 text-start min-w-[80px] lg:min-w-[80px] xl:min-w-[80px]">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -82,7 +87,6 @@
                 View
               </button>
             </td>
-            
           </tr>
           <!-- Placeholder rows to ensure total rows match reportsPerPage -->
           <tr *ngFor="let placeholder of placeholderRows">
@@ -165,13 +169,18 @@
       <table class="w-full border-collapse border-0 text-left text-sm">
         <thead class="border-b">
           <tr>
-            <th class="px-4 py-2 text-center min-w-[140px] lg:min-w-[300px] xl:min-w-[250px] ">Reporter Name</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Violator Name</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Reporter Role</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Violator Role</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Date</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Status</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Handled By</th>
+            <th class="px-4 py-2 text-center min-w-[140px] lg:min-w-[300px] xl:min-w-[250px]">
+              <div class="flex items-center gap-1 cursor-pointer">
+                Reporter Name
+                <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" class="w-4 h-4" (click)="toggleSort()">
+              </div>
+            </th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Violator Name</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Reporter Role</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Violator Role</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Date</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Status</th>
+            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Handled By</th>
           </tr>
         </thead>
         <tbody>

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, EventEmitter, Output } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { UserConversationService } from 'src/app/services/conversation.service';
 import Swal from 'sweetalert2';
@@ -29,7 +29,10 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
   currentSearchText: string = '';
   currentReportedFilter: string = '';
   currentStatusFilter: string = '';
-  sortDirection: 'asc' | 'desc' = 'desc'; // Default to newest-to-oldest
+
+  @Output() onCheck = new EventEmitter<boolean>();
+  @Output() onSort = new EventEmitter<'asc' | 'desc'>();
+  sortDirection: 'asc' | 'desc' = 'desc'; 
 
   private conversationSubscription!: Subscription;
 
@@ -107,14 +110,14 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
       });
     }
 
-    // Apply sorting by Client Name
+    // Apply sorting by task_taken.created_at
     tempConversations.sort((a, b) => {
-      const nameA = `${a.task_taken.clients.user.first_name || ''} ${a.task_taken.clients.user.middle_name || ''} ${a.task_taken.clients.user.last_name || ''}`.toLowerCase();
-      const nameB = `${b.task_taken.clients.user.first_name || ''} ${b.task_taken.clients.user.middle_name || ''} ${b.task_taken.clients.user.last_name || ''}`.toLowerCase();
+      const dateA = new Date(a.task_taken.created_at || '1970-01-01');
+      const dateB = new Date(b.task_taken.created_at || '1970-01-01');
       if (this.sortDirection === 'asc') {
-        return nameA.localeCompare(nameB);
+        return dateA.getTime() - dateB.getTime(); 
       } else {
-        return nameB.localeCompare(nameA);
+        return dateB.getTime() - dateA.getTime(); 
       }
     });
 
@@ -123,13 +126,17 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
     this.updatePage();
   }
 
-  // Toggle sort direction
-  toggleSort() {
+  public toggle(event: Event) {
+    const value = (event.target as HTMLInputElement).checked;
+    this.onCheck.emit(value);
+  }
+
+  public toggleSort() {
     this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    this.onSort.emit(this.sortDirection);
     this.applyFilters();
   }
 
-  // Update the displayed conversations based on pagination
   updatePage() {
     this.totalPages = Math.ceil(this.filteredConversations.length / this.conversationsPerPage);
     this.displayConversations = this.filteredConversations.slice(

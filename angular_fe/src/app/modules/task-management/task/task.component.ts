@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TaskService } from 'src/app/services/task.service';
@@ -29,7 +29,10 @@ export class TaskComponent implements OnInit {
   currentStatusFilter: string = '';
   // New property for placeholder rows
   placeholderRows: any[] = [];
-  sortDirection: 'asc' | 'desc' = 'desc'; // Default to descending (newest first)
+
+  @Output() onCheck = new EventEmitter<boolean>();
+  @Output() onSort = new EventEmitter<'asc' | 'desc'>();
+  sortDirection: 'asc' | 'desc' = 'desc'; 
 
   constructor(
     private route: Router,
@@ -91,24 +94,56 @@ export class TaskComponent implements OnInit {
       });
     }
 
-    // Apply sorting by created_at timestamp
     tempTasks.sort((a, b) => {
-      const dateA = new Date(a.created_at).getTime();
-      const dateB = new Date(b.created_at).getTime();
-      if (this.sortDirection === 'asc') {
-        return dateA - dateB; // Oldest first
-      } else {
-        return dateB - dateA; // Newest first
+     
+      const dateA = a.created_at ? new Date(a.created_at) : null;
+      const dateB = b.created_at ? new Date(b.created_at) : null;
+
+     
+      if (!dateA || isNaN(dateA.getTime())) {
+        console.warn(`Invalid created_at for task ID ${a.task_id}:`, a.created_at);
+        return 1; 
       }
+      if (!dateB || isNaN(dateB.getTime())) {
+        console.warn(`Invalid created_at for task ID ${b.task_id}:`, b.created_at);
+        return -1; 
+      }
+
+      // Compare dates
+      const timeDiff = this.sortDirection === 'asc' 
+        ? dateA.getTime() - dateB.getTime() 
+        : dateB.getTime() - dateA.getTime();
+
+      // If dates are equal, sort by task_id as secondary key
+      if (timeDiff === 0) {
+        return this.sortDirection === 'asc' 
+          ? a.task_id - b.task_id // Smaller task_id first in asc
+          : b.task_id - a.task_id; // Larger task_id first in desc
+      }
+
+      return timeDiff;
     });
+
+    // Log sorted tasks for debugging
+    console.log(`Sorted tasks (${this.sortDirection}):`, tempTasks.map(task => ({
+      task_id: task.task_id,
+      created_at: task.created_at,
+      client: `${task.clients.user.first_name} ${task.clients.user.last_name}`
+    })));
 
     this.filteredTasks = tempTasks;
     this.currentPage = 1;
     this.updatePagination();
   }
 
-  toggleSort() {
+  public toggle(event: Event) {
+    const value = (event.target as HTMLInputElement).checked;
+    this.onCheck.emit(value);
+  }
+
+  public toggleSort() {
     this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    this.onSort.emit(this.sortDirection);
     this.applyFilters();
   }
 
@@ -131,17 +166,9 @@ export class TaskComponent implements OnInit {
 
     this.paginationButtons = [];
 
-    // if (startPage > 2) {
-    //   this.paginationButtons.push('...');
-    // }
-
     for (let i = startPage; i <= endPage; i++) {
       this.paginationButtons.push(i);
     }
-
-    // if (endPage < this.totalPages - 1) {
-    //   this.paginationButtons.push('...');
-    // }
   }
 
   changeTasksPerPage(event: Event) {

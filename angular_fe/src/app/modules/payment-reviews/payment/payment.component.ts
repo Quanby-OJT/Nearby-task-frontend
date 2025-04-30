@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { PaymentService } from 'src/app/services/payment.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -9,7 +10,7 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
 @Component({
   selector: 'app-payment',
   standalone: true,
-  imports: [CommonModule, AngularSvgIconModule],
+  imports: [CommonModule, FormsModule, AngularSvgIconModule],
   templateUrl: './payment.component.html',
   styleUrls: ['./payment.component.css']
 })
@@ -25,13 +26,15 @@ export class PaymentComponent implements OnInit {
   startIndex: number = 1;
   endIndex: number = 0;
   paginationButtons: (number | string)[] = [];
-  placeholderRows: any[] = []; // Added for placeholder rows
+  placeholderRows: any[] = [];
+  sortDirection: 'asc' | 'desc' = 'desc';
 
   constructor(private paymentService: PaymentService) {}
 
   ngOnInit(): void {
     this.paymentService.getPaymentLogs().subscribe(
       (data) => {
+        console.log('Fetched payment logs:', data);
         this.paymentLogs = data;
         this.filteredPaymentLogs = [...data];
         this.updatePage();
@@ -67,9 +70,26 @@ export class PaymentComponent implements OnInit {
       tempLogs = tempLogs.filter(log => log.payment_type === this.currentFilterType);
     }
 
+    // Apply simple reverse sort
+    if (this.sortDirection === 'desc') {
+      tempLogs = tempLogs.reverse();
+    }
+
+    // Log sorted logs for debugging
+    console.log(`Sorted payment logs (${this.sortDirection}):`, tempLogs.map(log => ({
+      user_name: log.user_name,
+      amount: log.amount,
+      payment_type: log.payment_type
+    })));
+
     this.filteredPaymentLogs = tempLogs;
     this.currentPage = 1;
     this.updatePage();
+  }
+
+  toggleSort() {
+    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    this.applyFilters();
   }
 
   updatePage() {
@@ -94,23 +114,9 @@ export class PaymentComponent implements OnInit {
 
     this.paginationButtons = [];
 
-    // if (start > 1) {
-    //   this.paginationButtons.push(1);
-    //   if (start > 2) {
-    //     this.paginationButtons.push('...');
-    //   }
-    // }
-
     for (let i = start; i <= end; i++) {
       this.paginationButtons.push(i);
     }
-
-    // if (end < this.totalPages) {
-    //   if (end < this.totalPages - 1) {
-    //     this.paginationButtons.push('...');
-    //   }
-    //   this.paginationButtons.push(this.totalPages);
-    // }
   }
 
   changeLogsPerPage(event: Event) {
@@ -145,13 +151,13 @@ export class PaymentComponent implements OnInit {
     const rows = this.displayPaymentLogs.map((log, index) => {
       const row = [
         (this.currentPage - 1) * this.logsPerPage + index + 1,
-        `"${log.user_name || ''}"`, // Wrap in quotes to handle potential commas
+        `"${log.user_name || ''}"`,
         log.amount || 0,
-        `"${log.payment_type || ''}"`, // Wrap in quotes to handle potential commas
-        `"${log.created_at || ''}"`, // Wrap in quotes to handle commas in timestamps
-        `"${log.deposit_date || ''}"`, // Wrap in quotes to handle commas in timestamps
+        `"${log.payment_type || ''}"`,
+        `"${log.created_at || ''}"`,
+        `"${log.deposit_date || ''}"`
       ];
-      console.log('CSV Row:', row); // Debug log to verify data
+      console.log('CSV Row:', row);
       return row;
     });
     const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
@@ -175,7 +181,7 @@ export class PaymentComponent implements OnInit {
       log.amount || 0,
       log.payment_type || '',
       log.created_at || '',
-      log.deposit_date || '',
+      log.deposit_date || ''
     ]);
     autoTable(doc, {
       startY: 100,
