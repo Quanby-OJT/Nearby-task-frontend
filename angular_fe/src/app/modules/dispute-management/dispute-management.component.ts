@@ -222,7 +222,17 @@ export class DisputeManagementComponent {
           confirmButtonColor: '#3085d6',
           cancelButtonColor: '#d33',
         }).then((confirmResult) => {
-          if (confirmResult.isConfirmed) {
+            if (confirmResult.isConfirmed) {
+            Swal.fire({
+              title: 'Please wait...',
+              html: 'Processing your request',
+              allowOutsideClick: false,
+              showConfirmButton: false,
+              didOpen: () => {
+              Swal.showLoading();
+              }
+            });
+
             this.updateDispute(
               this.disputeDetails.dispute_id,
               this.disputeDetails.task_taken.task_taken_id,
@@ -231,7 +241,7 @@ export class DisputeManagementComponent {
               result.value.notes
             );
             // Note: The success Swal is moved inside the updateDispute subscription
-          }
+            }
         });
       }
     });
