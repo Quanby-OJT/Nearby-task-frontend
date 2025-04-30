@@ -278,7 +278,27 @@ export class DisputeManagementComponent {
       });
       return;
     }
-    this.disputeService.archiveADispute(dispute_id)
+    this.disputeService.archiveADispute(dispute_id).subscribe({
+      next: (response) => {
+        Swal.fire({
+          title: "Successfully Archived Dispute",
+          text: "Dispute Has Been Successfully Archived.",
+          icon: 'success',
+          confirmButtonColor: '#3085d6',
+        })
+        console.log('Dispute archived successfully:', response);
+        this.ngOnInit();
+      },
+      error: (error) => {
+        console.error('Error updating dispute:', error);
+        Swal.fire({
+          title: 'Error',
+          text: 'Failed to update the dispute. Please try again.',
+          icon: 'error',
+          confirmButtonColor: '#3085d6',
+        });
+      }
+    })
   }
 
   updatePage() {
