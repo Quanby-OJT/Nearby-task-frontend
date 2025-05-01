@@ -8,6 +8,7 @@ import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/nav/user_navigation.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
+import 'package:flutter_fe/view/service_acc/fill_up.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:dropdown_search/dropdown_search.dart';
@@ -217,7 +218,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               Navigator.pop(context);
               final result = await Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const FillUpClient()),
+                MaterialPageRoute(builder: (context) => const FillUpTaskerLogin()),
               );
               if (result == true) {
                 setState(() {

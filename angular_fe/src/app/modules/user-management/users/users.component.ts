@@ -214,19 +214,19 @@ export class UsersComponent implements OnInit {
       }
     });
 
-    // Sort to prioritize acc_status === 'Review'
     filtered.sort((a, b) => {
-      if (a.acc_status === 'Review' && b.acc_status !== 'Review') return -1;
-      if (a.acc_status !== 'Review' && b.acc_status === 'Review') return 1;
-      return 0;
-    });
-
-    // Apply sorting based on user_id
-    filtered.sort((a, b) => {
-      if (this.sortDirection === 'asc') {
-        return a.user_id - b.user_id; // Oldest to newest
+      const aIsReview = a.acc_status === 'Review';
+      const bIsReview = b.acc_status === 'Review';
+      if (aIsReview && !bIsReview) {
+        return -1;
+      } else if (!aIsReview && bIsReview) {
+        return 1;
       } else {
-        return b.user_id - a.user_id; // Newest to oldest
+        if (this.sortDirection === 'asc') {
+          return a.user_id - b.user_id;
+        } else {
+          return b.user_id - a.user_id;
+        }
       }
     });
 
