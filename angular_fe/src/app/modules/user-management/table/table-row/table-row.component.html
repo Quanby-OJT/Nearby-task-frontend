@@ -1,27 +1,33 @@
 <ng-container>
-  <td class="border-muted/20 border-b px-6 py-3 text-[0.85rem] text-center">{{ user.user_id }}</td>
-  <td class="border-muted/20 border-b px-6 py-3 text-[0.85rem]">
-    <div class="flex items-center gap-2.5">
-      <img alt="user avatar" class="h-9 w-9 shrink-0 rounded-full" src="{{ user.image_link }}" />
-      <div class="flex flex-col">
-        <a class="text-foreground hover:text-primary text-sm font-semibold text-center" href="#">
+  <td class="border-b border-muted/20 px-6 py-4 text-[0.875rem] align-middle">
+    <div class="flex items-center gap-3">
+      <img alt="user avatar" class="h-10 w-10 shrink-0 rounded-full object-cover" src="{{ user.image_link }}" />
+      <div class="flex flex-col gap-1">
+        <a class="text-foreground hover:text-primary text-sm font-semibold truncate max-w-[200px]" href="#">
           {{ user.first_name }} {{ user.middle_name }} {{ user.last_name }}
         </a>
-        <a class="text-muted-foreground/70 hover:text-primary text-xs font-medium text-center" href="#">
-          {{ user.email }}
+        <a class="text-muted-foreground/70 hover:text-primary text-xs font-medium truncate max-w-[200px]" href="#">
+          {{ user.email | slice:0:20 }}...
         </a>
       </div>
     </div>
   </td>
-  <td class="border-muted/20 border-b px-6 py-3 text-[0.85rem] text-center">{{ user.user_role }}</td>
-  <td class="border-muted/20 border-b px-6 py-3 text-[0.85rem] text-center">{{ user.email }}</td>
-  <td class="border-muted/20 rounded-md border-b px-6 py-3 text-[0.85rem] font-semibold text-white">
+  
+  <td class="border-b border-muted/20 px-6 py-4 text-[0.875rem] text-left align-middle">
+    {{ user.user_role }}
+  </td>
+  
+  <td class="border-b border-muted/20 px-6 py-4 text-[0.875rem] text-left align-middle">
+    {{ user.email | slice:0:20 }}...
+  </td>
+  
+  <td class="border-b border-muted/20 px-6 py-4 text-[0.875rem] align-middle">
     <span
-      class="text-center rounded-lg py-1 px-4 w-full block text-center"
+      class="inline-block w-full text-center rounded-lg py-1.5 px-4 text-sm font-semibold text-white"
       [ngClass]="{
-        'bg-[#000000]': user.acc_status === 'not-odd:ull',
-        'bg-blue-400': user.acc_status === 'Review',
-        'bg-green-400': user.acc_status === 'Active',
+        'bg-black': user.acc_status === 'not-odd:ull',
+        'bg-blue-500': user.acc_status === 'Review',
+        'bg-green-500': user.acc_status === 'Active',
         'bg-red-300': user.acc_status === 'Deactivate',
         'bg-red-400': user.acc_status === 'Block',
         'bg-red-600': user.acc_status === 'Ban',
@@ -29,33 +35,41 @@
         'bg-yellow-300': user.acc_status === 'Pending',
         'bg-yellow-500': user.acc_status === 'Warn'
       }">
-      {{ user.acc_status ? user.acc_status : "Null" }}
+      {{ user.acc_status ? user.acc_status : 'Null' }}
     </span>
   </td>
-  <td class="border-muted/20 rounded-md border-b px-6 py-3 text-[0.85rem] font-semibold text-white">
+  
+  <td class="border-b border-muted/20 px-6 py-4 text-[0.875rem] align-middle">
     <span
-      class="text-center rounded-lg py-1 px-4 w-full block text-center"
+      class="inline-block w-full text-center rounded-lg py-1.5 px-4 text-sm font-semibold text-white"
       [ngClass]="{
-        'bg-green-400': user.status == true,
-        'bg-red-400': user.status == false
+        'bg-green-500': user.status === true,
+        'bg-red-400': user.status === false
       }">
       {{ user.status ? 'Online' : 'Offline' }}
     </span>
   </td>
-  <td class="border-muted/20 border-b px-6 py-3 text-[0.85rem]">
-    <div class="flex items-center gap-2">
+  
+  <td class="border-b border-muted/20 px-6 py-4 text-[0.875rem] align-middle">
+    <div class="flex items-center justify-start gap-3">
       <button
-        class="text-muted-foreground hover:bg-card hover:text-foreground flex h-7 w-7 cursor-pointer items-center justify-center rounded-md hover:scale-140 transition-transform duration-500"
-        (click)="updateUser(user.user_id)">
+        class="text-muted-foreground hover:text-foreground flex h-8 w-8 items-center justify-center rounded-md transition-transform duration-200 hover:scale-150"
+        (click)="updateUser(user.user_id)"
+        title="Edit User">
         <svg-icon src="./assets/icons/heroicons/outline/edit-icon.svg" [svgClass]="'h-5 w-5'"></svg-icon>
       </button>
       <button
-        class="text-muted-foreground hover:bg-card hover:text-foreground flex h-7 w-7 cursor-pointer items-center justify-center rounded-md hover:scale-140 transition-transform duration-500"
-        (click)="deleteUser(user.user_id)">
+        class="text-muted-foreground hover:text-foreground flex h-8 w-8 items-center justify-center rounded-md transition-transform duration-200 hover:scale-150"
+        (click)="deleteUser(user.user_id)"
+        title="Delete User">
         <svg-icon src="./assets/icons/heroicons/outline/trash-icon.svg" [svgClass]="'h-5 w-5'"></svg-icon>
       </button>
-      <button *ngIf="user.acc_status === 'Review'" class="text-muted-foreground hover:bg-card hover:text-foreground flex h-7 w-7 cursor-pointer items-center justify-center rounded-md hover:scale-140 transition-transform duration-500" (click)="navigateToReviewUser(user.user_id)">
-        <img src="https://img.icons8.com/?size=100&id=5vIes7nAVj0R&format=png&color=000000" class="h-5 w-5">
+      <button
+        *ngIf="user.acc_status === 'Review'"
+        class="text-muted-foreground hover:text-foreground flex h-8 w-8 items-center justify-center rounded-md transition-transform duration-200 hover:scale-150"
+        (click)="navigateToReviewUser(user.user_id)"
+        title="Review User">
+        <img src="https://img.icons8.com/?size=100&id=5vIes7nAVj0R&format=png&color=000000" class="h-5 w-5" alt="Review Icon">
       </button>
     </div>
   </td>
