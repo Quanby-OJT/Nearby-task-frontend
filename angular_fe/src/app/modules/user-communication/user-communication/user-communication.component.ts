@@ -295,14 +295,27 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
                     width: '800px',
                     confirmButtonText: 'Close',
                     confirmButtonColor: '#3085d6',
+                    showCancelButton: false,
                     customClass: {
-                        htmlContainer: 'text-left'
+                        htmlContainer: 'text-left',
+                        actions: 'swal2-actions-right'
                     },
                     didOpen: () => {
                         const container = document.querySelector('.swal2-html-container > div');
                         if (container) {
                             container.scrollTop = container.scrollHeight;
                         }
+                        // Add custom CSS to ensure right alignment
+                        const style = document.createElement('style');
+                        style.textContent = `
+                            .swal2-actions-right {
+                                display: flex !important;
+                                justify-content: flex-end !important;
+                                width: 100% !important;
+                                padding-right: 20px !important;
+                            }
+                        `;
+                        document.head.appendChild(style);
                     }
                 });
             } else {
