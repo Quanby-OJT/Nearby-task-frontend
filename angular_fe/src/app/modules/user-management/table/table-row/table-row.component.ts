@@ -1,5 +1,5 @@
 import { CommonModule, NgClass } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AngularSvgIconModule } from 'angular-svg-icon';
@@ -13,11 +13,10 @@ import { DataService } from 'src/services/dataStorage';
   selector: '[app-table-row]',
   imports: [FormsModule, AngularSvgIconModule, NgClass, CommonModule],
   templateUrl: './table-row.component.html',
-  styleUrl: './table-row.component.css',
+  styleUrls: ['./table-row.component.css'],
 })
 export class UserTableRowComponent {
   @Input() user: Users = <Users>{};
-  users: any[] = [];
 
   constructor(
     private route: Router,
@@ -45,6 +44,7 @@ export class UserTableRowComponent {
       }
     });
   }
+
   updateUser(id: Number) {
     this.dataService.setUserID(id);
     this.route.navigate(['user-management/update-user']);
