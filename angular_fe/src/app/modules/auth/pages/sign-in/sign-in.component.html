@@ -1,7 +1,11 @@
 <!-- login form -->
-<form class="my-10 space-y-6" [formGroup]="form" (ngSubmit)="onSubmit()">
-  <div class="text-center font-mono">
-    <h2 class="text-foreground mb-1 text-5xl pb-13 text-indigo-900"><strong>Login</strong></h2>
+<form class="my-5 space-y-6" [formGroup]="form" (ngSubmit)="onSubmit()">
+  
+  <div class="text-start font-mono w-82">
+    <div class="animate-typing w-50 whitespace-nowrap text-2xl text-indigo-900 font-bold" style="width: 0; display: inline-block; overflow: hidden; border-right: 0.15em solid indigo;">
+      Welcome to NearByTask!
+    </div>
+    <h2 class="text-foreground mb-1 text-2xl pb-9 text-indigo-1000"><strong>Login</strong></h2>
   </div>
 
   <!-- <div>
@@ -19,7 +23,7 @@
   <div class="space-y-3 text-left">
     <div class="form__group">
       <div class="relative">
-        <input type="text" id="email" [ngClass]="{ 'is__invalid-input': submitted && f['email'].errors }" class="peer block" placeholder=" " formControlName="email" />
+        <input type="text" id="email" [ngClass]="{ 'is__invalid-input': submitted && f['email'].errors }" class="peer block w-full h-12 py-3 px-4 rounded-md" placeholder=" " formControlName="email" />
         <label
           for="email"
           [ngClass]="{ 'peer-focus:text-destructive!': submitted && f['email'].errors }"
@@ -39,7 +43,7 @@
           [type]="passwordTextType ? 'text' : 'password'"
           id="password"
           [ngClass]="{ 'is__invalid-input': submitted && f['password'].errors }"
-          class="peer block w-full pr-10"
+          class="peer block w-full h-12 py-3 px-4 pr-10 rounded-md"
           placeholder=" "
           formControlName="password" />
         <label

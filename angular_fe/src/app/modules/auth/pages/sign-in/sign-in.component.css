@@ -7,3 +7,35 @@
 .is__invalid-error {
   @apply px-1 pt-1 text-xs text-destructive;
 }
+
+@keyframes typewriter {
+  0% {
+    width: 0;
+  }
+  30% {
+    width: 96%;
+  }
+  60% {
+    width: 96%;
+  }
+  100% {
+    width: 0;
+  }
+}
+
+@keyframes blink {
+  50% {
+    border-color: transparent;
+  }
+}
+
+.animate-typing {
+  animation: 
+    typewriter 13s steps(25) infinite,
+    blink 0.75s step-end infinite;
+}
+
+.animate-typing {
+  white-space: nowrap;
+  overflow: hidden;
+}
