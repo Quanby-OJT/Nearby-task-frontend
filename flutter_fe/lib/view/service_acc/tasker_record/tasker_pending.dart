@@ -283,34 +283,17 @@ class _TaskerPendingState extends State<TaskerPending> {
                 _isLoading = false;
               });
               if (result) {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => IndividualChatScreen(
-                      taskTitle: _taskInformation?.title ?? 'Task',
-                      taskTakenId: _requestInformation?.task_taken_id ?? 0,
-                      taskId: _requestInformation?.client_id ?? 0,
-                      taskTakenStatus:
-                          _requestInformation?.task_status ?? 'Unknown',
-                    ),
-                  ),
-                );
-                setState(() {
-                  _isLoading = true;
-                });
-                await _fetchRequestDetails();
-                setState(() {
-                  _isLoading = false;
-                });
+                Navigator.pop(context, true);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Task accepted successfully')),
                 );
+                Navigator.pop(context);
               } else {
+                Navigator.pop(context, false);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Failed to accept task')),
                 );
               }
-              Navigator.pop(context, true);
             },
             child:
                 Text('Yes', style: GoogleFonts.montserrat(color: Colors.red)),
@@ -318,12 +301,6 @@ class _TaskerPendingState extends State<TaskerPending> {
         ],
       ),
     );
-
-    if (confirm == true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Task accepted')),
-      );
-    }
   }
 
   @override
