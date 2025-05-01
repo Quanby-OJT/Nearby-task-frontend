@@ -465,34 +465,90 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                 ),
                               ),
                               SizedBox(height: 12),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice.roundToDouble() ?? 0)}',
-                                    style: GoogleFonts.openSans(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.green,
-                                    ),
-                                  ),
-                                  SizedBox(height: 8),
-                                  Row(
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Icon(Icons.location_pin,
-                                          size: 20, color: Colors.grey[600]),
-                                      SizedBox(width: 8),
                                       Text(
-                                        task.location ?? 'No Location',
+                                        '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice.roundToDouble() ?? 0)}',
                                         style: GoogleFonts.openSans(
-                                          fontSize: 14,
-                                          color: Colors.grey[600],
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.green,
                                         ),
+                                      ),
+                                      SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          Icon(Icons.location_pin,
+                                              size: 20,
+                                              color: Colors.grey[600]),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            task.location ?? 'No Location',
+                                            style: GoogleFonts.openSans(
+                                              fontSize: 14,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
+                                  Column(
+                                    children: [
+                                      Positioned(
+                                        bottom: 16,
+                                        right: 16,
+                                        child: Column(
+                                          children: [
+                                            ElevatedButton(
+                                              onPressed: () {
+                                                controller.swipe(
+                                                    CardSwiperDirection.left);
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor:
+                                                    Colors.transparent,
+                                                shape: CircleBorder(),
+                                                fixedSize: Size(50, 50),
+                                                padding: EdgeInsets.zero,
+                                              ),
+                                              child: Icon(
+                                                Icons.close,
+                                                color: Colors.white,
+                                                size: 24,
+                                              ),
+                                            ),
+                                            SizedBox(height: 10),
+                                            ElevatedButton(
+                                              onPressed: () {
+                                                controller.swipe(
+                                                    CardSwiperDirection.right);
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.red,
+                                                shape: CircleBorder(),
+                                                fixedSize: Size(50, 50),
+                                                padding: EdgeInsets.zero,
+                                              ),
+                                              child: Icon(
+                                                Icons.favorite,
+                                                color: Colors.white,
+                                                size: 24,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  )
                                 ],
-                              ),
+                              )
                             ],
                           ),
                         ),
@@ -524,24 +580,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             ),
         ],
       ),
-      floatingActionButton: tasks.isNotEmpty
-          ? Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                FloatingActionButton(
-                  onPressed: () => controller.swipe(CardSwiperDirection.left),
-                  backgroundColor: Colors.redAccent,
-                  child: Icon(Icons.close),
-                ),
-                SizedBox(width: 16),
-                FloatingActionButton(
-                  onPressed: () => controller.swipe(CardSwiperDirection.right),
-                  backgroundColor: Colors.green,
-                  child: Icon(Icons.favorite),
-                ),
-              ],
-            )
-          : null,
     );
   }
 }

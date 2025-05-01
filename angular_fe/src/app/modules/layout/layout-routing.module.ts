@@ -40,6 +40,11 @@ const routes: Routes = [
     loadChildren: () => import('../user-complaints/complaint-routing.module').then((m) => m.ComplaintsRoutingModule),
   },
   {
+    path: 'dispute-management',
+    component: LayoutComponent,
+    loadChildren: () => import('../dispute-management/dispute-management.module').then((m) => m.DisputeRoutingModule),
+  },
+  {
     path: 'feedback-management',
     component: LayoutComponent,
     loadChildren: () => import('../feedback-management/feedback-routing.module').then((m) => m.FeedbackRoutingModule),
