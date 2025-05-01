@@ -137,26 +137,152 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                                               color: Colors.yellow.shade800)),
                                     ])),
                           SizedBox(height: 10),
-                          Text(
-                            "Your Reviews from Your Clients:",
-                            style: GoogleFonts.montserrat(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0XFF331FB3)),
-                            textAlign: TextAlign.start,
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.star_rate_rounded,
+                                color: Colors.amber,
+                                size: 24,
+                              ),
+                              SizedBox(width: 4),
+                              Text(
+                                "Client Reviews",
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
                           ),
                           SizedBox(height: 10),
-                          Expanded(
-                            child: SingleChildScrollView(
-                              child: Column(
-                                children: taskerFeedback
-                                    .map((feedback) => _buildReviewItem(
-                                        "${feedback.client.user?.firstName} ${feedback.client.user?.lastName}",
-                                        feedback.comment,
-                                        feedback.rating.toInt()))
-                                    .toList(),
+                          if (taskerFeedback.isNotEmpty)
+                            Container(
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Color(0xFF0272B1).withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Average Rating",
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      SizedBox(height: 4),
+                                      Row(
+                                        children: [
+                                          Text(
+                                            _calculateAverageRating(
+                                                taskerFeedback),
+                                            style: GoogleFonts.montserrat(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF0272B1),
+                                            ),
+                                          ),
+                                          SizedBox(width: 8),
+                                          Row(
+                                            children: List.generate(
+                                              5,
+                                              (index) => Icon(
+                                                index <
+                                                        _getAverageRatingAsInt(
+                                                            taskerFeedback)
+                                                    ? Icons.star
+                                                    : index ==
+                                                                _getAverageRatingAsInt(
+                                                                    taskerFeedback) &&
+                                                            _hasHalfStar(
+                                                                taskerFeedback)
+                                                        ? Icons.star_half
+                                                        : Icons.star_border,
+                                                color: Colors.amber,
+                                                size: 18,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  Spacer(),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        "${taskerFeedback.length} reviews",
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        _getCompletionRate(taskerFeedback),
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 12,
+                                          color: Colors.green[700],
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
                             ),
+                          SizedBox(height: 10),
+                          Expanded(
+                            child: taskerFeedback.isEmpty
+                                ? Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.rate_review_outlined,
+                                          size: 48,
+                                          color: Colors.grey[400],
+                                        ),
+                                        SizedBox(height: 16),
+                                        Text(
+                                          "No reviews yet",
+                                          style: GoogleFonts.montserrat(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                        Text(
+                                          "Complete tasks to get client reviews",
+                                          style: GoogleFonts.montserrat(
+                                            fontSize: 14,
+                                            color: Colors.grey[500],
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : SingleChildScrollView(
+                                    child: Column(
+                                      children: taskerFeedback
+                                          .map((feedback) => _buildReviewItem(
+                                              "${feedback.client.user?.firstName} ${feedback.client.user?.lastName}",
+                                              feedback.comment,
+                                              feedback.rating.toInt()))
+                                          .toList(),
+                                    ),
+                                  ),
                           )
                         ]),
                       ),
@@ -165,10 +291,10 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                 ),
               )),
           Expanded(
-            flex: 3,
+            flex: 2,
             child: Container(
               color: Colors.white,
-              padding: const EdgeInsets.only(left: 8.0, right: 8),
+              padding: const EdgeInsets.only(left: 16.0, right: 16, bottom: 16),
               alignment: Alignment.center,
               child: SizedBox(
                 child: ListView(
@@ -176,7 +302,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                   shrinkWrap: true,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      padding: const EdgeInsets.only(right: 16.0),
                       child: Card(
                         elevation: 4,
                         shape: RoundedRectangleBorder(
@@ -231,7 +357,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      padding: const EdgeInsets.only(right: 16.0),
                       child: Card(
                         elevation: 4,
                         shape: RoundedRectangleBorder(
@@ -285,7 +411,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      padding: const EdgeInsets.only(right: 16.0),
                       child: Card(
                         elevation: 4,
                         shape: RoundedRectangleBorder(
@@ -340,7 +466,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      padding: const EdgeInsets.only(right: 16.0),
                       child: Card(
                         elevation: 4,
                         shape: RoundedRectangleBorder(
@@ -394,7 +520,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      padding: const EdgeInsets.only(right: 16.0),
                       child: Card(
                         elevation: 4,
                         shape: RoundedRectangleBorder(
@@ -448,7 +574,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 0.0),
                       child: Card(
                         elevation: 4,
                         shape: RoundedRectangleBorder(
@@ -514,42 +640,119 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
   Widget _buildReviewItem(String reviewer, String comment, int rating) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                reviewer,
-                style: GoogleFonts.montserrat(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const Spacer(),
               Row(
-                children: List.generate(
-                  5,
-                  (index) => Icon(
-                    index < rating ? Icons.star : Icons.star_border,
-                    color: Colors.amber,
-                    size: 16,
+                children: [
+                  CircleAvatar(
+                    backgroundColor: Color(0xFF0272B1).withOpacity(0.2),
+                    radius: 16,
+                    child: Text(
+                      reviewer.isNotEmpty ? reviewer[0].toUpperCase() : "?",
+                      style: GoogleFonts.montserrat(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0272B1),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      reviewer,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Color(0xFF0272B1).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: List.generate(
+                        5,
+                        (index) => Icon(
+                          index < rating ? Icons.star : Icons.star_border,
+                          color: Colors.amber,
+                          size: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  comment,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 13,
+                    color: Colors.grey[800],
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            comment,
-            style: GoogleFonts.montserrat(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
-          ),
-          Divider(height: 3, color: Colors.grey[300])
-        ],
+        ),
       ),
     );
+  }
+
+  String _calculateAverageRating(List<TaskerFeedback> feedback) {
+    if (feedback.isEmpty) return "0.0";
+    double totalRating = 0.0;
+    for (var f in feedback) {
+      totalRating += f.rating.toDouble();
+    }
+    double averageRating = totalRating / feedback.length;
+    return averageRating.toStringAsFixed(1);
+  }
+
+  int _getAverageRatingAsInt(List<TaskerFeedback> feedback) {
+    if (feedback.isEmpty) return 0;
+    double totalRating = 0.0;
+    for (var f in feedback) {
+      totalRating += f.rating.toDouble();
+    }
+    double averageRating = totalRating / feedback.length;
+    return averageRating.floor();
+  }
+
+  bool _hasHalfStar(List<TaskerFeedback> feedback) {
+    if (feedback.isEmpty) return false;
+    double totalRating = 0.0;
+    for (var f in feedback) {
+      totalRating += f.rating.toDouble();
+    }
+    double averageRating = totalRating / feedback.length;
+    return averageRating.remainder(1) >= 0.5;
+  }
+
+  String _getCompletionRate(List<TaskerFeedback> feedback) {
+    if (feedback.isEmpty) return "0%";
+    int completedTasks = 0;
+    for (var f in feedback) {
+      if (f.rating.toInt() >= 4) {
+        completedTasks++;
+      }
+    }
+    double completionRate = (completedTasks / feedback.length) * 100;
+    return "${completionRate.toStringAsFixed(0)}%";
   }
 }
