@@ -812,12 +812,16 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
       final result = await clientServices.saveLikedTasker(widget.tasker.id);
 
       if (result.containsKey('message')) {
+        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result['message'] ?? "Tasker liked successfully!"),
             backgroundColor: Colors.green,
           ),
         );
+
+        // Close the tasker profile page
+        Navigator.of(context).pop();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
