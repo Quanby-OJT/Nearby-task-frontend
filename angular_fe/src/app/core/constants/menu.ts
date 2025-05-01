@@ -45,7 +45,7 @@ export class Menu {
           role: ['Moderator', 'Admin'],
         },
         {
-          icon: 'assets/icons/heroicons/outline/court-gavel-svgrepo-com.svg',
+          icon: 'assets/icons/heroicons/outline/exclamation-triangle.svg',
           label: 'Dispute Management',
           route: '/dispute-management',
           role: ['Moderator', 'Admin'],
