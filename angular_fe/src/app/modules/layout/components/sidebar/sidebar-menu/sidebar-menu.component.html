@@ -29,7 +29,6 @@
             </a>
           </div>
         </ng-template>
-
         <!-- Workaround:: Disable routerLink -->
         <ng-template #childMenu let-item="item">
           <div class="flex h-9 cursor-pointer items-center justify-start rounded-sm hover:bg-white">
@@ -51,12 +50,10 @@
           </span>
         </div>
       </div>
-
       <!-- Submenu items -->
       <app-sidebar-submenu [submenu]="item"></app-sidebar-submenu>
     </li>
   </ul>
-
   <div class="pt-3" *ngIf="menu.separator">
     <hr class="border-border border-dashed" />
   </div>
