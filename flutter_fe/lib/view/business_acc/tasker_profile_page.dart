@@ -43,12 +43,11 @@ class TaskerProfilePage extends StatefulWidget {
   final int? taskerId;
   final bool isSaved;
 
-  const TaskerProfilePage({
-    super.key,
-    required this.tasker,
-    required this.isSaved,
-    required this.taskerId
-  });
+  const TaskerProfilePage(
+      {super.key,
+      required this.tasker,
+      required this.isSaved,
+      required this.taskerId});
 
   @override
   State<TaskerProfilePage> createState() => _TaskerProfilePageState();
@@ -109,7 +108,6 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
 
       //TODO: Implement retrieval of Individual Tasker Information from the API
 
-
       await Future.delayed(Duration(milliseconds: 500));
 
       setState(() {
@@ -161,7 +159,8 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
     }
   }
 
-  Future<List<TaskModel>> _filterAvailableTasks(List<TaskModel> tasks, int taskerId) async {
+  Future<List<TaskModel>> _filterAvailableTasks(
+      List<TaskModel> tasks, int taskerId) async {
     debugPrint(
         "Filtering ${tasks.length} available tasks for tasker $taskerId");
     final jobPostService = JobPostService();
@@ -278,7 +277,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
       setState(() {
         taskerFeedback = taskerReviews;
       });
-    }catch(e, stackTrace){
+    } catch (e, stackTrace) {
       debugPrint("Error fetching tasker reviews: $e");
       debugPrintStack(stackTrace: stackTrace);
     }
@@ -516,7 +515,8 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             _buildStatItem("4.8", "Rating", Icons.star),
-                            _buildStatItem(taskerFeedback!.length.toString(), "Jobs", Icons.work),
+                            _buildStatItem(taskerFeedback!.length.toString(),
+                                "Jobs", Icons.work),
                             _buildStatItem("2 yrs", "Experience", Icons.timer),
                           ],
                         ),
@@ -559,10 +559,10 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                         [
                           _buildInfoRow(
                               Icons.badge, "ID", "#${widget.tasker.id}"),
-                          _buildInfoRow(
-                              Icons.location_on, "Location", widget.tasker.address!.values.join(", ")),
-                          _buildInfoRow(
-                              Icons.work, "Specialization", widget.tasker.specialization),
+                          _buildInfoRow(Icons.location_on, "Location",
+                              widget.tasker.address!.values.join(", ")),
+                          _buildInfoRow(Icons.work, "Specialization",
+                              widget.tasker.specialization),
                         ],
                       ),
                     ),
@@ -579,11 +579,11 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                               // Assuming skills is a List<String>
                               return _buildSkillChip(skill);
                             }).toList(),
-                              // _buildSkillChip("Home Cleaning"),
-                              // _buildSkillChip("Gardening"),
-                              // _buildSkillChip("Electrical Work"),
-                              // _buildSkillChip("Plumbing"),
-                              // _buildSkillChip("Painting"),
+                            // _buildSkillChip("Home Cleaning"),
+                            // _buildSkillChip("Gardening"),
+                            // _buildSkillChip("Electrical Work"),
+                            // _buildSkillChip("Plumbing"),
+                            // _buildSkillChip("Painting"),
                           ),
                         ],
                       ),
@@ -646,17 +646,19 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                     // Reviews
                     SliverToBoxAdapter(
                       child: taskerFeedback != null &&
-                            taskerFeedback!.isNotEmpty
-                        ? _buildSectionCard(
-                          "Reviews from Other Clients",
-                          taskerFeedback!
-                            .map((feedback) => _buildReviewItem(
-                              "${feedback.client.user!.firstName} ${feedback.client.user!.lastName}",
-                              feedback.comment,
-                              feedback.rating.toInt())) // Convert double to int for star display
-                            .toList())
-                        : _buildSectionCard("Reviews", [const Text("No reviews yet.")]),
-                      ),
+                              taskerFeedback!.isNotEmpty
+                          ? _buildSectionCard(
+                              "Reviews from Other Clients",
+                              taskerFeedback!
+                                  .map((feedback) => _buildReviewItem(
+                                      "${feedback.client.user!.firstName} ${feedback.client.user!.lastName}",
+                                      feedback.comment,
+                                      feedback.rating
+                                          .toInt())) // Convert double to int for star display
+                                  .toList())
+                          : _buildSectionCard(
+                              "Reviews", [const Text("No reviews yet.")]),
+                    ),
 
                     const SliverToBoxAdapter(child: SizedBox(height: 20)),
                   ],
@@ -825,12 +827,16 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
       final result = await clientServices.saveLikedTasker(widget.tasker.id!);
 
       if (result.containsKey('message')) {
+        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result['message'] ?? "Tasker liked successfully!"),
             backgroundColor: Colors.green,
           ),
         );
+
+        // Close the tasker profile page
+        Navigator.of(context).pop();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
