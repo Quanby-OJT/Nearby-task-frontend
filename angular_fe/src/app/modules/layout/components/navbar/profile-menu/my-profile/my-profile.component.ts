@@ -5,6 +5,7 @@ import { AuthService } from 'src/app/services/auth.service'; // Import AuthServi
 import { UserAccountService } from 'src/app/services/userAccount'; // Import UserAccountService
 import { Users } from 'src/model/user-management'; // Import Users model
 import { toast } from 'ngx-sonner'; // Import toast for error handling
+
 import {
   ReactiveFormsModule, // Import ReactiveFormsModule
   FormGroup,
@@ -12,6 +13,7 @@ import {
   Validators,
   FormBuilder // Import FormBuilder
 } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-my-profile',
@@ -33,6 +35,7 @@ export class MyProfileComponent implements OnInit { // Implement OnInit
 
   constructor(
     private authService: AuthService,
+    private router: Router,
     private userAccountService: UserAccountService, // Inject UserAccountService
     private fb: FormBuilder // Inject FormBuilder
   ) {} // Inject AuthService
@@ -149,4 +152,7 @@ export class MyProfileComponent implements OnInit { // Implement OnInit
     });
   }
 
+  dashboard() {
+    this.router.navigate(['/dashboard']);
+  }
 }
