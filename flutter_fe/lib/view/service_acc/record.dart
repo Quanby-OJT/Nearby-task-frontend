@@ -326,7 +326,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                           },
                           child: Container(
                             width: 150, // Width of each card
-                            padding: const EdgeInsets.only(right: 16.0),
+                            padding: const EdgeInsets.all(16.0),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(12),
                               color: Color(0xFFFFC107),
@@ -411,7 +411,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
+                      padding: const EdgeInsets.only(right: 16.0),
                       child: Card(
                         elevation: 4,
                         shape: RoundedRectangleBorder(
@@ -489,7 +489,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                           },
                           child: Container(
                             width: 150, // Width of each card
-                            padding: const EdgeInsets.only(right: 16.0),
+                            padding: const EdgeInsets.all(16.0),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(12),
                               color: Colors.blue.shade300,
