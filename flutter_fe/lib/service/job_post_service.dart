@@ -682,6 +682,7 @@ class JobPostService {
   Future<Map<String, dynamic>> acceptRequest(int taskTakenId, String value, String role) async {
     try {
       int clientId = await storage.read('user_id');
+      debugPrint("Accepting task with ID: $taskTakenId with the task status of: $value");
       return await _putRequest(
           endpoint: '/update-request/$taskTakenId',
           body: {"value": value, "role": role, "client_id": clientId});

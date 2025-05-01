@@ -456,27 +456,27 @@ class _TaskerStartState extends State<TaskerStart> {
           ),
         ),
         SizedBox(width: 12),
-        Expanded(
-          child: ElevatedButton(
-            onPressed: _handleRescheduleTask,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue[600],
-              padding: EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 2,
-            ),
-            child: Text(
-              'Reschedule',
-              style: GoogleFonts.montserrat(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
+        // Expanded(
+        //   child: ElevatedButton(
+        //     onPressed: _handleRescheduleTask,
+        //     style: ElevatedButton.styleFrom(
+        //       backgroundColor: Colors.blue[600],
+        //       padding: EdgeInsets.symmetric(vertical: 16),
+        //       shape: RoundedRectangleBorder(
+        //         borderRadius: BorderRadius.circular(12),
+        //       ),
+        //       elevation: 2,
+        //     ),
+        //     child: Text(
+        //       'Reschedule',
+        //       style: GoogleFonts.montserrat(
+        //         fontSize: 14,
+        //         fontWeight: FontWeight.w600,
+        //         color: Colors.white,
+        //       ),
+        //     ),
+        //   ),
+        // ),
       ],
     );
   }

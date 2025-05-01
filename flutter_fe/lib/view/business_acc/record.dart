@@ -13,6 +13,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'dart:math';
 
+import 'client_record/display_list_reject.dart';
+
 class RecordPage extends StatefulWidget {
   const RecordPage({super.key});
 
@@ -515,7 +517,7 @@ class _RecordPageState extends State<RecordPage> {
                             context,
                             MaterialPageRoute(
                                 builder: (context) =>
-                                    DisplayListRecordConfirmed()),
+                                DisplayListRecordReject()),
                           ).then((value) {
                             // setState(() {
                             //   _isLoading = true;

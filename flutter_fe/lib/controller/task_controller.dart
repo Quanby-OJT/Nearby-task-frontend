@@ -46,8 +46,7 @@ class TaskController {
       final priceInt = int.tryParse(priceText) ?? 0;
 
       debugPrint(priceInt.toString());
-      if (_escrowManagementController.tokenCredits.value - priceInt <
-          _escrowManagementController.tokenCredits.value) {
+      if (priceInt > _escrowManagementController.tokenCredits.value) {
         return {
           "success": false,
           "error":
