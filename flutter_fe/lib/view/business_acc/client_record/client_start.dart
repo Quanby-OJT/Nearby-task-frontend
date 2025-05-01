@@ -693,26 +693,26 @@ class _ClientStartState extends State<ClientStart> {
               ),
             ),
             const SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: _handleRescheduleTask,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.yellow[700],
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  elevation: 2,
-                ),
-                child: Text(
-                  'Reschedule',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-            ),
+            // Expanded(
+            //   child: ElevatedButton(
+            //     onPressed: _handleRescheduleTask,
+            //     style: ElevatedButton.styleFrom(
+            //       backgroundColor: Colors.yellow[700],
+            //       padding: const EdgeInsets.symmetric(vertical: 16),
+            //       shape: RoundedRectangleBorder(
+            //           borderRadius: BorderRadius.circular(12)),
+            //       elevation: 2,
+            //     ),
+            //     child: Text(
+            //       'Reschedule',
+            //       style: GoogleFonts.montserrat(
+            //         fontSize: 14,
+            //         fontWeight: FontWeight.w600,
+            //         color: Colors.black,
+            //       ),
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ],

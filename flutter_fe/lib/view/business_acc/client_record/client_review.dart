@@ -479,7 +479,7 @@ class _ClientReviewState extends State<ClientReview> {
 
             if (result && mounted) {
               setState(() {
-                _requestStatus = 'Completed';
+                _requestStatus = 'Disputed';
               });
               Navigator.push(
                 childContext,
@@ -811,7 +811,7 @@ class _ClientReviewState extends State<ClientReview> {
         child: Text(
           _requestStatus != 'Disputed'
               ? 'Finish Task and Release Payment'
-              : 'Settle Dispute and Release Payment',
+              : 'Rate Tasker',
           style: GoogleFonts.montserrat(
             fontSize: 16,
             fontWeight: FontWeight.w600,
