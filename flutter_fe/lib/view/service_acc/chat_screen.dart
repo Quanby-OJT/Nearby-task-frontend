@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/report_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
@@ -16,7 +15,6 @@ import 'package:dropdown_search/dropdown_search.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../controller/conversation_controller.dart';
-import '../../model/conversation.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -653,9 +651,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ],
           ),
         ),
-        floatingActionButton: (taskAssignments != null &&
-                taskAssignments!.isNotEmpty &&
-                !_isModalOpen)
+        floatingActionButton: (taskAssignments.isNotEmpty && !_isModalOpen)
             ? FloatingActionButton(
                 onPressed: () {
                   _showReportModal();

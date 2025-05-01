@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/client_request.dart';
-import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
@@ -31,8 +30,8 @@ class _ClientRequestState extends State<ClientRequest> {
   ClientRequestModel? _requestInformation;
   bool _isLoading = true;
   final storage = GetStorage();
-  bool _isApplying = false;
-  bool _isEditing = false;
+  final bool _isApplying = false;
+  final bool _isEditing = false;
 
   @override
   void initState() {

@@ -21,14 +21,14 @@ export class TaskService {
   getTasks(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/displayTask`, { 
       headers: this.getHeaders(),
-      withCredentials: true // This enables sending cookies with the request
+      withCredentials: true
     });
   }
 
   getTaskById(id: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/displayTask/${id}`, { 
       headers: this.getHeaders(),
-      withCredentials: true // This enables sending cookies with the request
+      withCredentials: true
     });
   }
 
@@ -36,6 +36,20 @@ export class TaskService {
     return this.http.patch(`${this.apiUrl}/displayTask/${id}`, {}, { 
       headers: this.getHeaders(),
       withCredentials: true 
+    });
+  }
+
+  getSpecializations(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/specializations`, {
+      headers: this.getHeaders(),
+      withCredentials: true
+    });
+  }
+
+  createSpecialization(specialization: { specialization: string }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/specializations`, specialization, {
+      headers: this.getHeaders(),
+      withCredentials: true
     });
   }
 }

@@ -14,8 +14,6 @@ import 'package:flutter_fe/view/service_acc/notif_screen.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../business_acc/home_page.dart';
-
 class NavUserScreen extends StatefulWidget implements PreferredSizeWidget {
   const NavUserScreen({super.key});
 
@@ -333,7 +331,7 @@ class _NavUserScreenState extends State<NavUserScreen> {
                         } else {
                           Navigator.push(context,
                               MaterialPageRoute(builder: (context) {
-                            return FillUpTaskerLogin(userId: userId as int);
+                            return FillUpTaskerLogin();
                           }));
                           overlayEntry.remove();
                         }
@@ -344,14 +342,14 @@ class _NavUserScreenState extends State<NavUserScreen> {
                           leading: Icon(FontAwesomeIcons.coins),
                           title: Text('Add NearByTask Tokens'),
                           onTap: () {
-                            // if (_existingProfileImageUrl == null ||
-                            //     _existingIDImageUrl == null ||
-                            //     _existingProfileImageUrl!.isEmpty ||
-                            //     _existingIDImageUrl!.isEmpty ||
-                            //     !_documentValid) {
-                            //   overlayEntry.remove();
-                            //   return _showWarningDialog();
-                            // }
+                            if (_existingProfileImageUrl == null ||
+                                _existingIDImageUrl == null ||
+                                _existingProfileImageUrl!.isEmpty ||
+                                _existingIDImageUrl!.isEmpty ||
+                                !_documentValid) {
+                              overlayEntry.remove();
+                              return _showWarningDialog();
+                            }
                             Navigator.push(context,
                                 MaterialPageRoute(builder: (context) {
                               return EscrowTokenScreen();

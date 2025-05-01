@@ -6,16 +6,16 @@
     </div>
   </div>
   <div class="flex space-x-4">
-    <button class="bg-[#E23670] text-[#F9F9F9] hover:bg-[#F07DA1] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportCSV()">
+    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportCSV()">
       Export CSV
     </button>
-    <button class="bg-[#E23670] text-[#F9F9F9] hover:bg-[#F07DA1] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportPDF()">
+    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportPDF()">
       Export PDF
     </button>
   </div>
 </div>
 
-<div class="border-muted-200 bg-white w-full max-w-[1440px] mx-auto flex-col rounded-xl border-4 min-h-[400px] shadow-md">
+<div class="border-muted-200 bg-white w-full max-w-[1440px] mx-auto flex-col rounded-xl border-4 min-h-[400px]">
 
 <div class="border-muted-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
   <div class="flex flex-wrap items-center justify-between gap-2 py-3 px-5">
@@ -43,22 +43,23 @@
     <table class="w-full border-collapse border-0 text-left text-sm">
       <thead class="border-b">
         <tr>
-          <th class="px-4 py-2 w-[80px] lg:w-[100px] ">Id</th>
-          <th class="px-4 py-2 text-center min-w-[140px] lg:min-w-[300px] xl:min-w-[250px] ">User Name</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Amount</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Payment Type</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Created At</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Deposit Date</th>
+          <th class="px-4 py-2 text-start min-w-[140px] lg:min-w-[300px] xl:min-w-[160px] ">
+          <div class="flex items-center gap-1 cursor-pointer">
+            Name
+            <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" class="w-4 h-4" (click)="toggleSort()">
+          </div>
+          </th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[130px] ">Amount</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[210px] ">Payment Type</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[100px] ">Deposit Date</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let log of displayPaymentLogs; let i = index" class="hover:bg-card/50 h-[60px]">
-          <td class="px-4 py-3 text-center">{{ (currentPage - 1) * this.logsPerPage + i + 1 }}</td>
-          <td class="px-4 py-3 text-center">{{ log.user_name }}</td>
-          <td class="px-4 py-3 text-center">{{ log.amount }}</td>
-          <td class="px-4 py-3 text-center">{{ log.payment_type }}</td>
-          <td class="px-4 py-3 text-center">{{ log.created_at }}</td>
-          <td class="px-4 py-3 text-center">{{ log.deposit_date }}</td>
+          <td class="px-4 py-3 text-start">{{ log.user_name }}</td>
+          <td class="px-4 py-3 text-start">{{ log.amount }}</td>
+          <td class="px-4 py-3 text-start">{{ log.payment_type }}</td>
+          <td class="px-4 py-3 text-start">{{ log.deposit_date }}</td>
         </tr>
         <!-- Placeholder rows to ensure total rows match logsPerPage -->
         <tr *ngFor="let placeholder of placeholderRows">
@@ -98,16 +99,16 @@
           ◀
         </button>
 
-        <button *ngFor="let page of paginationButtons" 
-                [disabled]="page === '...'" 
-                (click)="goToPage(page)" 
-                [class.bg-primary]="page === currentPage" 
+        <button *ngFor="let page of paginationButtons"
+                [disabled]="page === '...'"
+                (click)="goToPage(page)"
+                [class.bg-primary]="page === currentPage"
                 [class.text-white]="page === currentPage"
-                class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 text-sm">
+                class="inline-flex h-8 w-8 items-center justify-center rounded-md text-sm">
           {{ page }}
         </button>
 
-        <button (click)="nextPage()" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300">
+        <button (click)="nextPage()" class="inline-flex h-8 w-8 items-center justify-center rounded-md">
           ▶
         </button>
       </div>

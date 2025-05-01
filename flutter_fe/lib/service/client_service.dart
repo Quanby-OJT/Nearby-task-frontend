@@ -2,7 +2,6 @@ import 'package:flutter_fe/model/tasker_model.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/specialization.dart';
-import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:get_storage/get_storage.dart';

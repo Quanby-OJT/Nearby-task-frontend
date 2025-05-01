@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
-import 'package:flutter_fe/model/client_model.dart';
 import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
@@ -352,7 +351,6 @@ class _TaskInformationState extends State<TaskInformation> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (_requestStatus != 'Unknown' &&
-              _requestStatus != null &&
               statusConfigs.containsKey(_requestStatus))
             _buildStatusSection(),
           const SizedBox(height: 16),
@@ -434,21 +432,20 @@ class _TaskInformationState extends State<TaskInformation> {
               ),
             ),
             const SizedBox(height: 8),
-            if (_taskInformation!.status != null)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: statusColor(_taskInformation!.status!),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  _taskInformation!.status!,
-                  style: GoogleFonts.montserrat(
-                    color: Colors.white,
-                    fontSize: 12,
-                  ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: statusColor(_taskInformation!.status),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                _taskInformation!.status,
+                style: GoogleFonts.montserrat(
+                  color: Colors.white,
+                  fontSize: 12,
                 ),
               ),
+            ),
             const SizedBox(height: 16),
             _buildInfoRow(
               icon: FontAwesomeIcons.briefcase,
@@ -468,7 +465,7 @@ class _TaskInformationState extends State<TaskInformation> {
             _buildInfoRow(
               icon: FontAwesomeIcons.pesoSign,
               label: 'Contract Price',
-              value: _taskInformation!.contactPrice?.toString() ?? 'N/A',
+              value: _taskInformation!.contactPrice.toString() ?? 'N/A',
             ),
             _buildInfoRow(
               icon: FontAwesomeIcons.fileAlt,
@@ -504,26 +501,23 @@ class _TaskInformationState extends State<TaskInformation> {
             _buildInfoRow(
               icon: FontAwesomeIcons.user,
               label: 'Name',
-              value: (_client?.user?.firstName ?? '') +
-                  ' ' +
-                  (_client?.user?.middleName ?? '') +
-                  ' ' +
-                  (_client?.user?.lastName ?? ''),
+              value:
+                  '${_client?.user.firstName ?? ''} ${_client?.user.middleName ?? ''} ${_client?.user.lastName ?? ''}',
             ),
             _buildInfoRow(
               icon: FontAwesomeIcons.checkCircle,
               label: 'Account Status',
-              value: _client?.user?.accStatus ?? 'Verified',
+              value: _client?.user.accStatus ?? 'Verified',
             ),
             _buildInfoRow(
               icon: FontAwesomeIcons.envelope,
               label: 'Email',
-              value: _client?.user?.email ?? 'N/A',
+              value: _client?.user.email ?? 'N/A',
             ),
             _buildInfoRow(
               icon: FontAwesomeIcons.phone,
               label: 'Phone',
-              value: _client?.user?.contact ?? 'N/A',
+              value: _client?.user.contact ?? 'N/A',
             ),
             _buildInfoRow(
               icon: FontAwesomeIcons.solidStar,

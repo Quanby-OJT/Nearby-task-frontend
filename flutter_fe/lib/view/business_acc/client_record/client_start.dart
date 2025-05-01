@@ -82,7 +82,6 @@ class _ClientStartState extends State<ClientStart> {
     try {
       final response =
           await _jobPostService.fetchRequestInformation(widget.requestID!);
-      if (response == null) throw Exception('No request information available');
       setState(() {
         _requestInformation = response;
       });
@@ -97,8 +96,9 @@ class _ClientStartState extends State<ClientStart> {
 
   Future<void> _fetchTaskDetails() async {
     try {
-      if (_requestInformation?.task_id == null)
+      if (_requestInformation?.task_id == null) {
         throw Exception('Invalid task ID');
+      }
       final response = await _jobPostService
           .fetchTaskInformation(_requestInformation!.task_id as int);
       setState(() {
@@ -538,16 +538,15 @@ class _ClientStartState extends State<ClientStart> {
               icon: FontAwesomeIcons.calendar,
               label: 'Start Date',
               value: _taskInformation!.taskBeginDate != null
-                  ? (_taskInformation!.taskBeginDate!)
+                  ? (_taskInformation!.taskBeginDate)
                   : 'N/A',
             ),
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.clock,
               label: 'Period',
-              value: (_taskInformation!.duration +
-                      ' ' +
-                      _taskInformation!.period) ??
-                  'N/A',
+              value:
+                  ('${_taskInformation!.duration} ${_taskInformation!.period}') ??
+                      'N/A',
             ),
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.info,
@@ -648,7 +647,7 @@ class _ClientStartState extends State<ClientStart> {
       children: [
         Column(
           children: [
-            Container(
+            SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _handleStartTask,
@@ -694,26 +693,26 @@ class _ClientStartState extends State<ClientStart> {
               ),
             ),
             const SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: _handleRescheduleTask,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.yellow[700],
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  elevation: 2,
-                ),
-                child: Text(
-                  'Reschedule',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-            ),
+            // Expanded(
+            //   child: ElevatedButton(
+            //     onPressed: _handleRescheduleTask,
+            //     style: ElevatedButton.styleFrom(
+            //       backgroundColor: Colors.yellow[700],
+            //       padding: const EdgeInsets.symmetric(vertical: 16),
+            //       shape: RoundedRectangleBorder(
+            //           borderRadius: BorderRadius.circular(12)),
+            //       elevation: 2,
+            //     ),
+            //     child: Text(
+            //       'Reschedule',
+            //       style: GoogleFonts.montserrat(
+            //         fontSize: 14,
+            //         fontWeight: FontWeight.w600,
+            //         color: Colors.black,
+            //       ),
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ],

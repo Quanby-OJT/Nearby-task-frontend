@@ -14,7 +14,6 @@ import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 
 import '../../model/client_model.dart';
 
@@ -778,7 +777,7 @@ class _JobPostPageState extends State<JobPostPage> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        automaticallyImplyLeading: false,
+          automaticallyImplyLeading: false,
           backgroundColor: Colors.white,
           toolbarHeight: 80,
           title: Align(
@@ -912,8 +911,9 @@ class _JobPostPageState extends State<JobPostPage> {
                                     itemCount: _filteredTasks.length,
                                     itemBuilder: (context, index) {
                                       final task = _filteredTasks[index];
-                                      if (task == null)
+                                      if (task == null) {
                                         return SizedBox.shrink();
+                                      }
                                       return _buildTaskCard(task);
                                     },
                                   ),

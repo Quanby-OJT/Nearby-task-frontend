@@ -46,8 +46,7 @@ class TaskController {
       final priceInt = int.tryParse(priceText) ?? 0;
 
       debugPrint(priceInt.toString());
-      if (_escrowManagementController.tokenCredits.value - priceInt >
-          _escrowManagementController.tokenCredits.value) {
+      if (priceInt > _escrowManagementController.tokenCredits.value) {
         return {
           "success": false,
           "error":
@@ -193,8 +192,9 @@ class TaskController {
           taskTakenId, taskerId, rating, feedback);
 
       debugPrint("Feedback response: $feedbackResult");
-      if (feedbackResult.containsKey('message'))
+      if (feedbackResult.containsKey('message')) {
         return feedbackResult['success'];
+      }
       debugPrint(
           "Error in task controller rateTheTasker: ${feedbackResult['error']}");
       return false;

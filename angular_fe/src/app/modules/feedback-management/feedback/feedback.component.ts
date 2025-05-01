@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { FeedbackService } from 'src/app/services/feedback.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -8,7 +9,7 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
 
 @Component({
   selector: 'app-feedback',
-  imports: [CommonModule, AngularSvgIconModule],
+  imports: [CommonModule, FormsModule, AngularSvgIconModule],
   templateUrl: './feedback.component.html',
   styleUrl: './feedback.component.css'
 })
@@ -24,7 +25,8 @@ export class FeedbackComponent implements OnInit {
   startIndex: number = 1;
   endIndex: number = 0;
   paginationButtons: (number | string)[] = [];
-  placeholderRows: any[] = []; // Added for placeholder rows
+  placeholderRows: any[] = [];
+  sortDirection: 'asc' | 'desc' = 'desc';
 
   constructor(private feedbackService: FeedbackService) {}
 
@@ -47,8 +49,8 @@ export class FeedbackComponent implements OnInit {
   }
 
   searchFeedback(event: Event) {
-      this.currentSearchText = (event.target as HTMLInputElement).value.trim().toLowerCase();
-      this.applyFilters();
+    this.currentSearchText = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    this.applyFilters();
   }
 
   applyFilters() {
@@ -71,9 +73,27 @@ export class FeedbackComponent implements OnInit {
       tempFeedbacks = tempFeedbacks.filter(feedback => feedback.reported === this.currentFilterType);
     }
 
+    // Apply simple reverse sort
+    if (this.sortDirection === 'desc') {
+      tempFeedbacks = tempFeedbacks.reverse();
+    }
+
+    // Log sorted feedbacks for debugging
+    console.log(`Sorted feedbacks (${this.sortDirection}):`, tempFeedbacks.map(feedback => ({
+      feedback_id: feedback.feedback_id || 'N/A',
+      tasker: `${feedback.tasker?.user?.first_name || ''} ${feedback.tasker?.user?.last_name || ''}`,
+      rating: feedback.rating || 'N/A',
+      created_at: feedback.created_at || 'N/A'
+    })));
+
     this.filteredFeedbacks = tempFeedbacks;
     this.currentPage = 1;
     this.updatePage();
+  }
+
+  public toggleSort() {
+    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    this.applyFilters();
   }
 
   updatePage() {
@@ -113,22 +133,8 @@ export class FeedbackComponent implements OnInit {
        endPage = Math.min(this.totalPages, maxButtons);
     }
 
-    if (startPage > 1) {
-      this.paginationButtons.push(1);
-      if (startPage > 2) {
-        this.paginationButtons.push('...');
-      }
-    }
-
     for (let i = startPage; i <= endPage; i++) {
       this.paginationButtons.push(i);
-    }
-
-    if (endPage < this.totalPages) {
-      if (endPage < this.totalPages - 1) {
-        this.paginationButtons.push('...');
-      }
-      this.paginationButtons.push(this.totalPages);
     }
   }
 

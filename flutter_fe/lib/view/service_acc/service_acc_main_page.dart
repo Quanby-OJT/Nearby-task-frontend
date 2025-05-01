@@ -39,10 +39,10 @@ class _ServiceAccMainState extends State<ServiceAccMain> {
         },
         children: [
           HomePage(),
-          ScheduleManagement(),
+          // ScheduleManagement(),
           ChatScreen(),
+          RecordTaskerPage(),
           LikeScreen(),
-          RecordTaskerPage()
         ],
       ),
       bottomNavigationBar: SizedBox(
@@ -63,22 +63,22 @@ class _ServiceAccMainState extends State<ServiceAccMain> {
               icon: FontAwesomeIcons.house,
               text: 'Home',
             ),
-            GButton(
-              icon: FontAwesomeIcons.clock,
-              text: 'Schedule',
-            ),
+            // GButton(
+            //   icon: FontAwesomeIcons.clock,
+            //   text: 'Schedule',
+            // ),
             GButton(
               icon: FontAwesomeIcons.solidMessage,
               text: 'Chat',
             ),
             GButton(
+              icon: FontAwesomeIcons.listCheck,
+              text: 'Tasks',
+            ),
+            GButton(
               icon: FontAwesomeIcons.solidHeart,
               text: 'Likes',
             ),
-            GButton(
-              icon: FontAwesomeIcons.listCheck,
-              text: 'Profile',
-            )
           ],
         ),
       ),

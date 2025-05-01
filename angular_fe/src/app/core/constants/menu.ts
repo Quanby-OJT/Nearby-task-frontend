@@ -30,7 +30,7 @@ export class Menu {
           icon: 'assets/icons/heroicons/outline/cube.svg',
           label: 'Tasks Management',
           route: '/tasks-management',
-          role: ['Moderator'],
+          role: ['Moderator', 'Admin'],
         },
         {
           icon: 'assets/icons/heroicons/outline/folder.svg',
@@ -42,6 +42,12 @@ export class Menu {
           icon: 'assets/icons/heroicons/outline/shield-exclamation.svg',
           label: 'User Complaints',
           route: '/complaints',
+          role: ['Moderator', 'Admin'],
+        },
+        {
+          icon: 'assets/icons/heroicons/outline/exclamation-triangle.svg',
+          label: 'Dispute Management',
+          route: '/dispute-management',
           role: ['Moderator', 'Admin'],
         },
         {

@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/address.dart';
 import 'package:flutter_fe/model/client_model.dart';
@@ -13,7 +12,6 @@ import '../model/user_model.dart';
 import '../service/api_service.dart';
 import '../model/tasker_model.dart';
 import '../model/auth_user.dart';
-import 'package:flutter_fe/model/document_model.dart';
 
 class ProfileController {
   //General Account Information
@@ -207,6 +205,12 @@ class ProfileController {
     }
     return null;
   }
+
+  //End Validation Methods
+  ///What if we instead integrate the validations into one method on fill_up.dart?
+  ///
+  /// -Ces
+  ///
 
 // Client field
   Future<void> updateUserData(BuildContext context, userId) async {

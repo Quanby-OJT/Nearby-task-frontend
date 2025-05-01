@@ -9,12 +9,12 @@
 
 <div class="flex w-full max-w-[1440px] mx-auto flex-col pb-3">
   <div class="flex w-full space-x-3">
-    <div class="flex-1 min-w-[300px] w-[50%] max-h-[400px] border border-gray-200 bg-white rounded-xl p-6 shadow-md overflow-auto box-border" (mouseenter)="stopAutoSwipe()" (mouseleave)="startAutoSwipe()">
+    <div class="flex-1 min-w-[300px] w-[50%] max-h-[400px] p-6 overflow-auto box-border" (mouseenter)="stopAutoSwipe()" (mouseleave)="startAutoSwipe()">
       <strong class="text-lg font-semibold">Client Complaints</strong>
       <app-client-complaint (reportSelected)="openModal($event)"></app-client-complaint>
     </div>
 
-    <div class="flex-1 min-w-[300px] w-[50%] max-h-[400px] border border-gray-200 bg-white rounded-xl p-6 shadow-md overflow-auto box-border" (mouseenter)="stopAutoSwipe()" (mouseleave)="startAutoSwipe()">
+    <div class="flex-1 min-w-[300px] w-[50%] max-h-[400px] p-6 overflow-auto box-border" (mouseenter)="stopAutoSwipe()" (mouseleave)="startAutoSwipe()">
       <strong class="text-lg font-semibold">Tasker Complaints</strong>
       <app-tasker-complaint (reportSelected)="openModal($event)"></app-tasker-complaint>
     </div>
@@ -23,10 +23,10 @@
 
 <div class="mb-4 flex justify-end pt-10 w-full max-w-[1440px] mx-auto px-4">
 <div class="flex space-x-4">
-  <button class="bg-[#E23670] text-[#F9F9F9] hover:bg-[#F07DA1] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportCSV()">
+  <button class="bg-[#3C28CC] text-[#F9F9F9] hover:bg-[#5F50E7] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportCSV()">
     Export CSV
   </button>
-  <button class="bg-[#E23670] text-[#F9F9F9] hover:bg-[#F07DA1] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportPDF()">
+  <button class="bg-[#3C28CC] text-[#F9F9F9] hover:bg-[#5F50E7] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportPDF()">
     Export PDF
   </button>
 </div>
@@ -57,30 +57,43 @@
       <table class="w-full border-collapse border-0 text-left text-sm">
         <thead class="border-b">
           <tr>
-            <th class="px-4 py-2 w-[80px] lg:w-[100px] ">Id</th>
-            <th class="px-4 py-2 text-center min-w-[140px] lg:min-w-[300px] xl:min-w-[250px] ">Reporter Name</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Violator Name</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Reporter Role</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Violator Role</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Date</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Status</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Action</th>
+            <th class="px-4 py-2 text-start min-w-[140px] lg:min-w-[300px] xl:min-w-[230px]">
+              <div class="flex items-center gap-1 cursor-pointer">
+                Reporter Name
+                <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" class="w-4 h-4" (click)="toggleSort()">
+              </div>
+            </th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Violator Name</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[200px]">Reporter Role</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[180px]">Violator Role</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[230px]">Date</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[240px]">Status</th>
+            <th class="px-4 py-2 text-start min-w-[80px] lg:min-w-[80px] xl:min-w-[80px]">Action</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let report of displayReports; let i = index" class="hover:bg-card/50 h-[60px]">
-            <td class="px-4 py-3 text-center">{{ i + 1 }}</td>
-            <td class="px-4 py-3 text-center">{{ report.reporter.first_name }} {{ report.reporter.middle_name }} {{ report.reporter.last_name }}</td>
-            <td class="px-4 py-3 text-center">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.violator.last_name }}</td>
-            <td class="px-4 py-3 text-center">{{ report.reporter.user_role }}</td>
-            <td class="px-4 py-3 text-center">{{ report.violator.user_role }}</td>
-            <td class="px-4 py-3 text-center">{{ report.created_at }}</td>
-            <td class="px-4 py-3 text-center">
-              <span [ngClass]="{'bg-green-500': report.status, 'bg-yellow-500': !report.status}" class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-yellow-500">{{ report.status ? 'Processed' : 'Pending' }}</span>
+            <td class="px-4 py-3 text-start">{{ report.reporter.first_name }} {{ report.reporter.middle_name }} {{ report.reporter.last_name }}</td>
+            <td class="px-4 py-3 text-start">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.violator.last_name }}</td>
+            <td class="px-4 py-3 text-start">{{ report.reporter.user_role }}</td>
+            <td class="px-4 py-3 text-start">{{ report.violator.user_role }}</td>
+            <td class="px-4 py-3 text-start">{{ report.created_at }}</td>
+            <td class="px-4 py-3 text-start">
+              <span 
+                [ngClass]="{
+                  'bg-green-500': report.status, 
+                  'bg-yellow-500': !report.status
+                }" 
+                class="inline-block w-[130px] py-1 px-7 text-sm font-semibold rounded-lg text-white text-center"
+              >
+                {{ report.status ? 'Processed' : 'Pending' }}
+              </span>
             </td>
-            <td class="flex items-center justify-center pt-3 pb-0">
-              <button (click)="openModal(report.report_id)" class="p-0 border-none bg-transparent cursor-pointer">
-                <img src="https://img.icons8.com/?size=100&id=cRLuJXPEgWhK&format=png&color=0000FF" alt="View Icon" class="w-5 h-5">
+            
+            <td class="flex items-start justify-start pt-3 pb-0 w-20">
+              <button (click)="openModal(report.report_id)" class="flex items-start text-blue-500 hover:opacity-70">
+                <img src="https://img.icons8.com/?size=100&id=cRLuJXPEgWhK&format=png&color=0000FF" alt="View Icon" class="w-5 h-5 mr-2">
+                View
               </button>
             </td>
           </tr>
@@ -165,30 +178,41 @@
       <table class="w-full border-collapse border-0 text-left text-sm">
         <thead class="border-b">
           <tr>
-            <th class="px-4 py-2 w-[80px] lg:w-[100px]  ">Id</th>
-            <th class="px-4 py-2 text-center min-w-[140px] lg:min-w-[300px] xl:min-w-[250px] ">Reporter Name</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Violator Name</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Reporter Role</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Violator Role</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Date</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Status</th>
-            <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Handled By</th>
+            <th class="px-4 py-2 text-start min-w-[140px] lg:min-w-[300px] xl:min-w-[230px]">
+              <div class="flex items-start gap-1 cursor-pointer">
+                Reporter Name
+                <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" class="w-4 h-4" (click)="toggleSort()">
+              </div>
+            </th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Violator Name</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[190px]">Reporter Role</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[190px]">Violator Role</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[240px]">Date</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[220px]">Status</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[150px]">Handled By</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let report of displayReports; let i = index" class="border-b hover:bg-card/50 h-[60px]">
-            <td class="px-4 py-3 text-center">{{ i + 1 }}</td>
-            <td class="px-4 py-3 text-center">{{ report.reporter.first_name }} {{ report.reporter.middle_name }} {{ report.reporter.last_name }}</td>
-            <td class="px-4 py-3 text-center">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.violator.last_name }}</td>
-            <td class="px-4 py-3 text-center">{{ report.reporter.user_role }}</td>
-            <td class="px-4 py-3 text-center">{{ report.violator.user_role }}</td>
-            <td class="px-4 py-3 text-center">{{ report.created_at }}</td>
-            <td class="px-4 py-3 text-center">
-              <span [ngClass]="{'bg-green-500': report.status, 'bg-yellow-500': !report.status}" class="py-1 px-7 text-sm font-semibold rounded-lg text-white bg-yellow-500">{{ report.status ? 'Processed' : 'Pending' }}</span>
+          <tr *ngFor="let report of displayReports" class="border-b hover:bg-card/50 h-[60px]">
+            <td class="px-4 py-3 text-start">{{ report.reporter.first_name }} {{ report.reporter.middle_name }} {{ report.reporter.last_name }}</td>
+            <td class="px-4 py-3 text-start">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.violator.last_name }}</td>
+            <td class="px-4 py-3 text-start">{{ report.reporter.user_role }}</td>
+            <td class="px-4 py-3 text-start">{{ report.violator.user_role }}</td>
+            <td class="px-4 py-3 text-start">{{ report.created_at }}</td>
+            <td class="px-4 py-3 text-start">
+              <span 
+                [ngClass]="{
+                  'bg-green-500': report.status, 
+                  'bg-yellow-500': !report.status
+                }" 
+                class="inline-block w-[130px] py-1 px-7 text-sm font-semibold rounded-lg text-white text-center"
+              >
+                {{ report.status ? 'Processed' : 'Pending' }}
+              </span>
             </td>
-            <td class="px-4 py-3 text-center"> {{ report.action_by ? report.actionBy.first_name + " " + report.actionBy.middle_name + " " + report.actionBy.last_name  : 'null' }} </td>
+            <td class="px-4 py-3 text-start"> {{ report.action_by ? report.actionBy.first_name + " " + report.actionBy.middle_name + " " + report.actionBy.last_name  : 'Empty' }} </td>
           </tr>
-          <!-- Placeholder rows to ensure total rows match reportsPerPage -->
+
           <tr *ngFor="let placeholder of placeholderRows" class="border-b">
             <td class="px-4 py-3 text-center"></td>
             <td class="px-4 py-3 text-center"></td>

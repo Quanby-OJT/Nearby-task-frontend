@@ -3,7 +3,6 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/task_model.dart';
-import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:get_storage/get_storage.dart';
@@ -90,7 +89,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
         _user = user;
         _role = user?.user.role;
 
-        debugPrint("Role: ${_role}");
+        debugPrint("Role: $_role");
         debugPrint("Print Id then: ${_user?.user.id}");
       });
     } catch (e) {
@@ -167,10 +166,6 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
     try {
       final assignmentStatuses = await Future.wait(
         tasks.map((task) async {
-          if (task.id == null) {
-            debugPrint("Skipping task with null ID");
-            return true; // Skip tasks with null ID
-          }
           try {
             // Check if the task has ever been assigned to this tasker
 
@@ -178,7 +173,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
 
             debugPrint("Checking task ${task.id} for tasker $taskerId");
             return await jobPostService.hasTaskEverBeenAssignedToTasker(
-                task.id!, taskerId, userId! as int);
+                task.id, taskerId, userId! as int);
           } catch (e) {
             debugPrint("Error checking task ${task.id}: $e");
             return false; // On error, assume not assigned to show the task
@@ -215,7 +210,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
             ),
           ),
         ),
-        content: Container(
+        content: SizedBox(
           width: double.maxFinite,
           height: tasks.length > 3 ? 300 : null,
           child: tasks.isEmpty
@@ -312,7 +307,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
       }
 
       final availableTasks =
-          await _filterAvailableTasks(clientTasks, widget.tasker.id!);
+          await _filterAvailableTasks(clientTasks, widget.tasker.id);
 
       debugPrint(
           "Available tasks: ${clientTasks.length} tasks ${widget.tasker.id}");
@@ -357,7 +352,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
 
         // Assign task
         final result = await taskController.assignTask(
-          selectedTask.id!,
+          selectedTask.id,
           int.parse(clientId),
           tasker.id ?? 0,
           _role ?? 'client',
@@ -380,7 +375,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
         if (isSuccess) {
           final jobPostService = JobPostService();
           jobPostService.updateAssignmentCache(
-              selectedTask.id!, tasker.id ?? 0, true, clientId!);
+              selectedTask.id, tasker.id ?? 0, true, clientId);
           TaskCache.clear(); // Invalidate cache
           _preloadClientTasks(); // Refresh preloaded tasks
         }
@@ -833,18 +828,8 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
 
   void _likeTasker() async {
     try {
-      if (widget.tasker.id == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Cannot like tasker: Invalid tasker ID"),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-
       final clientServices = ClientServices();
-      final result = await clientServices.saveLikedTasker(widget.tasker.id!);
+      final result = await clientServices.saveLikedTasker(widget.tasker.id);
 
       if (result.containsKey('message')) {
         // Show success message

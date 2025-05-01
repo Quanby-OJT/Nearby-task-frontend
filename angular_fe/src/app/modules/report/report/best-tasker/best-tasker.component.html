@@ -20,18 +20,18 @@
       <thead class="border-b">
         <tr class="bg-gray-100">
           <th class="px-4 py-2 w-[80px] lg:w-[100px]">No</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Tasker Name</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Specialization</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Overall Task Taken</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Tasker Name</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Specialization</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Overall Task Taken</th>
         </tr>
       </thead>
       <tbody>
         <!-- Dynamically display taskers -->
         <tr *ngFor="let tasker of displayTaskers; let i = index" class="hover:bg-card/50 h-[60px]">
-          <td class="px-4 py-3 text-center">{{ (currentPage - 1) * taskersPerPage + i + 1 }}</td>
-          <td class="px-4 py-3 text-center">{{ tasker.userName }}</td>
-          <td class="px-4 py-3 text-center">{{ tasker.specialization }}</td>
-          <td class="px-4 py-3 text-center">{{ tasker.taskCount }}</td>
+          <td class="px-4 py-3 text-start">{{ (currentPage - 1) * taskersPerPage + i + 1 }}</td>
+          <td class="px-4 py-3 text-start">{{ tasker.userName }}</td>
+          <td class="px-4 py-3 text-start">{{ tasker.specialization }}</td>
+          <td class="px-4 py-3 text-start">{{ tasker.taskCount }}</td>
         </tr>
       </tbody>
     </table>

@@ -4,14 +4,17 @@
     <h3 class="text-foreground font-semibold">Task Management</h3>
     <div class="text-muted-foreground text-xs font-medium">
       <a href="#" class="hover:text-primary">Dashboards > Task Management</a>
-    </div>
+    </div> 
   </div>
   <div class="flex space-x-4">
-    <button class="bg-[#E23670] text-[#F9F9F9] hover:bg-[#F07DA1] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportCSV()">
+    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportCSV()">
       Export CSV
     </button>
-    <button class="bg-[#E23670] text-[#F9F9F9] hover:bg-[#F07DA1] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportPDF()">
+    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportPDF()">
       Export PDF
+    </button>
+    <button *ngIf="userRole === 'Admin'" class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-110 transition-transform duration-500" (click)="createSpecialization()">
+      Create Specialization
     </button>
   </div>
 </div>
@@ -28,7 +31,7 @@
           <div class="absolute left-2.5 top-1/2 -translate-y-1/2">
             <svg-icon src="./assets/icons/heroicons/outline/magnifying-glass.svg" [svgClass]="'h-4 w-4'"> </svg-icon>
           </div>
-          <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" 
+          <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md"
                  placeholder="Search client name" type="text" (input)="searchTasks($event)" />
         </label>
       </div>
@@ -36,8 +39,8 @@
       <select name="status" class="text-muted-foreground w-28! p-2 border rounded-md" (change)="filterTasks($event)">
         <option value="">All Status</option>
         <option value="available">Available</option>
-        <option value="taken">Taken</option>
-        <option value="completed">Completed</option>
+        <option value="already taken">Taken</option>
+        <option value="closed">Closed</option>
       </select>
     </div>
   </div>
@@ -47,43 +50,43 @@
     <table class="w-full border-collapse border-0 text-left text-sm">
       <thead class="border-b">
         <tr>
-          <th class="px-4 py-2 w-[10px] lg:w-[20px] ">Id</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Client Id</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px] ">Client</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Task Title</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Specialization</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Proposed Price</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Location</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Urgent</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Status</th>
-          <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px] ">Action</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">
+            <div class="flex items-center gap-1 cursor-pointer">
+              Client
+              <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" class="w-4 h-4" (click)="toggleSort()">
+            </div>
+          </th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[500px] ">Task Title</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[260px] ">Specialization</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[220px] ">Proposed Price</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[330px] ">Location</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[150px] ">Urgent</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[230px] ">Status</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[100px] ">Action</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let task of displayedTasks; let i = index" class="hover:bg-card/50 h-[60px]">
-          <td class="px-4 py-3 text-center">{{ i + 1 }}</td>
-          <td class="px-4 py-3 text-center">{{ task?.clients?.client_id ?? task.client_id ?? '' }}</td>
-          <td class="px-4 py-3 text-center">{{ task.clients.user.first_name }} {{ task.clients.user.middle_name || '' }} {{ task.clients.user.last_name }}</td>
-          <td class="px-4 py-3 text-center">{{ task.task_title || '' }}</td>
-          <td class="px-4 py-3 text-center">{{ task.specialization || '' }}</td>
-          <td class="px-4 py-3 text-center">{{ task.proposed_price || 0 }}</td>
-          <td class="px-4 py-3 text-center">{{ task.location || '' }}</td>
-          <td class="px-4 py-3 text-center">{{ task.urgent ? 'Yes' : 'No' }}</td>
-          <td class="px-4 py-3 text-center">
+          <td class="px-4 py-3 text-start">{{ task.clients.user.first_name }} {{ task.clients.user.middle_name || '' }} {{ task.clients.user.last_name }}</td>
+          <td class="px-4 py-3 text-start">{{ task.task_title || '' }}</td>
+          <td class="px-4 py-3 text-start">{{ task.specialization || '' }}</td>
+          <td class="px-4 py-3 text-start">{{ task.proposed_price || 0 }}</td>
+          <td class="px-4 py-3 text-start">{{ task.location || '' }}</td>
+          <td class="px-4 py-3 text-start">{{ task.urgent ? 'Yes' : 'No' }}</td>
+          <td class="px-4 py-3 text-start">
           <span
             class="py-1 text-sm font-semibold rounded-lg text-white inline-block text-center w-32"
             [ngClass]="{
               'bg-green-500': task.status === 'Available',
               'bg-red-400': task.status === 'Closed',
-              'bg-yellow-400': task.status === 'Already Taken'
-            }">
+              'bg-yellow-400': task.status === 'Already Taken'}">
             {{ task.status || 'Empty' }}
           </span>
           </td>
 
-          <td class="flex items-center justify-center pt-3 pb-0">
-            <button (click)="disableTask(task.task_id)" class="p-0 border-none bg-transparent cursor-pointer">
-              <span class="text-[#F9F9F9] bg-red-400 w-300px py-1 px-7 text-sm font-semibold rounded-lg">Disable</span>
+          <td class="px-4 py-3 text-start">
+            <button class="p-0 border-none bg-transparent cursor-pointer hover:scale-150 transition-transform duration-500">
+              <img src="https://img.icons8.com/?size=100&id=54137&format=png&color=FA5252" (click)="disableTask(task.task_id)" class="h-5 w-5">
             </button>
           </td>
         </tr>
@@ -110,7 +113,7 @@
     <div class="text-muted-foreground flex items-center justify-between py-3 px-5 text-xs">
       <div class="flex items-center gap-2">
         Show
-        <select class="w-35 p-5 border rounded-md" (change)="changeTasksPerPage($event)">
+        <select class="w-[140px] p-2 border rounded-md" (change)="changeTasksPerPage($event)">
           <option value="5" selected>5</option>
           <option value="10">10</option>
           <option value="20">20</option>

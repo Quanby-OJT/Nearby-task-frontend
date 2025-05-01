@@ -39,9 +39,9 @@ class _BusinessAccMainState extends State<BusinessAccMain> {
         children: [
           HomePage(),
           JobPostPage(),
+          RecordPage(),
           ChatScreen(),
           LikesScreen(),
-          RecordPage()
         ],
       ),
       bottomNavigationBar: SizedBox(
@@ -67,6 +67,10 @@ class _BusinessAccMainState extends State<BusinessAccMain> {
               text: 'Post',
             ),
             GButton(
+              icon: FontAwesomeIcons.listCheck,
+              text: 'Tasks',
+            ),
+            GButton(
               icon: FontAwesomeIcons.solidMessage,
               text: 'Chat',
             ),
@@ -74,10 +78,6 @@ class _BusinessAccMainState extends State<BusinessAccMain> {
               icon: FontAwesomeIcons.solidHeart,
               text: 'Likes',
             ),
-            GButton(
-              icon: FontAwesomeIcons.listCheck,
-              text: 'Action',
-            )
           ],
         ),
       ),

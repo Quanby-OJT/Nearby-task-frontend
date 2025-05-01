@@ -1,0 +1,64 @@
+<div class="mb-4 flex justify-between w-full max-w-[1440px] mx-auto px-4">
+  <div>
+    <h3 class="text-foreground font-semibold">Task Management</h3>
+    <div class="text-muted-foreground text-xs font-medium">
+      <a href="#" class="hover:text-primary">Dashboards > Task Management > Create Specialization</a>
+    </div>
+  </div>
+</div>
+
+<div class="overflow-x-auto w-full max-w-[1440px] mx-auto px-4">
+  <form class="w-full border-collapse border-0 text-left text-sm bg-white p-6 rounded-lg shadow-md">
+
+    <div class="flex justify-end mb-4">
+      <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-110 transition-transform duration-500 w-28" (click)="taskListPage()">
+        <span class="text-sm">Back</span>
+      </button>
+    </div>
+
+    <div class="bg-white p-6 rounded-lg">
+      <h2 class="text-lg font-semibold mb-3">Add Specialization</h2>
+      <div class="flex flex-col justify-between">
+        <div>
+          <div class="grid grid-cols-1 gap-4 w-100">
+            <div>
+              <input type="text" [(ngModel)]="specializationName" name="specializationName" class="p-2 border border-gray-400 rounded-md" placeholder="Enter specialization name" [class.border-red-500]="!specializationName && submitted"/>
+              <div *ngIf="!specializationName && submitted" class="text-red-500 text-xs mt-1">
+                Specialization name is required.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 flex gap-4">
+          <button (click)="addSpecialization()" class="w-100 bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-105 transition-transform duration-500" [disabled]="!specializationName">
+            Submit
+          </button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto mt-6 rounded-lg overflow-hidden">
+        <div class="max-h-[300px] overflow-y-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="bg-white sticky top-0">
+                <th class=" p-2 text-start text-sm font-medium">Specialization List</th>
+                <th class="p-2 text-start text-sm font-medium">Date Created</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let specialization of specializations; let i = index" class="hover:bg-card/50 h-[60px]">
+                <td class="p-2 text-sm text-start"> {{ i + 1 }}. {{ specialization.specialization }}</td>
+                <td class="p-2 text-sm text-start"> {{ specialization.created_at }}</td>
+              </tr>
+              <tr *ngIf="!specializations || specializations.length === 0">
+                <td class="p-2 text-sm text-white" colspan="2">No specializations available</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </form>
+</div>

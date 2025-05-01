@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
-import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
-import 'package:flutter_fe/service/auth_service.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/service/tasker_service.dart';
 import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/nav/user_navigation.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -39,7 +36,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   List<TaskerFeedback> taskerFeedback = [];
   String? _errorMessage;
   int? cardNumber = 0;
-  Map<int, List<TaskerFeedback>> _taskerFeedbacks = {};
+  final Map<int, List<TaskerFeedback>> _taskerFeedbacks = {};
 
   AuthenticatedUser? _user;
   String? _existingProfileImageUrl;
@@ -50,7 +47,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   bool _isUploadDialogShown = false;
   bool _showButton = false;
 
-  double _currentRating = 0;
+  final double _currentRating = 0;
 
   String? _selectedSpecialization;
   List<String> _specializations = ['All'];
@@ -244,73 +241,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       ),
     );
   }
-
-  // void _showRatingDialog(UserModel tasker) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) => AlertDialog(
-  //       title: Text('Rate ${tasker.firstName}'),
-  //       content: Column(
-  //         mainAxisSize: MainAxisSize.min,
-  //         children: [
-  //           Text('How would you rate your experience?'),
-  //           SizedBox(height: 20),
-  //           Row(
-  //             mainAxisAlignment: MainAxisAlignment.center,
-  //             children: List.generate(5, (index) {
-  //               return IconButton(
-  //                 icon: Icon(
-  //                   index < _currentRating ? Icons.star : Icons.star_border,
-  //                   color: Colors.amber,
-  //                 ),
-  //                 onPressed: () {
-  //                   setState(() {
-  //                     _currentRating = index + 1;
-  //                   });
-  //                 },
-  //               );
-  //             }),
-  //           ),
-  //         ],
-  //       ),
-  //       actions: [
-  //         TextButton(
-  //           onPressed: () => Navigator.pop(context),
-  //           child: Text('Cancel'),
-  //         ),
-  //         ElevatedButton(
-  //           onPressed: () async {
-  //             await _submitRating(tasker.id!, _currentRating);
-  //             Navigator.pop(context);
-  //           },
-  //           child: Text('Submit'),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-  //
-  // Future<void> _submitRating(int taskerId, double rating) async {
-  //   try {
-  //     final result = await _clientServices.submitTaskerRating(taskerId, rating);
-  //     if (result['success']) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(
-  //           content: Text('Rating submitted successfully!'),
-  //           backgroundColor: Colors.green,
-  //         ),
-  //       );
-  //       await _fetchTaskers();
-  //     }
-  //   } catch (e) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text('Error submitting rating'),
-  //         backgroundColor: Colors.red,
-  //       ),
-  //     );
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {

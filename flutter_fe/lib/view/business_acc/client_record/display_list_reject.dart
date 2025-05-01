@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/notificationController.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
-import 'package:flutter_fe/view/business_acc/client_record/client_ongoing.dart';
 import 'package:flutter_fe/view/business_acc/client_record/client_rejected.dart';
-import 'package:flutter_fe/view/notification/display_task_status.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -108,7 +106,7 @@ class _DisplayListRecordRejectState extends State<DisplayListRecordReject> {
       child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : requestData.isEmpty
-              ? _buildEmptyState("No ongoing tasks available!")
+              ? _buildEmptyState("No rejected Tasks!")
               : ListView.builder(
                   itemCount: requestData.length,
                   itemBuilder: (context, index) {
@@ -222,7 +220,7 @@ class _DisplayListRecordRejectState extends State<DisplayListRecordReject> {
           ),
           SizedBox(height: 8),
           Text(
-            "Make sure to assign or create a new task.",
+            "All of Your Rejected Tasks will be displayed here.",
             style: GoogleFonts.montserrat(
               fontSize: 14,
               color: Colors.grey,
@@ -239,7 +237,7 @@ class _DisplayListRecordRejectState extends State<DisplayListRecordReject> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Ongoing Task',
+          'Rejected Tasks',
           style: GoogleFonts.montserrat(
             color: Color(0xFF0272B1),
             fontWeight: FontWeight.w600,
