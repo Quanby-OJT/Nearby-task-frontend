@@ -6,7 +6,7 @@ import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/view/business_acc/create_escrow_token.dart';
 
 import 'package:flutter_fe/view/business_acc/notif_screen.dart';
-import 'package:flutter_fe/view/business_acc/profile_screen.dart';
+import 'package:flutter_fe/view/profile/profile_screen.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/service_acc/fill_up.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
