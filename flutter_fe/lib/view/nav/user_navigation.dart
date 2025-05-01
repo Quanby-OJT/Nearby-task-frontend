@@ -342,14 +342,14 @@ class _NavUserScreenState extends State<NavUserScreen> {
                           leading: Icon(FontAwesomeIcons.coins),
                           title: Text('Add NearByTask Tokens'),
                           onTap: () {
-                            // if (_existingProfileImageUrl == null ||
-                            //     _existingIDImageUrl == null ||
-                            //     _existingProfileImageUrl!.isEmpty ||
-                            //     _existingIDImageUrl!.isEmpty ||
-                            //     !_documentValid) {
-                            //   overlayEntry.remove();
-                            //   return _showWarningDialog();
-                            // }
+                            if (_existingProfileImageUrl == null ||
+                                _existingIDImageUrl == null ||
+                                _existingProfileImageUrl!.isEmpty ||
+                                _existingIDImageUrl!.isEmpty ||
+                                !_documentValid) {
+                              overlayEntry.remove();
+                              return _showWarningDialog();
+                            }
                             Navigator.push(context,
                                 MaterialPageRoute(builder: (context) {
                               return EscrowTokenScreen();
