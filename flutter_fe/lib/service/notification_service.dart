@@ -65,6 +65,7 @@ class NotificationService {
   Future<Map<String, dynamic>> getRejectedRequests(int userId) async {
     try {
       final data = await _getRequest("/notifications-tasker-reject/$userId");
+      debugPrint("Rejected Requests: $data");
       return data;
     } catch (e, st) {
       debugPrint("Service error: $e\nStacktrace: $st");

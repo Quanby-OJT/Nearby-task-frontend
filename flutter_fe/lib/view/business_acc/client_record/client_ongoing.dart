@@ -38,6 +38,18 @@ class _ClientOngoingState extends State<ClientOngoing> {
   Timer? _timer;
   String _requestStatus = 'Unknown';
 
+  // Feedback Bottom Sheet State
+  int _rating = 0;
+  final TextEditingController _feedbackController = TextEditingController();
+  final TextEditingController _reportController = TextEditingController();
+  bool _isSatisfied = true;
+
+  // Dispute Bottom Sheet State
+  final TextEditingController _disputeTypeController = TextEditingController();
+  final TextEditingController _disputeDetailsController = TextEditingController();
+  final List<File> _imageEvidence = [];
+  final ImagePicker _picker = ImagePicker();
+
   @override
   void initState() {
     super.initState();
@@ -47,13 +59,17 @@ class _ClientOngoingState extends State<ClientOngoing> {
   @override
   void dispose() {
     _timer?.cancel();
+    _feedbackController.dispose();
+    _reportController.dispose();
+    _disputeTypeController.dispose();
+    _disputeDetailsController.dispose();
     super.dispose();
   }
 
   Future<void> _fetchTaskerDetails(int userId) async {
     try {
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+      await _profileController.getAuthenticatedUser(context, userId);
       setState(() {
         tasker = user;
       });
@@ -68,7 +84,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
   Future<void> _fetchRequestDetails() async {
     try {
       final response =
-          await _jobPostService.fetchRequestInformation(widget.ongoingID ?? 0);
+      await _jobPostService.fetchRequestInformation(widget.ongoingID ?? 0);
       debugPrint("Task Status: ${response.task_status}");
       setState(() {
         _requestInformation = response;
@@ -136,9 +152,25 @@ class _ClientOngoingState extends State<ClientOngoing> {
     return '${days}d ${hours}h ${minutes}m';
   }
 
-  Future<void> _handleFinishTask() async {
-    debugPrint("_requestInformation: $_requestInformation");
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickMultiImage(
+      imageQuality: 100,
+      maxWidth: 1000,
+      maxHeight: 1000,
+    );
 
+    List<XFile> xFilePick = pickedFile;
+
+    if (xFilePick.isNotEmpty) {
+      for (int i = 0; i < xFilePick.length; i++) {
+        setState(() {
+          _imageEvidence.add(File(xFilePick[i].path));
+        });
+      }
+    }
+  }
+
+  Future<void> _handleFinishTask() async {
     if (_requestInformation == null ||
         _requestInformation!.task_taken_id == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -153,59 +185,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => _FeedbackBottomSheet(
-        onFeedbackSubmit: (int rating, String feedback, String? report) async {
-          setState(() {
-            _isLoading = true;
-          });
-          try {
-            bool result = await taskController.acceptRequest(
-              _requestInformation?.task_taken_id ?? 0,
-              'Finish',
-              widget.role ?? '',
-            );
-
-            bool result2 = await taskController.rateTheTasker(
-                _requestInformation?.task_taken_id ?? 0,
-                _requestInformation?.tasker_id ?? 0,
-                rating,
-                feedback);
-            if (result && result2) {
-              if (!mounted) return;
-
-              setState(() {
-                _requestStatus = 'Completed';
-              });
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ClientFinish(
-                    finishID: _requestInformation?.task_taken_id ?? 0,
-                    role: widget.role,
-                  ),
-                ),
-              );
-            } else {
-              if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Failed to finish task')),
-              );
-            }
-          } catch (e, stackTrace) {
-            debugPrint("Error finishing task: $e.");
-            debugPrintStack(stackTrace: stackTrace);
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Error occurred')),
-              );
-            }
-          } finally {
-            setState(() {
-              _isLoading = false;
-            });
-          }
-        },
-      ),
+      builder: (context) => _buildFeedbackBottomSheet(),
     );
   }
 
@@ -224,64 +204,431 @@ class _ClientOngoingState extends State<ClientOngoing> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (childContext) => _DisputeBottomSheet(
-        onDisputeSubmit: (String reasonForDispute, String disputeDetails,
-            List<File> imageEvidence) async {
-          setState(() {
-            _isLoading = true;
-          });
-          try {
-            bool result = await taskController.raiseADispute(
-                _requestInformation?.task_taken_id ?? 0,
-                'Disputed',
-                widget.role ?? '',
-                reasonForDispute,
-                disputeDetails,
-                imageEvidence);
+      builder: (childContext) => _buildDisputeBottomSheet(),
+    );
+  }
 
-            if (result) {
-              if (!mounted) return;
-              setState(() {
-                _requestStatus = 'Completed';
-              });
-              Navigator.push(
-                childContext,
-                MaterialPageRoute(
-                    builder: (context) => DisplayListRecordOngoing()),
-              );
-              ScaffoldMessenger.of(childContext).showMaterialBanner(MaterialBanner(
-                  backgroundColor: Color(0XFFD6932A),
-                  content: Text(
-                      "Dispute has been Raised. Wait for the Tasker to respond."),
-                  actions: [
-                    TextButton(
-                        onPressed: Navigator.of(childContext).pop,
-                        child: Text('Dismiss'))
-                  ]));
-            } else {
-              ScaffoldMessenger.of(childContext).showSnackBar(
-                SnackBar(
-                    content:
-                        Text('Failed to raise dispute. Please Try Again.')),
-              );
-            }
-          } catch (e, stackTrace) {
-            debugPrint("Error finishing task: $e.");
-            debugPrintStack(stackTrace: stackTrace);
-            ScaffoldMessenger.of(childContext).showSnackBar(
-              SnackBar(content: Text('Error occurred')),
-            );
-          } finally {
-            setState(() {
-              _isLoading = false;
-            });
-          }
-        },
+  Widget _buildFeedbackBottomSheet() {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+        left: 16,
+        right: 16,
+        top: 16,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Rate & Review Tasker',
+              style: GoogleFonts.montserrat(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF03045E),
+              ),
+            ),
+            SizedBox(height: 16),
+            // Rating Stars
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(5, (index) {
+                return IconButton(
+                  icon: Icon(
+                    index < _rating ? Icons.star : Icons.star_border,
+                    color: Colors.amber,
+                    size: 36,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _rating = index + 1;
+                      _isSatisfied = _rating > 2;
+                    });
+                  },
+                );
+              }),
+            ),
+            SizedBox(height: 16),
+            // Feedback Field
+            Text(
+              'Feedback',
+              style: GoogleFonts.montserrat(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF03045E),
+              ),
+            ),
+            SizedBox(height: 8),
+            TextField(
+              controller: _feedbackController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                hintText: 'Share your experience...',
+                hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Color(0xFF03045E)),
+                ),
+              ),
+              style: GoogleFonts.montserrat(fontSize: 14),
+            ),
+            if (!_isSatisfied) ...[
+              SizedBox(height: 16),
+              Text(
+                'Report Issue',
+                style: GoogleFonts.montserrat(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.red[700],
+                ),
+              ),
+              SizedBox(height: 8),
+              TextField(
+                controller: _reportController,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: 'Describe the issue for reporting...',
+                  hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.red[700]!),
+                  ),
+                ),
+                style: GoogleFonts.montserrat(fontSize: 14),
+              ),
+            ],
+            SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  if (_rating == 0) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Please provide a rating')),
+                    );
+                    return;
+                  }
+                  setState(() {
+                    _isLoading = true;
+                  });
+                  try {
+                    bool result = await taskController.acceptRequest(
+                      _requestInformation?.task_taken_id ?? 0,
+                      'Finish',
+                      widget.role ?? '',
+                    );
+
+                    bool result2 = await taskController.rateTheTasker(
+                        _requestInformation?.task_taken_id ?? 0,
+                        _requestInformation?.tasker_id ?? 0,
+                        _rating,
+                        _feedbackController.text);
+                    if (result && result2) {
+                      if (!mounted) return;
+
+                      setState(() {
+                        _requestStatus = 'Completed';
+                      });
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ClientFinish(
+                            finishID: _requestInformation?.task_taken_id ?? 0,
+                            role: widget.role,
+                          ),
+                        ),
+                      );
+                    } else {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to finish task')),
+                      );
+                    }
+                  } catch (e, stackTrace) {
+                    debugPrint("Error finishing task: $e.");
+                    debugPrintStack(stackTrace: stackTrace);
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error occurred')),
+                      );
+                    }
+                  } finally {
+                    setState(() {
+                      _isLoading = false;
+                    });
+                  }
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF03045E),
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 2,
+                ),
+                child: Text(
+                  'Submit Feedback & Release Payment',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+          ],
+        ),
       ),
     );
   }
 
-  //General Information About the Task and Tasker
+  Widget _buildDisputeBottomSheet() {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+        left: 16,
+        right: 16,
+        top: 16,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Text(
+                'File a Dispute',
+                style: GoogleFonts.montserrat(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF03045E),
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Reason for Dispute',
+              style: GoogleFonts.montserrat(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF03045E),
+              ),
+            ),
+            SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              value: _disputeTypeController.text.isEmpty
+                  ? '--Select Reason of Dispute--'
+                  : _disputeTypeController.text,
+              items: <String>[
+                '--Select Reason of Dispute--',
+                'Poor Quality of Work',
+                'Breach of Contract',
+                'Task Still Not Completed',
+                'Tasker Did Not Finish what\'s Required',
+                'Others (Provide Details)'
+              ].map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child:
+                  Text(value, style: GoogleFonts.montserrat(fontSize: 14)),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                setState(() {
+                  _disputeTypeController.text = newValue ?? '';
+                });
+              },
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Details of the Dispute',
+              style: GoogleFonts.montserrat(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF03045E),
+              ),
+            ),
+            SizedBox(height: 8),
+            TextField(
+              controller: _disputeDetailsController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                hintText: 'Provide Details About the Dispute',
+                hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Color(0xFF03045E)),
+                ),
+              ),
+              style: GoogleFonts.montserrat(fontSize: 14),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Provide some Evidence',
+              style: GoogleFonts.montserrat(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF03045E),
+              ),
+            ),
+            SizedBox(height: 8),
+            GestureDetector(
+              onTap: _pickImage,
+              child: Container(
+                height: 120,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey[300]!),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: _imageEvidence.isNotEmpty
+                    ? SizedBox(
+                  width: 300.0,
+                  child: GridView.builder(
+                    itemCount: _imageEvidence.length,
+                    gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                    ),
+                    itemBuilder: (BuildContext context, int index) {
+                      return Center(
+                        child: kIsWeb
+                            ? Image.network(_imageEvidence[index].path)
+                            : Image.file(_imageEvidence[index]),
+                      );
+                    },
+                  ),
+                )
+                    : const Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(FontAwesomeIcons.fileImage,
+                          size: 40, color: Colors.grey),
+                      SizedBox(width: 8),
+                      Text(
+                        'Upload Photos (Screenshots, Actual Work)',
+                        style:
+                        TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  setState(() {
+                    _isLoading = true;
+                    _fetchRequestDetails();
+                  });
+                  Navigator.pop(context);
+                  try {
+                    bool result = await taskController.raiseADispute(
+                      _requestInformation?.task_taken_id ?? 0,
+                      'Disputed',
+                      widget.role ?? '',
+                      _disputeTypeController.text,
+                      _disputeDetailsController.text,
+                      _imageEvidence,
+                    );
+
+                    if (result) {
+                      if (!mounted) return;
+                      setState(() {
+                        _requestStatus = 'Disputed';
+                      });
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     builder: (context) => DisplayListRecordOngoing(),
+                      //   ),
+                      // );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Failed to raise dispute. Please Try Again.'),
+                        ),
+                      );
+                    }
+                  } catch (e, stackTrace) {
+                    debugPrint("Error raising dispute: $e.");
+                    debugPrintStack(stackTrace: stackTrace);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error occurred')),
+                    );
+                  } finally {
+                    setState(() {
+                      _isLoading = false;
+                      _fetchRequestDetails();
+                    });
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF03045E),
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 2,
+                ),
+                child: Text(
+                  'Open a Dispute',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -306,37 +653,37 @@ class _ClientOngoingState extends State<ClientOngoing> {
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: Color(0xFF03045E)))
           : _taskInformation == null
-              ? Center(
-                  child: Text(
-                    'No task information available',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 16,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                )
-              : SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (_requestStatus == 'Ongoing') _buildTimerSection(),
-                        if (_requestStatus == 'Disputed')
-                          _buildDisputeSection(),
-                        if (_requestStatus == 'Completed')
-                          _buildCompletionSection(),
-                        SizedBox(height: 16),
-                        _buildTaskCard(),
-                        SizedBox(height: 16),
-                        _buildProfileCard(),
-                        SizedBox(height: 24),
-                        if (_requestStatus != 'Completed') _buildActionButton(),
-                        if (_requestStatus == 'Completed') _buildBackButton(),
-                      ],
-                    ),
-                  ),
-                ),
+          ? Center(
+        child: Text(
+          'No task information available',
+          style: GoogleFonts.montserrat(
+            fontSize: 16,
+            color: Colors.grey[600],
+          ),
+        ),
+      )
+          : SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (_requestStatus == 'Ongoing') _buildTimerSection(),
+              if (_requestStatus == 'Disputed')
+                _buildDisputeSection(),
+              if (_requestStatus == 'Completed')
+                _buildCompletionSection(),
+              SizedBox(height: 16),
+              _buildTaskCard(),
+              SizedBox(height: 16),
+              _buildProfileCard(),
+              SizedBox(height: 24),
+              if (_requestStatus != 'Completed' && _requestStatus != 'Disputed') _buildActionButton(),
+              if (_requestStatus == 'Completed' || _requestStatus == 'Disputed') _buildBackButton(),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -369,7 +716,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
             'Please Wait for Our Team to review your dispute and file Appropriate Action.',
             textAlign: TextAlign.center,
             style:
-                GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
+            GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
       ),
@@ -610,44 +957,23 @@ class _ClientOngoingState extends State<ClientOngoing> {
   }
 
   Widget _buildActionButton() {
-    return Column(children: [
-      ElevatedButton(
-        onPressed: _handleFinishTask,
-        style: ElevatedButton.styleFrom(
-          minimumSize: Size(double.infinity, 50),
-          backgroundColor: Color(0xFF3E9B52),
-          padding: EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 2,
-        ),
-        child: Text(
-          _requestInformation?.task_status != 'Disputed'
-              ? 'Finish Task and Release Payment'
-              : 'Settle Dispute and Release Payment',
-          style: GoogleFonts.montserrat(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-      ),
-      SizedBox(height: 16),
-      if (_requestInformation?.task_status != 'Disputed')
+    return Column(
+      children: [
         ElevatedButton(
-          onPressed: _handleTaskDispute,
+          onPressed: _handleFinishTask,
           style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xFFA73140),
+            minimumSize: Size(double.infinity, 50),
+            backgroundColor: Color(0xFF3E9B52),
             padding: EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
             elevation: 2,
-            minimumSize: Size(double.infinity, 50),
           ),
           child: Text(
-            'File a Dispute',
+            _requestInformation?.task_status != 'Dispute Settled'
+                ? 'Finish Task and Release Payment'
+                : 'Settle Dispute and Release Payment',
             style: GoogleFonts.montserrat(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -655,7 +981,30 @@ class _ClientOngoingState extends State<ClientOngoing> {
             ),
           ),
         ),
-    ]);
+        SizedBox(height: 16),
+        if (_requestInformation?.task_status != 'Disputed')
+          ElevatedButton(
+            onPressed: _handleTaskDispute,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFFA73140),
+              padding: EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 2,
+              minimumSize: Size(double.infinity, 50),
+            ),
+            child: Text(
+              'File a Dispute',
+              style: GoogleFonts.montserrat(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ),
+      ],
+    );
   }
 
   Widget _buildTaskInfoRow(
@@ -724,417 +1073,6 @@ class _ClientOngoingState extends State<ClientOngoing> {
           ),
         ),
       ],
-    );
-  }
-}
-
-//Finish Task and Release Payment
-class _FeedbackBottomSheet extends StatefulWidget {
-  final Function(int rating, String feedback, String? report) onFeedbackSubmit;
-
-  const _FeedbackBottomSheet({required this.onFeedbackSubmit});
-
-  @override
-  __FeedbackBottomSheetState createState() => __FeedbackBottomSheetState();
-}
-
-class __FeedbackBottomSheetState extends State<_FeedbackBottomSheet> {
-  int _rating = 0;
-  final TextEditingController _feedbackController = TextEditingController();
-  final TextEditingController _reportController = TextEditingController();
-  bool _isSatisfied = true;
-
-  @override
-  void dispose() {
-    _feedbackController.dispose();
-    _reportController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: 16,
-        right: 16,
-        top: 16,
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Rate & Review Tasker',
-              style: GoogleFonts.montserrat(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF03045E),
-              ),
-            ),
-            SizedBox(height: 16),
-            // Rating Stars
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (index) {
-                return IconButton(
-                  icon: Icon(
-                    index < _rating ? Icons.star : Icons.star_border,
-                    color: Colors.amber,
-                    size: 36,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _rating = index + 1;
-                      _isSatisfied = _rating > 2;
-                    });
-                  },
-                );
-              }),
-            ),
-            SizedBox(height: 16),
-            // Feedback Field
-            Text(
-              'Feedback',
-              style: GoogleFonts.montserrat(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF03045E),
-              ),
-            ),
-            SizedBox(height: 8),
-            TextField(
-              controller: _feedbackController,
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: 'Share your experience...',
-                hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Color(0xFF03045E)),
-                ),
-              ),
-              style: GoogleFonts.montserrat(fontSize: 14),
-            ),
-            if (!_isSatisfied) ...[
-              SizedBox(height: 16),
-              Text(
-                'Report Issue',
-                style: GoogleFonts.montserrat(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.red[700],
-                ),
-              ),
-              SizedBox(height: 8),
-              TextField(
-                controller: _reportController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  hintText: 'Describe the issue for reporting...',
-                  hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.red[700]!),
-                  ),
-                ),
-                style: GoogleFonts.montserrat(fontSize: 14),
-              ),
-            ],
-            SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  if (_rating == 0) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Please provide a rating')),
-                    );
-                    return;
-                  }
-                  widget.onFeedbackSubmit(
-                    _rating,
-                    _feedbackController.text,
-                    _isSatisfied ? null : _reportController.text,
-                  );
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF03045E),
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 2,
-                ),
-                child: Text(
-                  'Submit Feedback & Release Payment',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _DisputeBottomSheet extends StatefulWidget {
-  final Function(
-          String reasonForDispute, String raisedBy, List<File> imageEvidence)
-      onDisputeSubmit;
-
-  const _DisputeBottomSheet({required this.onDisputeSubmit});
-
-  @override
-  __DisputeBottomSheetState createState() => __DisputeBottomSheetState();
-}
-
-class __DisputeBottomSheetState extends State<_DisputeBottomSheet> {
-  final TextEditingController _disputeTypeController = TextEditingController();
-  final TextEditingController _disputeDetailsController =
-      TextEditingController();
-  final List<File> _imageEvidence = [];
-
-  final ImagePicker _picker = ImagePicker();
-
-  @override
-  void dispose() {
-    _disputeTypeController.dispose();
-    _disputeDetailsController.dispose();
-    super.dispose();
-  }
-
-  Future _pickImage() async {
-    final pickedFile = await _picker.pickMultiImage(
-      imageQuality: 100,
-      maxWidth: 1000,
-      maxHeight: 1000,
-    );
-
-    List<XFile> xFilePick = pickedFile;
-
-    if (xFilePick.isNotEmpty) {
-      for (int i = 0; i < xFilePick.length; i++) {
-        setState(() {
-          _imageEvidence.add(File(xFilePick[i].path));
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: 16,
-        right: 16,
-        top: 16,
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Text(
-                'File a Dispute',
-                style: GoogleFonts.montserrat(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF03045E),
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Reason for Dispute',
-              style: GoogleFonts.montserrat(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF03045E),
-              ),
-            ),
-            SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              value: _disputeTypeController.text.isEmpty
-                  ? '--Select Reason of Dispute--'
-                  : _disputeTypeController.text,
-              items: <String>[
-                '--Select Reason of Dispute--',
-                'Poor Quality of Work',
-                'Breach of Contract',
-                'Task Still Not Completed',
-                'Tasker Did Not Finish what\'s Required',
-                'Others (Provide Details)'
-              ].map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child:
-                      Text(value, style: GoogleFonts.montserrat(fontSize: 14)),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _disputeTypeController.text = newValue ?? '';
-                });
-              },
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-            // Dispute Field
-            Text(
-              'Details of the Dispute',
-              style: GoogleFonts.montserrat(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF03045E),
-              ),
-            ),
-            SizedBox(height: 8),
-            TextField(
-              controller: _disputeDetailsController,
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: 'Provide Details About the Dispute',
-                hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Color(0xFF03045E)),
-                ),
-              ),
-              style: GoogleFonts.montserrat(fontSize: 14),
-            ),
-            SizedBox(height: 16),
-            Text('Provide some Evidence',
-                style: GoogleFonts.montserrat(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF03045E))),
-            SizedBox(height: 8),
-            GestureDetector(
-              onTap: _pickImage,
-              child: Container(
-                height: 120,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[300]!),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: _imageEvidence != null
-                    ? SizedBox(
-                        width: 300.0, // To show images in particular area only
-                        child: _imageEvidence
-                                .isEmpty // If no images is selected
-                            ? const Center(
-                                child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                    Icon(FontAwesomeIcons.fileImage,
-                                        size: 40, color: Colors.grey),
-                                    SizedBox(width: 8),
-                                    Text(
-                                        'Upload Photos (Screenshots, Actual Work)',
-                                        style: TextStyle(
-                                            fontSize: 16, color: Colors.grey))
-                                  ]))
-                            // If atleast 1 images is selected
-                            : GridView.builder(
-                                itemCount: _imageEvidence.length,
-                                gridDelegate:
-                                    const SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount: 3
-                                        // Horizontally only 3 images will show
-                                        ),
-                                itemBuilder: (BuildContext context, int index) {
-                                  // TO show selected file
-                                  return Center(
-                                      child: kIsWeb
-                                          ? Image.network(
-                                              _imageEvidence[index].path)
-                                          : Image.file(_imageEvidence[index]));
-                                  // If you are making the web app then you have to
-                                  // use image provider as network image or in
-                                  // android or iOS it will as file only
-                                },
-                              ),
-                      )
-                    : Icon(Icons.add_photo_alternate,
-                        size: 40, color: Colors.grey[400]),
-              ),
-            ),
-            SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  widget.onDisputeSubmit(_disputeTypeController.text,
-                      _disputeDetailsController.text, _imageEvidence);
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF03045E),
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 2,
-                ),
-                child: Text(
-                  'Open a Dispute',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-          ],
-        ),
-      ),
     );
   }
 }
