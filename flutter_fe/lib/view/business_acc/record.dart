@@ -7,8 +7,11 @@ import 'package:flutter_fe/view/business_acc/client_record/display_list_finish.d
 import 'package:flutter_fe/view/business_acc/client_record/display_list_ongoing.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_pending.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_review.dart';
+import 'package:flutter_fe/widgets/expense_chart.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'dart:math';
 
 class RecordPage extends StatefulWidget {
   const RecordPage({super.key});
@@ -27,13 +30,23 @@ class _RecordPageState extends State<RecordPage> {
 
   bool _isLoading = true;
 
+  // Monthly expense data
+  List<double> monthlyExpenses = [];
+  final Random random = Random();
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
+      _generateMonthlyExpenses();
     });
+  }
+
+  void _generateMonthlyExpenses() {
+    monthlyExpenses =
+        List.generate(12, (index) => 200 + random.nextDouble() * 800);
+    setState(() {});
   }
 
   Future<void> _loadData() async {
@@ -130,42 +143,75 @@ class _RecordPageState extends State<RecordPage> {
                       ),
                     ),
           Expanded(
+              flex: 5,
               child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-            ),
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                Expanded(
-                    child: Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.all(16.0),
-                    width: double.infinity,
-                    child: Column(
-                      children: [
-                        Text(
-                          'Task Record',
-                          style: GoogleFonts.montserrat(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 18,
-                            color: Color(0xFF0272B1),
-                          ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                ),
+                padding: const EdgeInsets.only(left: 16.0, right: 16),
+                child: Column(
+                  children: [
+                    Expanded(
+                        child: Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.all(16.0),
+                        width: double.infinity,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Monthly Expenses',
+                              style: GoogleFonts.montserrat(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 18,
+                                color: Color(0xFF0272B1),
+                              ),
+                            ),
+                            Text(
+                              'Expense overview for the year',
+                              style: GoogleFonts.montserrat(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Expanded(
+                              child: monthlyExpenses.isEmpty
+                                  ? Center(
+                                      child: CircularProgressIndicator(
+                                          color: Color(0xFF0272B1)))
+                                  : Padding(
+                                      padding: const EdgeInsets.only(
+                                          bottom: 8.0, top: 20),
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: SizedBox(
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              1.5,
+                                          height: 270,
+                                          child: MonthlyExpensesChart(
+                                            monthlyData: monthlyExpenses,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 16),
-                      ],
-                    ),
-                  ),
-                ))
-              ],
-            ),
-          )),
+                      ),
+                    ))
+                  ],
+                ),
+              )),
           //Client Task Progress
           Expanded(
+            flex: 3,
             child: Container(
               color: Colors.white,
               padding: const EdgeInsets.all(16.0),
@@ -175,7 +221,7 @@ class _RecordPageState extends State<RecordPage> {
                 shrinkWrap: true,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    padding: const EdgeInsets.only(right: 16.0),
                     child: Card(
                       elevation: 4,
                       shape: RoundedRectangleBorder(
@@ -201,7 +247,7 @@ class _RecordPageState extends State<RecordPage> {
                           padding: const EdgeInsets.all(16.0),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
-                            color: Colors.yellow.withOpacity(0.1),
+                            color: Color(0xFFFFC107),
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -211,15 +257,15 @@ class _RecordPageState extends State<RecordPage> {
                                 style: GoogleFonts.montserrat(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.yellow,
+                                  color: Colors.white,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 8),
                               // Optionally, add more details like a count or icon
                               Icon(
-                                Icons.task,
-                                color: Colors.yellow,
+                                Icons.pending,
+                                color: Colors.white,
                                 size: 24,
                               ),
                             ],
@@ -229,7 +275,7 @@ class _RecordPageState extends State<RecordPage> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    padding: const EdgeInsets.only(right: 16.0),
                     child: Card(
                       elevation: 4,
                       shape: RoundedRectangleBorder(
@@ -255,7 +301,7 @@ class _RecordPageState extends State<RecordPage> {
                           padding: const EdgeInsets.all(16.0),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
-                            color: Colors.yellow.withOpacity(0.1),
+                            color: Colors.orangeAccent,
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -265,15 +311,15 @@ class _RecordPageState extends State<RecordPage> {
                                 style: GoogleFonts.montserrat(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.yellow,
+                                  color: Colors.white,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 8),
                               // Optionally, add more details like a count or icon
                               Icon(
-                                Icons.task,
-                                color: Colors.yellow,
+                                Icons.reviews,
+                                color: Colors.white,
                                 size: 24,
                               ),
                             ],
@@ -283,7 +329,7 @@ class _RecordPageState extends State<RecordPage> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    padding: const EdgeInsets.only(right: 16.0),
                     child: Card(
                       elevation: 4,
                       shape: RoundedRectangleBorder(
@@ -309,7 +355,7 @@ class _RecordPageState extends State<RecordPage> {
                           padding: const EdgeInsets.all(16.0),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
-                            color: Colors.yellow.withOpacity(0.1),
+                            color: Colors.indigo.shade300,
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -319,15 +365,15 @@ class _RecordPageState extends State<RecordPage> {
                                 style: GoogleFonts.montserrat(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.yellow,
+                                  color: Colors.white,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 8),
                               // Optionally, add more details like a count or icon
                               Icon(
-                                Icons.task,
-                                color: Colors.yellow,
+                                Icons.work,
+                                color: Colors.white,
                                 size: 24,
                               ),
                             ],
@@ -337,7 +383,7 @@ class _RecordPageState extends State<RecordPage> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(left: 16.0),
+                    padding: const EdgeInsets.only(right: 16.0),
                     child: Card(
                       elevation: 4,
                       shape: RoundedRectangleBorder(
@@ -363,7 +409,7 @@ class _RecordPageState extends State<RecordPage> {
                           padding: const EdgeInsets.all(16.0),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
-                            color: Colors.green.withOpacity(0.1),
+                            color: Colors.green.shade300,
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -373,15 +419,15 @@ class _RecordPageState extends State<RecordPage> {
                                 style: GoogleFonts.montserrat(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.green,
+                                  color: Colors.white,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 8),
                               // Optionally, add more details like a count or icon
                               Icon(
-                                Icons.task,
-                                color: Colors.green,
+                                Icons.handshake,
+                                color: Colors.white,
                                 size: 24,
                               ),
                             ],
@@ -391,7 +437,7 @@ class _RecordPageState extends State<RecordPage> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    padding: const EdgeInsets.only(right: 16.0),
                     child: Card(
                       elevation: 4,
                       shape: RoundedRectangleBorder(
@@ -417,7 +463,7 @@ class _RecordPageState extends State<RecordPage> {
                           padding: const EdgeInsets.all(16.0),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
-                            color: Colors.blue.withOpacity(0.1),
+                            color: Colors.blue.shade300,
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -427,15 +473,15 @@ class _RecordPageState extends State<RecordPage> {
                                 style: GoogleFonts.montserrat(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.blue,
+                                  color: Colors.white,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 8),
                               // Optionally, add more details like a count or icon
                               Icon(
-                                Icons.task,
-                                color: Colors.blue,
+                                Icons.check,
+                                color: Colors.white,
                                 size: 24,
                               ),
                             ],
@@ -445,7 +491,7 @@ class _RecordPageState extends State<RecordPage> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    padding: const EdgeInsets.only(right: 0.0),
                     child: Card(
                       elevation: 4,
                       shape: RoundedRectangleBorder(
@@ -471,7 +517,7 @@ class _RecordPageState extends State<RecordPage> {
                           padding: const EdgeInsets.all(16.0),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
-                            color: Colors.red.withOpacity(0.1),
+                            color: Colors.red.shade300,
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -481,15 +527,15 @@ class _RecordPageState extends State<RecordPage> {
                                 style: GoogleFonts.montserrat(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.red,
+                                  color: Colors.white,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 8),
                               // Optionally, add more details like a count or icon
                               Icon(
-                                Icons.task,
-                                color: Colors.red,
+                                Icons.cancel,
+                                color: Colors.white,
                                 size: 24,
                               ),
                             ],

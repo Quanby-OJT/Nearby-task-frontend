@@ -72,7 +72,7 @@ class _DisplayListRecordPendingState extends State<DisplayListRecordPending> {
       }
       final response = await _notificationController.getPendingRequests(userId);
 
-      debugPrint(response.toString());
+      debugPrint("Full response from pending requests: ${response.toString()}");
 
       if (response.containsKey("data") && response["data"] != null) {
         setState(() {
@@ -88,6 +88,14 @@ class _DisplayListRecordPendingState extends State<DisplayListRecordPending> {
           } else {
             requestData.add(response["data"] as Map<String, dynamic>);
           }
+
+          // Debug: print the first item to see its structure
+          if (requestData.isNotEmpty) {
+            debugPrint("Example request item: ${requestData[0]}");
+            debugPrint(
+                "Available date fields: ${requestData[0].keys.where((key) => key.toLowerCase().contains('date') || key.toLowerCase().contains('created')).toList()}");
+          }
+
           _isLoading = false;
         });
       } else {
