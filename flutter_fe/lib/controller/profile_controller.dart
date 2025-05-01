@@ -206,6 +206,12 @@ class ProfileController {
     return null;
   }
 
+  //End Validation Methods
+  ///What if we instead integrate the validations into one method on fill_up.dart?
+  ///
+  /// -Ces
+  ///
+
 // Client field
   Future<void> updateUserData(BuildContext context, userId) async {
     print('Updating user data');

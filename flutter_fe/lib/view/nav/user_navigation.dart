@@ -331,7 +331,7 @@ class _NavUserScreenState extends State<NavUserScreen> {
                         } else {
                           Navigator.push(context,
                               MaterialPageRoute(builder: (context) {
-                            return FillUpTaskerLogin(userId: userId as int);
+                            return FillUpTaskerLogin();
                           }));
                           overlayEntry.remove();
                         }

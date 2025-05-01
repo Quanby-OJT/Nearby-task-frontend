@@ -137,7 +137,7 @@ class _NearbyTaskRulesState extends State<NearbyTaskRules> {
                     context,
                     MaterialPageRoute(
                         builder: (context) =>
-                            FillUpTaskerLogin(userId: widget.userId)));
+                            FillUpTaskerLogin()));
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF0272B1),

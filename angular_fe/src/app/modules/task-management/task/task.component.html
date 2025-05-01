@@ -13,7 +13,7 @@
     <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportPDF()">
       Export PDF
     </button>
-    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-110 transition-transform duration-500" (click)="createSpecialization()">
+    <button *ngIf="userRole === 'Admin'" class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-110 transition-transform duration-500" (click)="createSpecialization()">
       Create Specialization
     </button>
   </div>
@@ -31,7 +31,7 @@
           <div class="absolute left-2.5 top-1/2 -translate-y-1/2">
             <svg-icon src="./assets/icons/heroicons/outline/magnifying-glass.svg" [svgClass]="'h-4 w-4'"> </svg-icon>
           </div>
-          <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" 
+          <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md"
                  placeholder="Search client name" type="text" (input)="searchTasks($event)" />
         </label>
       </div>
@@ -39,8 +39,8 @@
       <select name="status" class="text-muted-foreground w-28! p-2 border rounded-md" (change)="filterTasks($event)">
         <option value="">All Status</option>
         <option value="available">Available</option>
-        <option value="taken">Taken</option>
-        <option value="completed">Completed</option>
+        <option value="already taken">Taken</option>
+        <option value="closed">Closed</option>
       </select>
     </div>
   </div>
