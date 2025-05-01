@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/escrow_management_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
+import 'package:flutter_fe/view/business_acc/client_record/display_list_cancel.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_coinfirmed.dart';
+import 'package:flutter_fe/view/business_acc/client_record/display_list_disputed.dart';
+import 'package:flutter_fe/view/business_acc/client_record/display_list_disputed_settled.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_finish.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_ongoing.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_pending.dart';
@@ -81,9 +84,9 @@ class _RecordPageState extends State<RecordPage> {
         ),
         body: Column(children: [
           Container(
-            color: Colors.white,                  
+            color: Colors.white,
             child: Padding(
-                padding: const EdgeInsets.only(left: 16.0, top: 20.0),
+              padding: const EdgeInsets.only(left: 16.0, top: 20.0),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
@@ -503,6 +506,116 @@ class _RecordPageState extends State<RecordPage> {
                     ),
                   ),
                   Padding(
+                    padding: const EdgeInsets.only(right: 16.0),
+                    child: Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        hoverColor: Colors.blue.withOpacity(0.1),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    DisplayListRecordDisputed()),
+                          ).then((value) {
+                            // setState(() {
+                            //   _isLoading = true;
+                            // });
+                            _loadData();
+                          });
+                        },
+                        child: Container(
+                          width: 150, // Width of each card
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.blue.shade300,
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Disputed Task',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              // Optionally, add more details like a count or icon
+                              Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 16.0),
+                    child: Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        hoverColor: Colors.blue.withOpacity(0.1),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    DisplayListRecordDisputedSettled()),
+                          ).then((value) {
+                            // setState(() {
+                            //   _isLoading = true;
+                            // });
+                            _loadData();
+                          });
+                        },
+                        child: Container(
+                          width: 150, // Width of each card
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.blue.shade300,
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Disputed Task Settled',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              // Optionally, add more details like a count or icon
+                              Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
                     padding: const EdgeInsets.only(right: 0.0),
                     child: Card(
                       elevation: 4,
@@ -517,7 +630,62 @@ class _RecordPageState extends State<RecordPage> {
                             context,
                             MaterialPageRoute(
                                 builder: (context) =>
-                                DisplayListRecordReject()),
+                                    DisplayListRecordCancel()),
+                          ).then((value) {
+                            // setState(() {
+                            //   _isLoading = true;
+                            // });
+                            _loadData();
+                          });
+                        },
+                        child: Container(
+                          width: 150, // Width of each card
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.red.shade300,
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Cancelled Task',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 8),
+                              // Optionally, add more details like a count or icon
+                              Icon(
+                                Icons.cancel,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 0.0),
+                    child: Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        hoverColor: Colors.red.withOpacity(0.1),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    DisplayListRecordReject()),
                           ).then((value) {
                             // setState(() {
                             //   _isLoading = true;

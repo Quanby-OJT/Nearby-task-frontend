@@ -62,6 +62,16 @@ class NotificationService {
     }
   }
 
+  Future<Map<String, dynamic>> getCancelledRequests(int userId) async {
+    try {
+      final data = await _getRequest("/notifications-tasker-cancel/$userId");
+      return data;
+    } catch (e, st) {
+      debugPrint("Service error: $e\nStacktrace: $st");
+      return {"error": "An error occurred while getting cancelled requests"};
+    }
+  }
+
   Future<Map<String, dynamic>> getRejectedRequests(int userId) async {
     try {
       final data = await _getRequest("/notifications-tasker-reject/$userId");
@@ -90,6 +100,29 @@ class NotificationService {
     } catch (e, st) {
       debugPrint("Service error: $e\nStacktrace: $st");
       return {"error": "An error occurred while getting review requests"};
+    }
+  }
+
+  Future<Map<String, dynamic>> getDisputedSettledRequests(int userId) async {
+    try {
+      final data =
+          await _getRequest("/notifications-tasker-disputed-settled/$userId");
+      return data;
+    } catch (e, st) {
+      debugPrint("Service error: $e\nStacktrace: $st");
+      return {
+        "error": "An error occurred while getting disputed settled requests"
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> getDisputedRequests(int userId) async {
+    try {
+      final data = await _getRequest("/notifications-tasker-disputed/$userId");
+      return data;
+    } catch (e, st) {
+      debugPrint("Service error: $e\nStacktrace: $st");
+      return {"error": "An error occurred while getting disputed requests"};
     }
   }
 
