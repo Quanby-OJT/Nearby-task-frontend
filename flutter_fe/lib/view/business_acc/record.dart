@@ -26,8 +26,6 @@ class _RecordPageState extends State<RecordPage> {
       EscrowManagementController();
   final ProfileController _profileController = ProfileController();
   AuthenticatedUser? _user;
-  bool isLoading = true;
-
   bool _isLoading = true;
 
   // Monthly expense data
@@ -43,6 +41,12 @@ class _RecordPageState extends State<RecordPage> {
     });
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _loadData();
+  }
+
   void _generateMonthlyExpenses() {
     monthlyExpenses =
         List.generate(12, (index) => 200 + random.nextDouble() * 800);
@@ -50,6 +54,7 @@ class _RecordPageState extends State<RecordPage> {
   }
 
   Future<void> _loadData() async {
+    setState(() => _isLoading = true); // Set loading to true before fetching
     await _escrowManagementController.fetchTokenBalance();
     setState(() => _isLoading = false);
   }
@@ -237,9 +242,10 @@ class _RecordPageState extends State<RecordPage> {
                               builder: (context) => DisplayListRecordPending(),
                             ),
                           ).then((value) {
-                            setState(() {
-                              _isLoading = true;
-                            });
+                            // setState(() {
+                            //   _isLoading = true;
+                            // });
+                            _loadData();
                           });
                         },
                         child: Container(
@@ -291,9 +297,10 @@ class _RecordPageState extends State<RecordPage> {
                               builder: (context) => DisplayListRecordReview(),
                             ),
                           ).then((value) {
-                            setState(() {
-                              _isLoading = true;
-                            });
+                            // setState(() {
+                            //   _isLoading = true;
+                            // });
+                            _loadData();
                           });
                         },
                         child: Container(
@@ -345,9 +352,10 @@ class _RecordPageState extends State<RecordPage> {
                               builder: (context) => DisplayListRecordOngoing(),
                             ),
                           ).then((value) {
-                            setState(() {
-                              _isLoading = true;
-                            });
+                            // setState(() {
+                            //   _isLoading = true;
+                            // });
+                            _loadData();
                           });
                         },
                         child: Container(
@@ -399,9 +407,10 @@ class _RecordPageState extends State<RecordPage> {
                                 builder: (context) =>
                                     DisplayListRecordConfirmed()),
                           ).then((value) {
-                            setState(() {
-                              _isLoading = true;
-                            });
+                            // setState(() {
+                            //   _isLoading = true;
+                            // });
+                            _loadData();
                           });
                         },
                         child: Container(
@@ -453,9 +462,10 @@ class _RecordPageState extends State<RecordPage> {
                                 builder: (context) =>
                                     DisplayListRecordFinish()),
                           ).then((value) {
-                            setState(() {
-                              _isLoading = true;
-                            });
+                            // setState(() {
+                            //   _isLoading = true;
+                            // });
+                            _loadData();
                           });
                         },
                         child: Container(
@@ -507,9 +517,10 @@ class _RecordPageState extends State<RecordPage> {
                                 builder: (context) =>
                                     DisplayListRecordConfirmed()),
                           ).then((value) {
-                            setState(() {
-                              _isLoading = true;
-                            });
+                            // setState(() {
+                            //   _isLoading = true;
+                            // });
+                            _loadData();
                           });
                         },
                         child: Container(

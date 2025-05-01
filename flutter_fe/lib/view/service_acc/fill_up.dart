@@ -1,17 +1,18 @@
 import 'dart:io';
+import 'package:currency_text_input_formatter/currency_text_input_formatter.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class FillUpTaskerLogin extends StatefulWidget {
-  final int userId;
-  const FillUpTaskerLogin({super.key, required this.userId});
+  const FillUpTaskerLogin({super.key});
 
   @override
   State<FillUpTaskerLogin> createState() => _FillUpTaskerLoginState();
@@ -71,6 +72,12 @@ class _FillUpTaskerLoginState extends State<FillUpTaskerLogin> {
     "Bi-Weekly",
     "Monthly"
   ];
+  final currencyFormat = NumberFormat.currency(
+    locale: 'en_PH',
+    symbol: '₱',
+  );
+
+
 
   // Check if all conditions are met to mark all steps as complete
   bool get _allConditionsMet {
@@ -174,7 +181,7 @@ class _FillUpTaskerLoginState extends State<FillUpTaskerLogin> {
 
           _role = user.user.role;
           _contact = user.user.contact ?? '';
-          _wage = user.tasker!.wage.toString();
+          _wage = currencyFormat.format(user.tasker!.wage).toString();
           _paySchedule = user.tasker!.payPeriod;
           _image = user.user.image?.toString() ?? '';
           _birthday = user.user.birthdate ?? '';
@@ -343,16 +350,25 @@ class _FillUpTaskerLoginState extends State<FillUpTaskerLogin> {
                       onStepContinue: () {
                         if (currentStep == 0) {
                           if (_generalFormKey.currentState!.validate() &&
-                              (_selectedImage != null)) {
+                              (_selectedImage != null || _existingProfileImageUrl != null)) {
                             setState(() {
                               _isGeneralComplete = true;
                               currentStep += 1;
                             });
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  _generalFormKey.currentState!.validate()
+                                      ? 'Please select a profile picture'
+                                      : 'Please fill all required fields correctly',
+                                ),
+                              ),
+                            );
                           }
                         } else if (currentStep == 1) {
                           if (_profileFormKey.currentState!.validate() &&
-                              (_selectedImage != null ||
-                                  _existingProfileImageUrl != null)) {
+                              (_selectedImage != null || _existingProfileImageUrl != null)) {
                             setState(() {
                               _isProfileComplete = true;
                               currentStep += 1;
@@ -360,8 +376,12 @@ class _FillUpTaskerLoginState extends State<FillUpTaskerLogin> {
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                  content:
-                                      Text('Please select a profile picture')),
+                                content: Text(
+                                  _profileFormKey.currentState!.validate()
+                                      ? 'Please select a profile picture'
+                                      : 'Please fill all required fields correctly',
+                                ),
+                              ),
                             );
                           }
                         } else if (currentStep == 2) {
@@ -408,8 +428,7 @@ class _FillUpTaskerLoginState extends State<FillUpTaskerLogin> {
                           setState(() => currentStep -= 1);
                         }
                       },
-                      controlsBuilder:
-                          (BuildContext context, ControlsDetails details) {
+                      controlsBuilder: (BuildContext context, ControlsDetails details) {
                         final isLastStep = currentStep == getSteps().length - 1;
                         return Row(
                           children: [
@@ -612,9 +631,6 @@ class _FillUpTaskerLoginState extends State<FillUpTaskerLogin> {
                   child: TextFormField(
                     controller: _controller.middleNameController,
                     cursorColor: Color(0xFF0272B1),
-                    validator: (value) => value == null || value.isEmpty
-                        ? 'Please enter middle name'
-                        : null,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Color(0xFFF1F4FF),
@@ -683,7 +699,7 @@ class _FillUpTaskerLoginState extends State<FillUpTaskerLogin> {
                       _controller.genderController.text = newValue!;
                     }),
                     validator: (value) =>
-                        value == null ? 'Please select a gender' : null,
+                        value == null ? 'Please select your desired gender' : null,
                   ),
                 ),
                 Padding(
@@ -719,7 +735,7 @@ class _FillUpTaskerLoginState extends State<FillUpTaskerLogin> {
                       DateTime? pickedDate = await showDatePicker(
                         context: context,
                         initialDate: DateTime.now(),
-                        firstDate: DateTime(2000),
+                        firstDate: DateTime(1960),
                         lastDate: DateTime(2100),
                       );
                       if (pickedDate != null) {
@@ -799,6 +815,13 @@ class _FillUpTaskerLoginState extends State<FillUpTaskerLogin> {
                   padding: const EdgeInsets.only(bottom: 10),
                   child: TextFormField(
                     keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      CurrencyTextInputFormatter.currency(
+                        locale: 'en_PH',
+                        symbol: '₱',
+                        decimalDigits: 2,
+                      )
+                    ],
                     controller: _controller.wageController,
                     cursorColor: const Color(0xFF0272B1),
                     validator: (value) => value!.isEmpty
@@ -806,8 +829,8 @@ class _FillUpTaskerLoginState extends State<FillUpTaskerLogin> {
                         : null,
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: const Color(0xFFF1F4FF),
-                      hintText: 'How Much Would You Want to be Paid?',
+                      fillColor: Color(0xFFF1F4FF),
+                      hintText: 'Indicate Your Desired Wage',
                       hintStyle: const TextStyle(color: Colors.grey),
                       enabledBorder: OutlineInputBorder(
                         borderSide: const BorderSide(color: Colors.transparent),

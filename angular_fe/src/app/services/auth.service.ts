@@ -22,11 +22,11 @@ export class AuthService {
   userInformation(): Observable<any> {
     const user_id = localStorage.getItem('user_id');
     return this.http.post<any>(
-      `${this.apiUrl}/userInformation`, 
-      { user_id }, 
-      { 
+      `${this.apiUrl}/userInformation`,
+      { user_id },
+      {
         headers: this.getHeaders(),
-        withCredentials: true 
+        withCredentials: true
       }
     ).pipe(
       catchError((error) => {
@@ -38,7 +38,7 @@ export class AuthService {
 
   login(email: string, password: string): Observable<any> {
     return this.http.post<any>(
-      `${this.apiUrl}/login-angular`, 
+      `${this.apiUrl}/login-angular`,
       { email, password },
       { withCredentials: true }
     ).pipe(
@@ -57,11 +57,11 @@ export class AuthService {
     const cleanedSessionID = sessionID.replace(/^"|"$/g, '').trim();
     console.log('logout: ' + sessionData);
     return this.http.post<any>(
-      `${this.apiUrl}/logout-angular`, 
-      { userID, cleanedSessionID }, 
-      { 
+      `${this.apiUrl}/logout-angular`,
+      { userID, cleanedSessionID },
+      {
         headers: this.getHeaders(),
-        withCredentials: true 
+        withCredentials: true
       }
     ).pipe(
       catchError((error) => {
@@ -73,11 +73,11 @@ export class AuthService {
 
   logoutWithoutSession(sessionID: string): Observable<any> {
     return this.http.post<any>(
-      `${this.apiUrl}/logout-without-session`, 
-      { sessionID }, 
-      { 
+      `${this.apiUrl}/logout-without-session`,
+      { sessionID },
+      {
         headers: this.getHeaders(),
-        withCredentials: true 
+        withCredentials: true
       }
     ).pipe(
       catchError((error) => {

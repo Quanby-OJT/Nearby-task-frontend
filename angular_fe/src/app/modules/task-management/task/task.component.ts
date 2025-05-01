@@ -8,6 +8,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import { AngularSvgIconModule } from 'angular-svg-icon';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-task',
@@ -27,16 +28,18 @@ export class TaskComponent implements OnInit {
   totalPages: number = 1;
   currentSearchText: string = '';
   currentStatusFilter: string = '';
+  userRole: string | undefined;
   // New property for placeholder rows
   placeholderRows: any[] = [];
 
   @Output() onCheck = new EventEmitter<boolean>();
   @Output() onSort = new EventEmitter<'asc' | 'desc'>();
-  sortDirection: 'asc' | 'desc' = 'desc'; 
+  sortDirection: 'asc' | 'desc' = 'desc';
 
   constructor(
     private route: Router,
-    private taskService: TaskService
+    private taskService: TaskService,
+    private authService: AuthService // Assuming you have an AuthService to get user role
   ) {
     this.route.events
       .pipe(filter(event => event instanceof NavigationEnd))
@@ -49,6 +52,15 @@ export class TaskComponent implements OnInit {
 
   ngOnInit(): void {
     this.fetchTasks();
+
+    this.authService.userInformation().subscribe(
+      (response: any) => {
+        this.userRole = response.user.user_role;
+      },
+      (error: any) => {
+        console.error('Error fetching user role:', error);
+      }
+    );
   }
 
   fetchTasks(): void {
@@ -95,28 +107,28 @@ export class TaskComponent implements OnInit {
     }
 
     tempTasks.sort((a, b) => {
-     
+
       const dateA = a.created_at ? new Date(a.created_at) : null;
       const dateB = b.created_at ? new Date(b.created_at) : null;
 
-     
+
       if (!dateA || isNaN(dateA.getTime())) {
         console.warn(`Invalid created_at for task ID ${a.task_id}:`, a.created_at);
-        return 1; 
+        return 1;
       }
       if (!dateB || isNaN(dateB.getTime())) {
         console.warn(`Invalid created_at for task ID ${b.task_id}:`, b.created_at);
-        return -1; 
+        return -1;
       }
 
       // Compare dates
-      const timeDiff = this.sortDirection === 'asc' 
-        ? dateA.getTime() - dateB.getTime() 
+      const timeDiff = this.sortDirection === 'asc'
+        ? dateA.getTime() - dateB.getTime()
         : dateB.getTime() - dateA.getTime();
 
       // If dates are equal, sort by task_id as secondary key
       if (timeDiff === 0) {
-        return this.sortDirection === 'asc' 
+        return this.sortDirection === 'asc'
           ? a.task_id - b.task_id // Smaller task_id first in asc
           : b.task_id - a.task_id; // Larger task_id first in desc
       }

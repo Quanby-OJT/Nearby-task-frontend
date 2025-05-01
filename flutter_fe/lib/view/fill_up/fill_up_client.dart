@@ -381,9 +381,6 @@ class _FillUpClientState extends State<FillUpClient> {
                   child: TextFormField(
                     controller: _controller.middleNameController,
                     cursorColor: Color(0xFF0272B1),
-                    validator: (value) => value == null || value.isEmpty
-                        ? 'Please enter middle name'
-                        : null,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Color(0xFFF1F4FF),
