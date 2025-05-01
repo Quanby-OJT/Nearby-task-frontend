@@ -107,6 +107,8 @@ class ClientServices {
         return [];
       }
 
+      debugPrint(allTaskersResponse.toString());
+
       // Get saved/liked taskers
       final savedTaskResponse =
           await _getRequest("/client/getsavedTask/$userId");
