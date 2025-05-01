@@ -1,7 +1,8 @@
 <nav
   [ngClass]="menuService.showSideBar ? 'w-52 xl:w-64' : 'w-[70px]'"
-  class="scrollbar-thumb--sm scrollbar-track-rounded scrollbar-thin scrollbar-track-transparent scrollbar-thumb-card hidden h-full flex-col justify-between overflow-auto bg-[#3C28CC] pt-3 shadow-md transition-all duration-300 lg:flex">
+  class="scrollbar-thumb--sm scrollbar-track-rounded scrollbar-thin scrollbar-track-transparent scrollbar-thumb-card hidden h-full flex-col justify-between overflow-auto bg-gradient-to-b from-[#170A66] via-[#331FB3] to-[#5F50E7] pt-3 shadow-md transition-all duration-300 lg:flex">
   <div class="px-4">
+  
     <!-- Logo -->
     <div class="relative h-10">
       <div class="flex items-center" *ngIf="menuService.showSideBar">
