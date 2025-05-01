@@ -30,7 +30,7 @@ export class Menu {
           icon: 'assets/icons/heroicons/outline/cube.svg',
           label: 'Tasks Management',
           route: '/tasks-management',
-          role: ['Moderator'],
+          role: ['Moderator', 'Admin'],
         },
         {
           icon: 'assets/icons/heroicons/outline/folder.svg',
