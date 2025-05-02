@@ -166,24 +166,7 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                             ),
                           ),
                         ),
-                        Align(
-                          alignment: Alignment.topRight,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10, horizontal: 40),
-                            child: TextButton(
-                              onPressed: () {},
-                              child: Text(
-                                'Forgot your password?',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 12,
-                                  color: Colors.black87,
-                                  fontWeight: FontWeight.w300,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                        const SizedBox(height: 20),
                         Container(
                           height: 50,
                           width: double.infinity,
@@ -210,9 +193,25 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                             ),
                           ),
                         ),
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10, horizontal: 40),
+                            child: TextButton(
+                              onPressed: () {},
+                              child: Text(
+                                'Forgot your password?',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 12,
+                                  color: const Color(0xFF03045E),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                         Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 20, horizontal: 40),
+                          padding: const EdgeInsets.symmetric(horizontal: 40),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
@@ -237,7 +236,7 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                                   "Sign up",
                                   style: GoogleFonts.montserrat(
                                     color: const Color(0xFF03045E),
-                                    fontWeight: FontWeight.w300,
+                                    fontWeight: FontWeight.bold,
                                     fontSize: 12,
                                   ),
                                 ),
