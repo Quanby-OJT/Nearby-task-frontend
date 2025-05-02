@@ -9,6 +9,11 @@ class EscrowManagementController {
   final TextEditingController rejectionController = TextEditingController();
   final TextEditingController otherReasonController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
+  final TextEditingController cardNumberController = TextEditingController();
+  final TextEditingController cardHolderNameController = TextEditingController();
+  final TextEditingController cvvController = TextEditingController();
+  final TextEditingController expiryDateController = TextEditingController();
+
   int tokenRate = 1;
   ValueNotifier<int> tokenCredits = ValueNotifier(0);
   IOWebSocketChannel? _channel;

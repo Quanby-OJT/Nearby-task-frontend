@@ -3,11 +3,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class EscrowPaymentScreen extends StatefulWidget {
-  final String paymentUrl;
+  final String paymentMethod;
 
   const EscrowPaymentScreen({
     super.key,
-    required this.paymentUrl,
+    required this.paymentMethod,
   });
 
   @override
@@ -21,38 +21,6 @@ class _EscrowPaymentScreenState extends State<EscrowPaymentScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onPageStarted: (url) {
-            setState(() {
-              _isLoading = true;
-            });
-          },
-          onPageFinished: (url) {
-            setState(() {
-              _isLoading = false;
-            });
-            if (url.contains('success')) {
-              _handlePaymentSuccess();
-            } else if (url.contains('failure') || url.contains('cancel')) {
-              _handlePaymentFailure();
-            }
-          },
-          onWebResourceError: (error) {
-            setState(() {
-              _isLoading = false;
-            });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content:
-                      Text('Error loading payment page: ${error.description}')),
-            );
-          },
-        ),
-      )
-      ..loadRequest(Uri.parse(widget.paymentUrl));
   }
 
   void _handlePaymentSuccess() {
@@ -74,7 +42,7 @@ class _EscrowPaymentScreenState extends State<EscrowPaymentScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Deposit Payment",
+          "Confirm Payment Details",
           style: GoogleFonts.roboto(
             fontSize: 20,
             fontWeight: FontWeight.bold,
