@@ -5,9 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 class MonthlyExpensesChart extends StatelessWidget {
   final List<double> monthlyData;
 
-  MonthlyExpensesChart({Key? key, required this.monthlyData})
-      : assert(monthlyData.length == 12, 'Must provide 12 months of data'),
-        super(key: key);
+  const MonthlyExpensesChart({super.key, required this.monthlyData})
+      : assert(monthlyData.length == 12, 'Must provide 12 months of data');
 
   @override
   Widget build(BuildContext context) {

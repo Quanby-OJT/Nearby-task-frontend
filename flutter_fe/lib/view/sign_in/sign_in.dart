@@ -108,7 +108,7 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                         Text(
                           textAlign: TextAlign.center,
                           'Find Tasks Near You with NearbyTask!',
-                          style: GoogleFonts.montserrat(
+                          style: GoogleFonts.poppins(
                             fontSize: 12,
                             color: Colors.black87,
                             fontWeight: FontWeight.w300,
@@ -117,10 +117,10 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                         const SizedBox(height: 20),
                         Text(
                           'Login',
-                          style: GoogleFonts.montserrat(
+                          style: GoogleFonts.poppins(
                             color: const Color(0xFF03045E),
-                            fontSize: 30,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -176,7 +176,7 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                               _controller.loginAuth(context);
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF03045E),
+                              backgroundColor: Color(0xFFB71A4A),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
@@ -185,10 +185,10 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                             ),
                             child: Text(
                               'Sign in',
-                              style: GoogleFonts.montserrat(
+                              style: GoogleFonts.poppins(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 14,
+                                fontSize: 16,
                               ),
                             ),
                           ),
@@ -201,7 +201,7 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                               onPressed: () {},
                               child: Text(
                                 'Forgot your password?',
-                                style: GoogleFonts.montserrat(
+                                style: GoogleFonts.poppins(
                                   fontSize: 12,
                                   color: const Color(0xFF03045E),
                                   fontWeight: FontWeight.bold,
@@ -217,10 +217,9 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                             children: [
                               Text(
                                 "Don't you have an account? ",
-                                style: GoogleFonts.montserrat(
+                                style: GoogleFonts.poppins(
                                   fontSize: 12,
                                   color: Colors.black87,
-                                  fontWeight: FontWeight.w300,
                                 ),
                               ),
                               TextButton(
@@ -234,8 +233,8 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                                 },
                                 child: Text(
                                   "Sign up",
-                                  style: GoogleFonts.montserrat(
-                                    color: const Color(0xFF03045E),
+                                  style: GoogleFonts.poppins(
+                                    color: Color(0xFFB71A4A),
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
                                   ),

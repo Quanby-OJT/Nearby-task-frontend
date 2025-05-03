@@ -7,7 +7,6 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/nav/user_navigation.dart';
-import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/service_acc/fill_up.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -218,7 +217,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               Navigator.pop(context);
               final result = await Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const FillUpTaskerLogin()),
+                MaterialPageRoute(
+                    builder: (context) => const FillUpTaskerLogin()),
               );
               if (result == true) {
                 setState(() {
@@ -257,75 +257,75 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       appBar: NavUserScreen(),
       body: Stack(
         children: [
-          Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    child: DropdownSearch<String>(
-                      items: categories,
-                      selectedItem: _selectedCategory ?? 'All',
-                      dropdownDecoratorProps: DropDownDecoratorProps(
-                        dropdownSearchDecoration: InputDecoration(
-                          contentPadding:
-                              EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          border: InputBorder.none,
-                          hintText: "Search Specialization",
-                          hintStyle: TextStyle(color: Colors.grey[600]),
-                        ),
-                      ),
-                      onChanged: (newValue) {
-                        setState(() {
-                          _selectedCategory = newValue;
-                        });
-                        _fetchTasks();
-                      },
-                      popupProps: PopupProps.menu(
-                        showSearchBox: true,
-                        searchFieldProps: TextFieldProps(
-                          decoration: InputDecoration(
-                            hintText: "Type to search...",
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            contentPadding: EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 8),
-                          ),
-                        ),
-                        itemBuilder: (context, item, isSelected) {
-                          return ListTile(
-                            title: Text(
-                              item,
-                              style: TextStyle(
-                                color: isSelected
-                                    ? Color(0xFF0272B1)
-                                    : Colors.black,
-                                fontWeight: isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                              ),
-                            ),
-                            selected: isSelected,
-                          );
-                        },
-                      ),
-                      filterFn: (item, filter) {
-                        return item
-                            .toLowerCase()
-                            .contains(filter.toLowerCase());
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          // Padding(
+          //   padding:
+          //       const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          //   child: Row(
+          //     children: [
+          //       Expanded(
+          //         child: Container(
+          //           decoration: BoxDecoration(
+          //             color: Colors.grey[200],
+          //             borderRadius: BorderRadius.circular(25),
+          //           ),
+          //           child: DropdownSearch<String>(
+          //             items: categories,
+          //             selectedItem: _selectedCategory ?? 'All',
+          //             dropdownDecoratorProps: DropDownDecoratorProps(
+          //               dropdownSearchDecoration: InputDecoration(
+          //                 contentPadding:
+          //                     EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          //                 border: InputBorder.none,
+          //                 hintText: "Search Specialization",
+          //                 hintStyle: TextStyle(color: Colors.grey[600]),
+          //               ),
+          //             ),
+          //             onChanged: (newValue) {
+          //               setState(() {
+          //                 _selectedCategory = newValue;
+          //               });
+          //               _fetchTasks();
+          //             },
+          //             popupProps: PopupProps.menu(
+          //               showSearchBox: true,
+          //               searchFieldProps: TextFieldProps(
+          //                 decoration: InputDecoration(
+          //                   hintText: "Type to search...",
+          //                   border: OutlineInputBorder(
+          //                     borderRadius: BorderRadius.circular(12),
+          //                   ),
+          //                   contentPadding: EdgeInsets.symmetric(
+          //                       horizontal: 12, vertical: 8),
+          //                 ),
+          //               ),
+          //               itemBuilder: (context, item, isSelected) {
+          //                 return ListTile(
+          //                   title: Text(
+          //                     item,
+          //                     style: TextStyle(
+          //                       color: isSelected
+          //                           ? Color(0xFF0272B1)
+          //                           : Colors.black,
+          //                       fontWeight: isSelected
+          //                           ? FontWeight.bold
+          //                           : FontWeight.normal,
+          //                     ),
+          //                   ),
+          //                   selected: isSelected,
+          //                 );
+          //               },
+          //             ),
+          //             filterFn: (item, filter) {
+          //               return item
+          //                   .toLowerCase()
+          //                   .contains(filter.toLowerCase());
+          //             },
+          //           ),
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ),
           if (_isLoading || _isCategoriesLoading)
             Center(child: CircularProgressIndicator(color: Color(0xFF0272B1)))
           else if (tasks.isEmpty)
@@ -374,7 +374,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             )
           else
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(0),
               child: CardSwiper(
                 numberOfCardsDisplayed: tasks.length > 3 ? 3 : tasks.length,
                 allowedSwipeDirection: AllowedSwipeDirection.only(

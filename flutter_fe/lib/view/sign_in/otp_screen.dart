@@ -40,21 +40,21 @@ class _OtpScreenState extends State<OtpScreen> {
               Text(
                 'Email Verification',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.openSans(
+                style: GoogleFonts.poppins(
                     fontSize: 24,
-                    color: const Color(0xFF03045E),
+                    color: Color(0xFFB71A4A),
                     fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 40.0),
                 child: Center(
                   child: Text(
                     textAlign: TextAlign.center,
                     "Enter the one-type-password we've sent to your email.",
-                    style: GoogleFonts.openSans(
+                    style: GoogleFonts.poppins(
                         color: Colors.black,
-                        fontSize: 14,
+                        fontSize: 12,
                         fontWeight: FontWeight.w300),
                   ),
                 ),
@@ -69,7 +69,7 @@ class _OtpScreenState extends State<OtpScreen> {
                       filled: true,
                       fillColor: Color(0xFFF1F4FF),
                       hintText: 'Enter OTP...',
-                      hintStyle: TextStyle(color: Colors.grey),
+                      hintStyle: GoogleFonts.poppins(color: Colors.grey),
                       enabledBorder: OutlineInputBorder(
                           borderSide:
                               BorderSide(color: Colors.transparent, width: 0),
@@ -92,15 +92,15 @@ class _OtpScreenState extends State<OtpScreen> {
                       _controller.otpAuth(context);
                     },
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF03045E),
+                        backgroundColor: Color(0xFFB71A4A),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10))),
                     child: Text(
                       'Verify',
-                      style: GoogleFonts.montserrat(
+                      style: GoogleFonts.poppins(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: 16,
                       ),
                     )),
               ),
@@ -110,18 +110,18 @@ class _OtpScreenState extends State<OtpScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text("Didn't get it?",
-                        style: GoogleFonts.openSans(
-                          color: Colors.black,
-                        )),
+                        style: GoogleFonts.poppins(
+                            color: Colors.black, fontSize: 12)),
                     TextButton(
                         onPressed: () {
                           _controller.resetOTP(context);
                         },
                         child: Text(
                           'Resend',
-                          style: GoogleFonts.openSans(
-                              color: const Color(0xFF03045E),
-                              fontWeight: FontWeight.bold),
+                          style: GoogleFonts.poppins(
+                              color: Color(0xFFB71A4A),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12),
                         ))
                   ],
                 ),

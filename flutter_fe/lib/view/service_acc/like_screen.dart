@@ -225,7 +225,6 @@ class _LikeScreenState extends State<LikeScreen> {
             ),
           ),
           Expanded(
-            // Ensures _buildBody() takes remaining space
             child: _buildBody(),
           ),
         ],

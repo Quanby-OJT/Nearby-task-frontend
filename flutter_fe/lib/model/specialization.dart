@@ -5,10 +5,7 @@ class SpecializationModel {
   SpecializationModel({this.id, this.specialization = ""});
 
   Map<String, dynamic> toJson() {
-    return {
-      "id": id,
-      "specialization": specialization
-    };
+    return {"id": id, "specialization": specialization};
   }
 
   factory SpecializationModel.fromJson(Map<String, dynamic> json) {

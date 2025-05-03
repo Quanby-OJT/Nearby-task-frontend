@@ -104,9 +104,6 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
         _isLoading = true;
         _errorMessage = null;
       });
-
-      //TODO: Implement retrieval of Individual Tasker Information from the API
-
       await Future.delayed(Duration(milliseconds: 500));
 
       setState(() {
@@ -451,11 +448,31 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                               right: 20,
                               child: Column(
                                 children: [
-                                  const CircleAvatar(
+                                  CircleAvatar(
                                     radius: 60,
                                     backgroundImage:
-                                        AssetImage('assets/images/image1.jpg'),
+                                        widget.tasker.user?.image != null &&
+                                                widget.tasker.user!.image
+                                                    .toString()
+                                                    .isNotEmpty
+                                            ? NetworkImage(widget
+                                                .tasker.user!.image
+                                                .toString())
+                                            : null,
                                     backgroundColor: Colors.white,
+                                    child: widget.tasker.user?.image == null ||
+                                            widget.tasker.user!.image
+                                                .toString()
+                                                .isEmpty
+                                        ? Text(
+                                            "${widget.tasker.user?.firstName[0]}${widget.tasker.user?.lastName[0]}",
+                                            style: GoogleFonts.montserrat(
+                                              fontSize: 36,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF0272B1),
+                                            ),
+                                          )
+                                        : null,
                                   ),
                                   const SizedBox(height: 12),
                                   Text(

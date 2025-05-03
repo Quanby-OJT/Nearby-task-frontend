@@ -3,12 +3,14 @@ import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/service/client_service.dart';
+import 'package:flutter_fe/view/address/set-up_address.dart';
 import 'package:flutter_fe/view/business_acc/create_escrow_token.dart';
 
 import 'package:flutter_fe/view/business_acc/notif_screen.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/service_acc/fill_up.dart';
+import 'package:flutter_fe/view/setting/setting.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_fe/view/service_acc/notif_screen.dart';
 import 'package:get_storage/get_storage.dart';
@@ -321,6 +323,25 @@ class _NavUserScreenState extends State<NavUserScreen> {
                     ),
                     ListTile(
                       leading: Icon(
+                        Icons.location_on,
+                        color: const Color(0xFF03045E),
+                      ),
+                      title: Text('Address',
+                          style: GoogleFonts.montserrat(
+                            color: const Color(0xFF03045E),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w300,
+                          )),
+                      onTap: () {
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) {
+                          return SetUpAddressScreen();
+                        }));
+                        overlayEntry.remove();
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(
                         Icons.domain_verification,
                         color: const Color(0xFF03045E),
                       ),
@@ -377,17 +398,17 @@ class _NavUserScreenState extends State<NavUserScreen> {
                     ],
                     ListTile(
                       leading: Icon(
-                        Icons.settings,
+                        Icons.help,
                         color: const Color(0xFF03045E),
                       ),
-                      title: Text('Settings',
+                      title: Text('FAQs',
                           style: GoogleFonts.montserrat(
                             color: const Color(0xFF03045E),
                             fontSize: 14,
                             fontWeight: FontWeight.w300,
                           )),
                       onTap: () {
-                        // Handle navigation to E-Statement
+                        // Handle navigation to FAQs
                       },
                     ),
                     ListTile(
@@ -407,21 +428,6 @@ class _NavUserScreenState extends State<NavUserScreen> {
                     ),
                     ListTile(
                       leading: Icon(
-                        Icons.help,
-                        color: const Color(0xFF03045E),
-                      ),
-                      title: Text('FAQs',
-                          style: GoogleFonts.montserrat(
-                            color: const Color(0xFF03045E),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w300,
-                          )),
-                      onTap: () {
-                        // Handle navigation to FAQs
-                      },
-                    ),
-                    ListTile(
-                      leading: Icon(
                         Icons.book,
                         color: const Color(0xFF03045E),
                       ),
@@ -432,6 +438,25 @@ class _NavUserScreenState extends State<NavUserScreen> {
                             fontWeight: FontWeight.w300,
                           )),
                       onTap: () {},
+                    ),
+                    ListTile(
+                      leading: Icon(
+                        Icons.settings,
+                        color: const Color(0xFF03045E),
+                      ),
+                      title: Text('Settings',
+                          style: GoogleFonts.montserrat(
+                            color: const Color(0xFF03045E),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w300,
+                          )),
+                      onTap: () {
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) {
+                          return SettingScreen();
+                        }));
+                        overlayEntry.remove();
+                      },
                     ),
                     ListTile(
                       leading: Icon(
