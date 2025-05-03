@@ -3,12 +3,14 @@ import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/service/client_service.dart';
+import 'package:flutter_fe/view/address/set-up_address.dart';
 import 'package:flutter_fe/view/business_acc/create_escrow_token.dart';
 
 import 'package:flutter_fe/view/business_acc/notif_screen.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/service_acc/fill_up.dart';
+import 'package:flutter_fe/view/setting/setting.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_fe/view/service_acc/notif_screen.dart';
 import 'package:get_storage/get_storage.dart';
@@ -256,28 +258,23 @@ class _NavUserScreenState extends State<NavUserScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final GetStorage storage = GetStorage();
 
-    // Set menu width to half the screen width
-    final double menuWidth = screenWidth / 2;
+    final double menuWidth = screenWidth / 1.5;
 
-    // Calculate position for the popup
     final double leftPosition = position.dx + renderBox.size.width - menuWidth;
     final double topPosition = position.dy + renderBox.size.height;
 
-    // Ensure the menu stays within screen bounds
     final double adjustedLeft = leftPosition < 0
         ? 0
         : leftPosition + menuWidth > screenWidth
             ? screenWidth - menuWidth
             : leftPosition;
 
-    // Create an overlay entry
     OverlayState overlayState = Overlay.of(context);
     late OverlayEntry overlayEntry;
 
     overlayEntry = OverlayEntry(
       builder: (context) => Stack(
         children: [
-          // Transparent barrier that dismisses the popup when tapped
           Positioned.fill(
             child: GestureDetector(
               onTap: () {
@@ -288,7 +285,6 @@ class _NavUserScreenState extends State<NavUserScreen> {
               ),
             ),
           ),
-          // The actual popup menu
           Positioned(
             left: adjustedLeft,
             top: topPosition,
@@ -307,8 +303,16 @@ class _NavUserScreenState extends State<NavUserScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     ListTile(
-                      leading: Icon(Icons.person),
-                      title: Text('Profile'),
+                      leading: Icon(
+                        Icons.person,
+                        color: const Color(0xFF03045E),
+                      ),
+                      title: Text('Profile',
+                          style: GoogleFonts.montserrat(
+                            color: const Color(0xFF03045E),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w300,
+                          )),
                       onTap: () {
                         Navigator.push(context,
                             MaterialPageRoute(builder: (context) {
@@ -318,8 +322,35 @@ class _NavUserScreenState extends State<NavUserScreen> {
                       },
                     ),
                     ListTile(
-                      leading: Icon(Icons.domain_verification),
-                      title: Text('Verify Account'),
+                      leading: Icon(
+                        Icons.location_on,
+                        color: const Color(0xFF03045E),
+                      ),
+                      title: Text('Address',
+                          style: GoogleFonts.montserrat(
+                            color: const Color(0xFF03045E),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w300,
+                          )),
+                      onTap: () {
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) {
+                          return SetUpAddressScreen();
+                        }));
+                        overlayEntry.remove();
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(
+                        Icons.domain_verification,
+                        color: const Color(0xFF03045E),
+                      ),
+                      title: Text('Verify Account',
+                          style: GoogleFonts.montserrat(
+                            color: const Color(0xFF03045E),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w300,
+                          )),
                       onTap: () {
                         final userId = storage.read("user_id");
                         if (_user?.user.role.toLowerCase() == 'client') {
@@ -339,8 +370,16 @@ class _NavUserScreenState extends State<NavUserScreen> {
                     ),
                     if (_role == "Client") ...[
                       ListTile(
-                          leading: Icon(FontAwesomeIcons.coins),
-                          title: Text('Add NearByTask Tokens'),
+                          leading: Icon(
+                            FontAwesomeIcons.coins,
+                            color: const Color(0xFF03045E),
+                          ),
+                          title: Text('Tokens',
+                              style: GoogleFonts.montserrat(
+                                color: const Color(0xFF03045E),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w300,
+                              )),
                           onTap: () {
                             if (_existingProfileImageUrl == null ||
                                 _existingIDImageUrl == null ||
@@ -358,34 +397,78 @@ class _NavUserScreenState extends State<NavUserScreen> {
                           }),
                     ],
                     ListTile(
-                      leading: Icon(Icons.settings),
-                      title: Text('Settings'),
-                      onTap: () {
-                        // Handle navigation to E-Statement
-                      },
-                    ),
-                    ListTile(
-                      leading: Icon(Icons.card_giftcard),
-                      title: Text('Referral Code'),
-                      onTap: () {
-                        // Handle navigation to Referral Code
-                      },
-                    ),
-                    ListTile(
-                      leading: Icon(Icons.help),
-                      title: Text('FAQs'),
+                      leading: Icon(
+                        Icons.help,
+                        color: const Color(0xFF03045E),
+                      ),
+                      title: Text('FAQs',
+                          style: GoogleFonts.montserrat(
+                            color: const Color(0xFF03045E),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w300,
+                          )),
                       onTap: () {
                         // Handle navigation to FAQs
                       },
                     ),
                     ListTile(
-                      leading: Icon(Icons.book),
-                      title: Text('Our Handbook'),
+                      leading: Icon(
+                        Icons.card_giftcard,
+                        color: const Color(0xFF03045E),
+                      ),
+                      title: Text('Referral Code',
+                          style: GoogleFonts.montserrat(
+                            color: const Color(0xFF03045E),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w300,
+                          )),
+                      onTap: () {
+                        // Handle navigation to Referral Code
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(
+                        Icons.book,
+                        color: const Color(0xFF03045E),
+                      ),
+                      title: Text('Our Handbook',
+                          style: GoogleFonts.montserrat(
+                            color: const Color(0xFF03045E),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w300,
+                          )),
                       onTap: () {},
                     ),
                     ListTile(
-                      leading: Icon(Icons.logout),
-                      title: Text('Logout'),
+                      leading: Icon(
+                        Icons.settings,
+                        color: const Color(0xFF03045E),
+                      ),
+                      title: Text('Settings',
+                          style: GoogleFonts.montserrat(
+                            color: const Color(0xFF03045E),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w300,
+                          )),
+                      onTap: () {
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) {
+                          return SettingScreen();
+                        }));
+                        overlayEntry.remove();
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(
+                        Icons.logout,
+                        color: const Color(0xFF03045E),
+                      ),
+                      title: Text('Logout',
+                          style: GoogleFonts.montserrat(
+                            color: const Color(0xFF03045E),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w300,
+                          )),
                       onTap: () {
                         _authController.logout(context, () => mounted);
                         overlayEntry.remove();
@@ -400,7 +483,6 @@ class _NavUserScreenState extends State<NavUserScreen> {
       ),
     );
 
-    // Add the overlay entry to the overlay
     overlayState.insert(overlayEntry);
   }
 
