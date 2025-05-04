@@ -13,7 +13,6 @@ import 'package:flutter_fe/view/business_acc/client_record/display_list_review.d
 import 'package:flutter_fe/widgets/expense_chart.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'dart:math';
 
 import 'client_record/display_list_reject.dart';
@@ -196,17 +195,23 @@ class _RecordPageState extends State<RecordPage> {
                                           color: Color(0xFF0272B1)))
                                   : Padding(
                                       padding: const EdgeInsets.only(
-                                          bottom: 8.0, top: 20),
+                                          bottom: 8.0, top: 10),
                                       child: SingleChildScrollView(
-                                        scrollDirection: Axis.horizontal,
-                                        child: SizedBox(
-                                          width: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              1.5,
-                                          height: 270,
-                                          child: MonthlyExpensesChart(
-                                            monthlyData: monthlyExpenses,
+                                        scrollDirection: Axis.vertical,
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Container(
+                                            width: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                1.5,
+                                            height: MediaQuery.of(context)
+                                                    .size
+                                                    .height *
+                                                0.5, // Dynamic height based on screen size
+                                            child: MonthlyExpensesChart(
+                                              monthlyData: monthlyExpenses,
+                                            ),
                                           ),
                                         ),
                                       ),

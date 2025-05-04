@@ -104,9 +104,6 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
         _isLoading = true;
         _errorMessage = null;
       });
-
-      //TODO: Implement retrieval of Individual Tasker Information from the API
-
       await Future.delayed(Duration(milliseconds: 500));
 
       setState(() {

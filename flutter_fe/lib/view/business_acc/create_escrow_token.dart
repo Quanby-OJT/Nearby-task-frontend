@@ -34,7 +34,6 @@ class _EscrowTokenScreenState extends State<EscrowTokenScreen> {
     'GCash',
     'PayMaya',];
 
-  //Initialize All Data
   @override
   void initState() {
     super.initState();
@@ -53,7 +52,6 @@ class _EscrowTokenScreenState extends State<EscrowTokenScreen> {
     super.dispose();
   }
 
-  //Main Application
   @override
   Widget build(BuildContext context) {
     return Scaffold(
