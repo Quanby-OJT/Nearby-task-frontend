@@ -367,9 +367,25 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
       unit: 'px',
       format: 'a4',
     });
+
+    try {
+  
+      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 283, 25, 40, 40); 
+    } catch (e) {
+      console.error('Failed to load NearbyTasks.png:', e);
+
+    }
+
+    try {
+      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 125, 23, 40, 40);
+    } catch (e) {
+      console.error('Failed to load Quanby.png:', e);
+
+    }
+
     const title = 'User Complaints';
     doc.setFontSize(20);
-    doc.text(title, 170, 45);
+    doc.text(title, 170, 52);
     const headers = isAdmin
       ? ['No', 'Reporter Name', 'Violator Name', 'Reporter Role', 'Violator Role', 'Date', 'Status', 'Handled By']
       : ['No', 'Reporter Name', 'Violator Name', 'Reporter Role', 'Violator Role', 'Date', 'Status'];

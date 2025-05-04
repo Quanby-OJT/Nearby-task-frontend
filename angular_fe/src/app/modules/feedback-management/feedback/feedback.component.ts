@@ -196,9 +196,25 @@ export class FeedbackComponent implements OnInit {
       unit: 'px',
       format: 'a4',
     });
+
+    try {
+  
+      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 325, 25, 40, 40); 
+    } catch (e) {
+      console.error('Failed to load NearbyTasks.png:', e);
+
+    }
+
+    try {
+      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 125, 23, 40, 40);
+    } catch (e) {
+      console.error('Failed to load Quanby.png:', e);
+
+    }
+
     const title = 'Feedback Management';
     doc.setFontSize(20);
-    doc.text(title, 170, 45);
+    doc.text(title, 170, 52);
     const headers = ['No', 'Tasker Name', 'Feedback', 'Rating', 'Client', 'Reported', 'Created At'];
     const rows = this.displayFeedbacks.map((feedback, index) => {
       const taskerName = feedback.tasker?.user

@@ -353,9 +353,29 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
       unit: 'px',
       format: 'a4',
     });
+
+   
+    try {
+  
+      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 300, 25, 40, 40); 
+    } catch (e) {
+      console.error('Failed to load NearbyTasks.png:', e);
+
+    }
+
+    try {
+      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 125, 23, 40, 40);
+    } catch (e) {
+      console.error('Failed to load Quanby.png:', e);
+
+    }
+
+
     const title = 'User Conversations';
     doc.setFontSize(20);
-    doc.text(title, 170, 45);
+    doc.text(title, 170, 52);
+
+ 
     const columns = ['User No', 'Client Name', 'Tasker Name', 'Conversation', 'Task Created Date', 'Task Status'];
     const rows = this.displayConversations.map((convo) => [
       convo.user_id ?? '',

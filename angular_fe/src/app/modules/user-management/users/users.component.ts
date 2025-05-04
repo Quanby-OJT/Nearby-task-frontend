@@ -76,7 +76,7 @@ export class UsersComponent implements OnInit {
 
   exportCSV() {
     const headers = ['Fullname', 'Role', 'Email', 'Account', 'Status'];
-    const rows = this.filteredUsers.map((item) => [
+    const rows = this.filterService.currentUsers().map((item) => [
       `"${item.first_name} ${item.middle_name === null ? '' : item.middle_name} ${item.last_name}"`,
       item.user_role,
       item.email,
@@ -95,11 +95,31 @@ export class UsersComponent implements OnInit {
       format: 'a4',
     });
 
+    // Add left logo (NearbyTasks.png) with reduced height
+    try {
+      // Set height to 20px, width will scale proportionally
+      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 270, 25, 40, 40); 
+    } catch (e) {
+      console.error('Failed to load NearbyTasks.png:', e);
+      // Continue without logo to ensure PDF generation
+    }
+
+    // Add right logo (Quanby.png)
+    try {
+      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 125, 23, 40, 40);
+    } catch (e) {
+      console.error('Failed to load Quanby.png:', e);
+      // Continue without logo to ensure PDF generation
+    }
+
+    // Add title
     const title = 'Users Account';
     doc.setFontSize(20);
-    doc.text(title, 170, 45);
+    doc.text(title, 170, 52);
+
+    // Add table using paginated users from filterService.currentUsers()
     const columns = ['Fullname', 'Role', 'Email', 'Account', 'Status'];
-    const rows = this.filteredUsers.map((item) => [
+    const rows = this.filterService.currentUsers().map((item) => [
       item.first_name + ' ' + (item.middle_name === null ? '' : item.middle_name) + ' ' + item.last_name,
       item.user_role,
       item.email,
@@ -114,6 +134,7 @@ export class UsersComponent implements OnInit {
       styles: { fontSize: 8, cellPadding: 5, textColor: 'black' },
       headStyles: { fillColor: [60, 33, 146], textColor: 'white' },
     });
+
     doc.save('UserAccounts.pdf');
   }
 

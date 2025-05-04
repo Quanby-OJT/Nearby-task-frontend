@@ -171,9 +171,29 @@ export class PaymentComponent implements OnInit {
       unit: 'px',
       format: 'a4',
     });
+
+
+    try {
+
+      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 300, 25, 40, 40); 
+    } catch (e) {
+      console.error('Failed to load NearbyTasks.png:', e);
+
+    }
+
+  
+    try {
+      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 125, 23, 40, 40);
+    } catch (e) {
+      console.error('Failed to load Quanby.png:', e);
+ 
+    }
+
+    // Add title
     const title = 'Payment Reviews';
     doc.setFontSize(20);
-    doc.text(title, 170, 45);
+    doc.text(title, 170, 52);
+
     const columns = ['No', 'User Name', 'Amount', 'Payment Type', 'Created At', 'Deposit Date'];
     const rows = this.displayPaymentLogs.map((log, index) => [
       (this.currentPage - 1) * this.logsPerPage + index + 1,

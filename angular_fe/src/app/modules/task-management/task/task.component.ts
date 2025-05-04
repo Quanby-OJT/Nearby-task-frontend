@@ -232,9 +232,29 @@ export class TaskComponent implements OnInit {
       unit: 'px',
       format: 'a4',
     });
+
+    // Add left logo (Quanby.png)
+    try {
+      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 125, 23, 40, 40);
+    } catch (e) {
+      console.error('Failed to load Quanby.png:', e);
+      // Continue without logo to ensure PDF generation
+    }
+
+    // Add right logo (NearbyTasks.png) with reduced height
+    try {
+      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 300, 25, 40, 40); 
+    } catch (e) {
+      console.error('Failed to load NearbyTasks.png:', e);
+      // Continue without logo to ensure PDF generation
+    }
+
+    // Add title
     const title = 'Task Management';
     doc.setFontSize(20);
-    doc.text(title, 170, 45);
+    doc.text(title, 170, 52);
+
+    // Add table using paginated users from displayedTasks
     const columns = ['No', 'Client Id', 'Client', 'Task Title', 'Specialization', 'Proposed Price', 'Location', 'Urgent', 'Status'];
     const rows = this.displayedTasks.map((task, index) => [
       index + 1,
