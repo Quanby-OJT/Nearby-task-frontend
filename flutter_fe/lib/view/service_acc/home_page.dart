@@ -516,7 +516,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         ),
                       ),
                       onTap: () {
-                        // Handle navigation to Referral Code
                         overlayEntry.remove();
                       },
                     ),
@@ -555,7 +554,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           context,
                           MaterialPageRoute(
                               builder: (context) => SettingScreen()),
-                        );
+                        ).then((value) => setState(() {
+                              _fetchTasks();
+                            }));
                         overlayEntry.remove();
                       },
                     ),

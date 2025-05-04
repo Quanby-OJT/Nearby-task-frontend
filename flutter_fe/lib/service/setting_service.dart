@@ -89,4 +89,58 @@ class SettingService {
       throw Exception('Failed to retrieve location: ${response.statusCode}');
     }
   }
+
+  Future<void> updateSpecialization(
+      int userId, List<String> specialization) async {
+    debugPrint('Updating specialization for user ID: $userId');
+    final token = await AuthService.getSessionToken();
+    final response = await _client.put(
+      Uri.parse('$url/update-specialization/$userId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: json.encode({'specialization': specialization}),
+    );
+
+    debugPrint('Response Status Code: ${response.statusCode}');
+    debugPrint('Response Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      debugPrint('Specialization updated successfully');
+    } else {
+      debugPrint('Failed to update specialization');
+      throw Exception(
+          'Failed to update specialization: ${response.statusCode}');
+    }
+  }
+
+  updateDistance(int userId, double distance, RangeValues ageRange,
+      bool showFurtherAway) async {
+    debugPrint('Updating distance for user ID: $userId');
+    final token = await AuthService.getSessionToken();
+    final response = await _client.put(
+      Uri.parse('$url/update-distance/$userId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: json.encode({
+        'Distance': distance,
+        'Age_Start': ageRange.start,
+        'Age_End': ageRange.end,
+        'Show_further_away': showFurtherAway
+      }),
+    );
+
+    debugPrint('Response Status Code: ${response.statusCode}');
+    debugPrint('Response Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      debugPrint('Distance updated successfully');
+    } else {
+      debugPrint('Failed to update distance');
+      throw Exception('Failed to update distance: ${response.statusCode}');
+    }
+  }
 }
