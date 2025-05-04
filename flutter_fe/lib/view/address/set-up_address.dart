@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/setting_controller.dart';
+import 'package:flutter_fe/view/custom_loading/custom_loading.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:geocoding/geocoding.dart';
@@ -168,9 +169,7 @@ class _SetUpAddressScreenState extends State<SetUpAddressScreen>
       return const Scaffold(
         backgroundColor: Colors.white,
         body: Center(
-          child: CircularProgressIndicator(
-            color: Colors.pink,
-          ),
+          child: CustomLoading(),
         ),
       );
     }

@@ -50,6 +50,8 @@ class _SettingScreenState extends State<SettingScreen> {
           (_userPreference.ageStart?.toDouble() ?? 18).clamp(18, 80),
           (_userPreference.ageEnd?.toDouble() ?? 24).clamp(18, 80),
         );
+
+        _showFurtherAway = _userPreference.limit ?? false;
       });
 
       if (_userPreference.latitude != null &&

@@ -11,14 +11,14 @@ class SettingService {
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
   Future setLocation(
-    int taskerId,
+    int userId,
     double latitude,
     double longitude,
   ) async {
     debugPrint('Setting location: $latitude, $longitude');
     final token = await AuthService.getSessionToken();
     final response = await _client.put(
-      Uri.parse('$url/set-location/$taskerId'),
+      Uri.parse('$url/set-location/$userId'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -36,11 +36,11 @@ class SettingService {
     }
   }
 
-  Future<SettingModel> getLocation(int taskerId) async {
-    debugPrint('Getting location for tasker ID: $taskerId');
+  Future<SettingModel> getLocation(int userId) async {
+    debugPrint('Getting location for user ID: $userId');
     final token = await AuthService.getSessionToken();
     final response = await _client.get(
-      Uri.parse('$url/get-location/$taskerId'),
+      Uri.parse('$url/get-location/$userId'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',

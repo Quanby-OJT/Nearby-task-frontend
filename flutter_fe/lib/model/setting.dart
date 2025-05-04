@@ -36,8 +36,8 @@ class SettingModel {
         specializationList = List<String>.from(jsonDecode(specString));
       } catch (e) {
         specializationList = specString
-            .replaceAll('[', '')
-            .replaceAll(']', '')
+            .replaceAll('{', '')
+            .replaceAll('}', '')
             .split(',')
             .map((s) => s.trim())
             .toList();
