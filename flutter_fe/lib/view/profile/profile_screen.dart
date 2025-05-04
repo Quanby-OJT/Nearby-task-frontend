@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:currency_text_input_formatter/currency_text_input_formatter.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/controller/escrow_management_controller.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
@@ -25,9 +26,11 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final ProfileController _userController = ProfileController();
   final GetStorage storage = GetStorage();
+  final EscrowManagementController _escrowController = EscrowManagementController();
   int taskerId = 0;
   AuthenticatedUser? _user;
   bool _isLoading = true;
+  bool _isConfirmed = false;
   static String? role;
   bool willEdit = false; // Start in edit mode by default
   List<String> specialization = [];
@@ -47,6 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String saveText = "Save";
   final updateTasker = GlobalKey<FormState>();
 
+  bool _isAmountVisible = false;
   @override
   void initState() {
     super.initState();
@@ -159,7 +163,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  /// This uploads TESDA Documents, if needed.
+  /// This uploads Legal Documents, if needed.
   ///
   Future<void> pickTESDADocuments() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -345,400 +349,463 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             fontSize: 24, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 20),
-
                       // Form Fields
                       Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (role == "Client") ...[
-                              _buildSection(
-                                title: "About Me",
-                                children: [
-                                  TextFormField(
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return "Please enter your desired preferences";
-                                      }
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (role == "Client") ...[
+                            _buildSection(
+                              title: "About Me",
+                              children: [
+                                TextFormField(
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Please enter your desired preferences";
+                                    }
 
-                                      return null;
-                                    },
-                                    maxLines: 5,
-                                    controller: _userController.prefsController,
-                                    enabled: willEdit,
-                                    decoration: _inputDecoration(
-                                        hintText: "Write about yourself"),
-                                  ),
-                                ],
-                              ),
-                              _buildSection(
-                                title: "My Address",
-                                children: [
-                                  TextFormField(
-                                    controller:
-                                        _userController.clientAddressController,
-                                    enabled: willEdit,
-                                    decoration: _inputDecoration(
-                                        hintText: "Enter your address"),
-                                  ),
-                                ],
-                              ),
-                            ],
-                            if (role == "Tasker") ...[
-                              _buildSection(
-                                title: "Personal Details",
-                                children: [
-                                  Text(
-                                      "This is how you describe yourself as a tasker. Give it your best shot to attract more clients and earn more."),
-                                  const SizedBox(height: 20),
-                                  DropdownMenu(
-                                    width: double.infinity,
-                                    enabled: willEdit,
-                                    controller:
-                                        _userController.genderController,
-                                    leadingIcon: const Icon(Icons.person),
-                                    label: const Text("Gender"),
-                                    inputDecorationTheme: _dropdownDecoration(),
-                                    onSelected: (String? gender) {
-                                      setState(() {
-                                        _userController.genderController.text =
-                                            gender!;
-                                      });
-                                    },
-                                    dropdownMenuEntries: gender
-                                        .map<DropdownMenuEntry<String>>(
-                                          (String value) => DropdownMenuEntry(
-                                              value: value, label: value),
-                                        )
-                                        .toList(),
-                                  ),
-                                  const SizedBox(height: 20),
-                                  TextFormField(
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return "Please enter your Information.";
-                                      }
-
-                                      return null;
-                                    },
-                                    maxLines: 5,
-                                    controller: _userController.bioController,
-                                    enabled: willEdit,
-                                    decoration: _inputDecoration(
-                                        hintText: "Write about yourself"),
-                                  ),
-                                  const SizedBox(height: 20),
-                                  //Tasker's COntact Number
-                                  TextFormField(
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return "Please enter your contact number";
-                                      }
-
-                                      return null;
-                                    },
-                                    controller:
-                                        _userController.contactNumberController,
-                                    enabled: willEdit,
-                                    keyboardType: TextInputType.phone,
-                                    decoration: _inputDecoration(
-                                        hintText: "Enter your contact number"),
-                                  )
-                                ],
-                              ),
-                              _buildSection(
-                                title: "Professional Details",
-                                children: [
-                                  Text(""),
-                                  DropdownMenu(
-                                    width: double.infinity,
-                                    enabled: willEdit,
-                                    controller: _userController
-                                        .specializationController,
-                                    label: const Text("Specialization"),
-                                    inputDecorationTheme: _dropdownDecoration(),
-                                    onSelected: (String? spec) {
-                                      setState(() {
-                                        _userController.specializationController
-                                            .text = spec!;
-                                      });
-                                    },
-                                    dropdownMenuEntries: specialization
-                                        .map<DropdownMenuEntry<String>>(
-                                          (String value) => DropdownMenuEntry(
-                                              value: value, label: value),
-                                        )
-                                        .toList(),
-                                  ),
-                                  const SizedBox(height: 20),
-                                  TextFormField(
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return "Please enter your skills";
-                                      }
-                                      return null;
-                                    },
-                                    maxLines: 3,
-                                    controller:
-                                        _userController.skillsController,
-                                    enabled: willEdit,
-                                    decoration: _inputDecoration(
-                                        hintText: "List your skills"),
-                                  ),
-                                  const SizedBox(height: 20),
-                                  //Tasker Address
-                                  TextFormField(
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return "Please enter your address.";
-                                      }
-                                      return null;
-                                    },
-                                    controller:
-                                        _userController.taskerAddressController,
-                                    enabled: willEdit,
-                                    decoration: _inputDecoration(
-                                        hintText: "Enter your address"),
-                                  ),
-                                  const SizedBox(height: 20),
-                                  DropdownMenu(
-                                    width: double.infinity,
-                                    enabled: willEdit,
-                                    controller:
-                                        _userController.availabilityController,
-                                    leadingIcon:
-                                        const Icon(Icons.event_available),
-                                    label: const Text("Availability"),
-                                    inputDecorationTheme: _dropdownDecoration(),
-                                    onSelected: (String? spec) {
-                                      setState(() {
-                                        _userController.availabilityController
-                                            .text = spec!;
-                                      });
-                                    },
-                                    dropdownMenuEntries: availability
-                                        .map<DropdownMenuEntry<String>>(
-                                          (String value) => DropdownMenuEntry(
-                                              value: value, label: value),
-                                        )
-                                        .toList(),
-                                  ),
-                                  const SizedBox(height: 20),
-                                  //Tasker Rate and Period
-                                  Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                    return null;
+                                  },
+                                  maxLines: 5,
+                                  controller: _userController.prefsController,
+                                  enabled: willEdit,
+                                  decoration: _inputDecoration(
+                                      hintText: "Write about yourself"),
+                                ),
+                              ],
+                            ),
+                            _buildSection(
+                              title: "My Address",
+                              children: [
+                                TextFormField(
+                                  controller:
+                                      _userController.clientAddressController,
+                                  enabled: willEdit,
+                                  decoration: _inputDecoration(
+                                      hintText: "Enter your address"),
+                                ),
+                              ],
+                            ),
+                          ],
+                          if (role == "Tasker") ...[
+                            Padding(
+                              padding: const EdgeInsets.all(20.0),
+                              child: Card(
+                                color: Colors.white,
+                                elevation: 3,
+                                child: SizedBox(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(10),
+                                    child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
-                                            Expanded(
-                                              child: TextFormField(
-                                                validator: (value) {
-                                                  if (value == null ||
-                                                      value.isEmpty) {
-                                                    return "Please enter your rate";
-                                                  }
-                                                  return null;
-                                                },
-                                                inputFormatters: [
-                                                  CurrencyTextInputFormatter
-                                                      .currency(
-                                                          locale: 'en_PH',
-                                                          symbol: '₱',
-                                                          decimalDigits: 2),
-                                                ],
-                                                controller: _userController
-                                                    .wageController,
-                                                enabled: willEdit,
-                                                keyboardType:
-                                                    TextInputType.number,
-                                                decoration: _inputDecoration(
-                                                    hintText:
-                                                        "Enter your rate"),
-                                              ),
+                                            Text(
+                                              _isAmountVisible ? "PHP 100,000" : "PHP ***********",
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 30,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF3C28CC)
+                                              )
                                             ),
-                                            Expanded(
-                                              child: DropdownMenu(
-                                                width: double.infinity,
-                                                enabled: willEdit,
-                                                controller: _userController
-                                                    .payPeriodController,
-                                                leadingIcon:
-                                                    const Icon(Icons.schedule),
-                                                inputDecorationTheme:
-                                                    _dropdownDecoration(),
-                                                onSelected: (String? period) {
-                                                  setState(() {
-                                                    _userController
-                                                        .payPeriodController
-                                                        .text = period!;
-                                                  });
-                                                },
-                                                dropdownMenuEntries: payPeriods
-                                                    .map<
-                                                        DropdownMenuEntry<
-                                                            String>>(
-                                                      (String value) =>
-                                                          DropdownMenuEntry(
-                                                              value: value,
-                                                              label: value),
-                                                    )
-                                                    .toList(),
+                                            IconButton(
+                                              icon: Icon(
+                                                _isAmountVisible ? FontAwesomeIcons.eye : FontAwesomeIcons.eyeSlash,
+                                                color: Color(0xFF3C28CC)
                                               ),
-                                            ),
+                                              onPressed: () => setState(() {_isAmountVisible = !_isAmountVisible;},
+                                              )
+                                            )
                                           ],
                                         ),
-                                      ]),
-                                ],
-                              ),
-                              _buildSection(
-                                title: "My TESDA Documents",
-                                children: [
-                                  if (tesdaDocuments.isEmpty && !willEdit)
-                                    SizedBox(
-                                      width: double.infinity,
-                                      child: Center(
-                                        child: Text(
-                                          "You don't have documents uploaded yet. \n\nYou MUST upload your documents before you can accept a job.",
-                                          style: GoogleFonts.openSans(
-                                            color: Colors.red,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-                                    )
-                                  else if (willEdit)
-                                    Column(
-                                      children: [
+                                        Text("Current Balance", style: GoogleFonts.poppins()),
+                                        const SizedBox(height: 15),
                                         Center(
                                           child: ElevatedButton(
-                                            onPressed: pickTESDADocuments,
-                                            child: Text('Upload Documents',
-                                                style: GoogleFonts.openSans()),
+                                            style: ElevatedButton.styleFrom(
+                                              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+                                              backgroundColor: Color(0xFF0272B1),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(10.0)
+                                              )
+                                            ),
+                                            onPressed: () => _showUpWithdrawalConfirmation(context),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(FontAwesomeIcons.moneyBillTransfer, size: 14, color: Colors.white),
+                                                const SizedBox(width: 8),
+                                                Text("Withdraw IMONALICK Credits", style: GoogleFonts.poppins(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w600))
+                                              ],
+                                            ),
                                           ),
                                         ),
-                                        if (tesdaDocuments.isNotEmpty)
-                                          ConstrainedBox(
-                                            constraints: const BoxConstraints(
-                                                maxHeight: 130),
-                                            child: SizedBox(
-                                              height: double.infinity,
-                                              child: ListView.builder(
-                                                scrollDirection:
-                                                    Axis.horizontal,
-                                                physics:
-                                                    const ClampingScrollPhysics(),
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        vertical: 5),
-                                                itemBuilder: (context, index) =>
-                                                    Padding(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(vertical: 3),
-                                                  child: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      buildFilePreview(
-                                                          tesdaDocuments[index],
-                                                          index),
-                                                    ],
-                                                  ),
-                                                ),
-                                                itemCount:
-                                                    tesdaDocuments.length,
-                                              ),
-                                            ),
-                                          )
                                       ],
                                     )
-                                  else if (tesdaDocuments.isNotEmpty)
-                                    SizedBox(
-                                      height: 80,
-                                      child: ListView.builder(
-                                        scrollDirection: Axis.horizontal,
-                                        physics: const ClampingScrollPhysics(),
-                                        itemCount: tesdaDocuments.length,
-                                        itemBuilder: (context, index) {
-                                          return Padding(
-                                            padding: const EdgeInsets.only(
-                                                right: 10),
-                                            child: buildFilePreview(
-                                                tesdaDocuments[index], index),
-                                          );
-                                        },
+                                  )
+                                )
+                              )
+                            ),
+                            _buildSection(
+                              title: "Personal Details",
+                              children: [
+                                Text(
+                                    "This is how you describe yourself as a tasker. Give it your best shot to attract more clients and earn more. Make it more spicy."),
+                                const SizedBox(height: 20),
+                                DropdownMenu(
+                                  width: double.infinity,
+                                  enabled: willEdit,
+                                  controller:
+                                      _userController.genderController,
+                                  leadingIcon: const Icon(Icons.person),
+                                  label: const Text("Gender"),
+                                  inputDecorationTheme: _dropdownDecoration(),
+                                  onSelected: (String? gender) {
+                                    setState(() {
+                                      _userController.genderController.text =
+                                          gender!;
+                                    });
+                                  },
+                                  dropdownMenuEntries: gender
+                                      .map<DropdownMenuEntry<String>>(
+                                        (String value) => DropdownMenuEntry(
+                                            value: value, label: value),
+                                      )
+                                      .toList(),
+                                ),
+                                const SizedBox(height: 20),
+                                TextFormField(
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Please enter your Information.";
+                                    }
+
+                                    return null;
+                                  },
+                                  maxLines: 5,
+                                  controller: _userController.bioController,
+                                  enabled: willEdit,
+                                  decoration: _inputDecoration(
+                                      hintText: "Write about yourself"),
+                                ),
+                                const SizedBox(height: 20),
+                                //Tasker's COntact Number
+                                TextFormField(
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Please enter your contact number";
+                                    }
+
+                                    return null;
+                                  },
+                                  controller:
+                                      _userController.contactNumberController,
+                                  enabled: willEdit,
+                                  keyboardType: TextInputType.phone,
+                                  decoration: _inputDecoration(
+                                      hintText: "Enter your contact number"),
+                                )
+                              ],
+                            ),
+                            _buildSection(
+                              title: "Professional Details",
+                              children: [
+                                Text(""),
+                                DropdownMenu(
+                                  width: double.infinity,
+                                  enabled: willEdit,
+                                  controller: _userController
+                                      .specializationController,
+                                  label: const Text("Specialization"),
+                                  inputDecorationTheme: _dropdownDecoration(),
+                                  onSelected: (String? spec) {
+                                    setState(() {
+                                      _userController.specializationController
+                                          .text = spec!;
+                                    });
+                                  },
+                                  dropdownMenuEntries: specialization
+                                      .map<DropdownMenuEntry<String>>(
+                                        (String value) => DropdownMenuEntry(
+                                            value: value, label: value),
+                                      )
+                                      .toList(),
+                                ),
+                                const SizedBox(height: 20),
+                                TextFormField(
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Please enter your skills";
+                                    }
+                                    return null;
+                                  },
+                                  maxLines: 3,
+                                  controller:
+                                      _userController.skillsController,
+                                  enabled: willEdit,
+                                  decoration: _inputDecoration(
+                                      hintText: "List your skills"),
+                                ),
+                                const SizedBox(height: 20),
+                                //Tasker Address
+                                TextFormField(
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Please enter your address.";
+                                    }
+                                    return null;
+                                  },
+                                  controller:
+                                      _userController.taskerAddressController,
+                                  enabled: willEdit,
+                                  decoration: _inputDecoration(
+                                      hintText: "Enter your address"),
+                                ),
+                                const SizedBox(height: 20),
+                                DropdownMenu(
+                                  width: double.infinity,
+                                  enabled: willEdit,
+                                  controller:
+                                      _userController.availabilityController,
+                                  leadingIcon:
+                                      const Icon(Icons.event_available),
+                                  label: const Text("Availability"),
+                                  inputDecorationTheme: _dropdownDecoration(),
+                                  onSelected: (String? spec) {
+                                    setState(() {
+                                      _userController.availabilityController
+                                          .text = spec!;
+                                    });
+                                  },
+                                  dropdownMenuEntries: availability
+                                      .map<DropdownMenuEntry<String>>(
+                                        (String value) => DropdownMenuEntry(
+                                            value: value, label: value),
+                                      )
+                                      .toList(),
+                                ),
+                                const SizedBox(height: 20),
+                                //Tasker Rate and Period
+                                Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: TextFormField(
+                                              validator: (value) {
+                                                if (value == null ||
+                                                    value.isEmpty) {
+                                                  return "Please enter your rate";
+                                                }
+                                                return null;
+                                              },
+                                              inputFormatters: [
+                                                CurrencyTextInputFormatter
+                                                    .currency(
+                                                        locale: 'en_PH',
+                                                        symbol: '₱',
+                                                        decimalDigits: 2),
+                                              ],
+                                              controller: _userController
+                                                  .wageController,
+                                              enabled: willEdit,
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              decoration: _inputDecoration(
+                                                  hintText:
+                                                      "Enter your rate"),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: DropdownMenu(
+                                              width: double.infinity,
+                                              enabled: willEdit,
+                                              controller: _userController
+                                                  .payPeriodController,
+                                              leadingIcon:
+                                                  const Icon(Icons.schedule),
+                                              inputDecorationTheme:
+                                                  _dropdownDecoration(),
+                                              onSelected: (String? period) {
+                                                setState(() {
+                                                  _userController
+                                                      .payPeriodController
+                                                      .text = period!;
+                                                });
+                                              },
+                                              dropdownMenuEntries: payPeriods
+                                                  .map<
+                                                      DropdownMenuEntry<
+                                                          String>>(
+                                                    (String value) =>
+                                                        DropdownMenuEntry(
+                                                            value: value,
+                                                            label: value),
+                                                  )
+                                                  .toList(),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ]),
+                              ],
+                            ),
+                            _buildSection(
+                              title: "My TESDA Documents",
+                              children: [
+                                if (tesdaDocuments.isEmpty && !willEdit)
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: Center(
+                                      child: Text(
+                                        "You don't have documents uploaded yet. \n\nYou MUST upload your documents before you can accept a job.",
+                                        style: GoogleFonts.openSans(
+                                          color: Colors.red,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        textAlign: TextAlign.center,
                                       ),
                                     ),
-                                ],
-                              ),
-                            ],
-                            ...[
-                              _buildSection(
-                                title: "Social Media Links",
-                                children: [
-                                  Text(
-                                      "To boost your profile to your desired clients (taskers), we want you to provide your Socials for your prospects to know you better."),
-                                  const SizedBox(height: 20),
-                                  SizedBox(width: 5),
-                                  //Facebook Link
-                                  Row(
+                                  )
+                                else if (willEdit)
+                                  Column(
                                     children: [
-                                      Icon(
-                                        FontAwesomeIcons.facebook,
-                                        color: Colors.blueAccent,
+                                      Center(
+                                        child: ElevatedButton(
+                                          onPressed: pickTESDADocuments,
+                                          child: Text('Upload Documents',
+                                              style: GoogleFonts.openSans()),
+                                        ),
                                       ),
-                                      SizedBox(width: 10),
-                                      Expanded(
-                                          child: TextFormField(
-                                        controller:
-                                            _userController.fbLinkController,
-                                        enabled: willEdit,
-                                        decoration: _inputDecoration(
-                                            hintText: 'Enter Facebook link'),
-                                      )),
+                                      if (tesdaDocuments.isNotEmpty)
+                                        ConstrainedBox(
+                                          constraints: const BoxConstraints(
+                                              maxHeight: 130),
+                                          child: SizedBox(
+                                            height: double.infinity,
+                                            child: ListView.builder(
+                                              scrollDirection:
+                                                  Axis.horizontal,
+                                              physics:
+                                                  const ClampingScrollPhysics(),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 5),
+                                              itemBuilder: (context, index) =>
+                                                  Padding(
+                                                padding: const EdgeInsets
+                                                    .symmetric(vertical: 3),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    buildFilePreview(
+                                                        tesdaDocuments[index],
+                                                        index),
+                                                  ],
+                                                ),
+                                              ),
+                                              itemCount:
+                                                  tesdaDocuments.length,
+                                            ),
+                                          ),
+                                        )
                                     ],
+                                  )
+                                else if (tesdaDocuments.isNotEmpty)
+                                  SizedBox(
+                                    height: 80,
+                                    child: ListView.builder(
+                                      scrollDirection: Axis.horizontal,
+                                      physics: const ClampingScrollPhysics(),
+                                      itemCount: tesdaDocuments.length,
+                                      itemBuilder: (context, index) {
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                              right: 10),
+                                          child: buildFilePreview(
+                                              tesdaDocuments[index], index),
+                                        );
+                                      },
+                                    ),
                                   ),
-                                  const SizedBox(height: 20),
-                                  //Instagram Link
-                                  Row(
-                                    children: [
-                                      FaIcon(FontAwesomeIcons.instagram,
-                                          color: Colors.pinkAccent),
-                                      //color: GradientRotation(radians),
-                                      SizedBox(width: 10),
-                                      Expanded(
-                                          child: TextFormField(
-                                        controller:
-                                            _userController.instaLinkController,
-                                        enabled: willEdit,
-                                        decoration: _inputDecoration(
-                                            hintText: 'Enter Instagram link'),
-                                      )),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 20),
-                                  Row(
-                                    children: [
-                                      FaIcon(FontAwesomeIcons.telegram,
-                                          color: Colors.lightBlueAccent),
-                                      //color: GradientRotation(radians),
-                                      SizedBox(width: 10),
-                                      Expanded(
-                                          child: TextFormField(
-                                        controller: _userController
-                                            .telegramLinkController,
-                                        enabled: willEdit,
-                                        decoration: _inputDecoration(
-                                            hintText: 'Enter Telegram link'),
-                                      )),
-                                    ],
-                                  ),
-                                  SizedBox(height: 100),
-                                ],
-                              )
-                            ]
-                          ])
-                    ]))),
+                              ],
+                            ),
+                          ],
+                          ...[
+                            _buildSection(
+                              title: "Social Media Links",
+                              children: [
+                                Text(
+                                    "To boost your profile to your desired clients (taskers), we want you to provide your Socials for your prospects to know you better."),
+                                const SizedBox(height: 20),
+                                SizedBox(width: 5),
+                                //Facebook Link
+                                Row(
+                                  children: [
+                                    Icon(
+                                      FontAwesomeIcons.facebook,
+                                      color: Colors.blueAccent,
+                                    ),
+                                    SizedBox(width: 10),
+                                    Expanded(
+                                        child: TextFormField(
+                                      controller:
+                                          _userController.fbLinkController,
+                                      enabled: willEdit,
+                                      decoration: _inputDecoration(
+                                          hintText: 'Enter Facebook link'),
+                                    )),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+                                //Instagram Link
+                                Row(
+                                  children: [
+                                    FaIcon(FontAwesomeIcons.instagram,
+                                        color: Colors.pinkAccent),
+                                    //color: GradientRotation(radians),
+                                    SizedBox(width: 10),
+                                    Expanded(
+                                        child: TextFormField(
+                                      controller:
+                                          _userController.instaLinkController,
+                                      enabled: willEdit,
+                                      decoration: _inputDecoration(
+                                          hintText: 'Enter Instagram link'),
+                                    )),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+                                Row(
+                                  children: [
+                                    FaIcon(FontAwesomeIcons.telegram,
+                                        color: Colors.lightBlueAccent),
+                                    //color: GradientRotation(radians),
+                                    SizedBox(width: 10),
+                                    Expanded(
+                                        child: TextFormField(
+                                      controller: _userController
+                                          .telegramLinkController,
+                                      enabled: willEdit,
+                                      decoration: _inputDecoration(
+                                          hintText: 'Enter Telegram link'),
+                                    )),
+                                  ],
+                                ),
+                                SizedBox(height: 100),
+                              ],
+                            )
+                          ]
+                        ]
+                      )
+                    ]
+                )
+            )
+        ),
       ),
       bottomSheet: Padding(
         padding: const EdgeInsets.all(20),
@@ -905,5 +972,86 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             )));
+  }
+
+  void _showUpWithdrawalConfirmation(BuildContext parentContext) {
+    showModalBottomSheet(
+      context: parentContext,
+      builder: (BuildContext childContext) {
+        return Container(
+          width: MediaQuery.of(childContext).size.width,
+          height: MediaQuery.of(childContext).size.height * 0.35,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+            child: Column(
+              children: [
+                Text(
+                  "How much IMONALICK Credits would you like to withdraw?",
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    color: Color(0XFF3C28CC),
+                    fontWeight: FontWeight.bold
+                  )
+                ),
+                SizedBox(height: 20,),
+                TextFormField(
+                  controller: _escrowController.amountController,
+                  decoration: _inputDecoration(hintText: "Enter Amount You Want to Withdraw"),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    CurrencyTextInputFormatter.currency(
+                      locale: 'en_PH', symbol: '₱', decimalDigits: 2
+                    )
+                  ],
+                ),
+                SizedBox(height: 20,),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Theme(
+                      data: ThemeData(
+                        unselectedWidgetColor: Color(0XFF3C28CC),
+                      ),
+                      child: Checkbox(
+                        value: _isConfirmed,
+                        activeColor: Color(0XFF3C28CC),
+                        onChanged: (bool? newValue) {
+                          setState(() {
+                            _isConfirmed = newValue!;
+                          });
+                        },
+                      ),
+                    ),
+                    Text("I confirm that I entered the right amount from the system.",
+                      style: GoogleFonts.poppins(
+                        color: Color(0XFF3C28CC),
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+                ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                      (Set<WidgetState> states) {
+                        return const Color(0XFF3C28CC);
+                      }
+                    )
+                  ),
+                  onPressed: () {},
+                  child: Text(
+                    "Withdraw Amount",
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: Colors.white,
+                    )
+                  )
+                )
+              ]
+            )
+          ),
+        );
+      }
+    );
   }
 }

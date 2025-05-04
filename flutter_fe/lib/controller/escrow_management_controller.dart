@@ -83,11 +83,11 @@ class EscrowManagementController {
     }
   }
 
-  Future<String> releaseEscrowPayment(int taskTakenId) async {
+  Future<String> releaseEscrowPayment(int taskerId) async {
     try {
       debugPrint(
-          "TaskRequestController: Releasing escrow payment for task taken with ID $taskTakenId");
-      var response = await _requestService.releaseEscrowPayment(taskTakenId);
+          "TaskRequestController: Releasing escrow payment for task taken with ID $taskerId");
+      var response = await _requestService.releaseEscrowPayment(taskerId);
       if (response.containsKey("message")) {
         return response["message"];
       } else if (response.containsKey("error")) {
