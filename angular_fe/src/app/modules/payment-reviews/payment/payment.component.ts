@@ -27,8 +27,12 @@ export class PaymentComponent implements OnInit {
   endIndex: number = 0;
   paginationButtons: (number | string)[] = [];
   placeholderRows: any[] = [];
-  sortDirection: 'asc' | 'desc' | 'default' = 'default';
-  amountSortDirection: 'default' | 'highToLow' | 'lowToHigh' = 'default';
+  sortDirections: { [key: string]: string } = {
+    userName: 'default',
+    amount: 'default',
+    depositDate: 'default'
+  };
+  sortColumn: 'userName' | 'amount' | 'depositDate' = 'depositDate';
 
   constructor(private paymentService: PaymentService) {}
 
@@ -73,28 +77,36 @@ export class PaymentComponent implements OnInit {
 
     // Apply sorting
     tempLogs.sort((a, b) => {
-      // Amount sorting takes precedence
-      if (this.amountSortDirection === 'highToLow') {
-        return (b.amount || 0) - (a.amount || 0); // Highest to lowest
-      } else if (this.amountSortDirection === 'lowToHigh') {
-        return (a.amount || 0) - (b.amount || 0); // Lowest to highest
+      if (this.sortColumn === 'userName') {
+        const nameA = (a.user_name || '').toLowerCase();
+        const nameB = (b.user_name || '').toLowerCase();
+        if (this.sortDirections['userName'] === 'asc' || this.sortDirections['userName'] === 'default') {
+          return nameA.localeCompare(nameB); // A-Z
+        } else {
+          return nameB.localeCompare(nameA); // Z-A
+        }
+      } else if (this.sortColumn === 'amount') {
+        const amountA = parseFloat(a.amount) || 0;
+        const amountB = parseFloat(b.amount) || 0;
+        if (this.sortDirections['amount'] === 'lowToHigh') {
+          return amountA - amountB; // Lowest to highest
+        } else {
+          return amountB - amountA; // Highest to lowest (default and highToLow)
+        }
+      } else if (this.sortColumn === 'depositDate') {
+        const dateA = new Date(a.deposit_date || '1970-01-01').getTime();
+        const dateB = new Date(b.deposit_date || '1970-01-01').getTime();
+        if (this.sortDirections['depositDate'] === 'asc') {
+          return dateA - dateB; // Oldest to newest
+        } else {
+          return dateB - dateA; // Newest to oldest (default and desc)
+        }
       }
-
-      // Name sorting if amount is default
-      if (this.sortDirection === 'asc') {
-        return (a.user_name || '').localeCompare(b.user_name || ''); // A-Z
-      } else if (this.sortDirection === 'desc') {
-        return (b.user_name || '').localeCompare(a.user_name || ''); // Z-A
-      }
-
-      // Default: sort by deposit_date (newest to oldest)
-      const dateA = new Date(a.deposit_date || '1970-01-01').getTime();
-      const dateB = new Date(b.deposit_date || '1970-01-01').getTime();
-      return dateB - dateA;
+      return 0;
     });
 
     // Log sorted logs for debugging
-    console.log(`Sorted payment logs (amount: ${this.amountSortDirection}, name: ${this.sortDirection}):`, tempLogs.map(log => ({
+    console.log(`Sorted payment logs (column: ${this.sortColumn}, direction: ${this.sortDirections[this.sortColumn]}):`, tempLogs.map(log => ({
       user_name: log.user_name,
       amount: log.amount,
       payment_type: log.payment_type,
@@ -106,19 +118,22 @@ export class PaymentComponent implements OnInit {
     this.updatePage();
   }
 
-  toggleSort() {
-    console.log('toggleSort called, current sortDirection:', this.sortDirection); // Debug: Confirm method is called
-    this.sortDirection = this.sortDirection === 'default' ? 'asc' :
-                         this.sortDirection === 'asc' ? 'desc' : 'default';
-    this.amountSortDirection = 'default'; // Reset amount sorting when name sorting is toggled
-    this.applyFilters();
-  }
-
-  toggleAmountSort() {
-    console.log('toggleAmountSort called, current amountSortDirection:', this.amountSortDirection); // Debug: Confirm method is called
-    this.amountSortDirection = this.amountSortDirection === 'default' ? 'highToLow' :
-                              this.amountSortDirection === 'highToLow' ? 'lowToHigh' : 'default';
-    this.sortDirection = 'default'; // Reset name sorting when amount sorting is toggled
+  toggleSort(column: 'userName' | 'amount' | 'depositDate') {
+    console.log(`toggleSort called for ${column}, current direction: ${this.sortDirections[column]}`);
+    if (this.sortColumn !== column) {
+      this.sortDirections[this.sortColumn] = 'default'; // Reset previous column
+      this.sortColumn = column;
+    }
+    if (column === 'userName') {
+      this.sortDirections[column] = this.sortDirections[column] === 'default' ? 'asc' : 
+                                   this.sortDirections[column] === 'asc' ? 'desc' : 'default';
+    } else if (column === 'amount') {
+      this.sortDirections[column] = this.sortDirections[column] === 'default' ? 'highToLow' : 
+                                   this.sortDirections[column] === 'highToLow' ? 'lowToHigh' : 'default';
+    } else if (column === 'depositDate') {
+      this.sortDirections[column] = this.sortDirections[column] === 'default' ? 'asc' : 
+                                   this.sortDirections[column] === 'asc' ? 'desc' : 'default';
+    }
     this.applyFilters();
   }
 

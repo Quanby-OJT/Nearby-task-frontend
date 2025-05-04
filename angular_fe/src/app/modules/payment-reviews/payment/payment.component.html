@@ -48,27 +48,36 @@
       <thead class="border-b">
         <tr>
           <th class="px-4 py-2 text-start min-w-[140px] lg:min-w-[300px] xl:min-w-[160px]">
-            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort()">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('userName')">
               Name
               <span class="w-4 h-4">
-                <ng-container *ngIf="sortDirection === 'default'">↕</ng-container>
-                <ng-container *ngIf="sortDirection === 'asc'">▲</ng-container>
-                <ng-container *ngIf="sortDirection === 'desc'">▼</ng-container>
+                <ng-container *ngIf="sortDirections['userName'] === 'asc'">▲</ng-container>
+                <ng-container *ngIf="sortDirections['userName'] === 'desc'">▼</ng-container>
+                <ng-container *ngIf="sortDirections['userName'] === 'default'">↕</ng-container>
               </span>
             </div>
           </th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[130px]">
-            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleAmountSort()">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('amount')">
               Amount
               <span class="w-4 h-4">
-                <ng-container *ngIf="amountSortDirection === 'default'">↕</ng-container>
-                <ng-container *ngIf="amountSortDirection === 'highToLow'">▼</ng-container>
-                <ng-container *ngIf="amountSortDirection === 'lowToHigh'">▲</ng-container>
+                <ng-container *ngIf="sortDirections['amount'] === 'highToLow'">▼</ng-container>
+                <ng-container *ngIf="sortDirections['amount'] === 'lowToHigh'">▲</ng-container>
+                <ng-container *ngIf="sortDirections['amount'] === 'default'">↕</ng-container>
               </span>
             </div>
           </th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[210px]">Payment Type</th>
-          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[100px]">Deposit Date</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[100px]">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('depositDate')">
+              Deposit Date
+              <span class="w-4 h-4">
+                <ng-container *ngIf="sortDirections['depositDate'] === 'asc'">▲</ng-container>
+                <ng-container *ngIf="sortDirections['depositDate'] === 'desc'">▼</ng-container>
+                <ng-container *ngIf="sortDirections['depositDate'] === 'default'">↕</ng-container>
+              </span>
+            </div>
+          </th>
         </tr>
       </thead>
       <tbody>

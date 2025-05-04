@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, EventEmitter, Output } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ClientComplaintComponent } from './client-complaint/client-complaint.component';
@@ -41,10 +41,11 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
   selectedReport: any = null;
   userRole: string | undefined;
   placeholderRows: any[] = []; 
-
-  @Output() onCheck = new EventEmitter<boolean>();
-  @Output() onSort = new EventEmitter<'asc' | 'desc' | 'default'>();
-  sortDirection: 'asc' | 'desc' | 'default' = 'default';
+  sortDirections: { [key: string]: 'asc' | 'desc' | 'default' } = {
+    reporterName: 'default',
+    createdAt: 'default'
+  };
+  sortColumn: 'reporterName' | 'createdAt' = 'createdAt';
 
   private reportsSubscription!: Subscription;
 
@@ -99,15 +100,13 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
     this.applyFilters();
   }
 
-  public toggle(event: Event) {
-    const value = (event.target as HTMLInputElement).checked;
-    this.onCheck.emit(value);
-  }
-
-  public toggleSort() {
-    this.sortDirection = this.sortDirection === 'default' ? 'asc' : 
-                        this.sortDirection === 'asc' ? 'desc' : 'default';
-    this.onSort.emit(this.sortDirection);
+  public toggleSort(column: 'reporterName' | 'createdAt') {
+    if (this.sortColumn !== column) {
+      this.sortDirections[this.sortColumn] = 'default'; // Reset previous column
+      this.sortColumn = column;
+    }
+    this.sortDirections[column] = this.sortDirections[column] === 'default' ? 'asc' : 
+                                 this.sortDirections[column] === 'asc' ? 'desc' : 'default';
     this.applyFilters();
   }
 
@@ -140,14 +139,8 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
     }
 
     // Apply sorting
-    tempReports.sort((a, b) => {
-      if (this.sortDirection === 'default') {
-        // Sort by created_at (newest first)
-        const dateA = new Date(a.created_at).getTime();
-        const dateB = new Date(b.created_at).getTime();
-        return dateB - dateA;
-      } else {
-        // Sort by reporter name
+    if (this.sortColumn === 'reporterName') {
+      tempReports.sort((a, b) => {
         const nameA = [
           a.reporter.first_name || '',
           a.reporter.middle_name || '',
@@ -158,9 +151,23 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
           b.reporter.middle_name || '',
           b.reporter.last_name || ''
         ].filter(Boolean).join(' ').toLowerCase();
-        return this.sortDirection === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
-      }
-    });
+        if (this.sortDirections['reporterName'] === 'asc' || this.sortDirections['reporterName'] === 'default') {
+          return nameA.localeCompare(nameB); // A-Z
+        } else {
+          return nameB.localeCompare(nameA); // Z-A
+        }
+      });
+    } else if (this.sortColumn === 'createdAt') {
+      tempReports.sort((a, b) => {
+        const dateA = new Date(a.created_at).getTime();
+        const dateB = new Date(b.created_at).getTime();
+        if (this.sortDirections['createdAt'] === 'asc') {
+          return dateA - dateB; // Oldest to newest
+        } else {
+          return dateB - dateA; // Newest to oldest (default and desc)
+        }
+      });
+    }
 
     this.filteredReports = tempReports;
     this.currentPage = 1;
