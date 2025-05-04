@@ -298,7 +298,7 @@ class JobPostService {
   Future<List<SpecializationModel>> getSpecializations() async {
     final response = await _getRequest("/get-specializations");
 
-    debugPrint("Specializations Response: ${response.toString()}");
+    debugPrint("Specializations: ${response.toString()}");
     if (response["specializations"] != null) {
       return (response["specializations"] as List)
           .map((item) => SpecializationModel.fromJson(item))
@@ -406,18 +406,15 @@ class JobPostService {
       final likedJobsResponse = await _getRequest("/displayLikedJob/$userId");
       final allJobsResponse = await _getRequest("/displayTask");
 
-      // Log responses for debugging
       debugPrint("Liked Jobs Response: $likedJobsResponse");
       debugPrint("All Jobs Response: $allJobsResponse");
 
-      // Check if allJobsResponse is a valid Map with tasks
       if (allJobsResponse.containsKey("error")) {
         debugPrint(
             "Error fetching jobs: ${allJobsResponse['error'] ?? 'Invalid response'}");
         return [];
       }
 
-      // Ensure 'tasks' exists and is a List
       final tasks = allJobsResponse["tasks"];
       if (tasks == null || tasks is! List) {
         debugPrint(

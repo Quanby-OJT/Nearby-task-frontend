@@ -29,4 +29,34 @@ class SettingController {
 
     return settingService.getLocation(taskerId);
   }
+
+  Future<void> updateSpecialization(List<String> specialization) async {
+    final taskerId = storage.read('user_id');
+
+    if (taskerId == null) {
+      debugPrint('Error: tasker_id is null in storage');
+      throw Exception('User ID not found. Please login again.');
+    }
+
+    debugPrint('Updating specialization: $specialization');
+
+    return settingService.updateSpecialization(taskerId, specialization);
+  }
+
+  Future<void> updateDistance(
+      double distance, RangeValues ageRange, bool showFurtherAway) async {
+    final taskerId = storage.read('user_id');
+
+    debugPrint('Updating distance: $distance, age range: $ageRange');
+
+    if (taskerId == null) {
+      debugPrint('Error: tasker_id is null in storage');
+      throw Exception('User ID not found. Please login again.');
+    }
+
+    debugPrint('Updating distance: $distance, age range: $ageRange');
+
+    return settingService.updateDistance(
+        taskerId, distance, ageRange, showFurtherAway);
+  }
 }

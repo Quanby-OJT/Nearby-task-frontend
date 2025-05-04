@@ -27,7 +27,6 @@ class _PreSignUpState extends State<PreSignUp> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 1000),
     );
 
-//downward
     _topSlideAnimation = Tween<Offset>(
       begin: const Offset(0, -0.10),
       end: Offset.zero,
@@ -45,7 +44,6 @@ class _PreSignUpState extends State<PreSignUp> with TickerProviderStateMixin {
       ),
     );
 
-//upward
     _bottomSlideAnimation1 = Tween<Offset>(
       begin: const Offset(0, 0.10),
       end: Offset.zero,

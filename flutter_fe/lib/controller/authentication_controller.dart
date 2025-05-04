@@ -7,6 +7,7 @@ import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/sign_in/otp_screen.dart';
 import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
 import 'package:get_storage/get_storage.dart';
+import '../view/custom_loading/statusModal.dart';
 
 class AuthenticationController {
   static const String apiUrl = "http://192.168.20.48:5000/connect";
@@ -19,6 +20,21 @@ class AuthenticationController {
 
   final storage = GetStorage();
   AuthenticationController({this.userId = 0});
+
+  void _showStatusModal({
+    required BuildContext context,
+    required bool isSuccess,
+    required String message,
+  }) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => StatusModal(
+        isSuccess: isSuccess,
+        message: message,
+      ),
+    );
+  }
 
   Future<void> loginAuth(BuildContext context) async {
     var response = await ApiService.authUser(
@@ -38,14 +54,17 @@ class AuthenticationController {
     } else if (response.containsKey('validation_error')) {
       String errorMessage =
           response['validation_error'] ?? "Unknown error occurred";
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
+      _showStatusModal(
+        context: context,
+        isSuccess: false,
+        message: errorMessage,
       );
     } else {
-      // Display the error message using SnackBar
       String errorMessage = response['error'] ?? "Unknown error occurred";
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
+      _showStatusModal(
+        context: context,
+        isSuccess: false,
+        message: errorMessage,
       );
     }
   }
@@ -55,13 +74,17 @@ class AuthenticationController {
 
     if (response.containsKey('message')) {
       String messageReset = response['message'];
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(messageReset)),
+      _showStatusModal(
+        context: context,
+        isSuccess: true,
+        message: messageReset,
       );
     } else {
       String errorMessage = response['error'] ?? "Unknown error occurred";
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
+      _showStatusModal(
+        context: context,
+        isSuccess: false,
+        message: errorMessage,
       );
     }
   }
@@ -75,10 +98,7 @@ class AuthenticationController {
         response.containsKey('role') &&
         response.containsKey('session')) {
       await storage.write('user_id', response['user_id']);
-      await storage.write(
-          'role',
-          response[
-              'role']); //If the user is logged in to the app, this will be the determinant if where they will be assigned.
+      await storage.write('role', response['role']);
       await storage.write('session', response['session']);
 
       if (response['role'] == "Client") {
@@ -94,18 +114,21 @@ class AuthenticationController {
     } else if (response.containsKey('validation_error')) {
       String error =
           response['validation_error'] ?? "OTP Authentication Failed.";
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error)),
+      _showStatusModal(
+        context: context,
+        isSuccess: false,
+        message: error,
       );
     } else {
       String error = response['error'] ?? "OTP Authentication Failed.";
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error)),
+      _showStatusModal(
+        context: context,
+        isSuccess: false,
+        message: error,
       );
     }
   }
 
-// This is for direct redirection to logout/welcome page.
   void redirectRologout(BuildContext context) {
     Navigator.push(context,
         MaterialPageRoute(builder: (context) => WelcomePageViewMain()));
@@ -116,7 +139,6 @@ class AuthenticationController {
       final storedUserId = storage.read('user_id');
       if (storedUserId == null) {
         debugPrint("No user ID found in storage");
-        // Even if no user ID, still navigate to welcome page
         await storage.erase();
         Navigator.push(context, MaterialPageRoute(builder: (context) {
           return WelcomePageViewMain();
@@ -125,17 +147,9 @@ class AuthenticationController {
         return;
       }
 
-      // Convert to String if needed
       final userIdString = storedUserId.toString();
-      // debugPrint(userIdString);
-      // debugPrint("Session: ${await AuthService.getSessionToken()}");
-      // debugPrint("Stored user ID for logout: $userIdString");
       final sessionToken = await AuthService.getSessionToken();
 
-      debugPrint("User ID for logout: $userIdString");
-      debugPrint("Session token: $sessionToken");
-
-      // Then attempt to logout on the server (don't wait for this to complete)
       try {
         final response =
             await ApiService.logout(int.parse(userIdString), sessionToken);
@@ -152,13 +166,11 @@ class AuthenticationController {
       } catch (e, stackTrace) {
         debugPrint("Server logout error: $e");
         debugPrintStack(stackTrace: stackTrace);
-        // Don't show this error to the user since they're already logged out locally
       }
     } catch (e, stackTrace) {
       debugPrint("Logout Error: $e");
       debugPrintStack(stackTrace: stackTrace);
 
-      // Ensure user is still logged out locally even if there's an error
       if (e is Exception) {
         await storage.erase();
         Navigator.push(context, MaterialPageRoute(builder: (context) {
@@ -166,10 +178,11 @@ class AuthenticationController {
         }));
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                "An error occurred while logging out, but you have been logged out locally.")),
+      _showStatusModal(
+        context: context,
+        isSuccess: false,
+        message:
+            "An error occurred while logging out, but you have been logged out locally.",
       );
     }
   }

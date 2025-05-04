@@ -1,13 +1,14 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
+
 class SettingModel {
   final int? id;
   final int? taskerId;
   final double? latitude;
   final double? longitude;
-  final int? distance;
-  final int? ageStart;
-  final int? ageEnd;
+  final double? distance;
+  final RangeValues? ageRange;
   final bool? limit;
   final List<String>? specialization;
   final String? createdAt;
@@ -19,8 +20,7 @@ class SettingModel {
     this.latitude,
     this.longitude,
     this.distance,
-    this.ageStart,
-    this.ageEnd,
+    this.ageRange,
     this.limit,
     this.specialization,
     this.createdAt,
@@ -36,14 +36,63 @@ class SettingModel {
         specializationList = List<String>.from(jsonDecode(specString));
       } catch (e) {
         specializationList = specString
-            .replaceAll('[', '')
-            .replaceAll(']', '')
+            .replaceAll('{', '')
+            .replaceAll('}', '')
             .split(',')
             .map((s) => s.trim())
             .toList();
       }
     } else if (json['specialization'] is List) {
       specializationList = List<String>.from(json['specialization']);
+    }
+
+    double? distanceValue;
+    if (json['distance'] != null) {
+      if (json['distance'] is int) {
+        distanceValue = (json['distance'] as int).toDouble();
+      } else if (json['distance'] is double) {
+        distanceValue = json['distance'];
+      } else {
+        distanceValue = double.tryParse(json['distance'].toString());
+      }
+    }
+
+    RangeValues? ageRangeValues;
+    if (json['age_start'] != null && json['age_end'] != null) {
+      double? ageStart = json['age_start'] is int
+          ? (json['age_start'] as int).toDouble()
+          : (json['age_start'] is double
+              ? json['age_start']
+              : double.tryParse(json['age_start'].toString()));
+
+      double? ageEnd = json['age_end'] is int
+          ? (json['age_end'] as int).toDouble()
+          : (json['age_end'] is double
+              ? json['age_end']
+              : double.tryParse(json['age_end'].toString()));
+
+      if (ageStart != null && ageEnd != null) {
+        ageRangeValues = RangeValues(ageStart, ageEnd);
+      }
+    } else if (json['age_range'] != null) {
+      if (json['age_range'] is Map) {
+        var ageRange = json['age_range'];
+        double? ageStart = ageRange['age_start'] is int
+            ? (ageRange['age_start'] as int).toDouble()
+            : (ageRange['age_start'] is double
+                ? ageRange['age_start']
+                : double.tryParse(ageRange['age_start'].toString()));
+
+        double? ageEnd = ageRange['age_end'] is int
+            ? (ageRange['age_end'] as int).toDouble()
+            : (ageRange['age_end'] is double
+                ? ageRange['age_end']
+                : double.tryParse(ageRange['age_end'].toString()));
+
+        if (ageStart != null && ageEnd != null) {
+          ageRangeValues = RangeValues(ageStart, ageEnd);
+        }
+      }
     }
 
     return SettingModel(
@@ -55,9 +104,8 @@ class SettingModel {
       longitude: json['longitude'] != null
           ? double.tryParse(json['longitude'].toString())
           : null,
-      distance: json['distance'] is int ? json['distance'] : null,
-      ageStart: json['age_start'] is int ? json['age_start'] : null,
-      ageEnd: json['age_end'] is int ? json['age_end'] : null,
+      distance: distanceValue,
+      ageRange: ageRangeValues ?? RangeValues(18, 24),
       limit: json['limit'] is bool ? json['limit'] : null,
       specialization: specializationList,
       createdAt: json['created_at']?.toString(),
@@ -72,8 +120,8 @@ class SettingModel {
       'latitude': latitude,
       'longitude': longitude,
       'distance': distance,
-      'age_start': ageStart,
-      'age_end': ageEnd,
+      'age_start': ageRange?.start,
+      'age_end': ageRange?.end,
       'limit': limit,
       'specialization': specialization?.toString(),
       'created_at': createdAt,

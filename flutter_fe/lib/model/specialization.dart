@@ -10,7 +10,8 @@ class SpecializationModel {
 
   factory SpecializationModel.fromJson(Map<String, dynamic> json) {
     return SpecializationModel(
-        id: json['id'] != null ? json['id'] as int : null,
-        specialization: json['specialization'] as String);
+      id: json['spec_id'] != null ? json['spec_id'] as int : null,
+      specialization: json['specialization'] as String,
+    );
   }
 }

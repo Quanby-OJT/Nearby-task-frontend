@@ -8,7 +8,7 @@ class IntroPage2 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.blue,
+      color: Colors.white,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -19,8 +19,8 @@ class IntroPage2 extends StatelessWidget {
             child: Text(
               textAlign: TextAlign.center,
               'Do you need a professional for a specific task or a trusted expert for a project? We connect you with qualified workers ready to get the job done!',
-              style: GoogleFonts.openSans(
-                  color: Colors.white, fontWeight: FontWeight.w400),
+              style: GoogleFonts.poppins(
+                  color: Colors.black, fontWeight: FontWeight.w300),
             ),
           ),
         ],
