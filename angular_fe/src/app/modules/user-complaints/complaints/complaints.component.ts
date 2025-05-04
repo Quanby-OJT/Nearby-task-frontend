@@ -333,20 +333,20 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
     const rows = this.displayReports.map((report, index) => {
       const reporterName = report.reporter
         ? `${report.reporter.first_name || ''} ${report.reporter.middle_name || ''} ${report.reporter.last_name || ''}`.trim()
-        : '';
+        : 'Unknown';
       const violatorName = report.violator
         ? `${report.violator.first_name || ''} ${report.violator.middle_name || ''} ${report.violator.last_name || ''}`.trim()
-        : '';
+        : 'Unknown';
       const handledBy = report.action_by
         ? `${report.actionBy.first_name || ''} ${report.actionBy.middle_name || ''} ${report.actionBy.last_name || ''}`.trim()
-        : 'null';
+        : 'Empty';
       const baseRow = [
         index + 1,
         `"${reporterName}"`,
         `"${violatorName}"`,
-        `"${report.reporter?.user_role || ''}"`,
-        `"${report.violator?.user_role || ''}"`,
-        `"${report.created_at || ''}"`,
+        `"${report.reporter?.user_role || 'Unknown'}"`,
+        `"${report.violator?.user_role || 'Unknown'}"`,
+        `"${report.created_at || 'N/A'}"`,
         report.status ? 'Processed' : 'Pending',
       ];
       if (isAdmin) {
@@ -369,18 +369,15 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
     });
 
     try {
-  
       doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 283, 25, 40, 40); 
     } catch (e) {
       console.error('Failed to load NearbyTasks.png:', e);
-
     }
 
     try {
       doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 125, 23, 40, 40);
     } catch (e) {
       console.error('Failed to load Quanby.png:', e);
-
     }
 
     const title = 'User Complaints';
@@ -392,20 +389,20 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
     const rows = this.displayReports.map((report, index) => {
       const reporterName = report.reporter
         ? `${report.reporter.first_name || ''} ${report.reporter.middle_name || ''} ${report.reporter.last_name || ''}`.trim()
-        : '';
+        : 'Unknown';
       const violatorName = report.violator
         ? `${report.violator.first_name || ''} ${report.violator.middle_name || ''} ${report.violator.last_name || ''}`.trim()
-        : '';
+        : 'Unknown';
       const handledBy = report.action_by
         ? `${report.actionBy.first_name || ''} ${report.actionBy.middle_name || ''} ${report.actionBy.last_name || ''}`.trim()
-        : 'null';
+        : 'Empty';
       const baseRow = [
         index + 1,
         reporterName,
         violatorName,
-        report.reporter?.user_role || '',
-        report.violator?.user_role || '',
-        report.created_at || '',
+        report.reporter?.user_role || 'Unknown',
+        report.violator?.user_role || 'Unknown',
+        report.created_at || 'N/A',
         report.status ? 'Processed' : 'Pending',
       ];
       if (isAdmin) {

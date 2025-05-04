@@ -196,7 +196,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let report of displayReports" class="border-b hover:bg-card/50 h-[60px]">
+          <tr *ngFor="let report of displayReports" class="hover:bg-card/50 h-[60px]">
             <td class="px-4 py-3 text-start">{{ report.reporter.first_name }} {{ report.reporter.middle_name }} {{ report.reporter.last_name }}</td>
             <td class="px-4 py-3 text-start">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.violator.last_name }}</td>
             <td class="px-4 py-3 text-start">{{ report.reporter.user_role }}</td>
@@ -216,7 +216,7 @@
             <td class="px-4 py-3 text-start"> {{ report.action_by ? report.actionBy.first_name + " " + report.actionBy.middle_name + " " + report.actionBy.last_name  : 'Empty' }} </td>
           </tr>
 
-          <tr *ngFor="let placeholder of placeholderRows" class="border-b">
+          <tr *ngFor="let placeholder of placeholderRows">
             <td class="px-4 py-3 text-center"></td>
             <td class="px-4 py-3 text-center"></td>
             <td class="px-4 py-3 text-center"></td>
