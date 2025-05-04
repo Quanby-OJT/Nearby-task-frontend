@@ -7,14 +7,17 @@
     </div> 
   </div>
   <div class="flex space-x-4">
-    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportCSV()">
-      Export CSV
+    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500 flex items-center space-x-2" (click)="exportCSV()">
+      <svg-icon src="./assets/icons/heroicons/outline/csvDL.svg" [svgClass]="'h-5 w-5'"></svg-icon>
+      <span>Export CSV</span>
     </button>
-    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportPDF()">
-      Export PDF
+    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500 flex items-center space-x-2" (click)="exportPDF()">
+      <svg-icon src="./assets/icons/heroicons/outline/pdfDL.svg" [svgClass]="'h-5 w-5'"></svg-icon>
+      <span>Export PDF</span>
     </button>
-    <button *ngIf="userRole === 'Admin'" class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-110 transition-transform duration-500" (click)="createSpecialization()">
-      Create Specialization
+    <button *ngIf="userRole === 'Admin'" class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-110 transition-transform duration-500 flex items-center space-x-2" (click)="createSpecialization()">
+      <svg-icon src="./assets/icons/heroicons/outline/addDL.svg" [svgClass]="'h-5 w-5'"></svg-icon>
+      <span>Create Specialization</span>
     </button>
   </div>
 </div>

@@ -21,16 +21,19 @@
   </div>
 </div>
 
-<div class="mb-4 flex justify-end pt-10 w-full max-w-[1440px] mx-auto px-4">
-<div class="flex space-x-4">
-  <button class="bg-[#3C28CC] text-[#F9F9F9] hover:bg-[#5F50E7] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportCSV()">
-    Export CSV
-  </button>
-  <button class="bg-[#3C28CC] text-[#F9F9F9] hover:bg-[#5F50E7] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportPDF()">
-    Export PDF
-  </button>
+<div class="flex justify-end w-full max-w-[1440px] mx-auto px-4">
+  <div class="flex items-end space-x-4">
+    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500 flex items-center space-x-2" (click)="exportCSV()">
+      <svg-icon src="./assets/icons/heroicons/outline/csvDL.svg" [svgClass]="'h-5 w-5'"></svg-icon>
+      <span>Export CSV</span>
+    </button>
+    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500 flex items-center space-x-2" (click)="exportPDF()">
+      <svg-icon src="./assets/icons/heroicons/outline/pdfDL.svg" [svgClass]="'h-5 w-5'"></svg-icon>
+      <span>Export PDF</span>
+    </button>
+  </div>
 </div>
-</div>
+<div class="py-2"></div>
 
 <div *ngIf="userRole === 'Moderator'" class="border-gray-200 w-full max-w-[1440px] mx-auto flex-col rounded-xl min-h-[400px] shadow-md">
   <div class="border-gray-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
@@ -74,7 +77,7 @@
         <tbody>
           <tr *ngFor="let report of displayReports; let i = index" class="hover:bg-card/50 h-[60px]">
             <td class="px-4 py-3 text-start">{{ report.reporter.first_name }} {{ report.reporter.middle_name }} {{ report.reporter.last_name }}</td>
-            <td class="px-4 py-3 text-start">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.violator.last_name }}</td>
+            <td class="px-4 py-3 text-start">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.reporter.last_name }}</td>
             <td class="px-4 py-3 text-start">{{ report.reporter.user_role }}</td>
             <td class="px-4 py-3 text-start">{{ report.violator.user_role }}</td>
             <td class="px-4 py-3 text-start">{{ report.created_at }}</td>

@@ -24,7 +24,7 @@ export class Menu {
           icon: 'assets/icons/heroicons/outline/users.svg',
           label: 'User Communication',
           route: '/user-communication',
-          role: ['Moderator'],
+          role: ['Moderator', 'Admin'],
         },
         {
           icon: 'assets/icons/heroicons/outline/cube.svg',
@@ -36,7 +36,7 @@ export class Menu {
           icon: 'assets/icons/heroicons/outline/folder.svg',
           label: 'Payment Reviews',
           route: '/payment-reviews',
-          role: ['Moderator'],
+          role: ['Moderator', 'Admin'],
         },
         {
           icon: 'assets/icons/heroicons/outline/shield-exclamation.svg',
@@ -54,7 +54,7 @@ export class Menu {
           icon: 'assets/icons/heroicons/outline/menu.svg',
           label: 'Feedback Management',
           route: '/feedback-management',
-          role: ['Moderator'],
+          role: ['Admin'],
         },
         {
           icon: 'assets/icons/heroicons/outline/eye.svg',
@@ -66,7 +66,7 @@ export class Menu {
           icon: 'assets/icons/heroicons/outline/view-grid.svg',
           label: 'Reports & Analytics',
           route: '/reports',
-          role: ['Moderator', 'Admin'],
+          role: ['Admin'],
         },
 
         // {
