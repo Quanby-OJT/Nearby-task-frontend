@@ -16,8 +16,6 @@
       <span>Export PDF</span>
     </button>
   </div>
-
-
 </div>
 
 <!-- Main container with search, filter, table, and pagination -->
@@ -43,15 +41,28 @@
       <thead class="border-b">
         <tr>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[290px]">
-            <div class="flex items-center gap-1 cursor-pointer">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('taskerName')">
               Tasker Name
-              <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" class="w-4 h-4" (click)="toggleSort()">
+              <span class="w-4 h-4">
+                <ng-container *ngIf="sortDirections['taskerName'] === 'asc'">▲</ng-container>
+                <ng-container *ngIf="sortDirections['taskerName'] === 'desc'">▼</ng-container>
+                <ng-container *ngIf="sortDirections['taskerName'] === 'default'">↕</ng-container>
+              </span>
             </div>
           </th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[300px]">Feedback</th>
           <th class="px-4 py-2 text-start min-w-[140px] lg:min-w-[300px] xl:min-w-[160px]">Rating</th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Client</th>
-          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[190px]">Created At</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[190px]">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('createdAt')">
+              Created At
+              <span class="w-4 h-4">
+                <ng-container *ngIf="sortDirections['createdAt'] === 'asc'">▲</ng-container>
+                <ng-container *ngIf="sortDirections['createdAt'] === 'desc'">▼</ng-container>
+                <ng-container *ngIf="sortDirections['createdAt'] === 'default'">↕</ng-container>
+              </span>
+            </div>
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -64,8 +75,6 @@
         </tr>
         <!-- Placeholder rows to ensure total rows match logsPerPage -->
         <tr *ngFor="let placeholder of placeholderRows">
-          <td class="px-4 py-3 text-center"></td>
-          <td class="px-4 py-3 text-center"></td>
           <td class="px-4 py-3 text-center"></td>
           <td class="px-4 py-3 text-center"></td>
           <td class="px-4 py-3 text-center"></td>

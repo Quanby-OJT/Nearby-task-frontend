@@ -27,7 +27,8 @@ export class PaymentComponent implements OnInit {
   endIndex: number = 0;
   paginationButtons: (number | string)[] = [];
   placeholderRows: any[] = [];
-  sortDirection: 'asc' | 'desc' = 'desc';
+  sortDirection: 'asc' | 'desc' | 'default' = 'default';
+  amountSortDirection: 'default' | 'highToLow' | 'lowToHigh' = 'default';
 
   constructor(private paymentService: PaymentService) {}
 
@@ -61,7 +62,7 @@ export class PaymentComponent implements OnInit {
     if (this.currentSearchText) {
       const searchTerms = this.currentSearchText.split(/\s+/).filter(term => term);
       tempLogs = tempLogs.filter(log => {
-        const fullName = log.user_name.toLowerCase();
+        const fullName = log.user_name?.toLowerCase() || '';
         return searchTerms.every(term => fullName.includes(term));
       });
     }
@@ -70,16 +71,34 @@ export class PaymentComponent implements OnInit {
       tempLogs = tempLogs.filter(log => log.payment_type === this.currentFilterType);
     }
 
-    // Apply simple reverse sort
-    if (this.sortDirection === 'desc') {
-      tempLogs = tempLogs.reverse();
-    }
+    // Apply sorting
+    tempLogs.sort((a, b) => {
+      // Amount sorting takes precedence
+      if (this.amountSortDirection === 'highToLow') {
+        return (b.amount || 0) - (a.amount || 0); // Highest to lowest
+      } else if (this.amountSortDirection === 'lowToHigh') {
+        return (a.amount || 0) - (b.amount || 0); // Lowest to highest
+      }
+
+      // Name sorting if amount is default
+      if (this.sortDirection === 'asc') {
+        return (a.user_name || '').localeCompare(b.user_name || ''); // A-Z
+      } else if (this.sortDirection === 'desc') {
+        return (b.user_name || '').localeCompare(a.user_name || ''); // Z-A
+      }
+
+      // Default: sort by deposit_date (newest to oldest)
+      const dateA = new Date(a.deposit_date || '1970-01-01').getTime();
+      const dateB = new Date(b.deposit_date || '1970-01-01').getTime();
+      return dateB - dateA;
+    });
 
     // Log sorted logs for debugging
-    console.log(`Sorted payment logs (${this.sortDirection}):`, tempLogs.map(log => ({
+    console.log(`Sorted payment logs (amount: ${this.amountSortDirection}, name: ${this.sortDirection}):`, tempLogs.map(log => ({
       user_name: log.user_name,
       amount: log.amount,
-      payment_type: log.payment_type
+      payment_type: log.payment_type,
+      deposit_date: log.deposit_date
     })));
 
     this.filteredPaymentLogs = tempLogs;
@@ -88,7 +107,18 @@ export class PaymentComponent implements OnInit {
   }
 
   toggleSort() {
-    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    console.log('toggleSort called, current sortDirection:', this.sortDirection); // Debug: Confirm method is called
+    this.sortDirection = this.sortDirection === 'default' ? 'asc' :
+                         this.sortDirection === 'asc' ? 'desc' : 'default';
+    this.amountSortDirection = 'default'; // Reset amount sorting when name sorting is toggled
+    this.applyFilters();
+  }
+
+  toggleAmountSort() {
+    console.log('toggleAmountSort called, current amountSortDirection:', this.amountSortDirection); // Debug: Confirm method is called
+    this.amountSortDirection = this.amountSortDirection === 'default' ? 'highToLow' :
+                              this.amountSortDirection === 'highToLow' ? 'lowToHigh' : 'default';
+    this.sortDirection = 'default'; // Reset name sorting when amount sorting is toggled
     this.applyFilters();
   }
 
@@ -172,21 +202,16 @@ export class PaymentComponent implements OnInit {
       format: 'a4',
     });
 
-
     try {
-
-      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 300, 25, 40, 40); 
+      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 0, 25, 40, 40); 
     } catch (e) {
       console.error('Failed to load NearbyTasks.png:', e);
-
     }
 
-  
     try {
       doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 125, 23, 40, 40);
     } catch (e) {
       console.error('Failed to load Quanby.png:', e);
- 
     }
 
     // Add title

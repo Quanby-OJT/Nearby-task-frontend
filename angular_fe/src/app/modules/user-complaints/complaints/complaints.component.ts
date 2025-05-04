@@ -43,8 +43,8 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
   placeholderRows: any[] = []; 
 
   @Output() onCheck = new EventEmitter<boolean>();
-  @Output() onSort = new EventEmitter<'asc' | 'desc'>();
-  sortDirection: 'asc' | 'desc' = 'desc';
+  @Output() onSort = new EventEmitter<'asc' | 'desc' | 'default'>();
+  sortDirection: 'asc' | 'desc' | 'default' = 'default';
 
   private reportsSubscription!: Subscription;
 
@@ -105,7 +105,8 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
   }
 
   public toggleSort() {
-    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    this.sortDirection = this.sortDirection === 'default' ? 'asc' : 
+                        this.sortDirection === 'asc' ? 'desc' : 'default';
     this.onSort.emit(this.sortDirection);
     this.applyFilters();
   }
@@ -138,18 +139,28 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
       });
     }
 
-    // Apply simple reverse sort
-    if (this.sortDirection === 'desc') {
-      tempReports = tempReports.reverse();
-    }
-
-    // Log sorted reports for debugging
-    console.log(`Sorted reports (${this.sortDirection}):`, tempReports.map(report => ({
-      report_id: report.report_id,
-      reporter: `${report.reporter.first_name} ${report.reporter.last_name}`,
-      violator: `${report.violator.first_name} ${report.violator.last_name}`,
-      status: report.status ? 'Processed' : 'Pending'
-    })));
+    // Apply sorting
+    tempReports.sort((a, b) => {
+      if (this.sortDirection === 'default') {
+        // Sort by created_at (newest first)
+        const dateA = new Date(a.created_at).getTime();
+        const dateB = new Date(b.created_at).getTime();
+        return dateB - dateA;
+      } else {
+        // Sort by reporter name
+        const nameA = [
+          a.reporter.first_name || '',
+          a.reporter.middle_name || '',
+          a.reporter.last_name || ''
+        ].filter(Boolean).join(' ').toLowerCase();
+        const nameB = [
+          b.reporter.first_name || '',
+          b.reporter.middle_name || '',
+          b.reporter.last_name || ''
+        ].filter(Boolean).join(' ').toLowerCase();
+        return this.sortDirection === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+      }
+    });
 
     this.filteredReports = tempReports;
     this.currentPage = 1;

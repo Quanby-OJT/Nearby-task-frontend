@@ -54,10 +54,15 @@
           <th class="px-4 py-2 text-start min-w-[50px] lg:min-w-[150px] xl:min-w-[150px]">
             <div class="flex items-center gap-1 cursor-pointer">
               Client Name
-            <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" class="w-4 h-4 hover:text-foreground flex cursor-pointer items-start justify-start rounded-md hover:scale-80 transition-transform duration-500" (click)="toggleSort()">
+            <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" class="w-4 h-4 hover:text-foreground flex cursor-pointer items-start justify-start rounded-md hover:scale-80 transition-transform duration-500" (click)="toggleSort('client')">
             </div>
           </th>
-          <th class="px-4 py-2 text-start min-w-[100px] lg:min-w-[250px] xl:min-w-[200px]">Tasker Name</th>
+          <th class="px-4 py-2 text-start min-w-[100px] lg:min-w-[250px] xl:min-w-[200px]">
+            <div class="flex items-center gap-1 cursor-pointer">
+            Tasker Name
+            <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" class="w-4 h-4 hover:text-foreground flex cursor-pointer items-start justify-start rounded-md hover:scale-80 transition-transform duration-500" (click)="toggleSort('tasker')">
+          </div>
+          </th>
           <th class="px-4 py-2 text-start min-w-[100px] lg:min-w-[250px] xl:min-w-[200px]">Conversation</th>
           <th class="px-4 py-2 text-start min-w-[50px] lg:min-w-[150px] xl:min-w-[100px]">Action</th>
         </tr>

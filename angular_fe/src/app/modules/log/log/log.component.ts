@@ -27,7 +27,7 @@ export class LogComponent implements OnInit, OnDestroy {
   currentSearchText: string = '';
   currentStatusFilter: string = '';
   placeholderRows: any[] = [];
-  sortDirection: 'asc' | 'desc' = 'desc'; // Default to descending (newest first)
+  sortDirection: 'asc' | 'desc' | 'default' = 'default'; // Default to newest first
 
   private logsSubscription!: Subscription;
 
@@ -94,14 +94,22 @@ export class LogComponent implements OnInit, OnDestroy {
       });
     }
 
-    // Apply sorting by Time Start (logged_in)
+    // Apply sorting
     tempLogs.sort((a, b) => {
-      const dateA = new Date(a.logged_in).getTime();
-      const dateB = new Date(b.logged_in).getTime();
-      if (this.sortDirection === 'asc') {
-        return dateA - dateB; // Oldest first
+      if (this.sortDirection === 'default') {
+        // Sort by created_at (newest first)
+        const dateA = new Date(a.created_at).getTime();
+        const dateB = new Date(b.created_at).getTime();
+        return dateB - dateA;
       } else {
-        return dateB - dateA; // Newest first
+        // Sort by user name
+        const nameA = `${a.user.first_name || ''} ${a.user.middle_name || ''} ${a.user.last_name || ''}`.trim().toLowerCase();
+        const nameB = `${b.user.first_name || ''} ${b.user.middle_name || ''} ${b.user.last_name || ''}`.trim().toLowerCase();
+        if (this.sortDirection === 'asc') {
+          return nameA.localeCompare(nameB);
+        } else {
+          return nameB.localeCompare(nameA);
+        }
       }
     });
 
@@ -111,7 +119,9 @@ export class LogComponent implements OnInit, OnDestroy {
   }
 
   toggleSort() {
-    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    // Cycle through: default -> asc -> desc -> default
+    this.sortDirection = this.sortDirection === 'default' ? 'asc' : 
+                        this.sortDirection === 'asc' ? 'desc' : 'default';
     this.applyFilters();
   }
 
