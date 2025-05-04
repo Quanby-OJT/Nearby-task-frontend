@@ -4,16 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_fe/controller/escrow_management_controller.dart';
 
 import 'payment.dart';
-
-enum CardType {
-  Visa,
-  MasterCard,
-  AmericanExpress,
-  Unknown,
-}
 
 class EscrowTokenScreen extends StatefulWidget {
   const EscrowTokenScreen({super.key});
@@ -34,13 +28,18 @@ class _EscrowTokenScreenState extends State<EscrowTokenScreen> {
   bool showCardDetails = false;
   String selectedYear = "";
   String? cardImagePath;
-  CardType? _detectedCardType;
+
+  // Define the payment options
+  final List<String> _paymentOptions = [
+    'GCash',
+    'PayMaya',];
 
   //Initialize All Data
   @override
   void initState() {
     super.initState();
     setState(() {
+      _escrowController.tokenCredits.value = 0;
       userRole = storage.read('role');
     });
   }
@@ -52,19 +51,6 @@ class _EscrowTokenScreenState extends State<EscrowTokenScreen> {
       userRole = "";
     });
     super.dispose();
-  }
-
-  CardType detectCardType(String input) {
-    final cleaned = input.replaceAll(RegExp(r'\s+'), '');
-    if (RegExp(r'^4[0-9]{6,}$').hasMatch(cleaned)) {
-      return CardType.Visa;
-    } else if (RegExp(r'^5[1-5][0-9]{5,}$').hasMatch(cleaned) ||
-        RegExp(r'^2[2-7][0-9]{5,}$').hasMatch(cleaned)) {
-      return CardType.MasterCard;
-    } else if (RegExp(r'^3[47][0-9]{5,}$').hasMatch(cleaned)) {
-      return CardType.AmericanExpress;
-    }
-    return CardType.Unknown;
   }
 
   //Main Application
@@ -130,20 +116,73 @@ class _EscrowTokenScreenState extends State<EscrowTokenScreen> {
                 ValueListenableBuilder(
                   valueListenable: _escrowController.tokenCredits,
                   builder: (context, value, child) {
-                    return Text(
-                      "You will receive: ${value.toStringAsFixed(0)} NearByTask Credit/s to your account"
-                          .replaceAllMapped(
-                              RegExp(r'\d{1,3}(?=(\d{3})+(?!\d))'),
-                              (Match m) => '${m[0]},'),
-                      style: GoogleFonts.roboto(
-                        fontSize: 16,
+                    String formattedValue = value.toStringAsFixed(0).replaceAllMapped(
+                        RegExp(r'\d{1,3}(?=(\d{3})+(?!\d))'), (Match m) => '${m[0]},');
+
+                    return RichText(
+                      text: TextSpan(
+                        style: GoogleFonts.roboto(
+                          fontSize: 16,
+                          color: Colors.black
+                        ),
+                        children: <TextSpan>[
+                          TextSpan(
+                            text: formattedValue,
+                            style: GoogleFonts.barlow(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 30,
+                              color: Color(0XFF2A1999)
+                            ),
+                          ),
+                          TextSpan(text: ' IMONALICK Credit/s will be added to your account'),
+                        ],
+
+
                       ),
                     );
                   },
                 ),
+                Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Payment Methods",
+                        style: GoogleFonts.roboto(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        )
+                      ),
+                      Text(
+                        "We Accept the following secure payment methods:",
+                        style: GoogleFonts.roboto()
+                      ),
+                      SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ///If the user demands we must provide additional payment methods, it will be placed here.
+                          ///
+                          /// -Ces
+                          Image.asset('assets/images/gcash-logo-png_seeklogo-522261.png', height: 48, width: 48),
+                          Image.asset('assets/images/maya-logo_brandlogos.net_y6kkp-512x512.png', height: 48, width: 48),
+                          // SizedBox(width: 10,),
+                          // SvgPicture.asset('assets/images/card-logos/Mastercard-logo.svg', height: 48, width: 48),
+                          // SizedBox(width: 10,),
+                          // SvgPicture.asset('assets/images/card-logos/visa-logo-svg-vector.svg', height: 48, width: 48),
+                        ],
+                      ),
+                    ],
+                  )
+                ),
                 SizedBox(height: 20),
                 Center(
-                  child: Text("How Would You Load to this system?",
+                  child: Text("How will you deposit your amount?",
                     style: GoogleFonts.roboto(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -152,52 +191,97 @@ class _EscrowTokenScreenState extends State<EscrowTokenScreen> {
                   ),
                 ),
                 SizedBox(height: 20),
-                buildPaymentRow(
-                    FontAwesomeIcons.creditCard,
-                    null,
-                    "Bank",
-                    selectedPaymentMethod,
-                    (newValue) {
-                      setState(() {
-                        selectedPaymentMethod = newValue;
-                        showCardDetails = newValue == "Bank";
-                      });
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: 'Select Payment Method',
+                    hintText: '--Select Payment Method--',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  value: selectedPaymentMethod.isEmpty ? null : selectedPaymentMethod,
+                  items: _paymentOptions.map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Row(
+                        children: [
+                          if(value == "GCash")
+                            Image.asset('assets/images/gcash-logo-png_seeklogo-522261.png', height: 24, width: 24,),
+                          if(value == "PayMaya")
+                            Image.asset('assets/images/maya-logo_brandlogos.net_y6kkp-512x512.png', height: 24, width: 24,),
+                          SizedBox(width: 10),
+                          Text(value),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (newValue) {
+                    setState(() {
+                      selectedPaymentMethod = newValue!;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select a payment method';
                     }
-                ),
-                if (showCardDetails) buildCardDetails(),
-                buildPaymentRow(
-                    null,
-                    'assets/images/gcash-logo-png_seeklogo-522261.png',
-                    "GCash",
-
-                    selectedPaymentMethod,
-                    (newValue) => setState(() => selectedPaymentMethod = newValue)
-                ),
-                buildPaymentRow(
-                  null,
-                  'assets/images/maya-logo_brandlogos.net_y6kkp-512x512.png',
-                  "PayMaya",
-                  selectedPaymentMethod,
-                  (newValue) => setState(() => selectedPaymentMethod = newValue)
+                    return null;
+                  },
                 ),
                 SizedBox(height: 20),
-                Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        FontAwesomeIcons.shield,
-                        color: Color(0XFF4DBF66),
-                      ),
-                      SizedBox(width: 10),
-                      Text("Payments secured via Escrow.")
-                    ]
-                  )
-                ),
-                SizedBox(height: 30),
+                if(selectedPaymentMethod == "GCash") Text("You will be redirected to your GCash Application."),
+                if(selectedPaymentMethod == "PayMaya") Text("You will be redirected to your PayMaya Application."),
+                SizedBox(height: 20),
                 Center(
                   child: ElevatedButton(
-                    onPressed: () => debugPrint("This will redirect the user to confirm the payment."),
+                    onPressed: () async{
+                      if (_formKey.currentState!.validate()) {
+                        ScaffoldMessenger.of(context).showMaterialBanner(
+                            MaterialBanner(
+                                content: Text(
+                                  "Please Wait while We Process Your Payment.",
+                                  style: GoogleFonts.barlow(
+                                      color: Colors.white),),
+                                backgroundColor: Color(0XFFD6932A),
+                                actions: [
+                                  TextButton(
+                                      onPressed: () {
+                                        ScaffoldMessenger.of(context)
+                                            .hideCurrentMaterialBanner();
+                                      },
+                                      child: Text("Dismiss")
+                                  )
+                                ]
+                            )
+                        );
+                        Map<String, dynamic> response = await _escrowController.depositAmountToEscrow(selectedPaymentMethod);
+
+                        if(response.containsKey("success") && response["success"]){
+                          ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EscrowPaymentScreen(paymentUrl: response["payment_url"])
+                            )
+                          );
+                        }else{
+                          ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+                          ScaffoldMessenger.of(context).showMaterialBanner(
+                            MaterialBanner(
+                              backgroundColor: Color(0XFFD6932A),
+                              content: Text(response['error'] ?? "An Error Occurred while processing Your Payment."),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+                                  },
+                                  child: Text("Dismiss")
+                                )
+                              ]
+                            )
+                          );
+                        }
+                      }
+                    },
                     style: ButtonStyle(
                       backgroundColor:
                         WidgetStateProperty.all(Color(0XFF03045E)),
@@ -210,7 +294,8 @@ class _EscrowTokenScreenState extends State<EscrowTokenScreen> {
                       )
                     )
                   )
-                )
+                ),
+
               ]
             )
           )
@@ -219,130 +304,32 @@ class _EscrowTokenScreenState extends State<EscrowTokenScreen> {
     );
   }
 
-  Widget buildCardDetails() {
-    return Column(
-      children: [
-        buildInputField(
-          _escrowController.cardNumberController,
-          "Card Number",
-          "xxxx xxxx xxxx xxxx",
-          (value) {
-            final detected = detectCardType(value);
-            setState(() {
-              _detectedCardType = detected;
-              switch (detected) {
-                case CardType.Visa:
-                  cardImagePath = 'assets/images/cards/visa.png';
-                  break;
-                case CardType.MasterCard:
-                  cardImagePath = 'assets/images/cards/mastercard.png';
-                  break;
-                case CardType.AmericanExpress:
-                  cardImagePath = 'assets/images/cards/amex.png';
-                  break;
-                default:
-                  cardImagePath = null;
-              }
-            });
-          }
-        ),
-        SizedBox(height: 15),
-        buildInputField(_escrowController.cardHolderNameController, "Card Holder Name", "", null),
-        SizedBox(height: 15),
-        Row(
-          children: [
-            Expanded(
-              child: buildInputField(
-                _escrowController.cvvController,
-                "CVV",
-                "Please Input CVV",
-                null
-              ),
-            ),
-            SizedBox(width: 10),
-            Expanded(
-              child: TextFormField(
-                controller: _escrowController.expiryDateController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  fillColor: Color(0xff2A1999),
-                  labelText: "Expiry Date (MM/YY)",
-                  hintText: "MM/YY",
-                  labelStyle: GoogleFonts.montserrat(),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(4),
-                  ExpiryDateInputFormatter(),
-                ],
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Please enter expiry date";
-                  }
-                  final parts = value.split('/');
-                  if (parts.length != 2) return "Invalid format";
-                  final mm = int.tryParse(parts[0]) ?? 0;
-                  final yy = int.tryParse(parts[1]) ?? 0;
-                  if (mm < 1 || mm > 12) return "Invalid month";
-                  return null;
-                },
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
 
-
-  Widget buildInputField(TextEditingController controller, String label, String hint, ValueChanged<String>? onCardChanged){
+  Widget buildInputField(
+      TextEditingController controller,
+      Widget? suffixIcon,
+      String label,
+      String hint,
+      ValueChanged<String>? onCardChanged
+  ){
     return TextFormField(
       controller: controller,
       onChanged: onCardChanged,
       decoration: InputDecoration(
-        fillColor: Color(0xFF2A1999),
+        contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+        suffixIcon: suffixIcon != null ? Container(
+          padding: EdgeInsets.only(right: 10.0),
+          child: suffixIcon,
+        ) : null,
+        filled: true,
+        fillColor: Colors.white,
         labelText: label,
         hintText: hint,
+        hintStyle: TextStyle(color: Colors.grey),
+        floatingLabelBehavior: FloatingLabelBehavior.auto,
         labelStyle: GoogleFonts.montserrat(),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-        )
-      )
-    );
-  }
-
-  Widget buildPaymentRow(IconData? paymentIcon, String? imageLink, String nameOfPayment, String groupValue, ValueChanged<String> onChanged) {
-    return GestureDetector(
-        onTap: () {
-          onChanged(nameOfPayment);
-        },
-        child: Card(
-        elevation: 2,
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  if(paymentIcon != null) Icon(paymentIcon, size: 30,),
-                  if(imageLink != null) Image.asset(imageLink, width: 30, height: 30),
-                  SizedBox(width: 30),
-                  Text(nameOfPayment, style: GoogleFonts.roboto(fontSize: 16)),
-                ],
-              ),
-              Radio(
-                value: nameOfPayment,
-                groupValue: groupValue,
-                onChanged: (newValue) {
-                    onChanged(newValue!);
-                },
-              ),
-            ],
-          )
         )
       )
     );

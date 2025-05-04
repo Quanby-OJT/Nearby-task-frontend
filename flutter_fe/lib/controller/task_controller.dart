@@ -49,8 +49,12 @@ class TaskController {
       if (priceInt > _escrowManagementController.tokenCredits.value) {
         return {
           "success": false,
-          "error":
-              "You don't have enough tokens to post your needed task. Please Deposit First Your Desired Amount of Tokens."
+          "error": "You don't have enough tokens to post your needed task. Please Deposit First Your Desired Amount of Tokens."
+        };
+      }else if(priceInt < 2000) {
+        return {
+          "success": false,
+          "error": "Minimum Amount for this task is P2,000.00. Please Input more than that."
         };
       } else {
         final task = TaskModel(

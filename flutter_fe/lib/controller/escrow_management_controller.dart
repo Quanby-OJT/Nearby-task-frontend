@@ -60,15 +60,14 @@ class EscrowManagementController {
     }
   }
 
-  Future<Map<String, dynamic>> depositAmountToEscrow() async {
+  Future<Map<String, dynamic>> depositAmountToEscrow(String paymentMethod) async {
     try {
       // debugPrint("TaskRequestController: Depositing amount to escrow");
       // debugPrint("TaskRequestController: Contract Price: $contractPrice");
       // debugPrint("TaskRequestController: Task Taken ID: $taskTakenId");
-      var response = await _requestService.depositEscrowPayment(double.parse(
-          amountController.text.replaceAll("₱", "").replaceAll(",", "")));
+      var response = await _requestService.depositEscrowPayment(double.parse(amountController.text.replaceAll("₱", "").replaceAll(",", "")), paymentMethod);
 
-      if (response['success']) {
+      if (response.containsValue('message')) {
         await fetchTokenBalance();
         return {
           "message": response['message'],
@@ -120,7 +119,6 @@ class EscrowManagementController {
     });
   }
 
-  @override
   void dispose() {
     amountController.dispose();
     rejectionController.dispose();

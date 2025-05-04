@@ -106,8 +106,8 @@ flutter:
     - assets/images/gcash-logo-png_seeklogo-522261.png
     - assets/images/maya-logo_brandlogos.net_y6kkp-512x512.png
     - assets/images/card-logos/american-express.svg
-    - flutter_fe/assets/images/card-logos/Mastercard-logo.svg
-    - flutter_fe/assets/images/card-logos/visa-logo-svg-vector.svg
+    - assets/images/card-logos/Mastercard-logo.svg
+    - assets/images/card-logos/visa-logo-svg-vector.svg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 
