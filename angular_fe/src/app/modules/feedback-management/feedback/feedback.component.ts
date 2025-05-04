@@ -28,9 +28,10 @@ export class FeedbackComponent implements OnInit {
   placeholderRows: any[] = [];
   sortDirections: { [key: string]: 'asc' | 'desc' | 'default' } = {
     taskerName: 'default',
-    createdAt: 'default'
+    createdAt: 'default',
+    rating: 'default'
   };
-  sortColumn: 'taskerName' | 'createdAt' = 'createdAt';
+  sortColumn: 'taskerName' | 'createdAt' | 'rating' = 'createdAt';
 
   constructor(private feedbackService: FeedbackService) {}
 
@@ -99,6 +100,16 @@ export class FeedbackComponent implements OnInit {
           return dateB - dateA; // Newest to oldest (default and desc)
         }
       });
+    } else if (this.sortColumn === 'rating') {
+      tempFeedbacks.sort((a, b) => {
+        const ratingA = parseFloat(a.rating) || 0;
+        const ratingB = parseFloat(b.rating) || 0;
+        if (this.sortDirections['rating'] === 'asc') {
+          return ratingA - ratingB; 
+        } else {
+          return ratingB - ratingA; 
+        }
+      });
     }
 
     this.filteredFeedbacks = tempFeedbacks;
@@ -106,7 +117,7 @@ export class FeedbackComponent implements OnInit {
     this.updatePage();
   }
 
-  public toggleSort(column: 'taskerName' | 'createdAt') {
+  public toggleSort(column: 'taskerName' | 'createdAt' | 'rating') {
     if (this.sortColumn !== column) {
       this.sortDirections[this.sortColumn] = 'default'; // Reset previous column
       this.sortColumn = column;

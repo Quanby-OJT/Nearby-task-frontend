@@ -51,7 +51,16 @@
             </div>
           </th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[300px]">Feedback</th>
-          <th class="px-4 py-2 text-start min-w-[140px] lg:min-w-[300px] xl:min-w-[160px]">Rating</th>
+          <th class="px-4 py-2 text-start min-w-[140px] lg:min-w-[300px] xl:min-w-[160px]">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('rating')">
+              Rating
+              <span class="w-4 h-4">
+                <ng-container *ngIf="sortDirections['rating'] === 'asc'">▲</ng-container>
+                <ng-container *ngIf="sortDirections['rating'] === 'desc'">▼</ng-container>
+                <ng-container *ngIf="sortDirections['rating'] === 'default'">↕</ng-container>
+              </span>
+            </div>
+          </th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Client</th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[190px]">
             <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('createdAt')">
