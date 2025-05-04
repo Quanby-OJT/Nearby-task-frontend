@@ -43,7 +43,7 @@ export class UsersComponent implements OnInit {
   public PaginationUsers: any[] = [];
   displayedUsers = this.filterService.currentUsers;
   selectedUserId: Number | null = null;
-  sortDirection: 'asc' | 'desc' = 'desc'; // Default to newest-to-oldest
+  sortState: 'default' | 'asc' | 'desc' = 'default'; // Default to newest-to-oldest
 
   constructor(
     private http: HttpClient,
@@ -215,18 +215,14 @@ export class UsersComponent implements OnInit {
     });
 
     filtered.sort((a, b) => {
-      const aIsReview = a.acc_status === 'Review';
-      const bIsReview = b.acc_status === 'Review';
-      if (aIsReview && !bIsReview) {
-        return -1;
-      } else if (!aIsReview && bIsReview) {
-        return 1;
+      if (this.sortState === 'default') {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime(); // Newest to oldest
       } else {
-        if (this.sortDirection === 'asc') {
-          return a.user_id - b.user_id;
-        } else {
-          return b.user_id - a.user_id;
-        }
+        const aEmail = (a.email || '').toLowerCase().trim();
+        const bEmail = (b.email || '').toLowerCase().trim();
+        return this.sortState === 'asc'
+          ? aEmail.localeCompare(bEmail)
+          : bEmail.localeCompare(aEmail);
       }
     });
 
@@ -240,8 +236,8 @@ export class UsersComponent implements OnInit {
     }));
   }
 
-  handleSort(direction: 'asc' | 'desc'): void {
-    this.sortDirection = direction;
+  handleSort(state: 'default' | 'asc' | 'desc'): void {
+    this.sortState = state;
     const pageSize = this.filterService.pageSizeField();
     this.filterService.setCurrentUsers(this.filteredUsers.slice(0, pageSize));
   }

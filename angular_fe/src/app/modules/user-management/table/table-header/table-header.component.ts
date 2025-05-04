@@ -9,9 +9,9 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
 })
 export class UserTableHeaderComponent {
   @Output() onCheck = new EventEmitter<boolean>();
-  @Output() onSort = new EventEmitter<'asc' | 'desc'>();
+  @Output() onSort = new EventEmitter<'default' | 'asc' | 'desc'>();
 
-  sortDirection: 'asc' | 'desc' = 'desc'; // Default to newest-to-oldest
+  sortState: 'default' | 'asc' | 'desc' = 'default'; 
 
   public toggle(event: Event) {
     const value = (event.target as HTMLInputElement).checked;
@@ -19,7 +19,7 @@ export class UserTableHeaderComponent {
   }
 
   public toggleSort() {
-    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
-    this.onSort.emit(this.sortDirection);
+    this.sortState = this.sortState === 'default' ? 'asc' : this.sortState === 'asc' ? 'desc' : 'default';
+    this.onSort.emit(this.sortState);
   }
 }
