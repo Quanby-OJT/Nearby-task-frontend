@@ -196,17 +196,23 @@ class _RecordPageState extends State<RecordPage> {
                                           color: Color(0xFF0272B1)))
                                   : Padding(
                                       padding: const EdgeInsets.only(
-                                          bottom: 8.0, top: 20),
+                                          bottom: 8.0, top: 10),
                                       child: SingleChildScrollView(
-                                        scrollDirection: Axis.horizontal,
-                                        child: SizedBox(
-                                          width: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              1.5,
-                                          height: 270,
-                                          child: MonthlyExpensesChart(
-                                            monthlyData: monthlyExpenses,
+                                        scrollDirection: Axis.vertical,
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Container(
+                                            width: MediaQuery.of(context)
+                                                    .size
+                                                    .width *
+                                                1.5,
+                                            height: MediaQuery.of(context)
+                                                    .size
+                                                    .height *
+                                                0.5, // Dynamic height based on screen size
+                                            child: MonthlyExpensesChart(
+                                              monthlyData: monthlyExpenses,
+                                            ),
                                           ),
                                         ),
                                       ),
