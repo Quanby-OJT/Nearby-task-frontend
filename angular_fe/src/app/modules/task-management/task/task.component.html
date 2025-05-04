@@ -54,33 +54,53 @@
       <thead class="border-b">
         <tr>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">
-            <div class="flex items-center gap-1 cursor-pointer">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('client')">
               Client
-              <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" class="w-4 h-4" (click)="toggleSort('client')">
+              <span class="w-4 h-4">
+                <ng-container *ngIf="sortModes['client'] === 'asc'">▲</ng-container>
+                <ng-container *ngIf="sortModes['client'] === 'desc'">▼</ng-container>
+                <ng-container *ngIf="sortModes['client'] === 'default'">↕</ng-container>
+              </span>
             </div>
           </th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[500px]">
-            <div class="flex items-center gap-1 cursor-pointer">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('taskTitle')">
               Task Title
-              <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" class="w-4 h-4" (click)="toggleSort('taskTitle')">
+              <span class="w-4 h-4">
+                <ng-container *ngIf="sortModes['taskTitle'] === 'asc'">▲</ng-container>
+                <ng-container *ngIf="sortModes['taskTitle'] === 'desc'">▼</ng-container>
+                <ng-container *ngIf="sortModes['taskTitle'] === 'default'">↕</ng-container>
+              </span>
             </div>
           </th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[260px]">
-            <div class="flex items-center gap-1 cursor-pointer">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('specialization')">
               Specialization
-              <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" class="w-4 h-4" (click)="toggleSort('specialization')">
+              <span class="w-4 h-4">
+                <ng-container *ngIf="sortModes['specialization'] === 'asc'">▲</ng-container>
+                <ng-container *ngIf="sortModes['specialization'] === 'desc'">▼</ng-container>
+                <ng-container *ngIf="sortModes['specialization'] === 'default'">↕</ng-container>
+              </span>
             </div>
           </th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[220px]">
-            <div class="flex items-center gap-1 cursor-pointer">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('proposedPrice')">
               Proposed Price
-              <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" class="w-4 h-4" (click)="toggleSort('proposedPrice')">
+              <span class="w-4 h-4">
+                <ng-container *ngIf="sortModes['proposedPrice'] === 'asc'">▲</ng-container>
+                <ng-container *ngIf="sortModes['proposedPrice'] === 'desc'">▼</ng-container>
+                <ng-container *ngIf="sortModes['proposedPrice'] === 'default'">↕</ng-container>
+              </span>
             </div>
           </th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[330px]">
-            <div class="flex items-center gap-1 cursor-pointer">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('location')">
               Location
-              <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" class="w-4 h-4" (click)="toggleSort('location')">
+              <span class="w-4 h-4">
+                <ng-container *ngIf="sortModes['location'] === 'asc'">▲</ng-container>
+                <ng-container *ngIf="sortModes['location'] === 'desc'">▼</ng-container>
+                <ng-container *ngIf="sortModes['location'] === 'default'">↕</ng-container>
+              </span>
             </div>
           </th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[150px]">Urgent</th>

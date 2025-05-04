@@ -52,16 +52,24 @@
       <thead class="border-b">
         <tr>
           <th class="px-4 py-2 text-start min-w-[50px] lg:min-w-[150px] xl:min-w-[150px]">
-            <div class="flex items-center gap-1 cursor-pointer">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('client')">
               Client Name
-            <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" class="w-4 h-4 hover:text-foreground flex cursor-pointer items-start justify-start rounded-md hover:scale-80 transition-transform duration-500" (click)="toggleSort('client')">
+              <span class="w-4 h-4">
+                <ng-container *ngIf="clientSortMode === 'asc'">▲</ng-container>
+                <ng-container *ngIf="clientSortMode === 'desc'">▼</ng-container>
+                <ng-container *ngIf="clientSortMode === 'default'">↕</ng-container>
+              </span>
             </div>
           </th>
           <th class="px-4 py-2 text-start min-w-[100px] lg:min-w-[250px] xl:min-w-[200px]">
-            <div class="flex items-center gap-1 cursor-pointer">
-            Tasker Name
-            <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" class="w-4 h-4 hover:text-foreground flex cursor-pointer items-start justify-start rounded-md hover:scale-80 transition-transform duration-500" (click)="toggleSort('tasker')">
-          </div>
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('tasker')">
+              Tasker Name
+              <span class="w-4 h-4">
+                <ng-container *ngIf="taskerSortMode === 'asc'">▲</ng-container>
+                <ng-container *ngIf="taskerSortMode === 'desc'">▼</ng-container>
+                <ng-container *ngIf="taskerSortMode === 'default'">↕</ng-container>
+              </span>
+            </div>
           </th>
           <th class="px-4 py-2 text-start min-w-[100px] lg:min-w-[250px] xl:min-w-[200px]">Conversation</th>
           <th class="px-4 py-2 text-start min-w-[50px] lg:min-w-[150px] xl:min-w-[100px]">Action</th>
@@ -94,8 +102,8 @@
         </tr>
         
         <!-- Placeholder rows to maintain fixed table size -->
-        <tr *ngFor="let placeholder of placeholderRows" >
-          <td class="px-4 py-3 text-center" colspan="7"></td>
+        <tr *ngFor="let placeholder of placeholderRows">
+          <td class="px-4 py-3 text-center" colspan="4"></td>
         </tr>
 
       </tbody>

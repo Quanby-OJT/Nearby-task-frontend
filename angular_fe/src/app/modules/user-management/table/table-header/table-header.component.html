@@ -1,9 +1,13 @@
 <ng-container>
   <th
     class="border-muted/20 bg-muted/5 w-[220px] border-r border-b px-4 py-2 align-middle text-[0.8125rem] text-start font-bold leading-[1.125rem] overflow-hidden text-ellipsis whitespace-nowrap h-[48px]">
-    <div class="flex items-center gap-1 cursor-pointer">
+    <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort()">
       Profile
-      <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" (click)="toggleSort()" class="w-4 h-4 hover:text-foreground flex cursor-pointer items-start justify-start rounded-md hover:scale-80 transition-transform duration-500">
+      <span class="w-4 h-4">
+        <ng-container *ngIf="sortState === 'asc'">▲</ng-container>
+        <ng-container *ngIf="sortState === 'desc'">▼</ng-container>
+        <ng-container *ngIf="sortState === 'default'">↕</ng-container>
+      </span>
     </div>
   </th>
   <th
@@ -12,9 +16,13 @@
   </th>
   <th
     class="border-muted/20 bg-muted/5 w-[220px] border-r border-b px-4 py-2 align-middle text-[0.8125rem] text-start font-bold leading-[1.125rem] overflow-hidden text-ellipsis whitespace-nowrap h-[48px]">
-    <div class="flex items-center gap-1 cursor-pointer">
-    Email
-    <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" (click)="toggleSort()" class="w-4 h-4 hover:text-foreground flex cursor-pointer items-start justify-start rounded-md hover:scale-80 transition-transform duration-500">
+    <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort()">
+      Email
+      <span class="w-4 h-4">
+        <ng-container *ngIf="sortState === 'asc'">▲</ng-container>
+        <ng-container *ngIf="sortState === 'desc'">▼</ng-container>
+        <ng-container *ngIf="sortState === 'default'">↕</ng-container>
+      </span>
     </div>
   </th>
   <th
