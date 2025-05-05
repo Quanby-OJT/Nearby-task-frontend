@@ -30,10 +30,9 @@ class ApiService {
         _cookies[keyValue[0].trim()] = keyValue[1].trim();
       }
     }
-    print('Updated Cookies: $_cookies'); // Debugging
+    print('Updated Cookies: $_cookies');
   }
 
-  // Update tasker profile with PDF file
   static Future<Map<String, dynamic>> updateTaskerWithFile(
       UserModel user, File file) async {
     try {

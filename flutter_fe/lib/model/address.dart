@@ -7,7 +7,6 @@ class AddressModel {
   final String postalCode;
   final String country;
 
-//This is what the controller used
   AddressModel({
     this.id,
     required this.streetAddress,
@@ -18,12 +17,10 @@ class AddressModel {
     required this.country,
   });
 
-  // Factory constructor to handle image as either URL or binary data, this is for the display record part
-  // This is for the display record part
   factory AddressModel.fromJson(Map<String, dynamic> json) {
     return AddressModel(
-      id: json['user_id'] as int?, // Allow null values
-      streetAddress: json['street_address'] ?? '', // Default to empty string
+      id: json['user_id'] as int?,
+      streetAddress: json['street_address'] ?? '',
       barangay: json['barangay'] ?? '',
       city: json['city'] ?? '',
       province: json['province'] ?? '',
@@ -32,8 +29,6 @@ class AddressModel {
     );
   }
 
-// Returns whith these datas
-// This is for the display record part
   Map<String, dynamic> toJson() {
     return {
       "user_id": id,
@@ -47,8 +42,6 @@ class AddressModel {
   }
 
   @override
-
-  // This is for the display record part
   String toString() {
     return 'AddressModel(streetAddress: $streetAddress, barangay: $barangay, city: $city, province: $province, postalCode: $postalCode, country: $country)';
   }

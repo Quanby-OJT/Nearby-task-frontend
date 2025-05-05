@@ -83,20 +83,13 @@ class _PreSignUpState extends State<PreSignUp> with TickerProviderStateMixin {
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.black),
         elevation: 0,
-        backgroundColor: const Color(0xFFF1F4FF),
+        backgroundColor: Colors.grey[100],
       ),
       body: SingleChildScrollView(
         child: Center(
           child: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFFF1F4FF),
-                  Colors.white,
-                ],
-              ),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,

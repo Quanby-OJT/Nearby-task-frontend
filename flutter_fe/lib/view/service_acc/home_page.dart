@@ -10,6 +10,7 @@ import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/address/set-up_address.dart';
 import 'package:flutter_fe/view/business_acc/create_escrow_token.dart';
 import 'package:flutter_fe/view/business_acc/notif_screen.dart';
+import 'package:flutter_fe/view/custom_loading/custom_loading.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/service_acc/fill_up.dart';
@@ -18,7 +19,6 @@ import 'package:flutter_fe/view/setting/setting.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:dropdown_search/dropdown_search.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 
@@ -371,7 +371,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeOut,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Colors.grey[100],
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
@@ -641,13 +641,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 children: [
                   Text(
                     _role,
-                    style:
-                        GoogleFonts.poppins(color: Colors.white, fontSize: 10),
+                    style: GoogleFonts.poppins(
+                        color: Color(0xFFB71A4A), fontSize: 10),
                   ),
                   Text(
                     _fullName,
                     style: GoogleFonts.poppins(
-                      color: Colors.white,
+                      color: Colors.black,
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
@@ -679,7 +679,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 },
                 icon: const Icon(
                   Icons.notifications_outlined,
-                  color: Colors.white,
+                  color: Color(0xFFB71A4A),
                   size: 24,
                 ),
               ),
@@ -691,7 +691,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 },
                 child: const Icon(
                   Icons.more_vert,
-                  color: Colors.white,
+                  color: Color(0xFFB71A4A),
                   size: 24,
                 ),
               ),
@@ -699,7 +699,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           )
         ],
       ),
-      backgroundColor: Colors.blue,
+      backgroundColor: Colors.grey[100],
       centerTitle: true,
     );
   }
@@ -712,7 +712,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       body: Stack(
         children: [
           if (_isLoading || _isCategoriesLoading)
-            Center(child: CircularProgressIndicator(color: Color(0xFF0272B1)))
+            Center(child: CustomLoading())
           else if (tasks.isEmpty)
             Center(
               child: Column(
@@ -795,7 +795,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   return Center(
                     child: SizedBox(
                       width: double.infinity,
-                      height: MediaQuery.of(context).size.height * 0.65,
                       child: Card(
                         elevation: 8,
                         shape: RoundedRectangleBorder(

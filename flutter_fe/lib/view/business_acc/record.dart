@@ -200,7 +200,7 @@ class _RecordPageState extends State<RecordPage> {
                                         scrollDirection: Axis.vertical,
                                         child: SingleChildScrollView(
                                           scrollDirection: Axis.horizontal,
-                                          child: Container(
+                                          child: SizedBox(
                                             width: MediaQuery.of(context)
                                                     .size
                                                     .width *

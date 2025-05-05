@@ -120,7 +120,7 @@ class _OtpScreenState extends State<OtpScreen> {
                         left: 40, right: 40, top: 20, bottom: 20),
                     child: TextField(
                       controller: _controller.otpController,
-                      cursorColor: Color(0xFF0272B1),
+                      cursorColor: Color(0xFFB71A4A),
                       decoration: InputDecoration(
                           filled: true,
                           fillColor: Color(0xFFF1F4FF),
@@ -133,7 +133,7 @@ class _OtpScreenState extends State<OtpScreen> {
                           focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                               borderSide: BorderSide(
-                                  color: Color(0xFF0272B1), width: 2))),
+                                  color: Color(0xFFB71A4A), width: 2))),
                     ),
                   ),
                   Container(

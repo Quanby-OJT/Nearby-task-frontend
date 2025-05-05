@@ -9,7 +9,6 @@ import 'package:flutter_fe/view/address/set-up_address.dart';
 import 'package:flutter_fe/view/setting/tasker_specialization.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:geocoding/geocoding.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -25,7 +24,7 @@ class _SettingScreenState extends State<SettingScreen> {
   bool _isCategoriesLoading = false;
   List<MapEntry<int, String>> categories = [];
   Map<String, bool> selectedCategories = {};
-  int _selectedCategoriesCount = 0;
+  final int _selectedCategoriesCount = 0;
   bool _showFurtherAway = true;
   double _maxDistance = 19;
   RangeValues _ageRange = const RangeValues(18, 24);
@@ -63,17 +62,6 @@ class _SettingScreenState extends State<SettingScreen> {
           (_userPreference.ageRange?.end ?? 24).clamp(18, 80),
         );
       });
-
-      if (_userPreference.latitude != null &&
-          _userPreference.longitude != null) {
-        await _decodeLocation(
-            _userPreference.latitude!, _userPreference.longitude!);
-      } else {
-        setState(() {
-          _userLocation = "Set location";
-          _isLoading = false;
-        });
-      }
     } catch (e) {
       debugPrint('Error fetching user preference: $e');
       setState(() {
@@ -110,35 +98,6 @@ class _SettingScreenState extends State<SettingScreen> {
           backgroundColor: Colors.red,
         ),
       );
-    }
-  }
-
-  Future<void> _decodeLocation(double latitude, double longitude) async {
-    try {
-      List<Placemark> placemarks =
-          await placemarkFromCoordinates(latitude, longitude);
-
-      String? city = placemarks.isNotEmpty
-          ? placemarks[0].locality ?? placemarks[0].subAdministrativeArea
-          : null;
-
-      setState(() {
-        _cityName = city ?? "Unknown city";
-        _province = placemarks.isNotEmpty
-            ? placemarks[0].subAdministrativeArea ?? "Unknown province"
-            : "Unknown province";
-        _userLocation = "$_cityName, $_province";
-
-        _isLoading = false;
-      });
-
-      debugPrint('Location decoded successfully: $_userLocation');
-    } catch (e) {
-      debugPrint('Error decoding location: $e');
-      setState(() {
-        _userLocation = "Unknown location";
-        _isLoading = false;
-      });
     }
   }
 
@@ -183,7 +142,7 @@ class _SettingScreenState extends State<SettingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 197, 197, 197),
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         centerTitle: true,
         title: Text(
@@ -194,7 +153,7 @@ class _SettingScreenState extends State<SettingScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.grey[100],
         elevation: 0,
         leading: IconButton(
           icon: const Icon(
@@ -216,7 +175,15 @@ class _SettingScreenState extends State<SettingScreen> {
               Container(
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withValues(alpha: 0.5),
+                      spreadRadius: 2,
+                      blurRadius: 3,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Column(
@@ -240,7 +207,8 @@ class _SettingScreenState extends State<SettingScreen> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          _userLocation ?? "Set location",
+                          '${_userPreference.city}, ${_userPreference.province}' ??
+                              "Set location",
                           style: GoogleFonts.poppins(
                             fontSize: 16,
                             fontWeight: FontWeight.w400,
@@ -290,6 +258,14 @@ class _SettingScreenState extends State<SettingScreen> {
                 decoration: BoxDecoration(
                   color: Colors.grey[100],
                   borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withValues(alpha: 0.5),
+                      spreadRadius: 2,
+                      blurRadius: 3,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -364,6 +340,14 @@ class _SettingScreenState extends State<SettingScreen> {
                 decoration: BoxDecoration(
                   color: Colors.grey[100],
                   borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withValues(alpha: 0.5),
+                      spreadRadius: 2,
+                      blurRadius: 3,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
                 child: ListTile(
                   contentPadding: EdgeInsets.zero,
@@ -419,6 +403,14 @@ class _SettingScreenState extends State<SettingScreen> {
                 decoration: BoxDecoration(
                   color: Colors.grey[100],
                   borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withValues(alpha: 0.5),
+                      spreadRadius: 2,
+                      blurRadius: 3,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

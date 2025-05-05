@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/view/custom_loading/custom_loading.dart';
-import 'package:flutter_fe/view/sign_in/otp_screen.dart';
 import 'package:flutter_fe/view/sign_up_acc/pre_sign_up.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:google_fonts/google_fonts.dart';
