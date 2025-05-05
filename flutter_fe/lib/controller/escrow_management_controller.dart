@@ -13,6 +13,8 @@ class EscrowManagementController {
   final TextEditingController cardHolderNameController = TextEditingController();
   final TextEditingController cvvController = TextEditingController();
   final TextEditingController expiryDateController = TextEditingController();
+  final TextEditingController paymentMethodController = TextEditingController();
+  final TextEditingController acctNumberController = TextEditingController();
 
   int tokenRate = 1;
   ValueNotifier<int> tokenCredits = ValueNotifier(0);
