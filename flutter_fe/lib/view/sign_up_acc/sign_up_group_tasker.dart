@@ -197,11 +197,7 @@ class _SignUpGroupTaskerAccState extends State<SignUpGroupTaskerAcc> {
                                 borderRadius: BorderRadius.circular(10)),
                             padding: EdgeInsets.symmetric(horizontal: 30),
                           ),
-                          onPressed: () {
-                            // _controller.registerUser(context).then((_) {
-                            //   setState(() => _status = "Please check your email to verify your account");
-                            // });
-                          },
+                          onPressed: () {},
                           child: Text(
                             'Create a New Tasker Account',
                             style: TextStyle(color: Colors.white, fontSize: 16),

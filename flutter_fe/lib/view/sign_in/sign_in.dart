@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/view/custom_loading/custom_loading.dart';
+import 'package:flutter_fe/view/sign_in/otp_screen.dart';
 import 'package:flutter_fe/view/sign_up_acc/pre_sign_up.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -17,8 +19,8 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _topSlideAnimation;
   late Animation<Offset> _bottomSlideAnimation;
-
   bool _obsecureText = true;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -28,7 +30,6 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
       duration: const Duration(milliseconds: 1000),
     );
 
-    // Initialize fade animation
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
@@ -36,7 +37,6 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
       ),
     );
 
-    // Initialize top slide animation
     _topSlideAnimation = Tween<Offset>(
       begin: const Offset(0, -1.0),
       end: Offset.zero,
@@ -47,7 +47,6 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
       ),
     );
 
-    // Initialize bottom slide animation
     _bottomSlideAnimation = Tween<Offset>(
       begin: const Offset(0, 1.0),
       end: Offset.zero,
@@ -58,7 +57,6 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
       ),
     );
 
-    // Start the animation
     _animationController.forward();
   }
 
@@ -74,183 +72,190 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
     });
   }
 
+  void _handleLogin() async {
+    setState(() => _isLoading = true);
+    await _controller.loginAuth(context);
+    setState(() => _isLoading = false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFF1F4FF),
-              Colors.white,
-            ],
-          ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SlideTransition(
-                  position: _topSlideAnimation,
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Column(
-                      children: [
-                        SvgPicture.asset(
-                          'assets/svg/logo.svg',
-                          width: 150,
-                          height: 150,
-                        ),
-                        Text(
-                          textAlign: TextAlign.center,
-                          'Find Tasks Near You with NearbyTask!',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: Colors.black87,
-                            fontWeight: FontWeight.w300,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        Text(
-                          'Login',
-                          style: GoogleFonts.poppins(
-                            color: const Color(0xFF03045E),
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
-                ),
-                SlideTransition(
-                  position: _bottomSlideAnimation,
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 40, right: 40),
-                          child: TextField(
-                            controller: _controller.emailController,
-                            cursorColor: const Color(0xFF0272B1),
-                            decoration: _getInputDecoration('Email'),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              left: 40, right: 40, top: 20),
-                          child: TextField(
-                            obscureText: _obsecureText,
-                            controller: _controller.passwordController,
-                            cursorColor: const Color(0xFF0272B1),
-                            decoration:
-                                _getInputDecoration('Password').copyWith(
-                              suffixIcon: Padding(
-                                padding: const EdgeInsets.only(right: 10),
-                                child: IconButton(
-                                  icon: Icon(
-                                    _obsecureText
-                                        ? Icons.visibility_off
-                                        : Icons.visibility,
-                                    color: const Color(0xFF0272B1),
-                                  ),
-                                  onPressed: _toggleObscureText,
-                                ),
-                              ),
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFFF1F4FF),
+                  Colors.white,
+                ],
+              ),
+            ),
+            child: Center(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SlideTransition(
+                      position: _topSlideAnimation,
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: Column(
+                          children: [
+                            SvgPicture.asset(
+                              'assets/svg/logo.svg',
+                              width: 150,
+                              height: 150,
                             ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        Container(
-                          height: 50,
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 40),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              _controller.loginAuth(context);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFFB71A4A),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              elevation: 5,
-                              shadowColor: Colors.black26,
-                            ),
-                            child: Text(
-                              'Sign in',
+                            Text(
+                              textAlign: TextAlign.center,
+                              'Find Tasks Near You with NearbyTask!',
                               style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontSize: 12,
+                                color: Colors.black87,
+                                fontWeight: FontWeight.w300,
                               ),
                             ),
-                          ),
+                            const SizedBox(height: 20),
+                          ],
                         ),
-                        Center(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10, horizontal: 40),
-                            child: TextButton(
-                              onPressed: () {},
-                              child: Text(
-                                'Forgot your password?',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  color: const Color(0xFF03045E),
-                                  fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SlideTransition(
+                      position: _bottomSlideAnimation,
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding:
+                                  const EdgeInsets.only(left: 40, right: 40),
+                              child: TextField(
+                                controller: _controller.emailController,
+                                cursorColor: const Color(0xFFB71A4A),
+                                decoration: _getInputDecoration('Email'),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                  left: 40, right: 40, top: 20),
+                              child: TextField(
+                                obscureText: _obsecureText,
+                                controller: _controller.passwordController,
+                                cursorColor: const Color(0xFFB71A4A),
+                                decoration:
+                                    _getInputDecoration('Password').copyWith(
+                                  suffixIcon: Padding(
+                                    padding: const EdgeInsets.only(right: 10),
+                                    child: IconButton(
+                                      icon: Icon(
+                                        _obsecureText
+                                            ? Icons.visibility_off
+                                            : Icons.visibility,
+                                        color: Colors.black87,
+                                      ),
+                                      onPressed: _toggleObscureText,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 40),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Don't you have an account? ",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  color: Colors.black87,
+                            const SizedBox(height: 20),
+                            Container(
+                              height: 50,
+                              width: double.infinity,
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 40),
+                              child: ElevatedButton(
+                                onPressed: _isLoading ? null : _handleLogin,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Color(0xFFB71A4A),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  elevation: 5,
+                                  shadowColor: Colors.black26,
+                                ),
+                                child: Text(
+                                  'Sign in',
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
                                 ),
                               ),
-                              TextButton(
+                            ),
+                            Center(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 10, horizontal: 40),
+                                child: TextButton(
+                                  onPressed: () {},
+                                  child: Text(
+                                    'Forgot your password?',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      color: Colors.black87,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 40,
+                              ),
+                              child: TextButton(
                                 onPressed: () {
+                                  Navigator.pop(context);
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) =>
-                                            const PreSignUp()),
+                                      builder: (context) => const PreSignUp(),
+                                    ),
                                   );
                                 },
-                                child: Text(
-                                  "Sign up",
-                                  style: GoogleFonts.poppins(
-                                    color: Color(0xFFB71A4A),
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                  ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'Don\'t have an account?',
+                                      style: GoogleFonts.poppins(
+                                        color: Color(0xFF03045E),
+                                        fontWeight: FontWeight.w300,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      'Sign Up',
+                                      style: GoogleFonts.poppins(
+                                        color: Color(0xFFB71A4A),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+          if (_isLoading) const CustomLoading(),
+        ],
       ),
     );
   }
@@ -268,7 +273,7 @@ InputDecoration _getInputDecoration(String label) {
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(10),
-      borderSide: const BorderSide(color: Color(0xFF0272B1), width: 2),
+      borderSide: const BorderSide(color: Color(0xFFB71A4A), width: 2),
     ),
     errorBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(10),

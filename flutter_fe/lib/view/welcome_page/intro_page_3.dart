@@ -8,7 +8,7 @@ class IntroPage3 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.blueAccent,
+      color: Colors.white,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -19,8 +19,8 @@ class IntroPage3 extends StatelessWidget {
             child: Text(
               textAlign: TextAlign.center,
               'Tesda graduate? Now you can look for available jobs and showcase your skills in your profile. Sign up using service account now!',
-              style: GoogleFonts.openSans(
-                  color: Colors.white, fontWeight: FontWeight.w400),
+              style: GoogleFonts.poppins(
+                  color: Colors.black, fontWeight: FontWeight.w300),
             ),
           ),
         ],

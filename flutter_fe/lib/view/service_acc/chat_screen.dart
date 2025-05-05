@@ -758,6 +758,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   )
                 : Column(children: [
+
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20),
                       child: TextField(

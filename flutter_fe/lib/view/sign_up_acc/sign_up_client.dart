@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:app_links/app_links.dart';
+import 'package:flutter_fe/view/sign_in/sign_in.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SignUpClientAcc extends StatefulWidget {
@@ -45,7 +46,6 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
   Future<void> _initDeepLinkListener() async {
     final appLinks = AppLinks();
 
-    // Handle initial link (app opened via deep link)
     try {
       final Uri? initialUri = await appLinks.getInitialLink();
       if (initialUri != null) {
@@ -57,7 +57,6 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
       setState(() => _status = "An error occurred");
     }
 
-    // Listen for links while app is running
     _linkSubscription = appLinks.uriLinkStream.listen(
       (Uri? uri) {
         if (uri != null) {
@@ -96,7 +95,7 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
 
   @override
   void dispose() {
-    _linkSubscription?.cancel(); // Clean up the subscription
+    _linkSubscription?.cancel();
     super.dispose();
   }
 
@@ -124,8 +123,8 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
               SizedBox(height: 20),
               Text(
                 ' Client Account',
-                style: GoogleFonts.montserrat(
-                  color: const Color(0xFF03045E),
+                style: GoogleFonts.poppins(
+                  color: const Color(0xFFB71A4A),
                   fontSize: 30,
                   fontWeight: FontWeight.w800,
                 ),
@@ -136,30 +135,33 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                 child: Text(
                   textAlign: TextAlign.center,
                   "With ONE SWIPE\n You can Find a New Tasker in a MATTER OF SECONDS.	",
-                  style: GoogleFonts.montserrat(
+                  style: GoogleFonts.poppins(
                     color: Colors.black,
                     fontSize: 12,
                   ),
                 ),
               ),
               if (_status.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    _status,
-                    style: GoogleFonts.montserrat(
-                      color:
-                          _isVerified ? Colors.green : const Color(0xff03045E),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
+                SizedBox(
+                  height: 10,
+                ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  _status,
+                  style: GoogleFonts.poppins(
+                    color: _isVerified ? Colors.green : const Color(0xFFB71A4A),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
+              ),
               Container(
                 padding: EdgeInsets.all(20),
                 child: Column(
                   children: [
                     TextFormField(
+                      cursorColor: Color(0xFFB71A4A),
                       controller: _controller.firstNameController,
                       validator: (value) =>
                           _controller.validateName(value, "first name"),
@@ -167,11 +169,13 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                     ),
                     SizedBox(height: 10),
                     TextFormField(
+                      cursorColor: Color(0xFFB71A4A),
                       controller: _controller.middleNameController,
                       decoration: _getInputDecoration('Middle Name (Optional)'),
                     ),
                     SizedBox(height: 10),
                     TextFormField(
+                      cursorColor: Color(0xFFB71A4A),
                       controller: _controller.lastNameController,
                       validator: (value) =>
                           _controller.validateName(value, "last name"),
@@ -179,6 +183,7 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                     ),
                     SizedBox(height: 10),
                     TextFormField(
+                      cursorColor: Color(0xFFB71A4A),
                       controller: _controller.emailController,
                       validator: _controller.validateEmail,
                       keyboardType: TextInputType.emailAddress,
@@ -186,6 +191,7 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                     ),
                     SizedBox(height: 10),
                     TextFormField(
+                      cursorColor: Color(0xFFB71A4A),
                       controller: _controller.passwordController,
                       validator: _controller.validatePassword,
                       obscureText: _obsecureTextPassword,
@@ -197,7 +203,7 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                               _obsecureTextPassword
                                   ? Icons.visibility_off
                                   : Icons.visibility,
-                              color: Color(0xFF0272B1),
+                              color: Colors.black87,
                             ),
                             onPressed: _toggleObscureTextPassword,
                           ),
@@ -206,6 +212,7 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                     ),
                     SizedBox(height: 10),
                     TextFormField(
+                      cursorColor: Color(0xFFB71A4A),
                       controller: _controller.confirmPasswordController,
                       validator: _controller.validateConfirmPassword,
                       obscureText: _obsecureTextConfirmPassword,
@@ -218,7 +225,7 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                               _obsecureTextConfirmPassword
                                   ? Icons.visibility_off
                                   : Icons.visibility,
-                              color: Color(0xFF0272B1),
+                              color: Colors.black87,
                             ),
                             onPressed: _toggleObscureTextConfirmPassword,
                           ),
@@ -249,12 +256,12 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                                   }
                                 },
                           style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF03045E),
+                              backgroundColor: Color(0xFFB71A4A),
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10))),
                           child: Text(
                             'Sign Up',
-                            style: GoogleFonts.montserrat(
+                            style: GoogleFonts.poppins(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14),
@@ -262,15 +269,35 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                     ),
                     SizedBox(height: 10),
                     TextButton(
-                      onPressed: () =>
-                          Navigator.pushReplacementNamed(context, '/signin'),
-                      child: Text(
-                        'Already have an account? Sign In',
-                        style: GoogleFonts.montserrat(
-                          color: Color(0xFF03045E),
-                          fontWeight: FontWeight.w300,
-                          fontSize: 14,
-                        ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SignIn(),
+                          ),
+                        );
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Already have an account?',
+                            style: GoogleFonts.poppins(
+                              color: Color(0xFF03045E),
+                              fontWeight: FontWeight.w300,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            'Sign In',
+                            style: GoogleFonts.poppins(
+                              color: Color(0xFFB71A4A),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -295,7 +322,7 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
+        borderSide: BorderSide(color: Color(0xFFB71A4A), width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),

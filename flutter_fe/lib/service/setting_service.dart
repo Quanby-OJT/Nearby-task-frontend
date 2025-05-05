@@ -11,14 +11,14 @@ class SettingService {
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
   Future setLocation(
-    int taskerId,
+    int userId,
     double latitude,
     double longitude,
   ) async {
     debugPrint('Setting location: $latitude, $longitude');
     final token = await AuthService.getSessionToken();
     final response = await _client.put(
-      Uri.parse('$url/set-location/$taskerId'),
+      Uri.parse('$url/set-location/$userId'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -36,11 +36,11 @@ class SettingService {
     }
   }
 
-  Future<SettingModel> getLocation(int taskerId) async {
-    debugPrint('Getting location for tasker ID: $taskerId');
+  Future<SettingModel> getLocation(int userId) async {
+    debugPrint('Getting location for user ID: $userId');
     final token = await AuthService.getSessionToken();
     final response = await _client.get(
-      Uri.parse('$url/get-location/$taskerId'),
+      Uri.parse('$url/get-location/$userId'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -87,6 +87,60 @@ class SettingService {
     } else {
       debugPrint('Failed to retrieve location: ${response.statusCode}');
       throw Exception('Failed to retrieve location: ${response.statusCode}');
+    }
+  }
+
+  Future<void> updateSpecialization(
+      int userId, List<String> specialization) async {
+    debugPrint('Updating specialization for user ID: $userId');
+    final token = await AuthService.getSessionToken();
+    final response = await _client.put(
+      Uri.parse('$url/update-specialization/$userId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: json.encode({'specialization': specialization}),
+    );
+
+    debugPrint('Response Status Code: ${response.statusCode}');
+    debugPrint('Response Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      debugPrint('Specialization updated successfully');
+    } else {
+      debugPrint('Failed to update specialization');
+      throw Exception(
+          'Failed to update specialization: ${response.statusCode}');
+    }
+  }
+
+  updateDistance(int userId, double distance, RangeValues ageRange,
+      bool showFurtherAway) async {
+    debugPrint('Updating distance for user ID: $userId');
+    final token = await AuthService.getSessionToken();
+    final response = await _client.put(
+      Uri.parse('$url/update-distance/$userId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: json.encode({
+        'Distance': distance,
+        'Age_Start': ageRange.start,
+        'Age_End': ageRange.end,
+        'Show_further_away': showFurtherAway
+      }),
+    );
+
+    debugPrint('Response Status Code: ${response.statusCode}');
+    debugPrint('Response Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      debugPrint('Distance updated successfully');
+    } else {
+      debugPrint('Failed to update distance');
+      throw Exception('Failed to update distance: ${response.statusCode}');
     }
   }
 }

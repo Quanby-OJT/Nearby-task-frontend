@@ -46,8 +46,8 @@ class _WelcomePageViewMainState extends State<WelcomePageViewMain> {
                       controller: _controller,
                       count: 3,
                       effect: SwapEffect(
-                          activeDotColor: Color(0xFF0272B1),
-                          dotColor: Colors.white),
+                          activeDotColor: Color(0xFFB71A4A),
+                          dotColor: Colors.grey),
                     ),
                     ElevatedButton(
                         onPressed: () {
@@ -58,13 +58,15 @@ class _WelcomePageViewMainState extends State<WelcomePageViewMain> {
                         },
                         style: ElevatedButton.styleFrom(
                             minimumSize: Size(250, 50),
-                            backgroundColor: Colors.white,
+                            backgroundColor: Color(0xFFB71A4A),
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(26))),
                         child: Text(
                           "Get Started",
-                          style: GoogleFonts.openSans(
-                              fontWeight: FontWeight.bold, color: Colors.blue),
+                          style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              fontSize: 14),
                         ))
                   ],
                 )),

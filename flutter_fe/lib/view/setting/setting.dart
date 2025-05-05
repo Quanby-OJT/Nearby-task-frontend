@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/setting_controller.dart';
 import 'package:flutter_fe/model/setting.dart';
@@ -19,6 +21,11 @@ class SettingScreen extends StatefulWidget {
 class _SettingScreenState extends State<SettingScreen> {
   final GetStorage storage = GetStorage();
   final SettingController _settingController = SettingController();
+  final JobPostService jobPostService = JobPostService();
+  bool _isCategoriesLoading = false;
+  List<MapEntry<int, String>> categories = [];
+  Map<String, bool> selectedCategories = {};
+  int _selectedCategoriesCount = 0;
   bool _showFurtherAway = true;
   double _maxDistance = 19;
   RangeValues _ageRange = const RangeValues(18, 24);
@@ -27,6 +34,7 @@ class _SettingScreenState extends State<SettingScreen> {
   SettingModel _userPreference = SettingModel();
   String? _cityName;
   String? _province;
+  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -44,11 +52,15 @@ class _SettingScreenState extends State<SettingScreen> {
 
       setState(() {
         _userPreference = userPreference ?? SettingModel();
+
+        fetchSpecialization();
+
+        _showFurtherAway = _userPreference.limit ?? false;
         _maxDistance =
             (_userPreference.distance?.toDouble() ?? 19).clamp(1, 100);
         _ageRange = RangeValues(
-          (_userPreference.ageStart?.toDouble() ?? 18).clamp(18, 80),
-          (_userPreference.ageEnd?.toDouble() ?? 24).clamp(18, 80),
+          (_userPreference.ageRange?.start ?? 18).clamp(18, 80),
+          (_userPreference.ageRange?.end ?? 24).clamp(18, 80),
         );
       });
 
@@ -72,6 +84,35 @@ class _SettingScreenState extends State<SettingScreen> {
     }
   }
 
+  Future<void> fetchSpecialization() async {
+    try {
+      setState(() {
+        _isCategoriesLoading = true;
+      });
+
+      List<SpecializationModel> fetchedSpecializations =
+          await jobPostService.getSpecializations();
+
+      setState(() {
+        categories = [
+          MapEntry(0, 'All'),
+          ...fetchedSpecializations
+              .map((spec) => MapEntry(spec.id!, spec.specialization))
+        ];
+      });
+    } catch (error) {
+      setState(() {
+        _isCategoriesLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Failed to load categories. Please try again."),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   Future<void> _decodeLocation(double latitude, double longitude) async {
     try {
       List<Placemark> placemarks =
@@ -87,14 +128,55 @@ class _SettingScreenState extends State<SettingScreen> {
             ? placemarks[0].subAdministrativeArea ?? "Unknown province"
             : "Unknown province";
         _userLocation = "$_cityName, $_province";
+
         _isLoading = false;
       });
+
+      debugPrint('Location decoded successfully: $_userLocation');
     } catch (e) {
       debugPrint('Error decoding location: $e');
       setState(() {
         _userLocation = "Unknown location";
         _isLoading = false;
       });
+    }
+  }
+
+  void _setDistance() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      _debouncedSetDistance();
+    });
+  }
+
+  void _debouncedSetDistance() async {
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
+
+    try {
+      await _settingController.updateDistance(
+          _maxDistance, _ageRange, _showFurtherAway);
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to save specialization. Please try again."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -242,6 +324,9 @@ class _SettingScreenState extends State<SettingScreen> {
                           _maxDistance = value;
                         });
                       },
+                      onChangeEnd: (value) {
+                        _setDistance();
+                      },
                       activeColor: const Color(0xFFB71A4A),
                       inactiveColor: Colors.grey[300],
                     ),
@@ -264,6 +349,7 @@ class _SettingScreenState extends State<SettingScreen> {
                             setState(() {
                               _showFurtherAway = value;
                             });
+                            _setDistance();
                           },
                           activeColor: const Color(0xFFB71A4A),
                         ),
@@ -292,10 +378,21 @@ class _SettingScreenState extends State<SettingScreen> {
                   subtitle: Text(
                     _userPreference.specialization != null &&
                             _userPreference.specialization!.isNotEmpty
-                        ? _userPreference.specialization!.join(', ')
-                        : 'All',
+                        ? _userPreference.specialization!
+                            .map((idStr) {
+                              final category = categories.firstWhere(
+                                (c) => c.key.toString() == idStr,
+                                orElse: () => MapEntry(-1, 'Unknown'),
+                              );
+                              return category.key != -1 ? category.value : null;
+                            })
+                            .where((name) => name != null)
+                            .join(', ')
+                        : categories.isNotEmpty
+                            ? categories[0].value
+                            : 'All',
                     style: GoogleFonts.poppins(
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: FontWeight.w400,
                       color: Colors.black87,
                     ),
@@ -356,36 +453,13 @@ class _SettingScreenState extends State<SettingScreen> {
                           _ageRange = values;
                         });
                       },
+                      onChangeEnd: (RangeValues values) {
+                        _setDistance();
+                      },
                       activeColor: const Color(0xFFB71A4A),
                       inactiveColor: Colors.grey[300],
                     ),
                   ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              Container(
-                height: 50,
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFB71A4A),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    elevation: 5,
-                    shadowColor: Colors.black26,
-                  ),
-                  child: Text(
-                    'Set',
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
                 ),
               ),
             ],
