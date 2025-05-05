@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from 'src/app/services/auth.service';
 import { UserAccountService } from 'src/app/services/userAccount';
 import { Users } from 'src/model/user-management';
 import { toast } from 'ngx-sonner';
+import Swal from 'sweetalert2';
 
 import {
   ReactiveFormsModule,
@@ -13,6 +14,14 @@ import {
   FormBuilder
 } from '@angular/forms';
 import { Router } from '@angular/router';
+
+interface Address {
+  barangay?: string;
+  city?: string;
+  province?: string;
+  postal_code?: string;
+  country?: string;
+}
 
 @Component({
   selector: 'app-my-profile',
@@ -26,6 +35,7 @@ import { Router } from '@angular/router';
 })
 export class MyProfileComponent implements OnInit {
   user: Users | null = null;
+  address: Address | null = null;
   isLoading: boolean = true;
   isSaving: boolean = false;
   profileForm!: FormGroup;
@@ -36,7 +46,8 @@ export class MyProfileComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     private userAccountService: UserAccountService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -45,14 +56,17 @@ export class MyProfileComponent implements OnInit {
       (response: any) => {
         console.log('User Information for Profile:', response.user);
         this.user = response.user;
+        this.address = response.address || null;
         this.initializeForm();
         this.imageUrl = this.user?.image_link || null;
         this.isLoading = false;
+        this.cdr.detectChanges(); 
       },
       (error: any) => {
         console.error('Error fetching user for profile:', error);
         toast.error('Failed to load profile information.');
         this.isLoading = false;
+        this.cdr.detectChanges(); 
       }
     );
   }
@@ -69,7 +83,12 @@ export class MyProfileComponent implements OnInit {
       contact: [this.user.contact],
       gender: [this.user.gender],
       birthdate: [this.user.birthdate ? new Date(this.user.birthdate).toISOString().split('T')[0] : null],
-      profileImage: [null]
+      profileImage: [null],
+      barangay: [this.address?.barangay || ''],
+      city: [this.address?.city || ''],
+      province: [this.address?.province || ''],
+      postal_code: [this.address?.postal_code || ''],
+      country: [this.address?.country || '']
     }, { validators: this.passwordMatchValidator });
   }
 
@@ -98,6 +117,26 @@ export class MyProfileComponent implements OnInit {
       };
       reader.readAsDataURL(file);
     }
+  }
+
+  confirmSave() {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'Are you sure you want to change your personal information?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes',
+      cancelButtonText: 'Cancel',
+      buttonsStyling: true,
+      customClass: {
+        confirmButton: 'bg-primary text-primary-foreground hover:bg-primary/90 inline-flex justify-center rounded-md border border-transparent py-2 px-4 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary',
+        cancelButton: 'bg-gray-300 text-gray-700 hover:bg-gray-400 inline-flex justify-center rounded-md border border-transparent py-2 px-4 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300'
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.onSubmit();
+      }
+    });
   }
 
   onSubmit() {
@@ -134,7 +173,7 @@ export class MyProfileComponent implements OnInit {
 
     const profileImageFile = this.profileForm.get('profileImage')?.value;
     if (profileImageFile instanceof File) {
-      formData.append('profileImage', profileImageFile, profileImageFile.name);
+      formData.append('image', profileImageFile, profileImageFile.name);
     }
 
     console.log('Submitting Form Data via UserAccountService:', formData);
@@ -147,6 +186,7 @@ export class MyProfileComponent implements OnInit {
             next: () => {
               toast.success('Profile and password updated successfully!');
               this.user = response.user ? { ...(this.user as Users), ...response.user } : this.user;
+              this.address = response.address || this.address;
               this.imageUrl = this.user?.image_link || null;
               this.isSaving = false;
               this.submitted = false;
@@ -162,6 +202,7 @@ export class MyProfileComponent implements OnInit {
         } else {
           toast.success('Profile updated successfully!');
           this.user = response.user ? { ...(this.user as Users), ...response.user } : this.user;
+          this.address = response.address || this.address;
           this.imageUrl = this.user?.image_link || null;
           this.isSaving = false;
           this.submitted = false;
