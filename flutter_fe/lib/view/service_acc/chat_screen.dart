@@ -879,45 +879,63 @@ class _ChatScreenState extends State<ChatScreen> {
     return Container(
       margin: EdgeInsets.only(bottom: 12),
       child: InkWell(
-        onLongPress: () => showMessageOptions(context, taskTaken.taskTakenId),
         onTap: () {
           Navigator.push(
               context,
               MaterialPageRoute(
                   builder: (context) => IndividualChatScreen(
-                        taskTakenId: taskTaken.taskTakenId,
-                        taskId: taskTaken.task?.id ?? 0,
-                        taskTitle: taskTaken.task?.title ?? '',
-                        taskTakenStatus: taskTaken.taskStatus,
-                      )));
+                    taskTakenId: taskTaken.taskTakenId,
+                    taskId: taskTaken.task?.id ?? 0,
+                    taskTitle: taskTaken.task?.title ?? '',
+                    taskTakenStatus: taskTaken.taskStatus,
+                  )
+              )
+          );
         },
+        onLongPress: () => showMessageOptions(context, taskTaken.taskTakenId),
         child: Padding(
           padding: EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Text(
-                taskTaken.task?.title ?? '',
-                style: GoogleFonts.montserrat(
-                  color: Color(0xFF0272B1),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 18,
-                ),
+              CircleAvatar(
+                radius: 24,
+                backgroundImage: taskTaken.client?.user?.imageName != null
+                    ? NetworkImage(taskTaken.client!.user!.imageName!)
+                    : null,
+                child: taskTaken.client?.user?.imageName == null
+                    ? Icon(FontAwesomeIcons.user, size: 30)
+                    : null,
               ),
-              SizedBox(height: 8),
-              Row(children: [
-                Icon(
-                  FontAwesomeIcons.userCheck,
-                  color: Color(0xFF0272B1),
-                  size: 16,
-                ),
-                SizedBox(width: 4),
-                Text(
-                  "${taskTaken.client?.user?.firstName} ${taskTaken.client?.user?.middleName} ${taskTaken.client?.user?.lastName}",
-                )
-              ])
-            ],
-          ),
+              SizedBox(width: 10,),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    taskTaken.task?.title ?? '',
+                    style: GoogleFonts.montserrat(
+                      color: Color(0xFF0272B1),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 18,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Row(
+                      children: [
+                        Icon(
+                          FontAwesomeIcons.screwdriverWrench,
+                          color: Color(0xFF0272B1),
+                          size: 16,
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          "${taskTaken.client?.user?.firstName} ${taskTaken.client?.user?.middleName} ${taskTaken.client?.user?.lastName}",
+                        )
+                      ]
+                  )
+                ],
+              ),
+            ]
+          )
         ),
       ),
     );

@@ -38,6 +38,7 @@ class _ChatScreenState extends State<ChatScreen> {
   int? cardNumber = 0;
   bool _isUploadDialogShown = false;
   bool _isLoading = true;
+  bool _isRead = false;
 
   AuthenticatedUser? _user;
   String? _existingProfileImageUrl;
@@ -828,11 +829,15 @@ class _ChatScreenState extends State<ChatScreen> {
                                           if (taskAssignment == null) {
                                             return SizedBox.shrink();
                                           } else {
-                                            return conversationCard(
-                                                taskAssignment);
+                                            return conversationCard(taskAssignment);
                                           }
-                                        })))
-                  ]));
+                                        }
+                                        )
+                        )
+                    )
+                  ]
+        )
+    );
   }
 
   void showMessageOptions(BuildContext context, int taskTakenId) {
@@ -880,43 +885,61 @@ class _ChatScreenState extends State<ChatScreen> {
       child: InkWell(
         onTap: () {
           Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => IndividualChatScreen(
-                        taskTakenId: taskTaken.taskTakenId,
-                        taskId: taskTaken.task?.id ?? 0,
-                        taskTitle: taskTaken.task?.title ?? '',
-                        taskTakenStatus: taskTaken.taskStatus,
-                      )));
+            context,
+            MaterialPageRoute(
+              builder: (context) => IndividualChatScreen(
+                taskTakenId: taskTaken.taskTakenId,
+                taskId: taskTaken.task?.id ?? 0,
+                taskTitle: taskTaken.task?.title ?? '',
+                taskTakenStatus: taskTaken.taskStatus,
+              )
+            )
+          );
         },
         onLongPress: () => showMessageOptions(context, taskTaken.taskTakenId),
         child: Padding(
           padding: EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Text(
-                taskTaken.task?.title ?? '',
-                style: GoogleFonts.montserrat(
-                  color: Color(0xFF0272B1),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 18,
-                ),
+              CircleAvatar(
+                radius: 24,
+                backgroundImage: taskTaken.tasker?.user?.imageName != null
+                    ? NetworkImage(taskTaken.tasker!.user!.imageName!)
+                    : null,
+                child: taskTaken.tasker?.user?.imageName == null
+                    ? Icon(FontAwesomeIcons.user, size: 30)
+                    : null,
               ),
-              SizedBox(height: 8),
-              Row(children: [
-                Icon(
-                  FontAwesomeIcons.screwdriverWrench,
-                  color: Color(0xFF0272B1),
-                  size: 16,
-                ),
-                SizedBox(width: 4),
-                Text(
-                  "${taskTaken.tasker?.user?.firstName} ${taskTaken.tasker?.user?.middleName} ${taskTaken.tasker?.user?.lastName}",
-                )
-              ])
-            ],
-          ),
+              SizedBox(width: 10,),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    taskTaken.task?.title ?? '',
+                    style: GoogleFonts.montserrat(
+                      color: Color(0xFF0272B1),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 18,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        FontAwesomeIcons.screwdriverWrench,
+                        color: Color(0xFF0272B1),
+                        size: 16,
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        "${taskTaken.tasker?.user?.firstName} ${taskTaken.tasker?.user?.middleName} ${taskTaken.tasker?.user?.lastName}",
+                      )
+                    ]
+                  )
+                ],
+              ),
+            ]
+          )
         ),
       ),
     );

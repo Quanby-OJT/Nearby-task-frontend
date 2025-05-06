@@ -318,6 +318,7 @@ class TaskController {
           email: '',
           role: '',
           accStatus: '',
+          imageName: clientUserData['image_link'] as String ?? ''
         );
         ClientModel client = ClientModel(
           preferences: '',
@@ -338,6 +339,7 @@ class TaskController {
           email: '',
           role: '',
           accStatus: '',
+          imageName: taskerUserData['image_link'] as String
         );
         TaskerModel tasker = TaskerModel(
             id: 0,
