@@ -10,14 +10,18 @@
     <label for="profileImage" class="cursor-pointer relative">
       <div class="group">
         <img [src]="imageUrl || './assets/images/default-avatar.png'" alt="Profile Picture Preview" class="h-80 w-80 rounded-full object-cover ring-2 ring-[#331FB3] ring-offset-2 ring-offset-background transition-opacity duration-300 group-hover:opacity-50"/>
-        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <strong class="text-white text-center bg-transparent bg-opacity-90 px-4 py-2 rounded font-poppins text-xl">Click here to change the image</strong>
+        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-100">
+          <strong class="text-[#F9F9F9] text-center bg-transparent bg-opacity-90 px-4 py-2 rounded font-poppins text-xl">Click here to change the image</strong>
         </div>
       </div>
     </label>
     <input type="file" id="profileImage" (change)="onFileChange($event)" accept="image/*" class="hidden" />
   </div>
     <form [formGroup]="profileForm">
+
+      <div class="py-10">
+        <div></div>
+      </div>
 
       <!-- User Information Section -->
       <div class="mb-8">

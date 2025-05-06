@@ -118,15 +118,15 @@ export class UserAccountService {
   }
 
   sendOtp(email: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/forgot-password/send-otp`, { email });
+    return this.http.post(`${this.apiUrl}/authority/forgot-password/send-otp`, { email });
   }
 
   verifyOtp(email: string, otp: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/forgot-password/verify-otp`, { email, otp });
+    return this.http.post(`${this.apiUrl}/authority/forgot-password/verify-otp`, { email, otp });
   }
 
   resetPassword(email: string, newPassword: string, confirmPassword: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/forgot-password/reset-password`, { email, newPassword, confirmPassword });
+    return this.http.post(`${this.apiUrl}/authority/forgot-password/reset-password`, { email, newPassword, confirmPassword });
   }
 
   addAddress(addressData: any): Observable<any> {
