@@ -14,7 +14,8 @@ import '../model/client_model.dart';
 import '../model/tasker_model.dart';
 
 class JobPostService {
-  static String url = apiUrl ?? "http://192.168.43.15:5000/connect";
+  // static String url = apiUrl ?? "http://192.168.43.15:5000/connect";
+  static String url = apiUrl ?? "http://localhost:5000";
   static final storage = GetStorage();
   static final token = storage.read('session');
 

@@ -571,8 +571,8 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                         [
                           _buildInfoRow(
                               Icons.badge, "ID", "#${widget.tasker.id}"),
-                          _buildInfoRow(Icons.location_on, "Location",
-                              widget.tasker.address!.values.join(", ")),
+                          // _buildInfoRow(Icons.location_on, "Location",
+                          //     widget.tasker.address!.values.join(", ")),
                           _buildInfoRow(Icons.work, "Specialization",
                               widget.tasker.specialization),
                         ],

@@ -1,3 +1,4 @@
+import 'package:flutter_fe/model/client_model.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -10,7 +11,8 @@ import '../config/url_strategy.dart';
 import 'api_service.dart';
 
 class ClientServices {
-  static String url = apiUrl ?? "http://192.168.43.15:5000/connect";
+  // static String url = apiUrl ?? "http://192.168.43.15:5000/connect";
+  static String url = apiUrl ?? "http://localhost:5000";
   final dio = Dio();
   static final storage = GetStorage();
   static final token = storage.read('session');
@@ -18,14 +20,22 @@ class ClientServices {
 
   Future<Map<String, dynamic>> _postRequest(
       {required String endpoint, required Map<String, dynamic> body}) async {
-    final response = await http.post(Uri.parse("$url$endpoint"),
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json"
-        },
-        body: jsonEncode(body));
+    try {
+      final response = await http
+          .post(Uri.parse("$url$endpoint"),
+              headers: {
+                "Authorization": "Bearer $token",
+                "Content-Type": "application/json"
+              },
+              body: jsonEncode(body))
+          .timeout(const Duration(seconds: 15));
 
-    return _handleResponse(response);
+      return _handleResponse(response);
+    } catch (e, stackTrace) {
+      debugPrint("API Post Request Error: $e");
+      debugPrint(stackTrace.toString());
+      return {"error": "Request failed: $e"};
+    }
   }
 
   Future<Map<String, dynamic>> _getRequest(String endpoint) async {
@@ -43,7 +53,8 @@ class ClientServices {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json"
         },
-      );
+      ).timeout(const Duration(seconds: 15));
+
       debugPrint("API Response Status: ${response.statusCode}");
       debugPrint("API Response for $endpoint: ${response.body}");
       return _handleResponse(response);
@@ -73,14 +84,17 @@ class ClientServices {
       {required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     try {
-      final response = await http.put(
-        Uri.parse('$url$endpoint'),
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json"
-        },
-        body: jsonEncode(body),
-      );
+      final response = await http
+          .put(
+            Uri.parse('$url$endpoint'),
+            headers: {
+              "Authorization": "Bearer $token",
+              "Content-Type": "application/json"
+            },
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 15));
+
       return _handleResponse(response);
     } catch (e, stackTrace) {
       debugPrint(e.toString());
@@ -164,78 +178,122 @@ class ClientServices {
     }
   }
 
-  Future<List<TaskerModel>> fetchAllFilteredTasker() async {
-    final userId = await getUserId();
-    if (userId == null) {
-      debugPrint("Cannot fetch taskers: User ID is null");
-      return [];
-    }
-
+  Future<List<TaskerModel>> fetchAllFilteredTasker(int userId) async {
     try {
-      debugPrint("Fetching all taskers for user ID: $userId");
+      try {
+        final allTaskersResponse = await _getRequest(
+          "/client/getAllFilteredTaskers",
+        );
 
-      final allTaskersResponse = await _getRequest(
-        "/client/getAllFilteredTaskers/$userId",
-      );
-      if (allTaskersResponse.containsKey("error")) {
-        debugPrint(
-            "Error fetching all taskers: ${allTaskersResponse["error"]}");
-        return [];
+        debugPrint("All Taskers Response: $allTaskersResponse");
+
+        if (allTaskersResponse.containsKey("error")) {
+          final errorMsg = allTaskersResponse["error"];
+          debugPrint("Error fetching filtered taskers: $errorMsg");
+
+          if (errorMsg.toString().contains("No taskers found") ||
+              errorMsg.toString().contains("No active taskers found")) {
+            return [];
+          }
+
+          throw Exception(errorMsg);
+        }
+
+        final savedTaskResponse =
+            await _getRequest("/client/getsavedTask/$userId");
+        if (savedTaskResponse.containsKey("error")) {
+          debugPrint(
+              "Error fetching saved taskers: ${savedTaskResponse["error"]}");
+          return [];
+        }
+
+        final allTaskers =
+            allTaskersResponse["taskers"] as List<dynamic>? ?? [];
+        debugPrint("All Taskers Count: ${allTaskers.length}");
+
+        if (allTaskers.isEmpty) {
+          debugPrint("No taskers returned from API");
+          return [];
+        }
+
+        final likedTaskerIds =
+            (savedTaskResponse["liked_tasks"] as List<dynamic>? ?? [])
+                .map<int>((task) => task["tasker_id"] as int)
+                .toSet();
+        debugPrint("Liked Tasker IDs: $likedTaskerIds");
+
+        final taskerList = allTaskers
+            .where((tasker) {
+              final taskerId = tasker["user_id"] ?? tasker["tasker_id"];
+              final isNotLiked =
+                  taskerId is int && !likedTaskerIds.contains(taskerId);
+              if (!isNotLiked) {
+                debugPrint("Filtering out already liked tasker: $taskerId");
+              }
+              return isNotLiked;
+            })
+            .map((tasker) {
+              try {
+                debugPrint("Tasker Data: $tasker");
+                return TaskerModel.fromJson(tasker);
+              } catch (e) {
+                debugPrint("Error parsing tasker: $e");
+                debugPrint("Problematic tasker data: $tasker");
+                return null;
+              }
+            })
+            .where((tasker) => tasker != null)
+            .cast<TaskerModel>()
+            .toList();
+
+        debugPrint("Filtered Taskers Count: ${taskerList.length}");
+        return taskerList;
+      } catch (e) {
+        debugPrint("Network error in fetchAllFilteredTasker: $e");
+        rethrow;
       }
-
-      final savedTaskResponse =
-          await _getRequest("/client/getsavedTask/$userId");
-      if (savedTaskResponse.containsKey("error")) {
-        debugPrint(
-            "Error fetching saved taskers: ${savedTaskResponse["error"]}");
-        return [];
-      }
-
-      final allTaskers = allTaskersResponse["taskers"] as List<dynamic>? ?? [];
-      debugPrint("All Taskers Count: ${allTaskers.length}");
-
-      if (allTaskers.isEmpty) {
-        debugPrint("No taskers returned from API");
-        return [];
-      }
-
-      // Extract liked tasker IDs
-      final likedTaskerIds =
-          (savedTaskResponse["liked_tasks"] as List<dynamic>? ?? [])
-              .map<int>((task) => task["tasker_id"] as int)
-              .toSet();
-      debugPrint("Liked Tasker IDs: $likedTaskerIds");
-
-      // Filter out liked taskers and convert to UserModel
-      final taskerList = allTaskers
-          .where((tasker) {
-            final taskerId = tasker["user_id"];
-            final isNotLiked =
-                taskerId is int && !likedTaskerIds.contains(taskerId);
-            if (!isNotLiked) {
-              debugPrint("Filtering out already liked tasker: $taskerId");
-            }
-            return isNotLiked;
-          })
-          .map((tasker) {
-            try {
-              return TaskerModel.fromJson(tasker);
-            } catch (e) {
-              debugPrint("Error parsing tasker: $e");
-              debugPrint("Problematic tasker data: $tasker");
-              return null;
-            }
-          })
-          .where((tasker) => tasker != null)
-          .cast<TaskerModel>()
-          .toList();
-
-      debugPrint("Filtered Taskers Count: ${taskerList.length}");
-      return taskerList;
     } catch (e, st) {
       debugPrint("Error fetching taskers: $e");
       debugPrint(st.toString());
       return [];
+    }
+  }
+
+  Future<ClientModel?> fetchMyData(int userId) async {
+    try {
+      final response = await _getRequest("/client/getMyData/$userId");
+      debugPrint("My Data Response: $response");
+
+      if (response.containsKey("error")) {
+        final errorMsg = response["error"];
+        debugPrint("Error fetching my data: $errorMsg");
+        if (errorMsg.toString().contains("No active taskers found")) {
+          return null;
+        }
+        throw Exception(errorMsg);
+      }
+
+      final client = response["client"] as Map<String, dynamic>?;
+      debugPrint("My Data Client: $client");
+
+      if (client == null) {
+        debugPrint("No client data returned for user ID: $userId");
+        return null;
+      }
+
+      try {
+        debugPrint("My Client Data: $client");
+        return ClientModel.fromJson(client);
+      } catch (e, st) {
+        debugPrint("Error parsing my client data: $e");
+        debugPrint("Stack trace: $st");
+        debugPrint("Problematic client data: $client");
+        return null;
+      }
+    } catch (e, st) {
+      debugPrint("Error in fetchMyData: $e");
+      debugPrint("Stack trace: $st");
+      return null;
     }
   }
 
@@ -340,7 +398,7 @@ class ClientServices {
           "Authorization": "Bearer ${await AuthService.getSessionToken()}",
           "Content-Type": "application/json"
         },
-      );
+      ).timeout(const Duration(seconds: 15));
 
       debugPrint("API Response Status: ${response.statusCode}");
       debugPrint(

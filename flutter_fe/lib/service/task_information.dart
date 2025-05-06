@@ -9,7 +9,8 @@ import '../config/url_strategy.dart';
 import '../model/conversation.dart';
 
 class TaskDetailsService {
-  static final String url = apiUrl ?? "http://192.168.43.15:5000/connect";
+  // static final String url = apiUrl ?? "http://192.168.43.15:5000/connect";
+  static String url = apiUrl ?? "http://localhost:5000";
   final storage = GetStorage();
 
   static Map<String, dynamic> _handleResponse(http.Response response) {

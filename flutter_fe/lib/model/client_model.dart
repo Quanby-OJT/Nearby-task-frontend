@@ -16,7 +16,7 @@ class ClientModel {
 
   @override
   String toString() {
-    return "user: $user)";
+    return "ClientModel(user: $user, preferences: $preferences, clientAddress: $clientAddress, amount: $amount, rating: $rating)";
   }
 
   Map<String, dynamic> toJson() {
@@ -24,23 +24,26 @@ class ClientModel {
       "preferences": preferences,
       "client_address": clientAddress,
       "amount": amount,
-      "rating": rating
+      "rating": rating,
+      "user": user?.toJson(),
     };
   }
 
   factory ClientModel.fromJson(Map<String, dynamic> json) {
     return ClientModel(
-      preferences: json['preferences'] as String,
-      clientAddress: json['client_address'] as String,
+      preferences: json['preferences'] as String? ?? '',
+      clientAddress: json['client_address'] as String? ?? '',
       amount: (json['amount'] is int
               ? (json['amount'] as int).toDouble()
               : json['amount'] as double?) ??
           0.0,
-      // Handle int or double for rating
       rating: (json['rating'] is int
               ? (json['rating'] as int).toDouble()
               : json['rating'] as double?) ??
           0.0,
+      user: json['user'] != null
+          ? UserModel.fromJson(json['user'] as Map<String, dynamic>)
+          : null,
     );
   }
 }

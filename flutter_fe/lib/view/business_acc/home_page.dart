@@ -9,11 +9,11 @@ import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/model/tasker_feedback.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
-import 'package:flutter_fe/service/tasker_service.dart';
+// import 'package:flutter_fe/service/tasker_service.dart';
+import 'package:flutter_fe/controller/tasker_controller.dart';
 import 'package:flutter_fe/view/address/set-up_address.dart';
 import 'package:flutter_fe/view/business_acc/create_escrow_token.dart';
 import 'package:flutter_fe/view/business_acc/notif_screen.dart';
-import 'package:flutter_fe/view/custom_loading/custom_loading.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/service_acc/fill_up.dart';
@@ -40,7 +40,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   final CardSwiperController controller = CardSwiperController();
   final JobPostService jobPostService = JobPostService();
   final ClientServices _clientServices = ClientServices();
-  final TaskerService _taskerService = TaskerService();
+  // final TaskerService _taskerService = TaskerService();
+  final TaskerController _taskerController = TaskerController();
   List<AuthenticatedUser> taskers = [];
   List<TaskerFeedback> taskerFeedback = [];
   String? _errorMessage;
@@ -227,7 +228,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         _errorMessage = null;
       });
 
-      fetchedTaskers = await _clientServices.fetchAllFilteredTasker();
+      fetchedTaskers = await _taskerController.getAllTaskers();
 
       setState(() {
         taskers = fetchedTaskers
