@@ -6,8 +6,10 @@
       <p>This is used to view and manage the transactions of the users in the application</p>
     </div>
   </div>
-
- <div class="flex space-x-4">
+</div>
+<div class="mb-4 flex justify-between">
+  <div class="inline-block"></div>
+  <div class="flex space-x-4">
     <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500 flex items-center space-x-2" (click)="exportCSV()">
       <svg-icon src="./assets/icons/heroicons/outline/csvDL.svg" [svgClass]="'h-5 w-5'"></svg-icon>
       <span>Export CSV</span>
@@ -17,11 +19,8 @@
       <span>Export PDF</span>
     </button>
   </div>
-
 </div>
-
 <div class="bg-white w-full max-w-[1440px] mx-auto flex-col rounded-xl min-h-[400px]">
-
 <div class="bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
   <div class="flex flex-wrap items-center justify-between gap-2 py-3 px-5">
     <div class="text-muted-foreground text-sm font-medium"></div>
