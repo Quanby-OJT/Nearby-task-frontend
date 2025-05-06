@@ -10,7 +10,7 @@ import '../model/conversation.dart';
 
 class TaskDetailsService {
   static final String url = apiUrl ?? "http://localhost:5000/connect";
-  final storage = GetStorage();
+  static final storage = GetStorage();
 
   static Map<String, dynamic> _handleResponse(http.Response response) {
     debugPrint(response.body);
@@ -45,8 +45,7 @@ class TaskDetailsService {
     }
   }
 
-  static Future<Map<String, dynamic>> _postRequest(
-      {required String endpoint, required Map<String, dynamic> body}) async {
+  static Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     final response = await http.post(Uri.parse("$url$endpoint"),
         headers: {
@@ -94,8 +93,7 @@ class TaskDetailsService {
   }
 
   //This is for client.
-  Future<Map<String, dynamic>> updateTaskStatus(
-      int taskTakenId, String? newStatus) async {
+  Future<Map<String, dynamic>> updateTaskStatus(int taskTakenId, String? newStatus) async {
     try {
       return await _postRequest(endpoint: "/update-status-client", body: {
         "task_id": taskTakenId,
@@ -109,41 +107,28 @@ class TaskDetailsService {
   }
 
   //Client/Tasker Conversation
-  static Future<Map<String, dynamic>> sendMessage(
-      Conversation conversation) async {
+  static Future<Map<String, dynamic>> sendMessage(Conversation conversation) async {
     try {
-      return await _postRequest(
-          endpoint: "/send-message", body: conversation.toJson());
-      // String token = await AuthService.getSessionToken();
-      //
-      // final response = await http.post(Uri.parse("$apiUrl/send-message"),
-      //     headers: {
-      //       "Authorization": "Bearer $token",
-      //       "Content-Type": "application/json"
-      //     },
-      //     body: jsonEncode(conversation.toJson()));
-      //
-      // var data = jsonDecode(response.body);
-      //
-      // if (response.statusCode == 200) {
-      //   return {"message": data["message"] ?? "Successfully Sent the Message"};
-      // } else if (response.statusCode == 400) {
-      //   return {
-      //     "error": data["errors"] ?? "Please Check Your inputs and try again"
-      //   };
-      // } else {
-      //   // Handle unexpected response statuses
-      //   return {
-      //     "error":
-      //     "Unexpected error occurred. Status code: ${response.statusCode}"
-      //   };
-      // }
+      return await _postRequest(endpoint: "/send-message", body: conversation.toJson());
     } catch (e) {
       debugPrint(e.toString());
       debugPrintStack();
       return {
         "error": "An Error Occured while Sending a Message. Please Try Again"
       };
+    }
+  }
+
+  static Future<void> readMessage(int taskTakenId) async {
+    try {
+      await _postRequest(endpoint: "/mark-messages-read", body: {
+        "task_taken_id": taskTakenId,
+        'user_id': storage.read('user_id'),
+        "role": storage.read('role')
+      });
+    } catch (e) {
+      debugPrint(e.toString());
+      debugPrintStack();
     }
   }
 

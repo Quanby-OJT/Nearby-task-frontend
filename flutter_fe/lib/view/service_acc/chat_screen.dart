@@ -876,6 +876,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget conversationCard(TaskAssignment taskTaken) {
+    final unread = taskTaken.unreadCount > 0;
     return Container(
       margin: EdgeInsets.only(bottom: 12),
       child: InkWell(
@@ -890,7 +891,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     taskTakenStatus: taskTaken.taskStatus,
                   )
               )
-          );
+          ).then((_) => _fetchTaskAssignments());
         },
         onLongPress: () => showMessageOptions(context, taskTaken.taskTakenId),
         child: Padding(
@@ -899,23 +900,26 @@ class _ChatScreenState extends State<ChatScreen> {
             children: [
               CircleAvatar(
                 radius: 24,
-                backgroundImage: taskTaken.client?.user?.imageName != null
-                    ? NetworkImage(taskTaken.client!.user!.imageName!)
+                backgroundImage: taskTaken.tasker?.user?.imageName != null
+                    ? NetworkImage(taskTaken.tasker!.user!.imageName!)
                     : null,
-                child: taskTaken.client?.user?.imageName == null
+                child: taskTaken.tasker?.user?.imageName == null
                     ? Icon(FontAwesomeIcons.user, size: 30)
                     : null,
               ),
               SizedBox(width: 10,),
               Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    taskTaken.task?.title ?? '',
-                    style: GoogleFonts.montserrat(
-                      color: Color(0xFF0272B1),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 18,
+                  Container(
+                    width: MediaQuery.of(context).size.width * 0.6,
+                    child: Text(
+                      taskTaken.task?.title ?? '',
+                      style: GoogleFonts.montserrat(
+                        color: Color(0xFF0272B1),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 18,
+                      ),
                     ),
                   ),
                   SizedBox(height: 8),
@@ -928,13 +932,34 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                         SizedBox(width: 4),
                         Text(
-                          "${taskTaken.client?.user?.firstName} ${taskTaken.client?.user?.middleName} ${taskTaken.client?.user?.lastName}",
+                          "${taskTaken.tasker?.user?.firstName} ${taskTaken.tasker?.user?.middleName} ${taskTaken.tasker?.user?.lastName}",
+                          style: GoogleFonts.poppins(
+                              fontWeight: unread ? FontWeight.bold : FontWeight.normal
+                          ),
                         )
                       ]
                   )
                 ],
               ),
+              Spacer(),
+                 if(unread)
+                  Padding(
+
+                    padding: EdgeInsets.only(right: 10),
+                    child: CircleAvatar(
+                      radius: 10,
+                      backgroundColor: Colors.redAccent,
+                      child: Text(
+                        taskTaken.unreadCount.toString(),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    )
+                  )
             ]
+
           )
         ),
       ),

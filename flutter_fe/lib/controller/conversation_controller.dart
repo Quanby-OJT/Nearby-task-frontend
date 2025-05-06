@@ -35,8 +35,7 @@ class ConversationController {
     }
   }
 
-  Future<List<Conversation>> getMessages(
-      BuildContext context, int taskTakenId) async {
+  Future<List<Conversation>> getMessages(BuildContext context, int taskTakenId) async {
     debugPrint(taskTakenId.toString());
     final messages = await TaskDetailsService.getMessages(taskTakenId);
     //debugPrint(messages.toString());
@@ -61,6 +60,11 @@ class ConversationController {
     }
   }
 
+  Future<void> readMessage(int taskTakenId) async {
+    debugPrint("Task Taken ID: $taskTakenId");
+    await TaskDetailsService.readMessage(taskTakenId);
+  }
+
   Future<void> deleteMessage(BuildContext context, int messageId) async {
     final messageDeleted = await TaskDetailsService.deleteMessage(messageId);
     if (messageDeleted.containsKey('message')) {
@@ -76,5 +80,6 @@ class ConversationController {
 
   void dispose() {
     conversationMessage.dispose();
+    searchConversation.dispose();
   }
 }

@@ -284,8 +284,7 @@ class TaskController {
       List<dynamic> dataList = assignedTasks['data'] as List<dynamic>;
       List<TaskAssignment> taskAssignments = dataList.map((item) {
         // Parse tasks from post_task
-        Map<String, dynamic> taskData =
-            item['post_task'] as Map<String, dynamic>;
+        Map<String, dynamic> taskData = item['post_task'] as Map<String, dynamic>;
         int taskTakenId = item['task_taken_id'];
         TaskModel task = TaskModel(
           title: taskData['task_title'] as String,
@@ -307,10 +306,8 @@ class TaskController {
           //id: taskData['task_id'], // Use taskTakenId here if it's meant to be the task's ID
         );
 
-        Map<String, dynamic> clientData =
-            item['clients'] as Map<String, dynamic>;
-        Map<String, dynamic> clientUserData =
-            clientData['user'] as Map<String, dynamic>;
+        Map<String, dynamic> clientData = item['clients'] as Map<String, dynamic>;
+        Map<String, dynamic> clientUserData = clientData['user'] as Map<String, dynamic>;
         UserModel clientUser = UserModel(
           firstName: clientUserData['first_name'] as String? ?? '',
           middleName: clientUserData['middle_name'] as String? ?? '',
@@ -330,8 +327,7 @@ class TaskController {
         Map<String, dynamic> taskerData = item['tasker'] != null
             ? item['tasker'] as Map<String, dynamic>
             : {};
-        Map<String, dynamic> taskerUserData =
-            taskerData['user'] as Map<String, dynamic>;
+        Map<String, dynamic> taskerUserData = taskerData['user'] as Map<String, dynamic>;
         UserModel taskerUser = UserModel(
           firstName: taskerUserData['first_name'] as String? ?? '',
           middleName: taskerUserData['middle_name'] as String? ?? '',
@@ -361,6 +357,7 @@ class TaskController {
           task: task,
           taskTakenId: taskTakenId, // Use the root-level task_taken_id
           taskStatus: item['task_status'] as String,
+          unreadCount: item['unread_count']
         );
         debugPrint(assignment.toString()); // Verify the full object
         return assignment;

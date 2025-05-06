@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
@@ -10,9 +11,11 @@ import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get/get_connect/sockets/src/socket_notifier.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 import '../../controller/conversation_controller.dart';
 
@@ -29,8 +32,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final GetStorage storage = GetStorage();
   final TaskController _taskController = TaskController();
   final ReportController reportController = ReportController();
-  final ConversationController conversationController =
-      ConversationController();
+  final ConversationController conversationController = ConversationController();
 
   final ProfileController _profileController = ProfileController();
   final ClientServices _clientServices = ClientServices();
@@ -39,6 +41,7 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isUploadDialogShown = false;
   bool _isLoading = true;
   bool _isRead = false;
+  IO.Socket? socket;
 
   AuthenticatedUser? _user;
   String? _existingProfileImageUrl;
@@ -55,6 +58,25 @@ class _ChatScreenState extends State<ChatScreen> {
     _fetchUserIDImage();
     _fetchReportHistory();
     conversationController.searchConversation.addListener(filterMessages);
+
+    socket = IO.io('http://10.0.2.2:5000', <String, dynamic>{
+      'transports': ['websocket'],
+      'autoConnect': true,
+    });
+
+    socket?.on('new_message', (data) {
+      if(data['user_id'] != storage.read('user_id')){
+        setState(() {
+          _fetchTaskAssignments();
+        });
+      }
+    });
+
+    socket?.on('message_read', (data) {
+      setState(() {
+        _fetchTaskAssignments();
+      });
+    });
   }
 
   @override
@@ -63,6 +85,7 @@ class _ChatScreenState extends State<ChatScreen> {
     conversationController.searchConversation.dispose();
     _selectedReportCategory = null;
     super.dispose();
+    socket?.disconnect();
   }
 
   void filterMessages() {
@@ -880,6 +903,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget conversationCard(TaskAssignment taskTaken) {
+    final unread = taskTaken.unreadCount > 0;
     return Container(
       margin: EdgeInsets.only(bottom: 12),
       child: InkWell(
@@ -894,7 +918,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 taskTakenStatus: taskTaken.taskStatus,
               )
             )
-          );
+          ).then((_) => _fetchTaskAssignments());
         },
         onLongPress: () => showMessageOptions(context, taskTaken.taskTakenId),
         child: Padding(
@@ -914,12 +938,15 @@ class _ChatScreenState extends State<ChatScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    taskTaken.task?.title ?? '',
-                    style: GoogleFonts.montserrat(
-                      color: Color(0xFF0272B1),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 18,
+                  Container(
+                    width: MediaQuery.of(context).size.width * 0.6,
+                    child: Text(
+                      taskTaken.task?.title ?? '',
+                      style: GoogleFonts.montserrat(
+                        color: Color(0xFF0272B1),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 18,
+                      ),
                     ),
                   ),
                   SizedBox(height: 8),
@@ -933,11 +960,30 @@ class _ChatScreenState extends State<ChatScreen> {
                       SizedBox(width: 4),
                       Text(
                         "${taskTaken.tasker?.user?.firstName} ${taskTaken.tasker?.user?.middleName} ${taskTaken.tasker?.user?.lastName}",
+                        style: GoogleFonts.poppins(
+                          fontWeight: unread ? FontWeight.bold : FontWeight.normal
+                        ),
                       )
                     ]
                   )
                 ],
               ),
+              Spacer(),
+              if(unread)
+                Padding(
+                  padding: EdgeInsets.only(left: 10),
+                  child: CircleAvatar(
+                    radius: 10,
+                    backgroundColor: Colors.redAccent,
+                    child: Text(
+                      taskTaken.unreadCount.toString(),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  )
+                )
             ]
           )
         ),
