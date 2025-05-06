@@ -209,7 +209,7 @@ export class MyProfileComponent implements OnInit {
           const hasAddressData = Object.values(addressData).some(val => val !== '' && val !== null && val !== undefined);
 
           if (!hasAddressData) {
-            toast.success('Profile updated successfully!');
+            this.handleSuccess('Profile updated successfully!');
             this.user = response.user ? { ...(this.user as Users), ...response.user } : this.user;
             this.imageUrl = this.user?.image_link || null;
             this.isSaving = false;
@@ -221,7 +221,7 @@ export class MyProfileComponent implements OnInit {
             // Update existing address
             this.userAccountService.updateAddress(this.address.id, addressData).subscribe({
               next: () => {
-                toast.success('Profile and address updated successfully!');
+                this.handleSuccess('Changes updated successfully!');
                 this.user = response.user ? { ...(this.user as Users), ...response.user } : this.user;
                 this.imageUrl = this.user?.image_link || null;
                 this.isSaving = false;
@@ -238,7 +238,7 @@ export class MyProfileComponent implements OnInit {
             // Add new address
             this.userAccountService.addAddress(addressData).subscribe({
               next: () => {
-                toast.success('Profile and address added successfully!');
+                this.handleSuccess('Profile and address added successfully!');
                 this.user = response.user ? { ...(this.user as Users), ...response.user } : this.user;
                 this.imageUrl = this.user?.image_link || null;
                 this.isSaving = false;
@@ -276,6 +276,21 @@ export class MyProfileComponent implements OnInit {
         toast.error(error?.error?.message || 'Failed to update profile.');
         this.isSaving = false;
       }
+    });
+  }
+
+  private handleSuccess(message: string) {
+    Swal.fire({
+      title: 'Success!',
+      text: message,
+      icon: 'success',
+      confirmButtonText: 'OK',
+      buttonsStyling: true,
+      customClass: {
+        confirmButton: 'bg-primary text-primary-foreground hover:bg-primary/90 inline-flex justify-center rounded-md border border-transparent py-2 px-4 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary'
+      }
+    }).then(() => {
+      window.location.reload();
     });
   }
 
