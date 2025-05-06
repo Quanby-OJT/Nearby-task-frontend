@@ -103,9 +103,12 @@
           <div>
             <label for="birthdate" class="text-muted-foreground block text-sm font-medium">Birthdate</label>
             <input
+              #birthdateInput
               type="date"
               id="birthdate"
               formControlName="birthdate"
+              [max]="today"
+              (click)="profileForm.get('birthdate')?.setValue(today)"
               class="bg-input border-border text-foreground mt-1 block w-full rounded-md border p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             />
           </div>

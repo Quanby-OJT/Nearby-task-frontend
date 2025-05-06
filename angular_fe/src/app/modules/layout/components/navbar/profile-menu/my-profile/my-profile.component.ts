@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from 'src/app/services/auth.service';
 import { UserAccountService } from 'src/app/services/userAccount';
@@ -11,7 +11,8 @@ import {
   FormGroup,
   FormControl,
   Validators,
-  FormBuilder
+  FormBuilder,
+  ValidatorFn
 } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -38,7 +39,7 @@ interface Address {
   templateUrl: './my-profile.component.html',
   styleUrl: './my-profile.component.css'
 })
-export class MyProfileComponent implements OnInit {
+export class MyProfileComponent implements OnInit, AfterViewInit {
   user: Users | null = null;
   address: Address | null = null;
   addresses: Address[] = [];
@@ -47,8 +48,11 @@ export class MyProfileComponent implements OnInit {
   profileForm!: FormGroup;
   submitted = false;
   imageUrl: string | null = null;
-  showPassword: boolean = false; // Track visibility for new password
-  showConfirmPassword: boolean = false; // Track visibility for confirm password
+  showPassword: boolean = false; 
+  showConfirmPassword: boolean = false; 
+  today: string; 
+
+  @ViewChild('birthdateInput') birthdateInput!: ElementRef<HTMLInputElement>;
 
   constructor(
     private authService: AuthService,
@@ -56,7 +60,10 @@ export class MyProfileComponent implements OnInit {
     private userAccountService: UserAccountService,
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) {
+    const now = new Date();
+    this.today = now.toISOString().split('T')[0];
+  }
 
   ngOnInit() {
     this.isLoading = true;
@@ -79,6 +86,21 @@ export class MyProfileComponent implements OnInit {
     );
   }
 
+  ngAfterViewInit() {
+    if (this.birthdateInput) {
+      this.birthdateInput.nativeElement.setAttribute('max', this.today);
+    }
+  }
+
+  private maxDateValidator(maxDate: string): ValidatorFn {
+    return (control) => {
+      if (!control.value) return null;
+      const selectedDate = new Date(control.value);
+      const max = new Date(maxDate);
+      return selectedDate > max ? { futureDate: true } : null;
+    };
+  }
+
   initializeForm() {
     if (!this.user) return;
     this.profileForm = this.fb.group({
@@ -90,7 +112,7 @@ export class MyProfileComponent implements OnInit {
       confirmPassword: [''],
       contact: [this.user.contact],
       gender: [this.user.gender],
-      birthdate: [this.user.birthdate ? new Date(this.user.birthdate).toISOString().split('T')[0] : null],
+      birthdate: [this.user.birthdate ? new Date(this.user.birthdate).toISOString().split('T')[0] : this.today, [Validators.required, this.maxDateValidator(this.today)]],
       profileImage: [null],
       street: [''],
       barangay: [''],
