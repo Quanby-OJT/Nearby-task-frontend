@@ -4,28 +4,24 @@
   </div>
 
   <div *ngIf="!isLoading && user && profileForm" class="bg-card text-card-foreground mx-auto max-w-full rounded-lg p-6 shadow-md">
-    <!-- Profile Image Section (Top of the page) -->
-    <div class="flex flex-col items-center mb-8">
-      <label for="profileImage" class="cursor-pointer">
-        <img
-          [src]="imageUrl || './assets/images/default-avatar.png'"
-          alt="Profile Picture Preview"
-          class="h-64 w-64 rounded-full object-cover ring-2 ring-primary ring-offset-2 ring-offset-background"
-        />
-      </label>
-      <input
-        type="file"
-        id="profileImage"
-        (change)="onFileChange($event)"
-        accept="image/*"
-        class="hidden"
-      />
-    </div>
 
+  <!-- Profile Image Section (Top of the page) -->
+  <div class="flex flex-col items-center mb-8 relative">
+    <label for="profileImage" class="cursor-pointer relative">
+      <div class="group">
+        <img [src]="imageUrl || './assets/images/default-avatar.png'" alt="Profile Picture Preview" class="h-80 w-80 rounded-full object-cover ring-2 ring-[#331FB3] ring-offset-2 ring-offset-background transition-opacity duration-300 group-hover:opacity-50"/>
+        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <strong class="text-white text-center bg-transparent bg-opacity-90 px-4 py-2 rounded font-poppins text-xl">Click here to change the image</strong>
+        </div>
+      </div>
+    </label>
+    <input type="file" id="profileImage" (change)="onFileChange($event)" accept="image/*" class="hidden" />
+  </div>
     <form [formGroup]="profileForm">
+
       <!-- User Information Section -->
       <div class="mb-8">
-        <h1 class="font-bold font-poppins text-3xl mb-6">User Information</h1>
+        <h1 class="font-bold font-poppins text-3xl mb-6 text-[#331FB3]">User Information</h1>
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <!-- First Name -->
           <div>
@@ -116,9 +112,13 @@
         </div>
       </div>
 
+      <div class="py-10">
+        <div class="border-b"></div>
+      </div>
+
       <!-- Address Section -->
       <div class="mb-8">
-        <h1 class="font-bold font-poppins text-3xl mb-6">User Address</h1>
+        <h1 class="font-bold font-poppins text-3xl mb-6 text-[#331FB3]">User Address</h1>
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
             <label for="street" class="text-muted-foreground block text-sm font-medium">Street</label>
@@ -197,9 +197,13 @@
         </div>
       </div>
 
+      <div class="py-10 ">
+        <div class="border-b"></div>
+      </div>
+
       <!-- Password Section -->
       <div class="mb-8">
-        <h1 class="font-bold font-poppins text-3xl mb-6">User Passwords</h1>
+        <h1 class="font-bold font-poppins text-3xl mb-6 text-[#331FB3]">User Passwords</h1>
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <!-- New Password -->
           <div class="relative">
