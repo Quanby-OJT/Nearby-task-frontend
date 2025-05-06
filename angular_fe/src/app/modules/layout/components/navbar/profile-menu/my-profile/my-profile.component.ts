@@ -16,11 +16,16 @@ import {
 import { Router } from '@angular/router';
 
 interface Address {
+  id?: string;
   barangay?: string;
   city?: string;
   province?: string;
   postal_code?: string;
   country?: string;
+  street?: string;
+  latitude?: number;
+  longitude?: number;
+  default?: boolean;
 }
 
 @Component({
@@ -36,6 +41,7 @@ interface Address {
 export class MyProfileComponent implements OnInit {
   user: Users | null = null;
   address: Address | null = null;
+  addresses: Address[] = [];
   isLoading: boolean = true;
   isSaving: boolean = false;
   profileForm!: FormGroup;
@@ -56,9 +62,9 @@ export class MyProfileComponent implements OnInit {
       (response: any) => {
         console.log('User Information for Profile:', response.user);
         this.user = response.user;
-        this.address = response.address || null;
         this.initializeForm();
         this.imageUrl = this.user?.image_link || null;
+        this.getAddresses();
         this.isLoading = false;
         this.cdr.detectChanges(); 
       },
@@ -84,11 +90,15 @@ export class MyProfileComponent implements OnInit {
       gender: [this.user.gender],
       birthdate: [this.user.birthdate ? new Date(this.user.birthdate).toISOString().split('T')[0] : null],
       profileImage: [null],
-      barangay: [this.address?.barangay || ''],
-      city: [this.address?.city || ''],
-      province: [this.address?.province || ''],
-      postal_code: [this.address?.postal_code || ''],
-      country: [this.address?.country || '']
+      street: [''],
+      barangay: [''],
+      city: [''],
+      province: [''],
+      postal_code: [''],
+      country: [''],
+      latitude: [null],
+      longitude: [null],
+      default: [false]
     }, { validators: this.passwordMatchValidator });
   }
 
@@ -181,15 +191,73 @@ export class MyProfileComponent implements OnInit {
     this.userAccountService.updateAuthorityUser(this.user.user_id, formData).subscribe({
       next: (response) => {
         const newPassword = this.profileForm.get('newPassword')?.value;
+        const addressUpdate = () => {
+          const addressData = {
+            user_id: this.user!.user_id,
+            street: this.profileForm.get('street')?.value,
+            barangay: this.profileForm.get('barangay')?.value,
+            city: this.profileForm.get('city')?.value,
+            province: this.profileForm.get('province')?.value,
+            postal_code: this.profileForm.get('postal_code')?.value,
+            country: this.profileForm.get('country')?.value,
+            latitude: this.profileForm.get('latitude')?.value,
+            longitude: this.profileForm.get('longitude')?.value,
+            default: this.profileForm.get('default')?.value
+          };
+
+          // Check if address fields are filled
+          const hasAddressData = Object.values(addressData).some(val => val !== '' && val !== null && val !== undefined);
+
+          if (!hasAddressData) {
+            toast.success('Profile updated successfully!');
+            this.user = response.user ? { ...(this.user as Users), ...response.user } : this.user;
+            this.imageUrl = this.user?.image_link || null;
+            this.isSaving = false;
+            this.submitted = false;
+            return;
+          }
+
+          if (this.address && this.address.id) {
+            // Update existing address
+            this.userAccountService.updateAddress(this.address.id, addressData).subscribe({
+              next: () => {
+                toast.success('Profile and address updated successfully!');
+                this.user = response.user ? { ...(this.user as Users), ...response.user } : this.user;
+                this.imageUrl = this.user?.image_link || null;
+                this.isSaving = false;
+                this.submitted = false;
+                this.getAddresses();
+              },
+              error: (error) => {
+                console.error('Error updating address:', error);
+                toast.error(error?.error?.message || 'Failed to update address.');
+                this.isSaving = false;
+              }
+            });
+          } else {
+            // Add new address
+            this.userAccountService.addAddress(addressData).subscribe({
+              next: () => {
+                toast.success('Profile and address added successfully!');
+                this.user = response.user ? { ...(this.user as Users), ...response.user } : this.user;
+                this.imageUrl = this.user?.image_link || null;
+                this.isSaving = false;
+                this.submitted = false;
+                this.getAddresses();
+              },
+              error: (error) => {
+                console.error('Error adding address:', error);
+                toast.error(error?.error?.message || 'Failed to add address.');
+                this.isSaving = false;
+              }
+            });
+          }
+        };
+
         if (newPassword) {
           this.userAccountService.updatePassword(this.user!.email, newPassword).subscribe({
             next: () => {
-              toast.success('Profile and password updated successfully!');
-              this.user = response.user ? { ...(this.user as Users), ...response.user } : this.user;
-              this.address = response.address || this.address;
-              this.imageUrl = this.user?.image_link || null;
-              this.isSaving = false;
-              this.submitted = false;
+              addressUpdate();
               this.profileForm.get('newPassword')?.reset();
               this.profileForm.get('confirmPassword')?.reset();
             },
@@ -200,18 +268,46 @@ export class MyProfileComponent implements OnInit {
             }
           });
         } else {
-          toast.success('Profile updated successfully!');
-          this.user = response.user ? { ...(this.user as Users), ...response.user } : this.user;
-          this.address = response.address || this.address;
-          this.imageUrl = this.user?.image_link || null;
-          this.isSaving = false;
-          this.submitted = false;
+          addressUpdate();
         }
       },
       error: (error) => {
         console.error('Error updating profile:', error);
         toast.error(error?.error?.message || 'Failed to update profile.');
         this.isSaving = false;
+      }
+    });
+  }
+
+  getAddresses() {
+    if (!this.user?.user_id) {
+      toast.error('User ID is missing. Cannot fetch addresses.');
+      return;
+    }
+
+    this.userAccountService.getAddresses(this.user.user_id).subscribe({
+      next: (response) => {
+        this.addresses = response.addresses || [];
+        // Use the first address if available
+        if (this.addresses.length > 0) {
+          this.address = this.addresses[0];
+          this.profileForm.patchValue({
+            street: this.address.street || '',
+            barangay: this.address.barangay || '',
+            city: this.address.city || '',
+            province: this.address.province || '',
+            postal_code: this.address.postal_code || '',
+            country: this.address.country || '',
+            latitude: this.address.latitude || null,
+            longitude: this.address.longitude || null,
+            default: this.address.default || false
+          });
+        }
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error fetching addresses:', error);
+        toast.error('Failed to load addresses.');
       }
     });
   }

@@ -128,4 +128,25 @@ export class UserAccountService {
   resetPassword(email: string, newPassword: string, confirmPassword: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/forgot-password/reset-password`, { email, newPassword, confirmPassword });
   }
+
+  addAddress(addressData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/add-address`, addressData, {
+      headers: this.getHeaders(),
+      withCredentials: true
+    });
+  }
+
+  updateAddress(addressId: string, addressData: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/update-address/${addressId}`, addressData, {
+      headers: this.getHeaders(),
+      withCredentials: true
+    });
+  }
+
+  getAddresses(userId: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/get-addresses/${userId}`, {
+      headers: this.getHeaders(),
+      withCredentials: true
+    });
+  }
 }
