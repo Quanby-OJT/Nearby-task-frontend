@@ -5,15 +5,13 @@ class SpecializationModel {
   SpecializationModel({this.id, this.specialization = ""});
 
   Map<String, dynamic> toJson() {
-    return {
-      "id": id,
-      "specialization": specialization
-    };
+    return {"id": id, "specialization": specialization};
   }
 
   factory SpecializationModel.fromJson(Map<String, dynamic> json) {
     return SpecializationModel(
-        id: json['id'] != null ? json['id'] as int : null,
-        specialization: json['specialization'] as String);
+      id: json['spec_id'] != null ? json['spec_id'] as int : null,
+      specialization: json['specialization'] as String,
+    );
   }
 }

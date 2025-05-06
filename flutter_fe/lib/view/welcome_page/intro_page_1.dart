@@ -8,7 +8,7 @@ class IntroPage1 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.lightBlue,
+      color: Colors.white,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -21,19 +21,18 @@ class IntroPage1 extends StatelessWidget {
                 Text(
                   textAlign: TextAlign.center,
                   'Welcome to NearbyTask',
-                  style: GoogleFonts.montserrat(
-                      fontSize: 24,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w300),
+                  style: GoogleFonts.poppins(
+                    color: const Color(0xFFB71A4A),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 SizedBox(height: 10),
                 Text(
                   textAlign: TextAlign.center,
                   'Find Tasks Near You with NearbyTask!',
-                  style: GoogleFonts.montserrat(
-                      fontSize: 12,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w300),
+                  style: GoogleFonts.poppins(
+                      color: Colors.black, fontWeight: FontWeight.w300),
                 ),
                 SizedBox(height: 10),
               ],

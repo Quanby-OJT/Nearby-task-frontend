@@ -5,6 +5,7 @@ import 'package:flutter_fe/model/client_model.dart';
 import 'package:flutter_fe/model/document_model.dart';
 import 'package:flutter_fe/service/profile_service.dart';
 import 'package:flutter_fe/service/tasker_service.dart';
+import 'package:flutter_fe/view/custom_loading/custom_loading.dart';
 import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -12,6 +13,7 @@ import '../model/user_model.dart';
 import '../service/api_service.dart';
 import '../model/tasker_model.dart';
 import '../model/auth_user.dart';
+import '../view/custom_loading/statusModal.dart';
 
 class ProfileController {
   //General Account Information
@@ -65,7 +67,20 @@ class ProfileController {
   final TextEditingController clientAddressController = TextEditingController();
   final storage = GetStorage();
 
-  //Client Text Controller
+  void _showStatusModal({
+    required BuildContext context,
+    required bool isSuccess,
+    required String message,
+  }) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => StatusModal(
+        isSuccess: isSuccess,
+        message: message,
+      ),
+    );
+  }
 
   // Validation methods
   String? validateEmail(String? value) {
@@ -205,12 +220,6 @@ class ProfileController {
     }
     return null;
   }
-
-  //End Validation Methods
-  ///What if we instead integrate the validations into one method on fill_up.dart?
-  ///
-  /// -Ces
-  ///
 
 // Client field
   Future<void> updateUserData(BuildContext context, userId) async {
@@ -534,7 +543,6 @@ class ProfileController {
   }
 
   Future<void> registerUser(BuildContext context) async {
-    // Validate all fields
     String? emailError = validateEmail(emailController.text);
     String? passwordError = validatePassword(passwordController.text);
     String? confirmPasswordError =
@@ -543,34 +551,31 @@ class ProfileController {
         validateName(firstNameController.text, "first name");
     String? lastNameError = validateName(lastNameController.text, "last name");
 
-    // Check if there are any validation errors
     if (emailError != null ||
         passwordError != null ||
         confirmPasswordError != null ||
         firstNameError != null ||
         lastNameError != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(emailError ??
-              passwordError ??
-              confirmPasswordError ??
-              firstNameError ??
-              lastNameError ??
-              "Please fix the errors in the form"),
-          backgroundColor: Colors.red,
-        ),
+      _showStatusModal(
+        context: context,
+        isSuccess: false,
+        message: emailError ??
+            passwordError ??
+            confirmPasswordError ??
+            firstNameError ??
+            lastNameError ??
+            "Please fix the errors in the form",
       );
       return;
     }
 
     try {
-      // Show loading indicator
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (BuildContext context) {
           return Center(
-            child: CircularProgressIndicator(),
+            child: CustomLoading(),
           );
         },
       );
@@ -586,16 +591,16 @@ class ProfileController {
 
       Map<String, dynamic> resultData = await ApiService.registerUser(user);
 
-      // Hide loading indicator
       Navigator.pop(context);
 
       if (resultData.containsKey("errors")) {
         showDialog(
             context: context,
-            builder: (context) => AlertDialog(
-                  title: Text("Registration Failed"),
-                  content: Text(resultData["errors"] ??
-                      "Registration failed. Please try again."),
+            builder: (context) => StatusModal(
+                  title: "Registration Failed",
+                  isSuccess: false,
+                  message: resultData["errors"] ??
+                      "Registration failed. Please try again.",
                   actions: [
                     TextButton(
                       child: Text("OK"),
@@ -645,7 +650,6 @@ class ProfileController {
       final response = await ApiService.verifyEmail(token, email);
 
       if (response.containsKey("message")) {
-        // Return the user_id for navigation
         return response["user_id"] as int;
       } else {
         throw Exception(response["error"] ?? "Verification failed");
@@ -655,7 +659,6 @@ class ProfileController {
     }
   }
 
-  // this is for tasker without profile and PDF
   Future<Map<String, dynamic>> updateTaskerNoImages(
       BuildContext context, UserModel user) async {
     try {
@@ -700,7 +703,6 @@ class ProfileController {
         };
       }
 
-      // Call API service to update user without images
       Map<String, dynamic> result =
           await ApiService.updateTaskerProfileNoImages(
         user.id ?? 0, // Use 0 as fallback if id is null

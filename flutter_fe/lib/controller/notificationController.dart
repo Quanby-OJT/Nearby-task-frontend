@@ -16,6 +16,16 @@ class NotificationController {
     }
   }
 
+  Future<Map<String, dynamic>> getCancelledRequests(int userId) async {
+    try {
+      final data = await _notificationService.getCancelledRequests(userId);
+      return data;
+    } catch (e, st) {
+      debugPrint("Controller error: $e\nStacktrace: $st");
+      return {"error": "An error occurred while getting cancelled requests"};
+    }
+  }
+
   Future<Map<String, dynamic>> getRejectedRequests(int userId) async {
     try {
       final data = await _notificationService.getRejectedRequests(userId);
@@ -55,6 +65,29 @@ class NotificationController {
     } catch (e, st) {
       debugPrint("Controller error: $e\nStacktrace: $st");
       return {"error": "An error occurred while getting ongoing requests"};
+    }
+  }
+
+  Future<Map<String, dynamic>> getDisputedSettledRequests(int userId) async {
+    try {
+      final data =
+          await _notificationService.getDisputedSettledRequests(userId);
+      return data;
+    } catch (e, st) {
+      debugPrint("Controller error: $e\nStacktrace: $st");
+      return {
+        "error": "An error occurred while getting disputed settled requests"
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> getDisputedRequests(int userId) async {
+    try {
+      final data = await _notificationService.getDisputedRequests(userId);
+      return data;
+    } catch (e, st) {
+      debugPrint("Controller error: $e\nStacktrace: $st");
+      return {"error": "An error occurred while getting disputed requests"};
     }
   }
 

@@ -27,7 +27,6 @@ class _PreSignUpState extends State<PreSignUp> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 1000),
     );
 
-//downward
     _topSlideAnimation = Tween<Offset>(
       begin: const Offset(0, -0.10),
       end: Offset.zero,
@@ -45,7 +44,6 @@ class _PreSignUpState extends State<PreSignUp> with TickerProviderStateMixin {
       ),
     );
 
-//upward
     _bottomSlideAnimation1 = Tween<Offset>(
       begin: const Offset(0, 0.10),
       end: Offset.zero,
@@ -122,7 +120,7 @@ class _PreSignUpState extends State<PreSignUp> with TickerProviderStateMixin {
                   padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
                   child: Text(
                     'Create a Tasker Account to earn money by completing tasks, or a Client Account to hire experts for your needs',
-                    style: GoogleFonts.montserrat(
+                    style: GoogleFonts.poppins(
                       fontSize: 12,
                       color: Colors.black,
                       fontWeight: FontWeight.w300,
@@ -135,7 +133,7 @@ class _PreSignUpState extends State<PreSignUp> with TickerProviderStateMixin {
                   padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.1),
                   child: Text(
                     'Choose your account to get started!',
-                    style: GoogleFonts.montserrat(
+                    style: GoogleFonts.poppins(
                       fontSize: 12,
                       color: Colors.black,
                       fontWeight: FontWeight.w300,
@@ -163,7 +161,7 @@ class _PreSignUpState extends State<PreSignUp> with TickerProviderStateMixin {
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF03045E),
+                          backgroundColor: Color(0xFFB71A4A),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                             side: const BorderSide(color: Colors.white),
@@ -184,7 +182,7 @@ class _PreSignUpState extends State<PreSignUp> with TickerProviderStateMixin {
                               SizedBox(height: screenHeight * 0.02),
                               Text(
                                 'TASKER ACCOUNT',
-                                style: GoogleFonts.montserrat(
+                                style: GoogleFonts.poppins(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
@@ -212,7 +210,7 @@ class _PreSignUpState extends State<PreSignUp> with TickerProviderStateMixin {
                           }));
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF03045E),
+                          backgroundColor: Color(0xFFB71A4A),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                             side: BorderSide(color: Colors.white),
@@ -231,7 +229,7 @@ class _PreSignUpState extends State<PreSignUp> with TickerProviderStateMixin {
                               SizedBox(height: screenHeight * 0.02),
                               Text(
                                 'CLIENT ACCOUNT',
-                                style: GoogleFonts.montserrat(
+                                style: GoogleFonts.poppins(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,

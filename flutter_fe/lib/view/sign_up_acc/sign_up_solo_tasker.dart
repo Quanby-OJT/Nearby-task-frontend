@@ -19,11 +19,13 @@ class SignUpSoloTaskerAcc extends StatefulWidget {
 class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
   final ProfileController _controller = ProfileController();
   String _status = "Please fill out the form to register";
-  bool _isVerified = false; // Track verification status
+  bool _isVerified = false;
   StreamSubscription<Uri>? _linkSubscription;
 
   bool _obsecureTextPassword = true;
   bool _obsecureTextConfirmPassword = true;
+  final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
 
   void _toggleObscureTextPassword() {
     setState(() {
@@ -47,7 +49,6 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
   Future<void> _initDeepLinkListener() async {
     final appLinks = AppLinks();
 
-    // Handle initial link (app opened via deep link)
     try {
       final Uri? initialUri = await appLinks.getInitialLink();
       if (initialUri != null) {
@@ -59,7 +60,6 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
       setState(() => _status = "An error occurred");
     }
 
-    // Listen for links while app is running
     _linkSubscription = appLinks.uriLinkStream.listen(
       (Uri? uri) {
         if (uri != null) {
@@ -87,9 +87,7 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
           _status = "Email verified! Welcome, $email";
         });
 
-        // Redirect to rules page
         if (mounted) {
-          // Check if widget is still mounted before navigation
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -107,7 +105,7 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
 
   @override
   void dispose() {
-    _linkSubscription?.cancel(); // Clean up the subscription
+    _linkSubscription?.cancel();
     super.dispose();
   }
 
@@ -116,211 +114,213 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Color(0xFF0272B1)),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Image.asset(
-              'assets/images/icons8-worker-100-colored.png',
-              height: 150,
-              width: 150,
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Tasker Account',
-              style: GoogleFonts.montserrat(
-                color: const Color(0xFF03045E),
-                fontSize: 30,
-                fontWeight: FontWeight.w800,
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              Image.asset(
+                'assets/images/icons8-checklist-100-colored.png',
+                height: 150,
+                width: 150,
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-              child: Text(
-                textAlign: TextAlign.center,
-                "With ONE SWIPE \nYou can Find a New Task in a Matter of Seconds.",
-                style: GoogleFonts.montserrat(
-                  color: Colors.black,
-                  fontSize: 12,
+              SizedBox(height: 20),
+              Text(
+                'Tasker Account',
+                style: GoogleFonts.poppins(
+                  color: const Color(0xFFB71A4A),
+                  fontSize: 30,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
-            ),
-            if (_status.isNotEmpty)
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                child: Text(
+                  textAlign: TextAlign.center,
+                  "With ONE SWIPE \nYou can Find a New Task in a Matter of Seconds.",
+                  style: GoogleFonts.poppins(
+                    color: Colors.black,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              if (_status.isNotEmpty)
+                SizedBox(
+                  height: 10,
+                ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
                   _status,
-                  style: GoogleFonts.montserrat(
-                    color: _isVerified ? Colors.green : const Color(0xff03045E),
+                  style: GoogleFonts.poppins(
+                    color: _isVerified ? Colors.green : const Color(0xFFB71A4A),
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
-            Container(
-              child: SizedBox(
-                child: Theme(
-                  data: Theme.of(context).copyWith(
-                    colorScheme: ColorScheme.light(primary: Color(0xFF0272B1)),
-                  ),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 5, horizontal: 20),
-                        child: TextFormField(
-                          controller: _controller.firstNameController,
-                          cursorColor: Color(0xFF0272B1),
-                          validator: (value) => value!.isEmpty
-                              ? "Please Input Your First Name"
-                              : null,
-                          decoration: _inputDecoration('First Name'),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 5, horizontal: 20),
-                        child: TextFormField(
-                          controller: _controller.middleNameController,
-                          cursorColor: Color(0xFF0272B1),
-                          validator: (value) => value!.isEmpty
-                              ? "Please Input Your Middle Name"
-                              : null,
-                          decoration:
-                              _inputDecoration('Middle Name (Optional)  '),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 5, horizontal: 20),
-                        child: TextFormField(
-                          controller: _controller.lastNameController,
-                          cursorColor: Color(0xFF0272B1),
-                          validator: (value) => value!.isEmpty
-                              ? "Please Input Your Last Name"
-                              : null,
-                          decoration: _inputDecoration('Last Name'),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 5, horizontal: 20),
-                        child: TextFormField(
-                          controller: _controller.emailController,
-                          cursorColor: Color(0xFF0272B1),
-                          validator: (value) => value!.isEmpty
-                              ? "Please Input Your Valid Email"
-                              : null,
-                          decoration: _inputDecoration('Email Address'),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 5, horizontal: 20),
-                        child: TextFormField(
-                          controller: _controller.passwordController,
-                          obscureText: _obsecureTextPassword,
-                          cursorColor: Color(0xFF0272B1),
-                          validator: (value) => value!.length < 6
-                              ? "Password must be at least 6 characters"
-                              : null,
-                          decoration: _inputDecoration('Password').copyWith(
-                            suffixIcon: Padding(
-                              padding: const EdgeInsets.only(right: 10),
-                              child: IconButton(
-                                icon: Icon(
-                                  _obsecureTextPassword
-                                      ? Icons.visibility_off
-                                      : Icons.visibility,
-                                  color: Color(0xFF0272B1),
-                                ),
-                                onPressed: _toggleObscureTextPassword,
-                              ),
+              Container(
+                padding: EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    TextFormField(
+                      cursorColor: Color(0xFFB71A4A),
+                      controller: _controller.firstNameController,
+                      validator: (value) =>
+                          _controller.validateName(value, "first name"),
+                      decoration: _getInputDecoration('First Name'),
+                    ),
+                    SizedBox(height: 10),
+                    TextFormField(
+                      cursorColor: Color(0xFFB71A4A),
+                      controller: _controller.middleNameController,
+                      decoration: _getInputDecoration('Middle Name (Optional)'),
+                    ),
+                    SizedBox(height: 10),
+                    TextFormField(
+                      cursorColor: Color(0xFFB71A4A),
+                      controller: _controller.lastNameController,
+                      validator: (value) =>
+                          _controller.validateName(value, "last name"),
+                      decoration: _getInputDecoration('Last Name'),
+                    ),
+                    SizedBox(height: 10),
+                    TextFormField(
+                      cursorColor: Color(0xFFB71A4A),
+                      controller: _controller.emailController,
+                      validator: _controller.validateEmail,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: _getInputDecoration('Email Address'),
+                    ),
+                    SizedBox(height: 10),
+                    TextFormField(
+                      cursorColor: Color(0xFFB71A4A),
+                      controller: _controller.passwordController,
+                      validator: _controller.validatePassword,
+                      obscureText: _obsecureTextPassword,
+                      decoration: _getInputDecoration('Password').copyWith(
+                        suffixIcon: Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: IconButton(
+                            icon: Icon(
+                              _obsecureTextPassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: Colors.black87,
                             ),
+                            onPressed: _toggleObscureTextPassword,
                           ),
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 5, horizontal: 20),
-                        child: TextFormField(
-                          controller: _controller.confirmPasswordController,
-                          obscureText: _obsecureTextConfirmPassword,
-                          cursorColor: Color(0xFF0272B1),
-                          validator: (value) =>
-                              value != _controller.passwordController.text
-                                  ? "Passwords do not match"
-                                  : null,
-                          decoration:
-                              _inputDecoration('Confirmed Password').copyWith(
-                            suffixIcon: Padding(
-                              padding: const EdgeInsets.only(right: 10),
-                              child: IconButton(
-                                icon: Icon(
-                                  _obsecureTextConfirmPassword
-                                      ? Icons.visibility_off
-                                      : Icons.visibility,
-                                  color: Color(0xFF0272B1),
-                                ),
-                                onPressed: _toggleObscureTextConfirmPassword,
-                              ),
+                    ),
+                    SizedBox(height: 10),
+                    TextFormField(
+                      cursorColor: Color(0xFFB71A4A),
+                      controller: _controller.confirmPasswordController,
+                      validator: _controller.validateConfirmPassword,
+                      obscureText: _obsecureTextConfirmPassword,
+                      decoration:
+                          _getInputDecoration('Confirm Password').copyWith(
+                        suffixIcon: Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: IconButton(
+                            icon: Icon(
+                              _obsecureTextConfirmPassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: Colors.black87,
                             ),
+                            onPressed: _toggleObscureTextConfirmPassword,
                           ),
                         ),
                       ),
-                      SizedBox(height: 10),
-                      Container(
-                        height: 50,
-                        width: double.infinity,
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: ElevatedButton(
-                            onPressed: () {
-                              _controller.registerUser(context).then((_) {
-                                setState(() => _status =
-                                    "Please check your email to verify your account");
-                              });
-                            },
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFF03045E),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10))),
-                            child: Text(
-                              'Sign Up',
-                              style: GoogleFonts.montserrat(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14),
-                            )),
+                    ),
+                    SizedBox(height: 20),
+                    SizedBox(
+                      height: 50,
+                      width: double.infinity,
+                      child: ElevatedButton(
+                          onPressed: _isLoading
+                              ? null
+                              : () async {
+                                  if (_formKey.currentState!.validate()) {
+                                    setState(() {
+                                      _isLoading = true;
+                                      _status = "Creating your account...";
+                                    });
+
+                                    await _controller.registerUser(context);
+
+                                    setState(() {
+                                      _isLoading = false;
+                                      _status =
+                                          "First login will verify your account";
+                                    });
+                                  }
+                                },
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xFFB71A4A),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10))),
+                          child: Text(
+                            'Sign Up',
+                            style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14),
+                          )),
+                    ),
+                    SizedBox(height: 10),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SignIn(),
+                          ),
+                        );
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Already have an account?',
+                            style: GoogleFonts.poppins(
+                              color: Color(0xFF03045E),
+                              fontWeight: FontWeight.w300,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            'Sign In',
+                            style: GoogleFonts.poppins(
+                              color: Color(0xFFB71A4A),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 20, top: 10),
-              child: TextButton(
-                onPressed: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => SignIn()));
-                },
-                child: Text(
-                  'Already have an account?',
-                  style: GoogleFonts.montserrat(
-                    color: Color(0xFF03045E),
-                    fontWeight: FontWeight.w300,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  InputDecoration _inputDecoration(String label) {
+  InputDecoration _getInputDecoration(String label) {
     return InputDecoration(
       filled: true,
       fillColor: Color(0xFFF1F4FF),
@@ -332,7 +332,7 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
+        borderSide: BorderSide(color: Color(0xFFB71A4A), width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),

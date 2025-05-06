@@ -16,13 +16,13 @@ class EscrowTokenScreen extends StatefulWidget {
 
 class _EscrowTokenScreenState extends State<EscrowTokenScreen> {
   final _formKey = GlobalKey<FormState>();
-  final EscrowManagementController _escrowController = EscrowManagementController();
+  final EscrowManagementController _escrowController =
+      EscrowManagementController();
   bool isLoading = false;
   bool processingData = false;
   String userRole = "";
   final storage = GetStorage();
 
-  //Initialize All Data
   @override
   void initState() {
     super.initState();
@@ -40,111 +40,106 @@ class _EscrowTokenScreenState extends State<EscrowTokenScreen> {
     super.dispose();
   }
 
-  //Main Application
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text("Deposit Your Amount"),
-        backgroundColor: Color(0XFF03045E),
-        centerTitle: true,
-        titleTextStyle:
-            GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 20),
-        iconTheme: IconThemeData(color: Colors.white),
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("How much Would You Want to Deposit?",
-                  style: GoogleFonts.roboto(
-                      fontSize: 15, fontWeight: FontWeight.bold)),
-              SizedBox(height: 10),
-              TextFormField(
-                controller: _escrowController.amountController,
-                decoration: InputDecoration(
-                    labelText: "Enter Amount (in Philippine Pesos)",
-                    labelStyle: GoogleFonts.montserrat(),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    )),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Please Enter your Amount to Deposit";
-                  } else if (double.parse(value
-                          .replaceAll("₱", "")
-                          .replaceAll(",", "")) <
-                      2000) {
-                    return "Minimum Deposit is P2,000.00";
-                  }
-                  return null;
-                },
-                inputFormatters: [
-                  CurrencyTextInputFormatter.currency(
-                    locale: 'en_PH',
-                    symbol: '₱',
-                    decimalDigits: 2,
-                  )
-                ],
-              ),
-              SizedBox(height: 10),
-              Text(
-                "Current Price: P1.00 to 1 NearByTask Token",
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 30),
-              ValueListenableBuilder(
-                valueListenable: _escrowController.tokenCredits,
-                builder: (context, value, child) {
-                  return Text(
-                    "You will receive: ${value.toStringAsFixed(0)} NearByTask Token/s to your account"
-                        .replaceAllMapped(
-                            RegExp(r'\d{1,3}(?=(\d{3})+(?!\d))'),
-                            (Match m) => '${m[0]},'),
-                    style: GoogleFonts.roboto(
-                      fontSize: 16,
-                    ),
-                  );
-                },
-              ),
-              SizedBox(height: 30),
-              Center(
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                    Icon(
-                      FontAwesomeIcons.shield,
-                      color: Color(0XFF4DBF66),
-                    ),
-                    SizedBox(width: 10),
-                    Text("Payments secured via Escrow.")
-                  ])),
-              SizedBox(height: 30),
-              Center(
-                  child: ElevatedButton(
-                      onPressed: () => warnUser(context),
-                      style: ButtonStyle(
-                        backgroundColor:
-                            WidgetStateProperty.all(Color(0XFF03045E)),
-                      ),
-                      child: Text("Deposit Amount",
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          title: Text("Deposit Your Amount"),
+          backgroundColor: Color(0XFF03045E),
+          centerTitle: true,
+          titleTextStyle:
+              GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 20),
+          iconTheme: IconThemeData(color: Colors.white),
+        ),
+        body: Padding(
+            padding: EdgeInsets.all(20),
+            child: Form(
+                key: _formKey,
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("How much Would You Want to Deposit?",
                           style: GoogleFonts.roboto(
+                              fontSize: 15, fontWeight: FontWeight.bold)),
+                      SizedBox(height: 10),
+                      TextFormField(
+                        controller: _escrowController.amountController,
+                        decoration: InputDecoration(
+                            labelText: "Enter Amount (in Philippine Pesos)",
+                            labelStyle: GoogleFonts.montserrat(),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            )),
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Please Enter your Amount to Deposit";
+                          } else if (double.parse(value
+                                  .replaceAll("₱", "")
+                                  .replaceAll(",", "")) <
+                              2000) {
+                            return "Minimum Deposit is P2,000.00";
+                          }
+                          return null;
+                        },
+                        inputFormatters: [
+                          CurrencyTextInputFormatter.currency(
+                            locale: 'en_PH',
+                            symbol: '₱',
+                            decimalDigits: 2,
+                          )
+                        ],
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        "Current Price: P1.00 to 1 NearByTask Token",
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 30),
+                      ValueListenableBuilder(
+                        valueListenable: _escrowController.tokenCredits,
+                        builder: (context, value, child) {
+                          return Text(
+                            "You will receive: ${value.toStringAsFixed(0)} NearByTask Token/s to your account"
+                                .replaceAllMapped(
+                                    RegExp(r'\d{1,3}(?=(\d{3})+(?!\d))'),
+                                    (Match m) => '${m[0]},'),
+                            style: GoogleFonts.roboto(
                               fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white)))),
-              Text(
-                  "NOTE: We will verify first your payment before you receive your NearByTask Credits.",
-                  style: TextStyle(color: Colors.black38))
-            ]
-          )
-        )
-      )
-    );
+                            ),
+                          );
+                        },
+                      ),
+                      SizedBox(height: 30),
+                      Center(
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                            Icon(
+                              FontAwesomeIcons.shield,
+                              color: Color(0XFF4DBF66),
+                            ),
+                            SizedBox(width: 10),
+                            Text("Payments secured via Escrow.")
+                          ])),
+                      SizedBox(height: 30),
+                      Center(
+                          child: ElevatedButton(
+                              onPressed: () => warnUser(context),
+                              style: ButtonStyle(
+                                backgroundColor:
+                                    WidgetStateProperty.all(Color(0XFF03045E)),
+                              ),
+                              child: Text("Deposit Amount",
+                                  style: GoogleFonts.roboto(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white)))),
+                      Text(
+                          "NOTE: We will verify first your payment before you receive your NearByTask Credits.",
+                          style: TextStyle(color: Colors.black38))
+                    ]))));
   }
 
   void warnUser(BuildContext parentContext) {

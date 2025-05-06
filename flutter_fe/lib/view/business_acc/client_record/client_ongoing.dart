@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/view/business_acc/client_record/display_list_ongoing.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
@@ -46,7 +45,8 @@ class _ClientOngoingState extends State<ClientOngoing> {
 
   // Dispute Bottom Sheet State
   final TextEditingController _disputeTypeController = TextEditingController();
-  final TextEditingController _disputeDetailsController = TextEditingController();
+  final TextEditingController _disputeDetailsController =
+      TextEditingController();
   final List<File> _imageEvidence = [];
   final ImagePicker _picker = ImagePicker();
 
@@ -69,7 +69,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
   Future<void> _fetchTaskerDetails(int userId) async {
     try {
       AuthenticatedUser? user =
-      await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(context, userId);
       setState(() {
         tasker = user;
       });
@@ -84,7 +84,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
   Future<void> _fetchRequestDetails() async {
     try {
       final response =
-      await _jobPostService.fetchRequestInformation(widget.ongoingID ?? 0);
+          await _jobPostService.fetchRequestInformation(widget.ongoingID ?? 0);
       debugPrint("Task Status: ${response.task_status}");
       setState(() {
         _requestInformation = response;
@@ -449,7 +449,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
                 return DropdownMenuItem<String>(
                   value: value,
                   child:
-                  Text(value, style: GoogleFonts.montserrat(fontSize: 14)),
+                      Text(value, style: GoogleFonts.montserrat(fontSize: 14)),
                 );
               }).toList(),
               onChanged: (String? newValue) {
@@ -520,37 +520,37 @@ class _ClientOngoingState extends State<ClientOngoing> {
                 ),
                 child: _imageEvidence.isNotEmpty
                     ? SizedBox(
-                  width: 300.0,
-                  child: GridView.builder(
-                    itemCount: _imageEvidence.length,
-                    gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                    ),
-                    itemBuilder: (BuildContext context, int index) {
-                      return Center(
-                        child: kIsWeb
-                            ? Image.network(_imageEvidence[index].path)
-                            : Image.file(_imageEvidence[index]),
-                      );
-                    },
-                  ),
-                )
+                        width: 300.0,
+                        child: GridView.builder(
+                          itemCount: _imageEvidence.length,
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                          ),
+                          itemBuilder: (BuildContext context, int index) {
+                            return Center(
+                              child: kIsWeb
+                                  ? Image.network(_imageEvidence[index].path)
+                                  : Image.file(_imageEvidence[index]),
+                            );
+                          },
+                        ),
+                      )
                     : const Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(FontAwesomeIcons.fileImage,
-                          size: 40, color: Colors.grey),
-                      SizedBox(width: 8),
-                      Text(
-                        'Upload Photos (Screenshots, Actual Work)',
-                        style:
-                        TextStyle(fontSize: 16, color: Colors.grey),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(FontAwesomeIcons.fileImage,
+                                size: 40, color: Colors.grey),
+                            SizedBox(width: 8),
+                            Text(
+                              'Upload Photos (Screenshots, Actual Work)',
+                              style:
+                                  TextStyle(fontSize: 16, color: Colors.grey),
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
-                ),
               ),
             ),
             SizedBox(height: 24),
@@ -587,7 +587,8 @@ class _ClientOngoingState extends State<ClientOngoing> {
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Failed to raise dispute. Please Try Again.'),
+                          content: Text(
+                              'Failed to raise dispute. Please Try Again.'),
                         ),
                       );
                     }
@@ -653,37 +654,41 @@ class _ClientOngoingState extends State<ClientOngoing> {
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: Color(0xFF03045E)))
           : _taskInformation == null
-          ? Center(
-        child: Text(
-          'No task information available',
-          style: GoogleFonts.montserrat(
-            fontSize: 16,
-            color: Colors.grey[600],
-          ),
-        ),
-      )
-          : SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (_requestStatus == 'Ongoing') _buildTimerSection(),
-              if (_requestStatus == 'Disputed')
-                _buildDisputeSection(),
-              if (_requestStatus == 'Completed')
-                _buildCompletionSection(),
-              SizedBox(height: 16),
-              _buildTaskCard(),
-              SizedBox(height: 16),
-              _buildProfileCard(),
-              SizedBox(height: 24),
-              if (_requestStatus != 'Completed' && _requestStatus != 'Disputed') _buildActionButton(),
-              if (_requestStatus == 'Completed' || _requestStatus == 'Disputed') _buildBackButton(),
-            ],
-          ),
-        ),
-      ),
+              ? Center(
+                  child: Text(
+                    'No task information available',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                )
+              : SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (_requestStatus == 'Ongoing') _buildTimerSection(),
+                        if (_requestStatus == 'Disputed')
+                          _buildDisputeSection(),
+                        if (_requestStatus == 'Completed')
+                          _buildCompletionSection(),
+                        SizedBox(height: 16),
+                        _buildTaskCard(),
+                        SizedBox(height: 16),
+                        _buildProfileCard(),
+                        SizedBox(height: 24),
+                        if (_requestStatus != 'Completed' &&
+                            _requestStatus != 'Disputed')
+                          _buildActionButton(),
+                        if (_requestStatus == 'Completed' ||
+                            _requestStatus == 'Disputed')
+                          _buildBackButton(),
+                      ],
+                    ),
+                  ),
+                ),
     );
   }
 
@@ -716,7 +721,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
             'Please Wait for Our Team to review your dispute and file Appropriate Action.',
             textAlign: TextAlign.center,
             style:
-            GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
+                GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
       ),

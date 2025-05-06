@@ -14,7 +14,7 @@ class TaskModel {
   final int contactPrice;
   final String? remarks;
   final String taskBeginDate;
-  final String workType; // New field
+  final String workType;
   final ClientModel? client;
 
   TaskModel(

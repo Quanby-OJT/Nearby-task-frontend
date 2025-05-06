@@ -14,7 +14,7 @@ import '../model/client_model.dart';
 import '../model/tasker_model.dart';
 
 class JobPostService {
-  static String url = apiUrl ?? "http://localhost:5000/connect";
+  static String url = apiUrl ?? "http://192.168.43.15:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -298,7 +298,7 @@ class JobPostService {
   Future<List<SpecializationModel>> getSpecializations() async {
     final response = await _getRequest("/get-specializations");
 
-    debugPrint("Specializations Response: ${response.toString()}");
+    debugPrint("Specializations: ${response.toString()}");
     if (response["specializations"] != null) {
       return (response["specializations"] as List)
           .map((item) => SpecializationModel.fromJson(item))
@@ -309,7 +309,8 @@ class JobPostService {
 
   Future<ClientRequestModel> fetchRequestInformation(int requestID) async {
     try {
-      Map<String, dynamic> response = await _getRequest("/displayRequest/$requestID");
+      Map<String, dynamic> response =
+          await _getRequest("/displayRequest/$requestID");
       debugPrint("Request Data Retrieved: ${response.toString()}");
 
       if (response.containsKey("request") && response["request"] is Map) {
@@ -405,18 +406,15 @@ class JobPostService {
       final likedJobsResponse = await _getRequest("/displayLikedJob/$userId");
       final allJobsResponse = await _getRequest("/displayTask");
 
-      // Log responses for debugging
       debugPrint("Liked Jobs Response: $likedJobsResponse");
       debugPrint("All Jobs Response: $allJobsResponse");
 
-      // Check if allJobsResponse is a valid Map with tasks
       if (allJobsResponse.containsKey("error")) {
         debugPrint(
             "Error fetching jobs: ${allJobsResponse['error'] ?? 'Invalid response'}");
         return [];
       }
 
-      // Ensure 'tasks' exists and is a List
       final tasks = allJobsResponse["tasks"];
       if (tasks == null || tasks is! List) {
         debugPrint(
@@ -636,7 +634,8 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> assignTask(int taskId, int clientId, int taskerId, String role) async {
+  Future<Map<String, dynamic>> assignTask(
+      int taskId, int clientId, int taskerId, String role) async {
     final userId = await getUserId();
     if (userId == null) {
       return {
@@ -659,7 +658,8 @@ class JobPostService {
     });
   }
 
-  Future<Map<String, dynamic>> updateNotification(int taskTakenId, int userId) async {
+  Future<Map<String, dynamic>> updateNotification(
+      int taskTakenId, int userId) async {
     try {
       debugPrint("Updating notification with ID: $taskTakenId and $userId");
       final response = await http.put(
@@ -679,10 +679,12 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> acceptRequest(int taskTakenId, String value, String role) async {
+  Future<Map<String, dynamic>> acceptRequest(
+      int taskTakenId, String value, String role) async {
     try {
       int clientId = await storage.read('user_id');
-      debugPrint("Accepting task with ID: $taskTakenId with the task status of: $value");
+      debugPrint(
+          "Accepting task with ID: $taskTakenId with the task status of: $value");
       return await _putRequest(
           endpoint: '/update-request/$taskTakenId',
           body: {"value": value, "role": role, "client_id": clientId});
@@ -693,12 +695,21 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> raiseADispute(int taskTakenId, String value, String role, List<File> imageEvidence, String disputeReason, String disputeDetails) async {
+  Future<Map<String, dynamic>> raiseADispute(
+      int taskTakenId,
+      String value,
+      String role,
+      List<File> imageEvidence,
+      String disputeReason,
+      String disputeDetails) async {
     try {
       int clientId = await storage.read('user_id');
 
-      if(imageEvidence.length > 10){
-        return {'success': false, 'error': 'Maximum Number of Pictures is only 10.'};
+      if (imageEvidence.length > 10) {
+        return {
+          'success': false,
+          'error': 'Maximum Number of Pictures is only 10.'
+        };
       }
 
       if (imageEvidence.isNotEmpty) {
@@ -712,22 +723,20 @@ class JobPostService {
               "dispute_details": disputeDetails
             },
             fileField: 'imageEvidence',
-            files: imageEvidence
-        );
+            files: imageEvidence);
       }
       // Fallback to regular PUT request if no file
-      return await _putRequest(
-        endpoint: '/update-request/$taskTakenId',
-        body: {
-          "value": value,
-          "role": role,
-          "client_id": clientId,
-          "reason_for_dispute": disputeReason,
-          "dispute_details": disputeDetails
-        }
-      );
+      return await _putRequest(endpoint: '/update-request/$taskTakenId', body: {
+        "value": value,
+        "role": role,
+        "client_id": clientId,
+        "reason_for_dispute": disputeReason,
+        "dispute_details": disputeDetails
+      });
 
-      return {'success': false, };
+      return {
+        'success': false,
+      };
     } catch (e) {
       debugPrint('Error raising a dispute: $e');
       debugPrintStack();
@@ -735,7 +744,8 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> rateTheTasker(int taskTakenId, int taskerId, int rating, String feedback) async {
+  Future<Map<String, dynamic>> rateTheTasker(
+      int taskTakenId, int taskerId, int rating, String feedback) async {
     try {
       debugPrint(
           "Rating the tasker with rating: $rating and feedback: $feedback");
@@ -752,7 +762,8 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> fetchIsApplied(int? taskId, int? clientId, int? taskerId) async {
+  Future<Map<String, dynamic>> fetchIsApplied(
+      int? taskId, int? clientId, int? taskerId) async {
     final userId = await getUserId();
     if (userId == null) {
       return {
@@ -827,7 +838,8 @@ class JobPostService {
   }
 
   // Method to disable a task
-  Future<Map<String, dynamic>> disableTask(int taskId, [String status = "cancelled"]) async {
+  Future<Map<String, dynamic>> disableTask(int taskId,
+      [String status = "cancelled"]) async {
     try {
       debugPrint("Disabling task with ID: $taskId with status: $status");
       final response = await http.put(
