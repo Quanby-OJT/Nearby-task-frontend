@@ -47,6 +47,8 @@ export class MyProfileComponent implements OnInit {
   profileForm!: FormGroup;
   submitted = false;
   imageUrl: string | null = null;
+  showPassword: boolean = false; // Track visibility for new password
+  showConfirmPassword: boolean = false; // Track visibility for confirm password
 
   constructor(
     private authService: AuthService,
@@ -329,5 +331,13 @@ export class MyProfileComponent implements OnInit {
 
   dashboard() {
     this.router.navigate(['/dashboard']);
+  }
+
+  togglePasswordVisibility(field: string) {
+    if (field === 'newPassword') {
+      this.showPassword = !this.showPassword;
+    } else if (field === 'confirmPassword') {
+      this.showConfirmPassword = !this.showConfirmPassword;
+    }
   }
 }

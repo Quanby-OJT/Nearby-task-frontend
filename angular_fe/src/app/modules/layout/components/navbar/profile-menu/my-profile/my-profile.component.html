@@ -202,30 +202,60 @@
         <h1 class="font-bold font-poppins text-3xl mb-6">User Passwords</h1>
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <!-- New Password -->
-          <div>
+          <div class="relative">
             <label for="newPassword" class="text-muted-foreground block text-sm font-medium">New Password</label>
-            <input
-              type="password"
-              id="newPassword"
-              formControlName="newPassword"
-              class="bg-input border-border text-foreground mt-1 block w-full rounded-md border p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              [ngClass]="{ 'border-red-500': submitted && f['newPassword'].errors }"
-            />
+            <div class="relative mt-1">
+              <input
+                [type]="showPassword ? 'text' : 'password'"
+                id="newPassword"
+                formControlName="newPassword"
+                class="bg-input border-border text-foreground block w-full rounded-md border p-2 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                [ngClass]="{ 'border-red-500': submitted && f['newPassword'].errors }"
+              />
+              <button
+                type="button"
+                (click)="togglePasswordVisibility('newPassword')"
+                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+              >
+                <svg *ngIf="showPassword" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                </svg>
+                <svg *ngIf="!showPassword" class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path>
+                  <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"></path>
+                </svg>
+              </button>
+            </div>
             <div *ngIf="submitted && f['newPassword'].errors" class="mt-1 text-xs text-red-500">
               <div *ngIf="f['newPassword'].errors['minlength']">Password must be at least 8 characters long</div>
             </div>
           </div>
 
           <!-- Confirm New Password -->
-          <div>
+          <div class="relative">
             <label for="confirmPassword" class="text-muted-foreground block text-sm font-medium">Confirm New Password</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              formControlName="confirmPassword"
-              class="bg-input border-border text-foreground mt-1 block w-full rounded-md border p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              [ngClass]="{ 'border-red-500': submitted && f['confirmPassword'].errors }"
-            />
+            <div class="relative mt-1">
+              <input
+                [type]="showConfirmPassword ? 'text' : 'password'"
+                id="confirmPassword"
+                formControlName="confirmPassword"
+                class="bg-input border-border text-foreground block w-full rounded-md border p-2 pr-12 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                [ngClass]="{ 'border-red-500': submitted && f['confirmPassword'].errors }"
+              />
+              <button
+                type="button"
+                (click)="togglePasswordVisibility('confirmPassword')"
+                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+              >
+                <svg *ngIf="showConfirmPassword" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                </svg>
+                <svg *ngIf="!showConfirmPassword" class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path>
+                  <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"></path>
+                </svg>
+              </button>
+            </div>
             <div *ngIf="submitted && f['confirmPassword'].errors" class="mt-1 text-xs text-red-500">
               <div *ngIf="f['confirmPassword'].errors['mismatch']">Passwords do not match</div>
             </div>
@@ -233,21 +263,21 @@
         </div>
       </div>
 
-    <!-- Placeholder for other read-only info -->
-    <div class="sm:col-span-2">
-      <p class="text-muted-foreground text-sm"><span class="font-medium">Account Status:</span> {{ user.acc_status }}</p>
-      <p class="text-muted-foreground text-sm"><span class="font-medium">Email Verified:</span> {{ user.emailVerified ? 'Yes' : 'No' }}</p>
-      <p class="text-muted-foreground text-sm"><span class="font-medium">Member Since:</span> {{ user.created_at | date: 'mediumDate' }}</p>
-    </div>
+      <!-- Placeholder for other read-only info -->
+      <div class="sm:col-span-2">
+        <p class="text-muted-foreground text-sm"><span class="font-medium">Account Status:</span> {{ user.acc_status }}</p>
+        <p class="text-muted-foreground text-sm"><span class="font-medium">Email Verified:</span> {{ user.emailVerified ? 'Yes' : 'No' }}</p>
+        <p class="text-muted-foreground text-sm"><span class="font-medium">Member Since:</span> {{ user.created_at | date: 'mediumDate' }}</p>
+      </div>
 
       <!-- Form Actions -->
       <div class="mt-6 flex flex-row items-center gap-4 justify-end">
         <button
-        class="flex items-center gap-2 px-4 py-2 rounded-md border bg-blue-500 text-sm active:bg-blue-700 text-white"
-        (click)="dashboard()"
-      >
-        <span class="text-sm">Back</span>
-      </button>
+          class="flex items-center gap-2 px-4 py-2 rounded-md border bg-blue-500 text-sm active:bg-blue-700 text-white"
+          (click)="dashboard()"
+        >
+          <span class="text-sm">Back</span>
+        </button>
         <button
           class="flex items-center gap-2 px-4 py-2 rounded-md border bg-blue-500 text-sm active:bg-blue-700 text-white"
           (click)="confirmSave()"
