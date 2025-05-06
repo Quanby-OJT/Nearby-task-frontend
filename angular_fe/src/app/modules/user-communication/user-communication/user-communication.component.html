@@ -1,24 +1,26 @@
 <!--Header page navigation-->
 <div class="mb-4 flex justify-between w-full max-w-[1440px] mx-auto px-4">
-  
   <div>
     <h3 class="text-foreground font-semibold">User Communication</h3>
     <div class="text-muted-foreground text-xs font-medium">
-      <a href="#" class="hover:text-primary">Dashboards > User Communication</a>
+      <a href="#" class="hover:text-primary"><strong>Dashboards > User Communication</strong></a>
+      <p>This is used for managing the users communication in the application</p>
     </div>
   </div>
-
+</div>
+<div class="mb-4 flex justify-between">
+  <div class="inline-block"></div>
   <div class="flex space-x-4">
-    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportCSV()">
-      Export CSV
+    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500 flex items-center space-x-2" (click)="exportCSV()">
+      <svg-icon src="./assets/icons/heroicons/outline/csvDL.svg" [svgClass]="'h-5 w-5'"></svg-icon>
+      <span>Export CSV</span>
     </button>
-    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportPDF()">
-      Export PDF
+    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500 flex items-center space-x-2" (click)="exportPDF()">
+      <svg-icon src="./assets/icons/heroicons/outline/pdfDL.svg" [svgClass]="'h-5 w-5'"></svg-icon>
+      <span>Export PDF</span>
     </button>
   </div>
-
 </div>
-
 <!-- Main container with search, filter, table, and pagination -->
 <div class="border-muted-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
   <!-- Search and Filter Section -->
@@ -50,12 +52,25 @@
       <thead class="border-b">
         <tr>
           <th class="px-4 py-2 text-start min-w-[50px] lg:min-w-[150px] xl:min-w-[150px]">
-            <div class="flex items-center gap-1 cursor-pointer">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('client')">
               Client Name
-            <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" class="w-4 h-4 hover:text-foreground flex cursor-pointer items-start justify-start rounded-md hover:scale-80 transition-transform duration-500" (click)="toggleSort()">
+              <span class="w-4 h-4">
+                <ng-container *ngIf="clientSortMode === 'asc'">▲</ng-container>
+                <ng-container *ngIf="clientSortMode === 'desc'">▼</ng-container>
+                <ng-container *ngIf="clientSortMode === 'default'">↕</ng-container>
+              </span>
             </div>
           </th>
-          <th class="px-4 py-2 text-start min-w-[100px] lg:min-w-[250px] xl:min-w-[200px]">Tasker Name</th>
+          <th class="px-4 py-2 text-start min-w-[100px] lg:min-w-[250px] xl:min-w-[200px]">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('tasker')">
+              Tasker Name
+              <span class="w-4 h-4">
+                <ng-container *ngIf="taskerSortMode === 'asc'">▲</ng-container>
+                <ng-container *ngIf="taskerSortMode === 'desc'">▼</ng-container>
+                <ng-container *ngIf="taskerSortMode === 'default'">↕</ng-container>
+              </span>
+            </div>
+          </th>
           <th class="px-4 py-2 text-start min-w-[100px] lg:min-w-[250px] xl:min-w-[200px]">Conversation</th>
           <th class="px-4 py-2 text-start min-w-[50px] lg:min-w-[150px] xl:min-w-[100px]">Action</th>
         </tr>
@@ -87,8 +102,8 @@
         </tr>
         
         <!-- Placeholder rows to maintain fixed table size -->
-        <tr *ngFor="let placeholder of placeholderRows" >
-          <td class="px-4 py-3 text-center" colspan="7"></td>
+        <tr *ngFor="let placeholder of placeholderRows">
+          <td class="px-4 py-3 text-center" colspan="4"></td>
         </tr>
 
       </tbody>

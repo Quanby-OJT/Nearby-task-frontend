@@ -136,9 +136,25 @@ export class DepositorComponent implements OnInit {
       unit: 'px',
       format: 'a4',
     });
+
+    try {
+  
+      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 43, 27, 40, 40); 
+    } catch (e) {
+      console.error('Failed to load NearbyTasks.png:', e);
+
+    }
+
+    try {
+      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 10, 25, 40, 40);
+    } catch (e) {
+      console.error('Failed to load Quanby.png:', e);
+
+    }
+
     const title = 'Top Depositors';
     doc.setFontSize(20);
-    doc.text(title, 170, 45);
+    doc.text(title, 88, 50);
     const headers = ['No', 'Depositor', 'Amount Deposited', 'Month Deposited'];
     const rows = this.depositors.map((depositor, index) => [
       index + 1,

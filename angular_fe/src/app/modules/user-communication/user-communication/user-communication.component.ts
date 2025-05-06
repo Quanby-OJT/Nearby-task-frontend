@@ -30,9 +30,11 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
   currentReportedFilter: string = '';
   currentStatusFilter: string = '';
 
+  clientSortMode: 'default' | 'asc' | 'desc' = 'default';
+  taskerSortMode: 'default' | 'asc' | 'desc' = 'default';
+  dateSortMode: 'default' | 'newestToOldest' | 'oldestToNewest' = 'default';
+
   @Output() onCheck = new EventEmitter<boolean>();
-  @Output() onSort = new EventEmitter<'asc' | 'desc'>();
-  sortDirection: 'asc' | 'desc' = 'desc'; 
 
   private conversationSubscription!: Subscription;
 
@@ -46,8 +48,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
         console.log('Raw response:', response);
         if (response && response.data) {
           this.conversation = response.data;
-          this.filteredConversations = [...this.conversation];
-          this.updatePage();
+          this.applyFilters();
           console.log('Processed conversation data:', this.conversation);
         } else {
           console.error('Invalid response format:', response);
@@ -110,16 +111,41 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
       });
     }
 
-    // Apply sorting by task_taken.created_at
-    tempConversations.sort((a, b) => {
-      const dateA = new Date(a.task_taken.created_at || '1970-01-01');
-      const dateB = new Date(b.task_taken.created_at || '1970-01-01');
-      if (this.sortDirection === 'asc') {
-        return dateA.getTime() - dateB.getTime(); 
-      } else {
-        return dateB.getTime() - dateA.getTime(); 
-      }
-    });
+    // Apply sorting based on sort modes
+    if (this.dateSortMode !== 'default') {
+      tempConversations.sort((a, b) => {
+        const dateA = new Date(a.task_taken.created_at || '1970-01-01').getTime();
+        const dateB = new Date(b.task_taken.created_at || '1970-01-01').getTime();
+        return this.dateSortMode === 'newestToOldest' ? dateB - dateA : dateA - dateB;
+      });
+    } else if (this.clientSortMode !== 'default') {
+      tempConversations.sort((a, b) => {
+        const nameA = `${a.task_taken.clients.user.first_name || ''} ${a.task_taken.clients.user.middle_name || ''} ${a.task_taken.clients.user.last_name || ''}`.toLowerCase();
+        const nameB = `${b.task_taken.clients.user.first_name || ''} ${b.task_taken.clients.user.middle_name || ''} ${b.task_taken.clients.user.last_name || ''}`.toLowerCase();
+        if (this.clientSortMode === 'asc') {
+          return nameA.localeCompare(nameB);
+        } else { // 'desc'
+          return nameB.localeCompare(nameA);
+        }
+      });
+    } else if (this.taskerSortMode !== 'default') {
+      tempConversations.sort((a, b) => {
+        const nameA = `${a.task_taken.tasker.user.first_name || ''} ${a.task_taken.tasker.user.middle_name || ''} ${a.task_taken.tasker.user.last_name || ''}`.toLowerCase();
+        const nameB = `${b.task_taken.tasker.user.first_name || ''} ${b.task_taken.tasker.user.middle_name || ''} ${b.task_taken.tasker.user.last_name || ''}`.toLowerCase();
+        if (this.taskerSortMode === 'asc') {
+          return nameA.localeCompare(nameB);
+        } else { // 'desc'
+          return nameB.localeCompare(nameA);
+        }
+      });
+    } else {
+      // Default sort by created_at descending
+      tempConversations.sort((a, b) => {
+        const dateA = new Date(a.task_taken.created_at || '1970-01-01');
+        const dateB = new Date(b.task_taken.created_at || '1970-01-01');
+        return dateB.getTime() - dateA.getTime();
+      });
+    }
 
     this.filteredConversations = tempConversations;
     this.currentPage = 1;
@@ -131,9 +157,50 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
     this.onCheck.emit(value);
   }
 
-  public toggleSort() {
-    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
-    this.onSort.emit(this.sortDirection);
+  public toggleSort(column: 'client' | 'tasker' | 'date') {
+    if (column === 'client') {
+      switch (this.clientSortMode) {
+        case 'default':
+          this.clientSortMode = 'asc';
+          this.taskerSortMode = 'default'; // Reset tasker sort
+          this.dateSortMode = 'default'; // Reset date sort
+          break;
+        case 'asc':
+          this.clientSortMode = 'desc';
+          break;
+        case 'desc':
+          this.clientSortMode = 'default';
+          break;
+      }
+    } else if (column === 'tasker') {
+      switch (this.taskerSortMode) {
+        case 'default':
+          this.taskerSortMode = 'asc';
+          this.clientSortMode = 'default'; // Reset client sort
+          this.dateSortMode = 'default'; // Reset date sort
+          break;
+        case 'asc':
+          this.taskerSortMode = 'desc';
+          break;
+        case 'desc':
+          this.taskerSortMode = 'default';
+          break;
+      }
+    } else if (column === 'date') {
+      switch (this.dateSortMode) {
+        case 'default':
+          this.dateSortMode = 'newestToOldest';
+          this.clientSortMode = 'default'; // Reset client sort
+          this.taskerSortMode = 'default'; // Reset tasker sort
+          break;
+        case 'newestToOldest':
+          this.dateSortMode = 'oldestToNewest';
+          break;
+        case 'oldestToNewest':
+          this.dateSortMode = 'default';
+          break;
+      }
+    }
     this.applyFilters();
   }
 
@@ -353,9 +420,29 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
       unit: 'px',
       format: 'a4',
     });
+
+   
+    try {
+  
+      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 300, 25, 40, 40); 
+    } catch (e) {
+      console.error('Failed to load NearbyTasks.png:', e);
+
+    }
+
+    try {
+      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 125, 23, 40, 40);
+    } catch (e) {
+      console.error('Failed to load Quanby.png:', e);
+
+    }
+
+
     const title = 'User Conversations';
     doc.setFontSize(20);
-    doc.text(title, 170, 45);
+    doc.text(title, 170, 52);
+
+ 
     const columns = ['User No', 'Client Name', 'Tasker Name', 'Conversation', 'Task Created Date', 'Task Status'];
     const rows = this.displayConversations.map((convo) => [
       convo.user_id ?? '',

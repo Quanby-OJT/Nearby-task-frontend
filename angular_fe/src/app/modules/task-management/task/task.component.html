@@ -3,22 +3,28 @@
   <div>
     <h3 class="text-foreground font-semibold">Task Management</h3>
     <div class="text-muted-foreground text-xs font-medium">
-      <a href="#" class="hover:text-primary">Dashboards > Task Management</a>
-    </div> 
+      <a href="#" class="hover:text-primary"><b>Dashboards > Task Management</b></a>
+      <p>This is used for managing the tasks of the users in the application</p> 
+    </div>
   </div>
+</div>
+<div class="mb-4 flex justify-between">
+  <div class="inline-block"></div>
   <div class="flex space-x-4">
-    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportCSV()">
-      Export CSV
+    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500 flex items-center space-x-2" (click)="exportCSV()">
+      <svg-icon src="./assets/icons/heroicons/outline/csvDL.svg" [svgClass]="'h-5 w-5'"></svg-icon>
+      <span>Export CSV</span>
     </button>
-    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportPDF()">
-      Export PDF
+    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500 flex items-center space-x-2" (click)="exportPDF()">
+      <svg-icon src="./assets/icons/heroicons/outline/pdfDL.svg" [svgClass]="'h-5 w-5'"></svg-icon>
+      <span>Export PDF</span>
     </button>
-    <button *ngIf="userRole === 'Admin'" class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-110 transition-transform duration-500" (click)="createSpecialization()">
-      Create Specialization
+    <button *ngIf="userRole === 'Admin'" class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-110 transition-transform duration-500 flex items-center space-x-2" (click)="createSpecialization()">
+      <svg-icon src="./assets/icons/heroicons/outline/addDL.svg" [svgClass]="'h-5 w-5'"></svg-icon>
+      <span>Create Specialization</span>
     </button>
   </div>
 </div>
-
 <!-- Main container with search, filter, table, and pagination -->
 <div class="border-muted-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
   <!-- Search and Filter Section -->
@@ -51,18 +57,58 @@
       <thead class="border-b">
         <tr>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">
-            <div class="flex items-center gap-1 cursor-pointer">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('client')">
               Client
-              <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" class="w-4 h-4" (click)="toggleSort()">
+              <span class="w-4 h-4">
+                <ng-container *ngIf="sortModes['client'] === 'asc'">▲</ng-container>
+                <ng-container *ngIf="sortModes['client'] === 'desc'">▼</ng-container>
+                <ng-container *ngIf="sortModes['client'] === 'default'">↕</ng-container>
+              </span>
             </div>
           </th>
-          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[500px] ">Task Title</th>
-          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[260px] ">Specialization</th>
-          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[220px] ">Proposed Price</th>
-          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[330px] ">Location</th>
-          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[150px] ">Urgent</th>
-          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[230px] ">Status</th>
-          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[100px] ">Action</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[500px]">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('taskTitle')">
+              Task Title
+              <span class="w-4 h-4">
+                <ng-container *ngIf="sortModes['taskTitle'] === 'asc'">▲</ng-container>
+                <ng-container *ngIf="sortModes['taskTitle'] === 'desc'">▼</ng-container>
+                <ng-container *ngIf="sortModes['taskTitle'] === 'default'">↕</ng-container>
+              </span>
+            </div>
+          </th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[260px]">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('specialization')">
+              Specialization
+              <span class="w-4 h-4">
+                <ng-container *ngIf="sortModes['specialization'] === 'asc'">▲</ng-container>
+                <ng-container *ngIf="sortModes['specialization'] === 'desc'">▼</ng-container>
+                <ng-container *ngIf="sortModes['specialization'] === 'default'">↕</ng-container>
+              </span>
+            </div>
+          </th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[220px]">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('proposedPrice')">
+              Proposed Price
+              <span class="w-4 h-4">
+                <ng-container *ngIf="sortModes['proposedPrice'] === 'asc'">▲</ng-container>
+                <ng-container *ngIf="sortModes['proposedPrice'] === 'desc'">▼</ng-container>
+                <ng-container *ngIf="sortModes['proposedPrice'] === 'default'">↕</ng-container>
+              </span>
+            </div>
+          </th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[330px]">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('location')">
+              Location
+              <span class="w-4 h-4">
+                <ng-container *ngIf="sortModes['location'] === 'asc'">▲</ng-container>
+                <ng-container *ngIf="sortModes['location'] === 'desc'">▼</ng-container>
+                <ng-container *ngIf="sortModes['location'] === 'default'">↕</ng-container>
+              </span>
+            </div>
+          </th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[150px]">Urgent</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[230px]">Status</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[100px]">Action</th>
         </tr>
       </thead>
       <tbody>
@@ -74,16 +120,15 @@
           <td class="px-4 py-3 text-start">{{ task.location || '' }}</td>
           <td class="px-4 py-3 text-start">{{ task.urgent ? 'Yes' : 'No' }}</td>
           <td class="px-4 py-3 text-start">
-          <span
-            class="py-1 text-sm font-semibold rounded-lg text-white inline-block text-center w-32"
-            [ngClass]="{
-              'bg-green-500': task.status === 'Available',
-              'bg-red-400': task.status === 'Closed',
-              'bg-yellow-400': task.status === 'Already Taken'}">
-            {{ task.status || 'Empty' }}
-          </span>
+            <span
+              class="py-1 text-sm font-semibold rounded-lg text-white inline-block text-center w-32"
+              [ngClass]="{
+                'bg-green-500': task.status === 'Available',
+                'bg-red-400': task.status === 'Closed',
+                'bg-yellow-400': task.status === 'Already Taken'}">
+              {{ task.status || 'Empty' }}
+            </span>
           </td>
-
           <td class="px-4 py-3 text-start">
             <button class="p-0 border-none bg-transparent cursor-pointer hover:scale-150 transition-transform duration-500">
               <img src="https://img.icons8.com/?size=100&id=54137&format=png&color=FA5252" (click)="disableTask(task.task_id)" class="h-5 w-5">

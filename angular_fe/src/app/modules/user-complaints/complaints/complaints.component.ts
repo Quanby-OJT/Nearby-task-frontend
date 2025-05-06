@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, EventEmitter, Output } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ClientComplaintComponent } from './client-complaint/client-complaint.component';
@@ -41,10 +41,11 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
   selectedReport: any = null;
   userRole: string | undefined;
   placeholderRows: any[] = []; 
-
-  @Output() onCheck = new EventEmitter<boolean>();
-  @Output() onSort = new EventEmitter<'asc' | 'desc'>();
-  sortDirection: 'asc' | 'desc' = 'desc';
+  sortDirections: { [key: string]: 'asc' | 'desc' | 'default' } = {
+    reporterName: 'default',
+    createdAt: 'default'
+  };
+  sortColumn: 'reporterName' | 'createdAt' = 'createdAt';
 
   private reportsSubscription!: Subscription;
 
@@ -99,14 +100,13 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
     this.applyFilters();
   }
 
-  public toggle(event: Event) {
-    const value = (event.target as HTMLInputElement).checked;
-    this.onCheck.emit(value);
-  }
-
-  public toggleSort() {
-    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
-    this.onSort.emit(this.sortDirection);
+  public toggleSort(column: 'reporterName' | 'createdAt') {
+    if (this.sortColumn !== column) {
+      this.sortDirections[this.sortColumn] = 'default'; // Reset previous column
+      this.sortColumn = column;
+    }
+    this.sortDirections[column] = this.sortDirections[column] === 'default' ? 'asc' : 
+                                 this.sortDirections[column] === 'asc' ? 'desc' : 'default';
     this.applyFilters();
   }
 
@@ -138,18 +138,36 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
       });
     }
 
-    // Apply simple reverse sort
-    if (this.sortDirection === 'desc') {
-      tempReports = tempReports.reverse();
+    // Apply sorting
+    if (this.sortColumn === 'reporterName') {
+      tempReports.sort((a, b) => {
+        const nameA = [
+          a.reporter.first_name || '',
+          a.reporter.middle_name || '',
+          a.reporter.last_name || ''
+        ].filter(Boolean).join(' ').toLowerCase();
+        const nameB = [
+          b.reporter.first_name || '',
+          b.reporter.middle_name || '',
+          b.reporter.last_name || ''
+        ].filter(Boolean).join(' ').toLowerCase();
+        if (this.sortDirections['reporterName'] === 'asc' || this.sortDirections['reporterName'] === 'default') {
+          return nameA.localeCompare(nameB); // A-Z
+        } else {
+          return nameB.localeCompare(nameA); // Z-A
+        }
+      });
+    } else if (this.sortColumn === 'createdAt') {
+      tempReports.sort((a, b) => {
+        const dateA = new Date(a.created_at).getTime();
+        const dateB = new Date(b.created_at).getTime();
+        if (this.sortDirections['createdAt'] === 'asc') {
+          return dateA - dateB; // Oldest to newest
+        } else {
+          return dateB - dateA; // Newest to oldest (default and desc)
+        }
+      });
     }
-
-    // Log sorted reports for debugging
-    console.log(`Sorted reports (${this.sortDirection}):`, tempReports.map(report => ({
-      report_id: report.report_id,
-      reporter: `${report.reporter.first_name} ${report.reporter.last_name}`,
-      violator: `${report.violator.first_name} ${report.violator.last_name}`,
-      status: report.status ? 'Processed' : 'Pending'
-    })));
 
     this.filteredReports = tempReports;
     this.currentPage = 1;
@@ -333,20 +351,20 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
     const rows = this.displayReports.map((report, index) => {
       const reporterName = report.reporter
         ? `${report.reporter.first_name || ''} ${report.reporter.middle_name || ''} ${report.reporter.last_name || ''}`.trim()
-        : '';
+        : 'Unknown';
       const violatorName = report.violator
         ? `${report.violator.first_name || ''} ${report.violator.middle_name || ''} ${report.violator.last_name || ''}`.trim()
-        : '';
+        : 'Unknown';
       const handledBy = report.action_by
         ? `${report.actionBy.first_name || ''} ${report.actionBy.middle_name || ''} ${report.actionBy.last_name || ''}`.trim()
-        : 'null';
+        : 'Empty';
       const baseRow = [
         index + 1,
         `"${reporterName}"`,
         `"${violatorName}"`,
-        `"${report.reporter?.user_role || ''}"`,
-        `"${report.violator?.user_role || ''}"`,
-        `"${report.created_at || ''}"`,
+        `"${report.reporter?.user_role || 'Unknown'}"`,
+        `"${report.violator?.user_role || 'Unknown'}"`,
+        `"${report.created_at || 'N/A'}"`,
         report.status ? 'Processed' : 'Pending',
       ];
       if (isAdmin) {
@@ -367,29 +385,42 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
       unit: 'px',
       format: 'a4',
     });
+
+    try {
+      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 283, 25, 40, 40); 
+    } catch (e) {
+      console.error('Failed to load NearbyTasks.png:', e);
+    }
+
+    try {
+      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 125, 23, 40, 40);
+    } catch (e) {
+      console.error('Failed to load Quanby.png:', e);
+    }
+
     const title = 'User Complaints';
     doc.setFontSize(20);
-    doc.text(title, 170, 45);
+    doc.text(title, 170, 52);
     const headers = isAdmin
       ? ['No', 'Reporter Name', 'Violator Name', 'Reporter Role', 'Violator Role', 'Date', 'Status', 'Handled By']
       : ['No', 'Reporter Name', 'Violator Name', 'Reporter Role', 'Violator Role', 'Date', 'Status'];
     const rows = this.displayReports.map((report, index) => {
       const reporterName = report.reporter
         ? `${report.reporter.first_name || ''} ${report.reporter.middle_name || ''} ${report.reporter.last_name || ''}`.trim()
-        : '';
+        : 'Unknown';
       const violatorName = report.violator
         ? `${report.violator.first_name || ''} ${report.violator.middle_name || ''} ${report.violator.last_name || ''}`.trim()
-        : '';
+        : 'Unknown';
       const handledBy = report.action_by
         ? `${report.actionBy.first_name || ''} ${report.actionBy.middle_name || ''} ${report.actionBy.last_name || ''}`.trim()
-        : 'null';
+        : 'Empty';
       const baseRow = [
         index + 1,
         reporterName,
         violatorName,
-        report.reporter?.user_role || '',
-        report.violator?.user_role || '',
-        report.created_at || '',
+        report.reporter?.user_role || 'Unknown',
+        report.violator?.user_role || 'Unknown',
+        report.created_at || 'N/A',
         report.status ? 'Processed' : 'Pending',
       ];
       if (isAdmin) {
