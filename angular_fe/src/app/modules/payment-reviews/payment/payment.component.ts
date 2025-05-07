@@ -236,6 +236,7 @@ export class PaymentComponent implements OnInit {
     doc.setFontSize(20);
     doc.setTextColor('#170A66');
     doc.text(title, 170, 52);
+    
   // Line Part
     doc.setDrawColor(0, 0, 0);
     doc.setLineWidth(0.2);
@@ -246,6 +247,8 @@ export class PaymentComponent implements OnInit {
     doc.setTextColor('#000000');
     doc.text('Payment Reviews', 30, 90);
   
+
+
   // Date and Time Part
     const currentDate = new Date();
     const formattedDate = currentDate.toLocaleString('en-US', {

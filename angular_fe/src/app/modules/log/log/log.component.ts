@@ -199,20 +199,53 @@ export class LogComponent implements OnInit, OnDestroy {
     });
 
     try {
-      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 238, 25, 40, 40); 
+      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 140, 35, 28, 25); 
     } catch (e) {
       console.error('Failed to load NearbyTasks.png:', e);
     }
 
     try {
-      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 125, 23, 40, 40);
+      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 260, 35, 26, 25);
     } catch (e) {
       console.error('Failed to load Quanby.png:', e);
     }
 
-    const title = 'User Logs';
+
+    // Nearby Task Part
+    const title = 'Nearby Task';
     doc.setFontSize(20);
+    doc.setTextColor('#170A66');
     doc.text(title, 170, 52);
+
+    // Line Part
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(0.2);
+    doc.line(30, 70, 415, 70);
+
+    // Logs Part
+    doc.setFontSize(12);
+    doc.setTextColor('#000000');
+    doc.text('User Logs', 30, 90);
+
+    // Date and Time Part
+    const currentDate = new Date();
+    const formattedDate = currentDate.toLocaleString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    }).replace(/,/, ', ');
+    console.log('Formatted Date:', formattedDate); 
+
+    // Date and Time Position and Size
+    doc.setFontSize(12);
+    doc.setTextColor('#000000');
+    console.log('Rendering date at position x=400, y=90'); 
+    doc.text(formattedDate, 310, 90); 
+
     const headers = ['No', 'User Name', 'User Role', 'Time Start', 'Time End', 'Status'];
     const rows = this.displayLogs.map((log, index) => {
       const userName = log.user
@@ -231,7 +264,7 @@ export class LogComponent implements OnInit, OnDestroy {
       ];
     });
     autoTable(doc, {
-      startY: 100,
+      startY: 125,
       head: [headers],
       body: rows,
       theme: 'grid',

@@ -95,29 +95,57 @@ export class UsersComponent implements OnInit {
       format: 'a4',
     });
 
-    // Add left logo (NearbyTasks.png) with reduced height
+
     try {
-      // Set height to 20px, width will scale proportionally
-      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 270, 25, 40, 40); 
+
+      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 140, 35, 28, 25); 
     } catch (e) {
       console.error('Failed to load NearbyTasks.png:', e);
-      // Continue without logo to ensure PDF generation
+  
     }
 
-    // Add right logo (Quanby.png)
     try {
-      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 125, 23, 40, 40);
+      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 260, 35, 26, 25);
     } catch (e) {
       console.error('Failed to load Quanby.png:', e);
-      // Continue without logo to ensure PDF generation
     }
 
-    // Add title
-    const title = 'Users Account';
+
+    // Nearby Task Part
+    const title = 'Nearby Task';
     doc.setFontSize(20);
+    doc.setTextColor('#170A66');
     doc.text(title, 170, 52);
 
-    // Add table using paginated users from filterService.currentUsers()
+    // Line Part
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(0.2);
+    doc.line(30, 70, 415, 70);
+
+    //User Management
+    doc.setFontSize(12);
+    doc.setTextColor('#000000');
+    doc.text('User Managment', 30, 90);
+   
+    // Date and Time Part
+    const currentDate = new Date();
+    const formattedDate = currentDate.toLocaleString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    }).replace(/,/, ', ');
+    console.log('Formatted Date:', formattedDate); 
+
+    // Date and Time Position and Size
+    doc.setFontSize(12);
+    doc.setTextColor('#000000');
+    console.log('Rendering date at position x=400, y=90'); 
+    doc.text(formattedDate, 310, 90); 
+
     const columns = ['Fullname', 'Role', 'Email', 'Account', 'Status'];
     const rows = this.filterService.currentUsers().map((item) => [
       item.first_name + ' ' + (item.middle_name === null ? '' : item.middle_name) + ' ' + item.last_name,
@@ -127,7 +155,7 @@ export class UsersComponent implements OnInit {
       item.status,
     ]);
     autoTable(doc, {
-      startY: 100,
+      startY: 125,
       head: [columns],
       body: rows,
       theme: 'grid',
