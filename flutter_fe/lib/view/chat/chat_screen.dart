@@ -5,6 +5,7 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/report_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
+import 'package:flutter_fe/model/conversation.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
@@ -18,6 +19,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 import '../../controller/conversation_controller.dart';
+import '../../model/chat_push_notifications.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -27,7 +29,8 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  List<TaskAssignment?> taskAssignments = [];
+  List<TaskAssignment> taskAssignments = [];
+  List<Conversation> conversation = [];
   List<TaskAssignment?> filteredTaskAssignments = [];
   final GetStorage storage = GetStorage();
   final TaskController _taskController = TaskController();
@@ -106,16 +109,17 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _fetchTaskAssignments() async {
+    setState(() {
+      _isLoading = true;
+    });
     int userId = storage.read('user_id');
-    List<TaskAssignment?> fetchedAssignments = await _taskController.getAllAssignedTasks(context, userId);
-    if (mounted) {
-      setState(() {
-        taskAssignments = fetchedAssignments;
-        _isLoading = false;
-        filteredTaskAssignments =
-            fetchedAssignments; // Initialize filtered list
-      });
-    }
+    final result = await _taskController.getAllAssignedTasks(context, userId);
+    setState(() {
+      taskAssignments = result.taskAssignments;
+      conversation = result.conversations;
+      filteredTaskAssignments = taskAssignments;
+      _isLoading = false;
+    });
   }
 
   Future<void> _fetchTaskers() async {
@@ -693,91 +697,95 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: CircularProgressIndicator(),
               )
             : taskAssignments.isEmpty
-                ? Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Icon(
-                          FontAwesomeIcons.signalMessenger,
-                          size: 100,
-                          color: Color(0xFF0272B1),
-                        ),
-                        SizedBox(height: 10),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 20),
-                          child: Text(
-                            "You don't have messages yet. Check your task requests to accept a tasker, or wait for them to accept your task.",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 16),
+                ? RefreshIndicator(
+                    onRefresh: _fetchTaskAssignments,
+                    color: Color(0xFF0272B1),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(
+                            FontAwesomeIcons.signalMessenger,
+                            size: 100,
+                            color: Color(0xFF0272B1),
                           ),
-                        ),
-                        SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    blurRadius: 6,
-                                    offset: Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                              child: Material(
-                                color: Colors.redAccent,
-                                shape: CircleBorder(),
-                                child: PopupMenuButton<String>(
-                                  onSelected: (value) {
-                                    if (value == 'report_user') {
-                                      _showReportModal();
-                                    } else if (value == 'report_history') {
-                                      _showReportHistoryModal();
-                                    }
-                                  },
-                                  itemBuilder: (BuildContext context) => [
-                                    PopupMenuItem<String>(
-                                      value: 'report_user',
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.report,
-                                              color: Colors.redAccent),
-                                          SizedBox(width: 10),
-                                          Text('Report User'),
-                                        ],
-                                      ),
-                                    ),
-                                    PopupMenuItem<String>(
-                                      value: 'report_history',
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.history,
-                                              color: Colors.green),
-                                          SizedBox(width: 10),
-                                          Text('Report History'),
-                                        ],
-                                      ),
+                          SizedBox(height: 10),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            child: Text(
+                              "You don't have messages yet. Check your task requests to accept a tasker, or wait for them to accept your task.",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      blurRadius: 6,
+                                      offset: Offset(0, 3),
                                     ),
                                   ],
-                                  child: Container(
-                                    padding: EdgeInsets.all(12),
-                                    child: Icon(
-                                      Icons.flag,
-                                      color: Colors.white,
-                                      size: 28,
+                                ),
+                                child: Material(
+                                  color: Colors.redAccent,
+                                  shape: CircleBorder(),
+                                  child: PopupMenuButton<String>(
+                                    onSelected: (value) {
+                                      if (value == 'report_user') {
+                                        _showReportModal();
+                                      } else if (value == 'report_history') {
+                                        _showReportHistoryModal();
+                                      }
+                                    },
+                                    itemBuilder: (BuildContext context) => [
+                                      PopupMenuItem<String>(
+                                        value: 'report_user',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.report,
+                                                color: Colors.redAccent),
+                                            SizedBox(width: 10),
+                                            Text('Report User'),
+                                          ],
+                                        ),
+                                      ),
+                                      PopupMenuItem<String>(
+                                        value: 'report_history',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.history,
+                                                color: Colors.green),
+                                            SizedBox(width: 10),
+                                            Text('Report History'),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                    child: Container(
+                                      padding: EdgeInsets.all(12),
+                                      child: Icon(
+                                        Icons.flag,
+                                        color: Colors.white,
+                                        size: 28,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    )
                   )
                 : Column(children: [
                     Padding(
@@ -839,21 +847,29 @@ class _ChatScreenState extends State<ChatScreen> {
                                 : RefreshIndicator(
                                     onRefresh: _fetchTaskAssignments,
                                     color: Color(0xFF0272B1),
-                                    child: ListView.builder(
-                                        padding:
-                                            EdgeInsets.symmetric(vertical: 16),
-                                        itemCount:
-                                            filteredTaskAssignments.length,
-                                        itemBuilder: (context, index) {
-                                          final taskAssignment =
-                                              filteredTaskAssignments[index];
-                                          if (taskAssignment == null) {
-                                            return SizedBox.shrink();
-                                          } else {
-                                            return conversationCard(taskAssignment);
-                                          }
+                                    child: // In the ListView.builder within the build method
+                                    ListView.builder(
+                                      padding: EdgeInsets.symmetric(vertical: 16),
+                                      itemCount: filteredTaskAssignments.length,
+                                      itemBuilder: (context, index) {
+                                        final taskAssignment = filteredTaskAssignments[index];
+                                        if (taskAssignment == null) {
+                                          return SizedBox.shrink();
                                         }
-                                        )
+                                        // Find the corresponding conversation by task_taken_id
+                                        final conversation = this.conversation.firstWhere(
+                                              (conv) => conv.taskTakenId == taskAssignment.taskTakenId,
+                                          orElse: () => Conversation(
+                                            userId: 0,
+                                            conversationMessage: '',
+                                            taskTakenId: taskAssignment.taskTakenId,
+                                            user: null,
+                                            taskTaken: taskAssignment,
+                                          ),
+                                        );
+                                        return conversationCard(taskAssignment, conversation);
+                                      },
+                                    )
                         )
                     )
                   ]
@@ -886,7 +902,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 style: TextStyle(color: Colors.red),
               ),
               onPressed: () {
-                // TODO: Implement delete action here
                 conversationController.deleteMessage(context, taskTakenId);
                 Navigator.of(context).pop(); // Dismiss the dialog
                 setState(() {
@@ -900,12 +915,12 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget conversationCard(TaskAssignment taskTaken) {
+  Widget conversationCard(TaskAssignment taskTaken, Conversation conversation) {
     final currentUserId = storage.read('user_id');
     final role = storage.read('role');
-    final bool isOwnerOfMessage = currentUserId == taskTaken.client?.user?.id;
+    // Check if the current user is the sender of the latest message
+    final bool isSender = conversation.userId != 0 && currentUserId == conversation.userId;
     final bool unread = taskTaken.unreadCount > 0;
-    final bool isRead = taskTaken.unreadCount == 0;
     final user = role == 'Tasker' ? taskTaken.client?.user : taskTaken.tasker?.user;
 
     return Container(
@@ -913,15 +928,15 @@ class _ChatScreenState extends State<ChatScreen> {
       child: InkWell(
         onTap: () {
           Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => IndividualChatScreen(
-                    taskTakenId: taskTaken.taskTakenId,
-                    taskId: taskTaken.task?.id ?? 0,
-                    taskTitle: taskTaken.task?.title ?? '',
-                    taskTakenStatus: taskTaken.taskStatus,
-                  )
-              )
+            context,
+            MaterialPageRoute(
+              builder: (context) => IndividualChatScreen(
+                taskTakenId: taskTaken.taskTakenId,
+                taskId: taskTaken.task?.id ?? 0,
+                taskTitle: taskTaken.task?.title ?? '',
+                taskTakenStatus: taskTaken.taskStatus,
+              ),
+            ),
           ).then((_) => _fetchTaskAssignments());
         },
         onLongPress: () => showMessageOptions(context, taskTaken.taskTakenId),
@@ -959,19 +974,20 @@ class _ChatScreenState extends State<ChatScreen> {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                      if(isOwnerOfMessage) // Check mark for owner
-                        if(isRead) // Read state (0 unread)
-                          readIconMarker(FontAwesomeIcons.checkDouble, Colors.green)
+                        if (isSender) // Check marks for sender
+                            readIconMarker(FontAwesomeIcons.checkDouble, Colors.green)
                         else // Unread state (>0 unread)
                           readIconMarker(FontAwesomeIcons.check, Colors.green),
-                        if(!isOwnerOfMessage && unread) // No check if non-owner and unread
-                          SizedBox.shrink(), // Or a loading indicator/clock icon if desired
+                        if (!isSender && conversation.userId != 0) // No check for receiver, unless no message
+                          SizedBox.shrink(),
                         SizedBox(width: 4),
                         Expanded(
                           child: Text(
-                            "${user?.firstName} ${user?.middleName} ${user?.lastName}",
+                            "${user?.firstName ?? ''} ${user?.middleName ?? ''} ${user?.lastName ?? ''}",
                             style: GoogleFonts.poppins(
-                                fontWeight: unread && isOwnerOfMessage ? FontWeight.bold : FontWeight.normal
+                              fontWeight: isSender
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
                             ),
                           ),
                         ),
@@ -980,9 +996,9 @@ class _ChatScreenState extends State<ChatScreen> {
                   ],
                 ),
               ),
-              if(unread && !isOwnerOfMessage)
+              if (unread && !isSender && conversation.userId != 0)
                 Align(
-                  alignment: Alignment.centerRight, // Align to the right within the row
+                  alignment: Alignment.centerRight,
                   child: CircleAvatar(
                     radius: 10,
                     backgroundColor: Colors.redAccent,
@@ -992,13 +1008,13 @@ class _ChatScreenState extends State<ChatScreen> {
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
-                    )
+                    ),
                   ),
                 ),
-              ],
-            ),
+            ],
           ),
         ),
+      ),
     );
   }
 
