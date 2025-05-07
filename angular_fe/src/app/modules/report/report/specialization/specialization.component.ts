@@ -7,7 +7,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import { AngularSvgIconModule } from 'angular-svg-icon';
-
+import { SpecializationRank, MonthlyTrends, ChartSeries } from '../../../../../model/reportANDanalysis';
 @Component({
   selector: 'app-specialization',
   standalone: true,
@@ -16,9 +16,9 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
   styleUrls: ['./specialization.component.scss']
 })
 export class SpecializationComponent implements OnInit {
-  rankedSpecializations: { specialization: string; total_requested: number; total_applied: number }[] = [];
-  monthlyTrends: { [key: string]: { [key: string]: number } } = {};
-  chartSeries: { name: string; data: number[] }[] = [];
+  rankedSpecializations: SpecializationRank[] = [];
+  monthlyTrends: MonthlyTrends = {};
+  chartSeries: ChartSeries[] = [];
   chartCategories: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   selectedMonth: string | null = null;
   months: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

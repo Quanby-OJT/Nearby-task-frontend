@@ -8,6 +8,7 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
+import { Depositor, MonthlyTrends, ChartSeries } from '../../../../../model/reportANDanalysis';
 
 interface ChartConfig extends ApexOptions {
   series: ApexAxisChartSeries;
@@ -64,7 +65,7 @@ export class DepositorComponent implements OnInit {
     } as ApexLegend
   };
 
-  depositors: { userName: string; amount: number; month: string }[] = [];
+  depositors: Depositor[] = [];
   currentPage: number = 1;
   itemsPerPage: number = 10;
   totalItems: number = 0;
@@ -82,8 +83,8 @@ export class DepositorComponent implements OnInit {
     this.reportService.getTopDepositors(this.selectedMonth || undefined).subscribe({
       next: (response: {
         success: boolean;
-        rankedDepositors: { userName: string; amount: number; month: string }[];
-        monthlyTrends: { [userName: string]: { [month: string]: number } };
+        rankedDepositors: Depositor[];
+        monthlyTrends: MonthlyTrends;
       }) => {
         if (response.success) {
           this.depositors = response.rankedDepositors;
@@ -91,7 +92,7 @@ export class DepositorComponent implements OnInit {
 
           // Prepare chart series
           const monthlyTrends = response.monthlyTrends;
-          const series: ApexAxisChartSeries = Object.keys(monthlyTrends).map(userName => ({
+          const series: ChartSeries[] = Object.keys(monthlyTrends).map(userName => ({
             name: userName,
             data: Object.values(monthlyTrends[userName]).map(value => value as number),
           }));
@@ -219,7 +220,7 @@ export class DepositorComponent implements OnInit {
     };
   }
 
-  get paginatedDepositors(): { userName: string; amount: number; month: string }[] {
+  get paginatedDepositors(): Depositor[] {
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
     return this.depositors.slice(startIndex, startIndex + this.itemsPerPage);
   }

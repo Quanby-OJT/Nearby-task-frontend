@@ -9,6 +9,7 @@ import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { AuthService } from 'src/app/services/auth.service';
+import { Task } from 'src/model/task'; // Import the Task model
 
 @Component({
   selector: 'app-task',
@@ -19,9 +20,9 @@ import { AuthService } from 'src/app/services/auth.service';
 })
 export class TaskComponent implements OnInit {
   Math = Math;
-  tasks: any[] = [];
-  filteredTasks: any[] = [];
-  displayedTasks: any[] = [];
+  tasks: Task[] = [];
+  filteredTasks: Task[] = [];
+  displayedTasks: Task[] = [];
   paginationButtons: (number | string)[] = [];
   tasksPerPage: number = 5;
   currentPage: number = 1;
@@ -70,7 +71,7 @@ export class TaskComponent implements OnInit {
 
   fetchTasks(): void {
     this.taskService.getTasks().subscribe(
-      (response) => {
+      (response: { tasks: Task[] }) => {
         console.log('Fetched tasks:', response.tasks);
         this.tasks = response.tasks;
         this.filteredTasks = response.tasks;
@@ -117,7 +118,8 @@ export class TaskComponent implements OnInit {
     for (const column in this.sortModes) {
       if (this.sortModes[column] !== 'default') {
         tempTasks.sort((a, b) => {
-          let valueA, valueB;
+          let valueA: string | number;
+          let valueB: string | number;
           switch (column) {
             case 'client':
               valueA = `${a.clients.user.first_name || ''} ${a.clients.user.middle_name || ''} ${a.clients.user.last_name || ''}`.toLowerCase();
@@ -136,23 +138,23 @@ export class TaskComponent implements OnInit {
               valueB = (b.location || '').toLowerCase();
               break;
             case 'proposedPrice':
-              valueA = a.proposed_price || 0;
-              valueB = b.proposed_price || 0;
+              valueA = a.proposed_price;
+              valueB = b.proposed_price;
               break;
             default:
               return 0;
           }
           if (column === 'proposedPrice') {
             if (this.sortModes[column] === 'asc') {
-              return valueA - valueB; // Smallest to biggest
+              return (valueA as number) - (valueB as number); // Smallest to biggest
             } else { // 'desc'
-              return valueB - valueA; // Biggest to smallest
+              return (valueB as number) - (valueA as number); // Biggest to smallest
             }
           } else {
             if (this.sortModes[column] === 'asc') {
-              return valueA.localeCompare(valueB);
+              return (valueA as string).localeCompare(valueB as string);
             } else { // 'desc'
-              return valueB.localeCompare(valueA);
+              return (valueB as string).localeCompare(valueA as string);
             }
           }
         });
@@ -250,11 +252,11 @@ export class TaskComponent implements OnInit {
     const rows = this.displayedTasks.map((task, index) => {
       const row = [
         index + 1,
-        task?.clients?.client_id ?? task.client_id ?? '',
+        task.clients.client_id ?? '',
         `"${task.clients.user.first_name} ${task.clients.user.middle_name || ''} ${task.clients.user.last_name}"`,
         `"${task.task_title || ''}"`,
         task.specialization || '',
-        task.proposed_price || 0,
+        task.proposed_price,
         `"${task.location || ''}"`,
         task.urgent ? 'Yes' : 'No',
         task.status || 'null',
@@ -292,11 +294,11 @@ export class TaskComponent implements OnInit {
     const columns = ['No', 'Client Id', 'Client', 'Task Title', 'Specialization', 'Proposed Price', 'Location', 'Urgent', 'Status'];
     const rows = this.displayedTasks.map((task, index) => [
       index + 1,
-      task?.clients?.client_id ?? task.client_id ?? '',
+      task.clients.client_id ?? '',
       `${task.clients.user.first_name} ${task.clients.user.middle_name || ''} ${task.clients.user.last_name}`,
       task.task_title || '',
       task.specialization || '',
-      task.proposed_price || 0,
+      task.proposed_price,
       task.location || '',
       task.urgent ? 'Yes' : 'No',
       task.status || 'null',

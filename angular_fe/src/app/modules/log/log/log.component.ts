@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { UserLogService } from 'src/app/services/log.service';
+import { Log } from 'src/model/log'; // Import the Log model
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
@@ -15,9 +16,9 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
   styleUrl: './log.component.css',
 })
 export class LogComponent implements OnInit, OnDestroy {
-  logs: any[] = [];
-  filteredLogs: any[] = [];
-  displayLogs: any[] = [];
+  logs: Log[] = [];
+  filteredLogs: Log[] = [];
+  displayLogs: Log[] = [];
   paginationButtons: (number | string)[] = [];
   logsPerPage: number = 5;
   currentPage: number = 1;
@@ -35,7 +36,7 @@ export class LogComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.logsSubscription = this.userlogService.getUserLogs().subscribe(
-      (logs) => {
+      (logs: Log[]) => {
         this.logs = logs;
         this.filteredLogs = [...logs];
         this.updatePage();
@@ -198,18 +199,15 @@ export class LogComponent implements OnInit, OnDestroy {
     });
 
     try {
-  
       doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 238, 25, 40, 40); 
     } catch (e) {
       console.error('Failed to load NearbyTasks.png:', e);
-
     }
 
     try {
       doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 125, 23, 40, 40);
     } catch (e) {
       console.error('Failed to load Quanby.png:', e);
-
     }
 
     const title = 'User Logs';

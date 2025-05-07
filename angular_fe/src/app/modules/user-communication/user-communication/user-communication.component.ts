@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, EventEmitter, Output } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { UserConversationService } from 'src/app/services/conversation.service';
+import { Conversation, Message } from 'src/model/user-communication'; // Import the Conversation and Message models
 import Swal from 'sweetalert2';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -16,9 +17,9 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
   styleUrls: ['./user-communication.component.css'],
 })
 export class UserCommunicationComponent implements OnInit, OnDestroy {
-  conversation: any[] = [];
-  filteredConversations: any[] = [];
-  displayConversations: any[] = [];
+  conversation: Conversation[] = [];
+  filteredConversations: Conversation[] = [];
+  displayConversations: Conversation[] = [];
   placeholderRows: any[] = []; 
   paginationButtons: (number | string)[] = [];
   conversationsPerPage: number = 5;
@@ -44,7 +45,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.conversationSubscription = this.userConversationService.getUserConversation().subscribe(
-      (response) => {
+      (response: { data: Conversation[] }) => {
         console.log('Raw response:', response);
         if (response && response.data) {
           this.conversation = response.data;
@@ -106,7 +107,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
     // Apply status filter
     if (this.currentStatusFilter) {
       tempConversations = tempConversations.filter(convo => {
-        const convoStatus = convo.user.status ? 'active' : 'disabled';
+        const convoStatus = convo.task_taken.clients.user.status ? 'active' : 'disabled';
         return convoStatus === this.currentStatusFilter;
       });
     }
@@ -263,7 +264,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
           if (response) {
             Swal.fire('Banned!', 'User has been banned.', 'success').then(() => {
               // Refresh the conversation list after banning
-              this.userConversationService.getUserConversation().subscribe((response) => {
+              this.userConversationService.getUserConversation().subscribe((response: { data: Conversation[] }) => {
                 if (response && response.data) {
                   this.conversation = response.data;
                   this.filteredConversations = [...this.conversation];
@@ -293,7 +294,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
           if (response) {
             Swal.fire('Warned!', 'User has been warned.', 'success').then(() => {
               // Refresh the conversation list after warning
-              this.userConversationService.getUserConversation().subscribe((response) => {
+              this.userConversationService.getUserConversation().subscribe((response: { data: Conversation[] }) => {
                 if (response && response.data) {
                   this.conversation = response.data;
                   this.filteredConversations = [...this.conversation];
@@ -314,12 +315,12 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
     console.log('Viewing user_id:', viewingUserId);
 
     this.userConversationService.getTaskConversations(taskTakenId).subscribe(
-        (response) => {
+        (response: { data: Message[] }) => {
             if (response && response.data) {
                 const messages = response.data;
                 console.log('Messages received:', messages);
 
-                const messagesHtml = messages.map((msg: any) => {
+                const messagesHtml = messages.map((msg: Message) => {
                     const messageUserId = Number(msg.user_id);
                     const isViewingUser = messageUserId === viewingUserId;
                     console.log(`Message User ID: ${messageUserId}, Viewing User ID: ${viewingUserId}, isViewingUser: ${isViewingUser}`);
@@ -421,28 +422,22 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
       format: 'a4',
     });
 
-   
     try {
-  
       doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 300, 25, 40, 40); 
     } catch (e) {
       console.error('Failed to load NearbyTasks.png:', e);
-
     }
 
     try {
       doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 125, 23, 40, 40);
     } catch (e) {
       console.error('Failed to load Quanby.png:', e);
-
     }
-
 
     const title = 'User Conversations';
     doc.setFontSize(20);
     doc.text(title, 170, 52);
 
- 
     const columns = ['User No', 'Client Name', 'Tasker Name', 'Conversation', 'Task Created Date', 'Task Status'];
     const rows = this.displayConversations.map((convo) => [
       convo.user_id ?? '',

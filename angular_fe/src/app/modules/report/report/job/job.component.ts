@@ -7,6 +7,7 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
+import { SpecializationRank, MonthlyTrends, ChartSeries } from '../../../../../model/reportANDanalysis';
 
 @Component({
   selector: 'app-job',
@@ -16,9 +17,9 @@ import { saveAs } from 'file-saver';
   styleUrl: './job.component.css'
 })
 export class JobComponent implements OnInit {
-  rankedSpecializations: { specialization: string; total_requested: number; total_applied: number }[] = [];
-  monthlyTrends: { [key: string]: { [key: string]: number } } = {};
-  chartSeries: { name: string; data: number[] }[] = [];
+  rankedSpecializations: SpecializationRank[] = [];
+  monthlyTrends: MonthlyTrends = {};
+  chartSeries: ChartSeries[] = [];
   chartCategories: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   selectedMonth: string | null = null;
   months: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

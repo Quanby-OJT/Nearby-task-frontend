@@ -241,7 +241,7 @@
                 {{ report.status ? 'Processed' : 'Pending' }}
               </span>
             </td>
-            <td class="px-4 py-3 text-start"> {{ report.action_by ? report.actionBy.first_name + " " + report.actionBy.middle_name + " " + report.actionBy.last_name  : 'Empty' }} </td>
+            <td class="px-4 py-3 text-start"> {{ report.action_by ? report.action_by.first_name + " " + report.action_by.middle_name + " " + report.action_by.last_name  : 'Empty' }} </td>
           </tr>
 
           <tr *ngFor="let placeholder of placeholderRows">

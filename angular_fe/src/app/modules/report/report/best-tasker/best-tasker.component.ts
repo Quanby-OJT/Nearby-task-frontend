@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ReportService } from '../../../../services/reportANDanalysis.services';
 import { CommonModule } from '@angular/common';
+import { Tasker } from '../../../../../model/reportANDanalysis';
 
 @Component({
   selector: 'app-best-tasker',
@@ -9,9 +10,9 @@ import { CommonModule } from '@angular/common';
   styleUrl: './best-tasker.component.css'
 })
 export class BestTaskerComponent implements OnInit {
-  taskers: { userName: string; specialization: string; taskCount: number }[] = [];
-  filteredTaskers: { userName: string; specialization: string; taskCount: number }[] = [];
-  displayTaskers: { userName: string; specialization: string; taskCount: number }[] = [];
+  taskers: Tasker[] = [];
+  filteredTaskers: Tasker[] = [];
+  displayTaskers: Tasker[] = [];
   paginationButtons: (number | string)[] = [];
   taskersPerPage: number = 5;
   currentPage: number = 1;

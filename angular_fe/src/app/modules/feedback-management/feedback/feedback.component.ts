@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FeedbackService } from 'src/app/services/feedback.service';
+import { Feedback } from 'src/model/feedback'; // Import the Feedback model
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
@@ -14,9 +15,9 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
   styleUrl: './feedback.component.css'
 })
 export class FeedbackComponent implements OnInit {
-  feedbacks: any[] = [];
-  filteredFeedbacks: any[] = [];
-  displayFeedbacks: any[] = [];
+  feedbacks: Feedback[] = [];
+  filteredFeedbacks: Feedback[] = [];
+  displayFeedbacks: Feedback[] = [];
   currentSearchText: string = '';
   currentFilterType: string = '';
   logsPerPage: number = 5;
@@ -37,7 +38,7 @@ export class FeedbackComponent implements OnInit {
 
   ngOnInit(): void {
     this.feedbackService.getFeedback().subscribe(
-      (response: any) => {
+      (response: { feedbacks: Feedback[] }) => {
         console.log('Received feedback data:', response);
         this.feedbacks = response.feedbacks || [];
         this.filteredFeedbacks = [...this.feedbacks];
@@ -229,18 +230,15 @@ export class FeedbackComponent implements OnInit {
     });
 
     try {
-  
-      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', ' PNG', 325, 25, 40, 40); 
+      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 325, 25, 40, 40); 
     } catch (e) {
       console.error('Failed to load NearbyTasks.png:', e);
-
     }
 
     try {
       doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 125, 23, 40, 40);
     } catch (e) {
       console.error('Failed to load Quanby.png:', e);
-
     }
 
     const title = 'Feedback Management';

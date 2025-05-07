@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ReportService } from '../../../../services/reportANDanalysis.services';
 import { CommonModule } from '@angular/common';
+import { Client } from '../../../../../model/reportANDanalysis';
 
 @Component({
   selector: 'app-best-client',
@@ -9,9 +10,9 @@ import { CommonModule } from '@angular/common';
   styleUrl: './best-client.component.css'
 })
 export class BestClientComponent implements OnInit {
-  clients: { userName: string; address: string; taskCount: number; gender: string }[] = [];
-  filteredClients: { userName: string; address: string; taskCount: number; gender: string }[] = [];
-  displayClients: { userName: string; address: string; taskCount: number; gender: string }[] = [];
+  clients: Client[] = [];
+  filteredClients: Client[] = [];
+  displayClients: Client[] = [];
   paginationButtons: (number | string)[] = [];
   clientsPerPage: number = 5;
   currentPage: number = 1;
