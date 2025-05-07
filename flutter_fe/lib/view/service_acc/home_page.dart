@@ -21,6 +21,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
+import 'package:flutter_fe/view/verification/verification_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -435,19 +436,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         ),
                       ),
                       onTap: () {
-                        if (_user?.user.role.toLowerCase() == 'client') {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => FillUpClient()),
-                          );
-                        } else {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => FillUpTaskerLogin()),
-                          );
-                        }
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const VerificationPage()),
+                        );
                         overlayEntry.remove();
                       },
                     ),
