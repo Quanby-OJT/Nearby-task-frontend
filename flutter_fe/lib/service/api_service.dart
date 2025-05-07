@@ -34,8 +34,7 @@ class ApiService {
   }
 
   // Update tasker profile with PDF file
-  static Future<Map<String, dynamic>> updateTaskerWithFile(
-      UserModel user, File file) async {
+  static Future<Map<String, dynamic>> updateTaskerWithFile(UserModel user, File file) async {
     try {
       String token = await AuthService.getSessionToken();
 
@@ -1414,5 +1413,36 @@ class ApiService {
       "Accept": "application/json",
       if (_cookies.isNotEmpty) "Cookie": cookieHeader,
     };
+  }
+
+  static Future<Map<String, dynamic>> forgotPassword(String email) async {
+    try {
+      final response = await http.post(
+          Uri.parse("$apiUrl/forgot-password"),
+          headers: {"Content-Type": "application/json"},
+          body: json.encode({
+            "email": email
+          })
+      );
+
+      var responseData = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          "message": responseData["message"] ?? "Email verified successfully",
+          "user_id": responseData["user_id"]
+        };
+      } else {
+        return {
+          "error": responseData["error"] ?? "Something went wrong"
+        };
+      }
+    }catch(error, stackTrace){
+      debugPrint(error.toString());
+      debugPrintStack(stackTrace: stackTrace);
+      return {
+        "error": "An error occurred during email verification: $error"
+      };
+    }
   }
 }

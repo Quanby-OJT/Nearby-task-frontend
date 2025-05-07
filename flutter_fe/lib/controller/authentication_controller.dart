@@ -69,6 +69,25 @@ class AuthenticationController {
     }
   }
 
+  Future<void> forgotPassword(BuildContext context) async {
+    var response = await ApiService.forgotPassword(emailController.text);
+    if (response.containsKey('message')) {
+      String messageReset = response['message'];
+      _showStatusModal(
+        context: context,
+        isSuccess: true,
+          message: messageReset,
+      );
+    } else {
+      String errorMessage = response['error'] ?? "Unknown error occurred";
+      _showStatusModal(
+        context: context,
+        isSuccess: false,
+        message: errorMessage,
+      );
+    }
+  }
+
   Future<void> resetOTP(BuildContext context) async {
     var response = await ApiService.regenerateOTP(userId);
 
