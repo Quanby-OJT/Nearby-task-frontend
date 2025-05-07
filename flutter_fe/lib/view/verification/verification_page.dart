@@ -26,6 +26,7 @@ class _VerificationPageState extends State<VerificationPage> {
   bool _isIdVerified = false;
   bool _isSelfieVerified = false;
   bool _isDocumentsUploaded = false;
+  bool _isLoading = false;
 
   // User information
   Map<String, dynamic> _userInfo = {};
@@ -76,6 +77,15 @@ class _VerificationPageState extends State<VerificationPage> {
     setState(() {
       _userInfo = userInfo;
       _isGeneralInfoCompleted = true;
+
+      // Log the user info for debugging
+      debugPrint('VerificationPage: General info completed');
+      debugPrint('VerificationPage: User info: ${_userInfo.toString()}');
+
+      // Log the pay period and wage specifically
+      debugPrint('VerificationPage: Pay Period: ${_userInfo['payPeriod']}');
+      debugPrint('VerificationPage: Wage: ${_userInfo['wage']}');
+
       _navigateToNextPage();
     });
   }
@@ -129,8 +139,31 @@ class _VerificationPageState extends State<VerificationPage> {
 
   Future<void> _submitVerification() async {
     try {
+      // Show loading indicator
+      setState(() {
+        _isLoading = true;
+      });
+
+      // Prepare the verification data
+      Map<String, dynamic> verificationData = {
+        ..._userInfo,
+        'id_verified': _isIdVerified,
+        'selfie_verified': _isSelfieVerified,
+        'documents_uploaded': _isDocumentsUploaded,
+        'verification_status': 'pending',
+        'verification_date': DateTime.now().toIso8601String(),
+      };
+
+      // Log the verification data for debugging
+      debugPrint('VerificationPage: Submitting verification');
+      debugPrint('VerificationPage: Verification data: $verificationData');
+
       // Mock implementation - replace with actual API call
       await Future.delayed(const Duration(seconds: 2));
+
+      setState(() {
+        _isLoading = false;
+      });
 
       if (!mounted) return;
 
@@ -149,6 +182,10 @@ class _VerificationPageState extends State<VerificationPage> {
         if (mounted) Navigator.of(context).pop();
       });
     } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+
       debugPrint('Error submitting verification: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -174,35 +211,64 @@ class _VerificationPageState extends State<VerificationPage> {
           onPressed: _navigateToPreviousPage,
         ),
       ),
-      body: PageView(
-        controller: _pageController,
-        physics:
-            const NeverScrollableScrollPhysics(), // Prevent swiping between pages
-        onPageChanged: (index) {
-          setState(() {
-            _currentPageIndex = index;
-          });
-        },
+      body: Stack(
         children: [
-          // Page 1: General Information
-          GeneralInfoPage(
-            onInfoCompleted: _onGeneralInfoCompleted,
+          PageView(
+            controller: _pageController,
+            physics:
+                const NeverScrollableScrollPhysics(), // Prevent swiping between pages
+            onPageChanged: (index) {
+              setState(() {
+                _currentPageIndex = index;
+              });
+            },
+            children: [
+              // Page 1: General Information
+              GeneralInfoPage(
+                onInfoCompleted: _onGeneralInfoCompleted,
+              ),
+
+              // Page 2: ID Verification
+              IdVerificationPage(
+                onIdVerified: _onIdVerified,
+              ),
+
+              // Page 3: Selfie Verification
+              SelfieVerificationPage(
+                onSelfieVerified: _onSelfieVerified,
+              ),
+
+              // Page 4: Document Upload (Optional)
+              DocumentUploadPage(
+                onDocumentUploaded: _onDocumentUploaded,
+              ),
+            ],
           ),
 
-          // Page 2: ID Verification
-          IdVerificationPage(
-            onIdVerified: _onIdVerified,
-          ),
-
-          // Page 3: Selfie Verification
-          SelfieVerificationPage(
-            onSelfieVerified: _onSelfieVerified,
-          ),
-
-          // Page 4: Document Upload (Optional)
-          DocumentUploadPage(
-            onDocumentUploaded: _onDocumentUploaded,
-          ),
+          // Loading overlay
+          if (_isLoading)
+            Container(
+              color: Colors.black54,
+              child: const Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(
+                      color: Colors.white,
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'Submitting verification...',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );
