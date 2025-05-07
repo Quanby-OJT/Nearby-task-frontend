@@ -13,6 +13,7 @@ class AuthenticationController {
   static const String apiUrl = "http://192.168.20.48:5000/connect";
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
   final TextEditingController otpController = TextEditingController();
 
   ProfileController profileController = ProfileController();
@@ -71,6 +72,29 @@ class AuthenticationController {
 
   Future<void> forgotPassword(BuildContext context) async {
     var response = await ApiService.forgotPassword(emailController.text);
+    if (response.containsKey('message')) {
+      String messageReset = response['message'];
+      _showStatusModal(
+        context: context,
+        isSuccess: true,
+          message: messageReset,
+      );
+    } else {
+      String errorMessage = response['error'] ?? "Unknown error occurred";
+      _showStatusModal(
+        context: context,
+        isSuccess: false,
+        message: errorMessage,
+      );
+    }
+  }
+
+  Future<void> resetPassword(BuildContext context) async {
+    String email = ""; //Temporary email. Will be replaced using a deep link
+    var response = await ApiService.resetPassword(
+      email,
+      passwordController.text,
+    );
     if (response.containsKey('message')) {
       String messageReset = response['message'];
       _showStatusModal(

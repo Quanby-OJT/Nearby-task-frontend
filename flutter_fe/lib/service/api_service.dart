@@ -1417,32 +1417,68 @@ class ApiService {
 
   static Future<Map<String, dynamic>> forgotPassword(String email) async {
     try {
-      final response = await http.post(
-          Uri.parse("$apiUrl/forgot-password"),
-          headers: {"Content-Type": "application/json"},
-          body: json.encode({
-            "email": email
-          })
-      );
-
-      var responseData = json.decode(response.body);
-
-      if (response.statusCode == 200) {
-        return {
-          "message": responseData["message"] ?? "Email verified successfully",
-          "user_id": responseData["user_id"]
-        };
-      } else {
-        return {
-          "error": responseData["error"] ?? "Something went wrong"
-        };
-      }
+      return await _postRequest(endpoint: "/forgot-password", body: {"email": email});
     }catch(error, stackTrace){
       debugPrint(error.toString());
       debugPrintStack(stackTrace: stackTrace);
       return {
         "error": "An error occurred during email verification: $error"
       };
+    }
+  }
+
+  static Future<Map<String, dynamic>> resetPassword(String email, String password) async{
+    try {
+      return await _postRequest(endpoint: "/reset-password", body: {"email": email, "password": password});
+      }catch(error, stackTrace){
+        debugPrint(error.toString());
+        debugPrintStack(stackTrace: stackTrace);
+        return {
+          "error": "An error occurred during email verification: $error"
+        };
+    }
+  }
+
+  Future<Map<String, dynamic>> _putRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$url$endpoint'),
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: jsonEncode(body),
+      );
+      return _handleResponse(response);
+    } catch (e, stackTrace) {
+      debugPrint(e.toString());
+      debugPrint(stackTrace.toString());
+      return {"error": "Request failed. Please Try Again."};
+    }
+  }
+
+  static Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
+    final response = await http.post(Uri.parse("$url$endpoint"),
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: jsonEncode(body));
+
+    return _handleResponse(response);
+  }
+
+  static Map<String, dynamic> _handleResponse(http.Response response) {
+    try {
+      final responseBody = jsonDecode(response.body);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return responseBody;
+      } else {
+        debugPrint("API Error Response: $responseBody");
+        return {"error": responseBody["error"] ?? "Unknown error"};
+      }
+    } catch (e) {
+      debugPrint("Error parsing response: $e");
+      return {"error": "Failed to parse response: $e"};
     }
   }
 }

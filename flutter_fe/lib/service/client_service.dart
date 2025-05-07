@@ -16,8 +16,7 @@ class ClientServices {
   static final token = storage.read('session');
   Future<String?> getUserId() async => storage.read('user_id')?.toString();
 
-  Future<Map<String, dynamic>> _postRequest(
-      {required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
     final response = await http.post(Uri.parse("$url$endpoint"),
         headers: {
           "Authorization": "Bearer $token",
