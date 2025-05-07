@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/service/philippines_location_service.dart';
+import 'package:flutter_fe/controller/profile_controller.dart';
+import 'package:flutter_fe/model/auth_user.dart';
 
 class GeneralInfoPage extends StatefulWidget {
   final Function(Map<String, dynamic> userInfo) onInfoCompleted;
@@ -19,6 +21,7 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
   final GetStorage storage = GetStorage();
   final PhilippineLocationService _locationService =
       PhilippineLocationService();
+  final ProfileController _profileController = ProfileController();
 
   // Text controllers
   final TextEditingController _firstNameController = TextEditingController();
@@ -131,13 +134,55 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
     try {
       setState(() => _isLoading = true);
 
-      // Load data from storage if available
-      final String? firstName = storage.read('first_name');
-      final String? lastName = storage.read('last_name');
-      final String? email = storage.read('email');
-      final String? phone = storage.read('phone');
+      // Get user ID from storage
+      final userId = storage.read('user_id');
+      if (userId != null) {
+        // Fetch authenticated user data from API
+        final AuthenticatedUser? authUser = await _profileController
+            .getAuthenticatedUser(context, int.parse(userId.toString()));
 
-      // Add handling for region data that might be stored
+        if (authUser != null) {
+          // Populate form fields with user data
+          setState(() {
+            _firstNameController.text = authUser.user.firstName;
+            _lastNameController.text = authUser.user.lastName;
+
+            if (authUser.user.middleName != null &&
+                authUser.user.middleName!.isNotEmpty) {
+              _middleNameController.text = authUser.user.middleName!;
+            }
+
+            _emailController.text = authUser.user.email;
+
+            if (authUser.user.contact != null &&
+                authUser.user.contact!.isNotEmpty) {
+              _phoneController.text = authUser.user.contact!;
+            }
+
+            // Set gender if available
+            if (authUser.user.gender != null &&
+                authUser.user.gender!.isNotEmpty) {
+              _gender = authUser.user.gender;
+            }
+
+            // Set birthdate if available
+            if (authUser.user.birthdate != null &&
+                authUser.user.birthdate!.isNotEmpty) {
+              try {
+                final DateTime parsedDate =
+                    DateTime.parse(authUser.user.birthdate!);
+                _birthdate = parsedDate;
+                _birthdateController.text =
+                    DateFormat('MM/dd/yyyy').format(parsedDate);
+              } catch (e) {
+                debugPrint('Error parsing birthdate: $e');
+              }
+            }
+          });
+        }
+      }
+
+      // Load region data that might be stored
       final dynamic regionData = storage.read('region');
       if (regionData != null) {
         // Handle case where regionData might be a string instead of a map
@@ -170,11 +215,6 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
           }
         }
       }
-
-      if (firstName != null) _firstNameController.text = firstName;
-      if (lastName != null) _lastNameController.text = lastName;
-      if (email != null) _emailController.text = email;
-      if (phone != null) _phoneController.text = phone;
     } catch (e) {
       debugPrint('Error loading user data: $e');
     } finally {
