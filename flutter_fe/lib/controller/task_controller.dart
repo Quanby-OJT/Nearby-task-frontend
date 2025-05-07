@@ -114,8 +114,7 @@ class TaskController {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          content: Text(clientTask['error'] ??
-              "Something Went Wrong while Retrieving Your Tasks.")),
+          content: Text(clientTask['error'] ?? "Something Went Wrong while Retrieving Your Tasks.")),
     );
     return [];
   }
@@ -275,100 +274,107 @@ class TaskController {
   }
 
   //All Messages to client/tasker
-  Future<List<TaskAssignment>> getAllAssignedTasks(
-      BuildContext context, int userId) async {
-    final assignedTasks = await TaskDetailsService().getAllTakenTasks();
-    debugPrint(assignedTasks.toString());
+  Future<List<TaskAssignment>> getAllAssignedTasks(BuildContext context, int userId) async {
+    try{
+      final assignedTasks = await TaskDetailsService().getAllTakenTasks();
+      debugPrint("All Assigned Tasks: $assignedTasks");
 
-    if (assignedTasks.containsKey('data') && assignedTasks['data'] != null) {
-      List<dynamic> dataList = assignedTasks['data'] as List<dynamic>;
-      List<TaskAssignment> taskAssignments = dataList.map((item) {
-        // Parse tasks from post_task
-        Map<String, dynamic> taskData = item['post_task'] as Map<String, dynamic>;
-        int taskTakenId = item['task_taken_id'];
-        TaskModel task = TaskModel(
-          title: taskData['task_title'] as String,
-          clientId: null,
-          specialization: '',
-          description: '',
-          location: '',
-          period: '',
-          duration: '',
-          urgency: '',
-          status: '',
-          contactPrice: 0,
-          remarks: null,
-          taskBeginDate: '',
-          workType: '',
-          id: taskData[
-              'task_id'], // Use taskTakenId here if it's meant to be the task's ID
-
-          //id: taskData['task_id'], // Use taskTakenId here if it's meant to be the task's ID
-        );
-
-        Map<String, dynamic> clientData = item['clients'] as Map<String, dynamic>;
-        Map<String, dynamic> clientUserData = clientData['user'] as Map<String, dynamic>;
-        UserModel clientUser = UserModel(
-          firstName: clientUserData['first_name'] as String? ?? '',
-          middleName: clientUserData['middle_name'] as String? ?? '',
-          lastName: clientUserData['last_name'] as String? ?? '',
-          email: '',
-          role: '',
-          accStatus: '',
-          imageName: clientUserData['image_link'] as String ?? ''
-        );
-        ClientModel client = ClientModel(
-          preferences: '',
-          clientAddress: '',
-          user: clientUser,
-        );
-
-        // Parse tasker and its user
-        Map<String, dynamic> taskerData = item['tasker'] != null
-            ? item['tasker'] as Map<String, dynamic>
-            : {};
-        Map<String, dynamic> taskerUserData = taskerData['user'] as Map<String, dynamic>;
-        UserModel taskerUser = UserModel(
-          firstName: taskerUserData['first_name'] as String? ?? '',
-          middleName: taskerUserData['middle_name'] as String? ?? '',
-          lastName: taskerUserData['last_name'] as String? ?? '',
-          email: '',
-          role: '',
-          accStatus: '',
-          imageName: taskerUserData['image_link'] as String
-        );
-        TaskerModel tasker = TaskerModel(
-            id: 0,
-            bio: '',
+      if (assignedTasks.containsKey('data') && assignedTasks['data'] != null) {
+        List<dynamic> dataList = assignedTasks['data'] as List<dynamic>;
+        List<TaskAssignment> taskAssignments = dataList.map((item) {
+          // Parse tasks from post_task
+          Map<String, dynamic> taskData =
+              item['post_task'] as Map<String, dynamic>;
+          int taskTakenId = item['task_taken_id'];
+          TaskModel task = TaskModel(
+            title: taskData['task_title'] as String,
+            clientId: null,
             specialization: '',
-            skills: '',
-            availability: false,
-            wage: 0.0,
-            payPeriod: '',
-            birthDate: DateTime.now(),
-            group: false,
-            user: taskerUser,
-            rating: 0);
+            description: '',
+            location: '',
+            period: '',
+            duration: '',
+            urgency: '',
+            status: '',
+            contactPrice: 0,
+            remarks: null,
+            taskBeginDate: '',
+            workType: '',
+            id: taskData[
+                'task_id'], // Use taskTakenId here if it's meant to be the task's ID
 
-        // Create TaskAssignment with the correct taskTakenId
-        TaskAssignment assignment = TaskAssignment(
-          client: client,
-          tasker: tasker,
-          task: task,
-          taskTakenId: taskTakenId, // Use the root-level task_taken_id
-          taskStatus: item['task_status'] as String,
-          unreadCount: item['unread_count']
+            //id: taskData['task_id'], // Use taskTakenId here if it's meant to be the task's ID
+          );
+
+          Map<String, dynamic> clientData =
+              item['clients'] as Map<String, dynamic>;
+          Map<String, dynamic> clientUserData =
+              clientData['user'] as Map<String, dynamic>;
+          UserModel clientUser = UserModel(
+              firstName: clientUserData['first_name'] as String? ?? '',
+              middleName: clientUserData['middle_name'] as String? ?? '',
+              lastName: clientUserData['last_name'] as String? ?? '',
+              email: '',
+              role: '',
+              accStatus: '',
+              imageName: clientUserData['image_link'] as String ?? '');
+          ClientModel client = ClientModel(
+            id: item['client_id'],
+            preferences: '',
+            clientAddress: '',
+            user: clientUser,
+          );
+
+          // Parse tasker and its user
+          Map<String, dynamic> taskerData = item['tasker'] != null
+              ? item['tasker'] as Map<String, dynamic>
+              : {};
+          Map<String, dynamic> taskerUserData =
+              taskerData['user'] as Map<String, dynamic>;
+          UserModel taskerUser = UserModel(
+              firstName: taskerUserData['first_name'] as String? ?? '',
+              middleName: taskerUserData['middle_name'] as String? ?? '',
+              lastName: taskerUserData['last_name'] as String? ?? '',
+              email: '',
+              role: '',
+              accStatus: '',
+              imageName: taskerUserData['image_link'] as String);
+          TaskerModel tasker = TaskerModel(
+              id: item['tasker_id'],
+              bio: '',
+              specialization: '',
+              skills: '',
+              availability: false,
+              wage: 0.0,
+              payPeriod: '',
+              birthDate: DateTime.now(),
+              group: false,
+              user: taskerUser,
+              rating: 0);
+
+          // Create TaskAssignment with the correct taskTakenId
+          TaskAssignment assignment = TaskAssignment(
+              client: client,
+              tasker: tasker,
+              task: task,
+              taskTakenId: taskTakenId,
+              // Use the root-level task_taken_id
+              taskStatus: item['task_status'] as String,
+              unreadCount: item['unread_count']);
+          debugPrint(assignment.toString()); // Verify the full object
+          return assignment;
+        }).toList();
+        return taskAssignments;
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(assignedTasks['error'] ?? "Something Went Wrong while Retrieving Your Tasks.")),
         );
-        debugPrint(assignment.toString()); // Verify the full object
-        return assignment;
-      }).toList();
-      return taskAssignments;
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(assignedTasks['error'] ??
-                "Something Went Wrong while Retrieving Your Tasks.")),
-      );
+        return [];
+      }
+    }catch(e, stackTrace){
+      debugPrint("Error fetching assigned tasks: $e");
+      debugPrintStack(stackTrace: stackTrace);
       return [];
     }
   }

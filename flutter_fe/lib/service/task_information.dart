@@ -107,9 +107,15 @@ class TaskDetailsService {
   }
 
   //Client/Tasker Conversation
-  static Future<Map<String, dynamic>> sendMessage(Conversation conversation) async {
+  Future<Map<String, dynamic>> sendMessage(Conversation conversation) async {
     try {
-      return await _postRequest(endpoint: "/send-message", body: conversation.toJson());
+      debugPrint("Current User Role: ${storage.read('role')}");
+      return await _postRequest(
+          endpoint: "/send-message", 
+          body: {
+            ...conversation.toJson(),
+            'role': storage.read('role')
+          });
     } catch (e) {
       debugPrint(e.toString());
       debugPrintStack();

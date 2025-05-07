@@ -1,18 +1,21 @@
 import 'package:flutter_fe/model/user_model.dart';
 
 class ClientModel {
+  final int? id;
   final String preferences;
   final String clientAddress;
   final double amount;
   final double rating;
   UserModel? user;
 
-  ClientModel(
-      {required this.preferences,
-      required this.clientAddress,
-      this.user,
-      this.amount = 0,
-      this.rating = 0});
+  ClientModel({
+    required this.id,
+    required this.preferences,
+    required this.clientAddress,
+    this.user,
+    this.amount = 0,
+    this.rating = 0
+  });
 
   @override
   String toString() {
@@ -21,6 +24,7 @@ class ClientModel {
 
   Map<String, dynamic> toJson() {
     return {
+      "client_id": id,
       "preferences": preferences,
       "client_address": clientAddress,
       "amount": amount,
@@ -30,6 +34,7 @@ class ClientModel {
 
   factory ClientModel.fromJson(Map<String, dynamic> json) {
     return ClientModel(
+      id: json['client_id'] as int?,
       preferences: json['preferences'] as String,
       clientAddress: json['client_address'] as String,
       amount: (json['amount'] is int

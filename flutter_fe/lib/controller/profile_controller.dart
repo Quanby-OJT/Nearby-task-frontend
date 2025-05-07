@@ -1312,6 +1312,7 @@ class ProfileController {
 
     if (role == 'Client') {
       ClientModel client = ClientModel(
+        id: 0,
         preferences: prefsController.text,
         clientAddress: clientAddressController.text,
       );

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
@@ -10,9 +11,11 @@ import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get/get_connect/sockets/src/socket_notifier.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 import '../../controller/conversation_controller.dart';
 
@@ -29,8 +32,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final GetStorage storage = GetStorage();
   final TaskController _taskController = TaskController();
   final ReportController reportController = ReportController();
-  final ConversationController conversationController =
-      ConversationController();
+  final ConversationController conversationController = ConversationController();
 
   final ProfileController _profileController = ProfileController();
   final ClientServices _clientServices = ClientServices();
@@ -38,6 +40,8 @@ class _ChatScreenState extends State<ChatScreen> {
   int? cardNumber = 0;
   bool _isUploadDialogShown = false;
   bool _isLoading = true;
+  bool _isRead = false;
+  IO.Socket? socket;
 
   AuthenticatedUser? _user;
   String? _existingProfileImageUrl;
@@ -54,6 +58,33 @@ class _ChatScreenState extends State<ChatScreen> {
     _fetchUserIDImage();
     _fetchReportHistory();
     conversationController.searchConversation.addListener(filterMessages);
+
+    socket = IO.io('http://10.0.2.2:5000', <String, dynamic>{
+      'transports': ['websocket'],
+      'autoConnect': true,
+    });
+
+    socket?.on('new_message', (data) {
+      if(data['user_id'] != storage.read('user_id')){
+        setState(() {
+          _fetchTaskAssignments();
+        });
+      }
+    });
+
+    socket?.on('message_read', (data) {
+      _fetchTaskAssignments();
+      setState(() {}); // Force UI rebuild
+    });
+  }
+
+  @override
+  void dispose() {
+    reportController.reasonController.dispose();
+    conversationController.searchConversation.dispose();
+    _selectedReportCategory = null;
+    super.dispose();
+    socket?.disconnect();
   }
 
   void filterMessages() {
@@ -76,8 +107,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _fetchTaskAssignments() async {
     int userId = storage.read('user_id');
-    List<TaskAssignment?> fetchedAssignments =
-        await _taskController.getAllAssignedTasks(context, userId);
+    List<TaskAssignment?> fetchedAssignments = await _taskController.getAllAssignedTasks(context, userId);
     if (mounted) {
       setState(() {
         taskAssignments = fetchedAssignments;
@@ -622,14 +652,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   @override
-  void dispose() {
-    reportController.reasonController.dispose();
-    conversationController.searchConversation.dispose();
-    _selectedReportCategory = null;
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Colors.white,
@@ -682,11 +704,11 @@ class _ChatScreenState extends State<ChatScreen> {
                           size: 100,
                           color: Color(0xFF0272B1),
                         ),
-                        SizedBox(height: 16),
+                        SizedBox(height: 10),
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 20),
                           child: Text(
-                            "No messages yet. Check notifications for client requests or await client task acceptance.",
+                            "You don't have messages yet. Check your task requests to accept a tasker, or wait for them to accept your task.",
                             textAlign: TextAlign.center,
                             style: TextStyle(fontSize: 16),
                           ),
@@ -758,7 +780,6 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   )
                 : Column(children: [
-
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20),
                       child: TextField(
@@ -829,11 +850,15 @@ class _ChatScreenState extends State<ChatScreen> {
                                           if (taskAssignment == null) {
                                             return SizedBox.shrink();
                                           } else {
-                                            return conversationCard(
-                                                taskAssignment);
+                                            return conversationCard(taskAssignment);
                                           }
-                                        })))
-                  ]));
+                                        }
+                                        )
+                        )
+                    )
+                  ]
+        )
+    );
   }
 
   void showMessageOptions(BuildContext context, int taskTakenId) {
@@ -876,7 +901,13 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget conversationCard(TaskAssignment taskTaken) {
-    final unread = taskTaken.unreadCount > 0;
+    final currentUserId = storage.read('user_id');
+    final role = storage.read('role');
+    final bool isOwnerOfMessage = currentUserId == taskTaken.client?.user?.id;
+    final bool unread = taskTaken.unreadCount > 0;
+    final bool isRead = taskTaken.unreadCount == 0;
+    final user = role == 'Tasker' ? taskTaken.client?.user : taskTaken.tasker?.user;
+
     return Container(
       margin: EdgeInsets.only(bottom: 12),
       child: InkWell(
@@ -897,72 +928,88 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Padding(
           padding: EdgeInsets.all(16),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CircleAvatar(
                 radius: 24,
-                backgroundImage: taskTaken.tasker?.user?.imageName != null
-                    ? NetworkImage(taskTaken.tasker!.user!.imageName!)
+                backgroundImage: user?.imageName != null
+                    ? NetworkImage(user!.imageName!)
                     : null,
-                child: taskTaken.tasker?.user?.imageName == null
+                child: user?.imageName == null
                     ? Icon(FontAwesomeIcons.user, size: 30)
                     : null,
               ),
-              SizedBox(width: 10,),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    width: MediaQuery.of(context).size.width * 0.6,
-                    child: Text(
-                      taskTaken.task?.title ?? '',
-                      style: GoogleFonts.montserrat(
-                        color: Color(0xFF0272B1),
-                        fontWeight: FontWeight.w600,
-                        fontSize: 18,
+              SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      child: Text(
+                        taskTaken.task?.title ?? '',
+                        style: GoogleFonts.montserrat(
+                          color: Color(0xFF0272B1),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 18,
+                        ),
                       ),
                     ),
-                  ),
-                  SizedBox(height: 8),
-                  Row(
+                    SizedBox(height: 8),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          FontAwesomeIcons.screwdriverWrench,
-                          color: Color(0xFF0272B1),
-                          size: 16,
-                        ),
+                      if(isOwnerOfMessage) // Check mark for owner
+                        if(isRead) // Read state (0 unread)
+                          readIconMarker(FontAwesomeIcons.checkDouble, Colors.green)
+                        else // Unread state (>0 unread)
+                          readIconMarker(FontAwesomeIcons.check, Colors.green),
+                        if(!isOwnerOfMessage && unread) // No check if non-owner and unread
+                          SizedBox.shrink(), // Or a loading indicator/clock icon if desired
                         SizedBox(width: 4),
-                        Text(
-                          "${taskTaken.tasker?.user?.firstName} ${taskTaken.tasker?.user?.middleName} ${taskTaken.tasker?.user?.lastName}",
-                          style: GoogleFonts.poppins(
-                              fontWeight: unread ? FontWeight.bold : FontWeight.normal
+                        Expanded(
+                          child: Text(
+                            "${user?.firstName} ${user?.middleName} ${user?.lastName}",
+                            style: GoogleFonts.poppins(
+                                fontWeight: unread && isOwnerOfMessage ? FontWeight.bold : FontWeight.normal
+                            ),
                           ),
-                        )
-                      ]
-                  )
-                ],
-              ),
-              Spacer(),
-                 if(unread)
-                  Padding(
-
-                    padding: EdgeInsets.only(right: 10),
-                    child: CircleAvatar(
-                      radius: 10,
-                      backgroundColor: Colors.redAccent,
-                      child: Text(
-                        taskTaken.unreadCount.toString(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
                         ),
-                      )
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              if(unread && !isOwnerOfMessage)
+                Align(
+                  alignment: Alignment.centerRight, // Align to the right within the row
+                  child: CircleAvatar(
+                    radius: 10,
+                    backgroundColor: Colors.redAccent,
+                    child: Text(
+                      taskTaken.unreadCount.toString(),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     )
-                  )
-            ]
-
-          )
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-      ),
+    );
+  }
+
+  Widget readIconMarker(IconData icon, Color color){
+    return Padding(
+        padding: EdgeInsets.only(right: 10),
+        child: Icon(
+          icon,
+          color: color, // Single check for sent but not necessarily read
+          size: 16,
+        )
     );
   }
 }

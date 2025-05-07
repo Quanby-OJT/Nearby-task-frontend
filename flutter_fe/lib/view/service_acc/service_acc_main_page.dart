@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/view/service_acc/chat_screen.dart';
+import 'package:flutter_fe/view/chat/chat_screen.dart';
 import 'package:flutter_fe/view/service_acc/home_page.dart';
 import 'package:flutter_fe/view/service_acc/like_screen.dart';
 import 'package:flutter_fe/view/service_acc/record.dart';

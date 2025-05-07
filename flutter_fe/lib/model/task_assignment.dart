@@ -11,6 +11,7 @@ class TaskAssignment{
   final String taskStatus;
   final String? taskStatusReason;
   int unreadCount;
+  int messageSentById;
 
   TaskAssignment({
     this.client,
@@ -19,7 +20,8 @@ class TaskAssignment{
     required this.taskTakenId,
     required this.taskStatus,
     this.taskStatusReason,
-    this.unreadCount = 0
+    this.unreadCount = 0,
+    this.messageSentById = 0,
   });
 
   @override
@@ -37,6 +39,7 @@ class TaskAssignment{
       taskTakenId: json['task_taken_id'],
       taskStatusReason: json['reason_for_rejection_or_cancellation'],
       unreadCount: json['unread_count'] ?? 0,
+      messageSentById: json['last_message_id'] ?? 0,
     );
   }
 }
