@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
+import 'package:flutter_fe/controller/job_post_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/specialization.dart';
@@ -36,6 +37,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   final ProfileController _profileController = ProfileController();
   final AuthenticationController _authController = AuthenticationController();
   final JobPostService jobPostService = JobPostService();
+  final JobPostController jobPostController = JobPostController();
 
   AuthenticatedUser? _user;
   String _fullName = "Loading...";
@@ -220,13 +222,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         _isLoading = true;
       });
 
-      List<TaskModel> fetchedTasks;
-      if (_selectedCategory == null || _selectedCategory == 'All') {
-        fetchedTasks = await jobPostService.fetchAllJobs();
-      } else {
-        fetchedTasks =
-            await jobPostService.fetchJobsBySpecialization(_selectedCategory!);
-      }
+      List<TaskModel> fetchedTasks = await jobPostController.fetchAllJobs();
 
       setState(() {
         tasks = fetchedTasks;
@@ -712,7 +708,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       body: Stack(
         children: [
           if (_isLoading || _isCategoriesLoading)
-            Center(child: CustomLoading())
+            Center(child: CircularProgressIndicator())
           else if (tasks.isEmpty)
             Center(
               child: Column(

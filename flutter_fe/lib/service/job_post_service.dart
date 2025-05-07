@@ -405,7 +405,7 @@ class JobPostService {
       }
 
       final likedJobsResponse = await _getRequest("/displayLikedJob/$userId");
-      final allJobsResponse = await _getRequest("/displayTask");
+      final allJobsResponse = await _getRequest("/fetchAllTasks");
 
       debugPrint("Liked Jobs Response: $likedJobsResponse");
       debugPrint("All Jobs Response: $allJobsResponse");
@@ -434,9 +434,8 @@ class JobPostService {
   }
 
   Future<Map<String, dynamic>> saveLikedJob(int jobId) async {
-    // debugPrint(jobId.toString());
     final userId = await getUserId();
-    // debugPrint(userId);
+
     if (userId == null) {
       return {
         'success': false,
