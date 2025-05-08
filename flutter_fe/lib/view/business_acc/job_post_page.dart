@@ -60,24 +60,28 @@ class _JobPostPageState extends State<JobPostPage>
   final List<String> _tabStatuses = [
     "All",
     "Available",
-    "Already Taken",
-    "Closed",
-    "On Hold",
-    "Reported"
+    "Task Taken",
+    "More Filter"
   ];
   late TabController _tabController;
-  int _selectedTabIndex = 0;
+  String? _currentFilter;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _tabStatuses.length, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         setState(() {
-          _selectedTabIndex = _tabController.index;
+          if (_tabController.index == 0) {
+            _currentFilter = null; // All
+          } else if (_tabController.index == 1) {
+            _currentFilter = "Available";
+          } else if (_tabController.index == 2) {
+            _currentFilter = "Already Taken";
+          }
+          _filterTasks();
         });
-        _filterTasks();
       }
     });
     fetchSpecialization();
@@ -164,8 +168,6 @@ class _JobPostPageState extends State<JobPostPage>
 
   void _filterTasks() {
     String query = _searchController.text.trim().toLowerCase();
-    String? statusFilter =
-        _selectedTabIndex == 0 ? null : _tabStatuses[_selectedTabIndex];
     setState(() {
       _filteredTasks = clientTasks.where((task) {
         if (task == null) return false;
@@ -173,7 +175,7 @@ class _JobPostPageState extends State<JobPostPage>
             (task.title.toLowerCase().contains(query) ?? false) ||
                 (task.description.toLowerCase().contains(query) ?? false);
         bool matchesStatus =
-            statusFilter == null || task.status == statusFilter;
+            _currentFilter == null || task.status == _currentFilter;
         return matchesSearch && matchesStatus;
       }).toList();
     });
@@ -648,6 +650,90 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
+  void _showFilterModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.3,
+        minChildSize: 0.3,
+        maxChildSize: 0.3,
+        expand: false,
+        builder: (context, scrollController) => SingleChildScrollView(
+          controller: scrollController,
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2.5),
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Filter Tasks',
+                style: GoogleFonts.montserrat(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF0272B1),
+                ),
+              ),
+              SizedBox(height: 16),
+              RadioListTile<String>(
+                title:
+                    Text('Closed', style: GoogleFonts.montserrat(fontSize: 14)),
+                value: 'Closed',
+                groupValue: _currentFilter,
+                onChanged: (value) {
+                  setState(() {
+                    _currentFilter = value;
+                    _filterTasks();
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              RadioListTile<String>(
+                title: Text('On Hold',
+                    style: GoogleFonts.montserrat(fontSize: 14)),
+                value: 'On Hold',
+                groupValue: _currentFilter,
+                onChanged: (value) {
+                  setState(() {
+                    _currentFilter = value;
+                    _filterTasks();
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              RadioListTile<String>(
+                title: Text('Reported',
+                    style: GoogleFonts.montserrat(fontSize: 14)),
+                value: 'Reported',
+                groupValue: _currentFilter,
+                onChanged: (value) {
+                  setState(() {
+                    _currentFilter = value;
+                    _filterTasks();
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -888,34 +974,57 @@ class _JobPostPageState extends State<JobPostPage>
                       isScrollable: false,
                       padding: EdgeInsets.symmetric(horizontal: 20),
                       indicatorColor: Color(0xFF0272B1),
-                      indicatorSize: TabBarIndicatorSize
-                          .tab, // Ensures the underline spans the full tab width
-                      indicatorWeight:
-                          3.0, // Maintains the thickness of the line
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      indicatorWeight: 3.0,
                       labelColor: Colors.black,
                       unselectedLabelColor: Colors.black,
                       labelStyle: TextStyle(fontWeight: FontWeight.bold),
                       unselectedLabelStyle:
                           TextStyle(fontWeight: FontWeight.normal),
-                      tabs: _tabStatuses.asMap().entries.map((entry) {
-                        int index = entry.key;
-                        String status = entry.value;
-                        bool isSelected = index == _selectedTabIndex;
+                      onTap: (index) {
+                        if (index == 3) {
+                          _showFilterModal();
+                        } else {
+                          setState(() {
+                            if (index == 0)
+                              _currentFilter = null;
+                            else if (index == 1)
+                              _currentFilter = "Available";
+                            else if (index == 2)
+                              _currentFilter = "Already Taken";
+                            _filterTasks();
+                          });
+                        }
+                      },
+                      tabs: _tabStatuses.map((status) {
                         return Tab(
                           child: SizedBox(
                             width: 90,
                             child: Center(
-                              child: Text(
-                                status,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: isSelected
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                                ),
-                                softWrap: false,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                              child: status == "More Filter"
+                                  ? Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          status,
+                                          style: TextStyle(fontSize: 12),
+                                          softWrap: false,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Icon(
+                                          Icons.arrow_drop_down,
+                                          size: 16,
+                                          color: Colors.black,
+                                        ),
+                                      ],
+                                    )
+                                  : Text(
+                                      status,
+                                      style: TextStyle(fontSize: 12),
+                                      softWrap: false,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                             ),
                           ),
                         );
