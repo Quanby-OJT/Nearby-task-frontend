@@ -1017,7 +1017,7 @@ class _JobPostPageState extends State<JobPostPage>
     String priceDisplay = "${task.contactPrice} Credits";
 
     return Card(
-      elevation: 2,
+      elevation: 0.2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       color: Colors.white,
       margin: EdgeInsets.only(bottom: 12),
