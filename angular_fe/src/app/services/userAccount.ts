@@ -4,7 +4,6 @@ import { catchError, Observable, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { SessionLocalStorage } from 'src/services/sessionStorage';
 
-// Interface for document response
 interface DocumentResponse {
   url: string;
   filename: string;
@@ -55,7 +54,6 @@ export class UserAccountService {
     });
   }
 
-  //Change Route To Handle Moderator and Admin Request and no Email Verification
   getUserById(userID: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/getAuthorityUserData/${userID}`, {
       headers: this.getHeaders(),
@@ -70,7 +68,6 @@ export class UserAccountService {
     });
   }
 
-  // This is for the User Account Update
   updateUserAccount(userID: number, userData: FormData): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/updateAuthorityUser/${userID}`, userData, {
       headers: this.getHeaders(),
@@ -113,16 +110,43 @@ export class UserAccountService {
     });
   }
 
-  // New methods for forgot password - Modified to remove headers and withCredentials
+  updatePassword(email: string, newPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/update-password`, { email, newPassword }, {
+      headers: this.getHeaders(),
+      withCredentials: true
+    });
+  }
+
   sendOtp(email: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/forgot-password/send-otp`, { email });
+    return this.http.post(`${this.apiUrl}/authority/forgot-password/send-otp`, { email });
   }
 
   verifyOtp(email: string, otp: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/forgot-password/verify-otp`, { email, otp });
+    return this.http.post(`${this.apiUrl}/authority/forgot-password/verify-otp`, { email, otp });
   }
 
   resetPassword(email: string, newPassword: string, confirmPassword: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/forgot-password/reset-password`, { email, newPassword, confirmPassword });
+    return this.http.post(`${this.apiUrl}/authority/forgot-password/reset-password`, { email, newPassword, confirmPassword });
+  }
+
+  addAddress(addressData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/add-address`, addressData, {
+      headers: this.getHeaders(),
+      withCredentials: true
+    });
+  }
+
+  updateAddress(addressId: string, addressData: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/update-address/${addressId}`, addressData, {
+      headers: this.getHeaders(),
+      withCredentials: true
+    });
+  }
+
+  getAddresses(userId: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/get-addresses/${userId}`, {
+      headers: this.getHeaders(),
+      withCredentials: true
+    });
   }
 }

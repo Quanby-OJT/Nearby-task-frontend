@@ -2,22 +2,26 @@
   <div>
     <h3 class="text-foreground font-semibold">Payment Reviews</h3>
     <div class="text-muted-foreground text-xs font-medium">
-      <a href="#" class="hover:text-primary">Dashboards > Payment Reviews</a>
+      <a href="#" class="hover:text-primary"><b>Dashboards > Payment Reviews</b></a>
+      <p>This is used to view and manage the transactions of the users in the application</p>
     </div>
   </div>
+</div>
+<div class="mb-4 flex justify-between">
+  <div class="inline-block"></div>
   <div class="flex space-x-4">
-    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportCSV()">
-      Export CSV
+    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500 flex items-center space-x-2" (click)="exportCSV()">
+      <svg-icon src="./assets/icons/heroicons/outline/csvDL.svg" [svgClass]="'h-5 w-5'"></svg-icon>
+      <span>Export CSV</span>
     </button>
-    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportPDF()">
-      Export PDF
+    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500 flex items-center space-x-2" (click)="exportPDF()">
+      <svg-icon src="./assets/icons/heroicons/outline/pdfDL.svg" [svgClass]="'h-5 w-5'"></svg-icon>
+      <span>Export PDF</span>
     </button>
   </div>
 </div>
-
-<div class="border-muted-200 bg-white w-full max-w-[1440px] mx-auto flex-col rounded-xl border-4 min-h-[400px]">
-
-<div class="border-muted-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
+<div class="bg-white w-full max-w-[1440px] mx-auto flex-col rounded-xl min-h-[400px]">
+<div class="bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
   <div class="flex flex-wrap items-center justify-between gap-2 py-3 px-5">
     <div class="text-muted-foreground text-sm font-medium"></div>
     <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
@@ -43,15 +47,37 @@
     <table class="w-full border-collapse border-0 text-left text-sm">
       <thead class="border-b">
         <tr>
-          <th class="px-4 py-2 text-start min-w-[140px] lg:min-w-[300px] xl:min-w-[160px] ">
-          <div class="flex items-center gap-1 cursor-pointer">
-            Name
-            <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" class="w-4 h-4" (click)="toggleSort()">
-          </div>
+          <th class="px-4 py-2 text-start min-w-[140px] lg:min-w-[300px] xl:min-w-[160px]">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('userName')">
+              Name
+              <span class="w-4 h-4">
+                <ng-container *ngIf="sortDirections['userName'] === 'asc'">▲</ng-container>
+                <ng-container *ngIf="sortDirections['userName'] === 'desc'">▼</ng-container>
+                <ng-container *ngIf="sortDirections['userName'] === 'default'">↕</ng-container>
+              </span>
+            </div>
           </th>
-          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[130px] ">Amount</th>
-          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[210px] ">Payment Type</th>
-          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[100px] ">Deposit Date</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[130px]">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('amount')">
+              Amount
+              <span class="w-4 h-4">
+                <ng-container *ngIf="sortDirections['amount'] === 'highToLow'">▼</ng-container>
+                <ng-container *ngIf="sortDirections['amount'] === 'lowToHigh'">▲</ng-container>
+                <ng-container *ngIf="sortDirections['amount'] === 'default'">↕</ng-container>
+              </span>
+            </div>
+          </th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[210px]">Payment Type</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[100px]">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('depositDate')">
+              Deposit Date
+              <span class="w-4 h-4">
+                <ng-container *ngIf="sortDirections['depositDate'] === 'asc'">▲</ng-container>
+                <ng-container *ngIf="sortDirections['depositDate'] === 'desc'">▼</ng-container>
+                <ng-container *ngIf="sortDirections['depositDate'] === 'default'">↕</ng-container>
+              </span>
+            </div>
+          </th>
         </tr>
       </thead>
       <tbody>

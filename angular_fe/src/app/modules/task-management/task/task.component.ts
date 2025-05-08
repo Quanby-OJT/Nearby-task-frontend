@@ -29,17 +29,22 @@ export class TaskComponent implements OnInit {
   currentSearchText: string = '';
   currentStatusFilter: string = '';
   userRole: string | undefined;
-  // New property for placeholder rows
   placeholderRows: any[] = [];
+  sortModes: { [key: string]: 'default' | 'asc' | 'desc' } = {
+    client: 'default',
+    taskTitle: 'default',
+    specialization: 'default',
+    location: 'default',
+    proposedPrice: 'default'
+  };
 
   @Output() onCheck = new EventEmitter<boolean>();
   @Output() onSort = new EventEmitter<'asc' | 'desc'>();
-  sortDirection: 'asc' | 'desc' = 'desc';
 
   constructor(
     private route: Router,
     private taskService: TaskService,
-    private authService: AuthService // Assuming you have an AuthService to get user role
+    private authService: AuthService
   ) {
     this.route.events
       .pipe(filter(event => event instanceof NavigationEnd))
@@ -88,6 +93,7 @@ export class TaskComponent implements OnInit {
   applyFilters() {
     let tempTasks = [...this.tasks];
 
+    // Apply search filter
     if (this.currentSearchText) {
       tempTasks = tempTasks.filter(task => {
         const firstName = (task.clients.user.first_name || '').toLowerCase();
@@ -99,6 +105,7 @@ export class TaskComponent implements OnInit {
       });
     }
 
+    // Apply status filter
     if (this.currentStatusFilter) {
       tempTasks = tempTasks.filter(task => {
         const taskStatus = task.status?.toLowerCase();
@@ -106,42 +113,61 @@ export class TaskComponent implements OnInit {
       });
     }
 
-    tempTasks.sort((a, b) => {
-
-      const dateA = a.created_at ? new Date(a.created_at) : null;
-      const dateB = b.created_at ? new Date(b.created_at) : null;
-
-
-      if (!dateA || isNaN(dateA.getTime())) {
-        console.warn(`Invalid created_at for task ID ${a.task_id}:`, a.created_at);
-        return 1;
+    // Apply sorting
+    for (const column in this.sortModes) {
+      if (this.sortModes[column] !== 'default') {
+        tempTasks.sort((a, b) => {
+          let valueA, valueB;
+          switch (column) {
+            case 'client':
+              valueA = `${a.clients.user.first_name || ''} ${a.clients.user.middle_name || ''} ${a.clients.user.last_name || ''}`.toLowerCase();
+              valueB = `${b.clients.user.first_name || ''} ${b.clients.user.middle_name || ''} ${b.clients.user.last_name || ''}`.toLowerCase();
+              break;
+            case 'taskTitle':
+              valueA = (a.task_title || '').toLowerCase();
+              valueB = (b.task_title || '').toLowerCase();
+              break;
+            case 'specialization':
+              valueA = (a.specialization || '').toLowerCase();
+              valueB = (b.specialization || '').toLowerCase();
+              break;
+            case 'location':
+              valueA = (a.location || '').toLowerCase();
+              valueB = (b.location || '').toLowerCase();
+              break;
+            case 'proposedPrice':
+              valueA = a.proposed_price || 0;
+              valueB = b.proposed_price || 0;
+              break;
+            default:
+              return 0;
+          }
+          if (column === 'proposedPrice') {
+            if (this.sortModes[column] === 'asc') {
+              return valueA - valueB; // Smallest to biggest
+            } else { // 'desc'
+              return valueB - valueA; // Biggest to smallest
+            }
+          } else {
+            if (this.sortModes[column] === 'asc') {
+              return valueA.localeCompare(valueB);
+            } else { // 'desc'
+              return valueB.localeCompare(valueA);
+            }
+          }
+        });
+        break; // Only sort by one column at a time
       }
-      if (!dateB || isNaN(dateB.getTime())) {
-        console.warn(`Invalid created_at for task ID ${b.task_id}:`, b.created_at);
-        return -1;
-      }
+    }
 
-      // Compare dates
-      const timeDiff = this.sortDirection === 'asc'
-        ? dateA.getTime() - dateB.getTime()
-        : dateB.getTime() - dateA.getTime();
-
-      // If dates are equal, sort by task_id as secondary key
-      if (timeDiff === 0) {
-        return this.sortDirection === 'asc'
-          ? a.task_id - b.task_id // Smaller task_id first in asc
-          : b.task_id - a.task_id; // Larger task_id first in desc
-      }
-
-      return timeDiff;
-    });
-
-    // Log sorted tasks for debugging
-    console.log(`Sorted tasks (${this.sortDirection}):`, tempTasks.map(task => ({
-      task_id: task.task_id,
-      created_at: task.created_at,
-      client: `${task.clients.user.first_name} ${task.clients.user.last_name}`
-    })));
+    // Default sorting by created_at if no column is selected
+    if (Object.values(this.sortModes).every(mode => mode === 'default')) {
+      tempTasks.sort((a, b) => {
+        const dateA = new Date(a.created_at || '1970-01-01');
+        const dateB = new Date(b.created_at || '1970-01-01');
+        return dateB.getTime() - dateA.getTime(); // Newest to oldest
+      });
+    }
 
     this.filteredTasks = tempTasks;
     this.currentPage = 1;
@@ -153,9 +179,24 @@ export class TaskComponent implements OnInit {
     this.onCheck.emit(value);
   }
 
-  public toggleSort() {
-    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
-    this.onSort.emit(this.sortDirection);
+  public toggleSort(column: string) {
+    switch (this.sortModes[column]) {
+      case 'default':
+        this.sortModes[column] = 'desc'; // Start with biggest to smallest
+        break;
+      case 'desc':
+        this.sortModes[column] = 'asc'; // Then smallest to biggest
+        break;
+      case 'asc':
+        this.sortModes[column] = 'default'; // Back to default
+        break;
+    }
+    // Reset other columns to default
+    for (const key in this.sortModes) {
+      if (key !== column) {
+        this.sortModes[key] = 'default';
+      }
+    }
     this.applyFilters();
   }
 
@@ -165,7 +206,6 @@ export class TaskComponent implements OnInit {
       (this.currentPage - 1) * this.tasksPerPage,
       this.currentPage * this.tasksPerPage
     );
-    // Calculate and generate placeholder rows
     const placeholderCount = this.tasksPerPage - this.displayedTasks.length;
     this.placeholderRows = Array(placeholderCount).fill({});
     this.generatePagination();
@@ -232,9 +272,23 @@ export class TaskComponent implements OnInit {
       unit: 'px',
       format: 'a4',
     });
+
+    try {
+      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 125, 23, 40, 40);
+    } catch (e) {
+      console.error('Failed to load Quanby.png:', e);
+    }
+
+    try {
+      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 300, 25, 40, 40); 
+    } catch (e) {
+      console.error('Failed to load NearbyTasks.png:', e);
+    }
+
     const title = 'Task Management';
     doc.setFontSize(20);
-    doc.text(title, 170, 45);
+    doc.text(title, 170, 52);
+
     const columns = ['No', 'Client Id', 'Client', 'Task Title', 'Specialization', 'Proposed Price', 'Location', 'Urgent', 'Status'];
     const rows = this.displayedTasks.map((task, index) => [
       index + 1,

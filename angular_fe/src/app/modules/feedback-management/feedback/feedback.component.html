@@ -2,15 +2,22 @@
   <div>
     <h3 class="text-foreground font-semibold">Feedback Management</h3>
     <div class="text-muted-foreground text-xs font-medium">
-      <a href="#" class="hover:text-primary">Dashboards > Feedback Management</a>
+      <a href="#" class="hover:text-primary"><b>Dashboards > Feedback Management</b></a>
+    <p>This is used to view the feedback of the users in the application</p>
     </div>
   </div>
+</div>
+
+<div class="mb-4 flex justify-between">
+  <div class="inline-block"></div>
   <div class="flex space-x-4">
-    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportCSV()">
-      Export CSV
+    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500 flex items-center space-x-2" (click)="exportCSV()">
+      <svg-icon src="./assets/icons/heroicons/outline/csvDL.svg" [svgClass]="'h-5 w-5'"></svg-icon>
+      <span>Export CSV</span>
     </button>
-    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] flex-none cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500" (click)="exportPDF()">
-      Export PDF
+    <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500 flex items-center space-x-2" (click)="exportPDF()">
+      <svg-icon src="./assets/icons/heroicons/outline/pdfDL.svg" [svgClass]="'h-5 w-5'"></svg-icon>
+      <span>Export PDF</span>
     </button>
   </div>
 </div>
@@ -38,15 +45,37 @@
       <thead class="border-b">
         <tr>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[290px]">
-            <div class="flex items-center gap-1 cursor-pointer">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('taskerName')">
               Tasker Name
-              <img src="https://img.icons8.com/?size=100&id=100700&format=png&color=000000" class="w-4 h-4" (click)="toggleSort()">
+              <span class="w-4 h-4">
+                <ng-container *ngIf="sortDirections['taskerName'] === 'asc'">▲</ng-container>
+                <ng-container *ngIf="sortDirections['taskerName'] === 'desc'">▼</ng-container>
+                <ng-container *ngIf="sortDirections['taskerName'] === 'default'">↕</ng-container>
+              </span>
             </div>
           </th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[300px]">Feedback</th>
-          <th class="px-4 py-2 text-start min-w-[140px] lg:min-w-[300px] xl:min-w-[160px]">Rating</th>
+          <th class="px-4 py-2 text-start min-w-[140px] lg:min-w-[300px] xl:min-w-[160px]">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('rating')">
+              Rating
+              <span class="w-4 h-4">
+                <ng-container *ngIf="sortDirections['rating'] === 'asc'">▲</ng-container>
+                <ng-container *ngIf="sortDirections['rating'] === 'desc'">▼</ng-container>
+                <ng-container *ngIf="sortDirections['rating'] === 'default'">↕</ng-container>
+              </span>
+            </div>
+          </th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Client</th>
-          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[190px]">Created At</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[190px]">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('createdAt')">
+              Created At
+              <span class="w-4 h-4">
+                <ng-container *ngIf="sortDirections['createdAt'] === 'asc'">▲</ng-container>
+                <ng-container *ngIf="sortDirections['createdAt'] === 'desc'">▼</ng-container>
+                <ng-container *ngIf="sortDirections['createdAt'] === 'default'">↕</ng-container>
+              </span>
+            </div>
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -59,8 +88,6 @@
         </tr>
         <!-- Placeholder rows to ensure total rows match logsPerPage -->
         <tr *ngFor="let placeholder of placeholderRows">
-          <td class="px-4 py-3 text-center"></td>
-          <td class="px-4 py-3 text-center"></td>
           <td class="px-4 py-3 text-center"></td>
           <td class="px-4 py-3 text-center"></td>
           <td class="px-4 py-3 text-center"></td>

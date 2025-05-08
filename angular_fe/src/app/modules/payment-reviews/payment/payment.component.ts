@@ -27,7 +27,12 @@ export class PaymentComponent implements OnInit {
   endIndex: number = 0;
   paginationButtons: (number | string)[] = [];
   placeholderRows: any[] = [];
-  sortDirection: 'asc' | 'desc' = 'desc';
+  sortDirections: { [key: string]: string } = {
+    userName: 'default',
+    amount: 'default',
+    depositDate: 'default'
+  };
+  sortColumn: 'userName' | 'amount' | 'depositDate' = 'depositDate';
 
   constructor(private paymentService: PaymentService) {}
 
@@ -61,7 +66,7 @@ export class PaymentComponent implements OnInit {
     if (this.currentSearchText) {
       const searchTerms = this.currentSearchText.split(/\s+/).filter(term => term);
       tempLogs = tempLogs.filter(log => {
-        const fullName = log.user_name.toLowerCase();
+        const fullName = log.user_name?.toLowerCase() || '';
         return searchTerms.every(term => fullName.includes(term));
       });
     }
@@ -70,16 +75,42 @@ export class PaymentComponent implements OnInit {
       tempLogs = tempLogs.filter(log => log.payment_type === this.currentFilterType);
     }
 
-    // Apply simple reverse sort
-    if (this.sortDirection === 'desc') {
-      tempLogs = tempLogs.reverse();
-    }
+    // Apply sorting
+    tempLogs.sort((a, b) => {
+      if (this.sortColumn === 'userName') {
+        const nameA = (a.user_name || '').toLowerCase();
+        const nameB = (b.user_name || '').toLowerCase();
+        if (this.sortDirections['userName'] === 'asc' || this.sortDirections['userName'] === 'default') {
+          return nameA.localeCompare(nameB); // A-Z
+        } else {
+          return nameB.localeCompare(nameA); // Z-A
+        }
+      } else if (this.sortColumn === 'amount') {
+        const amountA = parseFloat(a.amount) || 0;
+        const amountB = parseFloat(b.amount) || 0;
+        if (this.sortDirections['amount'] === 'lowToHigh') {
+          return amountA - amountB; // Lowest to highest
+        } else {
+          return amountB - amountA; // Highest to lowest (default and highToLow)
+        }
+      } else if (this.sortColumn === 'depositDate') {
+        const dateA = new Date(a.deposit_date || '1970-01-01').getTime();
+        const dateB = new Date(b.deposit_date || '1970-01-01').getTime();
+        if (this.sortDirections['depositDate'] === 'asc') {
+          return dateA - dateB; // Oldest to newest
+        } else {
+          return dateB - dateA; // Newest to oldest (default and desc)
+        }
+      }
+      return 0;
+    });
 
     // Log sorted logs for debugging
-    console.log(`Sorted payment logs (${this.sortDirection}):`, tempLogs.map(log => ({
+    console.log(`Sorted payment logs (column: ${this.sortColumn}, direction: ${this.sortDirections[this.sortColumn]}):`, tempLogs.map(log => ({
       user_name: log.user_name,
       amount: log.amount,
-      payment_type: log.payment_type
+      payment_type: log.payment_type,
+      deposit_date: log.deposit_date
     })));
 
     this.filteredPaymentLogs = tempLogs;
@@ -87,8 +118,22 @@ export class PaymentComponent implements OnInit {
     this.updatePage();
   }
 
-  toggleSort() {
-    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+  toggleSort(column: 'userName' | 'amount' | 'depositDate') {
+    console.log(`toggleSort called for ${column}, current direction: ${this.sortDirections[column]}`);
+    if (this.sortColumn !== column) {
+      this.sortDirections[this.sortColumn] = 'default'; // Reset previous column
+      this.sortColumn = column;
+    }
+    if (column === 'userName') {
+      this.sortDirections[column] = this.sortDirections[column] === 'default' ? 'asc' : 
+                                   this.sortDirections[column] === 'asc' ? 'desc' : 'default';
+    } else if (column === 'amount') {
+      this.sortDirections[column] = this.sortDirections[column] === 'default' ? 'highToLow' : 
+                                   this.sortDirections[column] === 'highToLow' ? 'lowToHigh' : 'default';
+    } else if (column === 'depositDate') {
+      this.sortDirections[column] = this.sortDirections[column] === 'default' ? 'asc' : 
+                                   this.sortDirections[column] === 'asc' ? 'desc' : 'default';
+    }
     this.applyFilters();
   }
 
@@ -171,9 +216,24 @@ export class PaymentComponent implements OnInit {
       unit: 'px',
       format: 'a4',
     });
+
+    try {
+      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 0, 25, 40, 40); 
+    } catch (e) {
+      console.error('Failed to load NearbyTasks.png:', e);
+    }
+
+    try {
+      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 125, 23, 40, 40);
+    } catch (e) {
+      console.error('Failed to load Quanby.png:', e);
+    }
+
+    // Add title
     const title = 'Payment Reviews';
     doc.setFontSize(20);
-    doc.text(title, 170, 45);
+    doc.text(title, 170, 52);
+
     const columns = ['No', 'User Name', 'Amount', 'Payment Type', 'Created At', 'Deposit Date'];
     const rows = this.displayPaymentLogs.map((log, index) => [
       (this.currentPage - 1) * this.logsPerPage + index + 1,

@@ -26,7 +26,12 @@ export class FeedbackComponent implements OnInit {
   endIndex: number = 0;
   paginationButtons: (number | string)[] = [];
   placeholderRows: any[] = [];
-  sortDirection: 'asc' | 'desc' = 'desc';
+  sortDirections: { [key: string]: 'asc' | 'desc' | 'default' } = {
+    taskerName: 'default',
+    createdAt: 'default',
+    rating: 'default'
+  };
+  sortColumn: 'taskerName' | 'createdAt' | 'rating' = 'createdAt';
 
   constructor(private feedbackService: FeedbackService) {}
 
@@ -36,6 +41,7 @@ export class FeedbackComponent implements OnInit {
         console.log('Received feedback data:', response);
         this.feedbacks = response.feedbacks || [];
         this.filteredFeedbacks = [...this.feedbacks];
+        this.applyFilters(); // Apply default sorting on load
         this.updatePage();
       },
       (error) => {
@@ -73,26 +79,51 @@ export class FeedbackComponent implements OnInit {
       tempFeedbacks = tempFeedbacks.filter(feedback => feedback.reported === this.currentFilterType);
     }
 
-    // Apply simple reverse sort
-    if (this.sortDirection === 'desc') {
-      tempFeedbacks = tempFeedbacks.reverse();
+    // Apply sorting based on the selected column
+    if (this.sortColumn === 'taskerName') {
+      tempFeedbacks.sort((a, b) => {
+        const nameA = `${a.tasker?.user?.first_name || ''} ${a.tasker?.user?.middle_name || ''} ${a.tasker?.user?.last_name || ''}`.trim().toLowerCase();
+        const nameB = `${b.tasker?.user?.first_name || ''} ${b.tasker?.user?.middle_name || ''} ${b.tasker?.user?.last_name || ''}`.trim().toLowerCase();
+        if (this.sortDirections['taskerName'] === 'asc' || this.sortDirections['taskerName'] === 'default') {
+          return nameA.localeCompare(nameB); // A-Z
+        } else {
+          return nameB.localeCompare(nameA); // Z-A
+        }
+      });
+    } else if (this.sortColumn === 'createdAt') {
+      tempFeedbacks.sort((a, b) => {
+        const dateA = new Date(a.created_at).getTime();
+        const dateB = new Date(b.created_at).getTime();
+        if (this.sortDirections['createdAt'] === 'asc') {
+          return dateA - dateB; // Oldest to newest
+        } else {
+          return dateB - dateA; // Newest to oldest (default and desc)
+        }
+      });
+    } else if (this.sortColumn === 'rating') {
+      tempFeedbacks.sort((a, b) => {
+        const ratingA = parseFloat(a.rating) || 0;
+        const ratingB = parseFloat(b.rating) || 0;
+        if (this.sortDirections['rating'] === 'asc') {
+          return ratingA - ratingB; 
+        } else {
+          return ratingB - ratingA; 
+        }
+      });
     }
-
-    // Log sorted feedbacks for debugging
-    console.log(`Sorted feedbacks (${this.sortDirection}):`, tempFeedbacks.map(feedback => ({
-      feedback_id: feedback.feedback_id || 'N/A',
-      tasker: `${feedback.tasker?.user?.first_name || ''} ${feedback.tasker?.user?.last_name || ''}`,
-      rating: feedback.rating || 'N/A',
-      created_at: feedback.created_at || 'N/A'
-    })));
 
     this.filteredFeedbacks = tempFeedbacks;
     this.currentPage = 1;
     this.updatePage();
   }
 
-  public toggleSort() {
-    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+  public toggleSort(column: 'taskerName' | 'createdAt' | 'rating') {
+    if (this.sortColumn !== column) {
+      this.sortDirections[this.sortColumn] = 'default'; // Reset previous column
+      this.sortColumn = column;
+    }
+    this.sortDirections[column] = this.sortDirections[column] === 'default' ? 'asc' : 
+                                 this.sortDirections[column] === 'asc' ? 'desc' : 'default';
     this.applyFilters();
   }
 
@@ -196,9 +227,25 @@ export class FeedbackComponent implements OnInit {
       unit: 'px',
       format: 'a4',
     });
+
+    try {
+  
+      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', ' PNG', 325, 25, 40, 40); 
+    } catch (e) {
+      console.error('Failed to load NearbyTasks.png:', e);
+
+    }
+
+    try {
+      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 125, 23, 40, 40);
+    } catch (e) {
+      console.error('Failed to load Quanby.png:', e);
+
+    }
+
     const title = 'Feedback Management';
     doc.setFontSize(20);
-    doc.text(title, 170, 45);
+    doc.text(title, 170, 52);
     const headers = ['No', 'Tasker Name', 'Feedback', 'Rating', 'Client', 'Reported', 'Created At'];
     const rows = this.displayFeedbacks.map((feedback, index) => {
       const taskerName = feedback.tasker?.user
