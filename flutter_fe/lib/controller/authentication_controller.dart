@@ -33,6 +33,7 @@ class AuthenticationController {
       builder: (context) => StatusModal(
         isSuccess: isSuccess,
         message: message,
+        navigateToRoute: "otp",
       ),
     );
   }
@@ -89,7 +90,7 @@ class AuthenticationController {
     }
   }
 
-  Future<void> resetPassword(BuildContext context) async {
+  Future<void> resetPassword(BuildContext context, String email) async {
 
     if(passwordController.text != confirmPasswordController.text){
       _showStatusModal(
@@ -97,8 +98,8 @@ class AuthenticationController {
         isSuccess: false,
         message: "Passwords do not match",
       );
+      return;
     }
-    String email = ""; //Temporary email. Will be replaced using a deep link
     var response = await ApiService.resetPassword(
       email,
       passwordController.text,
@@ -128,10 +129,14 @@ class AuthenticationController {
       if (response.containsKey("message")) {
         return response["user_id"] as int;
       } else {
-        throw Exception(response["error"] ?? "Verification failed");
+        _showStatusModal(context: context, isSuccess: false, message: response["error"] ?? "Verification Failed. Please Try Again.");
+        return 0;
       }
-    } catch (e) {
-      throw Exception("Failed to verify email: ${e.toString()}");
+    } catch (e, st) {
+      debugPrint("Error verifying email: $e");
+      debugPrintStack(stackTrace: st);
+      _showStatusModal(context: context, isSuccess: false, message: "Verification Failed. Please Try Again.");
+      return 0;
     }
   }
 

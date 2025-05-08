@@ -102,7 +102,7 @@ class _ForgotPasswordState extends State<ForgotPassword> with SingleTickerProvid
 
   Future<void> _initDeepLinkListener() async {
     final appLinks = AppLinks();
-
+    debugPrint("Handling Forgot Password Deeplink...");
     try {
       final Uri? initialUri = await appLinks.getInitialLink();
       if (initialUri != null) {
