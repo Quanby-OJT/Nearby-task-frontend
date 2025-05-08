@@ -7,6 +7,7 @@ import { ReportService } from 'src/app/services/report.service';
 import { Subscription } from 'rxjs';
 import { SessionLocalStorage } from 'src/services/sessionStorage';
 import { AuthService } from 'src/app/services/auth.service';
+import { Report } from 'src/model/complain'; // Import the Report model
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
@@ -27,9 +28,9 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
   styleUrls: ['./complaints.component.css']
 })
 export class ComplaintsComponent implements OnInit, OnDestroy {
-  reports: any[] = [];
-  filteredReports: any[] = [];
-  displayReports: any[] = [];
+  reports: Report[] = [];
+  filteredReports: Report[] = [];
+  displayReports: Report[] = [];
   paginationButtons: (number | string)[] = [];
   reportsPerPage: number = 5;
   currentPage: number = 1;
@@ -38,7 +39,7 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
   endIndex: number = 0;
   currentSearchText: string = '';
   currentStatusFilter: string = '';
-  selectedReport: any = null;
+  selectedReport: Report | null = null;
   userRole: string | undefined;
   placeholderRows: any[] = []; 
   sortDirections: { [key: string]: 'asc' | 'desc' | 'default' } = {
@@ -46,6 +47,7 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
     createdAt: 'default'
   };
   sortColumn: 'reporterName' | 'createdAt' = 'createdAt';
+  isLoading: boolean = true;
 
   private reportsSubscription!: Subscription;
 
@@ -60,16 +62,19 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.isLoading = true;
     this.reportsSubscription = this.reportService.getReport().subscribe(
-      (response) => {
+      (response: { success: boolean; reports: Report[] }) => {
         if (response.success) {
           this.reports = response.reports;
           this.filteredReports = [...this.reports];
           this.updatePage();
+          this.isLoading = false;
         }
       },
       (errors) => {
         console.error("Failed in getting reports: ", errors);
+        this.isLoading = false;
       }
     );
 
@@ -217,14 +222,14 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
   }
 
   openModal(reportId: number) {
-    this.selectedReport = this.reports.find(report => report.report_id === reportId);
+    this.selectedReport = this.reports.find(report => report.report_id === reportId) || null;
     if (!this.selectedReport) {
       Swal.fire('Error', 'Report not found', 'error');
       return;
     }
 
     const handledBy = this.selectedReport.action_by
-      ? `${this.selectedReport.actionBy.first_name || ''} ${this.selectedReport.actionBy.middle_name || ''} ${this.selectedReport.actionBy.last_name || ''}`.trim()
+      ? `${this.selectedReport.action_by.first_name || ''} ${this.selectedReport.action_by.middle_name || ''} ${this.selectedReport.action_by.last_name || ''}`.trim()
       : 'Not Handled Yet';
 
     const htmlContent = `
@@ -235,11 +240,11 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
         </div>
         <div class="flex mb-4">
           <div class="font-bold w-32">Reporter:</div>
-          <div>${this.selectedReport.reporter.first_name} ${this.selectedReport.reporter.middle_name} ${this.selectedReport.reporter.last_name}</div>
+          <div>${this.selectedReport.reporter.first_name} ${this.selectedReport.reporter.middle_name || ''} ${this.selectedReport.reporter.last_name}</div>
         </div>
         <div class="flex mb-4">
           <div class="font-bold w-32">Violator:</div>
-          <div>${this.selectedReport.violator.first_name} ${this.selectedReport.violator.middle_name} ${this.selectedReport.violator.last_name}</div>
+          <div>${this.selectedReport.violator.first_name} ${this.selectedReport.violator.middle_name || ''} ${this.selectedReport.violator.last_name}</div>
         </div>
         <div class="flex mb-4">
           <div class="font-bold w-32">Reason:</div>
@@ -284,9 +289,9 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
       }
     }).then((result) => {
       if (result.isConfirmed) {
-        this.banUser(this.selectedReport.report_id);
+        this.banUser(this.selectedReport!.report_id);
       } else if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
-        this.unbanUser(this.selectedReport.report_id);
+        this.unbanUser(this.selectedReport!.report_id);
       }
     });
   }
@@ -298,7 +303,7 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
           if (response.success) {
             Swal.fire('Banned!', 'User has been banned.', 'success').then(() => {
               // Refresh the report list after banning
-              this.reportService.getReport().subscribe((response) => {
+              this.reportService.getReport().subscribe((response: { success: boolean; reports: Report[] }) => {
                 if (response.success) {
                   this.reports = response.reports;
                   this.filteredReports = [...this.reports];
@@ -324,7 +329,7 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
           if (response.success) {
             Swal.fire('Unbanned!', 'User has been unbanned.', 'success').then(() => {
               // Refresh the report list after unbanning
-              this.reportService.getReport().subscribe((response) => {
+              this.reportService.getReport().subscribe((response: { success: boolean; reports: Report[] }) => {
                 if (response.success) {
                   this.reports = response.reports;
                   this.filteredReports = [...this.reports];
@@ -356,7 +361,7 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
         ? `${report.violator.first_name || ''} ${report.violator.middle_name || ''} ${report.violator.last_name || ''}`.trim()
         : 'Unknown';
       const handledBy = report.action_by
-        ? `${report.actionBy.first_name || ''} ${report.actionBy.middle_name || ''} ${report.actionBy.last_name || ''}`.trim()
+        ? `${report.action_by.first_name || ''} ${report.action_by.middle_name || ''} ${report.action_by.last_name || ''}`.trim()
         : 'Empty';
       const baseRow = [
         index + 1,
@@ -387,20 +392,50 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
     });
 
     try {
-      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 283, 25, 40, 40); 
+      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 140, 35, 28, 25); 
     } catch (e) {
       console.error('Failed to load NearbyTasks.png:', e);
     }
 
     try {
-      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 125, 23, 40, 40);
+      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 260, 35, 26, 25);
     } catch (e) {
       console.error('Failed to load Quanby.png:', e);
     }
 
-    const title = 'User Complaints';
+    const title = 'Nearby Task';
     doc.setFontSize(20);
+    doc.setTextColor('#170A66');
     doc.text(title, 170, 52);
+
+   // Line Part
+   doc.setDrawColor(0, 0, 0);
+   doc.setLineWidth(0.2);
+   doc.line(30, 70, 415, 70);
+
+   doc.setFontSize(12);
+   doc.setTextColor('#000000');
+   doc.text('Complain Management', 30, 90);
+
+  // Date and Time Part
+  const currentDate = new Date();
+  const formattedDate = currentDate.toLocaleString('en-US', {
+    month: '2-digit',
+    day: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  }).replace(/,/, ', ');
+  console.log('Formatted Date:', formattedDate); 
+
+  // Date and Time Position and Size
+  doc.setFontSize(12);
+  doc.setTextColor('#000000');
+  console.log('Rendering date at position x=400, y=90'); 
+  doc.text(formattedDate, 310, 90); 
+
     const headers = isAdmin
       ? ['No', 'Reporter Name', 'Violator Name', 'Reporter Role', 'Violator Role', 'Date', 'Status', 'Handled By']
       : ['No', 'Reporter Name', 'Violator Name', 'Reporter Role', 'Violator Role', 'Date', 'Status'];
@@ -412,7 +447,7 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
         ? `${report.violator.first_name || ''} ${report.violator.middle_name || ''} ${report.violator.last_name || ''}`.trim()
         : 'Unknown';
       const handledBy = report.action_by
-        ? `${report.actionBy.first_name || ''} ${report.actionBy.middle_name || ''} ${report.actionBy.last_name || ''}`.trim()
+        ? `${report.action_by.first_name || ''} ${report.action_by.middle_name || ''} ${report.action_by.last_name || ''}`.trim()
         : 'Empty';
       const baseRow = [
         index + 1,
@@ -429,7 +464,7 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
       return baseRow;
     });
     autoTable(doc, {
-      startY: 100,
+      startY: 125,
       head: [headers],
       body: rows,
       theme: 'grid',

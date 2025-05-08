@@ -46,8 +46,14 @@
     </div>
   </div>
 
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="flex flex-col justify-center items-center h-64 animate-slow-spin text-xs text-[#3C28CC]">
+    <svg-icon src="./assets/icons/heroicons/outline/logo.svg" [svgClass]="'h-20 w-20'"></svg-icon>
+    <strong>Nearby Task</strong>
+  </div>
+
   <!-- Table to display logs -->
-  <div class="overflow-x-auto w-full">
+  <div *ngIf="!isLoading" class="overflow-x-auto w-full">
     <table class="w-full border-collapse border-0 text-left text-sm">
       <thead class="border-b">
         <tr>
@@ -77,8 +83,8 @@
       </thead>
       <tbody>
         <tr *ngFor="let convo of displayConversations" class="hover:bg-card/50 h-[60px]">
-          <td class="px-4 py-3 text-start">{{ convo.task_taken.clients.user.first_name }} {{ convo.task_taken.clients.user.middle_name }} {{ convo.task_taken.clients.user.last_name }}</td>
-          <td class="px-4 py-3 text-start">{{ convo.task_taken.tasker.user.first_name }} {{ convo.task_taken.tasker.user.middle_name }} {{ convo.task_taken.tasker.user.last_name }}</td>
+          <td class="px-4 py-3 text-start">{{ convo.task_taken.clients.user.first_name }} {{ convo.task_taken.clients.user.middle_name || '' }} {{ convo.task_taken.clients.user.last_name }}</td>
+          <td class="px-4 py-3 text-start">{{ convo.task_taken.tasker.user.first_name }} {{ convo.task_taken.tasker.user.middle_name || '' }} {{ convo.task_taken.tasker.user.last_name }}</td>
           <td class="px-4 py-3 text-start">
             <div class="flex justify-start items-start mx-auto whitespace-pre-wrap break-words">
               <span class="line-clamp-1 max-w-[150px] pl-3">{{ convo.conversation }}</span>
@@ -88,12 +94,12 @@
             <div class="flex gap-2">
               <div class="flex">
                 <div class="items-start justify-start pr-5 cursor-pointer hover:scale-150 transition-transform duration-500">
-                  <img src="https://img.icons8.com/?size=100&id=uUW5OerKlsBF&format=png&color=228BE6" (click)="viewConversation(convo.task_taken.task_taken_id, convo.user_id)" class="h-5 w-5">
+                  <img src="https://img.icons8.com/?size=100&id=uUW5OerKlsBF&format=png&color=228BE6" (click)="viewConversation(convo.task_taken.task_taken_id, convo.user_id ?? 0)" class="h-5 w-5">
                 </div>
-                <div class="items-start justify-start pr-5 cursor-pointer hover:scale-150 transition-transform duration-500">
+                <div class="items-start justify-start pr-5 cursor-pointer hover:scale-150 transition-transform duration-500" *ngIf="convo.user_id">
                   <img src="https://img.icons8.com/?size=100&id=Du7EMNaTRH39&format=png&color=FA5252" (click)="banUser(convo.user_id)" class="h-5 w-5">
                 </div>
-                <div class="items-start justify-start pr-5 cursor-pointer hover:scale-150 transition-transform duration-500">
+                <div class="items-start justify-start pr-5 cursor-pointer hover:scale-150 transition-transform duration-500" *ngIf="convo.user_id">
                   <img src="https://img.icons8.com/?size=100&id=Em2iAW5GI5ir&format=png&color=FAB005" (click)="warnUser(convo.user_id)" class="h-5 w-5">
                 </div>
               </div>
@@ -105,13 +111,12 @@
         <tr *ngFor="let placeholder of placeholderRows">
           <td class="px-4 py-3 text-center" colspan="4"></td>
         </tr>
-
       </tbody>
     </table>
   </div>
 
   <!-- Pagination Section -->
-  <div class="flex justify-between items-center bg-white w-full">
+  <div *ngIf="!isLoading" class="flex justify-between items-center bg-white w-full">
     <!-- Logs per page selector -->
     <div class="text-muted-foreground flex items-center justify-between py-3 px-5 text-xs">
       <div class="flex items-center gap-2">

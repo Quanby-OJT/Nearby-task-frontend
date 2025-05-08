@@ -5,7 +5,7 @@ import { UserAccountService } from 'src/app/services/userAccount';
 import { Users } from 'src/model/user-management';
 import { toast } from 'ngx-sonner';
 import Swal from 'sweetalert2';
-
+import { AngularSvgIconModule } from 'angular-svg-icon';
 import {
   ReactiveFormsModule,
   FormGroup,
@@ -34,7 +34,8 @@ interface Address {
   standalone: true,
   imports: [
     CommonModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    AngularSvgIconModule
   ],
   templateUrl: './my-profile.component.html',
   styleUrl: './my-profile.component.css'

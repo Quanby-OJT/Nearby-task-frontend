@@ -30,25 +30,23 @@ export class DisputeManagementComponent {
   totalPages: number = 1;
   startIndex: number = 1;
   endIndex: number = 0;
-  isLoading: boolean = false;
   paginationButtons: (number | string)[] = [];
   placeholderRows: any[] = []; // Added for placeholder rows
   disputeDetails: any = null
-  // Add these properties to the class
   selectedAction: string = '';
   additionalNotes: string = '';
-
+  isLoading: boolean = true;
   constructor(private disputeService: DisputeManagementService) {}
 
   ngOnInit(): void {
-    this.isLoading = true
+    this.isLoading = true;
     this.disputeService.getAllDisputes().subscribe(
       (response: any) => {
         console.log('Received dispute data:', response);
         this.disputes = response.data || [];
-        this.isLoading = false;
         this.filteredDisputes = [...this.disputes];
         this.updatePage();
+        this.isLoading = false;
       },
       (error) => {
         console.error('Error fetching disputes', error);
@@ -56,6 +54,7 @@ export class DisputeManagementComponent {
         this.filteredDisputes = [];
         this.displayDisputes = [];
         this.updatePage();
+        this.isLoading = false;
       }
     );
   }

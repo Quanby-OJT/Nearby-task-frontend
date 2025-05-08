@@ -7,6 +7,7 @@ import { Nft } from '../../models/nft';
 import { UserChartCardComponent } from '../../components/nft/user-chart-card/user-chart-card.component';
 import { UserAccountService } from 'src/app/services/userAccount';
 import { CommonModule } from '@angular/common';
+import { AngularSvgIconModule } from 'angular-svg-icon';
 
 @Component({
   standalone: true,
@@ -18,7 +19,8 @@ import { CommonModule } from '@angular/common';
     NftChartCardComponent,
     NftAuctionsTableComponent,
     UserChartCardComponent,
-    CommonModule
+    CommonModule,
+    AngularSvgIconModule
   ],
 })
 export class NftComponent implements OnInit {
