@@ -27,6 +27,7 @@ export class FeedbackComponent implements OnInit {
   endIndex: number = 0;
   paginationButtons: (number | string)[] = [];
   placeholderRows: any[] = [];
+  isLoading: boolean = true;
   sortDirections: { [key: string]: 'asc' | 'desc' | 'default' } = {
     taskerName: 'default',
     createdAt: 'default',
@@ -44,6 +45,7 @@ export class FeedbackComponent implements OnInit {
         this.filteredFeedbacks = [...this.feedbacks];
         this.applyFilters(); // Apply default sorting on load
         this.updatePage();
+        this.isLoading = false;
       },
       (error) => {
         console.error('Error fetching feedbacks', error);
@@ -51,6 +53,7 @@ export class FeedbackComponent implements OnInit {
         this.filteredFeedbacks = [];
         this.displayFeedbacks = [];
         this.updatePage();
+        this.isLoading = false;
       }
     );
   }

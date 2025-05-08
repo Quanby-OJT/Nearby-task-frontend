@@ -30,10 +30,11 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
   currentSearchText: string = '';
   currentReportedFilter: string = '';
   currentStatusFilter: string = '';
-
   clientSortMode: 'default' | 'asc' | 'desc' = 'default';
   taskerSortMode: 'default' | 'asc' | 'desc' = 'default';
   dateSortMode: 'default' | 'newestToOldest' | 'oldestToNewest' = 'default';
+  isLoading: boolean = true;
+
 
   @Output() onCheck = new EventEmitter<boolean>();
 
@@ -44,6 +45,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.isLoading = true;
     this.conversationSubscription = this.userConversationService.getUserConversation().subscribe(
       (response: { data: Conversation[] }) => {
         console.log('Raw response:', response);
@@ -54,9 +56,11 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
         } else {
           console.error('Invalid response format:', response);
         }
+        this.isLoading = false;
       },
       (error) => {
         console.error("Error getting logs:", error);
+        this.isLoading = false;
       }
     );
   }

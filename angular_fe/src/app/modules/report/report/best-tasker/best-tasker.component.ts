@@ -2,10 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { ReportService } from '../../../../services/reportANDanalysis.services';
 import { CommonModule } from '@angular/common';
 import { Tasker } from '../../../../../model/reportANDanalysis';
+import { AngularSvgIconModule } from 'angular-svg-icon';
 
 @Component({
   selector: 'app-best-tasker',
-  imports: [CommonModule],
+  imports: [CommonModule, AngularSvgIconModule],
   templateUrl: './best-tasker.component.html',
   styleUrl: './best-tasker.component.css'
 })
@@ -20,6 +21,7 @@ export class BestTaskerComponent implements OnInit {
   startIndex: number = 1;
   endIndex: number = 0;
   currentSearchText: string = '';
+  isLoading: boolean = true;
 
   constructor(private reportService: ReportService) {}
 
@@ -28,6 +30,7 @@ export class BestTaskerComponent implements OnInit {
   }
 
   fetchTaskers(): void {
+    this.isLoading = true;
     this.reportService.getTopTasker().subscribe({
       next: (response) => {
         if (response.success) {
@@ -35,9 +38,11 @@ export class BestTaskerComponent implements OnInit {
           this.filteredTaskers = [...this.taskers];
           this.updatePage();
         }
+        this.isLoading = false;
       },
       error: (err) => {
         console.error('Error fetching taskers:', err);
+        this.isLoading = false;
       }
     });
   }

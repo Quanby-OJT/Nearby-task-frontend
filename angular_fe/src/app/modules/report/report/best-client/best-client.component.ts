@@ -2,10 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { ReportService } from '../../../../services/reportANDanalysis.services';
 import { CommonModule } from '@angular/common';
 import { Client } from '../../../../../model/reportANDanalysis';
+import { AngularSvgIconModule } from 'angular-svg-icon';
 
 @Component({
   selector: 'app-best-client',
-  imports: [CommonModule],
+  imports: [CommonModule, AngularSvgIconModule],
   templateUrl: './best-client.component.html',
   styleUrl: './best-client.component.css'
 })
@@ -20,6 +21,7 @@ export class BestClientComponent implements OnInit {
   startIndex: number = 1;
   endIndex: number = 0;
   currentSearchText: string = '';
+  isLoading: boolean = true;
 
   constructor(private reportService: ReportService) {}
 
@@ -28,6 +30,7 @@ export class BestClientComponent implements OnInit {
   }
 
   fetchClients(): void {
+    this.isLoading = true;
     this.reportService.getTopClient().subscribe({
       next: (response) => {
         if (response.success) {
@@ -35,9 +38,11 @@ export class BestClientComponent implements OnInit {
           this.filteredClients = [...this.clients];
           this.updatePage();
         }
+        this.isLoading = false;
       },
       error: (err) => {
         console.error('Error fetching clients:', err);
+        this.isLoading = false;
       }
     });
   }

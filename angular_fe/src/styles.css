@@ -24,6 +24,8 @@ layer(base);
   --animate-fade-in-up: fade-in-up 0.3s ease-out;
   --animate-fade-out-up: fade-out-up 0.3s ease-out;
 
+  --animate-slow-spin: slowSpin 2.4s ease-in-out infinite;
+
   --shadow-custom: 0px 0px 50px 0px rgb(82 63 105 / 15%);
 
   --color-border: var(--border);
@@ -100,6 +102,16 @@ layer(base);
       transform: translateY(10px);
     }
   }
+  
+  @keyframes slowSpin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  
 }
 
 @utility container {

@@ -29,6 +29,7 @@ export class LogComponent implements OnInit, OnDestroy {
   currentStatusFilter: string = '';
   placeholderRows: any[] = [];
   sortDirection: 'asc' | 'desc' | 'default' = 'default'; // Default to newest first
+  isLoading: boolean = true;
 
   private logsSubscription!: Subscription;
 
@@ -40,9 +41,11 @@ export class LogComponent implements OnInit, OnDestroy {
         this.logs = logs;
         this.filteredLogs = [...logs];
         this.updatePage();
+        this.isLoading = false;
       },
       (error) => {
         console.error("Error getting logs:", error);
+        this.isLoading = false;
       }
     );
   }

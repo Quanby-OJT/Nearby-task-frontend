@@ -15,7 +15,7 @@ import { ButtonComponent } from 'src/app/shared/components/button/button.compone
 import { ReviewComponent } from '../review/review.component';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { NgIf } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { saveAs } from 'file-saver';
 
 @Component({
@@ -28,11 +28,7 @@ import { saveAs } from 'file-saver';
     UserTableFooterComponent,
     UserTableRowComponent,
     UserTableActionComponent,
-    AddUserComponent,
-    RouterOutlet,
-    ButtonComponent,
-    ReviewComponent,
-    NgIf,
+    CommonModule
   ],
   templateUrl: './users.component.html',
   styleUrls: ['./users.component.css'],
@@ -43,7 +39,8 @@ export class UsersComponent implements OnInit {
   public PaginationUsers: any[] = [];
   displayedUsers = this.filterService.currentUsers;
   selectedUserId: Number | null = null;
-  sortState: 'default' | 'asc' | 'desc' = 'default'; // Default to newest-to-oldest
+  sortState: 'default' | 'asc' | 'desc' = 'default'; 
+  isLoading: boolean = true;
 
   constructor(
     private http: HttpClient,
@@ -70,6 +67,7 @@ export class UsersComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.isLoading = true;
     this.fetchUsers();
     this.setUserSize();
   }
@@ -183,10 +181,12 @@ export class UsersComponent implements OnInit {
         this.filterService.setUsers(this.users);
         const pageSize = this.filterService.pageSizeField();
         this.filterService.setCurrentUsers(this.filteredUsers.slice(0, pageSize));
+        this.isLoading = false;
       },
       (error: any) => {
         console.error('Error fetching users:', error);
         this.handleRequestError(error);
+        this.isLoading = false;
       },
     );
   }

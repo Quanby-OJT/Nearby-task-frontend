@@ -72,7 +72,7 @@ export class DepositorComponent implements OnInit {
   selectedMonth: string | null = null;
   months: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   isDropdownOpen: boolean = false;
-
+  isLoading: boolean = true;
   constructor(private reportService: ReportService) {}
 
   ngOnInit(): void {
@@ -102,9 +102,11 @@ export class DepositorComponent implements OnInit {
             series: series
           };
         }
+        this.isLoading = false;
       },
       error: (error: unknown) => {
         console.error('Error fetching top depositors:', error);
+        this.isLoading = false
       },
     });
   }

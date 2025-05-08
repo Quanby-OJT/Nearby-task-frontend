@@ -28,6 +28,7 @@ export class PaymentComponent implements OnInit {
   endIndex: number = 0;
   paginationButtons: (number | string)[] = [];
   placeholderRows: any[] = [];
+  isLoading: boolean = true;
   sortDirections: { [key: string]: string } = {
     userName: 'default',
     amount: 'default',
@@ -38,15 +39,18 @@ export class PaymentComponent implements OnInit {
   constructor(private paymentService: PaymentService) {}
 
   ngOnInit(): void {
+    this.isLoading = true;
     this.paymentService.getPaymentLogs().subscribe(
       (data: PaymentLog[]) => {
         console.log('Fetched payment logs:', data);
         this.paymentLogs = data;
         this.filteredPaymentLogs = [...data];
         this.updatePage();
+        this.isLoading = false;
       },
       (error) => {
         console.error('Error fetching payment logs', error);
+        this.isLoading = false;
       }
     );
   }

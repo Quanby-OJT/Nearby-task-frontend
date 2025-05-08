@@ -31,6 +31,7 @@ export class TaskComponent implements OnInit {
   currentStatusFilter: string = '';
   userRole: string | undefined;
   placeholderRows: any[] = [];
+  isLoading: boolean = true;
   sortModes: { [key: string]: 'default' | 'asc' | 'desc' } = {
     client: 'default',
     taskTitle: 'default',
@@ -57,15 +58,18 @@ export class TaskComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.isLoading = true;
     this.fetchTasks();
-
     this.authService.userInformation().subscribe(
       (response: any) => {
         this.userRole = response.user.user_role;
+        this.isLoading = false;
       },
       (error: any) => {
         console.error('Error fetching user role:', error);
+        this.isLoading = false;
       }
+
     );
   }
 

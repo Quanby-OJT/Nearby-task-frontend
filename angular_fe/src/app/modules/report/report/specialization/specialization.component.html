@@ -25,8 +25,13 @@
       </div>
     </div>
 
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="flex justify-center items-center h-64 animate-slow-spin">
+    <svg-icon src="./assets/icons/heroicons/outline/logo.svg" [svgClass]="'h-20 w-20'"></svg-icon>
+  </div>
+
     <!-- Chart -->
-    <div id="chart">
+    <div id="chart" *ngIf="!isLoading">
       <apx-chart
         [series]="chartSeries"
         [chart]="{
@@ -58,7 +63,7 @@
 </div>
 
   <!-- Table section -->
-  <div class="bg-white rounded-xl shadow-lg p-6">
+  <div *ngIf="!isLoading"class="bg-white rounded-xl shadow-lg p-6">
     <div class="overflow-x-auto w-full">
       <table class="w-full border-collapse text-left text-sm">
         <thead class="border-b">

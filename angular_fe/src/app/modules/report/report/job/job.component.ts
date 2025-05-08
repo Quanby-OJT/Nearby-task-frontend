@@ -24,6 +24,7 @@ export class JobComponent implements OnInit {
   selectedMonth: string | null = null;
   months: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   isDropdownOpen: boolean = false;
+  isLoading: boolean = true;
 
   constructor(private reportService: ReportService) {}
 
@@ -42,9 +43,11 @@ export class JobComponent implements OnInit {
         } else {
           console.error("Response unsuccessful:", response);
         }
+        this.isLoading = false;
       },
       error: (error: any) => {
         console.error('Error fetching specialization data:', error);
+        this.isLoading = false;
       }
     });
   }

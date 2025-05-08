@@ -47,6 +47,7 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
     createdAt: 'default'
   };
   sortColumn: 'reporterName' | 'createdAt' = 'createdAt';
+  isLoading: boolean = true;
 
   private reportsSubscription!: Subscription;
 
@@ -61,16 +62,19 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.isLoading = true;
     this.reportsSubscription = this.reportService.getReport().subscribe(
       (response: { success: boolean; reports: Report[] }) => {
         if (response.success) {
           this.reports = response.reports;
           this.filteredReports = [...this.reports];
           this.updatePage();
+          this.isLoading = false;
         }
       },
       (errors) => {
         console.error("Failed in getting reports: ", errors);
+        this.isLoading = false;
       }
     );
 

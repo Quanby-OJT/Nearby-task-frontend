@@ -1,19 +1,21 @@
-<div class="mb-4 flex justify-between">
-  <div class="inline-block">
-    <h3 class="text-foreground font-semibold">Profile</h3>
-    <div class="text-muted-foreground space-x-1 text-xs font-medium">
-      <a href="" class="hover:text-primary"><b>Dashboards > Profile</b></a>
-      <p>The profile is used to view the information, update user information, and change user password</p>
+  <div class="mb-4 flex justify-between">
+    <div class="inline-block">
+      <h3 class="text-foreground font-semibold">Profile</h3>
+      <div class="text-muted-foreground space-x-1 text-xs font-medium">
+        <a href="" class="hover:text-primary"><b>Dashboards > Profile</b></a>
+        <p>The profile is used to view the information, update user information, and change user password</p>
+      </div>
     </div>
   </div>
-</div>
-<div class="container mx-auto p-4">
-  <div *ngIf="isLoading" class="text-center text-gray-500">
-    Loading profile...
+
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="flex flex-col justify-center items-center h-64 animate-slow-spin text-xs text-[#3C28CC]">
+    <svg-icon src="./assets/icons/heroicons/outline/logo.svg" [svgClass]="'h-20 w-20'"></svg-icon>
+    <strong>Nearby Task</strong>
   </div>
 
+  <div class="container mx-auto p-4">
   <div *ngIf="!isLoading && user && profileForm" class="bg-card text-card-foreground mx-auto max-w-full rounded-lg p-6 shadow-md">
-
   <!-- Profile Image Section (Top of the page) -->
   <div class="flex flex-col items-center mb-8 relative">
     <label for="profileImage" class="cursor-pointer relative">
