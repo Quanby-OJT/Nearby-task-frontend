@@ -599,7 +599,7 @@ class _RecordPageState extends State<RecordPage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                'Disputed Task Settled',
+                                'Resolved Task Disputes',
                                 style: GoogleFonts.montserrat(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,

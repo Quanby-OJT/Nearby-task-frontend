@@ -118,7 +118,7 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Task Disputed Settled',
+          'Settled Dispute Tasks',
           style: GoogleFonts.montserrat(
             color: Color(0xFF03045E),
             fontSize: 20,
@@ -181,7 +181,7 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
           ),
           SizedBox(height: 12),
           Text(
-            'Task Disputed Settled!',
+            'Disputed Task Settled.',
             style: GoogleFonts.montserrat(
               fontSize: 20,
               fontWeight: FontWeight.w600,
@@ -190,7 +190,7 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
           ),
           SizedBox(height: 8),
           Text(
-            'Congratulations on successfully completing this task!',
+            'Our Team had Successfully Settled this task. You can now rate the tasker.',
             textAlign: TextAlign.center,
             style: GoogleFonts.montserrat(
               fontSize: 14,
@@ -251,6 +251,12 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
               icon: Icons.info,
               label: 'Status',
               value: _requestInformation?.task_status ?? 'Disputed Settled',
+            ),
+            SizedBox(height: 12),
+            _buildTaskInfoRow(
+              icon: Icons.info,
+              label: 'Moderator Action: ',
+              value: 'Unknown Action',
             ),
           ],
         ),

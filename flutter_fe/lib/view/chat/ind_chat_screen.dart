@@ -17,12 +17,13 @@ class IndividualChatScreen extends StatefulWidget {
   final int taskTakenId;
   final int taskId;
   final String taskTakenStatus;
-  const IndividualChatScreen(
-      {super.key,
-      this.taskTitle,
-      required this.taskTakenId,
-      required this.taskId,
-      required this.taskTakenStatus});
+  const IndividualChatScreen({
+    super.key,
+    this.taskTitle,
+    required this.taskTakenId,
+    required this.taskId,
+    required this.taskTakenStatus
+  });
 
   @override
   State<IndividualChatScreen> createState() => _IndividualChatScreenState();
@@ -35,8 +36,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   final ScrollController _scrollController = ScrollController();
   // Logged In UserId Start
   final storage = GetStorage();
-  final ConversationController conversationController =
-      ConversationController();
+  final ConversationController conversationController = ConversationController();
   final JobPostService jobPostService = JobPostService();
   final ReportController reportController = ReportController();
   TaskModel? task;
@@ -47,6 +47,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   void initState() {
     super.initState();
     loadInitialData();
+    _readMessage();
     // Poll for new messages every 5 seconds
     _timer = Timer.periodic(Duration(seconds: 3), (timer) {
       loadConversationHistory();
@@ -94,6 +95,12 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
     int userId = storage.read('user_id');
     await reportController.fetchReportHistory(userId);
     setState(() {});
+  }
+
+  Future<void> _readMessage() async {
+    debugPrint('Reading message for taskTakenId: ${widget.taskTakenId}');
+    await conversationController.readMessage(widget.taskTakenId);
+    loadConversationHistory();
   }
 
   @override

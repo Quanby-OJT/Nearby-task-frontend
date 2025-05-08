@@ -733,10 +733,6 @@ class JobPostService {
         "reason_for_dispute": disputeReason,
         "dispute_details": disputeDetails
       });
-
-      return {
-        'success': false,
-      };
     } catch (e) {
       debugPrint('Error raising a dispute: $e');
       debugPrintStack();

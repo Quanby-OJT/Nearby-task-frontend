@@ -7,14 +7,14 @@ import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class SignIn extends StatefulWidget {
-  const SignIn({super.key});
+class ResetPassword extends StatefulWidget {
+  const ResetPassword({super.key});
 
   @override
-  State<SignIn> createState() => _SignInState();
+  State<ResetPassword> createState() => _ResetPasswordState();
 }
 
-class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
+class _ResetPasswordState extends State<ResetPassword> with SingleTickerProviderStateMixin {
   final AuthenticationController _controller = AuthenticationController();
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -136,9 +136,9 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                               padding:
                                   const EdgeInsets.only(left: 40, right: 40),
                               child: TextField(
-                                controller: _controller.emailController,
+                                controller: _controller.passwordController,
                                 cursorColor: const Color(0xFFB71A4A),
-                                decoration: _getInputDecoration('Email'),
+                                decoration: _getInputDecoration('Input Your New Password'),
                               ),
                             ),
                             Padding(
@@ -146,10 +146,10 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                                   left: 40, right: 40, top: 20),
                               child: TextField(
                                 obscureText: _obsecureText,
-                                controller: _controller.passwordController,
+                                controller: _controller.confirmPasswordController,
                                 cursorColor: const Color(0xFFB71A4A),
                                 decoration:
-                                    _getInputDecoration('Password').copyWith(
+                                    _getInputDecoration('Confirm Password').copyWith(
                                   suffixIcon: Padding(
                                     padding: const EdgeInsets.only(right: 10),
                                     child: IconButton(
@@ -182,74 +182,12 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                                   shadowColor: Colors.black26,
                                 ),
                                 child: Text(
-                                  'Sign in',
+                                  'Reset Password',
                                   style: GoogleFonts.poppins(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
                                   ),
-                                ),
-                              ),
-                            ),
-                            Center(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 10, horizontal: 40),
-                                child: TextButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => const ForgotPassword(),
-                                      ),
-                                    );
-                                  },
-                                  child: Text(
-                                    'Forgot your password?',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      color: Colors.black87,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 40,
-                              ),
-                              child: TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const PreSignUp(),
-                                    ),
-                                  );
-                                },
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      'Don\'t have an account?',
-                                      style: GoogleFonts.poppins(
-                                        color: Color(0xFF03045E),
-                                        fontWeight: FontWeight.w300,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 5),
-                                    Text(
-                                      'Sign Up',
-                                      style: GoogleFonts.poppins(
-                                        color: Color(0xFFB71A4A),
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
                                 ),
                               ),
                             ),

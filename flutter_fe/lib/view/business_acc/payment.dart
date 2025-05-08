@@ -7,7 +7,7 @@ class EscrowPaymentScreen extends StatefulWidget {
 
   const EscrowPaymentScreen({
     super.key,
-    required this.paymentUrl,
+    required this.paymentUrl
   });
 
   @override
@@ -47,7 +47,7 @@ class _EscrowPaymentScreenState extends State<EscrowPaymentScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                   content:
-                      Text('Error loading payment page: ${error.description}')),
+                  Text('Error loading payment page: ${error.description}')),
             );
           },
         ),
@@ -74,7 +74,7 @@ class _EscrowPaymentScreenState extends State<EscrowPaymentScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Deposit Payment",
+          "Checkout Payment",
           style: GoogleFonts.roboto(
             fontSize: 20,
             fontWeight: FontWeight.bold,

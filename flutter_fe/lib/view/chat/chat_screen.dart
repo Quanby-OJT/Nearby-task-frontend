@@ -1,20 +1,25 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/report_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
+import 'package:flutter_fe/model/conversation.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get/get_connect/sockets/src/socket_notifier.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 import '../../controller/conversation_controller.dart';
+import '../../model/chat_push_notifications.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -24,13 +29,13 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  List<TaskAssignment?> taskAssignments = [];
+  List<TaskAssignment> taskAssignments = [];
+  List<Conversation> conversation = [];
   List<TaskAssignment?> filteredTaskAssignments = [];
   final GetStorage storage = GetStorage();
   final TaskController _taskController = TaskController();
   final ReportController reportController = ReportController();
-  final ConversationController conversationController =
-      ConversationController();
+  final ConversationController conversationController = ConversationController();
 
   final ProfileController _profileController = ProfileController();
   final ClientServices _clientServices = ClientServices();
@@ -38,6 +43,8 @@ class _ChatScreenState extends State<ChatScreen> {
   int? cardNumber = 0;
   bool _isUploadDialogShown = false;
   bool _isLoading = true;
+  bool _isRead = false;
+  IO.Socket? socket;
 
   AuthenticatedUser? _user;
   String? _existingProfileImageUrl;
@@ -54,6 +61,33 @@ class _ChatScreenState extends State<ChatScreen> {
     _fetchUserIDImage();
     _fetchReportHistory();
     conversationController.searchConversation.addListener(filterMessages);
+
+    socket = IO.io('http://10.0.2.2:5000', <String, dynamic>{
+      'transports': ['websocket'],
+      'autoConnect': true,
+    });
+
+    socket?.on('new_message', (data) {
+      if(data['user_id'] != storage.read('user_id')){
+        setState(() {
+          _fetchTaskAssignments();
+        });
+      }
+    });
+
+    socket?.on('message_read', (data) {
+      _fetchTaskAssignments();
+      setState(() {}); // Force UI rebuild
+    });
+  }
+
+  @override
+  void dispose() {
+    reportController.reasonController.dispose();
+    conversationController.searchConversation.dispose();
+    _selectedReportCategory = null;
+    super.dispose();
+    socket?.disconnect();
   }
 
   void filterMessages() {
@@ -75,17 +109,17 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _fetchTaskAssignments() async {
+    setState(() {
+      _isLoading = true;
+    });
     int userId = storage.read('user_id');
-    List<TaskAssignment?> fetchedAssignments =
-        await _taskController.getAllAssignedTasks(context, userId);
-    if (mounted) {
-      setState(() {
-        taskAssignments = fetchedAssignments;
-        _isLoading = false;
-        filteredTaskAssignments =
-            fetchedAssignments; // Initialize filtered list
-      });
-    }
+    final result = await _taskController.getAllAssignedTasks(context, userId);
+    setState(() {
+      taskAssignments = result.taskAssignments;
+      conversation = result.conversations;
+      filteredTaskAssignments = taskAssignments;
+      _isLoading = false;
+    });
   }
 
   Future<void> _fetchTaskers() async {
@@ -622,14 +656,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   @override
-  void dispose() {
-    reportController.reasonController.dispose();
-    conversationController.searchConversation.dispose();
-    _selectedReportCategory = null;
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Colors.white,
@@ -671,91 +697,95 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: CircularProgressIndicator(),
               )
             : taskAssignments.isEmpty
-                ? Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Icon(
-                          FontAwesomeIcons.signalMessenger,
-                          size: 100,
-                          color: Color(0xFF0272B1),
-                        ),
-                        SizedBox(height: 16),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 20),
-                          child: Text(
-                            "No messages yet. Check notifications for client requests or await client task acceptance.",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 16),
+                ? RefreshIndicator(
+                    onRefresh: _fetchTaskAssignments,
+                    color: Color(0xFF0272B1),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(
+                            FontAwesomeIcons.signalMessenger,
+                            size: 100,
+                            color: Color(0xFF0272B1),
                           ),
-                        ),
-                        SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    blurRadius: 6,
-                                    offset: Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                              child: Material(
-                                color: Colors.redAccent,
-                                shape: CircleBorder(),
-                                child: PopupMenuButton<String>(
-                                  onSelected: (value) {
-                                    if (value == 'report_user') {
-                                      _showReportModal();
-                                    } else if (value == 'report_history') {
-                                      _showReportHistoryModal();
-                                    }
-                                  },
-                                  itemBuilder: (BuildContext context) => [
-                                    PopupMenuItem<String>(
-                                      value: 'report_user',
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.report,
-                                              color: Colors.redAccent),
-                                          SizedBox(width: 10),
-                                          Text('Report User'),
-                                        ],
-                                      ),
-                                    ),
-                                    PopupMenuItem<String>(
-                                      value: 'report_history',
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.history,
-                                              color: Colors.green),
-                                          SizedBox(width: 10),
-                                          Text('Report History'),
-                                        ],
-                                      ),
+                          SizedBox(height: 10),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            child: Text(
+                              "You don't have messages yet. Check your task requests to accept a tasker, or wait for them to accept your task.",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      blurRadius: 6,
+                                      offset: Offset(0, 3),
                                     ),
                                   ],
-                                  child: Container(
-                                    padding: EdgeInsets.all(12),
-                                    child: Icon(
-                                      Icons.flag,
-                                      color: Colors.white,
-                                      size: 28,
+                                ),
+                                child: Material(
+                                  color: Colors.redAccent,
+                                  shape: CircleBorder(),
+                                  child: PopupMenuButton<String>(
+                                    onSelected: (value) {
+                                      if (value == 'report_user') {
+                                        _showReportModal();
+                                      } else if (value == 'report_history') {
+                                        _showReportHistoryModal();
+                                      }
+                                    },
+                                    itemBuilder: (BuildContext context) => [
+                                      PopupMenuItem<String>(
+                                        value: 'report_user',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.report,
+                                                color: Colors.redAccent),
+                                            SizedBox(width: 10),
+                                            Text('Report User'),
+                                          ],
+                                        ),
+                                      ),
+                                      PopupMenuItem<String>(
+                                        value: 'report_history',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.history,
+                                                color: Colors.green),
+                                            SizedBox(width: 10),
+                                            Text('Report History'),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                    child: Container(
+                                      padding: EdgeInsets.all(12),
+                                      child: Icon(
+                                        Icons.flag,
+                                        color: Colors.white,
+                                        size: 28,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    )
                   )
                 : Column(children: [
                     Padding(
@@ -817,22 +847,34 @@ class _ChatScreenState extends State<ChatScreen> {
                                 : RefreshIndicator(
                                     onRefresh: _fetchTaskAssignments,
                                     color: Color(0xFF0272B1),
-                                    child: ListView.builder(
-                                        padding:
-                                            EdgeInsets.symmetric(vertical: 16),
-                                        itemCount:
-                                            filteredTaskAssignments.length,
-                                        itemBuilder: (context, index) {
-                                          final taskAssignment =
-                                              filteredTaskAssignments[index];
-                                          if (taskAssignment == null) {
-                                            return SizedBox.shrink();
-                                          } else {
-                                            return conversationCard(
-                                                taskAssignment);
-                                          }
-                                        })))
-                  ]));
+                                    child: // In the ListView.builder within the build method
+                                    ListView.builder(
+                                      padding: EdgeInsets.symmetric(vertical: 16),
+                                      itemCount: filteredTaskAssignments.length,
+                                      itemBuilder: (context, index) {
+                                        final taskAssignment = filteredTaskAssignments[index];
+                                        if (taskAssignment == null) {
+                                          return SizedBox.shrink();
+                                        }
+                                        // Find the corresponding conversation by task_taken_id
+                                        final conversation = this.conversation.firstWhere(
+                                              (conv) => conv.taskTakenId == taskAssignment.taskTakenId,
+                                          orElse: () => Conversation(
+                                            userId: 0,
+                                            conversationMessage: '',
+                                            taskTakenId: taskAssignment.taskTakenId,
+                                            user: null,
+                                            taskTaken: taskAssignment,
+                                          ),
+                                        );
+                                        return conversationCard(taskAssignment, conversation);
+                                      },
+                                    )
+                        )
+                    )
+                  ]
+        )
+    );
   }
 
   void showMessageOptions(BuildContext context, int taskTakenId) {
@@ -860,7 +902,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 style: TextStyle(color: Colors.red),
               ),
               onPressed: () {
-                // TODO: Implement delete action here
                 conversationController.deleteMessage(context, taskTakenId);
                 Navigator.of(context).pop(); // Dismiss the dialog
                 setState(() {
@@ -874,51 +915,110 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget conversationCard(TaskAssignment taskTaken) {
+  Widget conversationCard(TaskAssignment taskTaken, Conversation conversation) {
+    final currentUserId = storage.read('user_id');
+    final role = storage.read(
+        'role'); // Check if the current user is the sender of the latest message
+    final bool isReceiver = currentUserId == conversation.userId;
+    final bool unread = taskTaken.unreadCount > 0;
+    debugPrint("Is Sender: $isReceiver and Unread Messages for Task: ${taskTaken.taskTakenId} - ${taskTaken.unreadCount}");
+    final user = role == 'Tasker' ? taskTaken.client?.user : taskTaken.tasker
+        ?.user;
+
     return Container(
       margin: EdgeInsets.only(bottom: 12),
       child: InkWell(
-        onLongPress: () => showMessageOptions(context, taskTaken.taskTakenId),
         onTap: () {
           Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => IndividualChatScreen(
-                        taskTakenId: taskTaken.taskTakenId,
-                        taskId: taskTaken.task?.id ?? 0,
-                        taskTitle: taskTaken.task?.title ?? '',
-                        taskTakenStatus: taskTaken.taskStatus,
-                      )));
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  IndividualChatScreen(
+                    taskTakenId: taskTaken.taskTakenId,
+                    taskId: taskTaken.task?.id ?? 0,
+                    taskTitle: taskTaken.task?.title ?? '',
+                    taskTakenStatus: taskTaken.taskStatus,
+                  ),
+            ),
+          ).then((_) => _fetchTaskAssignments());
         },
+        onLongPress: () => showMessageOptions(context, taskTaken.taskTakenId),
         child: Padding(
           padding: EdgeInsets.all(16),
-          child: Column(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                taskTaken.task?.title ?? '',
-                style: GoogleFonts.montserrat(
-                  color: Color(0xFF0272B1),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 18,
+              CircleAvatar(
+                radius: 24,
+                backgroundImage: user?.imageName != null
+                    ? NetworkImage(user!.imageName!)
+                    : null,
+                child: user?.imageName == null
+                    ? Icon(FontAwesomeIcons.user, size: 30)
+                    : null,
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: Text(
+                        taskTaken.task?.title ?? '',
+                        style: GoogleFonts.montserrat(
+                          color: Color(0xFF0272B1),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 18,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        readIconMarker(
+                          isReceiver && unread ? FontAwesomeIcons.check : FontAwesomeIcons
+                              .checkDouble,
+                          Colors.green,
+                        ),
+
+                        if (!isReceiver) // No checkmarks for receiver
+                          SizedBox.shrink(),
+                        SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            "${user?.firstName ?? ''} ${user?.middleName ??
+                                ''} ${user?.lastName ?? ''}",
+                            style: GoogleFonts.poppins(
+                              fontWeight: !isReceiver && unread
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(height: 8),
-              Row(children: [
-                Icon(
-                  FontAwesomeIcons.userCheck,
-                  color: Color(0xFF0272B1),
-                  size: 16,
-                ),
-                SizedBox(width: 4),
-                Text(
-                  "${taskTaken.client?.user?.firstName} ${taskTaken.client?.user?.middleName} ${taskTaken.client?.user?.lastName}",
-                )
-              ])
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget readIconMarker(IconData icon, Color color){
+    return Padding(
+        padding: EdgeInsets.only(right: 10),
+        child: Icon(
+          icon,
+          color: color, // Single check for sent but not necessarily read
+          size: 16,
+        )
     );
   }
 }

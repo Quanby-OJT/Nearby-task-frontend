@@ -1,11 +1,13 @@
 import 'package:currency_text_input_formatter/currency_text_input_formatter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_fe/controller/escrow_management_controller.dart';
 
-import '../chat/payment.dart';
+import 'payment.dart';
 
 class EscrowTokenScreen extends StatefulWidget {
   const EscrowTokenScreen({super.key});
@@ -16,18 +18,28 @@ class EscrowTokenScreen extends StatefulWidget {
 
 class _EscrowTokenScreenState extends State<EscrowTokenScreen> {
   final _formKey = GlobalKey<FormState>();
-  final EscrowManagementController _escrowController =
-      EscrowManagementController();
+  final EscrowManagementController _escrowController = EscrowManagementController();
   bool isLoading = false;
   bool processingData = false;
   String userRole = "";
   final storage = GetStorage();
+  String selectedPaymentMethod = "";
+  String selectedMonth = "";
+  bool showCardDetails = false;
+  String selectedYear = "";
+  String? cardImagePath;
+
+  // Define the payment options
+  final List<String> _paymentOptions = [
+    'GCash',
+    'PayMaya',];
 
   @override
   void initState() {
     super.initState();
     setState(() {
-      userRole = storage.read('user_role');
+      _escrowController.tokenCredits.value = 0;
+      userRole = storage.read('role');
     });
   }
 
@@ -43,238 +55,306 @@ class _EscrowTokenScreenState extends State<EscrowTokenScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          title: Text("Deposit Your Amount"),
-          backgroundColor: Color(0XFF03045E),
-          centerTitle: true,
-          titleTextStyle:
-              GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 20),
-          iconTheme: IconThemeData(color: Colors.white),
-        ),
-        body: Padding(
-            padding: EdgeInsets.all(20),
-            child: Form(
-                key: _formKey,
-                child: Column(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text("Deposit Your Amount"),
+        backgroundColor: Color(0XFF03045E),
+        centerTitle: true,
+        titleTextStyle:
+            GoogleFonts.montserrat(fontWeight: FontWeight.bold, fontSize: 20),
+        iconTheme: IconThemeData(color: Colors.white),
+      ),
+      body: SingleChildScrollView(
+          child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("How much Would You Want to Deposit?",
+                    style: GoogleFonts.roboto(
+                        fontSize: 15, fontWeight: FontWeight.bold)),
+                SizedBox(height: 10),
+                TextFormField(
+                  controller: _escrowController.amountController,
+                  decoration: InputDecoration(
+                    fillColor: Color(0XFF2A1999),
+                      labelText: "Enter Amount (in Philippine Pesos)",
+                      labelStyle: GoogleFonts.montserrat(),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      )),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please Enter your Amount to Deposit";
+                    } else if (double.parse(value
+                            .replaceAll("₱", "")
+                            .replaceAll(",", "")) <
+                        2000) {
+                      return "Minimum Deposit is P2,000.00";
+                    }
+                    return null;
+                  },
+                  inputFormatters: [
+                    CurrencyTextInputFormatter.currency(
+                      locale: 'en_PH',
+                      symbol: '₱',
+                      decimalDigits: 2,
+                    )
+                  ],
+                ),
+                SizedBox(height: 10),
+                Text(
+                  "Current Price: P1.00 to 1 NearByTask Credit",
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 10),
+                ValueListenableBuilder(
+                  valueListenable: _escrowController.tokenCredits,
+                  builder: (context, value, child) {
+                    String formattedValue = value.toStringAsFixed(0).replaceAllMapped(
+                        RegExp(r'\d{1,3}(?=(\d{3})+(?!\d))'), (Match m) => '${m[0]},');
+
+                    return RichText(
+                      text: TextSpan(
+                        style: GoogleFonts.roboto(
+                          fontSize: 16,
+                          color: Colors.black
+                        ),
+                        children: <TextSpan>[
+                          TextSpan(
+                            text: formattedValue,
+                            style: GoogleFonts.barlow(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 30,
+                              color: Color(0XFF2A1999)
+                            ),
+                          ),
+                          TextSpan(text: ' IMONALICK Credit/s will be added to your account'),
+                        ],
+
+
+                      ),
+                    );
+                  },
+                ),
+                Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("How much Would You Want to Deposit?",
-                          style: GoogleFonts.roboto(
-                              fontSize: 15, fontWeight: FontWeight.bold)),
-                      SizedBox(height: 10),
-                      TextFormField(
-                        controller: _escrowController.amountController,
-                        decoration: InputDecoration(
-                            labelText: "Enter Amount (in Philippine Pesos)",
-                            labelStyle: GoogleFonts.montserrat(),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            )),
-                        keyboardType: TextInputType.number,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return "Please Enter your Amount to Deposit";
-                          } else if (double.parse(value
-                                  .replaceAll("₱", "")
-                                  .replaceAll(",", "")) <
-                              2000) {
-                            return "Minimum Deposit is P2,000.00";
-                          }
-                          return null;
-                        },
-                        inputFormatters: [
-                          CurrencyTextInputFormatter.currency(
-                            locale: 'en_PH',
-                            symbol: '₱',
-                            decimalDigits: 2,
-                          )
+                      Text(
+                        "Payment Methods",
+                        style: GoogleFonts.roboto(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        )
+                      ),
+                      Text(
+                        "We Accept the following secure payment methods:",
+                        style: GoogleFonts.roboto()
+                      ),
+                      SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ///If the user demands we must provide additional payment methods, it will be placed here.
+                          ///
+                          /// -Ces
+                          Image.asset('assets/images/gcash-logo-png_seeklogo-522261.png', height: 48, width: 48),
+                          Image.asset('assets/images/maya-logo_brandlogos.net_y6kkp-512x512.png', height: 48, width: 48),
+                          // SizedBox(width: 10,),
+                          // SvgPicture.asset('assets/images/card-logos/Mastercard-logo.svg', height: 48, width: 48),
+                          // SizedBox(width: 10,),
+                          // SvgPicture.asset('assets/images/card-logos/visa-logo-svg-vector.svg', height: 48, width: 48),
                         ],
                       ),
-                      SizedBox(height: 10),
-                      Text(
-                        "Current Price: P1.00 to 1 NearByTask Token",
-                        textAlign: TextAlign.center,
+                    ],
+                  )
+                ),
+                SizedBox(height: 20),
+                Center(
+                  child: Text("How will you deposit your amount?",
+                    style: GoogleFonts.roboto(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center
+                  ),
+                ),
+                SizedBox(height: 20),
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: 'Select Payment Method',
+                    hintText: '--Select Payment Method--',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  value: selectedPaymentMethod.isEmpty ? null : selectedPaymentMethod,
+                  items: _paymentOptions.map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Row(
+                        children: [
+                          if(value == "GCash")
+                            Image.asset('assets/images/gcash-logo-png_seeklogo-522261.png', height: 24, width: 24,),
+                          if(value == "PayMaya")
+                            Image.asset('assets/images/maya-logo_brandlogos.net_y6kkp-512x512.png', height: 24, width: 24,),
+                          SizedBox(width: 10),
+                          Text(value),
+                        ],
                       ),
-                      SizedBox(height: 30),
-                      ValueListenableBuilder(
-                        valueListenable: _escrowController.tokenCredits,
-                        builder: (context, value, child) {
-                          return Text(
-                            "You will receive: ${value.toStringAsFixed(0)} NearByTask Token/s to your account"
-                                .replaceAllMapped(
-                                    RegExp(r'\d{1,3}(?=(\d{3})+(?!\d))'),
-                                    (Match m) => '${m[0]},'),
-                            style: GoogleFonts.roboto(
-                              fontSize: 16,
-                            ),
+                    );
+                  }).toList(),
+                  onChanged: (newValue) {
+                    setState(() {
+                      selectedPaymentMethod = newValue!;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select a payment method';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 20),
+                if(selectedPaymentMethod == "GCash") Text("You will be redirected to your GCash Application."),
+                if(selectedPaymentMethod == "PayMaya") Text("You will be redirected to your PayMaya Application."),
+                SizedBox(height: 20),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () async{
+                      if (_formKey.currentState!.validate()) {
+                        ScaffoldMessenger.of(context).showMaterialBanner(
+                            MaterialBanner(
+                                content: Text(
+                                  "Please Wait while We Process Your Payment.",
+                                  style: GoogleFonts.barlow(
+                                      color: Colors.white),),
+                                backgroundColor: Color(0XFFD6932A),
+                                actions: [
+                                  TextButton(
+                                      onPressed: () {
+                                        ScaffoldMessenger.of(context)
+                                            .hideCurrentMaterialBanner();
+                                      },
+                                      child: Text("Dismiss")
+                                  )
+                                ]
+                            )
+                        );
+                        Map<String, dynamic> response = await _escrowController.depositAmountToEscrow(selectedPaymentMethod);
+
+                        if(response.containsKey("success") && response["success"]){
+                          ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EscrowPaymentScreen(paymentUrl: response["payment_url"])
+                            )
                           );
-                        },
-                      ),
-                      SizedBox(height: 30),
-                      Center(
-                          child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                            Icon(
-                              FontAwesomeIcons.shield,
-                              color: Color(0XFF4DBF66),
-                            ),
-                            SizedBox(width: 10),
-                            Text("Payments secured via Escrow.")
-                          ])),
-                      SizedBox(height: 30),
-                      Center(
-                          child: ElevatedButton(
-                              onPressed: () => warnUser(context),
-                              style: ButtonStyle(
-                                backgroundColor:
-                                    WidgetStateProperty.all(Color(0XFF03045E)),
-                              ),
-                              child: Text("Deposit Amount",
-                                  style: GoogleFonts.roboto(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white)))),
-                      Text(
-                          "NOTE: We will verify first your payment before you receive your NearByTask Credits.",
-                          style: TextStyle(color: Colors.black38))
-                    ]))));
+                        }else{
+                          ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+                          ScaffoldMessenger.of(context).showMaterialBanner(
+                            MaterialBanner(
+                              backgroundColor: Color(0XFFD6932A),
+                              content: Text(response['error'] ?? "An Error Occurred while processing Your Payment."),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+                                  },
+                                  child: Text("Dismiss")
+                                )
+                              ]
+                            )
+                          );
+                        }
+                      }
+                    },
+                    style: ButtonStyle(
+                      backgroundColor:
+                        WidgetStateProperty.all(Color(0XFF03045E)),
+                    ),
+                    child: Text("Deposit Amount",
+                      style: GoogleFonts.roboto(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white
+                      )
+                    )
+                  )
+                ),
+
+              ]
+            )
+          )
+        )
+      )
+    );
   }
 
-  void warnUser(BuildContext parentContext) {
-    showDialog(
-        context: context,
-        builder: (BuildContext dialogContext) {
-          return AlertDialog(
-            title: Text("ALERT: Does the Amount You Entered Sufficient?",
-                style: GoogleFonts.roboto(fontWeight: FontWeight.bold)),
-            actions: [
-              TextButton(
-                  onPressed: () async {
-                    if (!_formKey.currentState!.validate()) {
-                      Navigator.of(dialogContext)
-                          .pop(); // Use dialogContext to pop the dialog
-                      return;
-                    }
 
-                    setState(() {
-                      processingData = true;
-                    });
+  Widget buildInputField(
+      TextEditingController controller,
+      Widget? suffixIcon,
+      String label,
+      String hint,
+      ValueChanged<String>? onCardChanged
+  ){
+    return TextFormField(
+      controller: controller,
+      onChanged: onCardChanged,
+      decoration: InputDecoration(
+        contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+        suffixIcon: suffixIcon != null ? Container(
+          padding: EdgeInsets.only(right: 10.0),
+          child: suffixIcon,
+        ) : null,
+        filled: true,
+        fillColor: Colors.white,
+        labelText: label,
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.grey),
+        floatingLabelBehavior: FloatingLabelBehavior.auto,
+        labelStyle: GoogleFonts.montserrat(),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+        )
+      )
+    );
+  }
+}
 
-                    try {
-                      Navigator.of(dialogContext)
-                          .pop(); // Use dialogContext to pop the dialog
-                      ScaffoldMessenger.of(parentContext).showMaterialBanner(
-                        // Use parentContext here
-                        MaterialBanner(
-                          backgroundColor: Color(0xFFD6932A),
-                          content: Text(
-                              "Please Wait while we process your transaction."),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                ScaffoldMessenger.of(parentContext)
-                                    .hideCurrentMaterialBanner();
-                              },
-                              child: Text("Dismiss"),
-                            ),
-                          ],
-                        ),
-                      );
+class ExpiryDateInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue,
+      TextEditingValue newValue,
+      ) {
+    String text = newValue.text.replaceAll("/", "");
+    if (text.length > 4) {
+      text = text.substring(0, 4);
+    }
 
-                      // Auto-dismiss the banner after 10 seconds
-                      Future.delayed(Duration(seconds: 10), () {
-                        ScaffoldMessenger.of(parentContext)
-                            .hideCurrentMaterialBanner();
-                        debugPrint("Material Banner Dismissed!");
-                      });
+    String formatted = '';
+    if (text.length >= 3) {
+      formatted = '${text.substring(0, 2)}/${text.substring(2)}';
+    } else if (text.isNotEmpty) {
+      formatted = text;
+    }
 
-                      Map<String, dynamic> result =
-                          await _escrowController.depositAmountToEscrow();
-
-                      if (result.containsKey("message")) {
-                        ScaffoldMessenger.of(parentContext)
-                            .hideCurrentMaterialBanner();
-                        Navigator.push(
-                          parentContext, // Use parentContext for navigation
-                          MaterialPageRoute(
-                            builder: (context) => EscrowPaymentScreen(
-                              paymentUrl: result['payment_url'],
-                            ),
-                          ),
-                        );
-                      } else if (result.containsKey("error")) {
-                        ScaffoldMessenger.of(parentContext)
-                            .hideCurrentMaterialBanner();
-                        debugPrint("Material Banner Dismissed!");
-                        ScaffoldMessenger.of(parentContext).showMaterialBanner(
-                          MaterialBanner(
-                            content: Text(result['error']),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  ScaffoldMessenger.of(parentContext)
-                                      .hideCurrentMaterialBanner();
-                                },
-                                child: Text("Dismiss"),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-                    } catch (e, stackTrace) {
-                      debugPrint(e.toString());
-                      debugPrintStack(stackTrace: stackTrace);
-                      ScaffoldMessenger.of(parentContext).showMaterialBanner(
-                        MaterialBanner(
-                          content: Text(
-                              "An Error Occurred while we process your transaction. Please Try Again."),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                ScaffoldMessenger.of(parentContext)
-                                    .hideCurrentMaterialBanner();
-                              },
-                              child: Text("Dismiss"),
-                            ),
-                          ],
-                        ),
-                      );
-
-                      // Auto-dismiss the banner after 10 seconds
-                      Future.delayed(Duration(seconds: 10), () {
-                        ScaffoldMessenger.of(parentContext)
-                            .hideCurrentMaterialBanner();
-                        debugPrint("Material Banner Dismissed!");
-                      });
-                    } finally {
-                      setState(() {
-                        processingData = false;
-                      });
-                    }
-                  },
-                  child: Row(children: [
-                    Icon(FontAwesomeIcons.piggyBank, color: Color(0XFF3E9B52)),
-                    SizedBox(width: 10),
-                    Text("I Have Enough Funds",
-                        style: TextStyle(color: Color(0XFF3E9B52)))
-                  ])),
-              TextButton(
-                  onPressed: Navigator.of(dialogContext).pop,
-                  child: Row(children: [
-                    Icon(
-                      FontAwesomeIcons.xmark,
-                      color: Color(0XFFD43D4D),
-                    ),
-                    SizedBox(width: 10),
-                    Text("I don't Have Enough Funds",
-                        style: TextStyle(
-                          color: Color(0XFFD43D4D),
-                        ))
-                  ]))
-            ],
-          );
-        });
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
   }
 }

@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/view/custom_loading/custom_loading.dart';
-import 'package:flutter_fe/view/sign_in/forgot_password.dart';
 import 'package:flutter_fe/view/sign_in/otp_screen.dart';
 import 'package:flutter_fe/view/sign_up_acc/pre_sign_up.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class SignIn extends StatefulWidget {
-  const SignIn({super.key});
+class ForgotPassword extends StatefulWidget {
+  const ForgotPassword({super.key});
 
   @override
-  State<SignIn> createState() => _SignInState();
+  State<ForgotPassword> createState() => _ForgotPasswordState();
 }
 
-class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
+class _ForgotPasswordState extends State<ForgotPassword> with SingleTickerProviderStateMixin {
   final AuthenticationController _controller = AuthenticationController();
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -73,9 +72,9 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
     });
   }
 
-  void _handleLogin() async {
+  void handlePasswordReset() async {
     setState(() => _isLoading = true);
-    await _controller.loginAuth(context);
+    await _controller.forgotPassword(context);
     setState(() => _isLoading = false);
   }
 
@@ -113,8 +112,17 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                               height: 150,
                             ),
                             Text(
+                              "Forgot Password",
+                              style: GoogleFonts.poppins(
+                                fontSize: 24,
+                                color: Colors.black87,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Text(
                               textAlign: TextAlign.center,
-                              'Find Tasks Near You with NearbyTask!',
+                              'Have you forgot your password? Don\'t Worry! We have you covered. To start, please enter your email you used to sign in to this application.',
                               style: GoogleFonts.poppins(
                                 fontSize: 12,
                                 color: Colors.black87,
@@ -141,30 +149,6 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                                 decoration: _getInputDecoration('Email'),
                               ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                  left: 40, right: 40, top: 20),
-                              child: TextField(
-                                obscureText: _obsecureText,
-                                controller: _controller.passwordController,
-                                cursorColor: const Color(0xFFB71A4A),
-                                decoration:
-                                    _getInputDecoration('Password').copyWith(
-                                  suffixIcon: Padding(
-                                    padding: const EdgeInsets.only(right: 10),
-                                    child: IconButton(
-                                      icon: Icon(
-                                        _obsecureText
-                                            ? Icons.visibility_off
-                                            : Icons.visibility,
-                                        color: Colors.black87,
-                                      ),
-                                      onPressed: _toggleObscureText,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
                             const SizedBox(height: 20),
                             Container(
                               height: 50,
@@ -172,7 +156,7 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 40),
                               child: ElevatedButton(
-                                onPressed: _isLoading ? null : _handleLogin,
+                                onPressed: _isLoading ? null : handlePasswordReset,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Color(0xFFB71A4A),
                                   shape: RoundedRectangleBorder(
@@ -182,74 +166,12 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                                   shadowColor: Colors.black26,
                                 ),
                                 child: Text(
-                                  'Sign in',
+                                  'Send Verification Link',
                                   style: GoogleFonts.poppins(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
                                   ),
-                                ),
-                              ),
-                            ),
-                            Center(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 10, horizontal: 40),
-                                child: TextButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => const ForgotPassword(),
-                                      ),
-                                    );
-                                  },
-                                  child: Text(
-                                    'Forgot your password?',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      color: Colors.black87,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 40,
-                              ),
-                              child: TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const PreSignUp(),
-                                    ),
-                                  );
-                                },
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      'Don\'t have an account?',
-                                      style: GoogleFonts.poppins(
-                                        color: Color(0xFF03045E),
-                                        fontWeight: FontWeight.w300,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 5),
-                                    Text(
-                                      'Sign Up',
-                                      style: GoogleFonts.poppins(
-                                        color: Color(0xFFB71A4A),
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
                                 ),
                               ),
                             ),

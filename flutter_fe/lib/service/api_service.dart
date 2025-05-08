@@ -34,8 +34,7 @@ class ApiService {
   }
 
   // Update tasker profile with PDF file
-  static Future<Map<String, dynamic>> updateTaskerWithFile(
-      UserModel user, File file) async {
+  static Future<Map<String, dynamic>> updateTaskerWithFile(UserModel user, File file) async {
     try {
       String token = await AuthService.getSessionToken();
 
@@ -1414,5 +1413,55 @@ class ApiService {
       "Accept": "application/json",
       if (_cookies.isNotEmpty) "Cookie": cookieHeader,
     };
+  }
+
+  static Future<Map<String, dynamic>> forgotPassword(String email) async {
+    try {
+      debugPrint("Email: $email");
+      return await _postRequest(endpoint: "/forgot-password", body: {"email": email});
+    }catch(error, stackTrace){
+      debugPrint(error.toString());
+      debugPrintStack(stackTrace: stackTrace);
+      return {
+        "error": "An error occurred during email verification: $error"
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> resetPassword(String email, String password) async{
+    try {
+      return await _postRequest(endpoint: "/reset-password", body: {"email": email, "password": password});
+      }catch(error, stackTrace){
+        debugPrint(error.toString());
+        debugPrintStack(stackTrace: stackTrace);
+        return {
+          "error": "An error occurred during email verification: $error"
+        };
+    }
+  }
+
+  static Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
+    final response = await http.post(Uri.parse("$url$endpoint"),
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: jsonEncode(body));
+
+    return _handleResponse(response);
+  }
+
+  static Map<String, dynamic> _handleResponse(http.Response response) {
+    try {
+      final responseBody = jsonDecode(response.body);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return responseBody;
+      } else {
+        debugPrint("API Error Response: $responseBody");
+        return {"error": responseBody["error"] ?? "Unknown error"};
+      }
+    } catch (e) {
+      debugPrint("Error parsing response: $e");
+      return {"error": "Failed to parse response: $e"};
+    }
   }
 }
