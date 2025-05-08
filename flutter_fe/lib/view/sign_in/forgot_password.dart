@@ -74,7 +74,7 @@ class _ForgotPasswordState extends State<ForgotPassword> with SingleTickerProvid
 
   void handlePasswordReset() async {
     setState(() => _isLoading = true);
-    await _controller.loginAuth(context);
+    await _controller.forgotPassword(context);
     setState(() => _isLoading = false);
   }
 

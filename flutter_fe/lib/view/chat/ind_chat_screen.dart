@@ -98,6 +98,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   }
 
   Future<void> _readMessage() async {
+    debugPrint('Reading message for taskTakenId: ${widget.taskTakenId}');
     await conversationController.readMessage(widget.taskTakenId);
     loadConversationHistory();
   }

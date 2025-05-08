@@ -917,11 +917,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget conversationCard(TaskAssignment taskTaken, Conversation conversation) {
     final currentUserId = storage.read('user_id');
-    final role = storage.read('role');
-    // Check if the current user is the sender of the latest message
-    final bool isSender = conversation.userId != 0 && currentUserId == conversation.userId;
+    final role = storage.read(
+        'role'); // Check if the current user is the sender of the latest message
+    final bool isReceiver = currentUserId == conversation.userId;
     final bool unread = taskTaken.unreadCount > 0;
-    final user = role == 'Tasker' ? taskTaken.client?.user : taskTaken.tasker?.user;
+    debugPrint("Is Sender: $isReceiver and Unread Messages for Task: ${taskTaken.taskTakenId} - ${taskTaken.unreadCount}");
+    final user = role == 'Tasker' ? taskTaken.client?.user : taskTaken.tasker
+        ?.user;
 
     return Container(
       margin: EdgeInsets.only(bottom: 12),
@@ -930,12 +932,13 @@ class _ChatScreenState extends State<ChatScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => IndividualChatScreen(
-                taskTakenId: taskTaken.taskTakenId,
-                taskId: taskTaken.task?.id ?? 0,
-                taskTitle: taskTaken.task?.title ?? '',
-                taskTakenStatus: taskTaken.taskStatus,
-              ),
+              builder: (context) =>
+                  IndividualChatScreen(
+                    taskTakenId: taskTaken.taskTakenId,
+                    taskId: taskTaken.task?.id ?? 0,
+                    taskTitle: taskTaken.task?.title ?? '',
+                    taskTakenStatus: taskTaken.taskStatus,
+                  ),
             ),
           ).then((_) => _fetchTaskAssignments());
         },
@@ -959,7 +962,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
+                    SizedBox(
                       width: double.infinity,
                       child: Text(
                         taskTaken.task?.title ?? '',
@@ -968,24 +971,29 @@ class _ChatScreenState extends State<ChatScreen> {
                           fontWeight: FontWeight.w600,
                           fontSize: 18,
                         ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                     ),
                     SizedBox(height: 8),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (isSender) // Check marks for sender
-                            readIconMarker(FontAwesomeIcons.checkDouble, Colors.green)
-                        else // Unread state (>0 unread)
-                          readIconMarker(FontAwesomeIcons.check, Colors.green),
-                        if (!isSender && conversation.userId != 0) // No check for receiver, unless no message
+                        readIconMarker(
+                          isReceiver && unread ? FontAwesomeIcons.check : FontAwesomeIcons
+                              .checkDouble,
+                          Colors.green,
+                        ),
+
+                        if (!isReceiver) // No checkmarks for receiver
                           SizedBox.shrink(),
                         SizedBox(width: 4),
                         Expanded(
                           child: Text(
-                            "${user?.firstName ?? ''} ${user?.middleName ?? ''} ${user?.lastName ?? ''}",
+                            "${user?.firstName ?? ''} ${user?.middleName ??
+                                ''} ${user?.lastName ?? ''}",
                             style: GoogleFonts.poppins(
-                              fontWeight: isSender
+                              fontWeight: !isReceiver && unread
                                   ? FontWeight.bold
                                   : FontWeight.normal,
                             ),
@@ -996,21 +1004,6 @@ class _ChatScreenState extends State<ChatScreen> {
                   ],
                 ),
               ),
-              if (unread && !isSender && conversation.userId != 0)
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: CircleAvatar(
-                    radius: 10,
-                    backgroundColor: Colors.redAccent,
-                    child: Text(
-                      taskTaken.unreadCount.toString(),
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
             ],
           ),
         ),

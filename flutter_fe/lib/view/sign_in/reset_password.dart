@@ -7,14 +7,14 @@ import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class SignIn extends StatefulWidget {
-  const SignIn({super.key});
+class ResetPassword extends StatefulWidget {
+  const ResetPassword({super.key});
 
   @override
-  State<SignIn> createState() => _SignInState();
+  State<ResetPassword> createState() => _ResetPasswordState();
 }
 
-class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
+class _ResetPasswordState extends State<ResetPassword> with SingleTickerProviderStateMixin {
   final AuthenticationController _controller = AuthenticationController();
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -136,7 +136,7 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                               padding:
                                   const EdgeInsets.only(left: 40, right: 40),
                               child: TextField(
-                                controller: _controller.emailController,
+                                controller: _controller.passwordController,
                                 cursorColor: const Color(0xFFB71A4A),
                                 decoration: _getInputDecoration('Input Your New Password'),
                               ),
@@ -146,7 +146,7 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                                   left: 40, right: 40, top: 20),
                               child: TextField(
                                 obscureText: _obsecureText,
-                                controller: _controller.passwordController,
+                                controller: _controller.confirmPasswordController,
                                 cursorColor: const Color(0xFFB71A4A),
                                 decoration:
                                     _getInputDecoration('Confirm Password').copyWith(

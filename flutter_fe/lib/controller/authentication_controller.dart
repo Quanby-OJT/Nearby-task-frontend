@@ -90,6 +90,14 @@ class AuthenticationController {
   }
 
   Future<void> resetPassword(BuildContext context) async {
+
+    if(passwordController.text != confirmPasswordController.text){
+      _showStatusModal(
+        context: context,
+        isSuccess: false,
+        message: "Passwords do not match",
+      );
+    }
     String email = ""; //Temporary email. Will be replaced using a deep link
     var response = await ApiService.resetPassword(
       email,

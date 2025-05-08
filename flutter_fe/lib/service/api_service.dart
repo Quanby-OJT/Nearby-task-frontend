@@ -1417,6 +1417,7 @@ class ApiService {
 
   static Future<Map<String, dynamic>> forgotPassword(String email) async {
     try {
+      debugPrint("Email: $email");
       return await _postRequest(endpoint: "/forgot-password", body: {"email": email});
     }catch(error, stackTrace){
       debugPrint(error.toString());
@@ -1436,24 +1437,6 @@ class ApiService {
         return {
           "error": "An error occurred during email verification: $error"
         };
-    }
-  }
-
-  Future<Map<String, dynamic>> _putRequest(
-      {required String endpoint, required Map<String, dynamic> body}) async {
-    try {
-      final response = await http.put(
-        Uri.parse('$url$endpoint'),
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: jsonEncode(body),
-      );
-      return _handleResponse(response);
-    } catch (e, stackTrace) {
-      debugPrint(e.toString());
-      debugPrint(stackTrace.toString());
-      return {"error": "Request failed. Please Try Again."};
     }
   }
 
