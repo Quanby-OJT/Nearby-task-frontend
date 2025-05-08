@@ -26,8 +26,9 @@
     </div>
 
   <!-- Loading Spinner -->
-  <div *ngIf="isLoading" class="flex justify-center items-center h-64 animate-slow-spin">
+  <div *ngIf="isLoading" class="flex flex-col justify-center items-center h-64 animate-slow-spin text-xs text-[#3C28CC]">
     <svg-icon src="./assets/icons/heroicons/outline/logo.svg" [svgClass]="'h-20 w-20'"></svg-icon>
+    <strong>Nearby Task</strong>
   </div>
 
     <!-- Chart -->
