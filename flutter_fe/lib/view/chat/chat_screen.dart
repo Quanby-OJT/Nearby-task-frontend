@@ -979,8 +979,9 @@ class _ChatScreenState extends State<ChatScreen> {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if(isReceiver)
                         readIconMarker(
-                          isReceiver && unread ? FontAwesomeIcons.check : FontAwesomeIcons
+                          unread ? FontAwesomeIcons.check : FontAwesomeIcons
                               .checkDouble,
                           Colors.green,
                         ),

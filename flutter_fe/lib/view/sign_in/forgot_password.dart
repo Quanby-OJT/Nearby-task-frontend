@@ -1,6 +1,10 @@
+import 'dart:async';
+
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/view/custom_loading/custom_loading.dart';
 import 'package:flutter_fe/view/sign_in/otp_screen.dart';
+import 'package:flutter_fe/view/sign_in/reset_password.dart';
 import 'package:flutter_fe/view/sign_up_acc/pre_sign_up.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -21,6 +25,10 @@ class _ForgotPasswordState extends State<ForgotPassword> with SingleTickerProvid
   late Animation<Offset> _bottomSlideAnimation;
   bool _obsecureText = true;
   bool _isLoading = false;
+  StreamSubscription<Uri>? _linkSubscription;
+  String _status = "In order to reset your password, please enter your email.";
+  bool _isVerified = false;
+
 
   @override
   void initState() {
@@ -29,6 +37,7 @@ class _ForgotPasswordState extends State<ForgotPassword> with SingleTickerProvid
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     );
+    _initDeepLinkListener();
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
@@ -60,16 +69,67 @@ class _ForgotPasswordState extends State<ForgotPassword> with SingleTickerProvid
     _animationController.forward();
   }
 
+  Future<void> _handleDeepLink(Uri uri) async {
+    final token = uri.queryParameters['token'];
+    final email = uri.queryParameters['email'];
+
+    if (token != null && email != null) {
+      setState(() => _status = "Verifying your email...");
+      final int userId = await _controller.verifyEmail(context, token, email);
+
+      if (userId != 0) {
+        debugPrint("User ID: $userId");
+        setState(() {
+          _isVerified = true;
+          _status = "Email verified! You can now reset your password.";
+        });
+
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ResetPassword(email: email),
+            ),
+          );
+        }
+      } else {
+        setState(() => _status = "Email verification failed");
+      }
+    } else {
+      setState(() => _status = "Invalid verification link");
+    }
+  }
+
+  Future<void> _initDeepLinkListener() async {
+    final appLinks = AppLinks();
+
+    try {
+      final Uri? initialUri = await appLinks.getInitialLink();
+      if (initialUri != null) {
+        _handleDeepLink(initialUri);
+      }
+    } catch (e, stackTrace) {
+      debugPrint(e.toString());
+      debugPrint(stackTrace.toString());
+      setState(() => _status = "An error occurred");
+    }
+
+    _linkSubscription = appLinks.uriLinkStream.listen(
+          (Uri? uri) {
+        if (uri != null) {
+          _handleDeepLink(uri);
+        }
+      },
+      onError: (err) {
+        setState(() => _status = "Error: $err");
+      },
+    );
+  }
+
   @override
   void dispose() {
     _animationController.dispose();
     super.dispose();
-  }
-
-  void _toggleObscureText() {
-    setState(() {
-      _obsecureText = !_obsecureText;
-    });
   }
 
   void handlePasswordReset() async {
@@ -142,7 +202,7 @@ class _ForgotPasswordState extends State<ForgotPassword> with SingleTickerProvid
                           children: [
                             Padding(
                               padding:
-                                  const EdgeInsets.only(left: 40, right: 40),
+                              const EdgeInsets.only(left: 40, right: 40),
                               child: TextField(
                                 controller: _controller.emailController,
                                 cursorColor: const Color(0xFFB71A4A),
@@ -154,9 +214,11 @@ class _ForgotPasswordState extends State<ForgotPassword> with SingleTickerProvid
                               height: 50,
                               width: double.infinity,
                               padding:
-                                  const EdgeInsets.symmetric(horizontal: 40),
+                              const EdgeInsets.symmetric(horizontal: 40),
                               child: ElevatedButton(
-                                onPressed: _isLoading ? null : handlePasswordReset,
+                                onPressed: _isLoading
+                                    ? null
+                                    : handlePasswordReset,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Color(0xFFB71A4A),
                                   shape: RoundedRectangleBorder(
@@ -189,29 +251,29 @@ class _ForgotPasswordState extends State<ForgotPassword> with SingleTickerProvid
       ),
     );
   }
-}
 
-InputDecoration _getInputDecoration(String label) {
-  return InputDecoration(
-    filled: true,
-    fillColor: const Color(0xFFF1F4FF),
-    labelText: label,
-    hintStyle: const TextStyle(color: Colors.grey),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-      borderSide: BorderSide.none,
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-      borderSide: const BorderSide(color: Color(0xFFB71A4A), width: 2),
-    ),
-    errorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-      borderSide: const BorderSide(color: Colors.red, width: 1),
-    ),
-    focusedErrorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-      borderSide: const BorderSide(color: Colors.red, width: 2),
-    ),
-  );
+  InputDecoration _getInputDecoration(String label) {
+    return InputDecoration(
+      filled: true,
+      fillColor: const Color(0xFFF1F4FF),
+      labelText: label,
+      hintStyle: const TextStyle(color: Colors.grey),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Color(0xFFB71A4A), width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Colors.red, width: 1),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
+      ),
+    );
+  }
 }

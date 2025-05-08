@@ -120,6 +120,21 @@ class AuthenticationController {
     }
   }
 
+  Future<int> verifyEmail(
+      BuildContext context, String token, String email) async {
+    try {
+      final response = await ApiService.verifyEmail(token, email);
+
+      if (response.containsKey("message")) {
+        return response["user_id"] as int;
+      } else {
+        throw Exception(response["error"] ?? "Verification failed");
+      }
+    } catch (e) {
+      throw Exception("Failed to verify email: ${e.toString()}");
+    }
+  }
+
   Future<void> resetOTP(BuildContext context) async {
     var response = await ApiService.regenerateOTP(userId);
 
