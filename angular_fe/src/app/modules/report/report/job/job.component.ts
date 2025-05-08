@@ -7,6 +7,7 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
+import { SpecializationRank, MonthlyTrends, ChartSeries } from '../../../../../model/reportANDanalysis';
 
 @Component({
   selector: 'app-job',
@@ -16,13 +17,14 @@ import { saveAs } from 'file-saver';
   styleUrl: './job.component.css'
 })
 export class JobComponent implements OnInit {
-  rankedSpecializations: { specialization: string; total_requested: number; total_applied: number }[] = [];
-  monthlyTrends: { [key: string]: { [key: string]: number } } = {};
-  chartSeries: { name: string; data: number[] }[] = [];
+  rankedSpecializations: SpecializationRank[] = [];
+  monthlyTrends: MonthlyTrends = {};
+  chartSeries: ChartSeries[] = [];
   chartCategories: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   selectedMonth: string | null = null;
   months: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   isDropdownOpen: boolean = false;
+  isLoading: boolean = true;
 
   constructor(private reportService: ReportService) {}
 
@@ -41,9 +43,11 @@ export class JobComponent implements OnInit {
         } else {
           console.error("Response unsuccessful:", response);
         }
+        this.isLoading = false;
       },
       error: (error: any) => {
         console.error('Error fetching specialization data:', error);
+        this.isLoading = false;
       }
     });
   }
@@ -86,23 +90,53 @@ export class JobComponent implements OnInit {
 
     try {
   
-      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 43, 27, 40, 40); 
+      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 140, 35, 28, 25); 
     } catch (e) {
       console.error('Failed to load NearbyTasks.png:', e);
 
     }
 
     try {
-      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 10, 25, 40, 40);
+      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 260, 35, 26, 25);
     } catch (e) {
       console.error('Failed to load Quanby.png:', e);
-
     }
 
-
-    const title = 'Top Requested Jobs';
+    // Nearbuy Task Part
+    const title = 'Nearby Task';
     doc.setFontSize(20);
-    doc.text(title, 88, 50);
+    doc.setTextColor('#170A66');
+    doc.text(title, 170, 52);
+
+    // Line Part
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(0.2);
+    doc.line(30, 70, 415, 70);   
+
+    // Jobs
+    doc.setFontSize(12);
+    doc.setTextColor('#000000');
+    doc.text('Top Jobs', 30, 90);
+
+// Date and Time Part
+const currentDate = new Date();
+const formattedDate = currentDate.toLocaleString('en-US', {
+  month: '2-digit',
+  day: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hour12: true
+}).replace(/,/, ', ');
+console.log('Formatted Date:', formattedDate); 
+
+// Date and Time Position and Size
+doc.setFontSize(12);
+doc.setTextColor('#000000');
+console.log('Rendering date at position x=400, y=90'); 
+doc.text(formattedDate, 310, 90); 
+
     const headers = ['No', 'Specialization', 'Total Requested', 'Total Applied'];
     const rows = this.rankedSpecializations.map((spec, index) => [
       index + 1,
@@ -111,7 +145,7 @@ export class JobComponent implements OnInit {
       spec.total_applied
     ]);
     autoTable(doc, {
-      startY: 100,
+      startY: 125,
       head: [headers],
       body: rows,
       theme: 'grid',

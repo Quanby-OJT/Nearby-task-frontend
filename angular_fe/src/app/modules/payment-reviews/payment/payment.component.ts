@@ -6,6 +6,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import { AngularSvgIconModule } from 'angular-svg-icon';
+import { PaymentLog } from 'src/model/payment-review'; // Import the PaymentLog model
 
 @Component({
   selector: 'app-payment',
@@ -15,9 +16,9 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
   styleUrls: ['./payment.component.css']
 })
 export class PaymentComponent implements OnInit {
-  paymentLogs: any[] = [];
-  filteredPaymentLogs: any[] = [];
-  displayPaymentLogs: any[] = [];
+  paymentLogs: PaymentLog[] = [];
+  filteredPaymentLogs: PaymentLog[] = [];
+  displayPaymentLogs: PaymentLog[] = [];
   currentSearchText: string = '';
   currentFilterType: string = '';
   logsPerPage: number = 5;
@@ -27,6 +28,7 @@ export class PaymentComponent implements OnInit {
   endIndex: number = 0;
   paginationButtons: (number | string)[] = [];
   placeholderRows: any[] = [];
+  isLoading: boolean = true;
   sortDirections: { [key: string]: string } = {
     userName: 'default',
     amount: 'default',
@@ -37,15 +39,18 @@ export class PaymentComponent implements OnInit {
   constructor(private paymentService: PaymentService) {}
 
   ngOnInit(): void {
+    this.isLoading = true;
     this.paymentService.getPaymentLogs().subscribe(
-      (data) => {
+      (data: PaymentLog[]) => {
         console.log('Fetched payment logs:', data);
         this.paymentLogs = data;
         this.filteredPaymentLogs = [...data];
         this.updatePage();
+        this.isLoading = false;
       },
       (error) => {
         console.error('Error fetching payment logs', error);
+        this.isLoading = false;
       }
     );
   }
@@ -197,7 +202,7 @@ export class PaymentComponent implements OnInit {
       const row = [
         (this.currentPage - 1) * this.logsPerPage + index + 1,
         `"${log.user_name || ''}"`,
-        log.amount || 0,
+        log.amount,
         `"${log.payment_type || ''}"`,
         `"${log.created_at || ''}"`,
         `"${log.deposit_date || ''}"`
@@ -216,41 +221,77 @@ export class PaymentComponent implements OnInit {
       unit: 'px',
       format: 'a4',
     });
-
+  
+    // Nearby Tasks Logo
     try {
-      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 0, 25, 40, 40); 
+      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 140, 35, 28, 25);
     } catch (e) {
       console.error('Failed to load NearbyTasks.png:', e);
     }
-
+    // Quanby Logo
     try {
-      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 125, 23, 40, 40);
+      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 260, 35, 26, 25);
     } catch (e) {
       console.error('Failed to load Quanby.png:', e);
     }
-
-    // Add title
-    const title = 'Payment Reviews';
+  
+  // Nearby Task Part
+    const title = 'Nearby Task';
     doc.setFontSize(20);
+    doc.setTextColor('#170A66');
     doc.text(title, 170, 52);
+    
+  // Line Part
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(0.2);
+    doc.line(30, 70, 415, 70);
+  
+  // Payment Review Part
+    doc.setFontSize(12);
+    doc.setTextColor('#000000');
+    doc.text('Payment Reviews', 30, 90);
+  
 
+
+  // Date and Time Part
+    const currentDate = new Date();
+    const formattedDate = currentDate.toLocaleString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    }).replace(/,/, ', ');
+    console.log('Formatted Date:', formattedDate); 
+  
+  // Date and Time Position and Size
+    doc.setFontSize(12);
+    doc.setTextColor('#000000');
+    console.log('Rendering date at position x=400, y=90'); 
+    doc.text(formattedDate, 310, 90); 
+  
+ 
+  
     const columns = ['No', 'User Name', 'Amount', 'Payment Type', 'Created At', 'Deposit Date'];
     const rows = this.displayPaymentLogs.map((log, index) => [
       (this.currentPage - 1) * this.logsPerPage + index + 1,
       log.user_name || '',
-      log.amount || 0,
+      log.amount,
       log.payment_type || '',
       log.created_at || '',
       log.deposit_date || ''
     ]);
     autoTable(doc, {
-      startY: 100,
+      startY: 125,
       head: [columns],
       body: rows,
       theme: 'grid',
       styles: { fontSize: 8, cellPadding: 5, textColor: 'black' },
       headStyles: { fillColor: [60, 33, 146], textColor: 'white' },
     });
+  
     doc.save('PaymentReviews.pdf');
   }
 }

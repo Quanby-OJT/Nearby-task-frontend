@@ -8,6 +8,7 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
+import { Depositor, MonthlyTrends, ChartSeries } from '../../../../../model/reportANDanalysis';
 
 interface ChartConfig extends ApexOptions {
   series: ApexAxisChartSeries;
@@ -64,14 +65,14 @@ export class DepositorComponent implements OnInit {
     } as ApexLegend
   };
 
-  depositors: { userName: string; amount: number; month: string }[] = [];
+  depositors: Depositor[] = [];
   currentPage: number = 1;
   itemsPerPage: number = 10;
   totalItems: number = 0;
   selectedMonth: string | null = null;
   months: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   isDropdownOpen: boolean = false;
-
+  isLoading: boolean = true;
   constructor(private reportService: ReportService) {}
 
   ngOnInit(): void {
@@ -82,8 +83,8 @@ export class DepositorComponent implements OnInit {
     this.reportService.getTopDepositors(this.selectedMonth || undefined).subscribe({
       next: (response: {
         success: boolean;
-        rankedDepositors: { userName: string; amount: number; month: string }[];
-        monthlyTrends: { [userName: string]: { [month: string]: number } };
+        rankedDepositors: Depositor[];
+        monthlyTrends: MonthlyTrends;
       }) => {
         if (response.success) {
           this.depositors = response.rankedDepositors;
@@ -91,7 +92,7 @@ export class DepositorComponent implements OnInit {
 
           // Prepare chart series
           const monthlyTrends = response.monthlyTrends;
-          const series: ApexAxisChartSeries = Object.keys(monthlyTrends).map(userName => ({
+          const series: ChartSeries[] = Object.keys(monthlyTrends).map(userName => ({
             name: userName,
             data: Object.values(monthlyTrends[userName]).map(value => value as number),
           }));
@@ -101,9 +102,11 @@ export class DepositorComponent implements OnInit {
             series: series
           };
         }
+        this.isLoading = false;
       },
       error: (error: unknown) => {
         console.error('Error fetching top depositors:', error);
+        this.isLoading = false
       },
     });
   }
@@ -139,22 +142,54 @@ export class DepositorComponent implements OnInit {
 
     try {
   
-      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 43, 27, 40, 40); 
+      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 140, 35, 28, 25); 
     } catch (e) {
       console.error('Failed to load NearbyTasks.png:', e);
 
     }
 
     try {
-      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 10, 25, 40, 40);
+      doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 260, 35, 26, 25);
     } catch (e) {
       console.error('Failed to load Quanby.png:', e);
 
     }
 
-    const title = 'Top Depositors';
+    // Nearby Task Part
+    const title = 'Nearby Task';
     doc.setFontSize(20);
-    doc.text(title, 88, 50);
+    doc.setTextColor('#170A66');
+    doc.text(title, 170, 52);
+
+    // Line Part
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(0.2);
+    doc.line(30, 70, 415, 70);
+
+    // Depositor Part
+    doc.setFontSize(12);
+    doc.setTextColor('#000000');
+    doc.text('Top Depositor', 30, 90);
+
+    // Date and Time Part
+    const currentDate = new Date();
+    const formattedDate = currentDate.toLocaleString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    }).replace(/,/, ', ');
+    console.log('Formatted Date:', formattedDate); 
+
+    // Date and Time Position and Size
+    doc.setFontSize(12);
+    doc.setTextColor('#000000');
+    console.log('Rendering date at position x=400, y=90'); 
+    doc.text(formattedDate, 310, 90); 
+
     const headers = ['No', 'Depositor', 'Amount Deposited', 'Month Deposited'];
     const rows = this.depositors.map((depositor, index) => [
       index + 1,
@@ -163,7 +198,7 @@ export class DepositorComponent implements OnInit {
       depositor.month
     ]);
     autoTable(doc, {
-      startY: 100,
+      startY: 125,
       head: [headers],
       body: rows,
       theme: 'grid',
@@ -219,7 +254,7 @@ export class DepositorComponent implements OnInit {
     };
   }
 
-  get paginatedDepositors(): { userName: string; amount: number; month: string }[] {
+  get paginatedDepositors(): Depositor[] {
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
     return this.depositors.slice(startIndex, startIndex + this.itemsPerPage);
   }

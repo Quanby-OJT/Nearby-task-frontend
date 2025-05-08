@@ -20,7 +20,14 @@
     </button>
   </div>
 </div>
-<div class="bg-white w-full max-w-[1440px] mx-auto flex-col rounded-xl min-h-[400px]">
+
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="flex flex-col justify-center items-center h-64 animate-slow-spin text-xs text-[#3C28CC]">
+    <svg-icon src="./assets/icons/heroicons/outline/logo.svg" [svgClass]="'h-20 w-20'"></svg-icon>
+    <strong>Nearby Task</strong>
+  </div>
+
+<div *ngIf="!isLoading" class="bg-white w-full max-w-[1440px] mx-auto flex-col rounded-xl min-h-[400px]">
 <div class="bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
   <div class="flex flex-wrap items-center justify-between gap-2 py-3 px-5">
     <div class="text-muted-foreground text-sm font-medium"></div>
@@ -33,7 +40,7 @@
           <input name="search" (input)="searchLogs($event)" class="w-full py-2 pl-8 pr-2 border rounded-md" placeholder="Search Users Name" type="text" />
         </label>
       </div>
-      <div class="flex-1 min-w-[200px] lg:min-w-[200px] xl:min-w-[200px]">
+      <div *ngIf="!isLoading" class="flex-1 min-w-[200px] lg:min-w-[200px] xl:min-w-[200px]">
         <select (change)="filterLogs($event)" class="w-full py-2 px-2 border rounded-md">
           <option value="">All Payment Types</option>
           <option value="Client Deposit">Client Deposit</option>
@@ -80,6 +87,7 @@
           </th>
         </tr>
       </thead>
+      
       <tbody>
         <tr *ngFor="let log of displayPaymentLogs; let i = index" class="hover:bg-card/50 h-[60px]">
           <td class="px-4 py-3 text-start">{{ log.user_name }}</td>
@@ -100,7 +108,7 @@
     </table>
   </div>
 
-  <div class="flex justify-between items-center bg-white w-full">
+  <div *ngIf="!isLoading" class="flex justify-between items-center bg-white w-full">
     <div class="text-muted-foreground flex items-center justify-between py-3 px-5 text-xs">
       <div class="flex items-center gap-2">
         Show
@@ -141,5 +149,4 @@
     </div>
   </div>
 </div>
-
 </div>
