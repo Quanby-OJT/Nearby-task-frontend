@@ -26,20 +26,27 @@ class TaskerController {
           spec.id!: spec.specialization,
       };
 
-      debugPrint("My data this is my data: $fetchedMyData");
-      debugPrint("Fetched Taskers: $fetchedTaskers");
+      debugPrint("My data: $fetchedMyData");
+      debugPrint("Fetched Taskers: ${fetchedTaskers.length} taskers");
+      for (var tasker in fetchedTaskers) {
+        debugPrint(
+            "Tasker: ${tasker.user?.firstName}, Specialization: ${tasker.specialization}");
+      }
       debugPrint("Specialization Map: $specializationMap");
 
       if (fetchedMyData?.user == null ||
           fetchedMyData?.user?.userPreferences == null ||
           fetchedMyData?.user?.userPreferences?.isEmpty == true) {
-        debugPrint("No client preferences found");
+        debugPrint("No client preferences found, returning all taskers");
         return fetchedTaskers;
       }
 
       final clientPreferences = fetchedMyData!.user!.userPreferences!.first;
 
+      // Parse specialization IDs and map to names
       final desiredSpecializationIds = <int>[];
+      final desiredSpecializationNames = <String>[];
+
       if (clientPreferences.specialization.isNotEmpty) {
         debugPrint("Raw specialization: ${clientPreferences.specialization}");
 
@@ -50,15 +57,21 @@ class TaskerController {
               for (final idStr in ids) {
                 if (idStr != null && idStr.toString().trim().isNotEmpty) {
                   final id = int.tryParse(idStr.toString().trim());
-                  if (id != null) {
+                  if (id != null && specializationMap.containsKey(id)) {
                     desiredSpecializationIds.add(id);
+                    if (id != 0) {
+                      desiredSpecializationNames.add(specializationMap[id]!);
+                    }
                   }
                 }
               }
             } else {
               final id = int.tryParse(item.trim());
-              if (id != null) {
+              if (id != null && specializationMap.containsKey(id)) {
                 desiredSpecializationIds.add(id);
+                if (id != 0) {
+                  desiredSpecializationNames.add(specializationMap[id]!);
+                }
               }
             }
           } catch (e) {
@@ -71,14 +84,6 @@ class TaskerController {
 
       final includesAllSpecializations = desiredSpecializationIds.contains(0);
 
-      final desiredSpecializationNames = includesAllSpecializations
-          ? <String>[]
-          : desiredSpecializationIds
-              .map((id) => specializationMap[id])
-              .where((name) => name != null)
-              .cast<String>()
-              .toList();
-
       debugPrint("Desired specialization IDs: $desiredSpecializationIds");
       debugPrint("Desired specialization names: $desiredSpecializationNames");
       debugPrint("Includes all specializations: $includesAllSpecializations");
@@ -89,6 +94,10 @@ class TaskerController {
       final ageStart = clientPreferences.ageStart;
       final ageEnd = clientPreferences.ageEnd;
       final limit = clientPreferences.limit;
+
+      debugPrint(
+          "Client Preferences - Limit: $limit, Max Distance: $maxDistance, "
+          "Age Range: $ageStart-$ageEnd");
 
       double degToRad(double deg) => deg * (math.pi / 180);
 
@@ -174,6 +183,11 @@ class TaskerController {
           score += 1;
         }
 
+        debugPrint(
+            "Tasker: ${tasker.user?.firstName}, Specialization: ${tasker.specialization}, "
+            "Matches Specialization: $matchesSpecialization, Matches Distance: $matchesDistance, "
+            "Matches Age: $matchesAge, Distance: $distance, Score: $score");
+
         if (matchesSpecialization && matchesDistance && matchesAge) {
           matchedTaskers.add(tasker);
         } else {
@@ -196,14 +210,20 @@ class TaskerController {
           final distB = taskerScores[b]!['distance'] as double;
           return distA.compareTo(distB);
         });
+        debugPrint("Limit is true, returning sorted taskers: ${result.length}");
       } else {
         result = matchedTaskers;
-        result = matchedTaskers;
+        debugPrint(
+            "Limit is false, returning only matched taskers: ${result.length}");
       }
 
       debugPrint("Matched taskers: ${matchedTaskers.length}");
       debugPrint("Unmatched taskers: ${unmatchedTaskers.length}");
-      debugPrint("Returning ${result.length} taskers");
+      for (var tasker in result) {
+        debugPrint("Final Result Tasker: ${tasker.user?.firstName}, "
+            "Specialization: ${tasker.specialization}, Score: ${taskerScores[tasker]!['score']}, "
+            "Distance: ${taskerScores[tasker]!['distance']}");
+      }
 
       return result;
     } catch (e, stackTrace) {

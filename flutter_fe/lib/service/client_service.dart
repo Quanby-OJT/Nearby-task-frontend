@@ -261,7 +261,45 @@ class ClientServices {
 
   Future<ClientModel?> fetchMyData(int userId) async {
     try {
-      final response = await _getRequest("/client/getMyData/$userId");
+      final response = await _getRequest("/client/getMyDataClient/$userId");
+      debugPrint("My Data Response: $response");
+
+      if (response.containsKey("error")) {
+        final errorMsg = response["error"];
+        debugPrint("Error fetching my data: $errorMsg");
+        if (errorMsg.toString().contains("No active taskers found")) {
+          return null;
+        }
+        throw Exception(errorMsg);
+      }
+
+      final client = response["client"] as Map<String, dynamic>?;
+      debugPrint("My Data Client: $client");
+
+      if (client == null) {
+        debugPrint("No client data returned for user ID: $userId");
+        return null;
+      }
+
+      try {
+        debugPrint("My Client Data: $client");
+        return ClientModel.fromJson(client);
+      } catch (e, st) {
+        debugPrint("Error parsing my client data: $e");
+        debugPrint("Stack trace: $st");
+        debugPrint("Problematic client data: $client");
+        return null;
+      }
+    } catch (e, st) {
+      debugPrint("Error in fetchMyData: $e");
+      debugPrint("Stack trace: $st");
+      return null;
+    }
+  }
+
+  Future<ClientModel?> fetchMyDataTasker(int userId) async {
+    try {
+      final response = await _getRequest("/client/getMyDataTasker/$userId");
       debugPrint("My Data Response: $response");
 
       if (response.containsKey("error")) {

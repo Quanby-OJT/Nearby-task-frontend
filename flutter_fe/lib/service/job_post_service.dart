@@ -404,8 +404,8 @@ class JobPostService {
         return [];
       }
 
-      final likedJobsResponse = await _getRequest("/displayLikedJob/$userId");
-      final allJobsResponse = await _getRequest("/fetchAllTasks");
+      final likedJobsResponse = await _getRequest("/displayLikedTask/$userId");
+      final allJobsResponse = await _getRequest("/fetchTasks");
 
       debugPrint("Liked Jobs Response: $likedJobsResponse");
       debugPrint("All Jobs Response: $allJobsResponse");
@@ -416,19 +416,27 @@ class JobPostService {
         return [];
       }
 
-      final tasks = allJobsResponse["tasks"];
+      final tasks = allJobsResponse["taskers"];
       if (tasks == null || tasks is! List) {
         debugPrint(
             "Unexpected response format: 'tasks' is missing or not a list");
         return [];
       }
 
+      final likedTaskIds = (likedJobsResponse["liked_tasks"] as List? ?? [])
+          .map((likedTask) => (likedTask["job_post_id"] as int?)?.toString())
+          .where((id) => id != null)
+          .toSet();
+
+      debugPrint("This is like tasks ID, $likedTaskIds");
+
       return tasks
           .map((task) => TaskModel.fromJson(task as Map<String, dynamic>))
+          .where(
+              (task) => !likedTaskIds.contains(task.id.toString().toString()))
           .toList();
-    } catch (e, st) {
-      debugPrint("Exception in fetchAllJobs: $e");
-      debugPrintStack(stackTrace: st);
+    } catch (e) {
+      debugPrint('Error fetching jobs: $e');
       return [];
     }
   }
