@@ -24,7 +24,8 @@ class JobPostPage extends StatefulWidget {
   State<JobPostPage> createState() => _JobPostPageState();
 }
 
-class _JobPostPageState extends State<JobPostPage> {
+class _JobPostPageState extends State<JobPostPage>
+    with SingleTickerProviderStateMixin {
   final TaskController controller = TaskController();
   final JobPostService jobPostService = JobPostService();
   final ClientServices _clientServices = ClientServices();
@@ -55,9 +56,30 @@ class _JobPostPageState extends State<JobPostPage> {
   bool _isUploadDialogShown = false;
   bool _documentValid = false;
 
+  // Tab-related variables
+  final List<String> _tabStatuses = [
+    "All",
+    "Available",
+    "Already Taken",
+    "Closed",
+    "On Hold",
+    "Reported"
+  ];
+  late TabController _tabController;
+  int _selectedTabIndex = 0;
+
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: _tabStatuses.length, vsync: this);
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        setState(() {
+          _selectedTabIndex = _tabController.index;
+        });
+        _filterTasks();
+      }
+    });
     fetchSpecialization();
     _loadSkills();
     _fetchUserIDImage();
@@ -67,6 +89,7 @@ class _JobPostPageState extends State<JobPostPage> {
 
   @override
   void dispose() {
+    _tabController.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -116,6 +139,7 @@ class _JobPostPageState extends State<JobPostPage> {
           clientTasks = tasks;
           _filteredTasks = List.from(clientTasks);
         });
+        _filterTasks(); // Apply initial filtering
       }
     } catch (e) {
       debugPrint("Error fetching created tasks: $e");
@@ -140,11 +164,17 @@ class _JobPostPageState extends State<JobPostPage> {
 
   void _filterTasks() {
     String query = _searchController.text.trim().toLowerCase();
+    String? statusFilter =
+        _selectedTabIndex == 0 ? null : _tabStatuses[_selectedTabIndex];
     setState(() {
       _filteredTasks = clientTasks.where((task) {
         if (task == null) return false;
-        return (task.title.toLowerCase().contains(query) ?? false) ||
-            (task.description.toLowerCase().contains(query) ?? false);
+        bool matchesSearch =
+            (task.title.toLowerCase().contains(query) ?? false) ||
+                (task.description.toLowerCase().contains(query) ?? false);
+        bool matchesStatus =
+            statusFilter == null || task.status == statusFilter;
+        return matchesSearch && matchesStatus;
       }).toList();
     });
   }
@@ -783,7 +813,7 @@ class _JobPostPageState extends State<JobPostPage> {
           title: Align(
               alignment: Alignment.centerLeft,
               child: Padding(
-                padding: EdgeInsets.only(left: 20.0),
+                padding: EdgeInsets.only(left: 0.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -852,6 +882,36 @@ class _JobPostPageState extends State<JobPostPage> {
                         ),
                         style: GoogleFonts.montserrat(fontSize: 14),
                       ),
+                    ),
+                    TabBar(
+                      controller: _tabController,
+                      isScrollable: true,
+                      indicatorColor: Color(0xFF0272B1),
+                      labelColor: Colors.black,
+                      unselectedLabelColor: Colors.black,
+                      labelStyle: TextStyle(fontWeight: FontWeight.bold),
+                      unselectedLabelStyle:
+                          TextStyle(fontWeight: FontWeight.normal),
+                      tabs: _tabStatuses.asMap().entries.map((entry) {
+                        int index = entry.key;
+                        String status = entry.value;
+                        bool isSelected = index == _selectedTabIndex;
+                        return Tab(
+                          child: SizedBox(
+                            width: 100,
+                            child: Center(
+                              child: Text(
+                                status,
+                                style: TextStyle(
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
                     ),
                     // Task Count
                     Padding(
@@ -959,6 +1019,7 @@ class _JobPostPageState extends State<JobPostPage> {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Colors.white,
       margin: EdgeInsets.only(bottom: 12),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
