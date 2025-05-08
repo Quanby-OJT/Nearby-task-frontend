@@ -885,8 +885,13 @@ class _JobPostPageState extends State<JobPostPage>
                     ),
                     TabBar(
                       controller: _tabController,
-                      isScrollable: true,
+                      isScrollable: false,
+                      padding: EdgeInsets.symmetric(horizontal: 20),
                       indicatorColor: Color(0xFF0272B1),
+                      indicatorSize: TabBarIndicatorSize
+                          .tab, // Ensures the underline spans the full tab width
+                      indicatorWeight:
+                          3.0, // Maintains the thickness of the line
                       labelColor: Colors.black,
                       unselectedLabelColor: Colors.black,
                       labelStyle: TextStyle(fontWeight: FontWeight.bold),
@@ -898,15 +903,18 @@ class _JobPostPageState extends State<JobPostPage>
                         bool isSelected = index == _selectedTabIndex;
                         return Tab(
                           child: SizedBox(
-                            width: 100,
+                            width: 90,
                             child: Center(
                               child: Text(
                                 status,
                                 style: TextStyle(
+                                  fontSize: 12,
                                   fontWeight: isSelected
                                       ? FontWeight.bold
                                       : FontWeight.normal,
                                 ),
+                                softWrap: false,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ),
