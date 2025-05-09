@@ -23,7 +23,6 @@ export class SpecializationComponent implements OnInit {
   selectedMonth: string | null = null;
   months: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   isDropdownOpen: boolean = false;
-  isLoading: boolean = true;
 
   constructor(private reportService: ReportService) {}
 
@@ -39,11 +38,9 @@ export class SpecializationComponent implements OnInit {
           this.monthlyTrends = response.monthlyTrends;
           this.updateChart();
         }
-        this.isLoading = false;
       },
       error: (error) => {
         console.error('Error fetching specialization data:', error);
-        this.isLoading = false;
       }
     });
   }
