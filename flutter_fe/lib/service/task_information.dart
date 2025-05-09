@@ -9,7 +9,7 @@ import '../config/url_strategy.dart';
 import '../model/conversation.dart';
 
 class TaskDetailsService {
-  static final String url = apiUrl ?? "http://localhost:5000/connect";
+  static final String url = apiUrl ?? "http://192.168.1.12:5000/connect";
   static final storage = GetStorage();
 
   static Map<String, dynamic> _handleResponse(http.Response response) {
@@ -45,7 +45,8 @@ class TaskDetailsService {
     }
   }
 
-  static Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  static Future<Map<String, dynamic>> _postRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     final response = await http.post(Uri.parse("$url$endpoint"),
         headers: {
@@ -93,7 +94,8 @@ class TaskDetailsService {
   }
 
   //This is for client.
-  Future<Map<String, dynamic>> updateTaskStatus(int taskTakenId, String? newStatus) async {
+  Future<Map<String, dynamic>> updateTaskStatus(
+      int taskTakenId, String? newStatus) async {
     try {
       return await _postRequest(endpoint: "/update-status-client", body: {
         "task_id": taskTakenId,
@@ -111,11 +113,8 @@ class TaskDetailsService {
     try {
       debugPrint("Current User Role: ${storage.read('role')}");
       return await _postRequest(
-          endpoint: "/send-message", 
-          body: {
-            ...conversation.toJson(),
-            'role': storage.read('role')
-          });
+          endpoint: "/send-message",
+          body: {...conversation.toJson(), 'role': storage.read('role')});
     } catch (e) {
       debugPrint(e.toString());
       debugPrintStack();

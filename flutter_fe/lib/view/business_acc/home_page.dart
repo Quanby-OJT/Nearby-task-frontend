@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
+import 'package:flutter_fe/controller/setting_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
+import 'package:flutter_fe/model/setting.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/model/tasker_feedback.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
-import 'package:flutter_fe/service/tasker_service.dart';
+import 'package:flutter_fe/controller/tasker_controller.dart';
 import 'package:flutter_fe/view/address/set-up_address.dart';
 import 'package:flutter_fe/view/business_acc/create_escrow_token.dart';
 import 'package:flutter_fe/view/business_acc/notif_screen.dart';
@@ -21,7 +23,6 @@ import 'package:flutter_fe/view/setting/setting.dart';
 import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:dropdown_search/dropdown_search.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:flip_card/flip_card.dart';
@@ -40,7 +41,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   final CardSwiperController controller = CardSwiperController();
   final JobPostService jobPostService = JobPostService();
   final ClientServices _clientServices = ClientServices();
-  final TaskerService _taskerService = TaskerService();
+  final TaskerController _taskerController = TaskerController();
+  final SettingController _settingController = SettingController();
+  List<MapEntry<int, String>> categories = [];
+  Map<String, bool> selectedCategories = {};
+
+  SettingModel _userPreference = SettingModel();
+  AuthenticatedUser? tasker;
+  String _role = "Loading...";
   List<AuthenticatedUser> taskers = [];
   List<TaskerFeedback> taskerFeedback = [];
   String? _errorMessage;
@@ -49,21 +57,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   AuthenticatedUser? _user;
   String _fullName = "Loading...";
-  String _role = "Loading...";
   String _image = "";
   String? _existingProfileImageUrl;
   String? _existingIDImageUrl;
   bool _documentValid = false;
   bool _isLoading = true;
   bool _isUploadDialogShown = false;
-  bool _showButton = false;
   final GlobalKey _moreVertKey = GlobalKey();
-
-  final double _currentRating = 0;
-
-  String? _selectedSpecialization;
-  List<String> _specializations = ['All'];
-  bool _isSpecializationsLoading = true;
+  List<TaskerModel> fetchedTaskers = [];
 
   AnimationController? _likeAnimationController;
   AnimationController? _dislikeAnimationController;
@@ -73,10 +74,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _fetchUserData();
-    _fetchUserIDImage();
-    fetchSpecialization();
-    _fetchTaskers();
+    _loadAllFunction();
 
     _likeAnimationController = AnimationController(
       vsync: this,
@@ -112,6 +110,45 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _dislikeAnimationController?.dispose();
     controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadAllFunction() async {
+    try {
+      await Future.wait([
+        _fetchUserIDImage(),
+        _fetchUserData(),
+        _fetchTaskers(),
+      ]);
+      setState(() {
+        _isLoading = false;
+      });
+
+      final response = await _settingController.getLocation();
+      setState(() {
+        _userPreference = response;
+      });
+
+      debugPrint("User preference: ${_userPreference.id}");
+
+      if (_userPreference.id == null) {
+        setState(() {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const SetUpAddressScreen()),
+          ).then((value) {
+            setState(() {
+              _isLoading = true;
+              _loadAllFunction();
+            });
+          });
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = "Failed to load data: $e";
+      });
+    }
   }
 
   Future<void> _fetchUserData() async {
@@ -188,7 +225,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           _existingProfileImageUrl = user?.user.image;
           _existingIDImageUrl = response['url'];
           _documentValid = response['status'];
-          _isLoading = false;
         });
       }
     } catch (e) {
@@ -196,57 +232,29 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     }
   }
 
-  Future<void> fetchSpecialization() async {
-    try {
-      setState(() {
-        _isSpecializationsLoading = true;
-      });
-
-      List<SpecializationModel> fetchedSpecializations =
-          await jobPostService.getSpecializations();
-
-      setState(() {
-        _specializations = [
-          'All',
-          ...fetchedSpecializations.map((spec) => spec.specialization)
-        ];
-        _isSpecializationsLoading = false;
-      });
-    } catch (error) {
-      setState(() {
-        _isSpecializationsLoading = false;
-      });
-    }
-  }
-
   Future<void> _fetchTaskers() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
     try {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
+      fetchedTaskers = await _taskerController.getAllTaskers();
 
-      List<TaskerModel> fetchedTaskers;
-      if (_selectedSpecialization == null || _selectedSpecialization == 'All') {
-        fetchedTaskers = await _clientServices.fetchAllTasker();
-      } else {
-        fetchedTaskers = await _clientServices
-            .fetchTaskersBySpecialization(_selectedSpecialization!);
-      }
+      debugPrint("Fetched Taskers: ${fetchedTaskers.length}");
 
       setState(() {
         taskers = fetchedTaskers
             .map((tasker) =>
                 AuthenticatedUser(tasker: tasker, user: tasker.user!))
-            .toList()
-          ..sort((a, b) => b.tasker!.rating.compareTo(a.tasker!.rating));
-        cardNumber = fetchedTaskers.length;
+            .toList();
+      });
+      setState(() {
         _isLoading = false;
       });
     } catch (error) {
       setState(() {
-        _isLoading = false;
         _errorMessage = "Unable to load taskers. Please try again.";
+        _isLoading = false;
       });
     }
   }
@@ -315,7 +323,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   void _cardCounter() {
     setState(() {
       cardNumber = cardNumber! - 1;
-      _showButton = cardNumber! > 0;
     });
   }
 
@@ -362,7 +369,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeOut,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Colors.grey[100],
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
@@ -371,12 +378,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     ListTile(
                       leading: Icon(
                         Icons.person,
-                        color: const Color(0xFF03045E),
+                        color: const Color(0xFFB71A4A),
                       ),
                       title: Text(
                         'Profile',
                         style: GoogleFonts.poppins(
-                          color: const Color(0xFF03045E),
+                          color: Colors.black,
                           fontSize: 14,
                           fontWeight: FontWeight.w300,
                         ),
@@ -393,12 +400,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     ListTile(
                       leading: Icon(
                         Icons.location_on,
-                        color: const Color(0xFF03045E),
+                        color: const Color(0xFFB71A4A),
                       ),
                       title: Text(
                         'Address',
                         style: GoogleFonts.poppins(
-                          color: const Color(0xFF03045E),
+                          color: Colors.black,
                           fontSize: 14,
                           fontWeight: FontWeight.w300,
                         ),
@@ -415,12 +422,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     ListTile(
                       leading: Icon(
                         Icons.domain_verification,
-                        color: const Color(0xFF03045E),
+                        color: const Color(0xFFB71A4A),
                       ),
                       title: Text(
                         'Verify Account',
                         style: GoogleFonts.poppins(
-                          color: const Color(0xFF03045E),
+                          color: Colors.black,
                           fontSize: 14,
                           fontWeight: FontWeight.w300,
                         ),
@@ -446,12 +453,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       ListTile(
                         leading: Icon(
                           FontAwesomeIcons.coins,
-                          color: const Color(0xFF03045E),
+                          color: const Color(0xFFB71A4A),
                         ),
                         title: Text(
                           'Tokens',
                           style: GoogleFonts.poppins(
-                            color: const Color(0xFF03045E),
+                            color: Colors.black,
                             fontSize: 14,
                             fontWeight: FontWeight.w300,
                           ),
@@ -478,12 +485,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     ListTile(
                       leading: Icon(
                         Icons.help,
-                        color: const Color(0xFF03045E),
+                        color: const Color(0xFFB71A4A),
                       ),
                       title: Text(
                         'FAQs',
                         style: GoogleFonts.poppins(
-                          color: const Color(0xFF03045E),
+                          color: Colors.black,
                           fontSize: 14,
                           fontWeight: FontWeight.w300,
                         ),
@@ -495,12 +502,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     ListTile(
                       leading: Icon(
                         Icons.card_giftcard,
-                        color: const Color(0xFF03045E),
+                        color: const Color(0xFFB71A4A),
                       ),
                       title: Text(
                         'Referral Code',
                         style: GoogleFonts.poppins(
-                          color: const Color(0xFF03045E),
+                          color: Colors.black,
                           fontSize: 14,
                           fontWeight: FontWeight.w300,
                         ),
@@ -512,12 +519,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     ListTile(
                       leading: Icon(
                         Icons.book,
-                        color: const Color(0xFF03045E),
+                        color: const Color(0xFFB71A4A),
                       ),
                       title: Text(
                         'Our Handbook',
                         style: GoogleFonts.poppins(
-                          color: const Color(0xFF03045E),
+                          color: Colors.black,
                           fontSize: 14,
                           fontWeight: FontWeight.w300,
                         ),
@@ -529,12 +536,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     ListTile(
                       leading: Icon(
                         Icons.settings,
-                        color: const Color(0xFF03045E),
+                        color: const Color(0xFFB71A4A),
                       ),
                       title: Text(
                         'Settings',
                         style: GoogleFonts.poppins(
-                          color: const Color(0xFF03045E),
+                          color: Colors.black,
                           fontSize: 14,
                           fontWeight: FontWeight.w300,
                         ),
@@ -544,27 +551,39 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           context,
                           MaterialPageRoute(
                               builder: (context) => SettingScreen()),
-                        );
+                        ).then((value) => setState(() {
+                              _fetchTaskers();
+                            }));
                         overlayEntry.remove();
                       },
                     ),
-                    ListTile(
-                      leading: Icon(
-                        Icons.logout,
-                        color: const Color(0xFF03045E),
-                      ),
-                      title: Text(
-                        'Logout',
-                        style: GoogleFonts.poppins(
-                          color: const Color(0xFF03045E),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w300,
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 10),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: Color(0xFFB71A4A),
+                        ),
+                        child: ListTile(
+                          leading: Icon(
+                            Icons.logout,
+                            color: Colors.white,
+                          ),
+                          title: Text(
+                            'Logout',
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          onTap: () {
+                            _authController.logout(context, () => mounted);
+                            overlayEntry.remove();
+                          },
                         ),
                       ),
-                      onTap: () {
-                        _authController.logout(context, () => mounted);
-                        overlayEntry.remove();
-                      },
                     ),
                   ],
                 ),
@@ -619,13 +638,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 children: [
                   Text(
                     _role,
-                    style:
-                        GoogleFonts.poppins(color: Colors.white, fontSize: 10),
+                    style: GoogleFonts.poppins(
+                        color: const Color(0xFFB71A4A), fontSize: 10),
                   ),
                   Text(
                     _fullName,
                     style: GoogleFonts.poppins(
-                      color: Colors.white,
+                      color: Colors.black,
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
@@ -655,9 +674,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     );
                   }
                 },
-                icon: const Icon(
+                icon: Icon(
                   Icons.notifications_outlined,
-                  color: Colors.white,
+                  color: const Color(0xFFB71A4A),
                   size: 24,
                 ),
               ),
@@ -667,9 +686,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   debugPrint('Menu clicked');
                   _showAnimatedMenu(context);
                 },
-                child: const Icon(
+                child: Icon(
                   Icons.more_vert,
-                  color: Colors.white,
+                  color: const Color(0xFFB71A4A),
                   size: 24,
                 ),
               ),
@@ -677,7 +696,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           )
         ],
       ),
-      backgroundColor: Colors.blue,
+      backgroundColor: Colors.grey[100],
       centerTitle: true,
     );
   }
@@ -691,56 +710,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         children: [
           Column(
             children: [
-              Padding(
-                padding: EdgeInsets.only(left: 16.0, right: 16, top: 16.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        child: DropdownSearch<String>(
-                          items: _specializations,
-                          selectedItem: _selectedSpecialization ?? 'All',
-                          dropdownDecoratorProps: DropDownDecoratorProps(
-                            dropdownSearchDecoration: InputDecoration(
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
-                              border: InputBorder.none,
-                              hintText: "Filter by Specialization",
-                              hintStyle: TextStyle(color: Colors.grey[600]),
-                            ),
-                          ),
-                          onChanged: (newValue) {
-                            setState(() {
-                              _selectedSpecialization = newValue;
-                            });
-                            _fetchTaskers();
-                          },
-                          popupProps: PopupProps.menu(
-                            showSearchBox: true,
-                            searchFieldProps: TextFieldProps(
-                              decoration: InputDecoration(
-                                hintText: "Search Specialization",
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               Expanded(
-                child: _isLoading || _isSpecializationsLoading
-                    ? Center(
-                        child:
-                            CircularProgressIndicator(color: Color(0xFF0272B1)))
+                child: _isLoading
+                    ? Center(child: CircularProgressIndicator())
                     : _errorMessage != null
                         ? Center(
                             child: Column(
@@ -1052,7 +1024,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                     style: ElevatedButton
                                                         .styleFrom(
                                                       backgroundColor:
-                                                          Colors.red,
+                                                          const Color(
+                                                              0xFFB71A4A),
                                                       shape: CircleBorder(),
                                                       fixedSize: Size(50, 50),
                                                       padding: EdgeInsets.zero,

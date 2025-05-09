@@ -7,15 +7,17 @@ import 'dart:convert';
 import 'package:flutter_fe/model/setting.dart';
 
 class SettingService {
-  static String url = apiUrl ?? "http://192.168.43.15:5000";
+  static String url = apiUrl ?? "http://192.168.1.12:5000";
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
   Future setLocation(
     int userId,
     double latitude,
     double longitude,
+    String city,
+    String province,
   ) async {
-    debugPrint('Setting location: $latitude, $longitude');
+    debugPrint('Setting location: $latitude, $longitude, $city, $province');
     final token = await AuthService.getSessionToken();
     final response = await _client.put(
       Uri.parse('$url/set-location/$userId'),
@@ -23,7 +25,12 @@ class SettingService {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-      body: json.encode({'latitude': latitude, 'longitude': longitude}),
+      body: json.encode({
+        'latitude': latitude,
+        'longitude': longitude,
+        'city': city,
+        'province': province
+      }),
     );
     debugPrint('Response Status Code: ${response.statusCode}');
     debugPrint('Response Body: ${response.body}');
@@ -57,6 +64,7 @@ class SettingService {
       if (responseData is Map<String, dynamic> &&
           responseData.containsKey('data')) {
         final data = responseData['data'];
+
         if (data is List && data.isNotEmpty) {
           return SettingModel.fromJson(data[0]);
         } else if (data is Map<String, dynamic>) {
@@ -77,12 +85,16 @@ class SettingService {
             }
           } catch (e) {
             debugPrint('Error parsing data from message: $e');
+            return SettingModel();
           }
         }
       }
 
       debugPrint(
           'No valid location data found, returning default SettingModel');
+      return SettingModel();
+    } else if (response.statusCode == 404) {
+      debugPrint('Location not found for user ID: $userId');
       return SettingModel();
     } else {
       debugPrint('Failed to retrieve location: ${response.statusCode}');

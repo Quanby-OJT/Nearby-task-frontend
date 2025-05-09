@@ -35,7 +35,8 @@ class _ChatScreenState extends State<ChatScreen> {
   final GetStorage storage = GetStorage();
   final TaskController _taskController = TaskController();
   final ReportController reportController = ReportController();
-  final ConversationController conversationController = ConversationController();
+  final ConversationController conversationController =
+      ConversationController();
 
   final ProfileController _profileController = ProfileController();
   final ClientServices _clientServices = ClientServices();
@@ -62,13 +63,13 @@ class _ChatScreenState extends State<ChatScreen> {
     _fetchReportHistory();
     conversationController.searchConversation.addListener(filterMessages);
 
-    socket = IO.io('http://10.0.2.2:5000', <String, dynamic>{
+    socket = IO.io('http://192.168.1.12:5000', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
     });
 
     socket?.on('new_message', (data) {
-      if(data['user_id'] != storage.read('user_id')){
+      if (data['user_id'] != storage.read('user_id')) {
         setState(() {
           _fetchTaskAssignments();
         });
@@ -77,7 +78,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     socket?.on('message_read', (data) {
       _fetchTaskAssignments();
-      setState(() {}); // Force UI rebuild
+      setState(() {});
     });
   }
 
@@ -113,10 +114,11 @@ class _ChatScreenState extends State<ChatScreen> {
       _isLoading = true;
     });
     int userId = storage.read('user_id');
-    final result = await _taskController.getAllAssignedTasks(context, userId);
+    final taskAssignmentsList =
+        await _taskController.getAllAssignedTasks(context, userId);
     setState(() {
-      taskAssignments = result.taskAssignments;
-      conversation = result.conversations;
+      taskAssignments = taskAssignmentsList;
+
       filteredTaskAssignments = taskAssignments;
       _isLoading = false;
     });
@@ -785,8 +787,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                         ],
                       ),
-                    )
-                  )
+                    ))
                 : Column(children: [
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20),
@@ -848,33 +849,37 @@ class _ChatScreenState extends State<ChatScreen> {
                                     onRefresh: _fetchTaskAssignments,
                                     color: Color(0xFF0272B1),
                                     child: // In the ListView.builder within the build method
-                                    ListView.builder(
-                                      padding: EdgeInsets.symmetric(vertical: 16),
+                                        ListView.builder(
+                                      padding:
+                                          EdgeInsets.symmetric(vertical: 16),
                                       itemCount: filteredTaskAssignments.length,
                                       itemBuilder: (context, index) {
-                                        final taskAssignment = filteredTaskAssignments[index];
+                                        final taskAssignment =
+                                            filteredTaskAssignments[index];
                                         if (taskAssignment == null) {
                                           return SizedBox.shrink();
                                         }
                                         // Find the corresponding conversation by task_taken_id
-                                        final conversation = this.conversation.firstWhere(
-                                              (conv) => conv.taskTakenId == taskAssignment.taskTakenId,
-                                          orElse: () => Conversation(
-                                            userId: 0,
-                                            conversationMessage: '',
-                                            taskTakenId: taskAssignment.taskTakenId,
-                                            user: null,
-                                            taskTaken: taskAssignment,
-                                          ),
-                                        );
-                                        return conversationCard(taskAssignment, conversation);
+                                        final conversation = this
+                                            .conversation
+                                            .firstWhere(
+                                              (conv) =>
+                                                  conv.taskTakenId ==
+                                                  taskAssignment.taskTakenId,
+                                              orElse: () => Conversation(
+                                                userId: 0,
+                                                conversationMessage: '',
+                                                taskTakenId:
+                                                    taskAssignment.taskTakenId,
+                                                user: null,
+                                                taskTaken: taskAssignment,
+                                              ),
+                                            );
+                                        return conversationCard(
+                                            taskAssignment, conversation);
                                       },
-                                    )
-                        )
-                    )
-                  ]
-        )
-    );
+                                    )))
+                  ]));
   }
 
   void showMessageOptions(BuildContext context, int taskTakenId) {
@@ -921,9 +926,10 @@ class _ChatScreenState extends State<ChatScreen> {
         'role'); // Check if the current user is the sender of the latest message
     final bool isReceiver = currentUserId == conversation.userId;
     final bool unread = taskTaken.unreadCount > 0;
-    debugPrint("Is Sender: $isReceiver and Unread Messages for Task: ${taskTaken.taskTakenId} - ${taskTaken.unreadCount}");
-    final user = role == 'Tasker' ? taskTaken.client?.user : taskTaken.tasker
-        ?.user;
+    debugPrint(
+        "Is Sender: $isReceiver and Unread Messages for Task: ${taskTaken.taskTakenId} - ${taskTaken.unreadCount}");
+    final user =
+        role == 'Tasker' ? taskTaken.client?.user : taskTaken.tasker?.user;
 
     return Container(
       margin: EdgeInsets.only(bottom: 12),
@@ -932,13 +938,12 @@ class _ChatScreenState extends State<ChatScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  IndividualChatScreen(
-                    taskTakenId: taskTaken.taskTakenId,
-                    taskId: taskTaken.task?.id ?? 0,
-                    taskTitle: taskTaken.task?.title ?? '',
-                    taskTakenStatus: taskTaken.taskStatus,
-                  ),
+              builder: (context) => IndividualChatScreen(
+                taskTakenId: taskTaken.taskTakenId,
+                taskId: taskTaken.task?.id ?? 0,
+                taskTitle: taskTaken.task?.title ?? '',
+                taskTakenStatus: taskTaken.taskStatus,
+              ),
             ),
           ).then((_) => _fetchTaskAssignments());
         },
@@ -979,20 +984,19 @@ class _ChatScreenState extends State<ChatScreen> {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if(isReceiver)
-                        readIconMarker(
-                          unread ? FontAwesomeIcons.check : FontAwesomeIcons
-                              .checkDouble,
-                          Colors.green,
-                        ),
-
+                        if (isReceiver)
+                          readIconMarker(
+                            unread
+                                ? FontAwesomeIcons.check
+                                : FontAwesomeIcons.checkDouble,
+                            Colors.green,
+                          ),
                         if (!isReceiver) // No checkmarks for receiver
                           SizedBox.shrink(),
                         SizedBox(width: 4),
                         Expanded(
                           child: Text(
-                            "${user?.firstName ?? ''} ${user?.middleName ??
-                                ''} ${user?.lastName ?? ''}",
+                            "${user?.firstName ?? ''} ${user?.middleName ?? ''} ${user?.lastName ?? ''}",
                             style: GoogleFonts.poppins(
                               fontWeight: !isReceiver && unread
                                   ? FontWeight.bold
@@ -1012,14 +1016,13 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget readIconMarker(IconData icon, Color color){
+  Widget readIconMarker(IconData icon, Color color) {
     return Padding(
         padding: EdgeInsets.only(right: 10),
         child: Icon(
           icon,
           color: color, // Single check for sent but not necessarily read
           size: 16,
-        )
-    );
+        ));
   }
 }

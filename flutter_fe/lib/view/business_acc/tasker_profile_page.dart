@@ -69,13 +69,26 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
   @override
   void initState() {
     super.initState();
-    _loadTaskerDetails();
-    _fetchUserData();
-    _preloadClientTasks();
-    getAllTaskerReviews();
+    _loadAllFunction();
     setState(() {
       skills = widget.tasker.skills.split(',');
     });
+  }
+
+  Future<void> _loadAllFunction() async {
+    try {
+      await Future.wait([
+        _loadTaskerDetails(),
+        _fetchUserData(),
+        _preloadClientTasks(),
+        getAllTaskerReviews(),
+      ]);
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = "Failed to load tasker details: $e";
+      });
+    }
   }
 
   Future<void> _fetchUserData() async {
@@ -279,7 +292,6 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
   Future<void> _assignTask(TaskerModel tasker) async {
     if (_isAssigning) return;
 
-    // Filter available tasks concurrently for current tasker and client
     debugPrint(
         "Filtering available tasks for tasker ${tasker.id} and client ${_user?.user.id}");
 
@@ -289,7 +301,6 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
     });
 
     try {
-      // Use preloaded tasks if available, else fetch. Fetch All posted tasks
       List<TaskModel> clientTasks =
           _preloadedTasks ?? await _fetchClientTasks();
 
@@ -571,8 +582,8 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                         [
                           _buildInfoRow(
                               Icons.badge, "ID", "#${widget.tasker.id}"),
-                          _buildInfoRow(Icons.location_on, "Location",
-                              widget.tasker.address!.values.join(", ")),
+                          // _buildInfoRow(Icons.location_on, "Location",
+                          //     widget.tasker.address!.values.join(", ")),
                           _buildInfoRow(Icons.work, "Specialization",
                               widget.tasker.specialization),
                         ],
@@ -591,11 +602,6 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                               // Assuming skills is a List<String>
                               return _buildSkillChip(skill);
                             }).toList(),
-                            // _buildSkillChip("Home Cleaning"),
-                            // _buildSkillChip("Gardening"),
-                            // _buildSkillChip("Electrical Work"),
-                            // _buildSkillChip("Plumbing"),
-                            // _buildSkillChip("Painting"),
                           ),
                         ],
                       ),

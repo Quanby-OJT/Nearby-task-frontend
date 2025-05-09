@@ -56,7 +56,6 @@ class _JobPostPageState extends State<JobPostPage>
   bool _isUploadDialogShown = false;
   bool _documentValid = false;
 
-  // Tab-related variables
   final List<String> _tabStatuses = [
     "All",
     "Available",
@@ -74,7 +73,7 @@ class _JobPostPageState extends State<JobPostPage>
       if (!_tabController.indexIsChanging) {
         setState(() {
           if (_tabController.index == 0) {
-            _currentFilter = null; // All
+            _currentFilter = null;
           } else if (_tabController.index == 1) {
             _currentFilter = "Available";
           } else if (_tabController.index == 2) {

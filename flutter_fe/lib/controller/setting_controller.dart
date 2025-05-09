@@ -7,7 +7,8 @@ class SettingController {
   final SettingService settingService = SettingService();
   GetStorage storage = GetStorage();
 
-  Future setLocation(double latitude, double longitude) async {
+  Future setLocation(
+      double latitude, double longitude, String city, String province) async {
     debugPrint('Setting location: $latitude, $longitude');
     final taskerId = storage.read('user_id');
 
@@ -16,7 +17,8 @@ class SettingController {
       throw Exception('User ID not found. Please login again.');
     }
 
-    return settingService.setLocation(taskerId, latitude, longitude);
+    return settingService.setLocation(
+        taskerId, latitude, longitude, city, province);
   }
 
   Future<SettingModel> getLocation() async {

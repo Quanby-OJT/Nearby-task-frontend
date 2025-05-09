@@ -1,18 +1,24 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 
 class SettingModel {
   final int? id;
   final int? taskerId;
-  final double? latitude;
-  final double? longitude;
   final double? distance;
   final RangeValues? ageRange;
   final bool? limit;
   final List<String>? specialization;
   final String? createdAt;
   final String? updatedAt;
+
+  final String? city;
+  final String? province;
+  final String? postalCode;
+  final String? country;
+  final String? street;
+  final bool? defaultAddress;
+  final double? latitude;
+  final double? longitude;
 
   SettingModel({
     this.id,
@@ -25,6 +31,12 @@ class SettingModel {
     this.specialization,
     this.createdAt,
     this.updatedAt,
+    this.city,
+    this.province,
+    this.postalCode,
+    this.country,
+    this.street,
+    this.defaultAddress,
   });
 
   factory SettingModel.fromJson(Map<String, dynamic> json) {
@@ -74,51 +86,40 @@ class SettingModel {
       if (ageStart != null && ageEnd != null) {
         ageRangeValues = RangeValues(ageStart, ageEnd);
       }
-    } else if (json['age_range'] != null) {
-      if (json['age_range'] is Map) {
-        var ageRange = json['age_range'];
-        double? ageStart = ageRange['age_start'] is int
-            ? (ageRange['age_start'] as int).toDouble()
-            : (ageRange['age_start'] is double
-                ? ageRange['age_start']
-                : double.tryParse(ageRange['age_start'].toString()));
-
-        double? ageEnd = ageRange['age_end'] is int
-            ? (ageRange['age_end'] as int).toDouble()
-            : (ageRange['age_end'] is double
-                ? ageRange['age_end']
-                : double.tryParse(ageRange['age_end'].toString()));
-
-        if (ageStart != null && ageEnd != null) {
-          ageRangeValues = RangeValues(ageStart, ageEnd);
-        }
-      }
     }
+
+    final address = json['address'] as Map<String, dynamic>?;
 
     return SettingModel(
       id: json['id'] is int ? json['id'] : null,
-      taskerId: json['tasker_id'] is int ? json['tasker_id'] : null,
-      latitude: json['latitude'] != null
-          ? double.tryParse(json['latitude'].toString())
-          : null,
-      longitude: json['longitude'] != null
-          ? double.tryParse(json['longitude'].toString())
-          : null,
+      taskerId: json['user_id'] is int ? json['user_id'] : null,
       distance: distanceValue,
       ageRange: ageRangeValues ?? RangeValues(18, 24),
       limit: json['limit'] is bool ? json['limit'] : null,
       specialization: specializationList,
       createdAt: json['created_at']?.toString(),
       updatedAt: json['updated_at']?.toString(),
+      city: address?['city']?.toString(),
+      province: address?['province']?.toString(),
+      postalCode: address?['postal_code']?.toString(),
+      country: address?['country']?.toString(),
+      street: address?['street']?.toString(),
+      defaultAddress: address != null && address['default'] is bool
+          ? address['default']
+          : false,
+      latitude: address != null && address['latitude'] != null
+          ? double.tryParse(address['latitude'].toString())
+          : null,
+      longitude: address != null && address['longitude'] != null
+          ? double.tryParse(address['longitude'].toString())
+          : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'tasker_id': taskerId,
-      'latitude': latitude,
-      'longitude': longitude,
+      'user_id': taskerId,
       'distance': distance,
       'age_start': ageRange?.start,
       'age_end': ageRange?.end,
@@ -126,6 +127,16 @@ class SettingModel {
       'specialization': specialization?.toString(),
       'created_at': createdAt,
       'updated_at': updatedAt,
+      'address': {
+        'latitude': latitude,
+        'longitude': longitude,
+        'city': city,
+        'province': province,
+        'postal_code': postalCode,
+        'country': country,
+        'street': street,
+        'default': defaultAddress,
+      },
     };
   }
 }
