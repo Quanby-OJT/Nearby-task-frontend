@@ -631,22 +631,49 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
           title: Text('Logout',
               style: GoogleFonts.poppins(
                   fontSize: 16, fontWeight: FontWeight.bold)),
           content: Text('Are you sure you want to logout?',
-              style: GoogleFonts.poppins(fontSize: 14)),
+              style: GoogleFonts.poppins(
+                  fontSize: 14, fontWeight: FontWeight.w300)),
           actions: [
-            TextButton(
-              child: Text('Cancel', style: GoogleFonts.poppins()),
-              onPressed: () => Navigator.pop(context),
-            ),
-            TextButton(
-              child: Text('Logout', style: GoogleFonts.poppins()),
-              onPressed: () {
-                _authController.logout(context, () => mounted);
-                Navigator.pop(context);
-              },
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton(
+                  child: Text('Cancel',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFFB71A4A),
+                      )),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                const SizedBox(width: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                    color: const Color(0xFFB71A4A),
+                  ),
+                  child: TextButton(
+                    child: Text('Logout',
+                        style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white)),
+                    onPressed: () {
+                      _authController.logout(context, () => mounted);
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+              ],
             ),
           ]),
     );

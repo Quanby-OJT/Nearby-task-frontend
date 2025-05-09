@@ -579,7 +579,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             ),
                           ),
                           onTap: () {
-                            _authController.logout(context, () => mounted);
+                            _showLogoutConfirmationDialog();
                             overlayEntry.remove();
                           },
                         ),
@@ -595,6 +595,58 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
 
     overlayState.insert(overlayEntry);
+  }
+
+  void _showLogoutConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          title: Text('Logout',
+              style: GoogleFonts.poppins(
+                  fontSize: 16, fontWeight: FontWeight.bold)),
+          content: Text('Are you sure you want to logout?',
+              style: GoogleFonts.poppins(
+                  fontSize: 14, fontWeight: FontWeight.w300)),
+          actions: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton(
+                  child: Text('Cancel',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFFB71A4A),
+                      )),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                const SizedBox(width: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                    color: const Color(0xFFB71A4A),
+                  ),
+                  child: TextButton(
+                    child: Text('Logout',
+                        style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white)),
+                    onPressed: () {
+                      _authController.logout(context, () => mounted);
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ]),
+    );
   }
 
   AppBar _buildAppBar() {

@@ -200,7 +200,8 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => const ForgotPassword(),
+                                        builder: (context) =>
+                                            const ForgotPassword(),
                                       ),
                                     );
                                   },
