@@ -5,6 +5,7 @@ import 'package:flutter_fe/service/auth_service.dart';
 import 'package:flutter_fe/view/business_acc/business_acc_main_page.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/sign_in/otp_screen.dart';
+import 'package:flutter_fe/view/sign_in/sign_in.dart';
 import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -244,7 +245,7 @@ class AuthenticationController {
           await storage.erase();
           if (isMounted()) {
             Navigator.push(context, MaterialPageRoute(builder: (context) {
-              return WelcomePageViewMain();
+              return SignIn();
             }));
           }
         }
