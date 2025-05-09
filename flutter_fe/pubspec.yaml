@@ -68,6 +68,7 @@ dependencies:
   dio: ^5.8.0+1
   fl_chart: ^0.66.0
   socket_io_client: ^3.1.2
+  flutter_launcher_icons: ^0.14.3
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -111,6 +112,7 @@ flutter:
     - assets/images/card-logos/american-express.svg
     - assets/images/card-logos/Mastercard-logo.svg
     - assets/images/card-logos/visa-logo-svg-vector.svg
+    - assets/images/app_icon.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

@@ -43,13 +43,8 @@ class _OtpScreenState extends State<OtpScreen> {
     setState(() => _isLoading = true);
     try {
       await _controller.otpAuth(context);
-    } catch (e) {
-      _showStatusModal(
-        context: context,
-        isSuccess: false,
-        message: 'OTP verification failed: $e',
-      );
-    } finally {
+    }
+    finally {
       setState(() => _isLoading = false);
     }
   }
@@ -94,7 +89,7 @@ class _OtpScreenState extends State<OtpScreen> {
                     ),
                   ),
                   Text(
-                    'Email Verification',
+                    'OTP Verification',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.poppins(
                         fontSize: 24,
