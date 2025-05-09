@@ -6,6 +6,8 @@ import 'package:flutter_fe/view/business_acc/business_acc_main_page.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/sign_in/otp_screen.dart';
 import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:get_storage/get_storage.dart';
 import '../view/custom_loading/statusModal.dart';
 
@@ -27,15 +29,20 @@ class AuthenticationController {
     required bool isSuccess,
     required String message,
   }) {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) => StatusModal(
-        isSuccess: isSuccess,
-        message: message,
-      ),
-    );
+    // Ensure the dialog is shown after the current frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => StatusModal(
+          isSuccess: isSuccess,
+          message: message,
+          navigateToRoute: "otp",
+        ),
+      );
+    });
   }
+
 
   Future<void> loginAuth(BuildContext context) async {
     var response = await ApiService.authUser(
@@ -89,7 +96,7 @@ class AuthenticationController {
     }
   }
 
-  Future<void> resetPassword(BuildContext context) async {
+  Future<void> resetPassword(BuildContext context, String email) async {
 
     if(passwordController.text != confirmPasswordController.text){
       _showStatusModal(
@@ -97,8 +104,8 @@ class AuthenticationController {
         isSuccess: false,
         message: "Passwords do not match",
       );
+      return;
     }
-    String email = ""; //Temporary email. Will be replaced using a deep link
     var response = await ApiService.resetPassword(
       email,
       passwordController.text,
@@ -117,6 +124,25 @@ class AuthenticationController {
         isSuccess: false,
         message: errorMessage,
       );
+    }
+  }
+
+  Future<int> verifyEmail(
+      BuildContext context, String token, String email) async {
+    try {
+      final response = await ApiService.verifyEmail(token, email);
+
+      if (response.containsKey("message")) {
+        return response["user_id"] as int;
+      } else {
+        _showStatusModal(context: context, isSuccess: false, message: response["error"] ?? "Verification Failed. Please Try Again.");
+        return 0;
+      }
+    } catch (e, st) {
+      debugPrint("Error verifying email: $e");
+      debugPrintStack(stackTrace: st);
+      _showStatusModal(context: context, isSuccess: false, message: "Verification Failed. Please Try Again.");
+      return 0;
     }
   }
 
@@ -148,19 +174,23 @@ class AuthenticationController {
     if (response.containsKey('user_id') &&
         response.containsKey('role') &&
         response.containsKey('session')) {
+      await storage.remove('temp_user_id');
       await storage.write('user_id', response['user_id']);
       await storage.write('role', response['role']);
       await storage.write('session', response['session']);
 
       if (response['role'] == "Client") {
-        Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return BusinessAccMain();
-        }));
+        userId = response['user_id'];
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => BusinessAccMain()),
+        );
+
+
       } else if (response['role'] == "Tasker") {
         userId = response['user_id'];
-        Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return ServiceAccMain();
-        }));
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => ServiceAccMain()),
+        );
       }
     } else if (response.containsKey('validation_error')) {
       String error =

@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_fe/view/chat/chat_screen.dart';
 import 'package:flutter_fe/view/service_acc/home_page.dart';
 import 'package:flutter_fe/view/service_acc/like_screen.dart';
 import 'package:flutter_fe/view/service_acc/record.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 
 class ServiceAccMain extends StatefulWidget {
@@ -25,62 +29,109 @@ class _ServiceAccMainState extends State<ServiceAccMain> {
     _pageController.jumpToPage(index);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: PageView(
-        physics: NeverScrollableScrollPhysics(),
-        controller: _pageController,
-        onPageChanged: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        children: [
-          HomePage(),
-          // ScheduleManagement(),
-          ChatScreen(),
-          RecordTaskerPage(),
-          LikeScreen(),
-        ],
-      ),
-      bottomNavigationBar: SizedBox(
-        height: 70,
-        child: GNav(
-          selectedIndex: _currentIndex,
-          onTabChange: _onItemTapped,
-          backgroundColor: Color(0xFF0272B1),
-          color: Colors.white,
-          activeColor: Colors.white,
-          gap: 8,
-          iconSize: 20,
-
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          // type: BottomNavigationBarType.fixed,
-          tabs: const [
-            GButton(
-              icon: FontAwesomeIcons.house,
-              text: 'Home',
+  Future<bool> _confirmExit() async {
+    final shouldExit = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Exit Application"),
+          content: const Text("Do you want to exit the NearByTask application?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text("No", style: GoogleFonts.poppins(color: Color(0XFF331FB3))),
             ),
-            // GButton(
-            //   icon: FontAwesomeIcons.clock,
-            //   text: 'Schedule',
-            // ),
-            GButton(
-              icon: FontAwesomeIcons.solidMessage,
-              text: 'Chat',
-            ),
-            GButton(
-              icon: FontAwesomeIcons.listCheck,
-              text: 'Tasks',
-            ),
-            GButton(
-              icon: FontAwesomeIcons.solidHeart,
-              text: 'Likes',
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text("Yes", style: GoogleFonts.poppins(color: Color(0XFF331FB3))),
             ),
           ],
+        );
+      },
+    );
+
+    return shouldExit ?? false;
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, Object? result) async{
+        if(didPop) return;
+
+        final shouldExit = await _confirmExit();
+
+        if(context.mounted && shouldExit){
+          // Minimize the app (move to background)
+          try{
+            if(Platform.isAndroid){
+              SystemNavigator.pop(); // Moves the app to the background
+            }else if(Platform.isIOS){
+              exit(0); // Completely exits the app (no background support on iOS)
+            }
+          }catch(e, stackTrace){
+            debugPrint("Error minimizing app: $e");
+            debugPrint(stackTrace.toString());
+          }
+          }
+      },
+      child: Scaffold(
+        body: PageView(
+          physics: NeverScrollableScrollPhysics(),
+          controller: _pageController,
+          onPageChanged: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          children: [
+            HomePage(),
+            // ScheduleManagement(),
+            ChatScreen(),
+            RecordTaskerPage(),
+            LikeScreen(),
+          ],
         ),
-      ),
+        bottomNavigationBar: SizedBox(
+          height: 70,
+          child: GNav(
+            selectedIndex: _currentIndex,
+            onTabChange: _onItemTapped,
+            backgroundColor: Color(0xFF0272B1),
+            color: Colors.white,
+            activeColor: Colors.white,
+            gap: 8,
+            iconSize: 20,
+
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            // type: BottomNavigationBarType.fixed,
+            tabs: const [
+              GButton(
+                icon: FontAwesomeIcons.house,
+                text: 'Home',
+              ),
+              // GButton(
+              //   icon: FontAwesomeIcons.clock,
+              //   text: 'Schedule',
+              // ),
+              GButton(
+                icon: FontAwesomeIcons.solidMessage,
+                text: 'Chat',
+              ),
+              GButton(
+                icon: FontAwesomeIcons.listCheck,
+                text: 'Tasks',
+              ),
+              GButton(
+                icon: FontAwesomeIcons.solidHeart,
+                text: 'Likes',
+              ),
+            ],
+          ),
+        ),
+      )
     );
   }
 }

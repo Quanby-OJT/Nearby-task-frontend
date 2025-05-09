@@ -8,7 +8,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class ResetPassword extends StatefulWidget {
-  const ResetPassword({super.key});
+  final String email;
+
+  const ResetPassword({super.key, required this.email});
 
   @override
   State<ResetPassword> createState() => _ResetPasswordState();
@@ -73,9 +75,9 @@ class _ResetPasswordState extends State<ResetPassword> with SingleTickerProvider
     });
   }
 
-  void _handleLogin() async {
+  void _handleResetPassword() async {
     setState(() => _isLoading = true);
-    await _controller.loginAuth(context);
+    await _controller.resetPassword(context, widget.email);
     setState(() => _isLoading = false);
   }
 
@@ -113,12 +115,25 @@ class _ResetPasswordState extends State<ResetPassword> with SingleTickerProvider
                               height: 150,
                             ),
                             Text(
-                              textAlign: TextAlign.center,
-                              'Find Tasks Near You with NearbyTask!',
                               style: GoogleFonts.poppins(
                                 fontSize: 12,
                                 color: Colors.black87,
                                 fontWeight: FontWeight.w300,
+                              ),
+                              textAlign: TextAlign.center,
+                              'Please Input a new Password. Make sure it has the following: ',
+
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 40.0),
+                              child: Text(
+                                '- At least 8 characters long\n- Includes uppercase and lowercase letters\n- Contains at least one digit\n- Contains at least one special character (e.g., !@#\$%^&*())',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: Colors.black54,
+                                  fontWeight: FontWeight.w300,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 20),
@@ -136,9 +151,25 @@ class _ResetPasswordState extends State<ResetPassword> with SingleTickerProvider
                               padding:
                                   const EdgeInsets.only(left: 40, right: 40),
                               child: TextField(
+                                obscureText: _obsecureText,
                                 controller: _controller.passwordController,
                                 cursorColor: const Color(0xFFB71A4A),
-                                decoration: _getInputDecoration('Input Your New Password'),
+                                decoration:
+                                _getInputDecoration('Input Your New Password').copyWith(
+                                  suffixIcon: Padding(
+                                    padding: const EdgeInsets.only(right: 10),
+                                    child: IconButton(
+                                      icon: Icon(
+                                        _obsecureText
+                                            ? Icons.visibility_off
+                                            : Icons.visibility,
+                                        color: Colors.black87,
+                                      ),
+                                      onPressed: _toggleObscureText,
+                                    ),
+                                  ),
+                                ),
+
                               ),
                             ),
                             Padding(
@@ -149,7 +180,7 @@ class _ResetPasswordState extends State<ResetPassword> with SingleTickerProvider
                                 controller: _controller.confirmPasswordController,
                                 cursorColor: const Color(0xFFB71A4A),
                                 decoration:
-                                    _getInputDecoration('Confirm Password').copyWith(
+                                  _getInputDecoration('Confirm Password').copyWith(
                                   suffixIcon: Padding(
                                     padding: const EdgeInsets.only(right: 10),
                                     child: IconButton(
@@ -172,7 +203,7 @@ class _ResetPasswordState extends State<ResetPassword> with SingleTickerProvider
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 40),
                               child: ElevatedButton(
-                                onPressed: _isLoading ? null : _handleLogin,
+                                onPressed: _isLoading ? null : _handleResetPassword,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Color(0xFFB71A4A),
                                   shape: RoundedRectangleBorder(
