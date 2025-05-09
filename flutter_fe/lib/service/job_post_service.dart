@@ -404,10 +404,11 @@ class JobPostService {
         return [];
       }
 
-      final likedJobsResponse = await _getRequest("/displayLikedTask/$userId");
+      final likedJobsResponse = await _getRequest("/displayLikedJob/$userId");
       final allJobsResponse = await _getRequest("/fetchTasks");
 
       debugPrint("Liked Jobs Response: $likedJobsResponse");
+
       debugPrint("All Jobs Response: $allJobsResponse");
 
       if (allJobsResponse.containsKey("error")) {
@@ -537,37 +538,44 @@ class JobPostService {
       String? userId = await getUserId();
 
       final likedJobsResponse = await _getRequest("/displayLikedJob/$userId");
-      final allJobsResponse = await _getRequest("/displayTask");
-      debugPrint(likedJobsResponse.toString());
-
-      final allJobsList = (allJobsResponse["tasks"] as List<dynamic>?)
-              ?.map((job) => TaskModel.fromJson(job))
-              .toList() ??
-          [];
 
       if (likedJobsResponse.containsKey("liked_tasks")) {
-        final likedJobs = likedJobsResponse["liked_tasks"] as List<dynamic>;
-        debugPrint("Raw liked jobs: $likedJobs");
-        final Set<int> likedJobIds = likedJobs
-            .where((job) => job["job_post_id"] != null)
-            .map<int>((job) => (job["job_post_id"] is int
-                ? job["job_post_id"]
-                : int.parse(job["job_post_id"].toString())) as int)
-            .toSet();
+        final likedTasks = likedJobsResponse["liked_tasks"];
+        if (likedTasks is List<dynamic>) {
+          final Set<int> likedJobIds = likedTasks
+              .where((job) => job["job_post_id"] != null)
+              .map<int>((job) {
+            final jobPostId = job["job_post_id"];
+            return jobPostId is int
+                ? jobPostId
+                : int.parse(jobPostId.toString());
+          }).toSet();
 
-        debugPrint("Liked Jobs Response ${likedJobsResponse.toString()}");
-        debugPrint("All Jobs: ${likedJobIds.toString()}");
+          List<TaskModel> likedTasksList = [];
+          for (int jobId in likedJobIds) {
+            final taskResponse = await _getRequest("/displayTask/$jobId");
 
-        final filteredJobs =
-            allJobsList.where((job) => likedJobIds.contains(job.id)).toList();
+            if (taskResponse.containsKey("tasks") &&
+                taskResponse["tasks"] != null) {
+              final taskData = Map<String, dynamic>.from(taskResponse["tasks"]);
+              if (taskData["address"] is String) {
+                taskData["address"] = null;
+              }
 
-        debugPrint("Filtered Jobs: ${filteredJobs.toString()}");
-        return filteredJobs;
+              final task = TaskModel.fromJson(taskData);
+              likedTasksList.add(task);
+            }
+          }
+
+          return likedTasksList;
+        } else {
+          return [];
+        }
       } else {
         return [];
       }
     } catch (e, stackTrace) {
-      debugPrint(e.toString());
+      debugPrint("Error: $e");
       debugPrintStack(stackTrace: stackTrace);
       return [];
     }
@@ -576,9 +584,6 @@ class JobPostService {
   Future<String?> getUserId() async => storage.read('user_id')?.toString();
   Future<bool> isTaskAssignedToTasker(int taskId, int taskerId) async {
     try {
-      debugPrint("Checking if task $taskId is assigned to tasker $taskerId");
-
-      // First approach: Check in task-taken with tasker ID
       try {
         final takenTasksResponse =
             await _getRequest("/task-taken/tasker/$taskerId");
@@ -591,18 +596,14 @@ class JobPostService {
             final taskIdField =
                 task['post_task_id'] ?? task['task_id'] ?? task['id'];
             if (taskIdField == taskId) {
-              debugPrint(
-                  "Task $taskId is already assigned to tasker $taskerId (from task-taken)");
               return true;
             }
           }
         }
       } catch (e) {
         debugPrint("Error checking task-taken: $e");
-        // Continue with other checks
       }
 
-      debugPrint("Task $taskId is not assigned to tasker $taskerId");
       return false;
     } catch (e) {
       debugPrint('Error checking task assignment: $e');
