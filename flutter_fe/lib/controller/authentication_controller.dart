@@ -15,7 +15,8 @@ class AuthenticationController {
   static const String apiUrl = "http://192.168.20.48:5000/connect";
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
   final TextEditingController otpController = TextEditingController();
 
   ProfileController profileController = ProfileController();
@@ -42,7 +43,6 @@ class AuthenticationController {
       );
     });
   }
-
 
   Future<void> loginAuth(BuildContext context) async {
     var response = await ApiService.authUser(
@@ -84,7 +84,7 @@ class AuthenticationController {
       _showStatusModal(
         context: context,
         isSuccess: true,
-          message: messageReset,
+        message: messageReset,
       );
     } else {
       String errorMessage = response['error'] ?? "Unknown error occurred";
@@ -97,8 +97,7 @@ class AuthenticationController {
   }
 
   Future<void> resetPassword(BuildContext context, String email) async {
-
-    if(passwordController.text != confirmPasswordController.text){
+    if (passwordController.text != confirmPasswordController.text) {
       _showStatusModal(
         context: context,
         isSuccess: false,
@@ -115,7 +114,7 @@ class AuthenticationController {
       _showStatusModal(
         context: context,
         isSuccess: true,
-          message: messageReset,
+        message: messageReset,
       );
     } else {
       String errorMessage = response['error'] ?? "Unknown error occurred";
@@ -135,13 +134,20 @@ class AuthenticationController {
       if (response.containsKey("message")) {
         return response["user_id"] as int;
       } else {
-        _showStatusModal(context: context, isSuccess: false, message: response["error"] ?? "Verification Failed. Please Try Again.");
+        _showStatusModal(
+            context: context,
+            isSuccess: false,
+            message:
+                response["error"] ?? "Verification Failed. Please Try Again.");
         return 0;
       }
     } catch (e, st) {
       debugPrint("Error verifying email: $e");
       debugPrintStack(stackTrace: st);
-      _showStatusModal(context: context, isSuccess: false, message: "Verification Failed. Please Try Again.");
+      _showStatusModal(
+          context: context,
+          isSuccess: false,
+          message: "Verification Failed. Please Try Again.");
       return 0;
     }
   }
@@ -184,8 +190,6 @@ class AuthenticationController {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => BusinessAccMain()),
         );
-
-
       } else if (response['role'] == "Tasker") {
         userId = response['user_id'];
         Navigator.of(context).pushReplacement(

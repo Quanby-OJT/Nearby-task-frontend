@@ -28,8 +28,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _fetchUserData() async {
     try {
       int userId = storage.read("user_id");
-      AuthenticatedUser? user = await _userController.getAuthenticatedUser(
-          context, userId);
+      AuthenticatedUser? user =
+          await _userController.getAuthenticatedUser(context, userId);
       debugPrint(user.toString());
       setState(() {
         _user = user;
@@ -370,7 +370,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 padding: EdgeInsets.symmetric(horizontal: 40),
                                 child: ElevatedButton.icon(
                                   onPressed: () {
-                                    _authController.logout(context, () => mounted);
+                                    _authController.logout(
+                                        context, () => mounted);
                                   },
                                   style: ElevatedButton.styleFrom(
                                       backgroundColor: Color(0xFF0272B1),

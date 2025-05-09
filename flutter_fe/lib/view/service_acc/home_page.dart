@@ -3,7 +3,9 @@ import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/controller/job_post_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
+import 'package:flutter_fe/controller/setting_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
+import 'package:flutter_fe/model/setting.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
@@ -37,6 +39,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   final AuthenticationController _authController = AuthenticationController();
   final JobPostService jobPostService = JobPostService();
   final JobPostController jobPostController = JobPostController();
+  final SettingController _settingController = SettingController();
 
   AuthenticatedUser? _user;
   String _fullName = "Loading...";
@@ -49,6 +52,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   bool _isUploadDialogShown = false;
   bool _isLoading = true;
   final GlobalKey _moreVertKey = GlobalKey();
+  SettingModel _userPreference = SettingModel();
 
   List<TaskModel> tasks = [];
   String? _selectedCategory;
@@ -112,6 +116,27 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       setState(() {
         _isLoading = false;
       });
+
+      final response = await _settingController.getLocation();
+      setState(() {
+        _userPreference = response;
+      });
+
+      debugPrint("User preference: ${_userPreference.id}");
+
+      if (_userPreference.id == null) {
+        setState(() {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const SetUpAddressScreen()),
+          ).then((value) {
+            setState(() {
+              _isLoading = true;
+              _loadAllFunction();
+            });
+          });
+        });
+      }
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -584,7 +609,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             ),
                           ),
                           onTap: () {
-                            _authController.logout(context, () => mounted);
+                            _showLogoutConfirmationDialog();
                             overlayEntry.remove();
                           },
                         ),
@@ -600,6 +625,31 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
 
     overlayState.insert(overlayEntry);
+  }
+
+  void _showLogoutConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+          title: Text('Logout',
+              style: GoogleFonts.poppins(
+                  fontSize: 16, fontWeight: FontWeight.bold)),
+          content: Text('Are you sure you want to logout?',
+              style: GoogleFonts.poppins(fontSize: 14)),
+          actions: [
+            TextButton(
+              child: Text('Cancel', style: GoogleFonts.poppins()),
+              onPressed: () => Navigator.pop(context),
+            ),
+            TextButton(
+              child: Text('Logout', style: GoogleFonts.poppins()),
+              onPressed: () {
+                _authController.logout(context, () => mounted);
+                Navigator.pop(context);
+              },
+            ),
+          ]),
+    );
   }
 
   AppBar _buildAppBar() {
