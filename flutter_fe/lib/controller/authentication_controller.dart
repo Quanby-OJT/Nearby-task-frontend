@@ -188,13 +188,15 @@ class AuthenticationController {
 
       if (response['role'] == "Client") {
         userId = response['user_id'];
-        Navigator.of(context).pushReplacement(
+        Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => BusinessAccMain()),
+          (route) => false,
         );
       } else if (response['role'] == "Tasker") {
         userId = response['user_id'];
-        Navigator.of(context).pushReplacement(
+        Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => ServiceAccMain()),
+          (route) => false,
         );
       }
     } else if (response.containsKey('validation_error')) {
@@ -216,8 +218,8 @@ class AuthenticationController {
   }
 
   void redirectRologout(BuildContext context) {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (context) => WelcomePageViewMain()));
+    Navigator.pushAndRemoveUntil(context,
+        MaterialPageRoute(builder: (context) => SignIn()), (route) => false);
   }
 
   Future<void> logout(BuildContext context, bool Function() isMounted) async {
@@ -226,9 +228,10 @@ class AuthenticationController {
       if (storedUserId == null) {
         debugPrint("No user ID found in storage");
         await storage.erase();
-        Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return WelcomePageViewMain();
-        }));
+        Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (context) {
+          return SignIn();
+        }), (route) => false);
 
         return;
       }
@@ -244,9 +247,10 @@ class AuthenticationController {
         if (response.containsKey("message")) {
           await storage.erase();
           if (isMounted()) {
-            Navigator.push(context, MaterialPageRoute(builder: (context) {
+            Navigator.pushAndRemoveUntil(context,
+                MaterialPageRoute(builder: (context) {
               return SignIn();
-            }));
+            }), (route) => false);
           }
         }
       } catch (e, stackTrace) {
@@ -259,9 +263,10 @@ class AuthenticationController {
 
       if (e is Exception) {
         await storage.erase();
-        Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return WelcomePageViewMain();
-        }));
+        Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (context) {
+          return SignIn();
+        }), (route) => false);
       }
 
       _showStatusModal(
