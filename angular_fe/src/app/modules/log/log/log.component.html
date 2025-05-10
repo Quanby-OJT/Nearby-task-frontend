@@ -4,12 +4,12 @@
     <h3 class="text-foreground font-semibold">User Logs</h3>
     <div class="text-muted-foreground text-xs font-medium">
       <a href="#" class="hover:text-primary"><b>Dashboards > User Logs</b></a>
-    <p>Thsi is used to view the logs of the users in the application</p>
+      <p>Thsi is used to view the logs of the users in the application</p>
     </div>
   </div> 
 </div>
 
-<div *ngIf="!isLoading" class="mb-4 flex justify-between">
+<div *ngIf="isDataLoaded" class="mb-4 flex justify-between">
   <div class="inline-block"></div>
   <div class="flex space-x-4">
     <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500 flex items-center space-x-2" (click)="exportCSV()">
@@ -32,7 +32,7 @@
 </div>
 
 <!-- Main container with search, filter, table, and pagination -->
-<div *ngIf="!isLoading" class="border-muted/20 bg-background flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
+<div *ngIf="isDataLoaded" class="border-muted/20 bg-background flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
   <!-- Search and Filter Section -->
   <div class="flex flex-wrap items-center justify-between gap-2 py-3 px-5">
     <div class="text-muted-foreground text-sm font-medium"></div>
@@ -105,7 +105,7 @@
   </div>
 
   <!-- Pagination Section -->
-  <div *ngIf="!isLoading" class="flex justify-between items-center bg-white w-100%">
+  <div *ngIf="isDataLoaded" class="flex justify-between items-center bg-white w-100%">
     <!-- Logs per page selector -->
     <div class="text-muted-foreground flex items-center justify-between py-3 px-5 text-xs">
       <div class="flex items-center gap-2">

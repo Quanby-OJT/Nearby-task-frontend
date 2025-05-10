@@ -29,22 +29,40 @@ export class LogComponent implements OnInit, OnDestroy {
   currentStatusFilter: string = '';
   placeholderRows: any[] = [];
   sortDirection: 'asc' | 'desc' | 'default' = 'default'; // Default to newest first
-  isLoading: boolean = true;
-
+  isLoading: boolean = false; // Changed to false initially
+  public isDataLoaded: boolean = false; // New flag to track if data is loaded
+  private loadingTimeout: any; // Timeout for spinner delay
   private logsSubscription!: Subscription;
 
   constructor(private userlogService: UserLogService) {}
 
   ngOnInit(): void {
+    // If data is already loaded, skip fetching and spinner
+    if (this.isDataLoaded) {
+      this.updatePage();
+      return;
+    }
+
+    // Set a timeout to show spinner only if loading takes > 500ms
+    this.loadingTimeout = setTimeout(() => {
+      if (!this.isDataLoaded) {
+        this.isLoading = true;
+      }
+    }, 500);
+
     this.logsSubscription = this.userlogService.getUserLogs().subscribe(
       (logs: Log[]) => {
+        clearTimeout(this.loadingTimeout);
         this.logs = logs;
         this.filteredLogs = [...logs];
         this.updatePage();
+        this.isDataLoaded = true; // Mark data as loaded
         this.isLoading = false;
       },
       (error) => {
+        clearTimeout(this.loadingTimeout);
         console.error("Error getting logs:", error);
+        this.isDataLoaded = true; // Still mark as loaded to prevent spinner on retry
         this.isLoading = false;
       }
     );
@@ -53,6 +71,9 @@ export class LogComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.logsSubscription) {
       this.logsSubscription.unsubscribe();
+    }
+    if (this.loadingTimeout) {
+      clearTimeout(this.loadingTimeout);
     }
   }
 
@@ -212,7 +233,6 @@ export class LogComponent implements OnInit, OnDestroy {
     } catch (e) {
       console.error('Failed to load Quanby.png:', e);
     }
-
 
     // Nearby Task Part
     const title = 'Nearby Task';

@@ -232,6 +232,19 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
       ? `${this.selectedReport.action_by.first_name || ''} ${this.selectedReport.action_by.middle_name || ''} ${this.selectedReport.action_by.last_name || ''}`.trim()
       : 'Not Handled Yet';
 
+    let imagesHtml = '';
+    if (this.selectedReport.images) {
+      try {
+        const imageUrls: string[] = JSON.parse(this.selectedReport.images);
+        imagesHtml = imageUrls.map(url => `<img src="${url}" alt="Report Image" style="width: 100px; height: 100px; object-fit: cover; margin-right: 10px; margin-bottom: 10px;" onclick="window.open('${url}', '_blank');" />`).join('');
+      } catch (e) {
+        console.error('Error parsing images:', e);
+        imagesHtml = '<div>No images available</div>';
+      }
+    } else {
+      imagesHtml = '<div>No images available</div>';
+    }
+
     const htmlContent = `
       <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
         <div class="flex mb-4">
@@ -261,6 +274,10 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
         <div class="flex mb-4">
           <div class="font-bold w-32">Handled By:</div>
           <div>${handledBy}</div>
+        </div>
+        <div class="mb-4">
+          <div class="font-bold w-32">Images:</div>
+          <div class="flex flex-wrap">${imagesHtml}</div>
         </div>
       </div>
     `;

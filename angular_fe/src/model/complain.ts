@@ -19,4 +19,5 @@ export interface User {
     status: boolean;
     created_at: string;
     action_by?: ActionBy;
+    images?: string | null;
   }
