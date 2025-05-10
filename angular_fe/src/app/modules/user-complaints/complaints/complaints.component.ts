@@ -228,18 +228,28 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const handledBy = this.selectedReport.action_by
-      ? `${this.selectedReport.action_by.first_name || ''} ${this.selectedReport.action_by.middle_name || ''} ${this.selectedReport.action_by.last_name || ''}`.trim()
+    const handledBy = this.selectedReport.actionBy
+      ? `${this.selectedReport.actionBy.first_name || ''} ${this.selectedReport.actionBy.middle_name || ''} ${this.selectedReport.actionBy.last_name || ''}`.trim()
       : 'Not Handled Yet';
 
     let imagesHtml = '';
     if (this.selectedReport.images) {
       try {
-        const imageUrls: string[] = JSON.parse(this.selectedReport.images);
-        imagesHtml = imageUrls.map(url => `<img src="${url}" alt="Report Image" style="width: 100px; height: 100px; object-fit: cover; margin-right: 10px; margin-bottom: 10px;" onclick="window.open('${url}', '_blank');" />`).join('');
+        let imageUrls: string[] = [];
+
+        if (this.selectedReport.images.startsWith('[')) {
+          imageUrls = JSON.parse(this.selectedReport.images);
+        } else {
+          imageUrls = [this.selectedReport.images]; 
+        }
+        if (imageUrls.length > 0) {
+          imagesHtml = imageUrls.map(url => `<img src="${url}" alt="Report Image" style="width: 100px; height: 100px; object-fit: cover; margin-right: 10px; margin-bottom: 10px;" onclick="window.open('${url}', '_blank');" />`).join('');
+        } else {
+          imagesHtml = '<div>No images available</div>';
+        }
       } catch (e) {
         console.error('Error parsing images:', e);
-        imagesHtml = '<div>No images available</div>';
+        imagesHtml = `<img src="${this.selectedReport.images}" alt="Report Image" style="width: 100px; height: 100px; object-fit: cover; margin-right: 10px; margin-bottom: 10px;" onclick="window.open('${this.selectedReport.images}', '_blank');" />`;
       }
     } else {
       imagesHtml = '<div>No images available</div>';
@@ -341,7 +351,7 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
 
   unbanUser(reportId: number) {
     if (reportId) {
-      this.reportService.updateReportStatus(reportId, false).subscribe({
+      this.reportService.updateReportStatus(reportId, true).subscribe({
         next: (response) => {
           if (response.success) {
             Swal.fire('Unbanned!', 'User has been unbanned.', 'success').then(() => {
@@ -377,8 +387,8 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
       const violatorName = report.violator
         ? `${report.violator.first_name || ''} ${report.violator.middle_name || ''} ${report.violator.last_name || ''}`.trim()
         : 'Unknown';
-      const handledBy = report.action_by
-        ? `${report.action_by.first_name || ''} ${report.action_by.middle_name || ''} ${report.action_by.last_name || ''}`.trim()
+      const handledBy = report.actionBy
+        ? `${report.actionBy.first_name || ''} ${report.actionBy.middle_name || ''} ${report.actionBy.last_name || ''}`.trim()
         : 'Empty';
       const baseRow = [
         index + 1,
@@ -463,8 +473,8 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
       const violatorName = report.violator
         ? `${report.violator.first_name || ''} ${report.violator.middle_name || ''} ${report.violator.last_name || ''}`.trim()
         : 'Unknown';
-      const handledBy = report.action_by
-        ? `${report.action_by.first_name || ''} ${report.action_by.middle_name || ''} ${report.action_by.last_name || ''}`.trim()
+      const handledBy = report.actionBy
+        ? `${report.actionBy.first_name || ''} ${report.actionBy.middle_name || ''} ${report.actionBy.last_name || ''}`.trim()
         : 'Empty';
       const baseRow = [
         index + 1,

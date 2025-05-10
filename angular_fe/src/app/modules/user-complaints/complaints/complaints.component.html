@@ -99,8 +99,8 @@
         </thead>
         <tbody>
           <tr *ngFor="let report of displayReports; let i = index" class="hover:bg-card/50 h-[60px]">
-            <td class="px-4 py-3 text-start">{{ report.reporter.first_name }} {{ report.reporter.middle_name }} {{ report.reporter.last_name }}</td>
-            <td class="px-4 py-3 text-start">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.reporter.last_name }}</td>
+            <td class="px-4 py-3 text-start">{{ report.reporter.first_name }} {{ report.reporter.middle_name || '' }} {{ report.reporter.last_name }}</td>
+            <td class="px-4 py-3 text-start">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.violator.last_name }}</td>
             <td class="px-4 py-3 text-start">{{ report.reporter.user_role }}</td>
             <td class="px-4 py-3 text-start">{{ report.violator.user_role }}</td>
             <td class="px-4 py-3 text-start">{{ report.created_at }}</td>
@@ -132,7 +132,7 @@
             <td class="px-4 py-3 text-center"></td>
             <td class="px-4 py-3 text-center"></td>
             <td class="px-4 py-3 text-center"></td>
-            <td class="flex items-center justify-center pt-3 pb-0"></td>
+            <td class="px-4 py-3 text-center"></td>
           </tr>
         </tbody>
       </table>
@@ -235,7 +235,7 @@
         </thead>
         <tbody>
           <tr *ngFor="let report of displayReports" class="hover:bg-card/50 h-[60px]">
-            <td class="px-4 py-3 text-start">{{ report.reporter.first_name }} {{ report.reporter.middle_name }} {{ report.reporter.last_name }}</td>
+            <td class="px-4 py-3 text-start">{{ report.reporter.first_name }} {{ report.reporter.middle_name || '' }} {{ report.reporter.last_name }}</td>
             <td class="px-4 py-3 text-start">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.violator.last_name }}</td>
             <td class="px-4 py-3 text-start">{{ report.reporter.user_role }}</td>
             <td class="px-4 py-3 text-start">{{ report.violator.user_role }}</td>
@@ -251,7 +251,7 @@
                 {{ report.status ? 'Processed' : 'Pending' }}
               </span>
             </td>
-            <td class="px-4 py-3 text-start"> {{ report.action_by ? report.action_by.first_name + " " + report.action_by.middle_name + " " + report.action_by.last_name  : 'Empty' }} </td>
+            <td class="px-4 py-3 text-start">{{ report.actionBy && (report.actionBy.first_name !== 'Unknown' || report.actionBy.middle_name !== 'Unknown' || report.actionBy.last_name !== 'Unknown') ? report.actionBy.first_name + ' ' + (report.actionBy.middle_name || '') + ' ' + report.actionBy.last_name : 'No Action Yet' }}</td>
           </tr>
 
           <tr *ngFor="let placeholder of placeholderRows">
