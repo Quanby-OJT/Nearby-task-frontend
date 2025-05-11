@@ -19,6 +19,7 @@ export class SignInComponent implements OnInit {
   submitted = false;
   passwordTextType!: boolean;
   errorMessage: string | null = null;
+  hasServerError: boolean = false; // New flag to track server/network errors
 
   constructor(
     private readonly _formBuilder: FormBuilder,
@@ -48,6 +49,8 @@ export class SignInComponent implements OnInit {
 
   onSubmit() {
     this.submitted = true;
+    this.errorMessage = null; // Clear previous error message
+    this.hasServerError = false; // Reset server error flag
 
     const { email, password } = this.form.value;
     console.log('Email:', email, 'password:', password);
@@ -73,8 +76,11 @@ export class SignInComponent implements OnInit {
       },
       error: (error) => {
         console.log('Login error', error);
-        this.errorMessage = error;
-        this.form.reset();
+        this.errorMessage = error.message;
+        this.hasServerError = true; 
+        if (error.type !== 'network') {
+          this.form.reset();
+        }
       },
     });
   }
