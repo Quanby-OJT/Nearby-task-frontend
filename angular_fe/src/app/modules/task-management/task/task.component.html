@@ -1,13 +1,14 @@
 <!-- Header showing the title -->
-<div class="mb-4 flex justify-between w-full max-w-[1440px] mx-auto px-4">
-  <div>
+<div class="mb-4 flex justify-between">
+  <div class="inline-block">
     <h3 class="text-foreground font-semibold">Task Management</h3>
-    <div class="text-muted-foreground text-xs font-medium">
-      <a href="#" class="hover:text-primary"><b>Dashboards > Task Management</b></a>
-      <p>This is used for managing the tasks of the users in the application</p> 
+    <div class="text-muted-foreground space-x-1 text-xs font-medium">
+      <a href="" class="hover:text-primary"><strong>Dashboards > Task Management</strong></a>
+      <p>This is used for managing the tasks of the users in the application</p>
     </div>
   </div>
 </div>
+
 <div *ngIf="!isLoading" class="mb-4 flex justify-between">
   <div class="inline-block"></div>
   <div class="flex space-x-4">
@@ -69,9 +70,15 @@
             <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('client')">
               Client
               <span class="w-4 h-4">
-                <ng-container *ngIf="sortModes['client'] === 'asc'">▲</ng-container>
-                <ng-container *ngIf="sortModes['client'] === 'desc'">▼</ng-container>
-                <ng-container *ngIf="sortModes['client'] === 'default'">↕</ng-container>
+                <ng-container *ngIf="sortModes['client'] === 'asc'">
+                  <span title="Ascending">▲</span>
+                </ng-container>
+                <ng-container *ngIf="sortModes['client'] === 'desc'">
+                  <span title="Descending">▼</span>
+                </ng-container>
+                <ng-container *ngIf="sortModes['client'] === 'default'">
+                  <span title="Newest to Oldest">↕</span>
+                </ng-container>
               </span>
             </div>
           </th>
@@ -79,9 +86,15 @@
             <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('taskTitle')">
               Task Title
               <span class="w-4 h-4">
-                <ng-container *ngIf="sortModes['taskTitle'] === 'asc'">▲</ng-container>
-                <ng-container *ngIf="sortModes['taskTitle'] === 'desc'">▼</ng-container>
-                <ng-container *ngIf="sortModes['taskTitle'] === 'default'">↕</ng-container>
+                <ng-container *ngIf="sortModes['taskTitle'] === 'asc'">
+                  <span title="Ascending">▲</span>
+                </ng-container>
+                <ng-container *ngIf="sortModes['taskTitle'] === 'desc'">
+                  <span title="Descending">▼</span>
+                </ng-container>
+                <ng-container *ngIf="sortModes['taskTitle'] === 'default'">
+                  <span title="Newest to Oldest">↕</span>
+                </ng-container>
               </span>
             </div>
           </th>
@@ -89,9 +102,15 @@
             <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('specialization')">
               Specialization
               <span class="w-4 h-4">
-                <ng-container *ngIf="sortModes['specialization'] === 'asc'">▲</ng-container>
-                <ng-container *ngIf="sortModes['specialization'] === 'desc'">▼</ng-container>
-                <ng-container *ngIf="sortModes['specialization'] === 'default'">↕</ng-container>
+                <ng-container *ngIf="sortModes['specialization'] === 'asc'">
+                  <span title="Ascending">▲</span>
+                </ng-container>
+                <ng-container *ngIf="sortModes['specialization'] === 'desc'">
+                  <span title="Descending">▼</span>
+                </ng-container>
+                <ng-container *ngIf="sortModes['specialization'] === 'default'">
+                  <span title="Newest to Oldest">↕</span>
+                </ng-container>
               </span>
             </div>
           </th>
@@ -99,9 +118,15 @@
             <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('proposedPrice')">
               Proposed Price
               <span class="w-4 h-4">
-                <ng-container *ngIf="sortModes['proposedPrice'] === 'asc'">▲</ng-container>
-                <ng-container *ngIf="sortModes['proposedPrice'] === 'desc'">▼</ng-container>
-                <ng-container *ngIf="sortModes['proposedPrice'] === 'default'">↕</ng-container>
+                <ng-container *ngIf="sortModes['proposedPrice'] === 'asc'">
+                  <span title="Ascending">▲</span>
+                </ng-container>
+                <ng-container *ngIf="sortModes['proposedPrice'] === 'desc'">
+                  <span title="Descending">▼</span>
+                </ng-container>
+                <ng-container *ngIf="sortModes['proposedPrice'] === 'default'">
+                  <span title="Newest to Oldest">↕</span>
+                </ng-container>
               </span>
             </div>
           </th>
@@ -109,9 +134,15 @@
             <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('location')">
               Location
               <span class="w-4 h-4">
-                <ng-container *ngIf="sortModes['location'] === 'asc'">▲</ng-container>
-                <ng-container *ngIf="sortModes['location'] === 'desc'">▼</ng-container>
-                <ng-container *ngIf="sortModes['location'] === 'default'">↕</ng-container>
+                <ng-container *ngIf="sortModes['location'] === 'asc'">
+                  <span title="Ascending">▲</span>
+                </ng-container>
+                <ng-container *ngIf="sortModes['location'] === 'desc'">
+                  <span title="Descending">▼</span>
+                </ng-container>
+                <ng-container *ngIf="sortModes['location'] === 'default'">
+                  <span title="Newest to Oldest">↕</span>
+                </ng-container>
               </span>
             </div>
           </th>
@@ -212,4 +243,4 @@
       </div>
     </div>
   </div>
-</div>
+</div>`

@@ -1,12 +1,18 @@
 <ng-container>
   <th
     class="border-muted/20 bg-muted/5 w-[220px] border-r border-b px-4 py-2 align-middle text-[0.8125rem] text-start font-bold leading-[1.125rem] overflow-hidden text-ellipsis whitespace-nowrap h-[48px]">
-    <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort()">
+    <div class="flex items-center gap-1 cursor-pointer" (click)="toggleProfileSort()">
       Profile
       <span class="w-4 h-4">
-        <ng-container *ngIf="sortState === 'asc'">▲</ng-container>
-        <ng-container *ngIf="sortState === 'desc'">▼</ng-container>
-        <ng-container *ngIf="sortState === 'default'">↕</ng-container>
+        <ng-container *ngIf="profileSortState === 'asc'">
+          <span title="Ascending">▲</span>
+        </ng-container>
+        <ng-container *ngIf="profileSortState === 'desc'">
+          <span title="Descending">▼</span>
+        </ng-container>
+        <ng-container *ngIf="profileSortState === 'default'">
+          <span title="Newest to Oldest">↕</span>
+        </ng-container>
       </span>
     </div>
   </th>
@@ -16,12 +22,18 @@
   </th>
   <th
     class="border-muted/20 bg-muted/5 w-[220px] border-r border-b px-4 py-2 align-middle text-[0.8125rem] text-start font-bold leading-[1.125rem] overflow-hidden text-ellipsis whitespace-nowrap h-[48px]">
-    <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort()">
+    <div class="flex items-center gap-1 cursor-pointer" (click)="toggleEmailSort()">
       Email
       <span class="w-4 h-4">
-        <ng-container *ngIf="sortState === 'asc'">▲</ng-container>
-        <ng-container *ngIf="sortState === 'desc'">▼</ng-container>
-        <ng-container *ngIf="sortState === 'default'">↕</ng-container>
+        <ng-container *ngIf="emailSortState === 'asc'">
+          <span title="Ascending">▲</span>
+        </ng-container>
+        <ng-container *ngIf="emailSortState === 'desc'">
+          <span title="Descending">▼</span>
+        </ng-container>
+        <ng-container *ngIf="emailSortState === 'default'">
+          <span title="Newest to Oldest">↕</span>
+        </ng-container>
       </span>
     </div>
   </th>

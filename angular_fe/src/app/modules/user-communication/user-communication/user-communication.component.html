@@ -1,13 +1,14 @@
 <!--Header page navigation-->
-<div class="mb-4 flex justify-between w-full max-w-[1440px] mx-auto px-4">
-  <div>
+<div class="mb-4 flex justify-between">
+  <div class="inline-block">
     <h3 class="text-foreground font-semibold">User Communication</h3>
-    <div class="text-muted-foreground text-xs font-medium">
-      <a href="#" class="hover:text-primary"><strong>Dashboards > User Communication</strong></a>
+    <div class="text-muted-foreground space-x-1 text-xs font-medium">
+      <a href="" class="hover:text-primary"><strong>Dashboards > User Communication</strong></a>
       <p>This is used for managing the users communication in the application</p>
     </div>
   </div>
 </div>
+
 <div *ngIf="!isLoading" class="mb-4 flex justify-between">
   <div class="inline-block"></div>
   <div class="flex space-x-4">
@@ -60,23 +61,51 @@
     <table class="w-full border-collapse border-0 text-left text-sm">
       <thead class="border-b">
         <tr>
+          <th class="px-4 py-2 text-start min-w-[100px] lg:min-w-[250px] xl:min-w-[200px]">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('viewedUser')">
+              Viewed User
+              <span class="w-4 h-4">
+                <ng-container *ngIf="viewedUserSortMode === 'asc'">
+                  <span title="Ascending">▲</span>
+                </ng-container>
+                <ng-container *ngIf="viewedUserSortMode === 'desc'">
+                  <span title="Descending">▼</span>
+                </ng-container>
+                <ng-container *ngIf="viewedUserSortMode === 'default'">
+                  <span title="Newest to Oldest">↕</span>
+                </ng-container>
+              </span>
+            </div>
+          </th>
           <th class="px-4 py-2 text-start min-w-[50px] lg:min-w-[150px] xl:min-w-[150px]">
             <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('client')">
               Client Name
-              <span class="w-4 h-4">
-                <ng-container *ngIf="clientSortMode === 'asc'">▲</ng-container>
-                <ng-container *ngIf="clientSortMode === 'desc'">▼</ng-container>
-                <ng-container *ngIf="clientSortMode === 'default'">↕</ng-container>
-              </span>
+                <span class="w-4 h-4">
+                  <ng-container *ngIf="clientSortMode === 'asc'">
+                    <span title="Ascending">▲</span>
+                  </ng-container>
+                  <ng-container *ngIf="clientSortMode === 'desc'">
+                    <span title="Descending">▼</span>
+                  </ng-container>
+                  <ng-container *ngIf="clientSortMode === 'default'">
+                    <span title="Newest to Oldest">↕</span>
+                  </ng-container>
+                </span>
             </div>
           </th>
           <th class="px-4 py-2 text-start min-w-[100px] lg:min-w-[250px] xl:min-w-[200px]">
             <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('tasker')">
               Tasker Name
               <span class="w-4 h-4">
-                <ng-container *ngIf="taskerSortMode === 'asc'">▲</ng-container>
-                <ng-container *ngIf="taskerSortMode === 'desc'">▼</ng-container>
-                <ng-container *ngIf="taskerSortMode === 'default'">↕</ng-container>
+                <ng-container *ngIf="taskerSortMode === 'asc'">
+                  <span title="Ascending">▲</span>
+                </ng-container>
+                <ng-container *ngIf="taskerSortMode === 'desc'">
+                  <span title="Descending">▼</span>
+                </ng-container>
+                <ng-container *ngIf="taskerSortMode === 'default'">
+                  <span title="Newest to Oldest">↕</span>
+                </ng-container>
               </span>
             </div>
           </th>
@@ -86,6 +115,7 @@
       </thead>
       <tbody>
         <tr *ngFor="let convo of displayConversations" class="hover:bg-card/50 h-[60px]">
+          <td class="px-4 py-3 text-start">{{ convo.user.first_name }} {{ convo.user.middlename }} {{ convo.user.last_name }}</td>
           <td class="px-4 py-3 text-start">{{ convo.task_taken.clients.user.first_name }} {{ convo.task_taken.clients.user.middle_name || '' }} {{ convo.task_taken.clients.user.last_name }}</td>
           <td class="px-4 py-3 text-start">{{ convo.task_taken.tasker.user.first_name }} {{ convo.task_taken.tasker.user.middle_name || '' }} {{ convo.task_taken.tasker.user.last_name }}</td>
           <td class="px-4 py-3 text-start">
@@ -137,12 +167,9 @@
 
     <!-- Pagination controls -->
     <div class="flex items-center justify-end gap-4 sticky bottom-0 left-0 right-0 bg-white p-2">
-
       <span class="text-sm border w-32 text-center">
         {{ startIndex }} - {{ endIndex }} of {{ filteredConversations.length }}
       </span>
-
-
       <div class="inline-flex items-center gap-2">
         <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300"
                 [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">

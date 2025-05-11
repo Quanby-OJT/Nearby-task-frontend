@@ -1,12 +1,12 @@
 <!-- Header showing the title -->
-<div class="mb-4 flex justify-between w-full max-w-[1440px] mx-auto px-4">
-  <div>
+<div class="mb-4 flex justify-between">
+  <div class="inline-block">
     <h3 class="text-foreground font-semibold">User Logs</h3>
-    <div class="text-muted-foreground text-xs font-medium">
-      <a href="#" class="hover:text-primary"><b>Dashboards > User Logs</b></a>
+    <div class="text-muted-foreground space-x-1 text-xs font-medium">
+      <a href="" class="hover:text-primary"><strong>Dashboards > User Logs</strong></a>
       <p>Thsi is used to view the logs of the users in the application</p>
     </div>
-  </div> 
+  </div>
 </div>
 
 <div *ngIf="isDataLoaded" class="mb-4 flex justify-between">
@@ -65,9 +65,15 @@
             <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort()">
               User Name
               <span class="w-4 h-4">
-                <ng-container *ngIf="sortDirection === 'asc'">▲</ng-container>
-                <ng-container *ngIf="sortDirection === 'desc'">▼</ng-container>
-                <ng-container *ngIf="sortDirection === 'default'">↕</ng-container>
+                <ng-container *ngIf="sortDirection === 'asc'">
+                  <span title="Ascending">▲</span>
+                </ng-container>
+                <ng-container *ngIf="sortDirection === 'desc'">
+                  <span title="Descending">▼</span>
+                </ng-container>
+                <ng-container *ngIf="sortDirection === 'default'">
+                  <span title="Newest to Oldest">↕</span>
+                </ng-container>
               </span>
             </div>
           </th>

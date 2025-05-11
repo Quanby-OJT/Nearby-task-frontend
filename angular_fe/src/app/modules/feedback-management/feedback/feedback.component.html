@@ -1,9 +1,10 @@
-<div class="mb-4 flex justify-between w-full max-w-[1440px] mx-auto px-4">
-  <div>
+<!-- Header showing the title -->
+<div class="mb-4 flex justify-between">
+  <div class="inline-block">
     <h3 class="text-foreground font-semibold">Feedback Management</h3>
-    <div class="text-muted-foreground text-xs font-medium">
-      <a href="#" class="hover:text-primary"><b>Dashboards > Feedback Management</b></a>
-    <p>This is used to view the feedback of the users in the application</p>
+    <div class="text-muted-foreground space-x-1 text-xs font-medium">
+      <a href="" class="hover:text-primary"><strong>Dashboards > Feedback Management</strong></a>
+      <p>This is used to view the feedback of the users in the application</p>
     </div>
   </div>
 </div>
@@ -57,9 +58,15 @@
             <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('taskerName')">
               Tasker Name
               <span class="w-4 h-4">
-                <ng-container *ngIf="sortDirections['taskerName'] === 'asc'">▲</ng-container>
-                <ng-container *ngIf="sortDirections['taskerName'] === 'desc'">▼</ng-container>
-                <ng-container *ngIf="sortDirections['taskerName'] === 'default'">↕</ng-container>
+                <ng-container *ngIf="sortDirections['taskerName'] === 'asc'">
+                  <span title="Ascending">▲</span>
+                </ng-container>
+                <ng-container *ngIf="sortDirections['taskerName'] === 'desc'">
+                  <span title="Descending">▼</span>
+                </ng-container>
+                <ng-container *ngIf="sortDirections['taskerName'] === 'default'">
+                  <span title="Newest to Oldest">↕</span>
+                </ng-container>
               </span>
             </div>
           </th>
@@ -68,9 +75,15 @@
             <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('rating')">
               Rating
               <span class="w-4 h-4">
-                <ng-container *ngIf="sortDirections['rating'] === 'asc'">▲</ng-container>
-                <ng-container *ngIf="sortDirections['rating'] === 'desc'">▼</ng-container>
-                <ng-container *ngIf="sortDirections['rating'] === 'default'">↕</ng-container>
+                <ng-container *ngIf="sortDirections['rating'] === 'asc'">
+                  <span title="Ascending">▲</span>
+                </ng-container>
+                <ng-container *ngIf="sortDirections['rating'] === 'desc'">
+                  <span title="Descending">▼</span>
+                </ng-container>
+                <ng-container *ngIf="sortDirections['rating'] === 'default'">
+                  <span title="Newest to Oldest">↕</span>
+                </ng-container>
               </span>
             </div>
           </th>
@@ -79,9 +92,15 @@
             <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('createdAt')">
               Created At
               <span class="w-4 h-4">
-                <ng-container *ngIf="sortDirections['createdAt'] === 'asc'">▲</ng-container>
-                <ng-container *ngIf="sortDirections['createdAt'] === 'desc'">▼</ng-container>
-                <ng-container *ngIf="sortDirections['createdAt'] === 'default'">↕</ng-container>
+                <ng-container *ngIf="sortDirections['createdAt'] === 'asc'">
+                  <span title="Ascending">▲</span>
+                </ng-container>
+                <ng-container *ngIf="sortDirections['createdAt'] === 'desc'">
+                  <span title="Descending">▼</span>
+                </ng-container>
+                <ng-container *ngIf="sortDirections['createdAt'] === 'default'">
+                  <span title="Newest to Oldest">↕</span>
+                </ng-container>
               </span>
             </div>
           </th>
