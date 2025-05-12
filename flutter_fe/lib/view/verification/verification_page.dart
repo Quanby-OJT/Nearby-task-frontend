@@ -1,8 +1,13 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:flutter_fe/model/verification_model.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_fe/service/auth_service.dart';
+import 'package:flutter_fe/service/api_service.dart';
 
 // Import separate verification pages
 import 'general_info_page.dart';
@@ -86,6 +91,25 @@ class _VerificationPageState extends State<VerificationPage> {
       debugPrint('VerificationPage: Pay Period: ${_userInfo['payPeriod']}');
       debugPrint('VerificationPage: Wage: ${_userInfo['wage']}');
 
+      // Log social media links JSON
+      if (_userInfo.containsKey('socialMediaJson')) {
+        final String socialMediaJson = _userInfo['socialMediaJson'] as String;
+        debugPrint(
+            'VerificationPage: Social Media Links JSON: $socialMediaJson');
+
+        // Parse the JSON to show individual links for debugging
+        try {
+          final Map<String, dynamic> socialMediaLinks =
+              jsonDecode(socialMediaJson);
+          debugPrint('VerificationPage: Social Media Links (parsed):');
+          socialMediaLinks.forEach((platform, url) {
+            debugPrint('  - $platform: $url');
+          });
+        } catch (e) {
+          debugPrint('VerificationPage: Error parsing social media JSON: $e');
+        }
+      }
+
       _navigateToNextPage();
     });
   }
@@ -144,43 +168,77 @@ class _VerificationPageState extends State<VerificationPage> {
         _isLoading = true;
       });
 
-      // Prepare the verification data
-      Map<String, dynamic> verificationData = {
-        ..._userInfo,
-        'id_verified': _isIdVerified,
-        'selfie_verified': _isSelfieVerified,
-        'documents_uploaded': _isDocumentsUploaded,
-        'verification_status': 'pending',
-        'verification_date': DateTime.now().toIso8601String(),
-      };
+      // Get the current user ID
+      final userId = int.parse(storage.read('user_id').toString());
+
+      // Prepare the verification data using the VerificationModel
+      final verificationData = VerificationModel(
+        userId: userId,
+        firstName: _userInfo['firstName'],
+        middleName: _userInfo['middleName'],
+        lastName: _userInfo['lastName'],
+        email: _userInfo['email'],
+        phone: _userInfo['phone'],
+        gender: _userInfo['gender'],
+        birthdate: _userInfo['birthdate'],
+        specialization: _userInfo['specialization'] ?? '',
+        specializationId: _userInfo['specializationId'],
+        payPeriod: _userInfo['payPeriod'] ?? 'Hourly',
+        wage: _userInfo['wage'] ?? 0.0,
+        socialMediaJson: _userInfo['socialMediaJson'],
+        idType: _idType,
+        status: 'pending',
+        verificationDate: DateTime.now().toIso8601String(),
+        bio: _userInfo['bio'],
+      );
 
       // Log the verification data for debugging
       debugPrint('VerificationPage: Submitting verification');
-      debugPrint('VerificationPage: Verification data: $verificationData');
+      debugPrint(
+          'VerificationPage: Verification data: ${verificationData.toJson()}');
 
-      // Mock implementation - replace with actual API call
-      await Future.delayed(const Duration(seconds: 2));
+      // Submit verification using the new method for tasker_verify table
+      final result = await ApiService.submitTaskerVerificationWithNewTable(
+        userId,
+        verificationData.toJson(),
+        _idImage,
+        _selfieImage,
+        _documentFile,
+      );
 
+      // Hide loading indicator
       setState(() {
         _isLoading = false;
       });
 
       if (!mounted) return;
 
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-              'Verification submitted successfully! We will review your information and notify you once verified.'),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 5),
-        ),
-      );
+      // Check if submission was successful
+      if (result['success'] == true) {
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ??
+                'Verification submitted successfully! We will review your information and notify you once verified.'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 5),
+          ),
+        );
 
-      // Navigate back after delay
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) Navigator.of(context).pop();
-      });
+        // Navigate back after delay
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) Navigator.of(context).pop();
+        });
+      } else {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['error'] ?? 'Failed to submit verification'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
     } catch (e) {
       setState(() {
         _isLoading = false;
