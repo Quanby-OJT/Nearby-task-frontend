@@ -56,7 +56,6 @@ class _JobPostPageState extends State<JobPostPage>
   bool _isUploadDialogShown = false;
   bool _documentValid = false;
 
-  // Tab-related variables
   final List<String> _tabStatuses = [
     "All",
     "Available",
@@ -74,7 +73,7 @@ class _JobPostPageState extends State<JobPostPage>
       if (!_tabController.indexIsChanging) {
         setState(() {
           if (_tabController.index == 0) {
-            _currentFilter = null; // All
+            _currentFilter = null;
           } else if (_tabController.index == 1) {
             _currentFilter = "Available";
           } else if (_tabController.index == 2) {
@@ -143,7 +142,7 @@ class _JobPostPageState extends State<JobPostPage>
           clientTasks = tasks;
           _filteredTasks = List.from(clientTasks);
         });
-        _filterTasks(); // Apply initial filtering
+        _filterTasks();
       }
     } catch (e) {
       debugPrint("Error fetching created tasks: $e");
@@ -986,9 +985,9 @@ class _JobPostPageState extends State<JobPostPage>
                           _showFilterModal();
                         } else {
                           setState(() {
-                            if (index == 0)
+                            if (index == 0) {
                               _currentFilter = null;
-                            else if (index == 1)
+                            } else if (index == 1)
                               _currentFilter = "Available";
                             else if (index == 2)
                               _currentFilter = "Already Taken";

@@ -100,7 +100,7 @@ class _SetUpAddressScreenState extends State<SetUpAddressScreen>
             ? placemarks[0].subAdministrativeArea ?? "Unknown province"
             : "Unknown province";
         _locationMessage = city != null
-            ? "Location: $city, $_province"
+            ? "Location: $_cityName, $_province"
             : "Location: ${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}";
 
         _isLoading = false;
@@ -128,9 +128,11 @@ class _SetUpAddressScreenState extends State<SetUpAddressScreen>
       _isLoading = true;
     });
 
-    debugPrint('Saving location: $_latitude, $_longitude');
+    debugPrint(
+        'Saving location: $_latitude, $_longitude, $_cityName, $_province');
     try {
-      await _settingController.setLocation(_latitude!, _longitude!);
+      await _settingController.setLocation(
+          _latitude!, _longitude!, _cityName!, _province!);
       setState(() {
         _isLoading = false;
       });
@@ -166,15 +168,15 @@ class _SetUpAddressScreenState extends State<SetUpAddressScreen>
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: Colors.white,
+      return Scaffold(
+        backgroundColor: Colors.grey[100],
         body: Center(
           child: CustomLoading(),
         ),
       );
     }
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[100],
       body: Column(
         children: [
           Expanded(
@@ -224,9 +226,8 @@ class _SetUpAddressScreenState extends State<SetUpAddressScreen>
                                 width: 200,
                                 height: 200,
                                 decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Color(0xFFE0E0E0),
-                                ),
+                                    shape: BoxShape.circle,
+                                    color: Colors.white),
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [

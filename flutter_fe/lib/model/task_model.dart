@@ -1,10 +1,12 @@
 import 'package:flutter_fe/model/client_model.dart';
+import 'package:flutter_fe/model/address.dart';
 
 class TaskModel {
   final int id;
   final int? clientId;
   final String title;
   final String specialization;
+  final int? specializationId;
   final String description;
   final String location;
   final String period;
@@ -16,23 +18,31 @@ class TaskModel {
   final String taskBeginDate;
   final String workType;
   final ClientModel? client;
+  final AddressModel? address;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
-  TaskModel(
-      {required this.id,
-      this.clientId,
-      required this.title,
-      required this.specialization,
-      required this.description,
-      required this.location,
-      required this.period,
-      required this.duration,
-      required this.urgency,
-      required this.status,
-      required this.contactPrice,
-      this.remarks,
-      required this.taskBeginDate,
-      required this.workType,
-      this.client});
+  TaskModel({
+    required this.id,
+    this.clientId,
+    required this.title,
+    required this.specialization,
+    this.specializationId,
+    required this.description,
+    required this.location,
+    required this.period,
+    required this.duration,
+    required this.urgency,
+    required this.status,
+    required this.contactPrice,
+    this.remarks,
+    required this.taskBeginDate,
+    required this.workType,
+    this.client,
+    this.address,
+    this.createdAt,
+    this.updatedAt,
+  });
 
   Map<String, dynamic> toJson() {
     return {
@@ -40,22 +50,25 @@ class TaskModel {
       "client_id": clientId,
       "task_title": title,
       "specialization": specialization,
+      "specialization_id": specializationId,
       "task_description": description,
       "location": location,
       "duration": duration != null ? int.tryParse(duration) ?? 0 : 0,
-      "num_of_days": period,
-      "urgent": urgency == "Urgent", // Convert string to boolean
-      "proposed_price": contactPrice ?? 0,
+      "period": period,
+      "urgent": urgency == "Urgent",
+      "proposed_price": contactPrice,
       "remarks": remarks,
       "task_begin_date": taskBeginDate,
-      "id": id,
       "status": status,
       "work_type": workType,
+      "client": client?.toJson(),
+      "address": address?.toJson(),
+      "created_at": createdAt?.toIso8601String(),
+      "updated_at": updatedAt?.toIso8601String(),
     };
   }
 
   factory TaskModel.fromJson(Map<String, dynamic> json) {
-    // Handle the urgent field which can be either boolean or string
     String? urgencyValue;
     final urgentField = json['urgent'];
     if (urgentField is bool) {
@@ -71,18 +84,38 @@ class TaskModel {
       clientId: json['client_id'] as int?,
       title: json['task_title'] as String,
       specialization: json['specialization'] as String,
+      specializationId: json['specialization_id'] as int?,
       description: json['task_description'] as String,
       location: json['location'] as String,
       duration: json['duration'].toString(),
-      period: json['period'].toString(),
+      period: json['period'] as String,
       urgency: urgencyValue,
       contactPrice: json['proposed_price'] as int,
       remarks: json['remarks'] as String?,
       taskBeginDate: json['task_begin_date'] as String,
       status: json['status'] as String,
       workType: json['work_type'] as String,
-      client:
-          json['client'] != null ? ClientModel.fromJson(json['client']) : null,
+      client: json['clients'] != null && json['clients']['user'] != null
+          ? ClientModel.fromJson({
+              'preferences': '',
+              'client_address': '',
+              'user': json['clients']['user'],
+            })
+          : null,
+      address: json['address'] != null
+          ? AddressModel.fromJson(json['address'])
+          : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : null,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
+          : null,
     );
+  }
+
+  @override
+  String toString() {
+    return 'TaskModel(id: $id, title: $title, specialization: $specialization, specializationId: $specializationId, description: $description, location: $location, period: $period, duration: $duration, urgency: $urgency, status: $status, contactPrice: $contactPrice, remarks: $remarks, taskBeginDate: $taskBeginDate, workType: $workType, client: $client, address: $address, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 }

@@ -1161,7 +1161,7 @@ class ProfileController {
           rating: 0);
 
       AddressModel address = AddressModel(
-        id: userId,
+        id: userId.toString(),
         streetAddress: streetAddressController.text.trim(),
         barangay: barangayController.text.trim(),
         city: cityController.text.trim(),
@@ -1312,7 +1312,6 @@ class ProfileController {
 
     if (role == 'Client') {
       ClientModel client = ClientModel(
-        id: 0,
         preferences: prefsController.text,
         clientAddress: clientAddressController.text,
       );
@@ -1370,7 +1369,6 @@ class ProfileController {
       Map<String, dynamic> resultData = await ProfileService.updateTasker(
           tasker, user, documentFile, profileImage);
 
-      // Check if widget is still mounted before showing MaterialBanner
       if (!context.mounted) return;
 
       if (resultData.containsKey("message")) {

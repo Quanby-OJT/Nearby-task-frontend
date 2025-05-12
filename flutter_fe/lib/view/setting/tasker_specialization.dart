@@ -191,7 +191,7 @@ class _TaskerSpecializationScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 197, 197, 197),
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         centerTitle: true,
         title: Row(
@@ -219,7 +219,7 @@ class _TaskerSpecializationScreenState
               ),
           ],
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.grey[100],
         elevation: 0,
         leading: IconButton(
           icon: const Icon(
@@ -244,8 +244,16 @@ class _TaskerSpecializationScreenState
                     Container(
                       padding: const EdgeInsets.all(16.0),
                       decoration: BoxDecoration(
-                        color: Colors.grey[100],
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withValues(alpha: 0.5),
+                            spreadRadius: 2,
+                            blurRadius: 3,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

@@ -14,7 +14,7 @@ import '../model/client_model.dart';
 import 'package:flutter_fe/config/url_strategy.dart';
 
 class ApiService {
-  static String url = apiUrl ?? "http://192.168.43.15:5000";
+  static String url = apiUrl ?? "http://192.168.1.12:5000";
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
   static final Map<String, String> _cookies = {};
@@ -34,7 +34,8 @@ class ApiService {
   }
 
   // Update tasker profile with PDF file
-  static Future<Map<String, dynamic>> updateTaskerWithFile(UserModel user, File file) async {
+  static Future<Map<String, dynamic>> updateTaskerWithFile(
+      UserModel user, File file) async {
     try {
       String token = await AuthService.getSessionToken();
 
@@ -1418,34 +1419,32 @@ class ApiService {
   static Future<Map<String, dynamic>> forgotPassword(String email) async {
     try {
       debugPrint("Email: $email");
-      return await _postRequest(endpoint: "/forgot-password", body: {"email": email});
-    }catch(error, stackTrace){
+      return await _postRequest(
+          endpoint: "/forgot-password", body: {"email": email});
+    } catch (error, stackTrace) {
       debugPrint(error.toString());
       debugPrintStack(stackTrace: stackTrace);
-      return {
-        "error": "An error occurred during email verification: $error"
-      };
+      return {"error": "An error occurred during email verification: $error"};
     }
   }
 
-  static Future<Map<String, dynamic>> resetPassword(String email, String password) async{
+  static Future<Map<String, dynamic>> resetPassword(
+      String email, String password) async {
     try {
-      return await _postRequest(endpoint: "/reset-password", body: {"email": email, "password": password});
-      }catch(error, stackTrace){
-        debugPrint(error.toString());
-        debugPrintStack(stackTrace: stackTrace);
-        return {
-          "error": "An error occurred during email verification: $error"
-        };
+      return await _postRequest(
+          endpoint: "/reset-password",
+          body: {"email": email, "password": password});
+    } catch (error, stackTrace) {
+      debugPrint(error.toString());
+      debugPrintStack(stackTrace: stackTrace);
+      return {"error": "An error occurred during email verification: $error"};
     }
   }
 
-  static Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  static Future<Map<String, dynamic>> _postRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final response = await http.post(Uri.parse("$url$endpoint"),
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: jsonEncode(body));
+        headers: {"Content-Type": "application/json"}, body: jsonEncode(body));
 
     return _handleResponse(response);
   }
