@@ -57,10 +57,9 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchTaskAssignments();
-    _fetchTaskers();
-    _fetchUserIDImage();
-    _fetchReportHistory();
+
+    loadAll();
+
     conversationController.searchConversation.addListener(filterMessages);
 
     socket = IO.io('http://192.168.1.12:5000', <String, dynamic>{
@@ -79,6 +78,22 @@ class _ChatScreenState extends State<ChatScreen> {
     socket?.on('message_read', (data) {
       _fetchTaskAssignments();
       setState(() {});
+    });
+  }
+
+  void loadAll() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    await Future.wait([
+      _fetchTaskAssignments(),
+      _fetchTaskers(),
+      _fetchUserIDImage(),
+      _fetchReportHistory(),
+    ]);
+    setState(() {
+      _isLoading = false;
     });
   }
 
@@ -859,7 +874,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                         if (taskAssignment == null) {
                                           return SizedBox.shrink();
                                         }
-                                        // Find the corresponding conversation by task_taken_id
+
                                         final conversation = this
                                             .conversation
                                             .firstWhere(
@@ -898,7 +913,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 style: TextStyle(color: Colors.grey),
               ),
               onPressed: () {
-                Navigator.of(context).pop(); // Dismiss the dialog
+                Navigator.of(context).pop();
               },
             ),
             TextButton(
@@ -908,7 +923,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               onPressed: () {
                 conversationController.deleteMessage(context, taskTakenId);
-                Navigator.of(context).pop(); // Dismiss the dialog
+                Navigator.of(context).pop();
                 setState(() {
                   _fetchTaskAssignments();
                 });

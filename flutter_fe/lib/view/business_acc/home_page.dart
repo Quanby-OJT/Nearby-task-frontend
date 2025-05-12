@@ -5,7 +5,6 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/setting_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/setting.dart';
-import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/model/tasker_feedback.dart';
@@ -755,11 +754,22 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: _buildAppBar(),
-      body: Stack(
-        children: [
+    return PopScope(
+      onPopInvokedWithResult: (didPop) {
+        if (didPop) {
+          setState(() {
+            _isLoading = true;
+            _errorMessage = null;
+            _taskList.clear();
+            _fetchTasks();
+          });
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.grey[100],
+        appBar: _buildAppBar(),
+        body: Stack(
+          children: [
           Column(
             children: [
               Expanded(

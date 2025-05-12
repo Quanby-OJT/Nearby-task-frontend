@@ -3,7 +3,7 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:flutter_fe/model/client_model.dart';
 
-class TaskAssignment{
+class TaskAssignment {
   final ClientModel? client;
   final TaskerModel? tasker;
   final TaskModel? task;
@@ -29,7 +29,7 @@ class TaskAssignment{
     return "TaskAssignment(client: $client, tasker: $tasker, task: $task)";
   }
 
-  factory TaskAssignment.fromJson(Map<String, dynamic> json){
+  factory TaskAssignment.fromJson(Map<String, dynamic> json) {
     debugPrint('JSON Data: $json');
     return TaskAssignment(
       client: ClientModel.fromJson(json['client']),
