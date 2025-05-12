@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/view/custom_loading/custom_loading.dart';
-import 'package:flutter_fe/view/sign_in/forgot_password.dart';
-import 'package:flutter_fe/view/sign_in/otp_screen.dart';
-import 'package:flutter_fe/view/sign_up_acc/pre_sign_up.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -16,7 +13,8 @@ class ResetPassword extends StatefulWidget {
   State<ResetPassword> createState() => _ResetPasswordState();
 }
 
-class _ResetPasswordState extends State<ResetPassword> with SingleTickerProviderStateMixin {
+class _ResetPasswordState extends State<ResetPassword>
+    with SingleTickerProviderStateMixin {
   final AuthenticationController _controller = AuthenticationController();
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -122,7 +120,6 @@ class _ResetPasswordState extends State<ResetPassword> with SingleTickerProvider
                               ),
                               textAlign: TextAlign.center,
                               'Please Input a new Password. Make sure it has the following: ',
-
                             ),
                             Padding(
                               padding:
@@ -154,8 +151,9 @@ class _ResetPasswordState extends State<ResetPassword> with SingleTickerProvider
                                 obscureText: _obsecureText,
                                 controller: _controller.passwordController,
                                 cursorColor: const Color(0xFFB71A4A),
-                                decoration:
-                                _getInputDecoration('Input Your New Password').copyWith(
+                                decoration: _getInputDecoration(
+                                        'Input Your New Password')
+                                    .copyWith(
                                   suffixIcon: Padding(
                                     padding: const EdgeInsets.only(right: 10),
                                     child: IconButton(
@@ -169,7 +167,6 @@ class _ResetPasswordState extends State<ResetPassword> with SingleTickerProvider
                                     ),
                                   ),
                                 ),
-
                               ),
                             ),
                             Padding(
@@ -177,10 +174,12 @@ class _ResetPasswordState extends State<ResetPassword> with SingleTickerProvider
                                   left: 40, right: 40, top: 20),
                               child: TextField(
                                 obscureText: _obsecureText,
-                                controller: _controller.confirmPasswordController,
+                                controller:
+                                    _controller.confirmPasswordController,
                                 cursorColor: const Color(0xFFB71A4A),
                                 decoration:
-                                  _getInputDecoration('Confirm Password').copyWith(
+                                    _getInputDecoration('Confirm Password')
+                                        .copyWith(
                                   suffixIcon: Padding(
                                     padding: const EdgeInsets.only(right: 10),
                                     child: IconButton(
@@ -203,7 +202,8 @@ class _ResetPasswordState extends State<ResetPassword> with SingleTickerProvider
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 40),
                               child: ElevatedButton(
-                                onPressed: _isLoading ? null : _handleResetPassword,
+                                onPressed:
+                                    _isLoading ? null : _handleResetPassword,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Color(0xFFB71A4A),
                                   shape: RoundedRectangleBorder(

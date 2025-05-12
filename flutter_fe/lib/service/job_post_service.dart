@@ -485,10 +485,8 @@ class JobPostService {
 
   Future<List<TaskModel>> fetchCreatedTasksByClient(int clientId) async {
     try {
-      // First try with the updated API endpoint
       final response = await _getRequest("/getCreatedTaskByClient/$clientId");
 
-      // Log response for debugging
       debugPrint("Created Tasks Response: $response");
 
       if (response.containsKey("success") &&
@@ -499,8 +497,6 @@ class JobPostService {
             .map((task) => TaskModel.fromJson(task as Map<String, dynamic>))
             .toList();
       } else {
-        // If the new endpoint fails, fall back to the general task endpoint
-        // and filter by client_id
         debugPrint("Falling back to general task endpoint");
         final allTasksResponse = await _getRequest("/displayTask");
 
@@ -509,9 +505,7 @@ class JobPostService {
           final List<dynamic> allTasks =
               allTasksResponse["tasks"] as List<dynamic>;
 
-          // Filter tasks by client_id
           final filteredTasks = allTasks.where((task) {
-            // Check if task is a Map and has client_id that matches
             return task is Map<String, dynamic> &&
                 task.containsKey("client_id") &&
                 task["client_id"] == clientId;

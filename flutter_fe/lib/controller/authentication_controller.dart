@@ -6,9 +6,6 @@ import 'package:flutter_fe/view/business_acc/business_acc_main_page.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/sign_in/otp_screen.dart';
 import 'package:flutter_fe/view/sign_in/sign_in.dart';
-import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
-import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:get_storage/get_storage.dart';
 import '../view/custom_loading/statusModal.dart';
 

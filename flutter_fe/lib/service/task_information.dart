@@ -84,7 +84,7 @@ class TaskDetailsService {
     try {
       final userId = await storage.read('user_id');
       final data = await _getRequest("/all-messages/$userId");
-
+      debugPrint("All Messages Data: ${data.toString()}");
       return data;
     } catch (e, st) {
       debugPrint(e.toString());

@@ -142,7 +142,7 @@ class _JobPostPageState extends State<JobPostPage>
           clientTasks = tasks;
           _filteredTasks = List.from(clientTasks);
         });
-        _filterTasks(); // Apply initial filtering
+        _filterTasks();
       }
     } catch (e) {
       debugPrint("Error fetching created tasks: $e");
@@ -985,9 +985,9 @@ class _JobPostPageState extends State<JobPostPage>
                           _showFilterModal();
                         } else {
                           setState(() {
-                            if (index == 0)
+                            if (index == 0) {
                               _currentFilter = null;
-                            else if (index == 1)
+                            } else if (index == 1)
                               _currentFilter = "Available";
                             else if (index == 2)
                               _currentFilter = "Already Taken";

@@ -5,7 +5,6 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/setting_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/setting.dart';
-import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/model/tasker_feedback.dart';

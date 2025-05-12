@@ -57,7 +57,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   List<TaskModel> tasks = [];
   String? _selectedCategory;
   List<String> categories = ['All'];
-  bool _isCategoriesLoading = false;
+  final bool _isCategoriesLoading = false;
 
   bool _showLikeAnimation = false;
   bool _showDislikeAnimation = false;

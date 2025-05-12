@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/view/sign_in/otp_screen.dart';
 import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
 import 'package:google_fonts/google_fonts.dart';
 

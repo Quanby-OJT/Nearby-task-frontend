@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/service/api_service.dart';
 import 'package:flutter_fe/service/task_information.dart';
-import 'package:flutter_fe/view/service_acc/task_information.dart';
 import 'package:get_storage/get_storage.dart';
 import '../model/conversation.dart';
 
@@ -13,7 +11,8 @@ class ConversationController {
 
   Future<void> sendMessage(BuildContext context, int taskTaken) async {
     int userId = await storage.read('user_id');
-    debugPrint("Sending a Message with the Following Data: \n User ID: $userId \n Task Taken ID: $taskTaken");
+    debugPrint(
+        "Sending a Message with the Following Data: \n User ID: $userId \n Task Taken ID: $taskTaken");
 
     final conversation = Conversation(
       conversationMessage: conversationMessage.text,
@@ -24,7 +23,8 @@ class ConversationController {
     debugPrint("Sending Message for Task Taken ID of: $taskTaken");
     debugPrint("User ID: $userId");
     debugPrint("Conversation Message: ${conversationMessage.text}");
-    Map<String, dynamic> messageSent = await taskDetailsService.sendMessage(conversation);
+    Map<String, dynamic> messageSent =
+        await taskDetailsService.sendMessage(conversation);
 
     if (messageSent.containsKey('message')) {
       // Optionally notify success if needed
@@ -35,7 +35,8 @@ class ConversationController {
     }
   }
 
-  Future<List<Conversation>> getMessages(BuildContext context, int taskTakenId) async {
+  Future<List<Conversation>> getMessages(
+      BuildContext context, int taskTakenId) async {
     debugPrint(taskTakenId.toString());
     final messages = await TaskDetailsService.getMessages(taskTakenId);
     //debugPrint(messages.toString());
@@ -71,7 +72,7 @@ class ConversationController {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(messageDeleted['message'])),
       );
-    }else{
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(messageDeleted['error'])),
       );
