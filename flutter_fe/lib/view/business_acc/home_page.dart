@@ -754,22 +754,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      onPopInvokedWithResult: (didPop) {
-        if (didPop) {
-          setState(() {
-            _isLoading = true;
-            _errorMessage = null;
-            _taskList.clear();
-            _fetchTasks();
-          });
-        }
-      },
-      child: Scaffold(
-        backgroundColor: Colors.grey[100],
-        appBar: _buildAppBar(),
-        body: Stack(
-          children: [
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+      appBar: _buildAppBar(),
+      body: Stack(
+        children: [
           Column(
             children: [
               Expanded(
