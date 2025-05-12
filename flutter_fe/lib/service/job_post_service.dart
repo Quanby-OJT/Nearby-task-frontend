@@ -296,15 +296,35 @@ class JobPostService {
   }
 
   Future<List<SpecializationModel>> getSpecializations() async {
-    final response = await _getRequest("/get-specializations");
+    try {
+      debugPrint("JobPostService: Fetching specializations from API...");
+      final response = await _getRequest("/get-specializations");
 
-    debugPrint("Specializations: ${response.toString()}");
-    if (response["specializations"] != null) {
-      return (response["specializations"] as List)
-          .map((item) => SpecializationModel.fromJson(item))
-          .toList();
+      debugPrint(
+          "JobPostService: Specializations response: ${response.toString()}");
+
+      if (response["specializations"] != null) {
+        final List<dynamic> specializationList =
+            response["specializations"] as List;
+        debugPrint(
+            "JobPostService: Found ${specializationList.length} specializations");
+
+        final List<SpecializationModel> result = specializationList
+            .map((item) => SpecializationModel.fromJson(item))
+            .toList();
+
+        debugPrint(
+            "JobPostService: Successfully mapped specializations to models");
+        return result;
+      } else {
+        debugPrint("JobPostService: No specializations found in response");
+        return [];
+      }
+    } catch (e, stackTrace) {
+      debugPrint("JobPostService: Error fetching specializations: $e");
+      debugPrint("JobPostService: Stack trace: $stackTrace");
+      return [];
     }
-    return [];
   }
 
   Future<ClientRequestModel> fetchRequestInformation(int requestID) async {
