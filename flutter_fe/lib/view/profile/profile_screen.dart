@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:currency_text_input_formatter/currency_text_input_formatter.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/controller/escrow_management_controller.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
@@ -25,9 +26,12 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final ProfileController _userController = ProfileController();
   final GetStorage storage = GetStorage();
+  final EscrowManagementController _escrowController =
+      EscrowManagementController();
   int taskerId = 0;
   AuthenticatedUser? _user;
   bool _isLoading = true;
+  final bool _isConfirmed = false;
   static String? role;
   bool willEdit = false; // Start in edit mode by default
   List<String> specialization = [];
@@ -47,6 +51,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String saveText = "Save";
   final updateTasker = GlobalKey<FormState>();
 
+  bool _isAmountVisible = false;
   @override
   void initState() {
     super.initState();
@@ -159,7 +164,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  /// This uploads TESDA Documents, if needed.
+  /// This uploads Legal Documents, if needed.
   ///
   Future<void> pickTESDADocuments() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -309,9 +314,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     ? '/assets/images/default-profile.jpg'
                                     : '${_user?.user.image}',
                               ),
-                              // backgroundImage: profileImage != null
-                              //   ? FileImage(profileImage!)
-                              //     : const AssetImage('assets/images/default-profile.jpg') as ImageProvider,
                             ),
                             profileImage != null
                                 ? CircleAvatar(
@@ -337,7 +339,111 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ],
                         ),
                       ),
-
+                      Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Card(
+                              color: Colors.white,
+                              elevation: 3,
+                              child: SizedBox(
+                                  child: Padding(
+                                      padding: EdgeInsets.all(10),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                  _isAmountVisible
+                                                      ? "PHP 100,000"
+                                                      : "PHP ***********",
+                                                  style: GoogleFonts.poppins(
+                                                      fontSize: 30,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color:
+                                                          Color(0xFF3C28CC))),
+                                              IconButton(
+                                                  icon: Icon(
+                                                      _isAmountVisible
+                                                          ? FontAwesomeIcons.eye
+                                                          : FontAwesomeIcons
+                                                              .eyeSlash,
+                                                      color: Color(0xFF3C28CC)),
+                                                  onPressed: () => setState(
+                                                        () {
+                                                          _isAmountVisible =
+                                                              !_isAmountVisible;
+                                                        },
+                                                      ))
+                                            ],
+                                          ),
+                                          Text("Current Balance",
+                                              style: GoogleFonts.poppins()),
+                                          const SizedBox(height: 15),
+                                          Center(
+                                            child: ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 20.0,
+                                                      vertical: 15.0),
+                                                  backgroundColor:
+                                                      Color(0xFF0272B1),
+                                                  shape: RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              10.0))),
+                                              onPressed: () =>
+                                                  _showUpWithdrawalConfirmation(
+                                                      context),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  if (role == "Tasker") ...[
+                                                    const Icon(
+                                                        FontAwesomeIcons
+                                                            .moneyBillTransfer,
+                                                        size: 14,
+                                                        color: Colors.white),
+                                                    const SizedBox(width: 8),
+                                                    Text(
+                                                        "Withdraw IMONALICK Credits",
+                                                        style:
+                                                            GoogleFonts.poppins(
+                                                                fontSize: 14,
+                                                                color: Colors
+                                                                    .white,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600))
+                                                  ],
+                                                  if (role == "Client") ...[
+                                                    const Icon(
+                                                        FontAwesomeIcons
+                                                            .signOut,
+                                                        size: 14,
+                                                        color: Colors.white),
+                                                    const SizedBox(width: 8),
+                                                    Text(
+                                                        "Withdraw IMONALICK Credits",
+                                                        style:
+                                                            GoogleFonts.poppins(
+                                                                fontSize: 14,
+                                                                color: Colors
+                                                                    .white,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600))
+                                                  ]
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ))))),
                       // User Name (non-editable for now)
                       Text(
                         '${_user?.user.firstName ?? "User"} ${_user?.user.lastName ?? ""}',
@@ -345,7 +451,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             fontSize: 24, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 20),
-
                       // Form Fields
                       Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -388,7 +493,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 title: "Personal Details",
                                 children: [
                                   Text(
-                                      "This is how you describe yourself as a tasker. Give it your best shot to attract more clients and earn more."),
+                                      "This is how you describe yourself as a tasker. Give it your best shot to attract more clients and earn more. Make it more spicy."),
                                   const SizedBox(height: 20),
                                   DropdownMenu(
                                     width: double.infinity,
@@ -905,5 +1010,249 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             )));
+  }
+
+  void _showUpWithdrawalConfirmation(BuildContext parentContext) {
+    showModalBottomSheet(
+        context: parentContext,
+        builder: (BuildContext bottomSheetContext) {
+          return _AmountManagementBottomSheet(
+            onAmountSubmit: (int userId, Function(bool) onComplete) async {
+              debugPrint('User ID: $userId');
+            },
+          );
+        });
+  }
+}
+
+class _AmountManagementBottomSheet extends StatefulWidget {
+  final Function(int userId, Function(bool) onComplete) onAmountSubmit;
+
+  const _AmountManagementBottomSheet({required this.onAmountSubmit});
+
+  @override
+  _AmountManagementBottomSheetState createState() =>
+      _AmountManagementBottomSheetState();
+}
+
+class _AmountManagementBottomSheetState
+    extends State<_AmountManagementBottomSheet> {
+  final EscrowManagementController _escrowController =
+      EscrowManagementController();
+  bool _isConfirmed = false;
+  final String role = GetStorage().read("role");
+  String _selectedPaymentMethod = '';
+  bool _isMethodSelected = false;
+  final _formKey = GlobalKey<FormState>();
+
+  void _selectPaymentMethod(String method) {
+    setState(() {
+      _selectedPaymentMethod = method;
+      _isMethodSelected = true;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      primary: false,
+      child: Form(
+          key: _formKey,
+          child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+              child: Column(children: [
+                Text(
+                    role == "Tasker"
+                        ? "How much IMONALICK Credits would you like to withdraw?"
+                        : "How much IMONALICK Credits would you want to buy?",
+                    style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        color: Color(0XFF3C28CC),
+                        fontWeight: FontWeight.bold)),
+                SizedBox(
+                  height: 20,
+                ),
+                //Amount to Deposit/Withdraw
+                TextFormField(
+                  controller: _escrowController.amountController,
+                  decoration: InputDecoration(
+                    hintText: "Enter Amount",
+                    hintStyle: GoogleFonts.poppins(
+                      color: Color(0XFF3C28CC),
+                    ),
+                  ),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    CurrencyTextInputFormatter.currency(
+                        locale: 'en_PH', symbol: '₱', decimalDigits: 2),
+                  ],
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please Enter Amount to Withdraw";
+                    } else if (double.parse(
+                            value.replaceAll("₱", "").replaceAll(",", "")) >
+                        20000) {
+                      return "You Cannot Withdraw more than P2,000.00";
+                    }
+                    return null;
+                  },
+                ),
+                Text(
+                    (role == "Tasker")
+                        ? "NOTE: The Maximum Amount that you can withdraw is PHP 20,000.00."
+                        : "NOTE: The Minimum Amount that you can deposit is PHP 2,000.00 and the maximum is PHP 30,000.00.",
+                    style: GoogleFonts.poppins()),
+                SizedBox(
+                  height: 20,
+                ),
+                //Select Payment/Withdraw Method
+                Center(
+                    child: Text(
+                        role == "Tasker"
+                            ? "Select Withdrawal Method"
+                            : "Select Payment Method",
+                        style: GoogleFonts.poppins(
+                            fontSize: 20,
+                            color: Color(0XFF3C28CC),
+                            fontWeight: FontWeight.bold))),
+                SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    //This will be expanded as the user wants more payment methods.
+                    buildPaymentCard(
+                        "GCash",
+                        "assets/images/gcash-logo-png_seeklogo-522261.png",
+                        null,
+                        _selectPaymentMethod,
+                        _isMethodSelected),
+                    buildPaymentCard(
+                        "PayMaya",
+                        "assets/images/maya-logo_brandlogos.net_y6kkp-512x512.png",
+                        null,
+                        _selectPaymentMethod,
+                        _isMethodSelected),
+                    // buildPaymentCard("Soon",
+                    //     null,
+                    //     FontAwesomeIcons.hourglass,
+                    //     _selectPaymentMethod,
+                    //     null),
+                    // buildPaymentCard("Soon",
+                    //     null,
+                    //     FontAwesomeIcons.hourglass,
+                    //     _selectPaymentMethod,
+                    //     null)
+                  ],
+                ),
+                SizedBox(height: 10),
+                Text("Please Input Your Account Number Below."),
+                SizedBox(height: 10),
+                TextFormField(
+                  controller: _escrowController.acctNumberController,
+                  decoration: InputDecoration(
+                    hintText: "Enter Your Account Number",
+                    hintStyle: GoogleFonts.poppins(
+                      color: Color(0XFF3C28CC),
+                    ),
+                  ),
+                  keyboardType: TextInputType.phone,
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                //Confirmation Button
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Theme(
+                      data: ThemeData(
+                        unselectedWidgetColor: Color(0XFF3C28CC),
+                      ),
+                      child: Checkbox(
+                        value: _isConfirmed,
+                        activeColor: Color(0XFF3C28CC),
+                        onChanged: (bool? newValue) {
+                          setState(() {
+                            _isConfirmed = newValue!;
+                          });
+                        },
+                      ),
+                    ),
+                    Text(
+                      "I confirm that I entered the right amount from the system.",
+                      style: GoogleFonts.poppins(
+                        color: Color(0XFF3C28CC),
+                        fontSize: 10,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                        (Set<WidgetState> states) {
+                      if (states.contains(WidgetState.disabled)) {
+                        return const Color(0xFFD3D3D3);
+                      }
+                      return const Color(0xFF3C28CC);
+                    }),
+                  ),
+                  onPressed: _isConfirmed
+                      ? () {
+                          if (_formKey.currentState!.validate()) {
+                            widget.onAmountSubmit(
+                              GetStorage().read('user_id'),
+                              (bool success) {
+                                if (success) {
+                                  Navigator.pop(context,
+                                      true); // Pop feedback bottom sheet with true
+                                } else {
+                                  Navigator.pop(context,
+                                      false); // Pop feedback bottom sheet with false
+                                }
+                              },
+                            );
+                          }
+                        }
+                      : null,
+                  child: Text(
+                      role == "Tasker" ? "Withdraw Amount" : "Deposit Amount",
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Colors.white,
+                      )),
+                )
+              ]))),
+    );
+  }
+
+  Widget buildPaymentCard(String title, String? imageLink, IconData? icon,
+      Function(String) onMethodSelected, bool? isMethodSelected) {
+    final isSelected = _selectedPaymentMethod == title;
+    return Card(
+        elevation: 2,
+        color: isSelected ? Color(0xFFF1F4FF) : Colors.white,
+        child: InkWell(
+            onTap: () {
+              if (!isSelected) {
+                onMethodSelected(title);
+              } else {
+                onMethodSelected('');
+              }
+            },
+            child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: SizedBox(
+                    height: 60,
+                    width: 60,
+                    child: Column(children: [
+                      if (imageLink != null)
+                        Image.asset(imageLink, height: 30, width: 30),
+                      if (icon != null)
+                        Icon(icon, size: 30, color: Colors.black38),
+                      const SizedBox(height: 10),
+                      Text(title, style: GoogleFonts.poppins(fontSize: 12)),
+                    ])))));
   }
 }

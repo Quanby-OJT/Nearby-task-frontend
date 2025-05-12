@@ -10,7 +10,7 @@ class MonthlyExpensesChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       // Taking up available space
       width: double.infinity,
       height: double.infinity,

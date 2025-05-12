@@ -31,6 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
   cached_network_image: ^3.3.1
+  animated_bottom_navigation_bar: ^1.1.1
   geolocator: ^10.0.0
   geocoding: ^2.0.2
   cupertino_icons: ^1.0.2
@@ -60,13 +61,15 @@ dependencies:
   currency_text_input_formatter: ^2.2.9
   font_awesome_flutter: ^10.8.0
   url_launcher: ^6.3.1
-  flutter_svg: ^2.0.17
+  flutter_svg: ^2.1.0
   flutter_dotenv: ^5.2.1
   webview_flutter: ^4.10.0
   webview_flutter_android: ^4.3.4
   web_socket_channel: ^3.0.2
   dio: ^5.8.0+1
   fl_chart: ^0.66.0
+  socket_io_client: ^3.1.2
+  flutter_launcher_icons: ^0.14.3
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -105,6 +108,12 @@ flutter:
     - assets/lottie/like.json
     - assets/lottie/dislike.json
     - .env
+    - assets/images/gcash-logo-png_seeklogo-522261.png
+    - assets/images/maya-logo_brandlogos.net_y6kkp-512x512.png
+    - assets/images/card-logos/american-express.svg
+    - assets/images/card-logos/Mastercard-logo.svg
+    - assets/images/card-logos/visa-logo-svg-vector.svg
+    - assets/images/app_icon.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

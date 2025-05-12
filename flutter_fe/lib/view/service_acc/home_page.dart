@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
+import 'package:flutter_fe/controller/job_post_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
+import 'package:flutter_fe/controller/setting_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
+import 'package:flutter_fe/model/setting.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
@@ -18,7 +21,6 @@ import 'package:flutter_fe/view/setting/setting.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:dropdown_search/dropdown_search.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:flutter_fe/view/verification/verification_page.dart';
@@ -37,6 +39,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   final ProfileController _profileController = ProfileController();
   final AuthenticationController _authController = AuthenticationController();
   final JobPostService jobPostService = JobPostService();
+  final JobPostController jobPostController = JobPostController();
+  final SettingController _settingController = SettingController();
 
   AuthenticatedUser? _user;
   String _fullName = "Loading...";
@@ -49,11 +53,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   bool _isUploadDialogShown = false;
   bool _isLoading = true;
   final GlobalKey _moreVertKey = GlobalKey();
+  SettingModel _userPreference = SettingModel();
 
   List<TaskModel> tasks = [];
   String? _selectedCategory;
   List<String> categories = ['All'];
-  bool _isCategoriesLoading = false;
+  final bool _isCategoriesLoading = false;
 
   bool _showLikeAnimation = false;
   bool _showDislikeAnimation = false;
@@ -63,10 +68,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _fetchUserData();
-    _fetchUserIDImage();
-    _fetchTasks();
-    fetchSpecialization();
+    _loadAllFunction();
 
     _likeAnimationController = AnimationController(
       vsync: this,
@@ -102,6 +104,45 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _dislikeAnimationController?.dispose();
     controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadAllFunction() async {
+    try {
+      await Future.wait([
+        _fetchUserData(),
+        _fetchUserIDImage(),
+        fetchSpecialization(),
+        _fetchTasks(),
+      ]);
+      setState(() {
+        _isLoading = false;
+      });
+
+      final response = await _settingController.getLocation();
+      setState(() {
+        _userPreference = response;
+      });
+
+      debugPrint("User preference: ${_userPreference.id}");
+
+      if (_userPreference.id == null) {
+        setState(() {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const SetUpAddressScreen()),
+          ).then((value) {
+            setState(() {
+              _isLoading = true;
+              _loadAllFunction();
+            });
+          });
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _fetchUserData() async {
@@ -178,7 +219,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           _existingProfileImageUrl = user?.user.image;
           _existingIDImageUrl = response['url'];
           _documentValid = response['status'];
-          _isLoading = false;
         });
       }
     } catch (e) {
@@ -188,10 +228,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   Future<void> fetchSpecialization() async {
     try {
-      setState(() {
-        _isCategoriesLoading = true;
-      });
-
       List<SpecializationModel> fetchedSpecializations =
           await jobPostService.getSpecializations();
 
@@ -200,12 +236,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           'All',
           ...fetchedSpecializations.map((spec) => spec.specialization)
         ];
-        _isCategoriesLoading = false;
       });
     } catch (error) {
-      setState(() {
-        _isCategoriesLoading = false;
-      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Failed to load categories. Please try again."),
@@ -216,34 +248,29 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Future<void> _fetchTasks() async {
+    setState(() {
+      _isLoading = true;
+    });
     try {
-      setState(() {
-        _isLoading = true;
-      });
-
-      List<TaskModel> fetchedTasks;
-      if (_selectedCategory == null || _selectedCategory == 'All') {
-        fetchedTasks = await jobPostService.fetchAllJobs();
-      } else {
-        fetchedTasks =
-            await jobPostService.fetchJobsBySpecialization(_selectedCategory!);
-      }
+      List<TaskModel> fetchedTasks = await jobPostController.fetchAllJobs();
 
       setState(() {
         tasks = fetchedTasks;
         cardNumber = tasks.length;
-        _isLoading = false;
       });
-    } catch (e) {
       setState(() {
         _isLoading = false;
       });
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Failed to load jobs. Please try again."),
           backgroundColor: Colors.red,
         ),
       );
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -372,7 +399,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeOut,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Colors.grey[100],
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
@@ -575,7 +602,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             ),
                           ),
                           onTap: () {
-                            _authController.logout(context, () => mounted);
+                            _showLogoutConfirmationDialog();
                             overlayEntry.remove();
                           },
                         ),
@@ -591,6 +618,58 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
 
     overlayState.insert(overlayEntry);
+  }
+
+  void _showLogoutConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          title: Text('Logout',
+              style: GoogleFonts.poppins(
+                  fontSize: 16, fontWeight: FontWeight.bold)),
+          content: Text('Are you sure you want to logout?',
+              style: GoogleFonts.poppins(
+                  fontSize: 14, fontWeight: FontWeight.w300)),
+          actions: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton(
+                  child: Text('Cancel',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFFB71A4A),
+                      )),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                const SizedBox(width: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                    color: const Color(0xFFB71A4A),
+                  ),
+                  child: TextButton(
+                    child: Text('Logout',
+                        style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white)),
+                    onPressed: () {
+                      _authController.logout(context, () => mounted);
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ]),
+    );
   }
 
   AppBar _buildAppBar() {
@@ -634,13 +713,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 children: [
                   Text(
                     _role,
-                    style:
-                        GoogleFonts.poppins(color: Colors.white, fontSize: 10),
+                    style: GoogleFonts.poppins(
+                        color: Color(0xFFB71A4A), fontSize: 10),
                   ),
                   Text(
                     _fullName,
                     style: GoogleFonts.poppins(
-                      color: Colors.white,
+                      color: Colors.black,
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
@@ -672,7 +751,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 },
                 icon: const Icon(
                   Icons.notifications_outlined,
-                  color: Colors.white,
+                  color: Color(0xFFB71A4A),
                   size: 24,
                 ),
               ),
@@ -684,7 +763,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 },
                 child: const Icon(
                   Icons.more_vert,
-                  color: Colors.white,
+                  color: Color(0xFFB71A4A),
                   size: 24,
                 ),
               ),
@@ -692,7 +771,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           )
         ],
       ),
-      backgroundColor: Colors.blue,
+      backgroundColor: Colors.grey[100],
       centerTitle: true,
     );
   }
@@ -705,7 +784,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       body: Stack(
         children: [
           if (_isLoading || _isCategoriesLoading)
-            Center(child: CircularProgressIndicator(color: Color(0xFF0272B1)))
+            Center(child: CircularProgressIndicator())
           else if (tasks.isEmpty)
             Center(
               child: Column(
@@ -788,7 +867,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   return Center(
                     child: SizedBox(
                       width: double.infinity,
-                      height: MediaQuery.of(context).size.height * 0.65,
                       child: Card(
                         elevation: 8,
                         shape: RoundedRectangleBorder(

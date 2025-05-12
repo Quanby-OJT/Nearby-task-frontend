@@ -105,7 +105,7 @@ export class UserAccountService {
 
   updateAuthorityUser(userID: number, userData: FormData): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/updateAuthorityUser/${userID}`, userData, {
-      headers: this.getHeaders(), 
+      headers: this.getHeaders(),
       withCredentials: true
     });
   }

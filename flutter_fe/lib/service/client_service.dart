@@ -1,3 +1,4 @@
+import 'package:flutter_fe/model/client_model.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -10,7 +11,7 @@ import '../config/url_strategy.dart';
 import 'api_service.dart';
 
 class ClientServices {
-  static String url = apiUrl ?? "http://192.168.43.15:5000/connect";
+  static String url = apiUrl ?? "http://192.168.1.12:5000/connect";
   final dio = Dio();
   static final storage = GetStorage();
   static final token = storage.read('session');
@@ -26,6 +27,163 @@ class ClientServices {
         body: jsonEncode(body));
 
     return _handleResponse(response);
+  }
+
+  Future<ClientModel?> fetchMyData(int userId) async {
+    try {
+      final response = await _getRequest("/client/getMyDataClient/$userId");
+      debugPrint("My Data Response: $response");
+
+      if (response.containsKey("error")) {
+        final errorMsg = response["error"];
+        debugPrint("Error fetching my data: $errorMsg");
+        if (errorMsg.toString().contains("No active taskers found")) {
+          return null;
+        }
+        throw Exception(errorMsg);
+      }
+
+      final client = response["client"] as Map<String, dynamic>?;
+      debugPrint("My Data Client: $client");
+
+      if (client == null) {
+        debugPrint("No client data returned for user ID: $userId");
+        return null;
+      }
+
+      try {
+        debugPrint("My Client Data: $client");
+        return ClientModel.fromJson(client);
+      } catch (e, st) {
+        debugPrint("Error parsing my client data: $e");
+        debugPrint("Stack trace: $st");
+        debugPrint("Problematic client data: $client");
+        return null;
+      }
+    } catch (e, st) {
+      debugPrint("Error in fetchMyData: $e");
+      debugPrint("Stack trace: $st");
+      return null;
+    }
+  }
+
+  Future<List<TaskerModel>> fetchAllFilteredTasker(int userId) async {
+    try {
+      try {
+        final allTaskersResponse = await _getRequest(
+          "/client/getAllFilteredTaskers",
+        );
+
+        debugPrint("All Taskers Response: $allTaskersResponse");
+
+        if (allTaskersResponse.containsKey("error")) {
+          final errorMsg = allTaskersResponse["error"];
+          debugPrint("Error fetching filtered taskers: $errorMsg");
+
+          if (errorMsg.toString().contains("No taskers found") ||
+              errorMsg.toString().contains("No active taskers found")) {
+            return [];
+          }
+
+          throw Exception(errorMsg);
+        }
+
+        final savedTaskResponse =
+            await _getRequest("/client/getsavedTask/$userId");
+        if (savedTaskResponse.containsKey("error")) {
+          debugPrint(
+              "Error fetching saved taskers: ${savedTaskResponse["error"]}");
+          return [];
+        }
+
+        final allTaskers =
+            allTaskersResponse["taskers"] as List<dynamic>? ?? [];
+        debugPrint("All Taskers Count: ${allTaskers.length}");
+
+        if (allTaskers.isEmpty) {
+          debugPrint("No taskers returned from API");
+          return [];
+        }
+
+        final likedTaskerIds =
+            (savedTaskResponse["liked_tasks"] as List<dynamic>? ?? [])
+                .map<int>((task) => task["tasker_id"] as int)
+                .toSet();
+        debugPrint("Liked Tasker IDs: $likedTaskerIds");
+
+        final taskerList = allTaskers
+            .where((tasker) {
+              final taskerId = tasker["user_id"] ?? tasker["tasker_id"];
+              final isNotLiked =
+                  taskerId is int && !likedTaskerIds.contains(taskerId);
+              if (!isNotLiked) {
+                debugPrint("Filtering out already liked tasker: $taskerId");
+              }
+              return isNotLiked;
+            })
+            .map((tasker) {
+              try {
+                debugPrint("Tasker Data: $tasker");
+                return TaskerModel.fromJson(tasker);
+              } catch (e) {
+                debugPrint("Error parsing tasker: $e");
+                debugPrint("Problematic tasker data: $tasker");
+                return null;
+              }
+            })
+            .where((tasker) => tasker != null)
+            .cast<TaskerModel>()
+            .toList();
+
+        debugPrint("Filtered Taskers Count: ${taskerList.length}");
+        return taskerList;
+      } catch (e) {
+        debugPrint("Network error in fetchAllFilteredTasker: $e");
+        rethrow;
+      }
+    } catch (e, st) {
+      debugPrint("Error fetching taskers: $e");
+      debugPrint(st.toString());
+      return [];
+    }
+  }
+
+  Future<ClientModel?> fetchMyDataTasker(int userId) async {
+    try {
+      final response = await _getRequest("/client/getMyDataTasker/$userId");
+      debugPrint("My Data Response: $response");
+
+      if (response.containsKey("error")) {
+        final errorMsg = response["error"];
+        debugPrint("Error fetching my data: $errorMsg");
+        if (errorMsg.toString().contains("No active taskers found")) {
+          return null;
+        }
+        throw Exception(errorMsg);
+      }
+
+      final client = response["client"] as Map<String, dynamic>?;
+      debugPrint("My Data Client: $client");
+
+      if (client == null) {
+        debugPrint("No client data returned for user ID: $userId");
+        return null;
+      }
+
+      try {
+        debugPrint("My Client Data: $client");
+        return ClientModel.fromJson(client);
+      } catch (e, st) {
+        debugPrint("Error parsing my client data: $e");
+        debugPrint("Stack trace: $st");
+        debugPrint("Problematic client data: $client");
+        return null;
+      }
+    } catch (e, st) {
+      debugPrint("Error in fetchMyData: $e");
+      debugPrint("Stack trace: $st");
+      return null;
+    }
   }
 
   Future<Map<String, dynamic>> _getRequest(String endpoint) async {
@@ -106,6 +264,8 @@ class ClientServices {
             "Error fetching all taskers: ${allTaskersResponse["error"]}");
         return [];
       }
+
+      debugPrint(allTaskersResponse.toString());
 
       // Get saved/liked taskers
       final savedTaskResponse =

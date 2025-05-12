@@ -9,6 +9,13 @@ class EscrowManagementController {
   final TextEditingController rejectionController = TextEditingController();
   final TextEditingController otherReasonController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
+  final TextEditingController cardNumberController = TextEditingController();
+  final TextEditingController cardHolderNameController = TextEditingController();
+  final TextEditingController cvvController = TextEditingController();
+  final TextEditingController expiryDateController = TextEditingController();
+  final TextEditingController paymentMethodController = TextEditingController();
+  final TextEditingController acctNumberController = TextEditingController();
+
   int tokenRate = 1;
   ValueNotifier<int> tokenCredits = ValueNotifier(0);
   IOWebSocketChannel? _channel;
@@ -55,15 +62,14 @@ class EscrowManagementController {
     }
   }
 
-  Future<Map<String, dynamic>> depositAmountToEscrow() async {
+  Future<Map<String, dynamic>> depositAmountToEscrow(String paymentMethod) async {
     try {
       // debugPrint("TaskRequestController: Depositing amount to escrow");
       // debugPrint("TaskRequestController: Contract Price: $contractPrice");
       // debugPrint("TaskRequestController: Task Taken ID: $taskTakenId");
-      var response = await _requestService.depositEscrowPayment(double.parse(
-          amountController.text.replaceAll("₱", "").replaceAll(",", "")));
+      var response = await _requestService.depositEscrowPayment(double.parse(amountController.text.replaceAll("₱", "").replaceAll(",", "")), paymentMethod);
 
-      if (response['success']) {
+      if (response.containsValue('message')) {
         await fetchTokenBalance();
         return {
           "message": response['message'],
@@ -79,11 +85,11 @@ class EscrowManagementController {
     }
   }
 
-  Future<String> releaseEscrowPayment(int taskTakenId) async {
+  Future<String> releaseEscrowPayment(int taskerId) async {
     try {
       debugPrint(
-          "TaskRequestController: Releasing escrow payment for task taken with ID $taskTakenId");
-      var response = await _requestService.releaseEscrowPayment(taskTakenId);
+          "TaskRequestController: Releasing escrow payment for task taken with ID $taskerId");
+      var response = await _requestService.releaseEscrowPayment(taskerId);
       if (response.containsKey("message")) {
         return response["message"];
       } else if (response.containsKey("error")) {
@@ -115,7 +121,6 @@ class EscrowManagementController {
     });
   }
 
-  @override
   void dispose() {
     amountController.dispose();
     rejectionController.dispose();

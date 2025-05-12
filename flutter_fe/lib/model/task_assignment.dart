@@ -3,13 +3,15 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:flutter_fe/model/client_model.dart';
 
-class TaskAssignment{
+class TaskAssignment {
   final ClientModel? client;
   final TaskerModel? tasker;
   final TaskModel? task;
   final int taskTakenId;
   final String taskStatus;
   final String? taskStatusReason;
+  int unreadCount;
+  int messageSentById;
 
   TaskAssignment({
     this.client,
@@ -17,7 +19,9 @@ class TaskAssignment{
     this.task,
     required this.taskTakenId,
     required this.taskStatus,
-    this.taskStatusReason
+    this.taskStatusReason,
+    this.unreadCount = 0,
+    this.messageSentById = 0,
   });
 
   @override
@@ -25,7 +29,7 @@ class TaskAssignment{
     return "TaskAssignment(client: $client, tasker: $tasker, task: $task)";
   }
 
-  factory TaskAssignment.fromJson(Map<String, dynamic> json){
+  factory TaskAssignment.fromJson(Map<String, dynamic> json) {
     debugPrint('JSON Data: $json');
     return TaskAssignment(
       client: ClientModel.fromJson(json['client']),
@@ -33,7 +37,9 @@ class TaskAssignment{
       task: TaskModel.fromJson(json['post_task']),
       taskStatus: json['task_status'],
       taskTakenId: json['task_taken_id'],
-      taskStatusReason: json['reason_for_rejection_or_cancellation']
+      taskStatusReason: json['reason_for_rejection_or_cancellation'],
+      unreadCount: json['unread_count'] ?? 0,
+      messageSentById: json['last_message_id'] ?? 0,
     );
   }
 }

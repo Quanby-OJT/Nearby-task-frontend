@@ -200,7 +200,7 @@ class _RecordPageState extends State<RecordPage> {
                                         scrollDirection: Axis.vertical,
                                         child: SingleChildScrollView(
                                           scrollDirection: Axis.horizontal,
-                                          child: Container(
+                                          child: SizedBox(
                                             width: MediaQuery.of(context)
                                                     .size
                                                     .width *
@@ -599,7 +599,7 @@ class _RecordPageState extends State<RecordPage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                'Disputed Task Settled',
+                                'Resolved Task Disputes',
                                 style: GoogleFonts.montserrat(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,

@@ -34,19 +34,45 @@ export class UserChartCardComponent implements OnInit {
     series: [0, 0, 0, 0], // Initialize with default counts
     chart: {
       type: 'pie',
+      width: '100%',
+      height: 300, // Set a default height for initial rendering
     },
     labels: ['Admin', 'Moderator', 'Client', 'Tasker'],
     colors: ['#8586EC', '#8586EC', '#C2C3F6', '#E1E1FA'],
-    // colors: ['#EC5987', '#F07DA1', '#F5A1BB', '#F9C5D5'],
     responsive: [
       {
         breakpoint: 480,
         options: {
           chart: {
-            width: 400,
+            width: '100%',
+            height: 200, // Adjusted height for smaller screens
           },
           legend: {
             position: 'bottom',
+          },
+        },
+      },
+      {
+        breakpoint: 1024,
+        options: {
+          chart: {
+            width: '100%',
+            height: 250, // Adjusted height for medium screens
+          },
+          legend: {
+            position: 'right',
+          },
+        },
+      },
+      {
+        breakpoint: 1280,
+        options: {
+          chart: {
+            width: '100%',
+            height: 400, // Adjusted height for larger screens
+          },
+          legend: {
+            position: 'right',
           },
         },
       },

@@ -9,7 +9,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 
 class TaskRequestService {
-  static String url = apiUrl ?? "http://192.168.43.15:5000/connect";
+  static String url = apiUrl ?? "http://192.168.1.12:5000/connect";
   static final storage = GetStorage();
 
   Future<String?> getUserId() async => storage.read('user_id')?.toString();
@@ -401,7 +401,7 @@ class TaskRequestService {
   }
 
   Future<Map<String, dynamic>> depositEscrowPayment(
-      double depositAmount) async {
+      double depositAmount, String paymentMethod) async {
     try {
       final userId = await getUserId();
       if (userId == null) {
@@ -417,6 +417,7 @@ class TaskRequestService {
         body: {
           'client_id': int.parse(userId),
           'amount': depositAmount,
+          'payment_method': paymentMethod
         },
       );
     } catch (e) {

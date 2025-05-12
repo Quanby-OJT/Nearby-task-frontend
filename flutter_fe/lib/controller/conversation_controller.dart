@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/service/api_service.dart';
 import 'package:flutter_fe/service/task_information.dart';
 import 'package:get_storage/get_storage.dart';
 import '../model/conversation.dart';
@@ -8,10 +7,12 @@ class ConversationController {
   final TextEditingController conversationMessage = TextEditingController();
   final TextEditingController searchConversation = TextEditingController();
   final storage = GetStorage();
+  final TaskDetailsService taskDetailsService = TaskDetailsService();
 
   Future<void> sendMessage(BuildContext context, int taskTaken) async {
     int userId = await storage.read('user_id');
-    debugPrint("Sending a Message with the Following Data: \n User ID: $userId \n Task Taken ID: $taskTaken");
+    debugPrint(
+        "Sending a Message with the Following Data: \n User ID: $userId \n Task Taken ID: $taskTaken");
 
     final conversation = Conversation(
       conversationMessage: conversationMessage.text,
@@ -23,8 +24,7 @@ class ConversationController {
     debugPrint("User ID: $userId");
     debugPrint("Conversation Message: ${conversationMessage.text}");
     Map<String, dynamic> messageSent =
-        await ApiService.sendMessage(conversation);
-//     Map<String, dynamic> messageSent = await TaskDetailsService.sendMessage(conversation);
+        await taskDetailsService.sendMessage(conversation);
 
     if (messageSent.containsKey('message')) {
       // Optionally notify success if needed
@@ -61,13 +61,18 @@ class ConversationController {
     }
   }
 
+  Future<void> readMessage(int taskTakenId) async {
+    debugPrint("Task Taken ID: $taskTakenId");
+    await TaskDetailsService.readMessage(taskTakenId);
+  }
+
   Future<void> deleteMessage(BuildContext context, int messageId) async {
     final messageDeleted = await TaskDetailsService.deleteMessage(messageId);
     if (messageDeleted.containsKey('message')) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(messageDeleted['message'])),
       );
-    }else{
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(messageDeleted['error'])),
       );
@@ -76,5 +81,6 @@ class ConversationController {
 
   void dispose() {
     conversationMessage.dispose();
+    searchConversation.dispose();
   }
 }

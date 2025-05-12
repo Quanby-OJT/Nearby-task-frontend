@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/view/custom_loading/custom_loading.dart';
-import 'package:flutter_fe/view/sign_in/otp_screen.dart';
+import 'package:flutter_fe/view/sign_in/forgot_password.dart';
 import 'package:flutter_fe/view/sign_up_acc/pre_sign_up.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -195,7 +195,15 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                                 padding: const EdgeInsets.symmetric(
                                     vertical: 10, horizontal: 40),
                                 child: TextButton(
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const ForgotPassword(),
+                                      ),
+                                    );
+                                  },
                                   child: Text(
                                     'Forgot your password?',
                                     style: GoogleFonts.poppins(

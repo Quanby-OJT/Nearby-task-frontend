@@ -43,12 +43,6 @@ class _OtpScreenState extends State<OtpScreen> {
     setState(() => _isLoading = true);
     try {
       await _controller.otpAuth(context);
-    } catch (e) {
-      _showStatusModal(
-        context: context,
-        isSuccess: false,
-        message: 'OTP verification failed: $e',
-      );
     } finally {
       setState(() => _isLoading = false);
     }
@@ -94,7 +88,7 @@ class _OtpScreenState extends State<OtpScreen> {
                     ),
                   ),
                   Text(
-                    'Email Verification',
+                    'OTP Verification',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.poppins(
                         fontSize: 24,
@@ -120,7 +114,7 @@ class _OtpScreenState extends State<OtpScreen> {
                         left: 40, right: 40, top: 20, bottom: 20),
                     child: TextField(
                       controller: _controller.otpController,
-                      cursorColor: Color(0xFF0272B1),
+                      cursorColor: const Color(0xFFB71A4A),
                       decoration: InputDecoration(
                           filled: true,
                           fillColor: Color(0xFFF1F4FF),
@@ -133,7 +127,7 @@ class _OtpScreenState extends State<OtpScreen> {
                           focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                               borderSide: BorderSide(
-                                  color: Color(0xFF0272B1), width: 2))),
+                                  color: const Color(0xFFB71A4A), width: 2))),
                     ),
                   ),
                   Container(

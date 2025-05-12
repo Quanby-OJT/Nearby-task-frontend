@@ -16,8 +16,7 @@ class NotifSTaskerScreen extends StatefulWidget {
 class _NotifScreenTaskerState extends State<NotifSTaskerScreen> {
   // Mock data for all notifications
   final List<Map<String, dynamic>> notifications = [];
-  final NotificationController _notificationController =
-      NotificationController();
+  final NotificationController _notificationController = NotificationController();
   final storage = GetStorage();
   bool _isLoading = true;
 
