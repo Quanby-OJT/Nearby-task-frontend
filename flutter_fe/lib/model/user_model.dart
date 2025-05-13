@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_fe/model/user_preference.dart';
+import 'dart:convert';
 
 class UserModel {
   final int? id;
@@ -17,6 +18,8 @@ class UserModel {
   final String? gender;
   final bool? verified;
   final List<UserPreferenceModel>? userPreferences;
+  final String? bio;
+  final Map<String, String>? socialMediaLinks;
 
   UserModel({
     this.id,
@@ -34,10 +37,31 @@ class UserModel {
     this.gender,
     this.verified,
     this.userPreferences,
+    this.bio,
+    this.socialMediaLinks,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     debugPrint("User Data: $json");
+
+    // Parse social media links if available
+    Map<String, String>? socialLinks;
+    if (json['social_media_links'] != null) {
+      if (json['social_media_links'] is Map) {
+        socialLinks = Map<String, String>.from(json['social_media_links']);
+      } else if (json['social_media_links'] is String) {
+        try {
+          final dynamic decoded =
+              jsonDecode(json['social_media_links'] as String);
+          if (decoded is Map) {
+            socialLinks = Map<String, String>.from(decoded);
+          }
+        } catch (e) {
+          debugPrint("Error parsing social media links: $e");
+        }
+      }
+    }
+
     return UserModel(
       id: int.tryParse(json['user_id'].toString()) ?? 0,
       firstName: json['first_name'] ?? '',
@@ -58,6 +82,8 @@ class UserModel {
               .map((pref) => UserPreferenceModel.fromJson(pref))
               .toList()
           : null,
+      bio: json['bio'] as String?,
+      socialMediaLinks: socialLinks,
     );
   }
 
@@ -77,11 +103,13 @@ class UserModel {
       "image_link": imageName,
       "verified": verified,
       "user_preference": userPreferences?.map((pref) => pref.toJson()).toList(),
+      "bio": bio,
+      "social_media_links": socialMediaLinks,
     };
   }
 
   @override
   String toString() {
-    return 'UserModel(firstName: $firstName, middleName: $middleName, lastName: $lastName, email: $email, password: ${password != null ? "****" : "null"}, role: $role, accStatus: $accStatus, contact: $contact, gender: $gender, birthdate: $birthdate, image: $image, imageName: $imageName, verified: $verified, userPreferences: $userPreferences)';
+    return 'UserModel(firstName: $firstName, middleName: $middleName, lastName: $lastName, email: $email, password: ${password != null ? "****" : "null"}, role: $role, accStatus: $accStatus, contact: $contact, gender: $gender, birthdate: $birthdate, image: $image, imageName: $imageName, verified: $verified, userPreferences: $userPreferences, bio: $bio, socialMediaLinks: $socialMediaLinks)';
   }
 }
