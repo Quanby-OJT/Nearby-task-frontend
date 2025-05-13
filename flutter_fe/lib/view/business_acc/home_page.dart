@@ -20,6 +20,7 @@ import 'package:flutter_fe/view/service_acc/fill_up.dart';
 import 'package:flutter_fe/view/service_acc/notif_screen.dart';
 import 'package:flutter_fe/view/setting/setting.dart';
 import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
+import 'package:flutter_fe/view/verification/verification_page.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -410,19 +411,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         ),
                       ),
                       onTap: () {
-                        if (_user?.user.role.toLowerCase() == 'client') {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => FillUpClient()),
-                          );
-                        } else {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => FillUpTaskerLogin()),
-                          );
-                        }
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const VerificationPage()),
+                        );
                         overlayEntry.remove();
                       },
                     ),
