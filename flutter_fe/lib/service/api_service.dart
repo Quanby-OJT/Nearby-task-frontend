@@ -14,7 +14,7 @@ import '../model/client_model.dart';
 import 'package:flutter_fe/config/url_strategy.dart';
 
 class ApiService {
-  static String url = apiUrl ?? "http://192.168.1.12:5000";
+  static String url = apiUrl ?? "http://192.168.43.15:5000";
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
   static final Map<String, String> _cookies = {};
@@ -31,6 +31,54 @@ class ApiService {
       }
     }
     print('Updated Cookies: $_cookies'); // Debugging
+  }
+
+  static Future<Map<String, dynamic>> forgotPassword(String email) async {
+    try {
+      debugPrint("Email: $email");
+      return await _postRequest(
+          endpoint: "/forgot-password", body: {"email": email});
+    } catch (error, stackTrace) {
+      debugPrint(error.toString());
+      debugPrintStack(stackTrace: stackTrace);
+      return {"error": "An error occurred during email verification: $error"};
+    }
+  }
+
+  static Future<Map<String, dynamic>> resetPassword(
+      String email, String password) async {
+    try {
+      return await _postRequest(
+          endpoint: "/reset-password",
+          body: {"email": email, "password": password});
+    } catch (error, stackTrace) {
+      debugPrint(error.toString());
+      debugPrintStack(stackTrace: stackTrace);
+      return {"error": "An error occurred during email verification: $error"};
+    }
+  }
+
+  static Future<Map<String, dynamic>> _postRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
+    final response = await http.post(Uri.parse("$url$endpoint"),
+        headers: {"Content-Type": "application/json"}, body: jsonEncode(body));
+
+    return _handleResponse(response);
+  }
+
+  static Map<String, dynamic> _handleResponse(http.Response response) {
+    try {
+      final responseBody = jsonDecode(response.body);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return responseBody;
+      } else {
+        debugPrint("API Error Response: $responseBody");
+        return {"error": responseBody["error"] ?? "Unknown error"};
+      }
+    } catch (e) {
+      debugPrint("Error parsing response: $e");
+      return {"error": "Failed to parse response: $e"};
+    }
   }
 
   // Update tasker profile with PDF file

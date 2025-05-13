@@ -349,7 +349,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ClientFinish(
+                          builder: (context) => FinishTask(
                             finishID: _requestInformation?.task_taken_id ?? 0,
                             role: widget.role,
                           ),
