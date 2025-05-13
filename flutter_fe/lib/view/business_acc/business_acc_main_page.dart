@@ -61,7 +61,7 @@ class _BusinessAccMainState extends State<BusinessAccMain>
       FontAwesomeIcons.solidMessage,
       FontAwesomeIcons.solidHeart,
     ];
-    final List<String> labels = ['Home', 'Post', 'Tasks', 'Chat', 'Likes'];
+    final List<String> labels = ['Home', 'Task', 'Wallet', 'Chat', 'Likes'];
 
     return Scaffold(
       body: PageView(

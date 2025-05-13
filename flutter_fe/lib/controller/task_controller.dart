@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/client_model.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
+import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
@@ -101,8 +102,8 @@ class TaskController {
     final clientTask = await _jobPostService.fetchJobsForClient(clientId);
     debugPrint("Client Task: ${clientTask.toString()}");
 
-    if (clientTask.containsKey('tasks')) {
-      List<dynamic> tasksList = clientTask['tasks'];
+    if (clientTask.containsKey('data')) {
+      List<dynamic> tasksList = clientTask['data'];
       List<TaskModel> tasks =
           tasksList.map((task) => TaskModel.fromJson(task)).toList();
       return tasks;
@@ -112,6 +113,26 @@ class TaskController {
       SnackBar(
           content: Text(clientTask['error'] ??
               "Something Went Wrong while Retrieving Your Tasks.")),
+    );
+    return [];
+  }
+
+  Future<List<TaskFetch?>> getTask(BuildContext context) async {
+    final clientTask = await _jobPostService.fetchTasks();
+    debugPrint("Task getTasks: ${clientTask.toString()}");
+
+    if (clientTask.containsKey('data')) {
+      List<dynamic> tasksList = clientTask['data'];
+      List<TaskFetch> tasks =
+          tasksList.map((task) => TaskFetch.fromJson(task)).toList();
+      return tasks;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(clientTask['error'] ??
+            "Something Went Wrong while Retrieving Your Tasks."),
+      ),
     );
     return [];
   }

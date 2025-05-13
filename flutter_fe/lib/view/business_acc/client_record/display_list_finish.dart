@@ -123,7 +123,7 @@ class _DisplayListRecordFinishState extends State<DisplayListRecordFinish> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => ClientFinish(
+                                builder: (context) => FinishTask(
                                   finishID: request["id"],
                                   role: role,
                                 ),
