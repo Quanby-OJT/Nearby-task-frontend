@@ -14,7 +14,7 @@ import '../model/client_model.dart';
 import 'package:flutter_fe/config/url_strategy.dart';
 
 class ApiService {
-  static String url = apiUrl ?? "http://192.168.43.15:5000";
+  static String url = apiUrl ?? "http://192.168.1.12:5000";
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
   static final Map<String, String> _cookies = {};
@@ -164,8 +164,7 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> checkTaskAssignment(
-      int taskId, int taskerId) async {
+  static Future<Map<String, dynamic>> checkTaskAssignment(int taskId, int taskerId) async {
     try {
       String token = await AuthService.getSessionToken();
       final response = await http.get(
@@ -198,8 +197,7 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> assignTask(
-      int taskId, int taskerId) async {
+  static Future<Map<String, dynamic>> assignTask(int taskId, int taskerId) async {
     try {
       // First check if task is already assigned
       final checkResult = await checkTaskAssignment(taskId, taskerId);
@@ -244,8 +242,7 @@ class ApiService {
   }
 
   // this is for tasker with only pdf
-  static Future<Map<String, dynamic>> updateTaskerProfileWithPdf(
-      int userId, File file, Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> updateTaskerProfileWithPdf(int userId, File file, Map<String, dynamic> data) async {
     try {
       final token = await AuthService.getSessionToken();
       final request = http.MultipartRequest(
@@ -314,8 +311,7 @@ class ApiService {
   }
 
   // this is for tasker with files and pdf
-  static Future<Map<String, dynamic>> updateTaskerProfileWithImageTobackend(
-      int userId, File image, Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> updateTaskerProfileWithImageTobackend(int userId, File image, Map<String, dynamic> data) async {
     try {
       final token = await AuthService.getSessionToken();
       final request = http.MultipartRequest(
@@ -384,8 +380,7 @@ class ApiService {
   }
 
   // this is for tasker with files and image
-  static Future<Map<String, dynamic>> updateTaskerProfileWithFiles(
-      int userId, File file, File image, Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> updateTaskerProfileWithFiles(int userId, File file, File image, Map<String, dynamic> data) async {
     try {
       final token = await AuthService.getSessionToken();
       final request = http.MultipartRequest(
@@ -464,8 +459,7 @@ class ApiService {
 
   // This is for the tasker updating user information without images and pdf
 
-  static Future<Map<String, dynamic>> updateTaskerProfileNoImages(
-      int userId, Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> updateTaskerProfileNoImages(int userId, Map<String, dynamic> data) async {
     try {
       debugPrint('Data: $data');
       debugPrint('User Id from the controller: $userId');
@@ -491,8 +485,7 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> updateUserWithProfileImage(
-      UserModel user, File profileImage) async {
+  static Future<Map<String, dynamic>> updateUserWithProfileImage(UserModel user, File profileImage) async {
     try {
       String token = await AuthService.getSessionToken();
 
@@ -566,8 +559,7 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> updateUserWithIDImage(
-      UserModel user, File idImage) async {
+  static Future<Map<String, dynamic>> updateUserWithIDImage(UserModel user, File idImage) async {
     try {
       String token = await AuthService.getSessionToken();
 
@@ -641,8 +633,7 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> updateUserWithBothImages(
-      UserModel user, File profileImage, File idImage) async {
+  static Future<Map<String, dynamic>> updateUserWithBothImages(UserModel user, File profileImage, File idImage) async {
     try {
       String token = await AuthService.getSessionToken();
 
@@ -777,8 +768,7 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> verifyEmail(
-      String token, String email) async {
+  static Future<Map<String, dynamic>> verifyEmail(String token, String email) async {
     try {
       final response = await _client.post(Uri.parse("$apiUrl/verify"),
           headers: _getHeaders(),
@@ -806,7 +796,299 @@ class ApiService {
     }
   }
 
-  //Creating Tasker/Client Information but needs authentication token from the backend.
+  // Submit user verification data to the new tasker_verify table
+  static Future<Map<String, dynamic>> submitTaskerVerificationWithNewTable(
+    int userId,
+    Map<String, dynamic> verificationData,
+    File? idImage,
+    File? selfieImage,
+    File? documentFile,
+  ) async {
+    try {
+      String token = await AuthService.getSessionToken();
+      debugPrint("ApiService: Submitting tasker verification to new table");
+      debugPrint("ApiService: Verification data: $verificationData");
+
+      if (userId == null) {
+        return {
+          "success": false,
+          "error": "User ID is missing from verification data"
+        };
+      }
+
+      // Create a MultipartRequest for the new verification endpoint
+      final String endpoint = "$apiUrl/submit-tasker-verification/$userId";
+      debugPrint("ApiService: Using endpoint: $endpoint");
+
+      var request = http.MultipartRequest(
+        "POST", // Changed from PUT to POST
+        Uri.parse(endpoint),
+      );
+
+      // Add headers
+      request.headers.addAll({
+        "Authorization": "Bearer $token",
+        "Content-Type": "multipart/form-data",
+      });
+
+      // Map verification data to match tasker_verify table columns
+      request.fields.addAll({
+        // Fields for tasker_verify table
+        "user_id": userId.toString(),
+        "gender": verificationData['gender'] ?? '',
+        "phone_number": verificationData['phone'] ?? '',
+        "bio": verificationData['bio'] ?? '',
+        "social_media_links": verificationData['socialMediaJson'] ?? '{}',
+
+        // Additional fields for user table update
+        "first_name": verificationData['firstName'] ?? '',
+        "middle_name": verificationData['middleName'] ?? '',
+        "last_name": verificationData['lastName'] ?? '',
+        "email": verificationData['email'] ?? '',
+        "birthdate": verificationData['birthdate'] ?? '',
+        "user_role": "tasker",
+      });
+
+      // Add ID image if provided
+      if (idImage != null) {
+        debugPrint("ApiService: Adding ID image to request");
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            "idImage",
+            await idImage.readAsBytes(),
+            filename: "id_image.jpg",
+          ),
+        );
+      }
+
+      // Add selfie image if provided
+      if (selfieImage != null) {
+        debugPrint("ApiService: Adding selfie image to request");
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            "selfieImage",
+            await selfieImage.readAsBytes(),
+            filename: "selfie_image.jpg",
+          ),
+        );
+      }
+
+      // Add document/certificates file if provided
+      if (documentFile != null) {
+        debugPrint("ApiService: Adding certificates to request");
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            "documents",
+            await documentFile.readAsBytes(),
+            filename: "certificates.pdf",
+          ),
+        );
+      }
+
+      // Send the request
+      debugPrint("ApiService: Sending verification data to server...");
+      var response = await request.send();
+      var responseBody = await response.stream.bytesToString();
+
+      debugPrint("ApiService: Response status: ${response.statusCode}");
+      debugPrint("ApiService: Response body: $responseBody");
+
+      // Parse the response
+      Map<String, dynamic> responseData;
+      try {
+        responseData = jsonDecode(responseBody);
+      } catch (e) {
+        debugPrint("ApiService: Error parsing response: $e");
+        responseData = {"error": "Invalid response format from server"};
+      }
+
+      // Check response status
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Success
+        return {
+          "success": true,
+          "message": responseData["message"] ??
+              "Verification submitted successfully! Your information will be reviewed shortly.",
+          "verification": responseData["verification"],
+          "idImageUrl": responseData["idImageUrl"],
+          "selfieImageUrl": responseData["selfieImageUrl"],
+          "documentsUrl": responseData["documentsUrl"]
+        };
+      } else {
+        // Error
+        return {
+          "success": false,
+          "error": responseData["error"] ??
+              responseData["errors"] ??
+              "Failed to submit verification"
+        };
+      }
+    } catch (e, stackTrace) {
+      debugPrint("ApiService: Error submitting verification: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {
+        "success": false,
+        "error": "An error occurred while submitting verification: $e"
+      };
+    }
+  }
+
+  // Submit user verification data with ID, selfie, and optional document
+  // DEPRECATED: Use submitTaskerVerification instead. This method will be removed in a future update.
+  static Future<Map<String, dynamic>> submitVerification(
+    Map<String, dynamic> verificationData,
+    File? idImage,
+    File? selfieImage,
+    File? documentFile,
+  ) async {
+    try {
+      String token = await AuthService.getSessionToken();
+      debugPrint("ApiService: Submitting verification data");
+      debugPrint("ApiService: Verification data: $verificationData");
+
+      // Get the user ID from the verification data
+      final userId = verificationData['user_id'];
+      if (userId == null) {
+        return {
+          "success": false,
+          "error": "User ID is missing from verification data"
+        };
+      }
+
+      // Create a MultipartRequest for the update-tasker endpoint
+      // Fix the URL to avoid duplicate "connect" segment
+      final String endpoint = "$apiUrl/update-tasker-profile/$userId";
+      debugPrint("ApiService: Using endpoint: $endpoint");
+
+      var request = http.MultipartRequest(
+        "PUT",
+        Uri.parse(endpoint),
+      );
+
+      // Add headers
+      request.headers.addAll({
+        "Authorization": "Bearer $token",
+        "Content-Type": "multipart/form-data",
+      });
+
+      // Format the data according to the backend's expected structure
+      Map<String, dynamic> taskerData = {
+        "tasker_id": userId,
+        "bio": verificationData['bio'] ?? "",
+        "skills": verificationData['skills'] ?? "",
+        "availability": true,
+        "wage_per_hour": verificationData['wage'] ?? 0,
+        "social_media_links": verificationData['social_media_json'] ?? "{}",
+        "pay_period": verificationData['pay_period'] ?? "Hourly",
+        "specialization_id": verificationData['specialization_id'] ?? 1,
+        "specialization": verificationData['specialization'] ?? ""
+      };
+
+      // Convert all values to strings for the multipart request
+      Map<String, String> formFields = {};
+      taskerData.forEach((key, value) {
+        if (value is Map) {
+          formFields[key] = jsonEncode(value);
+        } else {
+          formFields[key] = value.toString();
+        }
+      });
+
+      // Add the fields to the request
+      request.fields.addAll(formFields);
+
+      // Add user profile fields
+      request.fields.addAll({
+        "first_name": verificationData['first_name'] ?? '',
+        "middle_name": verificationData['middle_name'] ?? '',
+        "last_name": verificationData['last_name'] ?? '',
+        "email": verificationData['email'] ?? '',
+        "contact": verificationData['phone'] ?? '',
+        "gender": verificationData['gender'] ?? '',
+        "birthdate": verificationData['birthdate'] ?? '',
+        "user_role": "tasker"
+      });
+
+      // Add ID image if provided
+      if (idImage != null) {
+        debugPrint("ApiService: Adding ID image to request");
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            "id_image",
+            await idImage.readAsBytes(),
+            filename: "id_image.jpg",
+          ),
+        );
+      }
+
+      // Add selfie image if provided
+      if (selfieImage != null) {
+        debugPrint("ApiService: Adding selfie image to request");
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            "profile_image",
+            await selfieImage.readAsBytes(),
+            filename: "profile_image.jpg",
+          ),
+        );
+      }
+
+      // Add document file if provided
+      if (documentFile != null) {
+        debugPrint("ApiService: Adding document to request");
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            "document",
+            await documentFile.readAsBytes(),
+            filename: "document.pdf",
+          ),
+        );
+      }
+
+      // Send the request
+      debugPrint("ApiService: Sending verification data to server...");
+      var response = await request.send();
+      var responseBody = await response.stream.bytesToString();
+
+      debugPrint("ApiService: Response status: ${response.statusCode}");
+      debugPrint("ApiService: Response body: $responseBody");
+
+      // Parse the response
+      Map<String, dynamic> responseData;
+      try {
+        responseData = jsonDecode(responseBody);
+      } catch (e) {
+        debugPrint("ApiService: Error parsing response: $e");
+        responseData = {"error": "Invalid response format from server"};
+      }
+
+      // Check response status
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Success
+        return {
+          "success": true,
+          "message": responseData["message"] ??
+              "Verification submitted successfully! Your information will be reviewed shortly."
+        };
+      } else {
+        // Error
+        return {
+          "success": false,
+          "error": responseData["error"] ??
+              responseData["errors"] ??
+              "Failed to submit verification"
+        };
+      }
+    } catch (e, stackTrace) {
+      debugPrint("ApiService: Error submitting verification: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {
+        "success": false,
+        "error": "An error occurred while submitting verification: $e"
+      };
+    }
+  }
+
   static Future<Map<String, dynamic>> createTasker(
       TaskerModel tasker, File tesdaFile, File profileImage) async {
     try {
@@ -1415,53 +1697,95 @@ class ApiService {
     };
   }
 
-  static Future<Map<String, dynamic>> forgotPassword(String email) async {
+  // Get tasker verification status
+  static Future<Map<String, dynamic>> getTaskerVerificationStatus(
+      int userId) async {
     try {
-      debugPrint("Email: $email");
-      return await _postRequest(endpoint: "/forgot-password", body: {"email": email});
-    }catch(error, stackTrace){
-      debugPrint(error.toString());
-      debugPrintStack(stackTrace: stackTrace);
+      String token = await AuthService.getSessionToken();
+
+      final response = await http.get(
+        Uri.parse("$apiUrl/tasker-verification-status/$userId"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+      );
+
+      debugPrint(
+          "ApiService: Verification status response status: ${response.statusCode}");
+      debugPrint(
+          "ApiService: Verification status response body: ${response.body}");
+
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          "success": true,
+          "exists": responseData["exists"] ?? false,
+          "verification": responseData["verification"],
+          "message": responseData["message"],
+        };
+      } else {
+        return {
+          "success": false,
+          "exists": false,
+          "error": responseData["error"] ?? "An unexpected error occurred",
+        };
+      }
+    } catch (e) {
+      debugPrint("ApiService: Error checking verification status: $e");
       return {
-        "error": "An error occurred during email verification: $error"
+        "success": false,
+        "exists": false,
+        "error": "Error checking verification status: $e",
       };
     }
   }
 
-  static Future<Map<String, dynamic>> resetPassword(String email, String password) async{
+  static Future<Map<String, dynamic>> forgotPassword(String email) async {
     try {
-      return await _postRequest(endpoint: "/reset-password", body: {"email": email, "password": password});
-      }catch(error, stackTrace){
-        debugPrint(error.toString());
-        debugPrintStack(stackTrace: stackTrace);
-        return {
-          "error": "An error occurred during email verification: $error"
-        };
+      final response = await http.post(
+        Uri.parse("$apiUrl/forgot-password"),
+        headers: {"Content-Type": "application/json"},
+        body: json.encode({"email": email})
+      );
+
+      var responseData = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return {"message": responseData['message']};
+      }else{
+        return {"error": responseData['error'] ?? "Password Reset Failed"};
+      }
+    }catch(e, stackTrace){
+      debugPrint(e.toString());
+      debugPrintStack(stackTrace: stackTrace);
+      return {
+        "error": "An error occurred while resetting your password. Please try again."
+      };
     }
   }
 
-  static Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
-    final response = await http.post(Uri.parse("$url$endpoint"),
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: jsonEncode(body));
-
-    return _handleResponse(response);
-  }
-
-  static Map<String, dynamic> _handleResponse(http.Response response) {
+  static Future<Map<String, dynamic>> resetPassword(String email, String password) async {
     try {
-      final responseBody = jsonDecode(response.body);
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        return responseBody;
-      } else {
-        debugPrint("API Error Response: $responseBody");
-        return {"error": responseBody["error"] ?? "Unknown error"};
+      final response = await http.post(
+        Uri.parse("$apiUrl/reset-password"),
+        headers: {"Content-Type": "application/json"},
+        body: json.encode({"email": email, "password": password}));
+
+      var responseData = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return {"message": responseData['message']};
+      }else{
+        return {"error": responseData['error'] ?? "Password Reset Failed"};
       }
-    } catch (e) {
-      debugPrint("Error parsing response: $e");
-      return {"error": "Failed to parse response: $e"};
+    }catch(e, stackTrace){
+      debugPrint(e.toString());
+      debugPrintStack(stackTrace: stackTrace);
+      return {
+        "error": "An error occurred while resetting your password. Please try again."
+      };
     }
   }
 }

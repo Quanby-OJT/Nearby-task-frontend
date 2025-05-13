@@ -5,9 +5,7 @@ import 'package:flutter_fe/service/auth_service.dart';
 import 'package:flutter_fe/view/business_acc/business_acc_main_page.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/sign_in/otp_screen.dart';
-import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
-import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
+import 'package:flutter_fe/view/sign_in/sign_in.dart';
 import 'package:get_storage/get_storage.dart';
 import '../view/custom_loading/statusModal.dart';
 
@@ -15,7 +13,8 @@ class AuthenticationController {
   static const String apiUrl = "http://192.168.20.48:5000/connect";
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
   final TextEditingController otpController = TextEditingController();
 
   ProfileController profileController = ProfileController();
@@ -42,7 +41,6 @@ class AuthenticationController {
       );
     });
   }
-
 
   Future<void> loginAuth(BuildContext context) async {
     var response = await ApiService.authUser(
@@ -84,7 +82,7 @@ class AuthenticationController {
       _showStatusModal(
         context: context,
         isSuccess: true,
-          message: messageReset,
+        message: messageReset,
       );
     } else {
       String errorMessage = response['error'] ?? "Unknown error occurred";
@@ -97,8 +95,7 @@ class AuthenticationController {
   }
 
   Future<void> resetPassword(BuildContext context, String email) async {
-
-    if(passwordController.text != confirmPasswordController.text){
+    if (passwordController.text != confirmPasswordController.text) {
       _showStatusModal(
         context: context,
         isSuccess: false,
@@ -115,7 +112,7 @@ class AuthenticationController {
       _showStatusModal(
         context: context,
         isSuccess: true,
-          message: messageReset,
+        message: messageReset,
       );
     } else {
       String errorMessage = response['error'] ?? "Unknown error occurred";
@@ -135,13 +132,20 @@ class AuthenticationController {
       if (response.containsKey("message")) {
         return response["user_id"] as int;
       } else {
-        _showStatusModal(context: context, isSuccess: false, message: response["error"] ?? "Verification Failed. Please Try Again.");
+        _showStatusModal(
+            context: context,
+            isSuccess: false,
+            message:
+                response["error"] ?? "Verification Failed. Please Try Again.");
         return 0;
       }
     } catch (e, st) {
       debugPrint("Error verifying email: $e");
       debugPrintStack(stackTrace: st);
-      _showStatusModal(context: context, isSuccess: false, message: "Verification Failed. Please Try Again.");
+      _showStatusModal(
+          context: context,
+          isSuccess: false,
+          message: "Verification Failed. Please Try Again.");
       return 0;
     }
   }
@@ -181,15 +185,15 @@ class AuthenticationController {
 
       if (response['role'] == "Client") {
         userId = response['user_id'];
-        Navigator.of(context).pushReplacement(
+        Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => BusinessAccMain()),
+          (route) => false,
         );
-
-
       } else if (response['role'] == "Tasker") {
         userId = response['user_id'];
-        Navigator.of(context).pushReplacement(
+        Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => ServiceAccMain()),
+          (route) => false,
         );
       }
     } else if (response.containsKey('validation_error')) {
@@ -211,8 +215,8 @@ class AuthenticationController {
   }
 
   void redirectRologout(BuildContext context) {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (context) => WelcomePageViewMain()));
+    Navigator.pushAndRemoveUntil(context,
+        MaterialPageRoute(builder: (context) => SignIn()), (route) => false);
   }
 
   Future<void> logout(BuildContext context, bool Function() isMounted) async {
@@ -221,9 +225,10 @@ class AuthenticationController {
       if (storedUserId == null) {
         debugPrint("No user ID found in storage");
         await storage.erase();
-        Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return WelcomePageViewMain();
-        }));
+        Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (context) {
+          return SignIn();
+        }), (route) => false);
 
         return;
       }
@@ -239,9 +244,10 @@ class AuthenticationController {
         if (response.containsKey("message")) {
           await storage.erase();
           if (isMounted()) {
-            Navigator.push(context, MaterialPageRoute(builder: (context) {
-              return WelcomePageViewMain();
-            }));
+            Navigator.pushAndRemoveUntil(context,
+                MaterialPageRoute(builder: (context) {
+              return SignIn();
+            }), (route) => false);
           }
         }
       } catch (e, stackTrace) {
@@ -254,9 +260,10 @@ class AuthenticationController {
 
       if (e is Exception) {
         await storage.erase();
-        Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return WelcomePageViewMain();
-        }));
+        Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (context) {
+          return SignIn();
+        }), (route) => false);
       }
 
       _showStatusModal(

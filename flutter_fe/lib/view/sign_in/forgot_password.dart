@@ -17,18 +17,18 @@ class ForgotPassword extends StatefulWidget {
   State<ForgotPassword> createState() => _ForgotPasswordState();
 }
 
-class _ForgotPasswordState extends State<ForgotPassword> with SingleTickerProviderStateMixin {
+class _ForgotPasswordState extends State<ForgotPassword>
+    with SingleTickerProviderStateMixin {
   final AuthenticationController _controller = AuthenticationController();
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _topSlideAnimation;
   late Animation<Offset> _bottomSlideAnimation;
-  bool _obsecureText = true;
+  final bool _obsecureText = true;
   bool _isLoading = false;
   StreamSubscription<Uri>? _linkSubscription;
   String _status = "In order to reset your password, please enter your email.";
   bool _isVerified = false;
-
 
   @override
   void initState() {
@@ -115,7 +115,7 @@ class _ForgotPasswordState extends State<ForgotPassword> with SingleTickerProvid
     }
 
     _linkSubscription = appLinks.uriLinkStream.listen(
-          (Uri? uri) {
+      (Uri? uri) {
         if (uri != null) {
           _handleDeepLink(uri);
         }
@@ -202,7 +202,7 @@ class _ForgotPasswordState extends State<ForgotPassword> with SingleTickerProvid
                           children: [
                             Padding(
                               padding:
-                              const EdgeInsets.only(left: 40, right: 40),
+                                  const EdgeInsets.only(left: 40, right: 40),
                               child: TextField(
                                 controller: _controller.emailController,
                                 cursorColor: const Color(0xFFB71A4A),
@@ -214,11 +214,10 @@ class _ForgotPasswordState extends State<ForgotPassword> with SingleTickerProvid
                               height: 50,
                               width: double.infinity,
                               padding:
-                              const EdgeInsets.symmetric(horizontal: 40),
+                                  const EdgeInsets.symmetric(horizontal: 40),
                               child: ElevatedButton(
-                                onPressed: _isLoading
-                                    ? null
-                                    : handlePasswordReset,
+                                onPressed:
+                                    _isLoading ? null : handlePasswordReset,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Color(0xFFB71A4A),
                                   shape: RoundedRectangleBorder(

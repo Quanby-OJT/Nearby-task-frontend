@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/config/url_strategy.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:url_strategy/url_strategy.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart'; // Adjust import
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  setPathUrlStrategy(); // Enable web URL strategy
+  setPathUrlStrategy();
   WebViewPlatform.instance = AndroidWebViewPlatform();
   await GetStorage.init();
   await dotenv.load(fileName: ".env");
@@ -20,14 +20,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
+    return MaterialApp(
       title: 'NearbyTask',
       debugShowCheckedModeBanner: false,
-      routerConfig: router,
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
+      home: const WelcomePageViewMain(),
     );
   }
 }
