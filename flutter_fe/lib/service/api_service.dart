@@ -863,12 +863,10 @@ class ApiService {
           "error": "User ID is missing from verification data"
         };
       }
-
       // Check if this is an update to existing verification
       final bool isUpdate = verificationData['status'] != null &&
           verificationData['status'] != 'pending';
 
-      // Create a MultipartRequest for the verification endpoint
       final String endpoint = "$apiUrl/submit-tasker-verification/$userId";
       debugPrint("ApiService: Using endpoint: $endpoint");
       debugPrint("ApiService: Is update: $isUpdate");

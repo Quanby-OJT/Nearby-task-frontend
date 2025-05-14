@@ -3,6 +3,7 @@ import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class EditTaskPage extends StatefulWidget {
   final TaskModel task;
@@ -143,12 +144,27 @@ class _EditTaskPageState extends State<EditTaskPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title: Text(
           'Edit Task',
-          style:
-              TextStyle(color: Color(0xFF0272B1), fontWeight: FontWeight.bold),
+          style: GoogleFonts.poppins(
+            color: const Color(0xFFB71A4A),
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        iconTheme: IconThemeData(color: Color(0xFF0272B1)),
+        backgroundColor: Colors.grey[100],
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: Color(0xFFB71A4A),
+            size: 20,
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
