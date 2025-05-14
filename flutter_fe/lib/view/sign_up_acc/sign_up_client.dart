@@ -210,6 +210,57 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                         ),
                       ),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 12.0, top: 4.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Password must contain:',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          Text(
+                            '• At least 8 characters',
+                            style: GoogleFonts.poppins(
+                              fontSize: 10,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          Text(
+                            '• At least one uppercase letter',
+                            style: GoogleFonts.poppins(
+                              fontSize: 10,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          Text(
+                            '• At least one lowercase letter',
+                            style: GoogleFonts.poppins(
+                              fontSize: 10,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          Text(
+                            '• At least one number',
+                            style: GoogleFonts.poppins(
+                              fontSize: 10,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          Text(
+                            '• At least one special character (!@#\$%^&*(),.?":{}|<>)',
+                            style: GoogleFonts.poppins(
+                              fontSize: 10,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     SizedBox(height: 10),
                     TextFormField(
                       cursorColor: Color(0xFFB71A4A),
