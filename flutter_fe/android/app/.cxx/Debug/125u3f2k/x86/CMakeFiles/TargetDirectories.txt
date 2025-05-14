@@ -1,0 +1,2 @@
+D:/QuanbyProjects/firstWeekIntern/Nearby-task-frontend/flutter_fe/android/app/.cxx/Debug/125u3f2k/x86/CMakeFiles/edit_cache.dir
+D:/QuanbyProjects/firstWeekIntern/Nearby-task-frontend/flutter_fe/android/app/.cxx/Debug/125u3f2k/x86/CMakeFiles/rebuild_cache.dir

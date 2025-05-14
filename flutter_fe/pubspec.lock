@@ -1165,6 +1165,7 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
+
   stream_transform:
     dependency: transitive
     description:
@@ -1173,6 +1174,7 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+
   string_scanner:
     dependency: transitive
     description:
