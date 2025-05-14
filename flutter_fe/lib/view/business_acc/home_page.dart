@@ -16,10 +16,10 @@ import 'package:flutter_fe/view/business_acc/create_escrow_token.dart';
 import 'package:flutter_fe/view/business_acc/notif_screen.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
-import 'package:flutter_fe/view/service_acc/fill_up.dart';
 import 'package:flutter_fe/view/service_acc/notif_screen.dart';
 import 'package:flutter_fe/view/setting/setting.dart';
 import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
+import 'package:flutter_fe/view/verification/verification_page.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -398,28 +398,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     ),
                     ListTile(
                       leading: Icon(
-                        Icons.location_on,
-                        color: const Color(0xFFB71A4A),
-                      ),
-                      title: Text(
-                        'Address',
-                        style: GoogleFonts.poppins(
-                          color: Colors.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w300,
-                        ),
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => SetUpAddressScreen()),
-                        );
-                        overlayEntry.remove();
-                      },
-                    ),
-                    ListTile(
-                      leading: Icon(
                         Icons.domain_verification,
                         color: const Color(0xFFB71A4A),
                       ),
@@ -432,55 +410,45 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         ),
                       ),
                       onTap: () {
-                        if (_user?.user.role.toLowerCase() == 'client') {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => FillUpClient()),
-                          );
-                        } else {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => FillUpTaskerLogin()),
-                          );
-                        }
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const VerificationPage()),
+                        );
                         overlayEntry.remove();
                       },
                     ),
-                    if (_role == "Client") ...[
-                      ListTile(
-                        leading: Icon(
-                          FontAwesomeIcons.coins,
-                          color: const Color(0xFFB71A4A),
-                        ),
-                        title: Text(
-                          'Tokens',
-                          style: GoogleFonts.poppins(
-                            color: Colors.black,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w300,
-                          ),
-                        ),
-                        onTap: () {
-                          if (_existingProfileImageUrl == null ||
-                              _existingIDImageUrl == null ||
-                              _existingProfileImageUrl!.isEmpty ||
-                              _existingIDImageUrl!.isEmpty ||
-                              !_documentValid) {
-                            overlayEntry.remove();
-                            _showWarningDialog();
-                            return;
-                          }
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => EscrowTokenScreen()),
-                          );
-                          overlayEntry.remove();
-                        },
-                      ),
-                    ],
+                    // ListTile(
+                    //   leading: Icon(
+                    //     FontAwesomeIcons.coins,
+                    //     color: const Color(0xFF03045E),
+                    //   ),
+                    //   title: Text(
+                    //     'Tokens',
+                    //     style: GoogleFonts.poppins(
+                    //       color: const Color(0xFF03045E),
+                    //       fontSize: 14,
+                    //       fontWeight: FontWeight.w300,
+                    //     ),
+                    //   ),
+                    //   onTap: () {
+                    //     if (_existingProfileImageUrl == null ||
+                    //         _existingIDImageUrl == null ||
+                    //         _existingProfileImageUrl!.isEmpty ||
+                    //         _existingIDImageUrl!.isEmpty ||
+                    //         !_documentValid) {
+                    //       overlayEntry.remove();
+                    //       _showWarningDialog();
+                    //       return;
+                    //     }
+                    //     Navigator.push(
+                    //       context,
+                    //       MaterialPageRoute(
+                    //           builder: (context) => EscrowTokenScreen()),
+                    //     );
+                    //     overlayEntry.remove();
+                    //   },
+                    // ),
                     ListTile(
                       leading: Icon(
                         Icons.help,

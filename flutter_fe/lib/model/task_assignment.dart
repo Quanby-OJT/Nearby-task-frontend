@@ -32,9 +32,9 @@ class TaskAssignment {
   factory TaskAssignment.fromJson(Map<String, dynamic> json) {
     debugPrint('JSON Data: $json');
     return TaskAssignment(
-      client: ClientModel.fromJson(json['client']),
-      tasker: TaskerModel.fromJson(json['tasker']),
-      task: TaskModel.fromJson(json['post_task']),
+      client: json['clients'] != null ? ClientModel.fromJson(json['clients']) : null,
+      tasker: json['tasker'] != null ? TaskerModel.fromJson(json['tasker']) : null,
+      task: json['post_task'] != null ? TaskModel.fromJson(json['post_task']) : null,
       taskStatus: json['task_status'],
       taskTakenId: json['task_taken_id'],
       taskStatusReason: json['reason_for_rejection_or_cancellation'],

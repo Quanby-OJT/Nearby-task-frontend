@@ -43,7 +43,7 @@ class TaskerModel {
   factory TaskerModel.fromJson(Map<String, dynamic> json) {
     debugPrint('JSON Data: $json');
     return TaskerModel(
-      id: json['tasker_id'] ?? 0,
+      id: json['tasker_id'] ?? json['user']?['user_id'] ?? 0,
       bio: json['bio'] ?? '',
       skills: json['skills'] ?? '',
       availability: json['availability'] ?? false,
@@ -53,16 +53,20 @@ class TaskerModel {
       address: json['address'] != null
           ? Map<String, String>.from(json['address'])
           : null,
-      specialization: json['tasker_specialization']['specialization'] ?? '',
+      // Safely handle tasker_specialization
+      specialization: json['tasker_specialization'] != null &&
+          json['tasker_specialization']['specialization'] != null
+          ? json['tasker_specialization']['specialization']
+          : '',
       taskerDocuments: json['tesda_document_link'] ?? '',
-      wage: json['wage_per_hour'].toDouble() ?? 0.0,
-      payPeriod: json['pay_period'] ?? "",
+      wage: (json['wage_per_hour'] as num?)?.toDouble() ?? 0.0,
+      payPeriod: json['pay_period'] ?? '',
       birthDate: json['birthdate'] != null
           ? DateTime.parse(json['birthdate'])
           : DateTime.now(),
       group: json['group'] ?? false,
       user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
-      rating: json['rating'].toDouble() ?? 0.0
+      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
     );
   }
 

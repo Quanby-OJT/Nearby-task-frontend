@@ -9,7 +9,7 @@ import '../config/url_strategy.dart';
 import '../model/conversation.dart';
 
 class TaskDetailsService {
-  static final String url = apiUrl ?? "http://192.168.1.12:5000/connect";
+  static final String url = apiUrl ?? "http://192.168.43.15:5000/connect";
   static final storage = GetStorage();
 
   static Map<String, dynamic> _handleResponse(http.Response response) {
@@ -84,7 +84,6 @@ class TaskDetailsService {
     try {
       final userId = await storage.read('user_id');
       final data = await _getRequest("/all-messages/$userId");
-      debugPrint("All Messages Data: ${data.toString()}");
       return data;
     } catch (e, st) {
       debugPrint(e.toString());

@@ -9,7 +9,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 
 class TaskRequestService {
-  static String url = apiUrl ?? "http://192.168.1.12:5000/connect";
+  static String url = apiUrl ?? "http://192.168.43.15:5000/connect";
   static final storage = GetStorage();
 
   Future<String?> getUserId() async => storage.read('user_id')?.toString();
@@ -497,25 +497,16 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> releaseEscrowPayment(int taskTakenId) async {
+  Future<Map<String, dynamic>> releaseEscrowPayment(int taskerId, double amount, String paymentMethod) async {
     try {
-      final userId = await getUserId();
-
-      if (userId == null) {
-        return {
-          'success': false,
-          'error': 'Please log in to release payments.',
-        };
-      }
-
-      debugPrint("Releasing escrow payment with task taken ID: $taskTakenId");
+      debugPrint("Releasing escrow payment with tasker ID: $taskerId");
 
       return await _postRequest(
-        endpoint: '/release-escrow-payment',
+        endpoint: '/withdraw-escrow-amount',
         body: {
-          'task_taken_id': taskTakenId,
-          'tasker id': int.parse(userId),
-          'status': 'Accepted'
+          'tasker id': taskerId,
+          'amount': amount,
+          'payment_method': paymentMethod
         },
       );
     } catch (e, stackTrace) {

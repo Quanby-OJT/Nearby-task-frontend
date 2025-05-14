@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
+import 'package:flutter_fe/model/task_fetch.dart';
+import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_fe/model/task_model.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/config/url_strategy.dart';
 
@@ -14,7 +15,7 @@ import '../model/client_model.dart';
 import '../model/tasker_model.dart';
 
 class JobPostService {
-  static String url = apiUrl ?? "http://192.168.1.12:5000/connect";
+  static String url = apiUrl ?? "http://192.168.43.15:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -296,15 +297,35 @@ class JobPostService {
   }
 
   Future<List<SpecializationModel>> getSpecializations() async {
-    final response = await _getRequest("/get-specializations");
+    try {
+      debugPrint("JobPostService: Fetching specializations from API...");
+      final response = await _getRequest("/get-specializations");
 
-    debugPrint("Specializations: ${response.toString()}");
-    if (response["specializations"] != null) {
-      return (response["specializations"] as List)
-          .map((item) => SpecializationModel.fromJson(item))
-          .toList();
+      debugPrint(
+          "JobPostService: Specializations response: ${response.toString()}");
+
+      if (response["specializations"] != null) {
+        final List<dynamic> specializationList =
+            response["specializations"] as List;
+        debugPrint(
+            "JobPostService: Found ${specializationList.length} specializations");
+
+        final List<SpecializationModel> result = specializationList
+            .map((item) => SpecializationModel.fromJson(item))
+            .toList();
+
+        debugPrint(
+            "JobPostService: Successfully mapped specializations to models");
+        return result;
+      } else {
+        debugPrint("JobPostService: No specializations found in response");
+        return [];
+      }
+    } catch (e, stackTrace) {
+      debugPrint("JobPostService: Error fetching specializations: $e");
+      debugPrint("JobPostService: Stack trace: $stackTrace");
+      return [];
     }
-    return [];
   }
 
   Future<ClientRequestModel> fetchRequestInformation(int requestID) async {
@@ -329,12 +350,32 @@ class JobPostService {
     }
   }
 
+  Future<List<TaskFetch>> taskerTaskInformation(int requestID) async {
+    try {
+      Map<String, dynamic> response =
+          await _getRequest("/tasker/taskinformation/$requestID");
+      debugPrint("Request Data Retrieved: ${response.toString()}");
+
+      if (response.containsKey('data')) {
+        TaskFetch task = TaskFetch.fromJson(response['data']);
+        return [task];
+      } else {
+        debugPrint("Response does not contain a valid 'data' field");
+        return [];
+      }
+    } catch (e) {
+      debugPrint('Error fetching request: $e');
+      debugPrintStack();
+      return [];
+    }
+  }
+
   Future<TaskAssignment?> fetchTaskInformation(int taskID) async {
     try {
       Map<String, dynamic> response = await _getRequest("/displayTask/$taskID");
-      //debugPrint("Assigned Task Information Retrieved: ${response.toString()}");
 
-      // Check if response contains the "tasks" key and it's a Map
+      debugPrint("Task Data Retrieved: ${response.toString()}");
+
       if (response.containsKey("tasks") && response["tasks"] is Map) {
         Map<String, dynamic> taskData =
             response["tasks"] as Map<String, dynamic>;
@@ -480,7 +521,45 @@ class JobPostService {
   }
 
   Future<Map<String, dynamic>> fetchJobsForClient(int clientId) async {
-    return _getRequest("/display-task-for-client/$clientId");
+    final userId = await getUserId();
+    if (userId == null) {
+      return {
+        'success': false,
+        'message': 'Please log in to view your tasks',
+        'requiresLogin': true
+      };
+    }
+
+    final response = await _getRequest("/display-task-for-client/$clientId");
+
+    debugPrint("Client Task Response: ${response.toString()}");
+
+    if (response.containsKey("success") && response["success"] == true) {
+      return response;
+    }
+
+    return {};
+  }
+
+  Future<Map<String, dynamic>> fetchTasks() async {
+    final userId = await getUserId();
+    if (userId == null) {
+      return {
+        'success': false,
+        'message': 'Please log in to view your tasks',
+        'requiresLogin': true
+      };
+    }
+
+    final response = await _getRequest("/fetchTasks/$userId");
+
+    debugPrint("Client fetchTasks Response: ${response.toString()}");
+
+    if (response.containsKey("success") && response["success"] == true) {
+      return response;
+    }
+
+    return {};
   }
 
   Future<List<TaskModel>> fetchCreatedTasksByClient(int clientId) async {

@@ -1,108 +1,170 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
-import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
-import 'package:flutter_fe/model/client_request.dart';
-import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:get_storage/get_storage.dart';
 
-class ClientFinish extends StatefulWidget {
+class FinishTask extends StatefulWidget {
   final int? finishID;
   final String? role;
-  const ClientFinish({super.key, this.finishID, this.role});
+  const FinishTask({super.key, this.finishID, this.role});
 
   @override
-  State<ClientFinish> createState() => _ClientFinishState();
+  State<FinishTask> createState() => _FinishTaskState();
 }
 
-class _ClientFinishState extends State<ClientFinish> {
+class _FinishTaskState extends State<FinishTask> {
   final JobPostService _jobPostService = JobPostService();
-  final TaskController taskController = TaskController();
   final ProfileController _profileController = ProfileController();
-  TaskModel? _taskInformation;
-  ClientRequestModel? _requestInformation;
+  TaskFetch? _requestInformation;
   bool _isLoading = true;
   final storage = GetStorage();
   String? _role;
   AuthenticatedUser? tasker;
+  String? _errorMessage;
+
+  // Status color mapping from previous questions
+  final Map<String, Color> statusColors = {
+    'Pending': Colors.grey[500]!,
+    'Completed': Colors.green,
+    'Ongoing': Colors.blue,
+    'Disputed': Colors.orange,
+    'Interested': Colors.blue,
+    'Confirmed': Colors.green,
+    'Rejected': Colors.red,
+    'Declined': Colors.red,
+    'Dispute Settled': Colors.green,
+    'Cancelled': Colors.red,
+    'Review': Colors.yellow,
+  };
 
   @override
   void initState() {
     super.initState();
-    _fetchRequestDetails();
-    _fetchUserData();
-
+    _fetchData();
     debugPrint("Task ID from the widget: ${widget.finishID}");
+  }
+
+  Future<void> _fetchData() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      // Fetch user data and request details concurrently
+      await Future.wait([
+        _fetchUserData(),
+        _fetchRequestDetails(),
+      ]);
+
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint("Error fetching data: $e");
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Failed to load task details. Please try again.';
+      });
+    }
   }
 
   Future<void> _fetchUserData() async {
     try {
-      int userId = storage.read("user_id");
+      int userId = storage.read("user_id") ?? 0;
+      if (userId == 0) {
+        debugPrint("No user_id found in storage");
+        return;
+      }
       AuthenticatedUser? user =
           await _profileController.getAuthenticatedUser(context, userId);
-      debugPrint(user.toString());
+      debugPrint("User data: $user");
       setState(() {
         _role = user?.user.role;
       });
     } catch (e) {
-      print("Error fetching user data: $e");
-      setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _fetchTaskerDetails(int userId) async {
-    try {
-      AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
-      debugPrint(user.toString());
-      setState(() {
-        tasker = user;
-      });
-    } catch (e) {
-      debugPrint("Error fetching tasker details: $e");
-      setState(() {
-        _isLoading = false;
-      });
+      debugPrint("Error fetching user data: $e");
     }
   }
 
   Future<void> _fetchRequestDetails() async {
     try {
+      if (widget.finishID == null || widget.finishID == 0) {
+        debugPrint("Invalid finishID: ${widget.finishID}");
+        setState(() {
+          _errorMessage = 'Invalid task ID provided.';
+        });
+        return;
+      }
+
       final response =
-          await _jobPostService.fetchRequestInformation(widget.finishID ?? 0);
+          await _jobPostService.taskerTaskInformation(widget.finishID!);
       debugPrint("Fetched request details: $response");
-      setState(() {
-        _requestInformation = response;
-      });
-      await _fetchTaskDetails();
-      if (widget.role == "Client") {
-        await _fetchTaskerDetails(_requestInformation!.tasker_id as int);
+
+      if (response.isNotEmpty) {
+        setState(() {
+          _requestInformation = response.first;
+        });
+
+        // Fetch task and tasker/client details
+        await Future.wait([
+          _fetchTaskDetails(),
+          if (_requestInformation != null)
+            _fetchTaskerDetails(
+              widget.role == "Client"
+                  ? _requestInformation!.taskerId ?? 0
+                  : _requestInformation!.clientId ?? 0,
+            ),
+        ]);
       } else {
-        await _fetchTaskerDetails(_requestInformation!.client_id as int);
+        debugPrint("No task data returned");
+        setState(() {
+          _errorMessage = 'No task information available.';
+        });
       }
     } catch (e) {
-      debugPrint("Error fetching task details: $e");
+      debugPrint("Error fetching request details: $e");
       setState(() {
-        _isLoading = false;
+        _errorMessage = 'Error fetching task details: $e';
       });
     }
   }
 
   Future<void> _fetchTaskDetails() async {
     try {
-      final response = await _jobPostService
-          .fetchTaskInformation(_requestInformation!.task_id as int);
+      if (_requestInformation == null) {
+        debugPrint("No request information or task ID available");
+        return;
+      }
+      final response =
+          await _jobPostService.fetchTaskInformation(_requestInformation!.id);
+      debugPrint("Fetched task details: $response");
       setState(() {
-        _taskInformation = response?.task;
-        _isLoading = false;
+        // Assuming fetchTaskInformation returns a TaskResponse with a TaskModel
+        _requestInformation = _requestInformation;
       });
     } catch (e) {
       debugPrint("Error fetching task details: $e");
+    }
+  }
+
+  Future<void> _fetchTaskerDetails(int userId) async {
+    try {
+      if (userId == 0) {
+        debugPrint("Invalid userId for tasker/client: $userId");
+        return;
+      }
+      AuthenticatedUser? user =
+          await _profileController.getAuthenticatedUser(context, userId);
+      debugPrint("Tasker/Client data: $user");
       setState(() {
-        _isLoading = false;
+        tasker = user;
       });
+    } catch (e) {
+      debugPrint("Error fetching tasker details: $e");
     }
   }
 
@@ -111,62 +173,98 @@ class _ClientFinishState extends State<ClientFinish> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Color(0xFF03045E)),
-          onPressed: () => Navigator.pop(context),
-        ),
+        centerTitle: true,
         title: Text(
-          'Task Completed',
-          style: GoogleFonts.montserrat(
-            color: Color(0xFF03045E),
+          'Task',
+          style: GoogleFonts.poppins(
+            color: const Color(0xFFB71A4A),
             fontSize: 20,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        centerTitle: true,
+        backgroundColor: Colors.grey[100],
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: Color(0xFFB71A4A),
+            size: 20,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator(color: Color(0xFF03045E)))
-          : _taskInformation == null
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFF03045E)))
+          : _errorMessage != null
               ? Center(
-                  child: Text(
-                    'No task information available',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 16,
-                      color: Colors.grey[600],
-                    ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _errorMessage!,
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          color: Colors.red[600],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _fetchData,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF03045E),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Retry',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 )
-              : SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Completion Status Section
-                        _buildCompletionSection(),
-                        SizedBox(height: 16),
-                        // Task Card
-                        _buildTaskCard(),
-                        SizedBox(height: 16),
-                        // Client/Tasker Profile Card
-                        _buildProfileCard(),
-                        SizedBox(height: 24),
-                        // Action Button
-                        _buildActionButton(),
-                      ],
+              : _requestInformation == null
+                  ? Center(
+                      child: Text(
+                        'No task information available',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    )
+                  : SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildCompletionSection(),
+                            const SizedBox(height: 16),
+                            _buildTaskCard(),
+                            const SizedBox(height: 16),
+                            _buildProfileCard(),
+                            const SizedBox(height: 16),
+                            _buildActionButton(),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                ),
     );
   }
 
   Widget _buildCompletionSection() {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.green[50],
         borderRadius: BorderRadius.circular(12),
@@ -179,20 +277,20 @@ class _ClientFinishState extends State<ClientFinish> {
             color: Colors.green[600],
             size: 48,
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           Text(
             'Task Completed!',
-            style: GoogleFonts.montserrat(
+            style: GoogleFonts.poppins(
               fontSize: 20,
               fontWeight: FontWeight.w600,
               color: Colors.green[800],
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             'Congratulations on successfully completing this task!',
             textAlign: TextAlign.center,
-            style: GoogleFonts.montserrat(
+            style: GoogleFonts.poppins(
               fontSize: 14,
               color: Colors.grey[600],
             ),
@@ -204,53 +302,69 @@ class _ClientFinishState extends State<ClientFinish> {
 
   Widget _buildTaskCard() {
     return Card(
-      elevation: 4,
+      elevation: 3,
+      color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Color(0xFF03045E).withOpacity(0.1),
+                    color: const Color(0xFF03045E).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.task, color: Color(0xFF03045E), size: 24),
+                  child: const Icon(Icons.task,
+                      color: Color(0xFF03045E), size: 24),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    _taskInformation!.title ?? 'Task',
-                    style: GoogleFonts.montserrat(
+                    _requestInformation!.taskDetails.title,
+                    style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF03045E),
+                      color: const Color(0xFF03045E),
                     ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             _buildTaskInfoRow(
               icon: Icons.location_pin,
               label: 'Location',
-              value: _taskInformation?.location ?? 'Not specified',
+              value: _requestInformation!.taskDetails.location,
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             _buildTaskInfoRow(
               icon: Icons.calendar_today,
-              label: 'Date',
-              value: _taskInformation?.duration ?? 'Not specified',
+              label: 'Duration',
+              value: _requestInformation!.taskDetails.duration,
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             _buildTaskInfoRow(
               icon: Icons.info,
               label: 'Status',
-              value: _requestInformation?.task_status ?? 'Completed',
+              value: _requestInformation!.taskStatus,
+              color:
+                  statusColors[_requestInformation!.taskStatus] ?? Colors.red,
+            ),
+            const SizedBox(height: 12),
+            _buildTaskInfoRow(
+              icon: Icons.description,
+              label: 'Description',
+              value: _requestInformation!.taskDetails.description,
+            ),
+            const SizedBox(height: 12),
+            _buildTaskInfoRow(
+              icon: Icons.monetization_on,
+              label: 'Price',
+              value: '₱${_requestInformation!.taskDetails.proposedPrice}',
             ),
           ],
         ),
@@ -260,10 +374,11 @@ class _ClientFinishState extends State<ClientFinish> {
 
   Widget _buildProfileCard() {
     return Card(
-      elevation: 4,
+      elevation: 3,
+      color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -271,30 +386,33 @@ class _ClientFinishState extends State<ClientFinish> {
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundColor: Color(0xFF03045E).withOpacity(0.1),
-                  child: Icon(
-                    Icons.person,
-                    color: Color(0xFF03045E),
-                    size: 28,
-                  ),
+                  backgroundColor: const Color(0xFF03045E).withOpacity(0.1),
+                  backgroundImage: tasker?.user.image != null
+                      ? NetworkImage(tasker!.user.image!)
+                      : null,
+                  child: tasker?.user.image == null
+                      ? const Icon(
+                          Icons.person,
+                          color: Color(0xFF03045E),
+                          size: 28,
+                        )
+                      : null,
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.role! == "Client"
-                          ? "Tasker Profile"
-                          : "Client Profile",
-                      style: GoogleFonts.montserrat(
+                      '${tasker!.user.firstName} ${tasker!.user.lastName}',
+                      style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF03045E),
+                        color: const Color(0xFF03045E),
                       ),
                     ),
                     Text(
-                      'Details',
-                      style: GoogleFonts.montserrat(
+                      tasker?.user.accStatus ?? 'Inactive',
+                      style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: Colors.grey[600],
                       ),
@@ -303,20 +421,11 @@ class _ClientFinishState extends State<ClientFinish> {
                 ),
               ],
             ),
-            SizedBox(height: 16),
-            _buildProfileInfoRow(
-                'Name', tasker?.user.firstName ?? 'Not available'),
-            SizedBox(height: 8),
-            _buildProfileInfoRow(
-                'Email', tasker?.user.email ?? 'Not available'),
-            SizedBox(height: 8),
-            _buildProfileInfoRow(
-                'Phone', tasker?.user.contact ?? 'Not available'),
-            SizedBox(height: 8),
-            _buildProfileInfoRow(
-                'Status', tasker?.user.accStatus ?? 'Not available'),
-            SizedBox(height: 8),
-            _buildProfileInfoRow('Account', 'Verified', isVerified: true),
+            // const SizedBox(height: 16),
+            // _buildProfileInfoRow(
+            //   'Name',
+            //   tasker != null ? '' : 'Not available',
+            // ),
           ],
         ),
       ),
@@ -327,12 +436,10 @@ class _ClientFinishState extends State<ClientFinish> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () {
-          Navigator.pop(context); // Return to previous screen
-        },
+        onPressed: () => Navigator.pop(context),
         style: ElevatedButton.styleFrom(
-          backgroundColor: Color(0xFF03045E),
-          padding: EdgeInsets.symmetric(vertical: 16),
+          backgroundColor: const Color(0xFFB71A4A),
+          padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -340,9 +447,9 @@ class _ClientFinishState extends State<ClientFinish> {
         ),
         child: Text(
           'Back to Tasks',
-          style: GoogleFonts.montserrat(
+          style: GoogleFonts.poppins(
             fontSize: 16,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
@@ -350,15 +457,19 @@ class _ClientFinishState extends State<ClientFinish> {
     );
   }
 
-  Widget _buildTaskInfoRow(
-      {required IconData icon, required String label, required String value}) {
+  Widget _buildTaskInfoRow({
+    required IconData icon,
+    required String label,
+    required String value,
+    Color? color,
+  }) {
     return Row(
       children: [
         Icon(icon, color: Colors.grey[600], size: 20),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         Text(
           '$label: ',
-          style: GoogleFonts.montserrat(
+          style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w500,
             color: Colors.grey[600],
@@ -367,10 +478,10 @@ class _ClientFinishState extends State<ClientFinish> {
         Expanded(
           child: Text(
             value,
-            style: GoogleFonts.montserrat(
+            style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF03045E),
+              color: color ?? const Color(0xFF03045E),
             ),
           ),
         ),
@@ -384,7 +495,7 @@ class _ClientFinishState extends State<ClientFinish> {
       children: [
         Text(
           '$label: ',
-          style: GoogleFonts.montserrat(
+          style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w500,
             color: Colors.grey[600],
@@ -396,16 +507,16 @@ class _ClientFinishState extends State<ClientFinish> {
               Flexible(
                 child: Text(
                   value,
-                  style: GoogleFonts.montserrat(
+                  style: GoogleFonts.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: Color(0xFF03045E),
+                    color: const Color(0xFF03045E),
                   ),
                 ),
               ),
               if (isVerified)
                 Padding(
-                  padding: EdgeInsets.only(left: 8),
+                  padding: const EdgeInsets.only(left: 8),
                   child: Icon(
                     Icons.verified,
                     color: Colors.green[400],

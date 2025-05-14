@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 import 'package:flutter_fe/view/chat/chat_screen.dart';
+import 'package:flutter_fe/view/task_user/task.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_fe/view/service_acc/home_page.dart';
 import 'package:flutter_fe/view/service_acc/like_screen.dart';
@@ -55,11 +56,12 @@ class _ServiceAccMainState extends State<ServiceAccMain>
   Widget build(BuildContext context) {
     final List<IconData> icons = [
       FontAwesomeIcons.house,
-      FontAwesomeIcons.solidMessage,
       FontAwesomeIcons.listCheck,
+      FontAwesomeIcons.pesoSign,
+      FontAwesomeIcons.solidMessage,
       FontAwesomeIcons.solidHeart,
     ];
-    final List<String> labels = ['Home', 'Chat', 'Tasks', 'Likes'];
+    final List<String> labels = ['Home', 'Task', 'Wallet', 'Chat', 'Likes'];
 
     return Scaffold(
       body: PageView(
@@ -70,10 +72,11 @@ class _ServiceAccMainState extends State<ServiceAccMain>
             _currentIndex = index;
           });
         },
-        children: const [
+        children: [
           HomePage(),
-          ChatScreen(),
+          TaskPage(),
           RecordTaskerPage(),
+          ChatScreen(),
           LikeScreen(),
         ],
       ),
