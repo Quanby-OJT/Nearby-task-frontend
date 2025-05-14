@@ -102,16 +102,12 @@ export class ReviewComponent {
                 name: 'Client_Document'
               }));
             }
-            if (docResponse.user?.tasker?.length > 0) {
-              console.log('Processing Tasker documents:', docResponse.user.tasker);
-              const taskerDocs = docResponse.user.tasker[0]?.tasker_documents || [];
-              const taskerDocuments = taskerDocs
-                .filter((doc: any) => doc.tesda_document_link)
-                .map((doc: any) => ({
-                  url: doc.tesda_document_link,
-                  name: 'TESDA_Document'
-                }));
-              documents = [...documents, ...taskerDocuments];
+            if (docResponse.user?.user_documents?.length > 0) {
+              console.log('Processing User documents:', docResponse.user.user_documents);
+              documents = [...documents, ...docResponse.user.user_documents.map((doc: any) => ({
+                url: doc.user_document_link,
+                name: doc.doc_name || 'User_Document'
+              }))];
             }
 
             console.log('Final documents array:', documents);
