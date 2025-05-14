@@ -1,6 +1,6 @@
 <div class="min-h-screen w-full bg-gray-50 p-4">
   <!-- Month Filter and Download Dropdown -->
-  <div class="flex justify-between mb-4 w-full">
+  <div class="flex justify-between mb-4 w-full lg:w-[70rem] xl:w-[100rem]">
     <div class="flex items-end w-1/4">
       <label for="monthFilter" class="mr-2 whitespace-nowrap">Filter by Month:</label>
       <select id="monthFilter" [(ngModel)]="selectedMonth" (change)="onMonthChange()" class="py-1 px-2 border rounded-md w-32 text-sm">
@@ -26,7 +26,10 @@
     </div>
 
     <!-- Chart -->
-    <div id="chart">
+    <div id="chart" class="relative">
+      <div *ngIf="chartSeries.length === 0" class="absolute inset-0 flex items-center justify-center text-gray-500 text-lg lg:w-[37rem] xl:w-[56rem]">
+        No Data Found
+      </div>
       <apx-chart
         [series]="chartSeries"
         [chart]="{
@@ -71,6 +74,9 @@
           </tr>
         </thead>
         <tbody>
+          <tr *ngIf="rankedSpecializations.length === 0">
+            <td colspan="4" class="absolute inset-0 flex items-center justify-center text-gray-500 text-lg lg:w-[37rem] xl:w-[56rem]">No Data Found</td>
+          </tr>
           <tr *ngFor="let spec of rankedSpecializations; let i = index" class="hover:bg-card/50 h-[60px]">
             <td class="px-2 py-2 text-start">{{ i + 1 }}</td>
             <td class="px-2 py-2 text-start">{{ spec.specialization }}</td>
