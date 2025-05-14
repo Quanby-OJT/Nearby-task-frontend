@@ -1,5 +1,5 @@
 class AddressModel {
-  final String? id;
+  final int id;
   final double? latitude;
   final double? longitude;
   final String streetAddress;
@@ -13,7 +13,7 @@ class AddressModel {
   final DateTime? updatedAt;
 
   AddressModel({
-    this.id,
+    required this.id,
     this.latitude,
     this.longitude,
     required this.streetAddress,
