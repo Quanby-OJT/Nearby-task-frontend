@@ -44,7 +44,7 @@ class _ChatScreenState extends State<ChatScreen> {
   int? cardNumber = 0;
   bool _isUploadDialogShown = false;
   bool _isLoading = true;
-  bool _isRead = false;
+  final bool _isRead = false;
   IO.Socket? socket;
 
   AuthenticatedUser? _user;
@@ -110,7 +110,6 @@ class _ChatScreenState extends State<ChatScreen> {
     String query = conversationController.searchConversation.text.toLowerCase();
     setState(() {
       filteredTaskAssignments = taskAssignments.where((taskTaken) {
-        if (taskTaken == null) return false;
         return (taskTaken.task?.title.toLowerCase().contains(query) ?? false) ||
             (taskTaken.tasker?.user?.firstName.toLowerCase().contains(query) ??
                 false) ||
