@@ -129,9 +129,14 @@ class VerificationModel {
           : null,
       socialMediaJson: json['social_media_json'] ?? '{}',
       idType: json['id_type'],
-      idImageUrl: json['id_image_url'],
-      selfieImageUrl: json['selfie_image_url'],
-      documentUrl: json['document_url'],
+      idImageUrl:
+          json['idImageUrl'] ?? json['id_image_url'] ?? json['id_image'],
+      selfieImageUrl: json['selfieImageUrl'] ??
+          json['selfie_image_url'] ??
+          json['face_image'],
+      documentUrl: json['documentUrl'] ??
+          json['document_url'] ??
+          json['user_document_link'],
       status: json['status'] ?? 'pending',
       verificationDate: json['verification_date'],
       verifiedBy: json['verified_by'],

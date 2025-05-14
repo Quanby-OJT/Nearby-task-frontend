@@ -14,7 +14,7 @@ import '../model/client_model.dart';
 import 'package:flutter_fe/config/url_strategy.dart';
 
 class ApiService {
-  static String url = apiUrl ?? "http://192.168.1.12:5000";
+  static String url = apiUrl ?? "http://192.168.43.15:5000";
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
   static final Map<String, String> _cookies = {};
@@ -31,6 +31,54 @@ class ApiService {
       }
     }
     print('Updated Cookies: $_cookies'); // Debugging
+  }
+
+  static Future<Map<String, dynamic>> forgotPassword(String email) async {
+    try {
+      debugPrint("Email: $email");
+      return await _postRequest(
+          endpoint: "/forgot-password", body: {"email": email});
+    } catch (error, stackTrace) {
+      debugPrint(error.toString());
+      debugPrintStack(stackTrace: stackTrace);
+      return {"error": "An error occurred during email verification: $error"};
+    }
+  }
+
+  static Future<Map<String, dynamic>> resetPassword(
+      String email, String password) async {
+    try {
+      return await _postRequest(
+          endpoint: "/reset-password",
+          body: {"email": email, "password": password});
+    } catch (error, stackTrace) {
+      debugPrint(error.toString());
+      debugPrintStack(stackTrace: stackTrace);
+      return {"error": "An error occurred during email verification: $error"};
+    }
+  }
+
+  static Future<Map<String, dynamic>> _postRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
+    final response = await http.post(Uri.parse("$url$endpoint"),
+        headers: {"Content-Type": "application/json"}, body: jsonEncode(body));
+
+    return _handleResponse(response);
+  }
+
+  static Map<String, dynamic> _handleResponse(http.Response response) {
+    try {
+      final responseBody = jsonDecode(response.body);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return responseBody;
+      } else {
+        debugPrint("API Error Response: $responseBody");
+        return {"error": responseBody["error"] ?? "Unknown error"};
+      }
+    } catch (e) {
+      debugPrint("Error parsing response: $e");
+      return {"error": "Failed to parse response: $e"};
+    }
   }
 
   // Update tasker profile with PDF file
@@ -816,12 +864,17 @@ class ApiService {
         };
       }
 
-      // Create a MultipartRequest for the new verification endpoint
+      // Check if this is an update to existing verification
+      final bool isUpdate = verificationData['status'] != null &&
+          verificationData['status'] != 'pending';
+
+      // Create a MultipartRequest for the verification endpoint
       final String endpoint = "$apiUrl/submit-tasker-verification/$userId";
       debugPrint("ApiService: Using endpoint: $endpoint");
+      debugPrint("ApiService: Is update: $isUpdate");
 
       var request = http.MultipartRequest(
-        "POST", // Changed from PUT to POST
+        "POST", // Using POST for both new submissions and updates
         Uri.parse(endpoint),
       );
 
@@ -847,6 +900,9 @@ class ApiService {
         "email": verificationData['email'] ?? '',
         "birthdate": verificationData['birthdate'] ?? '',
         "user_role": "tasker",
+
+        // Add a flag to indicate if this is an update
+        "is_update": isUpdate.toString(),
       });
 
       // Add ID image if provided
@@ -908,7 +964,9 @@ class ApiService {
         return {
           "success": true,
           "message": responseData["message"] ??
-              "Verification submitted successfully! Your information will be reviewed shortly.",
+              (isUpdate
+                  ? "Your information has been updated successfully!"
+                  : "Verification submitted successfully! Your information will be reviewed shortly."),
           "verification": responseData["verification"],
           "idImageUrl": responseData["idImageUrl"],
           "selfieImageUrl": responseData["selfieImageUrl"],
@@ -920,7 +978,9 @@ class ApiService {
           "success": false,
           "error": responseData["error"] ??
               responseData["errors"] ??
-              "Failed to submit verification"
+              (isUpdate
+                  ? "Failed to update your information"
+                  : "Failed to submit verification")
         };
       }
     } catch (e, stackTrace) {
@@ -1742,50 +1802,73 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> forgotPassword(String email) async {
-    try {
-      final response = await http.post(
-        Uri.parse("$apiUrl/forgot-password"),
-        headers: {"Content-Type": "application/json"},
-        body: json.encode({"email": email})
-      );
-
-      var responseData = json.decode(response.body);
-
-      if (response.statusCode == 200) {
-        return {"message": responseData['message']};
-      }else{
-        return {"error": responseData['error'] ?? "Password Reset Failed"};
-      }
-    }catch(e, stackTrace){
-      debugPrint(e.toString());
-      debugPrintStack(stackTrace: stackTrace);
-      return {
-        "error": "An error occurred while resetting your password. Please try again."
-      };
-    }
-  }
-
-  static Future<Map<String, dynamic>> resetPassword(String email, String password) async {
-    try {
-      final response = await http.post(
-        Uri.parse("$apiUrl/reset-password"),
-        headers: {"Content-Type": "application/json"},
-        body: json.encode({"email": email, "password": password}));
-
-      var responseData = json.decode(response.body);
-
-      if (response.statusCode == 200) {
-        return {"message": responseData['message']};
-      }else{
-        return {"error": responseData['error'] ?? "Password Reset Failed"};
-      }
-    }catch(e, stackTrace){
-      debugPrint(e.toString());
-      debugPrintStack(stackTrace: stackTrace);
-      return {
-        "error": "An error occurred while resetting your password. Please try again."
-      };
-    }
-  }
+  // static Future<Map<String, dynamic>> forgotPassword(String email) async {
+  //   try {
+  //     final response = await _client.post(
+  //       Uri.parse("$url/forgot-password"),
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         "Accept": "application/json",
+  //       },
+  //       body: json.encode({
+  //         "email": email,
+  //       }),
+  //     );
+  //
+  //     debugPrint('Response Status: ${response.statusCode}');
+  //     debugPrint('Response Body: ${response.body}');
+  //
+  //     final responseData = jsonDecode(response.body);
+  //
+  //     if (response.statusCode == 200) {
+  //       return {
+  //         "message": responseData["message"] ??
+  //             "Password reset email sent successfully!",
+  //       };
+  //     } else {
+  //       return {
+  //         "error":
+  //             responseData["error"] ?? "Failed to send password reset email."
+  //       };
+  //     }
+  //   } catch (e) {
+  //     debugPrint("Error in forgotPassword: $e");
+  //     return {
+  //       "error": "An error occurred while sending password reset email: $e"
+  //     };
+  //   }
+  // }
+  //
+  // static Future<Map<String, dynamic>> resetPassword(
+  //     String email, String newPassword) async {
+  //   try {
+  //     final response = await _client.post(
+  //       Uri.parse("$url/reset-password"),
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         "Accept": "application/json",
+  //       },
+  //       body: json.encode({
+  //         "email": email,
+  //         "password": newPassword,
+  //       }),
+  //     );
+  //
+  //     debugPrint('Response Status: ${response.statusCode}');
+  //     debugPrint('Response Body: ${response.body}');
+  //
+  //     final responseData = jsonDecode(response.body);
+  //
+  //     if (response.statusCode == 200) {
+  //       return {
+  //         "message": responseData["message"] ?? "Password reset successfully!",
+  //       };
+  //     } else {
+  //       return {"error": responseData["error"] ?? "Failed to reset password."};
+  //     }
+  //   } catch (e) {
+  //     debugPrint("Error in resetPassword: $e");
+  //     return {"error": "An error occurred while resetting password: $e"};
+  //   }
+  // }
 }

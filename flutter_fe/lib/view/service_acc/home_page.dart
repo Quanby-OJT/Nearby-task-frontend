@@ -429,28 +429,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     ),
                     ListTile(
                       leading: Icon(
-                        Icons.location_on,
-                        color: const Color(0xFFB71A4A),
-                      ),
-                      title: Text(
-                        'Address',
-                        style: GoogleFonts.poppins(
-                          color: Colors.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w300,
-                        ),
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => SetUpAddressScreen()),
-                        );
-                        overlayEntry.remove();
-                      },
-                    ),
-                    ListTile(
-                      leading: Icon(
                         Icons.domain_verification,
                         color: const Color(0xFFB71A4A),
                       ),

@@ -403,7 +403,7 @@ class _ClientReviewState extends State<ClientReview> {
               await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ClientFinish(
+                  builder: (context) => FinishTask(
                     finishID: finishId,
                     role: role,
                   ),

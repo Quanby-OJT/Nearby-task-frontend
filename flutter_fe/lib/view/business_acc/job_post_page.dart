@@ -56,19 +56,14 @@ class _JobPostPageState extends State<JobPostPage>
   bool _isUploadDialogShown = false;
   bool _documentValid = false;
 
-  final List<String> _tabStatuses = [
-    "All",
-    "Available",
-    "Task Taken",
-    "More Filter"
-  ];
+  final List<String> _tabStatuses = ["All", "Available", "More"];
   late TabController _tabController;
   String? _currentFilter;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         setState(() {
@@ -76,8 +71,6 @@ class _JobPostPageState extends State<JobPostPage>
             _currentFilter = null;
           } else if (_tabController.index == 1) {
             _currentFilter = "Available";
-          } else if (_tabController.index == 2) {
-            _currentFilter = "Already Taken";
           }
           _filterTasks();
         });
@@ -380,7 +373,7 @@ class _JobPostPageState extends State<JobPostPage>
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           'Complete Your Profile',
-          style: GoogleFonts.montserrat(
+          style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: Color(0xFF0272B1),
@@ -388,7 +381,7 @@ class _JobPostPageState extends State<JobPostPage>
         ),
         content: Text(
           'Please upload your profile and ID images to post tasks.',
-          style: GoogleFonts.montserrat(
+          style: GoogleFonts.poppins(
             fontSize: 14,
             color: Colors.grey[600],
           ),
@@ -403,7 +396,7 @@ class _JobPostPageState extends State<JobPostPage>
             },
             child: Text(
               'Cancel',
-              style: GoogleFonts.montserrat(
+              style: GoogleFonts.poppins(
                 fontSize: 14,
                 color: Colors.red[400],
               ),
@@ -434,7 +427,7 @@ class _JobPostPageState extends State<JobPostPage>
             ),
             child: Text(
               'Verify Now',
-              style: GoogleFonts.montserrat(
+              style: GoogleFonts.poppins(
                 fontSize: 14,
                 color: Colors.white,
               ),
@@ -481,7 +474,7 @@ class _JobPostPageState extends State<JobPostPage>
               SizedBox(height: 16),
               Text(
                 'Create a New Task',
-                style: GoogleFonts.montserrat(
+                style: GoogleFonts.poppins(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF0272B1),
@@ -490,7 +483,7 @@ class _JobPostPageState extends State<JobPostPage>
               SizedBox(height: 8),
               Text(
                 '* Required fields',
-                style: GoogleFonts.montserrat(
+                style: GoogleFonts.poppins(
                   fontSize: 12,
                   color: Colors.grey[600],
                 ),
@@ -605,7 +598,7 @@ class _JobPostPageState extends State<JobPostPage>
                       ),
                       child: Text(
                         'Cancel',
-                        style: GoogleFonts.montserrat(
+                        style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
@@ -631,7 +624,7 @@ class _JobPostPageState extends State<JobPostPage>
                       ),
                       child: Text(
                         'Post Task',
-                        style: GoogleFonts.montserrat(
+                        style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
@@ -658,8 +651,6 @@ class _JobPostPageState extends State<JobPostPage>
       ),
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.3,
-        minChildSize: 0.3,
-        maxChildSize: 0.3,
         expand: false,
         builder: (context, scrollController) => SingleChildScrollView(
           controller: scrollController,
@@ -678,18 +669,31 @@ class _JobPostPageState extends State<JobPostPage>
                 ),
               ),
               SizedBox(height: 16),
-              Text(
-                'Filter Tasks',
-                style: GoogleFonts.montserrat(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF0272B1),
+              Center(
+                child: Text(
+                  'Filter Tasks',
+                  style: GoogleFonts.poppins(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFFB71A4A)),
                 ),
               ),
               SizedBox(height: 16),
               RadioListTile<String>(
-                title:
-                    Text('Closed', style: GoogleFonts.montserrat(fontSize: 14)),
+                title: Text('Task Taken',
+                    style: GoogleFonts.poppins(fontSize: 14)),
+                value: 'Task Taken',
+                groupValue: _currentFilter,
+                onChanged: (value) {
+                  setState(() {
+                    _currentFilter = value;
+                    _filterTasks();
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              RadioListTile<String>(
+                title: Text('Closed', style: GoogleFonts.poppins(fontSize: 14)),
                 value: 'Closed',
                 groupValue: _currentFilter,
                 onChanged: (value) {
@@ -701,8 +705,8 @@ class _JobPostPageState extends State<JobPostPage>
                 },
               ),
               RadioListTile<String>(
-                title: Text('On Hold',
-                    style: GoogleFonts.montserrat(fontSize: 14)),
+                title:
+                    Text('On Hold', style: GoogleFonts.poppins(fontSize: 14)),
                 value: 'On Hold',
                 groupValue: _currentFilter,
                 onChanged: (value) {
@@ -714,8 +718,8 @@ class _JobPostPageState extends State<JobPostPage>
                 },
               ),
               RadioListTile<String>(
-                title: Text('Reported',
-                    style: GoogleFonts.montserrat(fontSize: 14)),
+                title:
+                    Text('Reported', style: GoogleFonts.poppins(fontSize: 14)),
                 value: 'Reported',
                 groupValue: _currentFilter,
                 onChanged: (value) {
@@ -749,12 +753,12 @@ class _JobPostPageState extends State<JobPostPage>
       inputFormatters: inputFormatters,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: GoogleFonts.montserrat(
+        labelStyle: GoogleFonts.poppins(
           color: Color(0xFF0272B1),
           fontSize: 14,
         ),
         hintText: hint,
-        hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
+        hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
@@ -770,9 +774,9 @@ class _JobPostPageState extends State<JobPostPage>
           borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
         ),
         errorText: errorText,
-        errorStyle: GoogleFonts.montserrat(color: Colors.red[400]),
+        errorStyle: GoogleFonts.poppins(color: Colors.red[400]),
       ),
-      style: GoogleFonts.montserrat(fontSize: 14),
+      style: GoogleFonts.poppins(fontSize: 14),
     );
   }
 
@@ -787,7 +791,7 @@ class _JobPostPageState extends State<JobPostPage>
       value: value,
       decoration: InputDecoration(
         labelText: hint,
-        labelStyle: GoogleFonts.montserrat(
+        labelStyle: GoogleFonts.poppins(
           color: Color(0xFF0272B1),
           fontSize: 14,
         ),
@@ -806,14 +810,14 @@ class _JobPostPageState extends State<JobPostPage>
           borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
         ),
         errorText: errorText,
-        errorStyle: GoogleFonts.montserrat(color: Colors.red[400]),
+        errorStyle: GoogleFonts.poppins(color: Colors.red[400]),
       ),
       items: items.map((item) {
         return DropdownMenuItem<String>(
           value: item,
           child: Text(
             item,
-            style: GoogleFonts.montserrat(fontSize: 14),
+            style: GoogleFonts.poppins(fontSize: 14),
           ),
         );
       }).toList(),
@@ -832,12 +836,12 @@ class _JobPostPageState extends State<JobPostPage>
       readOnly: true,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: GoogleFonts.montserrat(
+        labelStyle: GoogleFonts.poppins(
           color: Color(0xFF0272B1),
           fontSize: 14,
         ),
         hintText: hint,
-        hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
+        hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
@@ -854,9 +858,9 @@ class _JobPostPageState extends State<JobPostPage>
         ),
         suffixIcon: Icon(Icons.calendar_today, color: Color(0xFF0272B1)),
         errorText: errorText,
-        errorStyle: GoogleFonts.montserrat(color: Colors.red[400]),
+        errorStyle: GoogleFonts.poppins(color: Colors.red[400]),
       ),
-      style: GoogleFonts.montserrat(fontSize: 14),
+      style: GoogleFonts.poppins(fontSize: 14),
       onTap: () async {
         DateTime? pickedDate = await showDatePicker(
           context: context,
@@ -890,45 +894,20 @@ class _JobPostPageState extends State<JobPostPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-          automaticallyImplyLeading: false,
-          backgroundColor: Colors.white,
-          toolbarHeight: 80,
-          title: Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: EdgeInsets.only(left: 0.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Posted Tasks',
-                      style: GoogleFonts.montserrat(
-                        color: Color(0xFF0272B1),
-                        fontWeight: FontWeight.w600,
-                        fontSize: 20,
-                      ),
-                    ),
-                    SizedBox(height: 5),
-                    Text.rich(TextSpan(
-                      style: GoogleFonts.openSans(
-                        color: Colors.black,
-                        fontSize: 14,
-                      ),
-                      children: <TextSpan>[
-                        TextSpan(text: 'You Currently Have '),
-                        TextSpan(
-                            text:
-                                '${_escrowManagementController.tokenCredits.value} NearByTask Credits',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                            )),
-                      ],
-                    ))
-                  ],
-                ),
-              ))),
+        centerTitle: true,
+        title: Text(
+          'Task',
+          style: GoogleFonts.poppins(
+            color: const Color(0xFFB71A4A),
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Colors.grey[100],
+        elevation: 0,
+      ),
       body: _isLoading
           ? Center(
               child: CircularProgressIndicator(),
@@ -937,18 +916,19 @@ class _JobPostPageState extends State<JobPostPage>
               ? const Center(child: Text("No tasks available"))
               : Column(
                   children: [
-                    // Search Bar
+                    // Search
                     Padding(
                       padding:
                           EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       child: TextField(
                         controller: _searchController,
+                        cursorColor: const Color(0xFFB71A4A),
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: Colors.white,
                           hintText: 'Search tasks...',
                           hintStyle:
-                              GoogleFonts.montserrat(color: Colors.grey[400]),
+                              GoogleFonts.poppins(color: Colors.grey[400]),
                           prefixIcon:
                               Icon(Icons.search, color: Colors.grey[400]),
                           border: OutlineInputBorder(
@@ -961,18 +941,18 @@ class _JobPostPageState extends State<JobPostPage>
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide:
-                                BorderSide(color: Color(0xFF0272B1), width: 2),
+                            borderSide: BorderSide(
+                                color: const Color(0xFFB71A4A), width: 2),
                           ),
                         ),
-                        style: GoogleFonts.montserrat(fontSize: 14),
+                        style: GoogleFonts.poppins(fontSize: 14),
                       ),
                     ),
                     TabBar(
                       controller: _tabController,
                       isScrollable: false,
                       padding: EdgeInsets.symmetric(horizontal: 20),
-                      indicatorColor: Color(0xFF0272B1),
+                      indicatorColor: const Color(0xFFB71A4A),
                       indicatorSize: TabBarIndicatorSize.tab,
                       indicatorWeight: 3.0,
                       labelColor: Colors.black,
@@ -981,16 +961,13 @@ class _JobPostPageState extends State<JobPostPage>
                       unselectedLabelStyle:
                           TextStyle(fontWeight: FontWeight.normal),
                       onTap: (index) {
-                        if (index == 3) {
+                        if (index == 2) {
                           _showFilterModal();
                         } else {
                           setState(() {
                             if (index == 0) {
                               _currentFilter = null;
-                            } else if (index == 1)
-                              _currentFilter = "Available";
-                            else if (index == 2)
-                              _currentFilter = "Already Taken";
+                            } else if (index == 1) _currentFilter = "Available";
                             _filterTasks();
                           });
                         }
@@ -1000,7 +977,7 @@ class _JobPostPageState extends State<JobPostPage>
                           child: SizedBox(
                             width: 90,
                             child: Center(
-                              child: status == "More Filter"
+                              child: status == "More"
                                   ? Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
@@ -1036,10 +1013,9 @@ class _JobPostPageState extends State<JobPostPage>
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          'Found ${_filteredTasks.length} tasks',
-                          style: GoogleFonts.montserrat(
-                            fontSize: 14,
-                            color: Colors.grey[600],
+                          '${_filteredTasks.length} ${_currentFilter == null ? "" : "$_currentFilter"} tasks',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
                           ),
                         ),
                       ),
@@ -1063,7 +1039,7 @@ class _JobPostPageState extends State<JobPostPage>
                                       SizedBox(height: 16),
                                       Text(
                                         'No tasks found',
-                                        style: GoogleFonts.montserrat(
+                                        style: GoogleFonts.poppins(
                                           fontSize: 18,
                                           color: Colors.grey[600],
                                         ),
@@ -1071,7 +1047,7 @@ class _JobPostPageState extends State<JobPostPage>
                                       SizedBox(height: 8),
                                       Text(
                                         'Create a new task to get started!',
-                                        style: GoogleFonts.montserrat(
+                                        style: GoogleFonts.poppins(
                                           fontSize: 14,
                                           color: Colors.grey[600],
                                         ),
@@ -1100,26 +1076,12 @@ class _JobPostPageState extends State<JobPostPage>
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          FloatingActionButton(
-            heroTag: "refreshBtn",
-            onPressed: fetchCreatedTasks,
-            backgroundColor: Colors.green[400],
-            child: Icon(FontAwesomeIcons.arrowsRotate, color: Colors.white),
-          ),
           SizedBox(height: 16),
-          FloatingActionButton.extended(
+          FloatingActionButton(
             heroTag: "addTaskBtn",
             onPressed: _showCreateTaskModal,
-            backgroundColor: Color(0xFF0272B1),
-            icon: Icon(Icons.add, color: Colors.white),
-            label: Text(
-              'Add Task',
-              style: GoogleFonts.montserrat(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
+            backgroundColor: const Color(0xFFB71A4A),
+            child: Icon(Icons.add, color: Colors.white),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -1151,7 +1113,7 @@ class _JobPostPageState extends State<JobPostPage>
                   Expanded(
                     child: Text(
                       task.title ?? 'Untitled Task',
-                      style: GoogleFonts.montserrat(
+                      style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF0272B1),
@@ -1213,7 +1175,7 @@ class _JobPostPageState extends State<JobPostPage>
         Expanded(
           child: Text(
             text,
-            style: GoogleFonts.montserrat(
+            style: GoogleFonts.poppins(
               fontSize: 14,
               color: Colors.grey[800],
             ),
