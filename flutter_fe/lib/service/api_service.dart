@@ -868,13 +868,6 @@ class ApiService {
       debugPrint("ApiService: Submitting tasker verification to new table");
       debugPrint("ApiService: Verification data: $verificationData");
 
-      if (userId == null) {
-        return {
-          "success": false,
-          "error": "User ID is missing from verification data"
-        };
-      }
-
       // Create a MultipartRequest for the new verification endpoint
       final String endpoint = "$apiUrl/submit-tasker-verification/$userId";
       debugPrint("ApiService: Using endpoint: $endpoint");

@@ -13,7 +13,7 @@ class SearchableDropdown<T> extends StatefulWidget {
   final bool isLoading;
 
   const SearchableDropdown({
-    Key? key,
+    super.key,
     required this.items,
     required this.selectedItems,
     required this.hintText,
@@ -23,7 +23,7 @@ class SearchableDropdown<T> extends StatefulWidget {
     this.prefixIcon,
     this.onSearchChanged,
     this.isLoading = false,
-  }) : super(key: key);
+  });
 
   @override
   State<SearchableDropdown<T>> createState() => _SearchableDropdownState<T>();
