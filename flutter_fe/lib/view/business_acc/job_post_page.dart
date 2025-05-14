@@ -378,7 +378,7 @@ class _JobPostPageState extends State<JobPostPage>
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF0272B1),
+            color: Color(0xFFE23670),
           ),
         ),
         content: Text(
@@ -422,7 +422,7 @@ class _JobPostPageState extends State<JobPostPage>
               });
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF0272B1),
+              backgroundColor: Color(0xFFE23670),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -479,7 +479,7 @@ class _JobPostPageState extends State<JobPostPage>
                 style: GoogleFonts.poppins(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF0272B1),
+                  color: Color(0xFFE23670),
                 ),
               ),
               SizedBox(height: 8),
@@ -618,7 +618,7 @@ class _JobPostPageState extends State<JobPostPage>
                         _validateAndSubmit();
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF0272B1),
+                        backgroundColor: Color(0xFFE23670),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -773,7 +773,7 @@ class _JobPostPageState extends State<JobPostPage>
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
+          borderSide: BorderSide(color: Color(0xFFE23670), width: 2),
         ),
         errorText: errorText,
         errorStyle: GoogleFonts.poppins(color: Colors.red[400]),
@@ -809,7 +809,7 @@ class _JobPostPageState extends State<JobPostPage>
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
+          borderSide: BorderSide(color: Color(0xFFE23670), width: 2),
         ),
         errorText: errorText,
         errorStyle: GoogleFonts.poppins(color: Colors.red[400]),
@@ -856,9 +856,9 @@ class _JobPostPageState extends State<JobPostPage>
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
+          borderSide: BorderSide(color: Color(0xFFE23670), width: 2),
         ),
-        suffixIcon: Icon(Icons.calendar_today, color: Color(0xFF0272B1)),
+        suffixIcon: Icon(Icons.calendar_today, color: Color(0xFFE23670)),
         errorText: errorText,
         errorStyle: GoogleFonts.poppins(color: Colors.red[400]),
       ),
@@ -873,7 +873,7 @@ class _JobPostPageState extends State<JobPostPage>
             return Theme(
               data: ThemeData.light().copyWith(
                 colorScheme: ColorScheme.light(
-                  primary: Color(0xFF0272B1),
+                  primary: Color(0xFFE23670),
                   onPrimary: Colors.white,
                   surface: Colors.white,
                   onSurface: Colors.black,
@@ -1026,7 +1026,7 @@ class _JobPostPageState extends State<JobPostPage>
                       child: _isLoading
                           ? Center(
                               child: CircularProgressIndicator(
-                                  color: Color(0xFF0272B1)))
+                                  color: Color(0xFFE23670)))
                           : _filteredTasks.isEmpty
                               ? Center(
                                   child: Column(
@@ -1058,7 +1058,7 @@ class _JobPostPageState extends State<JobPostPage>
                                 )
                               : RefreshIndicator(
                                   onRefresh: fetchCreatedTasks,
-                                  color: Color(0xFF0272B1),
+                                  color: Color(0xFFE23670),
                                   child: ListView.builder(
                                     padding: EdgeInsets.all(16),
                                     itemCount: _filteredTasks.length,
@@ -1170,7 +1170,7 @@ class _JobPostPageState extends State<JobPostPage>
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF0272B1),
+                        color: Color(0xFFE23670),
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -1194,7 +1194,7 @@ class _JobPostPageState extends State<JobPostPage>
               SizedBox(height: 8),
               _buildTaskInfoRow(
                 icon: FontAwesomeIcons.screwdriverWrench,
-                color: Color(0xFF0272B1),
+                color: Color(0xFFE23670),
                 text: task.specialization ?? 'N/A',
               ),
               SizedBox(height: 8),

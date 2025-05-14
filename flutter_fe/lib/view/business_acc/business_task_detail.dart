@@ -195,7 +195,7 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
                               style: GoogleFonts.montserrat(
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF0272B1),
+                                color: Color(0xFFE23670),
                               ),
                               textAlign: TextAlign.center,
                             ),

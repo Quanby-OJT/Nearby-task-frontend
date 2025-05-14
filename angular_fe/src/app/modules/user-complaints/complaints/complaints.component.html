@@ -1,13 +1,14 @@
-<div class="mb-4 flex justify-between w-full max-w-[1440px] mx-auto px-4">
-  <div>
+<!-- Header showing the title -->
+<div class="mb-4 flex justify-between">
+  <div class="inline-block">
     <h3 class="text-foreground font-semibold">User Complaints</h3>
-
-     <div class="text-muted-foreground text-xs font-medium">
-      <a href="#" class="hover:text-primary"><b>Dashboards > Dispute Management</b></a>
+    <div class="text-muted-foreground space-x-1 text-xs font-medium">
+      <a href="" class="hover:text-primary"><strong>Dashboards > Dispute Management</strong></a>
       <p>This is used for manage the complains made by the users in the application</p> 
     </div>
   </div>
 </div>
+
 
 <div *ngIf="!isLoading" class="flex w-full max-w-[1440px] mx-auto flex-col pb-3">
   <div class="flex w-full space-x-3">
@@ -23,7 +24,7 @@
   </div>
 </div>
 
-<div class="flex justify-end w-full max-w-[1440px] mx-auto px-4">
+<div *ngIf="!isLoading" class="flex justify-end w-full max-w-[1440px] mx-auto px-4">
   <div class="flex items-end space-x-4">
     <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500 flex items-center space-x-2" (click)="exportCSV()">
       <svg-icon src="./assets/icons/heroicons/outline/csvDL.svg" [svgClass]="'h-5 w-5'"></svg-icon>
@@ -37,11 +38,13 @@
 </div>
 <div class="py-2"></div>
 
-  <!-- Loading Spinner -->
-  <div *ngIf="isLoading" class="flex flex-col justify-center items-center h-64 animate-slow-spin text-xs text-[#3C28CC]">
+<!-- Loading Spinner -->
+<div *ngIf="isLoading" class="fixed inset-0 z-50 flex flex-col justify-center items-center lg:w-308 lg:h-170 xl:w-420 xl:h-200 ">
+  <div class="animate-slow-spin text-xs text-[#3C28CC] flex flex-col justify-center items-center">
     <svg-icon src="./assets/icons/heroicons/outline/logo.svg" [svgClass]="'h-20 w-20'"></svg-icon>
     <strong>Nearby Task</strong>
   </div>
+</div>
 
 <div *ngIf="!isLoading && userRole === 'Moderator'" class="border-gray-200 w-full max-w-[1440px] mx-auto flex-col rounded-xl min-h-[400px] shadow-md">
   <div class="border-gray-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
@@ -72,9 +75,15 @@
               <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('reporterName')">
                 Reporter Name
                 <span class="w-4 h-4">
-                  <ng-container *ngIf="sortDirections['reporterName'] === 'asc'">▲</ng-container>
-                  <ng-container *ngIf="sortDirections['reporterName'] === 'desc'">▼</ng-container>
-                  <ng-container *ngIf="sortDirections['reporterName'] === 'default'">↕</ng-container>
+                  <ng-container *ngIf="sortDirections['reporterName'] === 'asc'">
+                    <span title="Ascending">▲</span>
+                  </ng-container>
+                  <ng-container *ngIf="sortDirections['reporterName'] === 'desc'">
+                    <span title="Descending">▼</span>
+                  </ng-container>
+                  <ng-container *ngIf="sortDirections['reporterName'] === 'default'">
+                    <span title="Newest to Oldest">↕</span>
+                  </ng-container>
                 </span>
               </div>
             </th>
@@ -85,9 +94,15 @@
               <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('createdAt')">
                 Date
                 <span class="w-4 h-4">
-                  <ng-container *ngIf="sortDirections['createdAt'] === 'asc'">▲</ng-container>
-                  <ng-container *ngIf="sortDirections['createdAt'] === 'desc'">▼</ng-container>
-                  <ng-container *ngIf="sortDirections['createdAt'] === 'default'">↕</ng-container>
+                  <ng-container *ngIf="sortDirections['createdAt'] === 'asc'">
+                    <span title="Ascending">▲</span>
+                  </ng-container>
+                  <ng-container *ngIf="sortDirections['createdAt'] === 'desc'">
+                    <span title="Descending">▼</span>
+                  </ng-container>
+                  <ng-container *ngIf="sortDirections['createdAt'] === 'default'">
+                    <span title="Newest to Oldest">↕</span>
+                  </ng-container>
                 </span>
               </div>
             </th>
@@ -97,8 +112,8 @@
         </thead>
         <tbody>
           <tr *ngFor="let report of displayReports; let i = index" class="hover:bg-card/50 h-[60px]">
-            <td class="px-4 py-3 text-start">{{ report.reporter.first_name }} {{ report.reporter.middle_name }} {{ report.reporter.last_name }}</td>
-            <td class="px-4 py-3 text-start">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.reporter.last_name }}</td>
+            <td class="px-4 py-3 text-start">{{ report.reporter.first_name }} {{ report.reporter.middle_name || '' }} {{ report.reporter.last_name }}</td>
+            <td class="px-4 py-3 text-start">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.violator.last_name }}</td>
             <td class="px-4 py-3 text-start">{{ report.reporter.user_role }}</td>
             <td class="px-4 py-3 text-start">{{ report.violator.user_role }}</td>
             <td class="px-4 py-3 text-start">{{ report.created_at }}</td>
@@ -130,7 +145,7 @@
             <td class="px-4 py-3 text-center"></td>
             <td class="px-4 py-3 text-center"></td>
             <td class="px-4 py-3 text-center"></td>
-            <td class="flex items-center justify-center pt-3 pb-0"></td>
+            <td class="px-4 py-3 text-center"></td>
           </tr>
         </tbody>
       </table>
@@ -208,9 +223,15 @@
               <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('reporterName')">
                 Reporter Name
                 <span class="w-4 h-4">
-                  <ng-container *ngIf="sortDirections['reporterName'] === 'asc'">▲</ng-container>
-                  <ng-container *ngIf="sortDirections['reporterName'] === 'desc'">▼</ng-container>
-                  <ng-container *ngIf="sortDirections['reporterName'] === 'default'">↕</ng-container>
+                  <ng-container *ngIf="sortDirections['reporterName'] === 'asc'">
+                    <span title="Ascending">▲</span>
+                  </ng-container>
+                  <ng-container *ngIf="sortDirections['reporterName'] === 'desc'">
+                    <span title="Descending">▼</span>
+                  </ng-container>
+                  <ng-container *ngIf="sortDirections['reporterName'] === 'default'">
+                    <span title="Newest to Oldest">↕</span>
+                  </ng-container>
                 </span>
               </div>
             </th>
@@ -221,9 +242,15 @@
               <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('createdAt')">
                 Date
                 <span class="w-4 h-4">
-                  <ng-container *ngIf="sortDirections['createdAt'] === 'asc'">▲</ng-container>
-                  <ng-container *ngIf="sortDirections['createdAt'] === 'desc'">▼</ng-container>
-                  <ng-container *ngIf="sortDirections['createdAt'] === 'default'">↕</ng-container>
+                  <ng-container *ngIf="sortDirections['createdAt'] === 'asc'">
+                    <span title="Ascending">▲</span>
+                  </ng-container>
+                  <ng-container *ngIf="sortDirections['createdAt'] === 'desc'">
+                    <span title="Descending">▼</span>
+                  </ng-container>
+                  <ng-container *ngIf="sortDirections['createdAt'] === 'default'">
+                    <span title="Newest to Oldest">↕</span>
+                  </ng-container>
                 </span>
               </div>
             </th>
@@ -233,7 +260,7 @@
         </thead>
         <tbody>
           <tr *ngFor="let report of displayReports" class="hover:bg-card/50 h-[60px]">
-            <td class="px-4 py-3 text-start">{{ report.reporter.first_name }} {{ report.reporter.middle_name }} {{ report.reporter.last_name }}</td>
+            <td class="px-4 py-3 text-start">{{ report.reporter.first_name }} {{ report.reporter.middle_name || '' }} {{ report.reporter.last_name }}</td>
             <td class="px-4 py-3 text-start">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.violator.last_name }}</td>
             <td class="px-4 py-3 text-start">{{ report.reporter.user_role }}</td>
             <td class="px-4 py-3 text-start">{{ report.violator.user_role }}</td>
@@ -249,7 +276,7 @@
                 {{ report.status ? 'Processed' : 'Pending' }}
               </span>
             </td>
-            <td class="px-4 py-3 text-start"> {{ report.action_by ? report.action_by.first_name + " " + report.action_by.middle_name + " " + report.action_by.last_name  : 'Empty' }} </td>
+            <td class="px-4 py-3 text-start">{{ report.actionBy && (report.actionBy.first_name !== 'Unknown' || report.actionBy.middle_name !== 'Unknown' || report.actionBy.last_name !== 'Unknown') ? report.actionBy.first_name + ' ' + (report.actionBy.middle_name || '') + ' ' + report.actionBy.last_name : 'No Action Yet' }}</td>
           </tr>
 
           <tr *ngFor="let placeholder of placeholderRows">
