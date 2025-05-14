@@ -419,39 +419,37 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         overlayEntry.remove();
                       },
                     ),
-                    if (_role == "Client") ...[
-                      ListTile(
-                        leading: Icon(
-                          FontAwesomeIcons.coins,
-                          color: const Color(0xFFB71A4A),
-                        ),
-                        title: Text(
-                          'Manage Tokens',
-                          style: GoogleFonts.poppins(
-                            color: Colors.black,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w300,
-                          ),
-                        ),
-                        onTap: () {
-                          if (_existingProfileImageUrl == null ||
-                              _existingIDImageUrl == null ||
-                              _existingProfileImageUrl!.isEmpty ||
-                              _existingIDImageUrl!.isEmpty ||
-                              !_documentValid) {
-                            overlayEntry.remove();
-                            _showWarningDialog();
-                            return;
-                          }
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => EscrowTokenScreen()),
-                          );
-                          overlayEntry.remove();
-                        },
-                      ),
-                    ],
+                    // ListTile(
+                    //   leading: Icon(
+                    //     FontAwesomeIcons.coins,
+                    //     color: const Color(0xFF03045E),
+                    //   ),
+                    //   title: Text(
+                    //     'Tokens',
+                    //     style: GoogleFonts.poppins(
+                    //       color: const Color(0xFF03045E),
+                    //       fontSize: 14,
+                    //       fontWeight: FontWeight.w300,
+                    //     ),
+                    //   ),
+                    //   onTap: () {
+                    //     if (_existingProfileImageUrl == null ||
+                    //         _existingIDImageUrl == null ||
+                    //         _existingProfileImageUrl!.isEmpty ||
+                    //         _existingIDImageUrl!.isEmpty ||
+                    //         !_documentValid) {
+                    //       overlayEntry.remove();
+                    //       _showWarningDialog();
+                    //       return;
+                    //     }
+                    //     Navigator.push(
+                    //       context,
+                    //       MaterialPageRoute(
+                    //           builder: (context) => EscrowTokenScreen()),
+                    //     );
+                    //     overlayEntry.remove();
+                    //   },
+                    // ),
                     ListTile(
                       leading: Icon(
                         Icons.help,
