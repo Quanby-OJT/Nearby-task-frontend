@@ -105,8 +105,8 @@ class TaskController {
     final clientTask = await _jobPostService.fetchJobsForClient(clientId);
     debugPrint("Client Task: ${clientTask.toString()}");
 
-    if (clientTask.containsKey('tasks')) {
-      List<dynamic> tasksList = clientTask['tasks'];
+    if (clientTask.containsKey('data')) {
+      List<dynamic> tasksList = clientTask['data'];
       List<TaskModel> tasks =
           tasksList.map((task) => TaskModel.fromJson(task)).toList();
       return tasks;

@@ -8,8 +8,8 @@ class TaskFetch {
   final int? clientId;
   final int? taskerId;
   final TaskDetails taskDetails;
-  final AddressModel? address;
   final ClientModel? client;
+  final AddressModel? address;
 
   TaskFetch({
     required this.id,
@@ -67,7 +67,6 @@ class TaskFetch {
 class TaskDetails {
   final String status;
   final String urgency;
-  final AddressModel? address;
   final int taskId;
   final String duration;
   final String location;
@@ -83,7 +82,6 @@ class TaskDetails {
   TaskDetails({
     required this.status,
     required this.urgency,
-    this.address,
     required this.taskId,
     required this.duration,
     required this.location,
@@ -129,9 +127,6 @@ class TaskDetails {
     return TaskDetails(
       status: json['status'] as String,
       urgency: urgencyValue,
-      address: json['address'] != null
-          ? AddressModel.fromJson(json['address'] as Map<String, dynamic>)
-          : null,
       taskId: json['task_id'] as int,
       duration: json['duration'].toString(),
       location: json['location'] as String,
@@ -148,6 +143,6 @@ class TaskDetails {
 
   @override
   String toString() {
-    return 'TaskDetails(status: $status, urgency: $urgency, address: $address, taskId: $taskId, duration: $duration, location: $location, title: $title, proposedPrice: $proposedPrice, specialization: $specialization, description: $description, period: $period, taskBeginDate: $taskBeginDate, workType: $workType, remarks: $remarks)';
+    return 'TaskDetails(status: $status, urgency: $urgency, taskId: $taskId, duration: $duration, location: $location, title: $title, proposedPrice: $proposedPrice, specialization: $specialization, description: $description, period: $period, taskBeginDate: $taskBeginDate, workType: $workType, remarks: $remarks)';
   }
 }

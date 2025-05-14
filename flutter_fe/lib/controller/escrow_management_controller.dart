@@ -10,8 +10,7 @@ class EscrowManagementController {
   final TextEditingController otherReasonController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
   final TextEditingController cardNumberController = TextEditingController();
-  final TextEditingController cardHolderNameController =
-      TextEditingController();
+  final TextEditingController cardHolderNameController = TextEditingController();
   final TextEditingController cvvController = TextEditingController();
   final TextEditingController expiryDateController = TextEditingController();
   final TextEditingController acctNumberController = TextEditingController();
@@ -62,16 +61,12 @@ class EscrowManagementController {
     }
   }
 
-  Future<Map<String, dynamic>> depositAmountToEscrow(
-      String paymentMethod) async {
+  Future<Map<String, dynamic>> depositAmountToEscrow(String paymentMethod) async {
     try {
       // debugPrint("TaskRequestController: Depositing amount to escrow");
       // debugPrint("TaskRequestController: Contract Price: $contractPrice");
       // debugPrint("TaskRequestController: Task Taken ID: $taskTakenId");
-      var response = await _requestService.depositEscrowPayment(
-          double.parse(
-              amountController.text.replaceAll("₱", "").replaceAll(",", "")),
-          paymentMethod);
+      var response = await _requestService.depositEscrowPayment(double.parse(amountController.text.replaceAll("₱", "").replaceAll(",", "")), paymentMethod);
 
       if (response.containsValue('message')) {
         await fetchTokenBalance();
@@ -109,7 +104,7 @@ class EscrowManagementController {
   }
 
   void connectWebSocket() async {
-    _channel = IOWebSocketChannel.connect('ws://192.168.43.15:5000');
+    _channel = IOWebSocketChannel.connect('ws://10.0.2.2:5000');
     _channel!.stream.listen((message) {
       debugPrint('Received message: $message');
 

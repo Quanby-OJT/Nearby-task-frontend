@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class PhilippineLocationService {
+  // Base URL for the Philippines Geo API
+  // Note: This is a placeholder URL for a public API. Replace with actual API endpoint
   static const String baseUrl = 'https://psgc.gitlab.io/api';
 
   // Singleton instance

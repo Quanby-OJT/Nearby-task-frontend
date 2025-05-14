@@ -131,28 +131,12 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
 
     return Scaffold(
       appBar: AppBar(
-        centerTitle: true,
         title: Text(
           'Task Details',
-          style: GoogleFonts.poppins(
-            color: const Color(0xFFB71A4A),
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style:
+              TextStyle(color: Color(0xFF0272B1), fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.grey[100],
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios,
-            color: Color(0xFFB71A4A),
-            size: 20,
-          ),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        iconTheme: IconThemeData(color: Color(0xFFB71A4A)),
+        iconTheme: IconThemeData(color: Color(0xFF0272B1)),
         actions: [
           IconButton(
             icon: Icon(Icons.edit),

@@ -5,9 +5,9 @@ import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
-import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_fe/model/task_model.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/config/url_strategy.dart';
 

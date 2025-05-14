@@ -34,7 +34,7 @@ class SkillsService {
       debugPrint(
           'SkillsService: Testing direct API call to specializations endpoint...');
 
-      final String token = await AuthService.getSessionToken();
+      final String? token = await AuthService.getSessionToken();
       if (token == null) {
         debugPrint('SkillsService: No auth token available');
         return;
@@ -81,7 +81,7 @@ class SkillsService {
       debugPrint(
           'SkillsService: Fetching specializations directly from API...');
 
-      final String token = await AuthService.getSessionToken();
+      final String? token = await AuthService.getSessionToken();
       if (token == null) {
         debugPrint('SkillsService: No auth token available for direct fetch');
         return [];

@@ -7,8 +7,10 @@ import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
+import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/view/business_acc/business_task_detail.dart';
 import 'package:flutter_fe/view/business_acc/client_record/client_finish.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -183,6 +185,87 @@ class _TaskPageState extends State<TaskPage>
         return matchesSearch && matchesStatus;
       }).toList();
     });
+  }
+
+  Future<void> _submitJob() async {
+    setState(() {
+      _message = "";
+      _errors.clear();
+      _isSuccess = false;
+    });
+
+    try {
+      final result = await controller.postJob(
+        selectedSpecialization ?? "",
+        selectedUrgency ?? "",
+        selectedTimePeriod ?? "",
+        selectedWorkType,
+      );
+
+      if (result['success']) {
+        Navigator.pop(context);
+        setState(() {
+          _message = result['message'] ?? "Successfully Posted Task.";
+          _isSuccess = true;
+        });
+
+        await fetchCreatedTasks();
+
+        controller.jobTitleController.clear();
+        controller.jobDescriptionController.clear();
+        controller.jobLocationController.clear();
+        controller.jobTimeController.clear();
+        controller.contactPriceController.clear();
+        controller.jobRemarksController.clear();
+        controller.jobTaskBeginDateController.clear();
+
+        setState(() {
+          selectedSpecialization = null;
+          selectedUrgency = null;
+          selectedTimePeriod = null;
+          selectedWorkType = "Solo";
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_message!),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      } else {
+        Navigator.pop(context);
+        setState(() {
+          if (result.containsKey('errors') && result['errors'] is List) {
+            for (var error in result['errors']) {
+              if (error is Map<String, dynamic> &&
+                  error.containsKey('path') &&
+                  error.containsKey('msg')) {
+                _errors[error['path']] = error['msg'];
+              }
+            }
+          }
+          _message = result['error'] ?? 'Failed to post task';
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_message!),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (error) {
+      debugPrint("Error submitting job: $error");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('An error occurred. Please try again.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   Future<void> _fetchUserIDImage() async {
@@ -742,9 +825,7 @@ class _TaskPageState extends State<TaskPage>
               _buildTaskInfoRow(
                 icon: FontAwesomeIcons.locationPin,
                 color: Colors.red[400]!,
-                text: (task.taskDetails.address?.city ?? 'N/A') +
-                    ", " +
-                    (task.taskDetails.address?.province ?? 'N/A'),
+                text: task.taskDetails.location ?? 'N/A',
               ),
               SizedBox(height: 8),
               _buildTaskInfoRow(

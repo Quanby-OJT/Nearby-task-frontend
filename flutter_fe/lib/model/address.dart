@@ -1,5 +1,3 @@
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-
 class AddressModel {
   final int id;
   final double? latitude;
@@ -13,8 +11,6 @@ class AddressModel {
   final bool? defaultAddress;
   final DateTime? createdAt;
   final DateTime? updatedAt;
-  final String? formattedAddress;
-  final String? regionName;
 
   AddressModel({
     required this.id,
@@ -29,8 +25,6 @@ class AddressModel {
     this.defaultAddress,
     this.createdAt,
     this.updatedAt,
-    this.formattedAddress,
-    this.regionName,
   });
 
   // Operator overloading to allow map-like access
@@ -62,10 +56,6 @@ class AddressModel {
         return createdAt;
       case 'updated_at':
         return updatedAt;
-      case 'formatted_address':
-        return formattedAddress;
-      case 'region_name':
-        return regionName;
       default:
         return null;
     }
@@ -88,8 +78,6 @@ class AddressModel {
         defaultAddress,
         createdAt,
         updatedAt,
-        formattedAddress,
-        regionName,
       ];
 
   factory AddressModel.fromJson(Map<String, dynamic> json) {
@@ -101,12 +89,8 @@ class AddressModel {
       province: json['province'] ?? '',
       postalCode: json['postal_code'] ?? '',
       country: json['country'] ?? '',
-      latitude: json['latitude'] != null
-          ? double.parse(json['latitude'].toString())
-          : null,
-      longitude: json['longitude'] != null
-          ? double.parse(json['longitude'].toString())
-          : null,
+      latitude: (json['latitude'] ?? 0).toDouble(),
+      longitude: (json['longitude'] ?? 0).toDouble(),
       defaultAddress: json['default'] ?? false,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
@@ -114,8 +98,6 @@ class AddressModel {
       updatedAt: json['updated_at'] != null
           ? DateTime.parse(json['updated_at'])
           : null,
-      formattedAddress: json['formatted_address'] ?? '',
-      regionName: json['region_name'] ?? '',
     );
   }
 
@@ -133,37 +115,11 @@ class AddressModel {
       'default': defaultAddress,
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
-      'formatted_address': formattedAddress,
-      'region_name': regionName,
     };
   }
 
   @override
   String toString() {
-    return 'AddressModel(streetAddress: $streetAddress, barangay: $barangay, city: $city, province: $province, postalCode: $postalCode, country: $country, latitude: $latitude, longitude: $longitude, default: $defaultAddress, createdAt: $createdAt, updatedAt: $updatedAt, formattedAddress: $formattedAddress, regionName: $regionName)';
-  }
-
-  // Helper method to get LatLng for Google Maps
-  LatLng? getLatLng() {
-    if (latitude != null && longitude != null) {
-      return LatLng(latitude!, longitude!);
-    }
-    return null;
-  }
-
-  // Create a new instance from map data
-  factory AddressModel.fromMapData(Map<String, dynamic> mapData) {
-    return AddressModel(
-      streetAddress: mapData['street_address'] ?? '',
-      barangay: mapData['barangay'],
-      city: mapData['city'] ?? '',
-      province: mapData['province'] ?? '',
-      postalCode: mapData['postal_code'] ?? '',
-      country: mapData['country'] ?? 'Philippines',
-      latitude: mapData['latitude'],
-      longitude: mapData['longitude'],
-      formattedAddress: mapData['formattedAddress'],
-      regionName: mapData['region'],
-    );
+    return 'AddressModel(streetAddress: $streetAddress, barangay: $barangay, city: $city, province: $province, postalCode: $postalCode, country: $country, latitude: $latitude, longitude: $longitude, default: $defaultAddress, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 }

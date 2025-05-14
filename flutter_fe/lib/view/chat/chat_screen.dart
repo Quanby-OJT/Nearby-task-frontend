@@ -45,7 +45,7 @@ class _ChatScreenState extends State<ChatScreen> {
   int? cardNumber = 0;
   bool _isUploadDialogShown = false;
   bool _isLoading = true;
-  final bool _isRead = false;
+  bool _isRead = false;
   IO.Socket? socket;
 
   AuthenticatedUser? _user;
