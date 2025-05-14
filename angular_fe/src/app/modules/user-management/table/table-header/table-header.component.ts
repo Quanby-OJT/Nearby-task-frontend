@@ -10,17 +10,25 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
 })
 export class UserTableHeaderComponent {
   @Output() onCheck = new EventEmitter<boolean>();
-  @Output() onSort = new EventEmitter<'default' | 'asc' | 'desc'>();
+  @Output() onSort = new EventEmitter<{ column: 'profile' | 'email'; state: 'default' | 'asc' | 'desc' }>();
 
-  sortState: 'default' | 'asc' | 'desc' = 'default'; 
+  profileSortState: 'default' | 'asc' | 'desc' = 'default';
+  emailSortState: 'default' | 'asc' | 'desc' = 'default';
 
   public toggle(event: Event) {
     const value = (event.target as HTMLInputElement).checked;
     this.onCheck.emit(value);
   }
 
-  public toggleSort() {
-    this.sortState = this.sortState === 'default' ? 'asc' : this.sortState === 'asc' ? 'desc' : 'default';
-    this.onSort.emit(this.sortState);
+  public toggleProfileSort() {
+    this.profileSortState = this.profileSortState === 'default' ? 'asc' : this.profileSortState === 'asc' ? 'desc' : 'default';
+    this.emailSortState = 'default'; // Reset email sort
+    this.onSort.emit({ column: 'profile', state: this.profileSortState });
+  }
+
+  public toggleEmailSort() {
+    this.emailSortState = this.emailSortState === 'default' ? 'asc' : this.emailSortState === 'asc' ? 'desc' : 'default';
+    this.profileSortState = 'default'; // Reset profile sort
+    this.onSort.emit({ column: 'email', state: this.emailSortState });
   }
 }

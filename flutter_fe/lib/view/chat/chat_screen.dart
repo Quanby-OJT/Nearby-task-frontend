@@ -12,6 +12,7 @@ import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get/get.dart';
 import 'package:get/get_connect/sockets/src/socket_notifier.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:dropdown_search/dropdown_search.dart';
@@ -124,18 +125,41 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _fetchTaskAssignments() async {
-    setState(() {
-      _isLoading = true;
-    });
-    int userId = storage.read('user_id');
-    final taskAssignmentsList =
-        await _taskController.getAllAssignedTasks(context, userId);
-    setState(() {
-      taskAssignments = taskAssignmentsList;
+    try {
+      setState(() {
+        taskAssignments = [];
+        filteredTaskAssignments = [];
+        conversation = [];
+        _isLoading = true;
+      });
 
-      filteredTaskAssignments = taskAssignments;
-      _isLoading = false;
-    });
+      final taskAndConversationResult = await _taskController.fetchTasksAndConversations();
+
+      // Extract tasks and conversations from result
+      final tasks = taskAndConversationResult.taskAssignments;
+      final convs = taskAndConversationResult.conversations;
+
+      debugPrint("Raw Conversations: $convs");
+      debugPrint("Task Assignments: $tasks");
+
+      setState(() {
+        taskAssignments = tasks;
+        conversation = convs;
+        filteredTaskAssignments = tasks; // Maintain same filtering logic
+        _isLoading = false;
+      });
+    } catch (e, st) {
+      debugPrint("Error fetching task assignments: $e");
+      debugPrint(st.toString());
+      setState(() {
+        _isLoading = false;
+      });
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to load messages")),
+        );
+      }
+    }
   }
 
   Future<void> _fetchTaskers() async {
@@ -862,37 +886,24 @@ class _ChatScreenState extends State<ChatScreen> {
                                 : RefreshIndicator(
                                     onRefresh: _fetchTaskAssignments,
                                     color: Color(0xFF0272B1),
-                                    child: // In the ListView.builder within the build method
-                                        ListView.builder(
-                                      padding:
-                                          EdgeInsets.symmetric(vertical: 16),
+                                    child: ListView.builder(
+                                      padding: EdgeInsets.symmetric(vertical: 16),
                                       itemCount: filteredTaskAssignments.length,
                                       itemBuilder: (context, index) {
-                                        final taskAssignment =
-                                            filteredTaskAssignments[index];
+                                        final taskAssignment = filteredTaskAssignments[index];
                                         if (taskAssignment == null) {
                                           return SizedBox.shrink();
                                         }
 
-                                        final conversation = this
-                                            .conversation
-                                            .firstWhere(
-                                              (conv) =>
-                                                  conv.taskTakenId ==
-                                                  taskAssignment.taskTakenId,
-                                              orElse: () => Conversation(
-                                                userId: 0,
-                                                conversationMessage: '',
-                                                taskTakenId:
-                                                    taskAssignment.taskTakenId,
-                                                user: null,
-                                                taskTaken: taskAssignment,
-                                              ),
-                                            );
-                                        return conversationCard(
-                                            taskAssignment, conversation);
+                                        // Find the conversation for this taskAssignment, or pass null if not found
+                                        final conversations = conversation.firstWhereOrNull(
+                                              (conv) => conv.taskTakenId == taskAssignment.taskTakenId,
+                                        );
+                                        return conversationCard(taskAssignment, conversations);
                                       },
-                                    )))
+                                    )
+                        )
+                    )
                   ]));
   }
 
@@ -934,16 +945,18 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget conversationCard(TaskAssignment taskTaken, Conversation conversation) {
+  Widget conversationCard(TaskAssignment taskTaken, Conversation? conversation) {
     final currentUserId = storage.read('user_id');
-    final role = storage.read(
-        'role'); // Check if the current user is the sender of the latest message
-    final bool isReceiver = currentUserId == conversation.userId;
-    final bool unread = taskTaken.unreadCount > 0;
-    debugPrint(
-        "Is Sender: $isReceiver and Unread Messages for Task: ${taskTaken.taskTakenId} - ${taskTaken.unreadCount}");
-    final user =
-        role == 'Tasker' ? taskTaken.client?.user : taskTaken.tasker?.user;
+    final role = storage.read('role');
+
+    final senderId = conversation?.userId ??
+        (role == 'Tasker' ? taskTaken.client?.user?.id : taskTaken.tasker?.user?.id) ??
+        0;
+    debugPrint("Current User ID: $currentUserId, Sender Id: $senderId, and Role: $role");
+    final bool isReceiver = senderId != currentUserId;
+    final bool isUnread = taskTaken.unreadCount > 0;
+    debugPrint("Is Receiver: $isReceiver, Unread Messages for Task: ${taskTaken.taskTakenId} - ${taskTaken.unreadCount}");
+    final user = role == 'Tasker' ? taskTaken.client?.user : taskTaken.tasker?.user;
 
     return Container(
       margin: EdgeInsets.only(bottom: 12),
@@ -984,7 +997,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: Text(
-                        taskTaken.task?.title ?? '',
+                        taskTaken.task?.title ?? 'No Title',
                         style: GoogleFonts.montserrat(
                           color: Color(0xFF0272B1),
                           fontWeight: FontWeight.w600,
@@ -998,26 +1011,31 @@ class _ChatScreenState extends State<ChatScreen> {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (isReceiver)
+                        if (!isReceiver) // Show checkmarks only for receiver
                           readIconMarker(
-                            unread
+                            isUnread
                                 ? FontAwesomeIcons.check
                                 : FontAwesomeIcons.checkDouble,
                             Colors.green,
                           ),
-                        if (!isReceiver) // No checkmarks for receiver
-                          SizedBox.shrink(),
                         SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            "${user?.firstName ?? ''} ${user?.middleName ?? ''} ${user?.lastName ?? ''}",
-                            style: GoogleFonts.poppins(
-                              fontWeight: !isReceiver && unread
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                            ),
+                        if(isReceiver)...[
+                        Text(
+                          "${user?.firstName ?? ''} ${user?.middleName ?? ''} ${user?.lastName ?? ''}",
+                          style: GoogleFonts.poppins(
+                            fontWeight: isUnread
+                                ? FontWeight.bold
+                                : FontWeight.normal,
                           ),
                         ),
+                        ]
+                        else
+                        Text(
+                          "${user?.firstName ?? ''} ${user?.middleName ?? ''} ${user?.lastName ?? ''}",
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.normal,
+                          ),
+                        )
                       ],
                     ),
                   ],

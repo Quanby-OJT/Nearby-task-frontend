@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { JobComponent } from "./job/job.component";
 import { SpecializationComponent } from './specialization/specialization.component';
 import { BestTaskerComponent } from "./best-tasker/best-tasker.component";
 import { BestClientComponent } from "./best-client/best-client.component";
 import { DepositorComponent } from './depositor/depositor.component';
+import { AngularSvgIconModule } from 'angular-svg-icon';
 
 @Component({
   selector: 'app-report',
@@ -13,14 +14,28 @@ import { DepositorComponent } from './depositor/depositor.component';
     SpecializationComponent, 
     BestTaskerComponent, 
     BestClientComponent,
-    DepositorComponent],
+    DepositorComponent,
+    AngularSvgIconModule],
   templateUrl: './report.component.html',
   styleUrl: './report.component.css'
 })
-export class ReportComponent {
+export class ReportComponent implements OnInit {
+  isLoading: boolean = true;
+  currentTab: string = "MostFamousSpecialization";
 
-  currentTab: String ="MostFamousSpecialization";
-  changeTab(option: String){
+  ngOnInit(): void {
+    // Simulate initial data load
+    setTimeout(() => {
+      this.isLoading = false;
+    }, 1500);
+  }
+
+  changeTab(option: string) {
+    this.isLoading = true;
     this.currentTab = option;
+    // Simulate tab data load
+    setTimeout(() => {
+      this.isLoading = false;
+    }, 1000);
   }
 }

@@ -14,7 +14,6 @@ class EscrowManagementController {
       TextEditingController();
   final TextEditingController cvvController = TextEditingController();
   final TextEditingController expiryDateController = TextEditingController();
-  final TextEditingController paymentMethodController = TextEditingController();
   final TextEditingController acctNumberController = TextEditingController();
 
   int tokenRate = 1;
@@ -90,11 +89,11 @@ class EscrowManagementController {
     }
   }
 
-  Future<String> releaseEscrowPayment(int taskerId) async {
+  Future<String> releaseEscrowPayment(int taskerId, String paymentMethod) async {
     try {
       debugPrint(
           "TaskRequestController: Releasing escrow payment for task taken with ID $taskerId");
-      var response = await _requestService.releaseEscrowPayment(taskerId);
+      var response = await _requestService.releaseEscrowPayment(taskerId, double.parse(amountController.text), paymentMethod);
       if (response.containsKey("message")) {
         return response["message"];
       } else if (response.containsKey("error")) {

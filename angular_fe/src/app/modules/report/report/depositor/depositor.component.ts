@@ -73,13 +73,20 @@ export class DepositorComponent implements OnInit {
   months: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   isDropdownOpen: boolean = false;
   isLoading: boolean = true;
+  monthlyTrends: MonthlyTrends = {};
+
   constructor(private reportService: ReportService) {}
 
   ngOnInit(): void {
     this.fetchTopDepositors();
   }
 
+  tooltipFormatter(val: number): string {
+    return Math.floor(val).toString();
+  }
+
   fetchTopDepositors(): void {
+    this.isLoading = true;
     this.reportService.getTopDepositors(this.selectedMonth || undefined).subscribe({
       next: (response: {
         success: boolean;
@@ -87,28 +94,43 @@ export class DepositorComponent implements OnInit {
         monthlyTrends: MonthlyTrends;
       }) => {
         if (response.success) {
-          this.depositors = response.rankedDepositors;
-          this.totalItems = this.depositors.length;
-
-          // Prepare chart series
           const monthlyTrends = response.monthlyTrends;
-          const series: ChartSeries[] = Object.keys(monthlyTrends).map(userName => ({
-            name: userName,
-            data: Object.values(monthlyTrends[userName]).map(value => value as number),
-          }));
-
-          this.chartOptions = {
-            ...this.chartOptions,
-            series: series
-          };
+          if (this.selectedMonth) {
+            this.depositors = response.rankedDepositors.filter(depositor => {
+              const monthData = monthlyTrends[depositor.userName]?.[this.selectedMonth as string];
+              return monthData && monthData > 0; // Filter for non-zero data
+            });
+          } else {
+            this.depositors = response.rankedDepositors;
+          }
+          this.monthlyTrends = monthlyTrends;
+          this.totalItems = this.depositors.length; // Update totalItems for pagination
+          this.updateChart();
         }
         this.isLoading = false;
       },
       error: (error: unknown) => {
         console.error('Error fetching top depositors:', error);
-        this.isLoading = false
+        this.isLoading = false;
       },
     });
+  }
+
+  updateChart(): void {
+    const categories = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const series: ChartSeries[] = this.depositors.map(depositor => ({
+      name: depositor.userName,
+      data: this.selectedMonth
+        ? categories.map(month => 
+            month === this.selectedMonth ? Math.floor(Number(this.monthlyTrends[depositor.userName]?.[month] || 0)) : 0
+          )
+        : categories.map(month => Math.floor(Number(this.monthlyTrends[depositor.userName]?.[month] || 0)))
+    }));
+
+    this.chartOptions = {
+      ...this.chartOptions,
+      series: series
+    };
   }
 
   onMonthChange(): void {
@@ -141,37 +163,30 @@ export class DepositorComponent implements OnInit {
     });
 
     try {
-  
       doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 140, 35, 28, 25); 
     } catch (e) {
       console.error('Failed to load NearbyTasks.png:', e);
-
     }
 
     try {
       doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 260, 35, 26, 25);
     } catch (e) {
       console.error('Failed to load Quanby.png:', e);
-
     }
 
-    // Nearby Task Part
     const title = 'Nearby Task';
     doc.setFontSize(20);
     doc.setTextColor('#170A66');
     doc.text(title, 170, 52);
 
-    // Line Part
     doc.setDrawColor(0, 0, 0);
     doc.setLineWidth(0.2);
     doc.line(30, 70, 415, 70);
 
-    // Depositor Part
     doc.setFontSize(12);
     doc.setTextColor('#000000');
     doc.text('Top Depositor', 30, 90);
 
-    // Date and Time Part
     const currentDate = new Date();
     const formattedDate = currentDate.toLocaleString('en-US', {
       month: '2-digit',
@@ -182,13 +197,8 @@ export class DepositorComponent implements OnInit {
       second: '2-digit',
       hour12: true
     }).replace(/,/, ', ');
-    console.log('Formatted Date:', formattedDate); 
-
-    // Date and Time Position and Size
     doc.setFontSize(12);
-    doc.setTextColor('#000000');
-    console.log('Rendering date at position x=400, y=90'); 
-    doc.text(formattedDate, 310, 90); 
+    doc.text(formattedDate, 310, 90);
 
     const headers = ['No', 'Depositor', 'Amount Deposited', 'Month Deposited'];
     const rows = this.depositors.map((depositor, index) => [
@@ -216,8 +226,6 @@ export class DepositorComponent implements OnInit {
       return;
     }
 
-    console.log('Chart SVG found:', chartElement); // Debug log
-
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) {
@@ -225,13 +233,12 @@ export class DepositorComponent implements OnInit {
       return;
     }
 
-    const width = chartElement.width.baseVal.value || 800; // Fallback width
-    const height = chartElement.height.baseVal.value || 400; // Fallback height
+    const width = chartElement.width.baseVal.value || 800;
+    const height = chartElement.height.baseVal.value || 400;
     canvas.width = width;
     canvas.height = height;
 
-    // Set the canvas background to white to match the chart's background
-    ctx.fillStyle = '#ffffff'; // White background
+    ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, width, height);
 
     const svgData = new XMLSerializer().serializeToString(chartElement);
@@ -239,7 +246,6 @@ export class DepositorComponent implements OnInit {
     img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
 
     img.onload = () => {
-      console.log('Image loaded for PNG export'); // Debug log
       ctx.drawImage(img, 0, 0, width, height);
       const imgURI = canvas.toDataURL('image/png');
       const link = document.createElement('a');

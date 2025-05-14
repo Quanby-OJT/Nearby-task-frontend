@@ -1,10 +1,16 @@
+import 'dart:async';
+
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/view/sign_in/sign_in.dart';
 import 'package:flutter_fe/view/welcome_page/intro_page_1.dart';
 import 'package:flutter_fe/view/welcome_page/intro_page_2.dart';
 import 'package:flutter_fe/view/welcome_page/intro_page_3.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+
+import '../sign_in/reset_password.dart';
 
 class WelcomePageViewMain extends StatefulWidget {
   const WelcomePageViewMain({super.key});
@@ -15,7 +21,73 @@ class WelcomePageViewMain extends StatefulWidget {
 
 class _WelcomePageViewMainState extends State<WelcomePageViewMain> {
   final PageController _controller = PageController();
+  final AuthenticationController _authController = AuthenticationController();
   bool onLastPage = false;
+  bool _isVerified = false;
+  StreamSubscription<Uri>? _linkSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _initDeepLinkListener();
+  }
+  Future<void> _handleDeepLink(Uri uri) async {
+    final token = uri.queryParameters['token'];
+    final email = uri.queryParameters['email'];
+
+    if (token != null && email != null) {
+      final int userId = await _authController.verifyEmail(context, token, email);
+
+      if (userId != 0) {
+        debugPrint("User ID: $userId");
+        setState(() {
+          _isVerified = true;
+        });
+
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ResetPassword(email: email),
+            ),
+          );
+        }
+      } else {
+        debugPrint("Email verification failed/");
+      }
+    } else {
+      debugPrint("Invalid verification link");
+    }
+  }
+
+  Future<void> _initDeepLinkListener() async {
+    final appLinks = AppLinks();
+    debugPrint("Handling Forgot Password Deeplink...");
+    try {
+      final Uri? initialUri = await appLinks.getInitialLink();
+      if (initialUri != null) {
+        _handleDeepLink(initialUri);
+      }
+    } catch (e, stackTrace) {
+      debugPrint(e.toString());
+      debugPrint(stackTrace.toString());
+    }
+
+    _linkSubscription = appLinks.uriLinkStream.listen(
+          (Uri? uri) {
+        if (uri != null) {
+          _handleDeepLink(uri);
+        }
+      },
+      onError: (err, stackTrace) {
+        debugPrint(err.toString());
+        debugPrintStack(stackTrace: stackTrace);
+      },
+    );
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
