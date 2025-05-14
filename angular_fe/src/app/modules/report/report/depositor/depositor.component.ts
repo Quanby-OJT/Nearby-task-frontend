@@ -86,6 +86,7 @@ export class DepositorComponent implements OnInit {
   }
 
   fetchTopDepositors(): void {
+    this.isLoading = true;
     this.reportService.getTopDepositors(this.selectedMonth || undefined).subscribe({
       next: (response: {
         success: boolean;
@@ -93,9 +94,17 @@ export class DepositorComponent implements OnInit {
         monthlyTrends: MonthlyTrends;
       }) => {
         if (response.success) {
-          this.depositors = response.rankedDepositors;
+          // If a month is selected, filter depositors with non-zero data for that month
+          if (this.selectedMonth) {
+            this.depositors = response.rankedDepositors.filter(depositor => {
+              const monthData = this.monthlyTrends[depositor.userName]?.[this.selectedMonth as string];
+              return monthData && (Number(monthData) > 0 || depositor.amount > 0);
+            });
+          } else {
+            // If no month is selected, show all depositors
+            this.depositors = response.rankedDepositors;
+          }
           this.monthlyTrends = response.monthlyTrends;
-          this.totalItems = this.depositors.length;
           this.updateChart();
         }
         this.isLoading = false;

@@ -35,7 +35,16 @@ export class SpecializationComponent implements OnInit {
     this.reportService.getSpecialization('applied', this.selectedMonth || undefined).subscribe({
       next: (response) => {
         if (response.success) {
-          this.rankedSpecializations = response.rankedSpecializations;
+          // If a month is selected
+          if (this.selectedMonth) {
+            this.rankedSpecializations = response.rankedSpecializations.filter(spec => {
+              const monthData = this.monthlyTrends[spec.specialization]?.[this.selectedMonth as string];
+              return monthData && (Number(monthData) > 0 || spec.total_requested > 0 || spec.total_applied > 0);
+            });
+          } else {
+            // If no month is selected
+            this.rankedSpecializations = response.rankedSpecializations;
+          }
           this.monthlyTrends = response.monthlyTrends;
           this.updateChart();
         }
