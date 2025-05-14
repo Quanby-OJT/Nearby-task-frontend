@@ -19,15 +19,52 @@
     <div class="space-y-3 text-left">
       <div class="grid grid-cols-3 gap-5 p-5">
         <div class="mx-auto w-full max-w-xs">
-          <div class="overflow-hidden rounded-lg bg-white shadow-md">
-            <div class="mx-auto w-full max-w-xs">
+          <div class="space-y-4">
+            <!-- Profile and ID Images (side by side) -->
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Profile Image (image_link) -->
               <div class="overflow-hidden rounded-lg bg-white shadow-md">
-                <div class="h-78 flex w-full items-center justify-center bg-gray-100">
+                <div class="h-40 flex w-full items-center justify-center bg-gray-100">
                   <img
-                    [src]="imageUrl ? imageUrl : profileImage || ''"
-                    alt="Uploaded Image"
+                    [src]="profileImage"
+                    alt="Profile Image"
                     class="h-full w-full object-cover" />
                 </div>
+                <div class="text-center py-2">
+                  <p class="text-sm font-medium">Profile Image</p>
+                </div>
+              </div>
+              <!-- ID Image (id_image) -->
+              <div class="overflow-hidden rounded-lg bg-white shadow-md">
+                <div class="h-40 flex w-full items-center justify-center bg-gray-100">
+                  <img
+                    [src]="imageUrl"
+                    alt="ID Image"
+                    class="h-full w-full object-cover"
+                    *ngIf="imageUrl && isImage" />
+                  <div *ngIf="!imageUrl || !isImage" class="text-center text-sm text-gray-500">
+                    No ID Image Available
+                  </div>
+                </div>
+                <div class="text-center py-2">
+                  <p class="text-sm font-medium">ID Image</p>
+                </div>
+              </div>
+            </div>
+            <!-- Face Image (below Profile and ID Images) -->
+            <div class="overflow-hidden rounded-lg bg-white shadow-md">
+              <div class="h-40 flex w-full items-center justify-center bg-gray-100">
+                <img
+                  [src]="faceImage"
+                  alt="Face Image"
+                  class="h-full w-full object-cover"
+                  *ngIf="faceImage && isFaceImage" />
+                <div *ngIf="!faceImage || !isFaceImage" class="text-center text-sm text-gray-500">
+                  No Face Image Available
+                </div>
+              </div>
+              <div class="text-center py-2">
+                <p class="text-sm font-medium">Face Image</p>
               </div>
             </div>
           </div>

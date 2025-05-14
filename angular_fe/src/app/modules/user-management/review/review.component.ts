@@ -35,7 +35,9 @@ export class ReviewComponent {
   profileImage: string | null = null;
   documentUrl: string | null = null;
   documentName: string | null = null;
-  isImage: boolean = false; 
+  isImage: boolean = false;
+  faceImage: string | null = null; // Added for face_image
+  isFaceImage: boolean = false; // Added to check if face_image is a valid image
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -87,7 +89,7 @@ export class ReviewComponent {
           status: response.user.acc_status,
         });
         console.log('Form value after patching:', this.form.value);
-        this.profileImage = response.user.image_link;
+        this.profileImage = response.user.image_link; // Set profileImage from image_link
 
         this.userAccountService.getUserDocuments(userId).subscribe({
           next: (docResponse: any) => {
@@ -109,12 +111,40 @@ export class ReviewComponent {
                 name: doc.doc_name || 'User_Document'
               }))];
             }
+            // Check for id_image from user_id table (now an array)
+            if (docResponse.user?.user_id?.length > 0 && docResponse.user.user_id[0]?.id_image) {
+              console.log('Processing ID image:', docResponse.user.user_id[0].id_image);
+              documents.push({
+                url: docResponse.user.user_id[0].id_image,
+                name: 'ID_Image'
+              });
+            }
+            // Check for face_image from user_face_identity table (now an array)
+            if (docResponse.user?.user_face_identity?.length > 0 && docResponse.user.user_face_identity[0]?.face_image) {
+              console.log('Processing Face image:', docResponse.user.user_face_identity[0].face_image);
+              this.faceImage = docResponse.user.user_face_identity[0].face_image;
+              // Safely handle null or undefined faceImage
+              const faceExtension = this.faceImage?.split('.').pop()?.toLowerCase() || '';
+              this.isFaceImage = ['jpg', 'jpeg', 'png', 'gif'].includes(faceExtension);
+              console.log('Is face_image an image?', this.isFaceImage);
+            } else {
+              this.faceImage = null;
+              this.isFaceImage = false;
+              console.log('No face_image found for this user.');
+            }
 
             console.log('Final documents array:', documents);
 
             if (documents.length > 0) {
-              this.documentUrl = documents[0].url;
-              this.documentName = this.documentUrl.split('/').pop() || documents[0].name;
+              // Prioritize id_image for display if it exists
+              const idImageDoc = documents.find(doc => doc.name === 'ID_Image');
+              if (idImageDoc) {
+                this.documentUrl = idImageDoc.url;
+                this.documentName = 'ID_Image';
+              } else {
+                this.documentUrl = documents[0].url;
+                this.documentName = this.documentUrl.split('/').pop() || documents[0].name;
+              }
               console.log('Document URL set:', this.documentUrl);
               console.log('Document Name set:', this.documentName);
 
@@ -122,6 +152,11 @@ export class ReviewComponent {
               const extension = this.documentUrl.split('.').pop()?.toLowerCase();
               this.isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(extension || '');
               console.log('Is file an image?', this.isImage);
+
+              // Set the imageUrl for display in the template
+              if (this.isImage) {
+                this.imageUrl = this.documentUrl;
+              }
             } else {
               this.documentUrl = null;
               this.documentName = null;
@@ -134,6 +169,8 @@ export class ReviewComponent {
             this.documentUrl = null;
             this.documentName = null;
             this.isImage = false;
+            this.faceImage = null; // Ensure faceImage is reset on error
+            this.isFaceImage = false;
             Swal.fire({
               icon: 'error',
               title: 'Error',
