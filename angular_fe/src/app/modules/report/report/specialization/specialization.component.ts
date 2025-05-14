@@ -8,6 +8,7 @@ import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { SpecializationRank, MonthlyTrends, ChartSeries } from '../../../../../model/reportANDanalysis';
+
 @Component({
   selector: 'app-specialization',
   standalone: true,
@@ -50,10 +51,28 @@ export class SpecializationComponent implements OnInit {
   }
 
   updateChart(): void {
-    this.chartSeries = this.rankedSpecializations.map(spec => ({
-      name: spec.specialization,
-      data: this.chartCategories.map(month => this.monthlyTrends[spec.specialization]?.[month] || 0)
-    }));
+    // Always show all months label
+    this.chartCategories = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    if (this.selectedMonth) {
+      // When a specific month is selected
+      this.chartSeries = this.rankedSpecializations.map(spec => ({
+        name: spec.specialization,
+        data: this.chartCategories.map(month => 
+          month === this.selectedMonth ? Math.floor(Number(this.monthlyTrends[spec.specialization]?.[month] || 0)) : 0
+        )
+      }));
+    } else {
+      // When all Months is selected
+      this.chartSeries = this.rankedSpecializations.map(spec => ({
+        name: spec.specialization,
+        data: this.chartCategories.map(month => Math.floor(Number(this.monthlyTrends[spec.specialization]?.[month] || 0)))
+      }));
+    }
+  }
+
+  tooltipFormatter(val: number): string {
+    return Math.floor(val).toString();
   }
 
   toggleDropdown(): void {
@@ -82,18 +101,15 @@ export class SpecializationComponent implements OnInit {
     });
 
     try {
-  
       doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 140, 35, 28, 25); 
     } catch (e) {
       console.error('Failed to load NearbyTasks.png:', e);
-
     }
 
     try {
       doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 260, 35, 26, 25);
     } catch (e) {
       console.error('Failed to load Quanby.png:', e);
-
     }
 
     // Nearby Task Part
@@ -107,7 +123,7 @@ export class SpecializationComponent implements OnInit {
     doc.setLineWidth(0.2);
     doc.line(30, 70, 415, 70);
 
-    //Specialization
+    // Specialization
     doc.setFontSize(12);
     doc.setTextColor('#000000');
     doc.text('Top Specialization', 30, 90);
@@ -131,7 +147,7 @@ export class SpecializationComponent implements OnInit {
     console.log('Rendering date at position x=400, y=90'); 
     doc.text(formattedDate, 310, 90); 
 
-    const headers = ['No', 'Specialization', 'Total Requested', 'Total Applied'];
+    const headers = [' Analysis', 'Total Requested', 'Total Applied'];
     const rows = this.rankedSpecializations.map((spec, index) => [
       index + 1,
       spec.specialization,

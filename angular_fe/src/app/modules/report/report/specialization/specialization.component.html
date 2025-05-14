@@ -51,7 +51,8 @@
         }"
         [grid]="{ row: { colors: ['#f3f3f3', 'transparent'], opacity: 0.5 } }"
         [legend]="{ position: 'bottom' }"
-        [theme]="{ palette: 'palette8' }">
+        [theme]="{ palette: 'palette8' }"
+        [tooltip]="{ y: { formatter: tooltipFormatter } }">
       </apx-chart>
     </div>
   </div>

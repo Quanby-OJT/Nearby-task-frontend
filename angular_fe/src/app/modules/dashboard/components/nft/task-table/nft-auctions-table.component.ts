@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, NgFor } from '@angular/common';
 import { TaskService } from 'src/app/services/task.service';
+import { Task } from 'src/model/task';
 
 interface TaskTableData {
   client: string;
@@ -17,7 +18,7 @@ interface TaskTableData {
 })
 export class NftAuctionsTableComponent implements OnInit {
   public taskTableData: TaskTableData[] = [];
-  public isLoading: boolean = true; 
+  public isLoading: boolean = true;
 
   constructor(private taskService: TaskService) {}
 
@@ -26,24 +27,24 @@ export class NftAuctionsTableComponent implements OnInit {
   }
 
   private fetchTasks(): void {
-    this.isLoading = true; 
+    this.isLoading = true;
     this.taskService.getTasks().subscribe({
-      next: (response) => {
-        this.taskTableData = this.mapTasksToTableData(response.tasks);
+      next: (response: { tasks: Task[] }) => { 
+        this.taskTableData = this.mapTasksToTableData(response.tasks.filter(task => task.status === 'Available'));
         this.isLoading = false;
       },
       error: (err) => {
         console.error('Error fetching tasks:', err);
-        this.isLoading = false; 
+        this.isLoading = false;
       }
     });
   }
 
-  private mapTasksToTableData(tasks: any[]): TaskTableData[] {
+  private mapTasksToTableData(tasks: Task[]): TaskTableData[] { 
     return tasks.map(task => {
       const clientName = `${task.clients.user.first_name} ${task.clients.user.middle_name ? task.clients.user.middle_name + ' ' : ''}${task.clients.user.last_name}`;
-      const tasker = task.task_title; 
-      const ending_in = task.task_begin_date; 
+      const tasker = task.task_title;
+      const ending_in = task.created_at; 
       const status = task.status;
       return { client: clientName, tasker, ending_in, status };
     });

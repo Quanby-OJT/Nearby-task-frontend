@@ -134,9 +134,9 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
         title: Text(
           'Task Details',
           style:
-              TextStyle(color: Color(0xFF0272B1), fontWeight: FontWeight.bold),
+              TextStyle(color: Color(0xFFE23670), fontWeight: FontWeight.bold),
         ),
-        iconTheme: IconThemeData(color: Color(0xFF0272B1)),
+        iconTheme: IconThemeData(color: Color(0xFFE23670)),
         actions: [
           IconButton(
             icon: Icon(Icons.edit),
@@ -179,7 +179,7 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
                               style: GoogleFonts.montserrat(
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF0272B1),
+                                color: Color(0xFFE23670),
                               ),
                               textAlign: TextAlign.center,
                             ),

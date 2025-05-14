@@ -146,9 +146,9 @@ class _EditTaskPageState extends State<EditTaskPage> {
         title: Text(
           'Edit Task',
           style:
-              TextStyle(color: Color(0xFF0272B1), fontWeight: FontWeight.bold),
+              TextStyle(color: Color(0xFFE23670), fontWeight: FontWeight.bold),
         ),
-        iconTheme: IconThemeData(color: Color(0xFF0272B1)),
+        iconTheme: IconThemeData(color: Color(0xFFE23670)),
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
@@ -369,7 +369,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
                     ElevatedButton(
                       onPressed: _isLoading ? null : _updateTask,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF0272B1),
+                        backgroundColor: Color(0xFFE23670),
                         padding: EdgeInsets.symmetric(vertical: 16),
                         minimumSize: Size(double.infinity, 50),
                       ),
