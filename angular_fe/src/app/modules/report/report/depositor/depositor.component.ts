@@ -73,10 +73,16 @@ export class DepositorComponent implements OnInit {
   months: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   isDropdownOpen: boolean = false;
   isLoading: boolean = true;
+  monthlyTrends: MonthlyTrends = {};
+
   constructor(private reportService: ReportService) {}
 
   ngOnInit(): void {
     this.fetchTopDepositors();
+  }
+
+  tooltipFormatter(val: number): string {
+    return Math.floor(val).toString();
   }
 
   fetchTopDepositors(): void {
@@ -88,27 +94,34 @@ export class DepositorComponent implements OnInit {
       }) => {
         if (response.success) {
           this.depositors = response.rankedDepositors;
+          this.monthlyTrends = response.monthlyTrends;
           this.totalItems = this.depositors.length;
-
-          // Prepare chart series
-          const monthlyTrends = response.monthlyTrends;
-          const series: ChartSeries[] = Object.keys(monthlyTrends).map(userName => ({
-            name: userName,
-            data: Object.values(monthlyTrends[userName]).map(value => value as number),
-          }));
-
-          this.chartOptions = {
-            ...this.chartOptions,
-            series: series
-          };
+          this.updateChart();
         }
         this.isLoading = false;
       },
       error: (error: unknown) => {
         console.error('Error fetching top depositors:', error);
-        this.isLoading = false
+        this.isLoading = false;
       },
     });
+  }
+
+  updateChart(): void {
+    const categories = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const series: ChartSeries[] = Object.keys(this.monthlyTrends).map(userName => ({
+      name: userName,
+      data: this.selectedMonth
+        ? categories.map(month => 
+            month === this.selectedMonth ? Math.floor(Number(this.monthlyTrends[userName]?.[month] || 0)) : 0
+          )
+        : categories.map(month => Math.floor(Number(this.monthlyTrends[userName]?.[month] || 0)))
+    }));
+
+    this.chartOptions = {
+      ...this.chartOptions,
+      series: series
+    };
   }
 
   onMonthChange(): void {
@@ -141,18 +154,15 @@ export class DepositorComponent implements OnInit {
     });
 
     try {
-  
       doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 140, 35, 28, 25); 
     } catch (e) {
       console.error('Failed to load NearbyTasks.png:', e);
-
     }
 
     try {
       doc.addImage('./assets/icons/heroicons/outline/Quanby.png', 'PNG', 260, 35, 26, 25);
     } catch (e) {
       console.error('Failed to load Quanby.png:', e);
-
     }
 
     // Nearby Task Part

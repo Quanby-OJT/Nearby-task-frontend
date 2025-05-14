@@ -41,7 +41,9 @@
           [stroke]="chartOptions.stroke"
           [grid]="chartOptions.grid"
           [theme]="{ palette: 'palette8' }"
-          [legend]="chartOptions.legend">
+          [legend]="chartOptions.legend"
+          [tooltip]="{ y: { formatter: tooltipFormatter } }"
+          >
         </apx-chart>
       </div>
     </div>

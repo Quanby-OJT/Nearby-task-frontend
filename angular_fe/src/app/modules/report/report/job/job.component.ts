@@ -57,10 +57,28 @@ export class JobComponent implements OnInit {
   }
 
   updateChart(): void {
-    this.chartSeries = this.rankedSpecializations.map(spec => ({
-      name: spec.specialization,
-      data: this.chartCategories.map(month => this.monthlyTrends[spec.specialization]?.[month] || 0)
-    }));
+    // Always show all months label
+    this.chartCategories = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    if (this.selectedMonth) {
+      // When a specific month is selected
+      this.chartSeries = this.rankedSpecializations.map(spec => ({
+        name: spec.specialization,
+        data: this.chartCategories.map(month => 
+          month === this.selectedMonth ? Math.floor(Number(this.monthlyTrends[spec.specialization]?.[month] || 0)) : 0
+        )
+      }));
+    } else {
+      // When all Months is selected
+      this.chartSeries = this.rankedSpecializations.map(spec => ({
+        name: spec.specialization,
+        data: this.chartCategories.map(month => Math.floor(Number(this.monthlyTrends[spec.specialization]?.[month] || 0)))
+      }));
+    }
+  }
+
+  tooltipFormatter(val: number): string {
+    return Math.floor(val).toString();
   }
 
   toggleDropdown(): void {
