@@ -38,7 +38,6 @@ export class ReviewComponent {
   isImage: boolean = false;
   faceImage: string | null = null; 
   isFaceImage: boolean = false; 
-  showModal: boolean = false; 
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -328,5 +327,45 @@ export class ReviewComponent {
         text: 'Unable to open the image. Please allow pop-ups for this site.',
       });
     }
+  }
+
+  compareImages(): void {
+    let idImageHtml = '';
+    if (this.imageUrl && this.isImage) {
+      idImageHtml = `<img src="${this.imageUrl}" alt="ID Image" style="width: 200px; height: 200px; object-fit: cover; margin-right: 10px; margin-bottom: 10px;" onclick="window.open('${this.imageUrl}', '_blank');" />`;
+    } else {
+      idImageHtml = '<div>No ID Image Available</div>';
+    }
+
+    let faceImageHtml = '';
+    if (this.faceImage && this.isFaceImage) {
+      faceImageHtml = `<img src="${this.faceImage}" alt="Face Image" style="width: 200px; height: 200px; object-fit: cover; margin-right: 10px; margin-bottom: 10px;" onclick="window.open('${this.faceImage}', '_blank');" />`;
+    } else {
+      faceImageHtml = '<div>No Face Image Available</div>';
+    }
+
+    const htmlContent = `
+      <div style="max-height: 400px; overflow-y: auto; padding-right: 10px; display: flex; justify-content: center; gap: 20px;">
+        <div style="text-align: center;">
+          <div style="margin-bottom: 10px; font-weight: bold;">ID Image</div>
+          ${idImageHtml}
+        </div>
+        <div style="text-align: center;">
+          <div style="margin-bottom: 10px; font-weight: bold;">Face Image</div>
+          ${faceImageHtml}
+        </div>
+      </div>
+    `;
+
+    Swal.fire({
+      title: 'Compare ID Photo and Selfie',
+      html: htmlContent,
+      width: '800px',
+      showCloseButton: true,
+      showConfirmButton: false,
+      customClass: {
+        htmlContainer: 'text-center'
+      }
+    });
   }
 }
