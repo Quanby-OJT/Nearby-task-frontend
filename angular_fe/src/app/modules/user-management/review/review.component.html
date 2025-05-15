@@ -38,173 +38,178 @@
         </div>
 
         <div class="col-span-2">
-          <div class="form__group mb-5">
-            <!-- First Name -->
-            <label for="firstName" class="text-sm font-medium text-gray-700">First Name</label>
-            <div class="relative">
-              <input
-                type="text"
-                id="firstName"
-                [ngClass]="{ 'is__invalid-input': submitted && f['firstName'].errors }"
-                class="peer block"
-                placeholder=" "
-                formControlName="firstName"
-                [disabled]="true"
-                readonly/>
-            </div>
-          </div>
+          <div class="grid grid-cols-2 gap-5">
+            <!-- Left Column: First Name, Middle Name, Last Name -->
+            <div class="space-y-5">
+              <div class="form__group">
+                <!-- First Name -->
+                <label for="firstName" class="text-sm font-medium text-gray-700">First Name</label>
+                <div class="relative">
+                  <input
+                    type="text"
+                    id="firstName"
+                    [ngClass]="{ 'is__invalid-input': submitted && f['firstName'].errors }"
+                    class="peer block"
+                    placeholder=" "
+                    formControlName="firstName"
+                    [disabled]="true"
+                    readonly/>
+                </div>
+              </div>
 
-          <div class="form__group mb-5">
-            <!-- Middle Name -->
-            <label for="middleName" class="text-sm font-medium text-gray-700">Middle Name</label>
-            <div class="relative">
-              <input
-                type="text"
-                id="middleName"
-                [ngClass]="{ 'is__invalid-input': submitted && f['middleName'].errors }"
-                class="peer block"
-                placeholder=" "
-                formControlName="middleName"
-                [disabled]="true"
-                readonly/>
-            </div>
-          </div>
+              <div class="form__group">
+                <!-- Middle Name -->
+                <label for="middleName" class="text-sm font-medium text-gray-700">Middle Name</label>
+                <div class="relative">
+                  <input
+                    type="text"
+                    id="middleName"
+                    [ngClass]="{ 'is__invalid-input': submitted && f['middleName'].errors }"
+                    class="peer block"
+                    placeholder=" "
+                    formControlName="middleName"
+                    [disabled]="true"
+                    readonly/>
+                </div>
+              </div>
 
-          <div class="form__group mb-5">
-            <!-- Last Name -->
-            <label for="lastName" class="text-sm font-medium text-gray-700">Last Name</label>
-            <div class="relative">
-              <input
-                type="text"
-                id="lastName"
-                [ngClass]="{ 'is__invalid-input': submitted && f['lastName'].errors }"
-                class="peer block"
-                placeholder=" "
-                formControlName="lastName" 
-                [disabled]="true"
-                readonly/>
-            </div>
-          </div>
-
-          <!-- Age -->
-          <div class="form__group mb-5">
-            <label for="age" class="text-sm font-medium text-gray-700">Age</label>
-            <div class="relative">
-              <input
-                type="number"
-                id="age"
-                class="peer block"
-                placeholder=" "
-                formControlName="age"
-                [disabled]="true"
-                readonly/>
-            </div>
-          </div>
-
-          <div class="form__group mb-5">
-            <!-- Birthdate -->
-            <label for="bday" class="text-sm font-medium text-gray-700">Birthdate</label>
-            <div class="relative">
-              <input
-                type="date"
-                id="bday"
-                [ngClass]="{ 'is__invalid-input': submitted && f['bday'].errors }"
-                class="peer block"
-                placeholder=" "
-                formControlName="bday"
-                [disabled]="true"
-                readonly/>
-            </div>
-          </div>
-
-          <div class="form__group mb-5">
-            <!-- Email -->
-            <label for="email" class="text-sm font-medium text-gray-700">Email</label>
-            <div class="relative">
-              <input
-                type="email"
-                id="email"
-                [ngClass]="{ 'is__invalid-input': submitted && f['email'].errors }"
-                class="peer block"
-                placeholder=" "
-                formControlName="email"
-                [disabled]="true"
-                readonly/>
-            </div>
-          </div>
-
-          <div class="mb-5 grid grid-cols-2 gap-5">
-            <div class="form__group">
-              <label for="userRole" class="text-sm font-medium text-gray-700">User Role</label>
-              <div class="relative">
-                <select
-                  id="userRole"
-                  class="peer block w-full rounded border px-3 py-2"
-                  formControlName="userRole"
-                  [ngClass]="{ 'border-red-500': submitted && f['userRole'].errors }"
-                  required>
-                  <option value="" disabled selected>Select User Role</option>
-                  <option value="Client" class="non-interactive" hidden>Client</option>
-                  <option value="Moderator">Moderator</option>
-                  <option value="Admin">Admin</option>
-                  <option value="Tasker" class="non-interactive" hidden>Tasker</option>
-                </select>
+              <div class="form__group">
+                <!-- Last Name -->
+                <label for="lastName" class="text-sm font-medium text-gray-700">Last Name</label>
+                <div class="relative">
+                  <input
+                    type="text"
+                    id="lastName"
+                    [ngClass]="{ 'is__invalid-input': submitted && f['lastName'].errors }"
+                    class="peer block"
+                    placeholder=" "
+                    formControlName="lastName" 
+                    [disabled]="true"
+                    readonly/>
+                </div>
               </div>
             </div>
 
-            <div class="form__group">
-              <label for="status" class="text-sm font-medium text-gray-700">Status</label>
-              <div class="relative">
-                <select
-                  id="status"
-                  class="peer block w-full rounded border px-3 py-2"
-                  formControlName="status"
-                  [ngClass]="{ 'border-red-500': submitted && f['status'].errors }"
-                  required> 
-                  <option value="" disabled selected>Select User status</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Active">Verify</option>
-                  <option value="Review">Review</option>
-                </select>
+            <!-- Right Column: Age, Birthdate, Email -->
+            <div class="space-y-5">
+              <div class="form__group">
+                <!-- Age -->
+                <label for="age" class="text-sm font-medium text-gray-700">Age</label>
+                <div class="relative">
+                  <input
+                    type="number"
+                    id="age"
+                    class="peer block"
+                    placeholder=" "
+                    formControlName="age"
+                    [disabled]="true"
+                    readonly/>
+                </div>
               </div>
-              <div *ngIf="submitted && f['status'].errors" class="pt-1 text-xs text-red-500">
-                <div *ngIf="f['status'].errors['required']">Required field</div>
+
+              <div class="form__group">
+                <!-- Birthdate -->
+                <label for="bday" class="text-sm font-medium text-gray-700">Birthdate</label>
+                <div class="relative">
+                  <input
+                    type="date"
+                    id="bday"
+                    [ngClass]="{ 'is__invalid-input': submitted && f['bday'].errors }"
+                    class="peer block"
+                    placeholder=" "
+                    formControlName="bday"
+                    [disabled]="true"
+                    readonly/>
+                </div>
+              </div>
+
+              <div class="form__group">
+                <!-- Email -->
+                <label for="email" class="text-sm font-medium text-gray-700">Email</label>
+                <div class="relative">
+                  <input
+                    type="email"
+                    id="email"
+                    [ngClass]="{ 'is__invalid-input': submitted && f['email'].errors }"
+                    class="peer block"
+                    placeholder=" "
+                    formControlName="email"
+                    [disabled]="true"
+                    readonly/>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Submit Button -->
-          <div class="">
-            <div class="mb-5">
-              <!-- Show Document or Image Button if Document Exists -->
-              <button *ngIf="documentUrl && !isImage"
-                type="button" 
-                (click)="previewDocument()"
-                class="bg-[#EC5987] block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-[#EC5987] focus:outline-none focus:ring-4 focus:ring-[#EC5987] dark:bg-[#EC5987] dark:hover:bg-[#EC5987] dark:focus:ring-[#EC5987] hover:scale-105 transition-transform duration-500">
-                Preview Documents
-              </button>
-              <button *ngIf="documentUrl && isImage"
-                type="button" 
-                (click)="previewImage()"
-                class="bg-[#EC5987] block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-[#EC5987] focus:outline-none focus:ring-4 focus:ring-[#EC5987] dark:bg-[#EC5987] dark:hover:bg-[#EC5987] dark:focus:ring-[#EC5987] hover:scale-105 transition-transform duration-500">
-                Preview Image
-              </button>
-              <!-- Show No Document if No Document Exists -->
-              <button *ngIf="!documentUrl"
-                type="button"
-                disabled
-                class="bg-gray-400 block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white cursor-not-allowed">
-                No Documents Available
-              </button>
-              <div class="py-5">
-                <button
+          <div class="mt-5">
+            <div class="mb-5 grid grid-cols-2 gap-5">
+              <div class="form__group">
+                <label for="userRole" class="text-sm font-medium text-gray-700">User Role</label>
+                <div class="relative">
+                  <select
+                    id="userRole"
+                    class="peer block w-full rounded border px-3 py-2"
+                    formControlName="userRole"
+                    [ngClass]="{ 'border-red-500': submitted && f['userRole'].errors }"
+                    required>
+                    <option value="" disabled selected>Select User Role</option>
+                    <option value="Client" class="non-interactive" hidden>Client</option>
+                    <option value="Moderator">Moderator</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Tasker" class="non-interactive" hidden>Tasker</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form__group">
+                <label for="status" class="text-sm font-medium text-gray-700">Status</label>
+                <div class="relative">
+                  <select
+                    id="status"
+                    class="peer block w-full rounded border px-3 py-2"
+                    formControlName="status"
+                    [ngClass]="{ 'border-red-500': submitted && f['status'].errors }"
+                    required> 
+                    <option value="" disabled selected>Select User status</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Active">Verify</option>
+                    <option value="Review">Review</option>
+                    <option value="Reject">Reject</option>
+                  </select>
+                </div>
+                <div *ngIf="submitted && f['status'].errors" class="pt-1 text-xs text-red-500">
+                  <div *ngIf="f['status'].errors['required']">Required field</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="">
+              <div class="mb-5">
+                <!-- Show Document Button if Document Exists -->
+                <button *ngIf="documentUrl"
                   type="button" 
-                  (click)="compareImages()"
-                  class="bg-[#5F50E7] block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-[#3C28CC] focus:outline-none hover:scale-105 transition-transform duration-500">
-                  Compare Id Photo and Selfie
+                  (click)="previewDocument()"
+                  class="bg-[#EC5987] block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-[#EC5987] focus:outline-none focus:ring-4 focus:ring-[#EC5987] dark:bg-[#EC5987] dark:hover:bg-[#EC5987] dark:focus:ring-[#EC5987] hover:scale-105 transition-transform duration-500">
+                  Preview Documents
                 </button>
+                <!-- Show No Document if No Document Exists -->
+                <button *ngIf="!documentUrl"
+                  type="button"
+                  disabled
+                  class="bg-gray-400 block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white cursor-not-allowed">
+                  No Documents Available
+                </button>
+                <div class="py-5">
+                  <button
+                    type="button" 
+                    (click)="compareImages()"
+                    class="bg-[#5F50E7] block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-[#3C28CC] focus:outline-none hover:scale-105 transition-transform duration-500">
+                    Compare Id Photo and Selfie
+                  </button>
+                </div>
+                <app-button full impact="bold" shape="rounded" size="medium" tone="blue">Update Status</app-button>
               </div>
-              <app-button full impact="bold" shape="rounded" size="medium" tone="blue">Update Status</app-button>
             </div>
           </div>
         </div>

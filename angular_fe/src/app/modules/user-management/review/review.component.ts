@@ -75,7 +75,7 @@ export class ReviewComponent {
 
   calculateAge(birthdate: string): number {
     if (!birthdate) return 0;
-    const today = new Date('2025-05-15'); // Current date as provided
+    const today = new Date('2025-05-15'); 
     const birthDate = new Date(birthdate);
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
@@ -136,7 +136,7 @@ export class ReviewComponent {
             }
             // Check for face_image from user_face_identity table (now an array)
             if (docResponse.user?.user_face_identity?.length > 0 && docResponse.user.user_face_identity[0]?.face_image) {
-              console.log('Processing Face image:', docResponse.user.user_face_identity[0].face_image);
+              console.log('Processing Selfie Image:', docResponse.user.user_face_identity[0].face_image);
               this.faceImage = docResponse.user.user_face_identity[0].face_image;
               // Safely handle null or undefined faceImage
               const faceExtension = this.faceImage?.split('.').pop()?.toLowerCase() || '';
@@ -151,12 +151,13 @@ export class ReviewComponent {
             console.log('Final documents array:', documents);
 
             if (documents.length > 0) {
-              // Prioritize id_image for display if it exists
-              const idImageDoc = documents.find(doc => doc.name === 'ID_Image');
-              if (idImageDoc) {
-                this.documentUrl = idImageDoc.url;
-                this.documentName = 'ID_Image';
+              // Prioritize user_document_link (PDF) for display if it exists
+              const userDoc = documents.find(doc => doc.name === 'User_Document' && doc.url.endsWith('.pdf'));
+              if (userDoc) {
+                this.documentUrl = userDoc.url;
+                this.documentName = this.documentUrl.split('/').pop() || userDoc.name;
               } else {
+                // Fallback to any other document if no PDF user_document_link is found
                 this.documentUrl = documents[0].url;
                 this.documentName = this.documentUrl.split('/').pop() || documents[0].name;
               }
@@ -366,11 +367,11 @@ export class ReviewComponent {
           <div class="image-spinner" style="display: flex; justify-content: center; align-items: center; width: 200px; height: 200px; background: #f0f0f0;">
             <div style="border: 4px solid #f3f3f3; border-top: 4px solid #5F50E7; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite;"></div>
           </div>
-          <img src="${this.faceImage}" alt="Face Image" style="width: 200px; height: 200px; object-fit: cover; display: none;" onload="this.style.display='block'; this.parentNode.querySelector('.image-spinner').style.display='none';" onerror="this.style.display='none'; this.parentNode.querySelector('.image-spinner').style.display='none'; this.parentNode.innerHTML='<div style=\\'width: 200px; height: 200px; background: #f0f0f0; display: flex; justify-content: center; align-items: center; color: #666; font-size: 14px; text-align: center;\\' >No Face Image Available</div>';"/>
+          <img src="${this.faceImage}" alt="Selfie Image" style="width: 200px; height: 200px; object-fit: cover; display: none;" onload="this.style.display='block'; this.parentNode.querySelector('.image-spinner').style.display='none';" onerror="this.style.display='none'; this.parentNode.querySelector('.image-spinner').style.display='none'; this.parentNode.innerHTML='<div style=\\'width: 200px; height: 200px; background: #f0f0f0; display: flex; justify-content: center; align-items: center; color: #666; font-size: 14px; text-align: center;\\' >No Selfie Image Available</div>';"/>
         </div>
       `;
     } else {
-      faceImageHtml = '<div style="width: 200px; height: 200px; background: #f0f0f0; display: flex; justify-content: center; align-items: center; color: #666; font-size: 14px; text-align: center;">No Face Image Available</div>';
+      faceImageHtml = '<div style="width: 200px; height: 200px; background: #f0f0f0; display: flex; justify-content: center; align-items: center; color: #666; font-size: 14px; text-align: center;">No Selfie Image Available</div>';
     }
   
     const htmlContent = `
@@ -386,12 +387,12 @@ export class ReviewComponent {
           ${idImageHtml}
         </div>
         <div style="text-align: center;">
-          <div style="margin-bottom: 10px; font-weight: bold;">Face Image</div>
+          <div style="margin-bottom: 10px; font-weight: bold;">Selfie Image</div>
           ${faceImageHtml}
         </div>
       </div>
     `;
-  
+    
     Swal.fire({
       title: 'Compare ID Photo and Selfie',
       html: htmlContent,
@@ -399,7 +400,7 @@ export class ReviewComponent {
       showCloseButton: false,
       showConfirmButton: true,
       confirmButtonText: 'Close',
-      confirmButtonColor: '#5F50E7',
+      confirmButtonColor: '#FF0000',
       customClass: {
         htmlContainer: 'text-center',
         actions: 'swal2-actions-right'

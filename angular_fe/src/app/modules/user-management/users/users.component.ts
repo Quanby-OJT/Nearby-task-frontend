@@ -228,6 +228,8 @@ export class UsersComponent implements OnInit {
           return user.acc_status === 'Deactivate';
         case '8':
           return user.acc_status === 'Review';
+        case '9':
+          return user.acc_status === 'Reject';
         default:
           return true;
       }

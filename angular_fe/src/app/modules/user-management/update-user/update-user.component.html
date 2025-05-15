@@ -113,15 +113,41 @@
           <div class="form__group mb-5">
             <div class="relative">
               <input
+                type="number"
+                id="age"
+                [ngClass]="{ 'is__invalid-input': submitted && f['age'].errors }"
+                class="peer block"
+                placeholder=" "
+                formControlName="age"
+                [disabled]="true"
+                readonly
+              />
+              <label
+                for="age"
+                [ngClass]="{ 'peer-focus:text-destructive!': submitted && f['age'].errors }"
+                class="bg-background text-muted-foreground peer-focus:text-primary absolute top-2 left-1 z-10 origin-[0] -translate-y-4 scale-95 transform px-2 text-sm duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-95 peer-focus:px-2"
+              >
+                Age
+              </label>
+            </div>
+            <div *ngIf="submitted && f['age'].errors" class="px-1 pt-1 text-xs text-red-500">
+              <div *ngIf="f['age'].errors['required']">Required field</div>
+            </div>
+          </div>
+
+          <div class="form__group mb-5">
+            <div class="relative">
+              <input
                 type="date"
                 id="bday"
                 [ngClass]="{ 'is__invalid-input': submitted && f['bday'].errors }"
                 class="peer block"
                 placeholder=" "
                 formControlName="bday"
-                [max]="today" 
+                [max]="today"
                 [disabled]="true"
-                readonly/>
+                readonly
+              />
               <label
                 for="bday"
                 [ngClass]="{ 'peer-focus:text-destructive!': submitted && f['bday'].errors }"
@@ -150,8 +176,7 @@
               <label
                 for="email"
                 [ngClass]="{ 'peer-focus:text-destructive!': submitted && f['email'].errors }"
-                class="bg-background text-muted-foreground peer-focus:text-primary absolute top-2 left-1 z-10 origin-[0] -translate-y-4 scale-95 transform px-2 text-sm duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-95 peer-focus:px-2"
-              >
+                class="bg-background text-muted-foreground peer-focus:text-primary absolute top-2 left-1 z-10 origin-[0] -translate-y-4 scale-95 transform px-2 text-sm duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-95 peer-focus:px-2">
                 Email
               </label>
             </div>
@@ -172,8 +197,7 @@
                   formControlName="userRole"
                   [ngClass]="{ 'border-red-500': submitted && f['userRole'].errors }"
                   [disabled]="true"
-                  readonly
-                >
+                  readonly>
                   <option value="" disabled selected>Select User Role</option>
                   <option value="Client" class="non-interactive" hidden>Client</option>
                   <option value="Admin">Admin</option>
@@ -194,7 +218,7 @@
                   formControlName="status"
                   [ngClass]="{ 'border-red-500': submitted && f['status'].errors }"
                   [disabled]="true"
-                  readonly> 
+                  readonly>
                   <option value="" disabled selected>Select User Status</option>
                   <option value="Active">Verify</option>
                   <option value="Pending">Pending</option>
@@ -204,6 +228,7 @@
                   <option value="Suspend" class="non-interactive" hidden>Suspend</option>
                   <option value="Warn">Warn</option>
                   <option value="Review">Review</option>
+                  <option value="Reject" class="non-interactive" hidden>Reject</option>
                 </select>
               </div>
               <div *ngIf="submitted && f['status'].errors" class="pt-1 text-xs text-red-500">
