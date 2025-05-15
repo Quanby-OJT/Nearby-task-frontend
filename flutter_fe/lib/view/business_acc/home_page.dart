@@ -290,7 +290,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               Navigator.pop(context);
               final result = await Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const FillUpClient()),
+                MaterialPageRoute(
+                    builder: (context) => const VerificationPage()),
               );
               if (result == true) {
                 setState(() {
@@ -434,6 +435,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           ),
                         ),
                         onTap: () {
+                          if (_user?.user.accStatus?.toLowerCase() ==
+                              'review') {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => EscrowTokenScreen()),
+                            );
+                            overlayEntry.remove();
+                            return;
+                          }
+
                           if (_existingProfileImageUrl == null ||
                               _existingIDImageUrl == null ||
                               _existingProfileImageUrl!.isEmpty ||
@@ -831,6 +843,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                     _cardCounter();
                                   } else if (swipeDirection ==
                                       CardSwiperDirection.right) {
+                                    if (_user?.user.accStatus?.toLowerCase() ==
+                                        'review') {
+                                      _saveLikedTasker(
+                                          taskers[previousIndex].user);
+                                      _cardCounter();
+                                      return true;
+                                    }
+
                                     if (_existingProfileImageUrl == null ||
                                         _existingIDImageUrl == null ||
                                         _existingProfileImageUrl!.isEmpty ||
