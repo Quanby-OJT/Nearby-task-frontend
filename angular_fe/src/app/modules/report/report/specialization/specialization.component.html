@@ -1,6 +1,6 @@
 <div class="min-h-screen w-full bg-gray-50 p-4">
   <!-- Month Filter and Download Dropdown -->
-  <div class="flex justify-between mb-4 w-full">
+  <div class="flex justify-between mb-4 w-full lg:w-[70rem] xl:w-[90rem]">
     <div class="flex items-end w-1/4">
       <label for="monthFilter" class="mr-2 whitespace-nowrap">Filter by Month:</label>
       <select id="monthFilter" [(ngModel)]="selectedMonth" (change)="onMonthChange()" class="py-1 px-2 border rounded-md w-32 text-sm">
@@ -25,14 +25,11 @@
       </div>
     </div>
 
-  <!-- Loading Spinner -->
-  <div *ngIf="isLoading" class="flex flex-col justify-center items-center h-64 animate-slow-spin text-xs text-[#3C28CC]">
-    <svg-icon src="./assets/icons/heroicons/outline/logo.svg" [svgClass]="'h-20 w-20'"></svg-icon>
-    <strong>Nearby Task</strong>
-  </div>
-
     <!-- Chart -->
-    <div id="chart" *ngIf="!isLoading">
+    <div id="chart" class="relative">
+      <div *ngIf="chartSeries.length === 0" class="absolute inset-0 flex items-center justify-center text-gray-500 text-lg lg:w-[37rem] xl:w-[56rem]">
+        No Data Found
+      </div>
       <apx-chart
         [series]="chartSeries"
         [chart]="{
@@ -57,18 +54,19 @@
         }"
         [grid]="{ row: { colors: ['#f3f3f3', 'transparent'], opacity: 0.5 } }"
         [legend]="{ position: 'bottom' }"
-        [theme]="{ palette: 'palette8' }">
+        [theme]="{ palette: 'palette8' }"
+        [tooltip]="{ y: { formatter: tooltipFormatter } }">
       </apx-chart>
     </div>
   </div>
 </div>
 
   <!-- Table section -->
-  <div *ngIf="!isLoading"class="bg-white rounded-xl shadow-lg p-6">
-    <div class="overflow-x-auto w-full">
+  <div class="bg-white rounded-xl shadow-lg p-6">
+    <div class="relative" style="height: 20rem; overflow-y: auto;">
       <table class="w-full border-collapse text-left text-sm">
-        <thead class="border-b">
-          <tr class="bg-gray-100">
+        <thead class="border-b sticky top-0 bg-gray-100">
+          <tr>
             <th class="px-2 py-2 w-[40px]">No</th>
             <th class="px-2 py-2 text-start min-w-[100px]">Specialization</th>
             <th class="px-2 py-2 text-start min-w-[100px]">Total Requested</th>
@@ -76,6 +74,9 @@
           </tr>
         </thead>
         <tbody>
+          <tr *ngIf="rankedSpecializations.length === 0">
+            <td colspan="4" class="absolute inset-0 flex items-center justify-center text-gray-500 text-lg lg:w-[37rem] xl:w-[56rem]">No Data Found</td>
+          </tr>
           <tr *ngFor="let spec of rankedSpecializations; let i = index" class="hover:bg-card/50 h-[60px]">
             <td class="px-2 py-2 text-start">{{ i + 1 }}</td>
             <td class="px-2 py-2 text-start">{{ spec.specialization }}</td>

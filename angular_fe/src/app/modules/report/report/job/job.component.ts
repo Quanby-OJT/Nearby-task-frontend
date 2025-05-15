@@ -33,21 +33,25 @@ export class JobComponent implements OnInit {
   }
 
   fetchSpecializations(): void {
-    this.reportService.getSpecialization('requested', this.selectedMonth || undefined).subscribe({
+    this.reportService.getSpecialization('applied', this.selectedMonth || undefined).subscribe({
       next: (response) => {
         if (response.success) {
-          this.rankedSpecializations = response.rankedSpecializations;
+          // If a month is selected, filter specializations with non-zero data for that month
+          if (this.selectedMonth) {
+            this.rankedSpecializations = response.rankedSpecializations.filter(spec => {
+              const monthData = this.monthlyTrends[spec.specialization]?.[this.selectedMonth as string];
+              return monthData && (Number(monthData) > 0 || spec.total_requested > 0 || spec.total_applied > 0);
+            });
+          } else {
+            // If no month is selected, show all specializations
+            this.rankedSpecializations = response.rankedSpecializations;
+          }
           this.monthlyTrends = response.monthlyTrends;
-          console.log("Ranked Specializations:", this.rankedSpecializations); // Debug
           this.updateChart();
-        } else {
-          console.error("Response unsuccessful:", response);
         }
-        this.isLoading = false;
       },
-      error: (error: any) => {
+      error: (error) => {
         console.error('Error fetching specialization data:', error);
-        this.isLoading = false;
       }
     });
   }
@@ -57,10 +61,28 @@ export class JobComponent implements OnInit {
   }
 
   updateChart(): void {
-    this.chartSeries = this.rankedSpecializations.map(spec => ({
-      name: spec.specialization,
-      data: this.chartCategories.map(month => this.monthlyTrends[spec.specialization]?.[month] || 0)
-    }));
+    // Always show all months label
+    this.chartCategories = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    if (this.selectedMonth) {
+      // When a specific month is selected
+      this.chartSeries = this.rankedSpecializations.map(spec => ({
+        name: spec.specialization,
+        data: this.chartCategories.map(month => 
+          month === this.selectedMonth ? Math.floor(Number(this.monthlyTrends[spec.specialization]?.[month] || 0)) : 0
+        )
+      }));
+    } else {
+      // When all Months is selected
+      this.chartSeries = this.rankedSpecializations.map(spec => ({
+        name: spec.specialization,
+        data: this.chartCategories.map(month => Math.floor(Number(this.monthlyTrends[spec.specialization]?.[month] || 0)))
+      }));
+    }
+  }
+
+  tooltipFormatter(val: number): string {
+    return Math.floor(val).toString();
   }
 
   toggleDropdown(): void {

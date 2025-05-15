@@ -10,6 +10,7 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/business_acc/business_task_detail.dart';
+import 'package:flutter_fe/view/business_acc/task_creation/add_task.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
@@ -131,6 +132,7 @@ class _JobPostPageState extends State<JobPostPage>
       final userId = storage.read('user_id');
       if (userId != null) {
         final tasks = await controller.getJobsforClient(context, userId);
+        debugPrint("Client Tasks this is: ${tasks.toString()}");
         setState(() {
           clientTasks = tasks;
           _filteredTasks = List.from(clientTasks);
@@ -376,7 +378,7 @@ class _JobPostPageState extends State<JobPostPage>
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF0272B1),
+            color: Color(0xFFE23670),
           ),
         ),
         content: Text(
@@ -420,7 +422,7 @@ class _JobPostPageState extends State<JobPostPage>
               });
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF0272B1),
+              backgroundColor: Color(0xFFE23670),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -477,7 +479,7 @@ class _JobPostPageState extends State<JobPostPage>
                 style: GoogleFonts.poppins(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF0272B1),
+                  color: Color(0xFFE23670),
                 ),
               ),
               SizedBox(height: 8),
@@ -616,7 +618,7 @@ class _JobPostPageState extends State<JobPostPage>
                         _validateAndSubmit();
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF0272B1),
+                        backgroundColor: Color(0xFFE23670),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -771,7 +773,7 @@ class _JobPostPageState extends State<JobPostPage>
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
+          borderSide: BorderSide(color: Color(0xFFE23670), width: 2),
         ),
         errorText: errorText,
         errorStyle: GoogleFonts.poppins(color: Colors.red[400]),
@@ -807,7 +809,7 @@ class _JobPostPageState extends State<JobPostPage>
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
+          borderSide: BorderSide(color: Color(0xFFE23670), width: 2),
         ),
         errorText: errorText,
         errorStyle: GoogleFonts.poppins(color: Colors.red[400]),
@@ -854,9 +856,9 @@ class _JobPostPageState extends State<JobPostPage>
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
+          borderSide: BorderSide(color: Color(0xFFE23670), width: 2),
         ),
-        suffixIcon: Icon(Icons.calendar_today, color: Color(0xFF0272B1)),
+        suffixIcon: Icon(Icons.calendar_today, color: Color(0xFFE23670)),
         errorText: errorText,
         errorStyle: GoogleFonts.poppins(color: Colors.red[400]),
       ),
@@ -871,7 +873,7 @@ class _JobPostPageState extends State<JobPostPage>
             return Theme(
               data: ThemeData.light().copyWith(
                 colorScheme: ColorScheme.light(
-                  primary: Color(0xFF0272B1),
+                  primary: Color(0xFFE23670),
                   onPrimary: Colors.white,
                   surface: Colors.white,
                   onSurface: Colors.black,
@@ -1006,7 +1008,7 @@ class _JobPostPageState extends State<JobPostPage>
                         );
                       }).toList(),
                     ),
-                    // Task Count
+
                     Padding(
                       padding:
                           EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1020,12 +1022,11 @@ class _JobPostPageState extends State<JobPostPage>
                         ),
                       ),
                     ),
-                    // Task List
                     Expanded(
                       child: _isLoading
                           ? Center(
                               child: CircularProgressIndicator(
-                                  color: Color(0xFF0272B1)))
+                                  color: Color(0xFFE23670)))
                           : _filteredTasks.isEmpty
                               ? Center(
                                   child: Column(
@@ -1057,7 +1058,7 @@ class _JobPostPageState extends State<JobPostPage>
                                 )
                               : RefreshIndicator(
                                   onRefresh: fetchCreatedTasks,
-                                  color: Color(0xFF0272B1),
+                                  color: Color(0xFFE23670),
                                   child: ListView.builder(
                                     padding: EdgeInsets.all(16),
                                     itemCount: _filteredTasks.length,
@@ -1079,15 +1080,67 @@ class _JobPostPageState extends State<JobPostPage>
           SizedBox(height: 16),
           FloatingActionButton(
             heroTag: "addTaskBtn",
-            onPressed: _showCreateTaskModal,
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AddTask(),
+              ),
+            ),
             backgroundColor: const Color(0xFFB71A4A),
-            child: Icon(Icons.add, color: Colors.white),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
+            child: Icon(Icons.add, color: Colors.white),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTaskStatusColor(TaskModel task) {
+    return Row(
+      children: [
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: task.status == 'Pending'
+                ? Colors.grey[500]
+                : task.status == 'Completed'
+                    ? Colors.green
+                    : task.status == 'Confirmed'
+                        ? Colors.green
+                        : task.status == 'Dispute Settled'
+                            ? Colors.green
+                            : task.status == 'Ongoing'
+                                ? Colors.blue
+                                : task.status == 'Interested'
+                                    ? Colors.blue
+                                    : task.status == 'Review'
+                                        ? Colors.yellow
+                                        : task.status == 'Disputed'
+                                            ? Colors.orange
+                                            : task.status == 'Rejected'
+                                                ? Colors.red
+                                                : task.status == 'Declined'
+                                                    ? Colors.red
+                                                    : task.status == 'Cancelled'
+                                                        ? Colors.red
+                                                        : task.status ==
+                                                                'Available'
+                                                            ? Colors.green
+                                                            : Colors.red,
+          ),
+          child: Text(
+            task.status,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1095,7 +1148,7 @@ class _JobPostPageState extends State<JobPostPage>
     String priceDisplay = "${task.contactPrice} Credits";
 
     return Card(
-      elevation: 0.2,
+      elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       color: Colors.white,
       margin: EdgeInsets.only(bottom: 12),
@@ -1107,6 +1160,7 @@ class _JobPostPageState extends State<JobPostPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              _buildTaskStatusColor(task),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -1116,15 +1170,10 @@ class _JobPostPageState extends State<JobPostPage>
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF0272B1),
+                        color: Color(0xFFE23670),
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    size: 16,
-                    color: Colors.grey[400],
                   ),
                 ],
               ),
@@ -1132,7 +1181,9 @@ class _JobPostPageState extends State<JobPostPage>
               _buildTaskInfoRow(
                 icon: FontAwesomeIcons.locationPin,
                 color: Colors.red[400]!,
-                text: task.location ?? 'N/A',
+                text: (task.address?.city ?? 'N/A') +
+                    ', ' +
+                    (task.address?.province ?? 'N/A'),
               ),
               SizedBox(height: 8),
               _buildTaskInfoRow(
@@ -1143,7 +1194,7 @@ class _JobPostPageState extends State<JobPostPage>
               SizedBox(height: 8),
               _buildTaskInfoRow(
                 icon: FontAwesomeIcons.screwdriverWrench,
-                color: Color(0xFF0272B1),
+                color: Color(0xFFE23670),
                 text: task.specialization ?? 'N/A',
               ),
               SizedBox(height: 8),

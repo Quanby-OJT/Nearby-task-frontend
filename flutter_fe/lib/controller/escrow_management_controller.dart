@@ -10,10 +10,10 @@ class EscrowManagementController {
   final TextEditingController otherReasonController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
   final TextEditingController cardNumberController = TextEditingController();
-  final TextEditingController cardHolderNameController = TextEditingController();
+  final TextEditingController cardHolderNameController =
+      TextEditingController();
   final TextEditingController cvvController = TextEditingController();
   final TextEditingController expiryDateController = TextEditingController();
-  final TextEditingController paymentMethodController = TextEditingController();
   final TextEditingController acctNumberController = TextEditingController();
 
   int tokenRate = 1;
@@ -62,12 +62,16 @@ class EscrowManagementController {
     }
   }
 
-  Future<Map<String, dynamic>> depositAmountToEscrow(String paymentMethod) async {
+  Future<Map<String, dynamic>> depositAmountToEscrow(
+      String paymentMethod) async {
     try {
       // debugPrint("TaskRequestController: Depositing amount to escrow");
       // debugPrint("TaskRequestController: Contract Price: $contractPrice");
       // debugPrint("TaskRequestController: Task Taken ID: $taskTakenId");
-      var response = await _requestService.depositEscrowPayment(double.parse(amountController.text.replaceAll("₱", "").replaceAll(",", "")), paymentMethod);
+      var response = await _requestService.depositEscrowPayment(
+          double.parse(
+              amountController.text.replaceAll("₱", "").replaceAll(",", "")),
+          paymentMethod);
 
       if (response.containsValue('message')) {
         await fetchTokenBalance();
@@ -85,11 +89,11 @@ class EscrowManagementController {
     }
   }
 
-  Future<String> releaseEscrowPayment(int taskerId) async {
+  Future<String> releaseEscrowPayment(int taskerId, String paymentMethod) async {
     try {
       debugPrint(
           "TaskRequestController: Releasing escrow payment for task taken with ID $taskerId");
-      var response = await _requestService.releaseEscrowPayment(taskerId);
+      var response = await _requestService.releaseEscrowPayment(taskerId, double.parse(amountController.text), paymentMethod);
       if (response.containsKey("message")) {
         return response["message"];
       } else if (response.containsKey("error")) {
@@ -105,7 +109,7 @@ class EscrowManagementController {
   }
 
   void connectWebSocket() async {
-    _channel = IOWebSocketChannel.connect('ws://10.0.2.2:5000');
+    _channel = IOWebSocketChannel.connect('ws://192.168.43.15:5000');
     _channel!.stream.listen((message) {
       debugPrint('Received message: $message');
 

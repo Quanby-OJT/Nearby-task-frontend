@@ -1,6 +1,6 @@
 <div class="border-muted-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
   <!-- Month Filter -->
-  <div class="flex justify-between mb-4 w-full">
+  <div class="flex justify-between mb-4 w-full lg:w-[70rem] xl:w-[90rem]">
     <div class="flex items-end w-1/4">
       <label for="monthFilter" class="mr-2 whitespace-nowrap">Filter by Month:</label>
       <select id="monthFilter" [(ngModel)]="selectedMonth" (change)="onMonthChange()" class="py-1 px-2 border rounded-md w-32 text-sm">
@@ -10,15 +10,8 @@
     </div>
   </div>
 
-
-  <!-- Loading Spinner -->
-  <div *ngIf="isLoading" class="flex flex-col justify-center items-center h-64 animate-slow-spin text-xs text-[#3C28CC]">
-    <svg-icon src="./assets/icons/heroicons/outline/logo.svg" [svgClass]="'h-20 w-20'"></svg-icon>
-    <strong>Nearby Task</strong>
-  </div>
-
   <!-- Chart section -->
-  <div class="w-full mb-6" *ngIf="!isLoading">
+  <div class="w-full mb-6">
     <div class="bg-white rounded-xl shadow-lg p-6">
       <!-- Header with Title and Download Button -->
       <div class="flex justify-between items-center mb-4">
@@ -34,7 +27,10 @@
       </div>
 
       <!-- Chart -->
-      <div id="chart">
+      <div id="chart" class="relative">
+        <div *ngIf="chartOptions.series.length === 0" class="absolute inset-0 flex items-center justify-center text-gray-500 text-lg lg:w-[37rem] xl:w-[56rem]">
+          No Data Found
+        </div>
         <apx-chart
           [series]="chartOptions.series"
           [chart]="{
@@ -48,18 +44,21 @@
           [stroke]="chartOptions.stroke"
           [grid]="chartOptions.grid"
           [theme]="{ palette: 'palette8' }"
-          [legend]="chartOptions.legend">
+          [legend]="chartOptions.legend"
+          [tooltip]="{ y: { formatter: tooltipFormatter } }"
+          >
         </apx-chart>
       </div>
     </div>
   </div>
 
   <!-- Table section -->
-  <div *ngIf="!isLoading" class="bg-white rounded-xl shadow-lg p-6">
-    <div class="overflow-x-auto w-full">
+  <div class="bg-white rounded-xl shadow-lg p-6">
+    <div class="relative" style="height: 20rem; overflow-y: auto;">
+      <div *ngIf="paginatedDepositors.length === 0" class="absolute inset-0 flex items-center justify-center text-gray-500 text-lg lg:w-[37rem] xl:w-[56rem]">No Data Found</div>
       <table class="w-full border-collapse text-left text-sm">
-        <thead class="border-b">
-          <tr class="bg-gray-100">
+        <thead class="border-b sticky top-0 bg-gray-100">
+          <tr>
             <th class="px-2 py-2 w-[40px]">No</th>
             <th class="px-2 py-2 text-start min-w-[100px]">Depositor</th>
             <th class="px-2 py-2 text-start min-w-[100px]">Amount Deposited</th>
@@ -67,7 +66,6 @@
           </tr>
         </thead>
         <tbody>
-          <!-- Dynamically render depositors -->
           <tr *ngFor="let depositor of paginatedDepositors; let i = index" class="hover:bg-card/50 h-[60px]">
             <td class="px-2 py-2 text-start">{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
             <td class="px-2 py-2 text-start">{{ depositor.userName }}</td>

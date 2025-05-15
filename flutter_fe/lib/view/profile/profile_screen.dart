@@ -56,6 +56,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _fetchUserData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
     fetchSpecialization();
   }
 
@@ -178,6 +181,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         tesdaDocuments.addAll(result.paths.map((path) => File(path!)).toList());
       });
     }
+  }
+
+  Future<void> _loadData() async {
+    await _escrowController.fetchTokenBalance();
+    setState(() => _isLoading = false);
+  }
+
+  String formatCurrency(double amount) {
+    final format = NumberFormat.currency(locale: 'en_PH', symbol: '₱');
+    return format.format(amount);
   }
 
   Widget buildFilePreview(dynamic file, int index) {
@@ -356,9 +369,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                 MainAxisAlignment.spaceBetween,
                                             children: [
                                               Text(
-                                                  _isAmountVisible
-                                                      ? "PHP 100,000"
-                                                      : "PHP ***********",
+                                                  _isAmountVisible ? NumberFormat.currency(locale: 'en_PH', symbol: 'PHP ').format(_escrowController.tokenCredits.value) : "PHP ***********",
+
+
                                                   style: GoogleFonts.poppins(
                                                       fontSize: 30,
                                                       fontWeight:
@@ -420,23 +433,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                                     FontWeight
                                                                         .w600))
                                                   ],
-                                                  if (role == "Client") ...[
-                                                    const Icon(
-                                                        FontAwesomeIcons
-                                                            .signOut,
-                                                        size: 14,
-                                                        color: Colors.white),
+                                                  if(role == "Client")...[
+                                                    const Icon(FontAwesomeIcons.piggyBank, size: 14, color: Colors.white),
                                                     const SizedBox(width: 8),
-                                                    Text(
-                                                        "Withdraw IMONALICK Credits",
-                                                        style:
-                                                            GoogleFonts.poppins(
-                                                                fontSize: 14,
-                                                                color: Colors
-                                                                    .white,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600))
+                                                    Text("Deposit IMONALICK Credits", style: GoogleFonts.poppins(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w600))
                                                   ]
                                                 ],
                                               ),
@@ -1014,19 +1014,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _showUpWithdrawalConfirmation(BuildContext parentContext) {
     showModalBottomSheet(
-        context: parentContext,
-        builder: (BuildContext bottomSheetContext) {
-          return _AmountManagementBottomSheet(
-            onAmountSubmit: (int userId, Function(bool) onComplete) async {
-              debugPrint('User ID: $userId');
-            },
-          );
-        });
+      context: parentContext,
+      builder: (BuildContext bottomSheetContext) {
+        return _AmountManagementBottomSheet(
+          onAmountSubmit: (String paymentMethod, Function(bool) onComplete) async {
+            if(role == "Client"){
+              await _escrowController.depositAmountToEscrow(paymentMethod);
+            }else if(role == "Tasker"){
+              await _escrowController.releaseEscrowPayment(taskerId, paymentMethod);
+            }
+
+          },
+        );
+      }
+    );
   }
 }
 
 class _AmountManagementBottomSheet extends StatefulWidget {
-  final Function(int userId, Function(bool) onComplete) onAmountSubmit;
+  final Function(String paymentMethod, Function(bool) onComplete) onAmountSubmit;
 
   const _AmountManagementBottomSheet({required this.onAmountSubmit});
 
@@ -1057,68 +1063,64 @@ class _AmountManagementBottomSheetState
     return SingleChildScrollView(
       primary: false,
       child: Form(
-          key: _formKey,
-          child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
-              child: Column(children: [
-                Text(
-                    role == "Tasker"
-                        ? "How much IMONALICK Credits would you like to withdraw?"
-                        : "How much IMONALICK Credits would you want to buy?",
-                    style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        color: Color(0XFF3C28CC),
-                        fontWeight: FontWeight.bold)),
-                SizedBox(
-                  height: 20,
-                ),
-                //Amount to Deposit/Withdraw
-                TextFormField(
-                  controller: _escrowController.amountController,
-                  decoration: InputDecoration(
-                    hintText: "Enter Amount",
-                    hintStyle: GoogleFonts.poppins(
-                      color: Color(0XFF3C28CC),
-                    ),
+        key: _formKey,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+          child: Column(
+            children: [
+              Text(
+                role == "Tasker" ? "How much IMONALICK Credits would you like to withdraw?" : "How much IMONALICK Credits would you want to buy?",
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  color: Color(0XFF3C28CC),
+                  fontWeight: FontWeight.bold
+                )
+              ),
+              SizedBox(height: 20,),
+              //Amount to Deposit/Withdraw
+              TextFormField(
+                controller: _escrowController.amountController,
+                decoration: InputDecoration(
+                  hintText: "Enter Amount",
+                  hintStyle: GoogleFonts.poppins(
+                    color: Color(0XFF3C28CC),
                   ),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    CurrencyTextInputFormatter.currency(
-                        locale: 'en_PH', symbol: '₱', decimalDigits: 2),
-                  ],
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Please Enter Amount to Withdraw";
-                    } else if (double.parse(
-                            value.replaceAll("₱", "").replaceAll(",", "")) >
-                        20000) {
-                      return "You Cannot Withdraw more than P2,000.00";
-                    }
-                    return null;
-                  },
                 ),
-                Text(
-                    (role == "Tasker")
-                        ? "NOTE: The Maximum Amount that you can withdraw is PHP 20,000.00."
-                        : "NOTE: The Minimum Amount that you can deposit is PHP 2,000.00 and the maximum is PHP 30,000.00.",
-                    style: GoogleFonts.poppins()),
-                SizedBox(
-                  height: 20,
-                ),
-                //Select Payment/Withdraw Method
-                Center(
-                    child: Text(
-                        role == "Tasker"
-                            ? "Select Withdrawal Method"
-                            : "Select Payment Method",
-                        style: GoogleFonts.poppins(
-                            fontSize: 20,
-                            color: Color(0XFF3C28CC),
-                            fontWeight: FontWeight.bold))),
-                SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  CurrencyTextInputFormatter.currency(
+                      locale: 'en_PH', symbol: '₱', decimalDigits: 2
+                  ),
+                ],
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Please Enter Amount to Withdraw";
+                  } else if (double.parse(value
+                      .replaceAll("₱", "")
+                      .replaceAll(",", "")) >
+                      20000) {
+                    return "You Cannot Withdraw more than P20,000.00";
+                  }
+                  return null;
+                },
+              ),
+              Text((role == "Tasker") ? "NOTE: The Maximum Amount that you can withdraw is PHP 20,000.00." : "NOTE: The Minimum Amount that you can deposit is PHP 2,000.00 and the maximum is PHP 30,000.00.", style: GoogleFonts.poppins()),
+              SizedBox(height: 20,),
+              //Select Payment/Withdraw Method
+              Center(
+                child: Text(
+                  role == "Tasker" ? "Select Withdrawal Method" : "Select Payment Method",
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    color: Color(0XFF3C28CC),
+                    fontWeight: FontWeight.bold
+                  )
+                )
+              ),
+              SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
                     //This will be expanded as the user wants more payment methods.
                     buildPaymentCard(
                         "GCash",
@@ -1189,6 +1191,20 @@ class _AmountManagementBottomSheetState
                 ),
                 const SizedBox(height: 5),
                 ElevatedButton(
+                  onPressed: _isConfirmed ? () {
+                    if(_formKey.currentState!.validate()){
+                      widget.onAmountSubmit(
+                        _selectedPaymentMethod,
+                            (bool success) {
+                          if (success) {
+                            Navigator.pop(context, true); // Pop feedback bottom sheet with true
+                          } else {
+                            Navigator.pop(context, false); // Pop feedback bottom sheet with false
+                          }
+                        },
+                      );
+                    }
+                  } : null,
                   style: ButtonStyle(
                     backgroundColor: WidgetStateProperty.resolveWith<Color>(
                         (Set<WidgetState> states) {
@@ -1198,32 +1214,18 @@ class _AmountManagementBottomSheetState
                       return const Color(0xFF3C28CC);
                     }),
                   ),
-                  onPressed: _isConfirmed
-                      ? () {
-                          if (_formKey.currentState!.validate()) {
-                            widget.onAmountSubmit(
-                              GetStorage().read('user_id'),
-                              (bool success) {
-                                if (success) {
-                                  Navigator.pop(context,
-                                      true); // Pop feedback bottom sheet with true
-                                } else {
-                                  Navigator.pop(context,
-                                      false); // Pop feedback bottom sheet with false
-                                }
-                              },
-                            );
-                          }
-                        }
-                      : null,
                   child: Text(
                       role == "Tasker" ? "Withdraw Amount" : "Deposit Amount",
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         color: Colors.white,
-                      )),
-                )
-              ]))),
+                      )
+                  ),
+                ),
+            ]
+          )
+        )
+      ),
     );
   }
 

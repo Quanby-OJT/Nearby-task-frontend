@@ -135,12 +135,12 @@ class _FinishTaskState extends State<FinishTask> {
 
   Future<void> _fetchTaskDetails() async {
     try {
-      if (_requestInformation == null || _requestInformation!.id == null) {
+      if (_requestInformation == null) {
         debugPrint("No request information or task ID available");
         return;
       }
       final response =
-          await _jobPostService.fetchTaskInformation(_requestInformation!.id!);
+          await _jobPostService.fetchTaskInformation(_requestInformation!.id);
       debugPrint("Fetched task details: $response");
       setState(() {
         // Assuming fetchTaskInformation returns a TaskResponse with a TaskModel

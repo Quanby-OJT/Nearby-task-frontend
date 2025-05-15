@@ -1,12 +1,14 @@
+import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 
 class ReportModel {
   final String? reason;
   final List<XFile>? images;
+  final List<String>? imageUrls;
   final int? reportedBy;
   final int? reportedWhom;
-  final String? reportedByName; // Added for name of reported_by
-  final String? reportedWhomName; // Added for name of reported_whom
+  final String? reportedByName;
+  final String? reportedWhomName;
   final int? reportId;
   final String? createdAt;
   final bool? status;
@@ -14,6 +16,7 @@ class ReportModel {
   ReportModel({
     this.reason,
     this.images,
+    this.imageUrls,
     this.reportedBy,
     this.reportedWhom,
     this.reportedByName,
@@ -26,22 +29,16 @@ class ReportModel {
   Map<String, dynamic> toJson() {
     return {
       'reason': reason,
-      'images[]': images?.map((xfile) => xfile.path).toList() ?? [],
       'reported_by': reportedBy,
       'reported_whom': reportedWhom,
-      'report_id': reportId,
-      'created_at': createdAt,
-      'status': status,
     };
   }
 
   factory ReportModel.fromJson(Map<String, dynamic> json) {
     return ReportModel(
       reason: json['reason'] as String?,
-      images: json['images'] != null
-          ? (json['images'] as List<dynamic>)
-              .map((path) => XFile(path as String))
-              .toList()
+      imageUrls: json['images'] != null
+          ? List<String>.from(jsonDecode(json['images'] as String))
           : null,
       reportedBy: json['reported_by'] as int?,
       reportedWhom: json['reported_whom'] as int?,

@@ -82,8 +82,7 @@ class ApiService {
   }
 
   // Update tasker profile with PDF file
-  static Future<Map<String, dynamic>> updateTaskerWithFile(
-      UserModel user, File file) async {
+  static Future<Map<String, dynamic>> updateTaskerWithFile(UserModel user, File file) async {
     try {
       String token = await AuthService.getSessionToken();
 
@@ -213,8 +212,7 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> checkTaskAssignment(
-      int taskId, int taskerId) async {
+  static Future<Map<String, dynamic>> checkTaskAssignment(int taskId, int taskerId) async {
     try {
       String token = await AuthService.getSessionToken();
       final response = await http.get(
@@ -247,8 +245,7 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> assignTask(
-      int taskId, int taskerId) async {
+  static Future<Map<String, dynamic>> assignTask(int taskId, int taskerId) async {
     try {
       // First check if task is already assigned
       final checkResult = await checkTaskAssignment(taskId, taskerId);
@@ -293,8 +290,7 @@ class ApiService {
   }
 
   // this is for tasker with only pdf
-  static Future<Map<String, dynamic>> updateTaskerProfileWithPdf(
-      int userId, File file, Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> updateTaskerProfileWithPdf(int userId, File file, Map<String, dynamic> data) async {
     try {
       final token = await AuthService.getSessionToken();
       final request = http.MultipartRequest(
@@ -363,8 +359,7 @@ class ApiService {
   }
 
   // this is for tasker with files and pdf
-  static Future<Map<String, dynamic>> updateTaskerProfileWithImageTobackend(
-      int userId, File image, Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> updateTaskerProfileWithImageTobackend(int userId, File image, Map<String, dynamic> data) async {
     try {
       final token = await AuthService.getSessionToken();
       final request = http.MultipartRequest(
@@ -433,8 +428,7 @@ class ApiService {
   }
 
   // this is for tasker with files and image
-  static Future<Map<String, dynamic>> updateTaskerProfileWithFiles(
-      int userId, File file, File image, Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> updateTaskerProfileWithFiles(int userId, File file, File image, Map<String, dynamic> data) async {
     try {
       final token = await AuthService.getSessionToken();
       final request = http.MultipartRequest(
@@ -513,8 +507,7 @@ class ApiService {
 
   // This is for the tasker updating user information without images and pdf
 
-  static Future<Map<String, dynamic>> updateTaskerProfileNoImages(
-      int userId, Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> updateTaskerProfileNoImages(int userId, Map<String, dynamic> data) async {
     try {
       debugPrint('Data: $data');
       debugPrint('User Id from the controller: $userId');
@@ -540,8 +533,7 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> updateUserWithProfileImage(
-      UserModel user, File profileImage) async {
+  static Future<Map<String, dynamic>> updateUserWithProfileImage(UserModel user, File profileImage) async {
     try {
       String token = await AuthService.getSessionToken();
 
@@ -615,8 +607,7 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> updateUserWithIDImage(
-      UserModel user, File idImage) async {
+  static Future<Map<String, dynamic>> updateUserWithIDImage(UserModel user, File idImage) async {
     try {
       String token = await AuthService.getSessionToken();
 
@@ -690,8 +681,7 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> updateUserWithBothImages(
-      UserModel user, File profileImage, File idImage) async {
+  static Future<Map<String, dynamic>> updateUserWithBothImages(UserModel user, File profileImage, File idImage) async {
     try {
       String token = await AuthService.getSessionToken();
 
@@ -831,8 +821,7 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> verifyEmail(
-      String token, String email) async {
+  static Future<Map<String, dynamic>> verifyEmail(String token, String email) async {
     try {
       final response = await _client.post(Uri.parse("$apiUrl/verify"),
           headers: _getHeaders(),
@@ -879,12 +868,10 @@ class ApiService {
           "error": "User ID is missing from verification data"
         };
       }
-
       // Check if this is an update to existing verification
       final bool isUpdate = verificationData['status'] != null &&
           verificationData['status'] != 'pending';
 
-      // Create a MultipartRequest for the verification endpoint
       final String endpoint = "$apiUrl/submit-tasker-verification/$userId";
       debugPrint("ApiService: Using endpoint: $endpoint");
       debugPrint("ApiService: Is update: $isUpdate");
@@ -1817,4 +1804,74 @@ class ApiService {
       };
     }
   }
+
+  // static Future<Map<String, dynamic>> forgotPassword(String email) async {
+  //   try {
+  //     final response = await _client.post(
+  //       Uri.parse("$url/forgot-password"),
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         "Accept": "application/json",
+  //       },
+  //       body: json.encode({
+  //         "email": email,
+  //       }),
+  //     );
+  //
+  //     debugPrint('Response Status: ${response.statusCode}');
+  //     debugPrint('Response Body: ${response.body}');
+  //
+  //     final responseData = jsonDecode(response.body);
+  //
+  //     if (response.statusCode == 200) {
+  //       return {
+  //         "message": responseData["message"] ??
+  //             "Password reset email sent successfully!",
+  //       };
+  //     } else {
+  //       return {
+  //         "error":
+  //             responseData["error"] ?? "Failed to send password reset email."
+  //       };
+  //     }
+  //   } catch (e) {
+  //     debugPrint("Error in forgotPassword: $e");
+  //     return {
+  //       "error": "An error occurred while sending password reset email: $e"
+  //     };
+  //   }
+  // }
+  //
+  // static Future<Map<String, dynamic>> resetPassword(
+  //     String email, String newPassword) async {
+  //   try {
+  //     final response = await _client.post(
+  //       Uri.parse("$url/reset-password"),
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         "Accept": "application/json",
+  //       },
+  //       body: json.encode({
+  //         "email": email,
+  //         "password": newPassword,
+  //       }),
+  //     );
+  //
+  //     debugPrint('Response Status: ${response.statusCode}');
+  //     debugPrint('Response Body: ${response.body}');
+  //
+  //     final responseData = jsonDecode(response.body);
+  //
+  //     if (response.statusCode == 200) {
+  //       return {
+  //         "message": responseData["message"] ?? "Password reset successfully!",
+  //       };
+  //     } else {
+  //       return {"error": responseData["error"] ?? "Failed to reset password."};
+  //     }
+  //   } catch (e) {
+  //     debugPrint("Error in resetPassword: $e");
+  //     return {"error": "An error occurred while resetting password: $e"};
+  //   }
+  // }
 }

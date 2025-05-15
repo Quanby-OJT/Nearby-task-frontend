@@ -39,7 +39,9 @@ export class UsersComponent implements OnInit {
   public PaginationUsers: any[] = [];
   displayedUsers = this.filterService.currentUsers;
   selectedUserId: Number | null = null;
-  sortState: 'default' | 'asc' | 'desc' = 'default'; 
+  profileSortState: 'default' | 'asc' | 'desc' = 'default';
+  emailSortState: 'default' | 'asc' | 'desc' = 'default';
+  activeSortColumn: 'profile' | 'email' | null = null;
   isLoading: boolean = true;
 
   constructor(
@@ -93,13 +95,10 @@ export class UsersComponent implements OnInit {
       format: 'a4',
     });
 
-
     try {
-
-      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 140, 35, 28, 25); 
+      doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 140, 35, 28, 25);
     } catch (e) {
       console.error('Failed to load NearbyTasks.png:', e);
-  
     }
 
     try {
@@ -107,7 +106,6 @@ export class UsersComponent implements OnInit {
     } catch (e) {
       console.error('Failed to load Quanby.png:', e);
     }
-
 
     // Nearby Task Part
     const title = 'Nearby Task';
@@ -124,7 +122,7 @@ export class UsersComponent implements OnInit {
     doc.setFontSize(12);
     doc.setTextColor('#000000');
     doc.text('User Managment', 30, 90);
-   
+
     // Date and Time Part
     const currentDate = new Date();
     const formattedDate = currentDate.toLocaleString('en-US', {
@@ -136,13 +134,13 @@ export class UsersComponent implements OnInit {
       second: '2-digit',
       hour12: true
     }).replace(/,/, ', ');
-    console.log('Formatted Date:', formattedDate); 
+    console.log('Formatted Date:', formattedDate);
 
     // Date and Time Position and Size
     doc.setFontSize(12);
     doc.setTextColor('#000000');
-    console.log('Rendering date at position x=400, y=90'); 
-    doc.text(formattedDate, 310, 90); 
+    console.log('Rendering date at position x=400, y=90');
+    doc.text(formattedDate, 310, 90);
 
     const columns = ['Fullname', 'Role', 'Email', 'Account', 'Status'];
     const rows = this.filterService.currentUsers().map((item) => [
@@ -264,15 +262,21 @@ export class UsersComponent implements OnInit {
     });
 
     filtered.sort((a, b) => {
-      if (this.sortState === 'default') {
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime(); // Newest to oldest
-      } else {
+      if (this.activeSortColumn === 'profile' && this.profileSortState !== 'default') {
+        const aFullName = `${a.first_name || ''} ${a.middle_name || ''} ${a.last_name || ''}`.toLowerCase().trim();
+        const bFullName = `${b.first_name || ''} ${b.middle_name || ''} ${b.last_name || ''}`.toLowerCase().trim();
+        return this.profileSortState === 'asc'
+          ? aFullName.localeCompare(bFullName)
+          : bFullName.localeCompare(aFullName);
+      }
+      if (this.activeSortColumn === 'email' && this.emailSortState !== 'default') {
         const aEmail = (a.email || '').toLowerCase().trim();
         const bEmail = (b.email || '').toLowerCase().trim();
-        return this.sortState === 'asc'
+        return this.emailSortState === 'asc'
           ? aEmail.localeCompare(bEmail)
           : bEmail.localeCompare(aEmail);
       }
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime(); // Newest to oldest
     });
 
     return filtered;
@@ -285,8 +289,16 @@ export class UsersComponent implements OnInit {
     }));
   }
 
-  handleSort(state: 'default' | 'asc' | 'desc'): void {
-    this.sortState = state;
+  handleSort(event: { column: 'profile' | 'email'; state: 'default' | 'asc' | 'desc' }): void {
+    if (event.column === 'profile') {
+      this.profileSortState = event.state;
+      this.emailSortState = 'default'; // Reset email sort
+      this.activeSortColumn = event.state === 'default' ? null : 'profile';
+    } else if (event.column === 'email') {
+      this.emailSortState = event.state;
+      this.profileSortState = 'default'; // Reset profile sort
+      this.activeSortColumn = event.state === 'default' ? null : 'email';
+    }
     const pageSize = this.filterService.pageSizeField();
     this.filterService.setCurrentUsers(this.filteredUsers.slice(0, pageSize));
   }

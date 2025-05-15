@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { catchError, Observable, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { SessionLocalStorage } from 'src/services/sessionStorage';
@@ -19,6 +19,7 @@ export class AuthService {
       'Authorization': `Bearer ${this.session.getSessionToken()}`
     });
   }
+  
   userInformation(): Observable<any> {
     const user_id = localStorage.getItem('user_id');
     return this.http.post<any>(
@@ -42,9 +43,19 @@ export class AuthService {
       { email, password },
       { withCredentials: true }
     ).pipe(
-      catchError((error) => {
-        console.error('HTTP Error:', error);
-        return throwError(() => new Error(error?.error?.message || 'Unknown API Error'));
+      catchError((error: HttpErrorResponse) => {
+        let apiError: any;
+        if (error.status === 0) {
+          apiError = new Error('Your internet connection is low. Please check your connection or try again later.');
+          apiError.type = 'network';
+        } else if (error.error && error.error.message) {
+          apiError = new Error(error.error.message);
+          apiError.type = 'authentication';
+        } else {
+          apiError = new Error('Unknown error occurred. Please contact the authority to fix this problem.');
+          apiError.type = 'unknown';
+        }
+        return throwError(() => apiError);
       }),
     );
   }
