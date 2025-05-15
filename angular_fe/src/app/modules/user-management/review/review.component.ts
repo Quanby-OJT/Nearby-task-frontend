@@ -365,13 +365,15 @@ export class ReviewComponent {
           <div class="image-spinner" style="display: flex; justify-content: center; align-items: center; width: 200px; height: 200px; background: #f0f0f0;">
             <div style="border: 4px solid #f3f3f3; border-top: 4px solid #5F50E7; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite;"></div>
           </div>
-          <img src="${this.idImage}" alt="ID Image" style="width: 200px; height: 200px; object-fit: cover; display: none;" onload="this.style.display='block'; this.parentNode.querySelector('.image-spinner').style.display='none';" onerror="this.style.display='none'; this.parentNode.querySelector('.image-spinner').style.display='none'; this.parentNode.innerHTML='<div style=\\'width: 200px; height: 200px; background: #f0f0f0; display: flex; justify-content: center; align-items: center; color: #666; font-size: 14px; text-align: center;\\' >No ID Image Available</div>';"/>
+          <a href="${this.idImage}" target="_blank">
+            <img src="${this.idImage}" alt="ID Image" style="width: 200px; height: 200px; object-fit: cover; display: none;" onload="this.style.display='block'; this.parentNode.parentNode.querySelector('.image-spinner').style.display='none';" onerror="this.parentNode.parentNode.innerHTML='<div style=\\'width: 200px; height: 200px; background: #f0f0f0; display: flex; justify-content: center; align-items: center; color: #666; font-size: 14px; text-align: center;\\' >No ID Image Available</div>';"/>
+          </a>
         </div>
       `;
     } else {
       idImageHtml = '<div style="width: 200px; height: 200px; background: #f0f0f0; display: flex; justify-content: center; align-items: center; color: #666; font-size: 14px; text-align: center;">No ID Image Available</div>';
     }
-
+  
     let faceImageHtml = '';
     if (this.faceImage && this.isFaceImage) {
       faceImageHtml = `
@@ -379,13 +381,15 @@ export class ReviewComponent {
           <div class="image-spinner" style="display: flex; justify-content: center; align-items: center; width: 200px; height: 200px; background: #f0f0f0;">
             <div style="border: 4px solid #f3f3f3; border-top: 4px solid #5F50E7; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite;"></div>
           </div>
-          <img src="${this.faceImage}" alt="Selfie Image" style="width: 200px; height: 200px; object-fit: cover; display: none;" onload="this.style.display='block'; this.parentNode.querySelector('.image-spinner').style.display='none';" onerror="this.style.display='none'; this.parentNode.querySelector('.image-spinner').style.display='none'; this.parentNode.innerHTML='<div style=\\'width: 200px; height: 200px; background: #f0f0f0; display: flex; justify-content: center; align-items: center; color: #666; font-size: 14px; text-align: center;\\' >No Selfie Image Available</div>';"/>
+          <a href="${this.faceImage}" target="_blank">
+            <img src="${this.faceImage}" alt="Selfie Image" style="width: 200px; height: 200px; object-fit: cover; display: none;" onload="this.style.display='block'; this.parentNode.parentNode.querySelector('.image-spinner').style.display='none';" onerror="this.parentNode.parentNode.innerHTML='<div style=\\'width: 200px; height: 200px; background: #f0f0f0; display: flex; justify-content: center; align-items: center; color: #666; font-size: 14px; text-align: center;\\' >No Selfie Image Available</div>';"/>
+          </a>
         </div>
       `;
     } else {
       faceImageHtml = '<div style="width: 200px; height: 200px; background: #f0f0f0; display: flex; justify-content: center; align-items: center; color: #666; font-size: 14px; text-align: center;">No Selfie Image Available</div>';
     }
-
+  
     const htmlContent = `
       <style>
         @keyframes spin {
@@ -404,7 +408,7 @@ export class ReviewComponent {
         </div>
       </div>
     `;
-
+  
     Swal.fire({
       title: 'Compare ID Photo and Selfie',
       html: htmlContent,
