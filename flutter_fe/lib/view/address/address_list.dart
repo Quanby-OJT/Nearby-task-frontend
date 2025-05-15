@@ -56,7 +56,7 @@ class _AddressListState extends State<AddressList> {
       setState(() {
         _addresses = [
           AddressModel(
-            id: '1',
+            id: 1,
             streetAddress: 'Balaguer Street',
             barangay: 'Market Area Pob. (Dist. 1)',
             city: 'Daraga',
@@ -70,7 +70,7 @@ class _AddressListState extends State<AddressList> {
             regionName: 'South Luzon',
           ),
           AddressModel(
-            id: '2',
+            id: 2,
             streetAddress: 'Bonifacio Street',
             barangay: 'Cota Na Daco (Pob.)',
             city: 'Gubat',
@@ -84,7 +84,7 @@ class _AddressListState extends State<AddressList> {
             regionName: 'South Luzon',
           ),
           AddressModel(
-            id: '3',
+            id: 3,
             streetAddress: '140 Bgy 2 Ems Barrio South(Pob)',
             barangay: 'Bgy 2 - Ems Barrio South(Pob)',
             city: 'Legazpi City',

@@ -5,6 +5,7 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/model/verification_model.dart';
 import 'package:flutter_fe/service/api_service.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 // Import separate verification pages
 import 'general_info_page.dart';
