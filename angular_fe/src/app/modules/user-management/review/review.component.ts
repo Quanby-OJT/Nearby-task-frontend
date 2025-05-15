@@ -1,6 +1,5 @@
 import { NgClass, NgIf } from '@angular/common';
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
 import { UserAccountService } from 'src/app/services/userAccount';
 import { ButtonComponent } from 'src/app/shared/components/button/button.component';
@@ -8,6 +7,7 @@ import { DataService } from 'src/services/dataStorage';
 import { SessionLocalStorage } from 'src/services/sessionStorage';
 import Swal from 'sweetalert2';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-review',
@@ -38,6 +38,8 @@ export class ReviewComponent {
   isImage: boolean = false;
   faceImage: string | null = null; 
   isFaceImage: boolean = false; 
+  idImage: string | null = null; // Added for ID image
+  isIdImage: boolean = false;   // Added to check if ID image is valid
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -129,10 +131,18 @@ export class ReviewComponent {
             // Check for id_image from user_id table (now an array)
             if (docResponse.user?.user_id?.length > 0 && docResponse.user.user_id[0]?.id_image) {
               console.log('Processing ID image:', docResponse.user.user_id[0].id_image);
+              this.idImage = docResponse.user.user_id[0].id_image; // Set idImage directly
+              const idExtension = this.idImage?.split('.').pop()?.toLowerCase() || '';
+              this.isIdImage = ['jpg', 'jpeg', 'png', 'gif'].includes(idExtension);
+              console.log('Is id_image an image?', this.isIdImage);
               documents.push({
                 url: docResponse.user.user_id[0].id_image,
                 name: 'ID_Image'
               });
+            } else {
+              this.idImage = null;
+              this.isIdImage = false;
+              console.log('No id_image found for this user.');
             }
             // Check for face_image from user_face_identity table (now an array)
             if (docResponse.user?.user_face_identity?.length > 0 && docResponse.user.user_face_identity[0]?.face_image) {
@@ -187,6 +197,8 @@ export class ReviewComponent {
             this.isImage = false;
             this.faceImage = null; // Ensure faceImage is reset on error
             this.isFaceImage = false;
+            this.idImage = null;   // Reset idImage on error
+            this.isIdImage = false; // Reset isIdImage on error
             Swal.fire({
               icon: 'error',
               title: 'Error',
@@ -347,19 +359,19 @@ export class ReviewComponent {
 
   compareImages(): void {
     let idImageHtml = '';
-    if (this.imageUrl && this.isImage) {
+    if (this.idImage && this.isIdImage) {
       idImageHtml = `
         <div style="position: relative; width: 200px; height: 200px;">
           <div class="image-spinner" style="display: flex; justify-content: center; align-items: center; width: 200px; height: 200px; background: #f0f0f0;">
             <div style="border: 4px solid #f3f3f3; border-top: 4px solid #5F50E7; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite;"></div>
           </div>
-          <img src="${this.imageUrl}" alt="ID Image" style="width: 200px; height: 200px; object-fit: cover; display: none;" onload="this.style.display='block'; this.parentNode.querySelector('.image-spinner').style.display='none';" onerror="this.style.display='none'; this.parentNode.querySelector('.image-spinner').style.display='none'; this.parentNode.innerHTML='<div style=\\'width: 200px; height: 200px; background: #f0f0f0; display: flex; justify-content: center; align-items: center; color: #666; font-size: 14px; text-align: center;\\' >No ID Image Available</div>';"/>
+          <img src="${this.idImage}" alt="ID Image" style="width: 200px; height: 200px; object-fit: cover; display: none;" onload="this.style.display='block'; this.parentNode.querySelector('.image-spinner').style.display='none';" onerror="this.style.display='none'; this.parentNode.querySelector('.image-spinner').style.display='none'; this.parentNode.innerHTML='<div style=\\'width: 200px; height: 200px; background: #f0f0f0; display: flex; justify-content: center; align-items: center; color: #666; font-size: 14px; text-align: center;\\' >No ID Image Available</div>';"/>
         </div>
       `;
     } else {
       idImageHtml = '<div style="width: 200px; height: 200px; background: #f0f0f0; display: flex; justify-content: center; align-items: center; color: #666; font-size: 14px; text-align: center;">No ID Image Available</div>';
     }
-  
+
     let faceImageHtml = '';
     if (this.faceImage && this.isFaceImage) {
       faceImageHtml = `
@@ -373,7 +385,7 @@ export class ReviewComponent {
     } else {
       faceImageHtml = '<div style="width: 200px; height: 200px; background: #f0f0f0; display: flex; justify-content: center; align-items: center; color: #666; font-size: 14px; text-align: center;">No Selfie Image Available</div>';
     }
-  
+
     const htmlContent = `
       <style>
         @keyframes spin {
@@ -392,7 +404,7 @@ export class ReviewComponent {
         </div>
       </div>
     `;
-    
+
     Swal.fire({
       title: 'Compare ID Photo and Selfie',
       html: htmlContent,
