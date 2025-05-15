@@ -207,8 +207,6 @@ class ReportController {
 
   void validateAndSubmit(BuildContext context, StateSetter setModalState,
       int reportedBy, int? reportedWhom) {
-    // This method is no longer needed since we're using submitReport directly
-    // Keeping it for reference in case other parts of the app use it
     errors.clear();
 
     if (reasonController.text.trim().isEmpty) {
@@ -222,7 +220,7 @@ class ReportController {
     if (errors.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Please fix the errors before submitting'),
+          content: Text(errors.toString()),
           backgroundColor: Colors.red,
         ),
       );

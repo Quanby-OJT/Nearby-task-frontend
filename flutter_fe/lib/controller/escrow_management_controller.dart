@@ -110,7 +110,7 @@ class EscrowManagementController {
   }
 
   void connectWebSocket() async {
-    _channel = IOWebSocketChannel.connect('ws://192.168.43.15:5000');
+    _channel = IOWebSocketChannel.connect('ws://localhost:5000');
     _channel!.stream.listen((message) {
       debugPrint('Received message: $message');
 

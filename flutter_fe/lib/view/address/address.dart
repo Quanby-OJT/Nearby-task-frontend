@@ -10,7 +10,7 @@ import 'package:get_storage/get_storage.dart';
 class Address extends StatefulWidget {
   final Function(AddressModel)? onAddressSelected;
 
-  const Address({Key? key, this.onAddressSelected}) : super(key: key);
+  const Address({super.key, this.onAddressSelected});
 
   @override
   State<Address> createState() => _AddressState();

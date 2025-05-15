@@ -37,7 +37,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
   String selectedWorkType = "Solo";
   List<String> items = ['Day/s', 'Week/s', 'Month/s', 'Year/s'];
   List<String> urgency = ['Non-Urgent', 'Urgent'];
-  List<String> workTypes = ['Solo', 'Group'];
+  List<String> workTypes = ['Solo'];
   List<String> specialization = [];
   final Map<String, String> _errors = {};
   String? _existingProfileImageUrl;
@@ -55,11 +55,6 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
     fetchSpecialization();
     _loadSkills();
     _fetchUserIDImage();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   Future<void> fetchSpecialization() async {
@@ -95,70 +90,74 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
   List<String> _skills = [];
 
   void _validateAndSubmit() {
-    setState(() {
-      _errors.clear();
+    // controller.jobLocationController.text = "Daraga, albay";
 
-      if (controller.jobTitleController.text.trim().isEmpty) {
-        _errors['task_title'] = 'Please Indicate Your Needed Task';
-      }
-      if (selectedSpecialization == null) {
-        _errors['specialization'] = "Please Indicate the Needed Specialization";
-      }
-      if (controller.jobDescriptionController.text.trim().isEmpty) {
-        _errors['task_description'] = 'Please Elaborate Your Task.';
-      }
-      String contractPrice = controller.contactPriceController.text.trim();
-      if (contractPrice.isEmpty) {
-        _errors['contact_price'] = 'Indicate the Contract Price';
-      } else if (double.tryParse(contractPrice) == null ||
-          double.parse(contractPrice) <= 0) {
-        _errors['contact_price'] =
-            'Contract Price must be a valid positive number';
-      }
-      if (controller.jobLocationController.text.trim().isEmpty) {
-        _errors['location'] =
-            'Indicate Your Location where the Task will be held.';
-      }
-      String jobTime = controller.jobTimeController.text.trim();
-      if (jobTime.isEmpty) {
-        _errors['num_of_days'] = 'Indicate the Time Needed to Finish the Task';
-      } else if (int.tryParse(jobTime) == null || int.parse(jobTime) <= 0) {
-        _errors['num_of_days'] = 'Time Needed must be a valid positive number';
-      }
-      String startDate = controller.jobTaskBeginDateController.text.trim();
-      if (startDate.isEmpty) {
-        _errors['task_begin_date'] = 'Indicate When to Start Your Task';
-      } else {
-        try {
-          DateTime taskBeginDate = DateTime.parse(startDate);
-          if (taskBeginDate.isBefore(DateTime.now())) {
-            _errors['task_begin_date'] =
-                'Task start date must be in the future';
-          }
-        } catch (e) {
-          _errors['task_begin_date'] = 'Invalid date format';
-        }
-      }
-      if (selectedUrgency == null) {
-        _errors['urgency'] =
-            'Please Indicate if Your Task Needs to be finished ASAP.';
-      }
-      if (selectedTimePeriod == null) {
-        _errors['time_period'] = "Please Indicate the Time Period.";
-      }
+    // setState(() {
+    //   _errors.clear();
 
-      if (_errors.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Please fix the errors before submitting'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      } else {
-        _submitJob();
-      }
-    });
+    //   if (controller.jobTitleController.text.trim().isEmpty) {
+    //     _errors['task_title'] = 'Please Indicate Your Needed Task';
+    //   }
+    //   if (selectedSpecialization == null) {
+    //     _errors['specialization'] = "Please Indicate the Needed Specialization";
+    //   }
+    //   if (controller.jobDescriptionController.text.trim().isEmpty) {
+    //     _errors['task_description'] = 'Please Elaborate Your Task.';
+    //   }
+    //   String contractPrice = controller.contactPriceController.text.trim();
+    //   if (contractPrice.isEmpty) {
+    //     _errors['contact_price'] = 'Indicate the Contract Price';
+    //   } else if (double.tryParse(contractPrice) == null ||
+    //       double.parse(contractPrice) <= 0) {
+    //     _errors['contact_price'] =
+    //         'Contract Price must be a valid positive number';
+    //   }
+    //   if (controller.jobLocationController.text.trim().isEmpty) {
+    //     _errors['location'] =
+    //         'Indicate Your Location where the Task will be held.';
+    //   }
+    //   String jobTime = controller.jobTimeController.text.trim();
+    //   if (jobTime.isEmpty) {
+    //     _errors['num_of_days'] = 'Indicate the Time Needed to Finish the Task';
+    //   } else if (int.tryParse(jobTime) == null || int.parse(jobTime) <= 0) {
+    //     _errors['num_of_days'] = 'Time Needed must be a valid positive number';
+    //   }
+    //   // String startDate = controller.jobTaskBeginDateController.text.trim();
+    //   // if (startDate.isEmpty) {
+    //   //   _errors['task_begin_date'] = 'Indicate When to Start Your Task';
+    //   // } else {
+    //   //   try {
+    //   //     DateTime taskBeginDate = DateTime.parse(startDate);
+    //   //     if (taskBeginDate.isBefore(DateTime.now())) {
+    //   //       _errors['task_begin_date'] =
+    //   //           'Task start date must be in the future';
+    //   //     }
+    //   //   } catch (e) {
+    //   //     _errors['task_begin_date'] = 'Invalid date format';
+    //   //   }
+    //   // }
+    //   if (selectedUrgency == null) {
+    //     _errors['urgency'] =
+    //         'Please Indicate if Your Task Needs to be finished ASAP.';
+    //   }
+    //   if (selectedTimePeriod == null) {
+    //     _errors['time_period'] = "Please Indicate the Time Period.";
+    //   }
+
+    //   if (_errors.isNotEmpty) {
+    //     ScaffoldMessenger.of(context).showSnackBar(
+    //       SnackBar(
+    //         content: Text('Please fix the errors before submitting'),
+    //         backgroundColor: Colors.red,
+    //         duration: Duration(seconds: 2),
+    //       ),
+    //     );
+    //   } else {
+    //     _submitJob();
+    //   }
+    // });
+
+    // _submitJob();
   }
 
   Future<void> _submitJob() async {
@@ -166,6 +165,11 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
       _message = "";
       _errors.clear();
     });
+
+    debugPrint("Selected Specialization: $selectedSpecialization");
+    debugPrint("Selected Urgency: $selectedUrgency");
+    debugPrint("Selected Time Period: $selectedTimePeriod");
+    debugPrint("Selected Work Type: $selectedWorkType");
 
     try {
       final result = await controller.postJob(
@@ -191,7 +195,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
 
         setState(() {
           selectedSpecialization = null;
-          selectedUrgency = null;
+          selectedUrgency = "Non-Urgent";
           selectedTimePeriod = null;
           selectedWorkType = "Solo";
         });
@@ -619,13 +623,13 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     errorText: _errors['num_of_days'],
                   ),
-                  SizedBox(height: 16),
-                  _buildDateField(
-                    controller: controller.jobTaskBeginDateController,
-                    label: 'Start Date *',
-                    hint: 'Select a date',
-                    errorText: _errors['task_begin_date'],
-                  ),
+                  // SizedBox(height: 16),
+                  // _buildDateField(
+                  //   controller: controller.jobTaskBeginDateController,
+                  //   label: 'Start Date *',
+                  //   hint: 'Select a date',
+                  //   errorText: _errors['task_begin_date'],
+                  // ),
                   SizedBox(height: 16),
                   _buildDropdownField(
                     value: selectedUrgency,
@@ -661,7 +665,8 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
                               _showWarningDialog();
                               return;
                             }
-                            _validateAndSubmit();
+                            // _validateAndSubmit();
+                            _submitJob();
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFB71A4A),

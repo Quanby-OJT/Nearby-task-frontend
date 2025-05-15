@@ -36,7 +36,7 @@ class _TaskPageState extends State<TaskPage>
   final TextEditingController _searchController = TextEditingController();
   ClientModel? clientModel;
   String? _message;
-  bool _isSuccess = false;
+  final bool _isSuccess = false;
   String? selectedTimePeriod;
   String? selectedUrgency;
   String? selectedSpecialization;
@@ -742,9 +742,8 @@ class _TaskPageState extends State<TaskPage>
               _buildTaskInfoRow(
                 icon: FontAwesomeIcons.locationPin,
                 color: Colors.red[400]!,
-                text: (task.taskDetails.address?.city ?? 'N/A') +
-                    ", " +
-                    (task.taskDetails.address?.province ?? 'N/A'),
+                text:
+                    "${task.taskDetails.address?.city ?? 'N/A'}, ${task.taskDetails.address?.province ?? 'N/A'}",
               ),
               SizedBox(height: 8),
               _buildTaskInfoRow(

@@ -121,7 +121,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
     if (_taskInformation?.duration != null &&
         _taskInformation?.period != null) {
       int durationInDays = int.parse(_taskInformation!.duration);
-      String period = _taskInformation!.period.toLowerCase();
+      String period = _taskInformation!.period?.toLowerCase() ?? '';
 
       if (period.contains('week')) {
         durationInDays *= 7;

@@ -9,7 +9,7 @@ class TaskModel {
   final int? specializationId;
   final String description;
   final String location;
-  final String period;
+  final String? period;
   final String duration;
   final String urgency;
   final String status;
@@ -30,7 +30,7 @@ class TaskModel {
     this.specializationId,
     required this.description,
     required this.location,
-    required this.period,
+    this.period,
     required this.duration,
     required this.urgency,
     required this.status,
@@ -88,7 +88,7 @@ class TaskModel {
       description: json['task_description'] as String,
       location: json['location'] as String,
       duration: json['duration'].toString(),
-      period: json['period'] as String,
+      period: json['period'] as String?,
       urgency: urgencyValue,
       contactPrice: json['proposed_price'] as int,
       remarks: json['remarks'] as String?,

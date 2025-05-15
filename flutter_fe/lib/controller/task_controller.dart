@@ -36,7 +36,7 @@ class TaskController {
       String period, String workType) async {
     try {
       int userId = storage.read('user_id');
-      print('Submitting data...');
+      debugPrint('Submitting data...');
 
       // Parse the duration as an integer
       final durationText = jobTimeController.text.trim();

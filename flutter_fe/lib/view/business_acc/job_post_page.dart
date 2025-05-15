@@ -1181,9 +1181,8 @@ class _JobPostPageState extends State<JobPostPage>
               _buildTaskInfoRow(
                 icon: FontAwesomeIcons.locationPin,
                 color: Colors.red[400]!,
-                text: (task.address?.city ?? 'N/A') +
-                    ', ' +
-                    (task.address?.province ?? 'N/A'),
+                text:
+                    '${task.address?.city ?? 'N/A'}, ${task.address?.province ?? 'N/A'}',
               ),
               SizedBox(height: 8),
               _buildTaskInfoRow(
