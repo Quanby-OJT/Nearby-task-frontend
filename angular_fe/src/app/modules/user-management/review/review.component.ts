@@ -36,8 +36,9 @@ export class ReviewComponent {
   documentUrl: string | null = null;
   documentName: string | null = null;
   isImage: boolean = false;
-  faceImage: string | null = null; // Added for face_image
-  isFaceImage: boolean = false; // Added to check if face_image is a valid image
+  faceImage: string | null = null; 
+  isFaceImage: boolean = false; 
+  showModal: boolean = false; 
 
   constructor(
     private _formBuilder: FormBuilder,
