@@ -33,8 +33,8 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
   clientSortMode: 'default' | 'asc' | 'desc' = 'default';
   taskerSortMode: 'default' | 'asc' | 'desc' = 'default';
   dateSortMode: 'default' | 'newestToOldest' | 'oldestToNewest' = 'default';
+  viewedUserSortMode: 'default' | 'asc' | 'desc' = 'default';
   isLoading: boolean = true;
-
 
   @Output() onCheck = new EventEmitter<boolean>();
 
@@ -96,7 +96,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
     // Apply search filter
     if (this.currentSearchText) {
       tempConversations = tempConversations.filter(convo => {
-        const fullName = `${convo.task_taken.clients.user.first_name || ''} ${convo.task_taken.clients.user.middle_name || ''} ${convo.task_taken.clients.user.last_name || ''}`.toLowerCase();
+        const fullName = `${convo.user.first_name || ''} ${convo.user.middlename || ''} ${convo.user.last_name || ''}`.toLowerCase();
         const searchTerms = this.currentSearchText.split(/\s+/).filter(term => term);
         return searchTerms.every(term => fullName.includes(term));
       });
@@ -117,7 +117,17 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
     }
 
     // Apply sorting based on sort modes
-    if (this.dateSortMode !== 'default') {
+    if (this.viewedUserSortMode !== 'default') {
+      tempConversations.sort((a, b) => {
+        const nameA = `${a.user.first_name || ''} ${a.user.middlename || ''} ${a.user.last_name || ''}`.toLowerCase();
+        const nameB = `${b.user.first_name || ''} ${b.user.middlename || ''} ${b.user.last_name || ''}`.toLowerCase();
+        if (this.viewedUserSortMode === 'asc') {
+          return nameA.localeCompare(nameB);
+        } else { // 'desc'
+          return nameB.localeCompare(nameA);
+        }
+      });
+    } else if (this.dateSortMode !== 'default') {
       tempConversations.sort((a, b) => {
         const dateA = new Date(a.task_taken.created_at || '1970-01-01').getTime();
         const dateB = new Date(b.task_taken.created_at || '1970-01-01').getTime();
@@ -162,13 +172,14 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
     this.onCheck.emit(value);
   }
 
-  public toggleSort(column: 'client' | 'tasker' | 'date') {
+  public toggleSort(column: 'client' | 'tasker' | 'date' | 'viewedUser') {
     if (column === 'client') {
       switch (this.clientSortMode) {
         case 'default':
           this.clientSortMode = 'asc';
           this.taskerSortMode = 'default'; // Reset tasker sort
           this.dateSortMode = 'default'; // Reset date sort
+          this.viewedUserSortMode = 'default';
           break;
         case 'asc':
           this.clientSortMode = 'desc';
@@ -183,6 +194,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
           this.taskerSortMode = 'asc';
           this.clientSortMode = 'default'; // Reset client sort
           this.dateSortMode = 'default'; // Reset date sort
+          this.viewedUserSortMode = 'default';
           break;
         case 'asc':
           this.taskerSortMode = 'desc';
@@ -197,12 +209,28 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
           this.dateSortMode = 'newestToOldest';
           this.clientSortMode = 'default'; // Reset client sort
           this.taskerSortMode = 'default'; // Reset tasker sort
+          this.viewedUserSortMode = 'default';
           break;
         case 'newestToOldest':
           this.dateSortMode = 'oldestToNewest';
           break;
         case 'oldestToNewest':
           this.dateSortMode = 'default';
+          break;
+      }
+    } else if (column === 'viewedUser') {
+      switch (this.viewedUserSortMode) {
+        case 'default':
+          this.viewedUserSortMode = 'asc';
+          this.clientSortMode = 'default';
+          this.taskerSortMode = 'default';
+          this.dateSortMode = 'default';
+          break;
+        case 'asc':
+          this.viewedUserSortMode = 'desc';
+          break;
+        case 'desc':
+          this.viewedUserSortMode = 'default';
           break;
       }
     }

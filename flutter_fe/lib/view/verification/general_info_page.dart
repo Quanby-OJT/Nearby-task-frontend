@@ -113,6 +113,84 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
                 debugPrint('Error parsing birthdate: $e');
               }
             }
+
+            // Set bio if available in user model first, then check tasker model
+            if (authUser.user.bio != null && authUser.user.bio!.isNotEmpty) {
+              _bioController.text = authUser.user.bio!;
+            } else if (authUser.tasker != null &&
+                authUser.tasker!.bio.isNotEmpty) {
+              _bioController.text = authUser.tasker!.bio;
+            }
+
+            // Set social media links if available in user model first, then check tasker model
+            if (authUser.user.socialMediaLinks != null &&
+                authUser.user.socialMediaLinks!.isNotEmpty) {
+              final socialLinks = authUser.user.socialMediaLinks!;
+
+              if (socialLinks.containsKey('facebook')) {
+                _facebookController.text = socialLinks['facebook']!;
+              }
+
+              if (socialLinks.containsKey('instagram')) {
+                _instagramController.text = socialLinks['instagram']!;
+              }
+
+              if (socialLinks.containsKey('linkedin')) {
+                _linkedinController.text = socialLinks['linkedin']!;
+              }
+
+              if (socialLinks.containsKey('twitter')) {
+                _twitterController.text = socialLinks['twitter']!;
+              }
+            } else if (authUser.tasker != null &&
+                authUser.tasker!.socialMediaLinks != null &&
+                authUser.tasker!.socialMediaLinks!.isNotEmpty) {
+              final socialLinks = authUser.tasker!.socialMediaLinks!;
+
+              if (socialLinks.containsKey('facebook')) {
+                _facebookController.text = socialLinks['facebook']!;
+              }
+
+              if (socialLinks.containsKey('instagram')) {
+                _instagramController.text = socialLinks['instagram']!;
+              }
+
+              if (socialLinks.containsKey('linkedin')) {
+                _linkedinController.text = socialLinks['linkedin']!;
+              }
+
+              if (socialLinks.containsKey('twitter')) {
+                _twitterController.text = socialLinks['twitter']!;
+              }
+            } else {
+              // Try to parse social media links from JSON string if stored that way
+              try {
+                final String socialMediaJson =
+                    storage.read('social_media_links') ?? '{}';
+                if (socialMediaJson != '{}') {
+                  final Map<String, dynamic> socialLinks =
+                      jsonDecode(socialMediaJson);
+
+                  if (socialLinks.containsKey('facebook')) {
+                    _facebookController.text = socialLinks['facebook'];
+                  }
+
+                  if (socialLinks.containsKey('instagram')) {
+                    _instagramController.text = socialLinks['instagram'];
+                  }
+
+                  if (socialLinks.containsKey('linkedin')) {
+                    _linkedinController.text = socialLinks['linkedin'];
+                  }
+
+                  if (socialLinks.containsKey('twitter')) {
+                    _twitterController.text = socialLinks['twitter'];
+                  }
+                }
+              } catch (e) {
+                debugPrint('Error parsing social media links: $e');
+              }
+            }
           });
         }
       }
@@ -188,7 +266,12 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
         'wage': 0.0, // Default value
         'socialMediaJson': socialMediaJson,
         'bio': _bioController.text.trim(),
+        'socialMediaLinks': socialMediaLinks,
       };
+
+      // Save to storage for future reference
+      storage.write('bio', _bioController.text.trim());
+      storage.write('social_media_links', socialMediaJson);
 
       // Call the callback function with the user info
       widget.onInfoCompleted(userInfo);

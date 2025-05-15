@@ -385,7 +385,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
                     ElevatedButton(
                       onPressed: _isLoading ? null : _updateTask,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF0272B1),
+                        backgroundColor: Color(0xFFE23670),
                         padding: EdgeInsets.symmetric(vertical: 16),
                         minimumSize: Size(double.infinity, 50),
                       ),

@@ -22,6 +22,7 @@ export interface User {
   }
   
   export interface Conversation {
+    user: any;
     user_id?: number;
     task_taken: TaskTaken;
     conversation: string;

@@ -1,13 +1,15 @@
-<div class="mb-4 flex justify-between w-full max-w-[1440px] mx-auto px-4">
-  <div>
+<!-- Header showing the title -->
+<div class="mb-4 flex justify-between">
+  <div class="inline-block">
     <h3 class="text-foreground font-semibold">Payment Reviews</h3>
-    <div class="text-muted-foreground text-xs font-medium">
-      <a href="#" class="hover:text-primary"><b>Dashboards > Payment Reviews</b></a>
+    <div class="text-muted-foreground space-x-1 text-xs font-medium">
+      <a href="" class="hover:text-primary"><strong>Dashboards > Payment Reviews</strong></a>
       <p>This is used to view and manage the transactions of the users in the application</p>
     </div>
   </div>
 </div>
-<div class="mb-4 flex justify-between">
+
+<div *ngIf="!isLoading" class="mb-4 flex justify-between">
   <div class="inline-block"></div>
   <div class="flex space-x-4">
     <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500 flex items-center space-x-2" (click)="exportCSV()">
@@ -21,11 +23,13 @@
   </div>
 </div>
 
-  <!-- Loading Spinner -->
-  <div *ngIf="isLoading" class="flex flex-col justify-center items-center h-64 animate-slow-spin text-xs text-[#3C28CC]">
+<!-- Loading Spinner -->
+<div *ngIf="isLoading" class="fixed inset-0 z-50 flex flex-col justify-center items-center lg:w-308 lg:h-170 xl:w-420 xl:h-200 ">
+  <div class="animate-slow-spin text-xs text-[#3C28CC] flex flex-col justify-center items-center">
     <svg-icon src="./assets/icons/heroicons/outline/logo.svg" [svgClass]="'h-20 w-20'"></svg-icon>
     <strong>Nearby Task</strong>
   </div>
+</div>
 
 <div *ngIf="!isLoading" class="bg-white w-full max-w-[1440px] mx-auto flex-col rounded-xl min-h-[400px]">
 <div class="bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
@@ -58,9 +62,15 @@
             <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('userName')">
               Name
               <span class="w-4 h-4">
-                <ng-container *ngIf="sortDirections['userName'] === 'asc'">▲</ng-container>
-                <ng-container *ngIf="sortDirections['userName'] === 'desc'">▼</ng-container>
-                <ng-container *ngIf="sortDirections['userName'] === 'default'">↕</ng-container>
+                <ng-container *ngIf="sortDirections['userName'] === 'asc'">
+                  <span title="Ascending">▲</span>
+                </ng-container>
+                <ng-container *ngIf="sortDirections['userName'] === 'desc'">
+                  <span title="Descending">▼</span>
+                </ng-container>
+                <ng-container *ngIf="sortDirections['userName'] === 'default'">
+                  <span title="Newest to Oldest">↕</span>
+                </ng-container>
               </span>
             </div>
           </th>
@@ -68,9 +78,15 @@
             <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('amount')">
               Amount
               <span class="w-4 h-4">
-                <ng-container *ngIf="sortDirections['amount'] === 'highToLow'">▼</ng-container>
-                <ng-container *ngIf="sortDirections['amount'] === 'lowToHigh'">▲</ng-container>
-                <ng-container *ngIf="sortDirections['amount'] === 'default'">↕</ng-container>
+                <ng-container *ngIf="sortDirections['amount'] === 'highToLow'">
+                  <span title="Ascending">▲</span>
+                </ng-container>
+                <ng-container *ngIf="sortDirections['amount'] === 'lowToHigh'">
+                  <span title="Descending">▼</span>
+                </ng-container>
+                <ng-container *ngIf="sortDirections['amount'] === 'default'">
+                  <span title="Newest to Oldest">↕</span>
+                </ng-container>
               </span>
             </div>
           </th>
@@ -79,9 +95,15 @@
             <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('depositDate')">
               Deposit Date
               <span class="w-4 h-4">
-                <ng-container *ngIf="sortDirections['depositDate'] === 'asc'">▲</ng-container>
-                <ng-container *ngIf="sortDirections['depositDate'] === 'desc'">▼</ng-container>
-                <ng-container *ngIf="sortDirections['depositDate'] === 'default'">↕</ng-container>
+                <ng-container *ngIf="sortDirections['depositDate'] === 'asc'">
+                  <span title="Ascending">▲</span>
+                </ng-container>
+                <ng-container *ngIf="sortDirections['depositDate'] === 'desc'">
+                  <span title="Descending">▼</span>
+                </ng-container>
+                <ng-container *ngIf="sortDirections['depositDate'] === 'default'">
+                  <span title="Newest to Oldest">↕</span>
+                </ng-container>
               </span>
             </div>
           </th>

@@ -14,14 +14,8 @@
     </div>
   </div>
 
-  <!-- Loading Spinner -->
-  <div *ngIf="isLoading" class="flex flex-col justify-center items-center h-64 animate-slow-spin text-xs text-[#3C28CC]">
-    <svg-icon src="./assets/icons/heroicons/outline/logo.svg" [svgClass]="'h-20 w-20'"></svg-icon>
-    <strong>Nearby Task</strong>
-  </div>
-
   <!-- Table to display logs -->
-  <div *ngIf="!isLoading" class="overflow-x-auto w-full">
+  <div class="overflow-x-auto w-full">
     <table class="w-full border-collapse border-0 text-left text-sm">
       <thead class="border-b">
         <tr>
@@ -46,7 +40,7 @@
   </div>
 
   <!-- Pagination Section -->
-  <div *ngIf="!isLoading" class="flex justify-between items-center bg-white w-full">
+  <div class="flex justify-between items-center bg-white w-full">
     <!-- Logs per page selector -->
     <div class="text-muted-foreground flex items-center justify-between py-3 px-5 text-xs">
       <div class="flex items-center gap-2">
