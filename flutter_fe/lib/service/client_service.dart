@@ -11,7 +11,7 @@ import '../config/url_strategy.dart';
 import 'api_service.dart';
 
 class ClientServices {
-  static String url = apiUrl ?? "http://192.168.43.15:5000/connect";
+  static String url = apiUrl ?? "http://localhost:5000/connect";
   final dio = Dio();
   static final storage = GetStorage();
   static final token = storage.read('session');
@@ -438,6 +438,10 @@ class ClientServices {
         if (data.containsKey('user') && data['user'] != null) {
           final user = data['user'];
 
+          // Debug info about the user document structure
+          debugPrint("User document structure: ${user.keys.toList()}");
+
+          // Handle client document format
           if (user.containsKey('document_url') &&
               user['document_url'] != null) {
             return {
@@ -445,13 +449,42 @@ class ClientServices {
               'url': user['document_url'],
               'status': user['is_valid'] ?? false,
             };
-          } else if (user.containsKey('tesda_document_link') &&
+          }
+          // Handle tasker document format - user_document_link
+          else if (user.containsKey('user_document_link') &&
+              user['user_document_link'] != null) {
+            return {
+              'success': true,
+              'url': user['user_document_link'],
+              'status': user['valid'] ?? false,
+            };
+          }
+          // Handle TESDA document format
+          else if (user.containsKey('tesda_document_link') &&
               user['tesda_document_link'] != null) {
             return {
               'success': true,
               'url': user['tesda_document_link'],
               'status': user['valid'] ?? false,
             };
+          }
+          // If there's any field with "_link" or "_url" or "document" in it
+          else {
+            // Find any field that might contain a document URL
+            for (var key in user.keys) {
+              if ((key.contains('_link') ||
+                      key.contains('_url') ||
+                      key.contains('document')) &&
+                  user[key] != null &&
+                  user[key].toString().isNotEmpty) {
+                debugPrint("Found document URL in field: $key");
+                return {
+                  'success': true,
+                  'url': user[key],
+                  'status': user['valid'] ?? user['is_valid'] ?? false,
+                };
+              }
+            }
           }
         }
 

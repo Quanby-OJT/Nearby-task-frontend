@@ -7,6 +7,7 @@ import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
+import 'package:flutter_fe/view/verification/verification_page.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
@@ -100,7 +101,13 @@ class _LikesScreenState extends State<LikesScreen> {
       int userId = int.parse(storage.read('user_id').toString());
       AuthenticatedUser? user =
           await _profileController.getAuthenticatedUser(context, userId);
+
+      // Debug: Print user account status and role
+      debugPrint("Fetched User accStatus: ${user?.user.accStatus}");
+      debugPrint("Fetched User role: ${user?.user.role}");
+
       final response = await _clientServices.fetchUserIDImage(userId);
+      debugPrint("Document response: $response");
 
       if (response['success']) {
         setState(() {
@@ -109,6 +116,36 @@ class _LikesScreenState extends State<LikesScreen> {
           _existingIDImageUrl = response['url'];
           _isLoading = false;
           _role = _user?.user.role ?? '';
+
+          debugPrint("ID Image URL set to: $_existingIDImageUrl");
+
+          // Debug: Print updated user account status
+          debugPrint(
+              "Updated User accStatus in state: ${_user?.user.accStatus}");
+
+          // Add special logging for the account status
+          if (_user?.user.accStatus != null) {
+            debugPrint(
+                "Account status details - Original value: '${_user?.user.accStatus}'");
+            debugPrint(
+                "Account status details - Lowercase: '${_user?.user.accStatus?.toLowerCase()}'");
+            debugPrint(
+                "Account status details - Trimmed: '${_user?.user.accStatus?.trim()}'");
+            debugPrint(
+                "Account status details - Trimmed+Lowercase: '${_user?.user.accStatus?.trim().toLowerCase()}'");
+          } else {
+            debugPrint("Account status is null");
+          }
+        });
+      } else {
+        debugPrint("Failed to fetch user document: ${response['message']}");
+        // If the fetch failed, still set the user and role
+        setState(() {
+          _user = user;
+          _isLoading = false;
+          _role = _user?.user.role ?? '';
+          _existingProfileImageUrl = user?.user.image;
+          // Keep _existingIDImageUrl as null or empty since fetch failed
         });
       }
     } catch (e) {
@@ -365,13 +402,10 @@ class _LikesScreenState extends State<LikesScreen> {
       return Center(child: CircularProgressIndicator(color: Color(0xFF0272B1)));
     }
 
-    if (_existingProfileImageUrl == null ||
-        _existingIDImageUrl == null ||
-        _existingProfileImageUrl!.isEmpty ||
-        _existingIDImageUrl!.isEmpty) {
-      return _buildMissingInformation();
-    }
+    // Debug: Print account status to see the actual value
+    debugPrint("Account Status: ${_user?.user.accStatus}");
 
+    // Check for error message first
     if (_errorMessage != null) {
       return Center(
         child: Column(
@@ -410,6 +444,40 @@ class _LikesScreenState extends State<LikesScreen> {
       );
     }
 
+    // Skip verification check if account status is in review
+    if (_user?.user.accStatus == null) {
+      // If status is null, default to showing verification warning
+      debugPrint("Status is null - showing warning");
+      if (_existingProfileImageUrl == null ||
+          _existingIDImageUrl == null ||
+          _existingProfileImageUrl!.isEmpty ||
+          _existingIDImageUrl!.isEmpty) {
+        return _buildMissingInformation();
+      }
+    } else {
+      // Use exact case match for "Review" as used in the backend
+      String status = _user!.user.accStatus!;
+      debugPrint("Checking status (exact): '$status'");
+
+      // Check for exact match "Review" (with capital R) as used in the backend
+      bool isReview = status == "Review";
+
+      debugPrint("Is review status (exact match): $isReview");
+
+      if (isReview) {
+        // Status is review, skip verification check
+        debugPrint("Status is exactly 'Review' - skipping verification");
+      } else if (_existingProfileImageUrl == null ||
+          _existingIDImageUrl == null ||
+          _existingProfileImageUrl!.isEmpty ||
+          _existingIDImageUrl!.isEmpty) {
+        // Status is not review and verification is needed
+        debugPrint("Status not 'Review' - showing warning");
+        return _buildMissingInformation();
+      }
+    }
+
+    // Show empty state or task list
     if (_filteredTasks.isEmpty) {
       return Center(
         child: Column(
@@ -453,6 +521,7 @@ class _LikesScreenState extends State<LikesScreen> {
       );
     }
 
+    // Display the list of liked taskers
     return RefreshIndicator(
       onRefresh: _loadLikedTasks,
       color: Color(0xFF0272B1),
@@ -497,7 +566,8 @@ class _LikesScreenState extends State<LikesScreen> {
             onPressed: () async {
               final result = await Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const FillUpClient()),
+                MaterialPageRoute(
+                    builder: (context) => const VerificationPage()),
               );
               if (result == true) {
                 setState(() {

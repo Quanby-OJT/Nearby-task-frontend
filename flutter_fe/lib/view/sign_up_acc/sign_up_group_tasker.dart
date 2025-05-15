@@ -167,10 +167,59 @@ class _SignUpGroupTaskerAccState extends State<SignUpGroupTaskerAcc> {
                           controller: _controller.passwordController,
                           obscureText: true,
                           cursorColor: Color(0xFF0272B1),
-                          validator: (value) => value!.length < 6
-                              ? "Password must be at least 6 characters"
-                              : null,
+                          validator: _controller.validatePassword,
                           decoration: _inputDecoration('Your Password'),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 30),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Password must contain:',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black54,
+                              ),
+                            ),
+                            Text(
+                              '• At least 8 characters',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.black54,
+                              ),
+                            ),
+                            Text(
+                              '• At least one uppercase letter',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.black54,
+                              ),
+                            ),
+                            Text(
+                              '• At least one lowercase letter',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.black54,
+                              ),
+                            ),
+                            Text(
+                              '• At least one number',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.black54,
+                              ),
+                            ),
+                            Text(
+                              '• At least one special character (!@#\$%^&*(),.?":{}|<>)',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       Padding(
@@ -197,7 +246,58 @@ class _SignUpGroupTaskerAccState extends State<SignUpGroupTaskerAcc> {
                                 borderRadius: BorderRadius.circular(10)),
                             padding: EdgeInsets.symmetric(horizontal: 30),
                           ),
-                          onPressed: () {},
+                          onPressed: () async {
+                            if (_controller.emailController.text.isNotEmpty &&
+                                _controller
+                                    .passwordController.text.isNotEmpty &&
+                                _controller.confirmPasswordController.text
+                                    .isNotEmpty &&
+                                _controller
+                                    .companyNameController.text.isNotEmpty) {
+                              if (_controller.passwordController.text !=
+                                  _controller.confirmPasswordController.text) {
+                                setState(() {
+                                  _status = "Passwords do not match";
+                                });
+                                return;
+                              }
+
+                              String? passwordError =
+                                  _controller.validatePassword(
+                                      _controller.passwordController.text);
+                              if (passwordError != null) {
+                                setState(() {
+                                  _status = passwordError;
+                                });
+                                return;
+                              }
+
+                              setState(() {
+                                _status = "Creating your account...";
+                              });
+
+                              // Set the tasker group to true for group taskers
+                              _controller.taskerGroupController.text = "true";
+
+                              // Store the company name
+                              _controller.firstNameController.text =
+                                  _controller.companyNameController.text;
+                              // Set a default last name for group taskers
+                              _controller.lastNameController.text =
+                                  "Organization";
+
+                              await _controller.registerUser(context);
+
+                              setState(() {
+                                _status =
+                                    "First login will verify your account";
+                              });
+                            } else {
+                              setState(() {
+                                _status = "Please fill all required fields";
+                              });
+                            }
+                          },
                           child: Text(
                             'Create a New Tasker Account',
                             style: TextStyle(color: Colors.white, fontSize: 16),
