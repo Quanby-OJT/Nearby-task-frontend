@@ -65,13 +65,13 @@ class EscrowManagementController {
   Future<Map<String, dynamic>> depositAmountToEscrow(
       String paymentMethod) async {
     try {
-      // debugPrint("TaskRequestController: Depositing amount to escrow");
-      // debugPrint("TaskRequestController: Contract Price: $contractPrice");
-      // debugPrint("TaskRequestController: Task Taken ID: $taskTakenId");
+      debugPrint("TaskRequestController: Depositing amount to escrow");
+      debugPrint("TaskRequestController: Contract Price: ${amountController.text}");
       var response = await _requestService.depositEscrowPayment(
-          double.parse(
-              amountController.text.replaceAll("₱", "").replaceAll(",", "")),
-          paymentMethod);
+          double.parse(amountController.text.replaceAll("₱", "").replaceAll(",", "")),
+          paymentMethod,
+          acctNumberController.text
+      );
 
       if (response.containsValue('message')) {
         await fetchTokenBalance();

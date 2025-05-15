@@ -172,6 +172,7 @@ export class DisputeManagementComponent {
           <option value="refund_tokens">Refund NearByTask Tokens to Client</option>
           <option value="release_half">Release Half of the Total Payment to Tasker</option>
           <option value="release_full">Release Full Payment to Tasker</option>
+          <option value="reject_dispute">Reject the Dispute</option>
         </select>
         </div>
         <div class="form-group">
@@ -216,8 +217,8 @@ export class DisputeManagementComponent {
           text: 'This action cannot be undone. Do you want to proceed?',
           icon: 'warning',
           showCancelButton: true,
-          confirmButtonText: 'Yes, update it!',
-          cancelButtonText: 'No, cancel',
+          confirmButtonText: 'Update the Dispute',
+          cancelButtonText: 'Review the Dispute',
           confirmButtonColor: '#3085d6',
           cancelButtonColor: '#d33',
         }).then((confirmResult) => {

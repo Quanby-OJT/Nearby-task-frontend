@@ -94,7 +94,7 @@ class AddressModel {
 
   factory AddressModel.fromJson(Map<String, dynamic> json) {
     return AddressModel(
-      id: json['id'] ?? json['user_id'] as String?,
+      id: json['id'] ?? json['user_id'] as int,
       streetAddress: json['street'] ?? json['street_address'] ?? '',
       barangay: json['barangay'] ?? '',
       city: json['city'] ?? '',

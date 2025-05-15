@@ -133,16 +133,18 @@ class _ChatScreenState extends State<ChatScreen> {
 
       final taskAndConversationResult = await _taskController.fetchTasksAndConversations();
 
+      //debugPrint("TaskAndConversationResult: ${taskAndConversationResult.conversations}");
+
       // Extract tasks and conversations from result
       final tasks = taskAndConversationResult.taskAssignments;
-      final convs = taskAndConversationResult.conversations;
+      final convos = taskAndConversationResult.conversations;
 
-      debugPrint("Raw Conversations: $convs");
+      debugPrint("Raw Conversations: $convos");
       debugPrint("Task Assignments: $tasks");
 
       setState(() {
         taskAssignments = tasks;
-        conversation = convs;
+        conversation = convos;
         filteredTaskAssignments = tasks; // Maintain same filtering logic
         _isLoading = false;
       });
@@ -897,6 +899,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                         final conversations = conversation.firstWhereOrNull(
                                               (conv) => conv.taskTakenId == taskAssignment.taskTakenId,
                                         );
+
+                                        debugPrint("Conversations for TaskTakenId ${taskAssignment.taskTakenId}: $conversations");
                                         return conversationCard(taskAssignment, conversations);
                                       },
                                     )
@@ -947,13 +951,11 @@ class _ChatScreenState extends State<ChatScreen> {
     final currentUserId = storage.read('user_id');
     final role = storage.read('role');
 
-    final senderId = conversation?.userId ??
-        (role == 'Tasker' ? taskTaken.client?.user?.id : taskTaken.tasker?.user?.id) ??
-        0;
+    final senderId = conversation?.userId;
     debugPrint("Current User ID: $currentUserId, Sender Id: $senderId, and Role: $role");
-    final bool isReceiver = senderId != currentUserId;
+    final bool isSender = senderId != currentUserId;
     final bool isUnread = taskTaken.unreadCount > 0;
-    debugPrint("Is Receiver: $isReceiver, Unread Messages for Task: ${taskTaken.taskTakenId} - ${taskTaken.unreadCount}");
+    debugPrint("Is Receiver: $isSender, Unread Messages for Task: ${taskTaken.taskTakenId} - ${taskTaken.unreadCount}");
     final user = role == 'Tasker' ? taskTaken.client?.user : taskTaken.tasker?.user;
 
     return Container(
@@ -1009,32 +1011,22 @@ class _ChatScreenState extends State<ChatScreen> {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (!isReceiver) // Show checkmarks only for receiver
-                          readIconMarker(
-                            isUnread
-                                ? FontAwesomeIcons.check
-                                : FontAwesomeIcons.checkDouble,
-                            Colors.green,
-                          ),
-                        SizedBox(width: 4),
-                        if(isReceiver)...[
-                        Text(
-                          "${user?.firstName ?? ''} ${user?.middleName ?? ''} ${user?.lastName ?? ''}",
-                          style: GoogleFonts.poppins(
-                            fontWeight: isUnread
-                                ? FontWeight.bold
-                                : FontWeight.normal,
+                        readIconMarker(
+                          isUnread
+                              ? FontAwesomeIcons.check
+                              : FontAwesomeIcons.checkDouble,
+                          Colors.green,
+                        ),
+                      SizedBox(width: 4),
+                      Text(
+                        "${user?.firstName ?? ''} ${user?.middleName ?? ''} ${user?.lastName ?? ''}",
+                        style: GoogleFonts.poppins(
+                          fontWeight: isSender && isUnread
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                           ),
                         ),
-                        ]
-                        else
-                        Text(
-                          "${user?.firstName ?? ''} ${user?.middleName ?? ''} ${user?.lastName ?? ''}",
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.normal,
-                          ),
-                        )
-                      ],
+                      ]
                     ),
                   ],
                 ),

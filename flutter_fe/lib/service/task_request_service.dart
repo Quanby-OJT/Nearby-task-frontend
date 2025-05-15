@@ -401,7 +401,7 @@ class TaskRequestService {
   }
 
   Future<Map<String, dynamic>> depositEscrowPayment(
-      double depositAmount, String paymentMethod) async {
+      double depositAmount, String paymentMethod, String acctNumber) async {
     try {
       final userId = await getUserId();
       if (userId == null) {
@@ -417,7 +417,8 @@ class TaskRequestService {
         body: {
           'client_id': int.parse(userId),
           'amount': depositAmount,
-          'payment_method': paymentMethod
+          'payment_method': paymentMethod,
+          'account_number': acctNumber
         },
       );
     } catch (e) {
@@ -500,7 +501,6 @@ class TaskRequestService {
   Future<Map<String, dynamic>> releaseEscrowPayment(int taskerId, double amount, String paymentMethod) async {
     try {
       debugPrint("Releasing escrow payment with tasker ID: $taskerId");
-
       return await _postRequest(
         endpoint: '/withdraw-escrow-amount',
         body: {

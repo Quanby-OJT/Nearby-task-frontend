@@ -1018,12 +1018,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (BuildContext bottomSheetContext) {
         return _AmountManagementBottomSheet(
           onAmountSubmit: (String paymentMethod, Function(bool) onComplete) async {
+            ScaffoldMessenger.of(parentContext).showMaterialBanner(
+              MaterialBanner(
+                  content: Text("Please Wait while we process your payment..."),
+                  actions: [
+                    TextButton(
+                      onPressed: () => ScaffoldMessenger.of(parentContext).hideCurrentMaterialBanner(),
+                      child: Text(
+                        "Dismiss",
+                        style: GoogleFonts.poppins(
+                          color: Colors.white
+                        )
+                      )
+                    )
+                  ]
+              )
+            );
             if(role == "Client"){
-              await _escrowController.depositAmountToEscrow(paymentMethod);
+              Map<String, dynamic> result = await _escrowController.depositAmountToEscrow(paymentMethod);
             }else if(role == "Tasker"){
-              await _escrowController.releaseEscrowPayment(taskerId, paymentMethod);
+              String result = await _escrowController.releaseEscrowPayment(taskerId, paymentMethod);
             }
-
           },
         );
       }
@@ -1095,11 +1110,16 @@ class _AmountManagementBottomSheetState
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return "Please Enter Amount to Withdraw";
-                  } else if (double.parse(value
+                  } else if (role == "Tasker" && double.parse(value
                       .replaceAll("₱", "")
                       .replaceAll(",", "")) >
                       20000) {
                     return "You Cannot Withdraw more than P20,000.00";
+                  } else if(role == "Client" && double.parse(value
+                      .replaceAll("₱", "")
+                      .replaceAll(",", "")) >
+                      30000) {
+                    return "You cannot Deposit more than P30,000.00";
                   }
                   return null;
                 },
@@ -1134,31 +1154,24 @@ class _AmountManagementBottomSheetState
                         null,
                         _selectPaymentMethod,
                         _isMethodSelected),
-                    // buildPaymentCard("Soon",
-                    //     null,
-                    //     FontAwesomeIcons.hourglass,
-                    //     _selectPaymentMethod,
-                    //     null),
-                    // buildPaymentCard("Soon",
-                    //     null,
-                    //     FontAwesomeIcons.hourglass,
-                    //     _selectPaymentMethod,
-                    //     null)
                   ],
                 ),
                 SizedBox(height: 10),
-                Text("Please Input Your Account Number Below."),
-                SizedBox(height: 10),
-                TextFormField(
-                  controller: _escrowController.acctNumberController,
-                  decoration: InputDecoration(
-                    hintText: "Enter Your Account Number",
-                    hintStyle: GoogleFonts.poppins(
-                      color: Color(0XFF3C28CC),
+
+                if(role == "Tasker")...[
+                  Text("Please Input Your Account Number Below."),
+                  SizedBox(height: 10),
+                  TextFormField(
+                    controller: _escrowController.acctNumberController,
+                    decoration: InputDecoration(
+                      hintText: "Enter Your Account Number",
+                      hintStyle: GoogleFonts.poppins(
+                        color: Color(0XFF3C28CC),
+                      ),
                     ),
+                    keyboardType: TextInputType.phone,
                   ),
-                  keyboardType: TextInputType.phone,
-                ),
+                ],
                 SizedBox(
                   height: 20,
                 ),
@@ -1233,28 +1246,34 @@ class _AmountManagementBottomSheetState
       Function(String) onMethodSelected, bool? isMethodSelected) {
     final isSelected = _selectedPaymentMethod == title;
     return Card(
-        elevation: 2,
-        color: isSelected ? Color(0xFFF1F4FF) : Colors.white,
-        child: InkWell(
-            onTap: () {
-              if (!isSelected) {
-                onMethodSelected(title);
-              } else {
-                onMethodSelected('');
-              }
-            },
-            child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: SizedBox(
-                    height: 60,
-                    width: 60,
-                    child: Column(children: [
-                      if (imageLink != null)
-                        Image.asset(imageLink, height: 30, width: 30),
-                      if (icon != null)
-                        Icon(icon, size: 30, color: Colors.black38),
-                      const SizedBox(height: 10),
-                      Text(title, style: GoogleFonts.poppins(fontSize: 12)),
-                    ])))));
+      elevation: 2,
+      color: isSelected ? Color(0xFFF1F4FF) : Colors.white,
+      child: InkWell(
+        onTap: () {
+          if (!isSelected) {
+            onMethodSelected(title);
+          } else {
+            onMethodSelected('');
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: SizedBox(
+            height: 60,
+            width: 60,
+            child: Column(
+              children: [
+                if (imageLink != null)
+                  Image.asset(imageLink, height: 30, width: 30),
+                if (icon != null)
+                  Icon(icon, size: 30, color: Colors.black38),
+                const SizedBox(height: 10),
+                Text(title, style: GoogleFonts.poppins(fontSize: 12)),
+              ]
+            )
+          )
+        )
+      )
+    );
   }
 }

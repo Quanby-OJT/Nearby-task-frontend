@@ -796,28 +796,27 @@ class _ClientReviewState extends State<ClientReview> {
 
   Widget _showActionBottomSheet() {
     return Column(children: [
-      ElevatedButton(
-        onPressed: _handleFinishTask,
-        style: ElevatedButton.styleFrom(
-          minimumSize: Size(double.infinity, 50),
-          backgroundColor: Color(0xFF3E9B52),
-          padding: EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+      if(_requestStatus != 'Disputed')...[
+        ElevatedButton(
+          onPressed: _handleFinishTask,
+          style: ElevatedButton.styleFrom(
+            minimumSize: Size(double.infinity, 50),
+            backgroundColor: Color(0xFF3E9B52),
+            padding: EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 2,
           ),
-          elevation: 2,
-        ),
-        child: Text(
-          _requestStatus != 'Disputed'
-              ? 'Finish Task and Release Payment'
-              : 'Rate Tasker',
-          style: GoogleFonts.montserrat(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
+          child: Text('Mark Task as Finished',
+            style: GoogleFonts.montserrat(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
           ),
         ),
-      ),
+      ],
       SizedBox(height: 16),
       if (_requestStatus != 'Disputed')
         ElevatedButton(
