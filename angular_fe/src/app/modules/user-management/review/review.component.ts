@@ -407,7 +407,7 @@ export class ReviewComponent {
       didOpen: () => {
         const actions = document.querySelector('.swal2-actions');
         if (actions) {
-          actions.setAttribute('style', 'display: flex; justify-content: flex-end; width: 100%;');
+          actions.setAttribute('style', 'display: flex; justify-content: flex-end; width: 90%;');
         }
       }
     });

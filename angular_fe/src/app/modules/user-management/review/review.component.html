@@ -40,6 +40,7 @@
         <div class="col-span-2">
           <div class="form__group mb-5">
             <!-- First Name -->
+            <label for="firstName" class="text-sm font-medium text-gray-700">First Name</label>
             <div class="relative">
               <input
                 type="text"
@@ -55,6 +56,7 @@
 
           <div class="form__group mb-5">
             <!-- Middle Name -->
+            <label for="middleName" class="text-sm font-medium text-gray-700">Middle Name</label>
             <div class="relative">
               <input
                 type="text"
@@ -67,8 +69,10 @@
                 readonly/>
             </div>
           </div>
+
           <div class="form__group mb-5">
-            <!-- Last Name  -->
+            <!-- Last Name -->
+            <label for="lastName" class="text-sm font-medium text-gray-700">Last Name</label>
             <div class="relative">
               <input
                 type="text"
@@ -82,22 +86,24 @@
             </div>
           </div>
 
-        <!-- Age -->
-        <div class="form__group mb-5">
-          <div class="relative">
-            <input
-              type="number"
-              id="age"
-              class="peer block"
-              placeholder=" "
-              formControlName="age"
-              [disabled]="true"
-              readonly/>
+          <!-- Age -->
+          <div class="form__group mb-5">
+            <label for="age" class="text-sm font-medium text-gray-700">Age</label>
+            <div class="relative">
+              <input
+                type="number"
+                id="age"
+                class="peer block"
+                placeholder=" "
+                formControlName="age"
+                [disabled]="true"
+                readonly/>
+            </div>
           </div>
-        </div>
 
           <div class="form__group mb-5">
             <!-- Birthdate -->
+            <label for="bday" class="text-sm font-medium text-gray-700">Birthdate</label>
             <div class="relative">
               <input
                 type="date"
@@ -113,6 +119,7 @@
 
           <div class="form__group mb-5">
             <!-- Email -->
+            <label for="email" class="text-sm font-medium text-gray-700">Email</label>
             <div class="relative">
               <input
                 type="email"
@@ -128,6 +135,7 @@
 
           <div class="mb-5 grid grid-cols-2 gap-5">
             <div class="form__group">
+              <label for="userRole" class="text-sm font-medium text-gray-700">User Role</label>
               <div class="relative">
                 <select
                   id="userRole"
@@ -145,6 +153,7 @@
             </div>
 
             <div class="form__group">
+              <label for="status" class="text-sm font-medium text-gray-700">Status</label>
               <div class="relative">
                 <select
                   id="status"
