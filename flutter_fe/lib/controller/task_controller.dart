@@ -313,23 +313,29 @@ class TaskController {
         );
       }
 
+      // Extract data arrays
+      final data = response['data'] as List<dynamic>? ?? [];
+      final taskData = (data.isNotEmpty ? data[0] as List<dynamic>? : null) ?? [];
+      final conversationData = (data.length > 1 ? data[1] as List<dynamic>? : null) ?? [];
+
       // Parse task assignments
-      final taskAssignments = (response['task_taken'] as List<dynamic>?)
-          ?.map((taskJson) => TaskAssignment.fromJson(taskJson))
-          .toList() ?? [];
+      final taskAssignments = taskData
+          .map((taskJson) => TaskAssignment.fromJson(taskJson))
+          .toList();
 
       // Parse conversations
-      final conversations = (response['conversation'] as List<dynamic>?)
-          ?.map((convJson) => Conversation.fromJson({
+      final conversations = conversationData
+          .map((convJson) => Conversation.fromJson({
         ...convJson,
         'task_taken': taskAssignments.firstWhere(
               (task) => task.taskTakenId == convJson['task_taken_id'],
           orElse: () => TaskAssignment(taskTakenId: 0, taskStatus: ''),
         ),
       }))
-          .toList() ?? [];
+          .toList();
 
       debugPrint('Fetched tasks: $taskAssignments');
+      debugPrint('Raw Conversations: $conversationData');
       debugPrint('Fetched conversations: $conversations');
 
       return TaskAndConversationResult(
