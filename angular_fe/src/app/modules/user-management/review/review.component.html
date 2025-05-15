@@ -82,6 +82,20 @@
             </div>
           </div>
 
+        <!-- Age -->
+        <div class="form__group mb-5">
+          <div class="relative">
+            <input
+              type="number"
+              id="age"
+              class="peer block"
+              placeholder=" "
+              formControlName="age"
+              [disabled]="true"
+              readonly/>
+          </div>
+        </div>
+
           <div class="form__group mb-5">
             <!-- Birthdate -->
             <div class="relative">
@@ -140,7 +154,7 @@
                   required> 
                   <option value="" disabled selected>Select User status</option>
                   <option value="Pending">Pending</option>
-                  <option value="Active">Active</option>
+                  <option value="Active">Verify</option>
                   <option value="Review">Review</option>
                 </select>
               </div>
@@ -181,7 +195,7 @@
                   Compare Id Photo and Selfie
                 </button>
               </div>
-              <app-button full impact="bold" shape="rounded" size="medium" tone="blue">Update User</app-button>
+              <app-button full impact="bold" shape="rounded" size="medium" tone="blue">Update Status</app-button>
             </div>
           </div>
         </div>

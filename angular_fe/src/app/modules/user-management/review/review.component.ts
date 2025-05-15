@@ -69,7 +69,20 @@ export class ReviewComponent {
       userRole: ['', Validators.required],
       email: ['', Validators.required],
       bday: ['', Validators.required],
+      age: [{ value: '', disabled: true }]
     });
+  }
+
+  calculateAge(birthdate: string): number {
+    if (!birthdate) return 0;
+    const today = new Date('2025-05-15'); // Current date as provided
+    const birthDate = new Date(birthdate);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
   }
 
   loadUserData(): void {
@@ -79,6 +92,7 @@ export class ReviewComponent {
       next: (response: any) => {
         console.log('User data response:', response);
         this.userData = response.user;
+        const age = this.calculateAge(response.user.birthdate);
         this.form.patchValue({
           firstName: response.user.first_name,
           middleName: response.user.middle_name,
@@ -87,6 +101,7 @@ export class ReviewComponent {
           userRole: response.user.user_role,
           email: response.user.email,
           status: response.user.acc_status,
+          age: age
         });
         console.log('Form value after patching:', this.form.value);
         this.profileImage = response.user.image_link; // Set profileImage from image_link
@@ -332,19 +347,39 @@ export class ReviewComponent {
   compareImages(): void {
     let idImageHtml = '';
     if (this.imageUrl && this.isImage) {
-      idImageHtml = `<img src="${this.imageUrl}" alt="ID Image" style="width: 200px; height: 200px; object-fit: cover; margin-right: 10px; margin-bottom: 10px;" onclick="window.open('${this.imageUrl}', '_blank');" />`;
+      idImageHtml = `
+        <div style="position: relative; width: 200px; height: 200px;">
+          <div class="image-spinner" style="display: flex; justify-content: center; align-items: center; width: 200px; height: 200px; background: #f0f0f0;">
+            <div style="border: 4px solid #f3f3f3; border-top: 4px solid #5F50E7; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite;"></div>
+          </div>
+          <img src="${this.imageUrl}" alt="ID Image" style="width: 200px; height: 200px; object-fit: cover; display: none;" onload="this.style.display='block'; this.parentNode.querySelector('.image-spinner').style.display='none';" onerror="this.style.display='none'; this.parentNode.querySelector('.image-spinner').style.display='none'; this.parentNode.innerHTML='<div style=\\'width: 200px; height: 200px; background: #f0f0f0; display: flex; justify-content: center; align-items: center; color: #666; font-size: 14px; text-align: center;\\' >No ID Image Available</div>';"/>
+        </div>
+      `;
     } else {
-      idImageHtml = '<div>No ID Image Available</div>';
+      idImageHtml = '<div style="width: 200px; height: 200px; background: #f0f0f0; display: flex; justify-content: center; align-items: center; color: #666; font-size: 14px; text-align: center;">No ID Image Available</div>';
     }
-
+  
     let faceImageHtml = '';
     if (this.faceImage && this.isFaceImage) {
-      faceImageHtml = `<img src="${this.faceImage}" alt="Face Image" style="width: 200px; height: 200px; object-fit: cover; margin-right: 10px; margin-bottom: 10px;" onclick="window.open('${this.faceImage}', '_blank');" />`;
+      faceImageHtml = `
+        <div style="position: relative; width: 200px; height: 200px;">
+          <div class="image-spinner" style="display: flex; justify-content: center; align-items: center; width: 200px; height: 200px; background: #f0f0f0;">
+            <div style="border: 4px solid #f3f3f3; border-top: 4px solid #5F50E7; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite;"></div>
+          </div>
+          <img src="${this.faceImage}" alt="Face Image" style="width: 200px; height: 200px; object-fit: cover; display: none;" onload="this.style.display='block'; this.parentNode.querySelector('.image-spinner').style.display='none';" onerror="this.style.display='none'; this.parentNode.querySelector('.image-spinner').style.display='none'; this.parentNode.innerHTML='<div style=\\'width: 200px; height: 200px; background: #f0f0f0; display: flex; justify-content: center; align-items: center; color: #666; font-size: 14px; text-align: center;\\' >No Face Image Available</div>';"/>
+        </div>
+      `;
     } else {
-      faceImageHtml = '<div>No Face Image Available</div>';
+      faceImageHtml = '<div style="width: 200px; height: 200px; background: #f0f0f0; display: flex; justify-content: center; align-items: center; color: #666; font-size: 14px; text-align: center;">No Face Image Available</div>';
     }
-
+  
     const htmlContent = `
+      <style>
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      </style>
       <div style="max-height: 400px; overflow-y: auto; padding-right: 10px; display: flex; justify-content: center; gap: 20px;">
         <div style="text-align: center;">
           <div style="margin-bottom: 10px; font-weight: bold;">ID Image</div>
@@ -356,15 +391,24 @@ export class ReviewComponent {
         </div>
       </div>
     `;
-
+  
     Swal.fire({
       title: 'Compare ID Photo and Selfie',
       html: htmlContent,
       width: '800px',
-      showCloseButton: true,
-      showConfirmButton: false,
+      showCloseButton: false,
+      showConfirmButton: true,
+      confirmButtonText: 'Close',
+      confirmButtonColor: '#5F50E7',
       customClass: {
-        htmlContainer: 'text-center'
+        htmlContainer: 'text-center',
+        actions: 'swal2-actions-right'
+      },
+      didOpen: () => {
+        const actions = document.querySelector('.swal2-actions');
+        if (actions) {
+          actions.setAttribute('style', 'display: flex; justify-content: flex-end; width: 100%;');
+        }
       }
     });
   }
