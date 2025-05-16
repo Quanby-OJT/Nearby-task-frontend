@@ -3,7 +3,7 @@
     <h3 class="text-foreground font-semibold">Update User</h3>
     <div class="text-muted-foreground space-x-1 text-xs font-medium">
       <a href="" class="hover:text-primary"><strong>Dashboards > User Management > Update User</strong></a>
-      <p>This is used to set the users status to pending, ban, warn, review</p>
+      <p>This is used to set the users status to ban, warn, review</p>
     </div>
   </div>
   <div>
@@ -221,7 +221,7 @@
                   readonly>
                   <option value="" disabled selected>Select User Status</option>
                   <option value="Active">Verify</option>
-                  <option value="Pending">Pending</option>
+                  <option value="Pending" class="non-interactive" hidden>Pending</option>
                   <option value="Deactivate" class="non-inter" hidden>Deactivate</option>
                   <option value="Block" class="non-interactive" hidden>Block</option>
                   <option value="Ban">Ban</option>
