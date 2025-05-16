@@ -7,8 +7,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AddressList extends StatefulWidget {
   final Function(AddressModel)? onAddressSelected;
-  
-  const AddressList({Key? key, this.onAddressSelected}) : super(key: key);
+
+  const AddressList({super.key, this.onAddressSelected});
 
   @override
   State<AddressList> createState() => _AddressListState();
@@ -16,19 +16,19 @@ class AddressList extends StatefulWidget {
 
 class _AddressListState extends State<AddressList> {
   final storage = GetStorage();
-  
+
   List<AddressModel> _addresses = [];
   bool _isLoading = true;
   String? _userName;
   String? _userPhone;
-  
+
   @override
   void initState() {
     super.initState();
     _loadAddresses();
     _loadUserInfo();
   }
-  
+
   Future<void> _loadUserInfo() async {
     try {
       final userId = await ProfileService.getUserId();
@@ -44,15 +44,16 @@ class _AddressListState extends State<AddressList> {
       print('Error loading user info: $e');
     }
   }
-  
+
   Future<void> _loadAddresses() async {
     setState(() => _isLoading = true);
-    
+
     try {
       // In a real app, you would fetch addresses from your backend
       // For now, we'll create some sample addresses
-      await Future.delayed(Duration(milliseconds: 500)); // Simulate network delay
-      
+      await Future.delayed(
+          Duration(milliseconds: 500)); // Simulate network delay
+
       setState(() {
         _addresses = [
           AddressModel(
@@ -66,7 +67,8 @@ class _AddressListState extends State<AddressList> {
             latitude: 13.1547,
             longitude: 123.7240,
             defaultAddress: true,
-            formattedAddress: 'Balaguer Street, Market Area Pob. (Dist. 1), Daraga, Albay, Philippines, 4501',
+            formattedAddress:
+                'Balaguer Street, Market Area Pob. (Dist. 1), Daraga, Albay, Philippines, 4501',
             regionName: 'South Luzon',
           ),
           AddressModel(
@@ -80,7 +82,8 @@ class _AddressListState extends State<AddressList> {
             latitude: 12.9236,
             longitude: 124.1103,
             defaultAddress: false,
-            formattedAddress: 'Bonifacio Street, Cota Na Daco (Pob.), Gubat, Sorsogon, Philippines, 4710',
+            formattedAddress:
+                'Bonifacio Street, Cota Na Daco (Pob.), Gubat, Sorsogon, Philippines, 4710',
             regionName: 'South Luzon',
           ),
           AddressModel(
@@ -94,7 +97,8 @@ class _AddressListState extends State<AddressList> {
             latitude: 13.1391,
             longitude: 123.7438,
             defaultAddress: false,
-            formattedAddress: '140 Bgy 2 Ems Barrio South(Pob), Legazpi City, Albay, Philippines, 4500',
+            formattedAddress:
+                '140 Bgy 2 Ems Barrio South(Pob), Legazpi City, Albay, Philippines, 4500',
             regionName: 'South Luzon',
           ),
         ];
@@ -110,21 +114,22 @@ class _AddressListState extends State<AddressList> {
       );
     }
   }
-  
+
   Future<void> _addNewAddress() async {
     final result = await Navigator.push<AddressModel>(
       context,
       MaterialPageRoute(
-        builder: (context) => Address(onAddressSelected: widget.onAddressSelected),
+        builder: (context) =>
+            Address(onAddressSelected: widget.onAddressSelected),
       ),
     );
-    
+
     if (result != null) {
       // In a real app, you would save this address to your backend
       setState(() {
         _addresses.add(result);
       });
-      
+
       // If this is the first address, make it the default
       if (_addresses.length == 1) {
         setState(() {
@@ -153,7 +158,7 @@ class _AddressListState extends State<AddressList> {
     }
     Navigator.pop(context, address);
   }
-  
+
   void _setAsDefault(int index) {
     setState(() {
       for (int i = 0; i < _addresses.length; i++) {
@@ -190,7 +195,7 @@ class _AddressListState extends State<AddressList> {
         }
       }
     });
-    
+
     // In a real app, you would update this in your backend
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -199,29 +204,30 @@ class _AddressListState extends State<AddressList> {
       ),
     );
   }
-  
+
   void _editAddress(int index) async {
     final result = await Navigator.push<AddressModel>(
       context,
       MaterialPageRoute(
-        builder: (context) => Address(onAddressSelected: widget.onAddressSelected),
+        builder: (context) =>
+            Address(onAddressSelected: widget.onAddressSelected),
       ),
     );
-    
+
     if (result != null) {
       setState(() {
         _addresses[index] = result;
       });
     }
   }
-  
+
   void _deleteAddress(int index) {
     // Check if it's the default address
     bool wasDefault = _addresses[index].defaultAddress ?? false;
-    
+
     setState(() {
       _addresses.removeAt(index);
-      
+
       // If we deleted the default address and there are other addresses, make the first one default
       if (wasDefault && _addresses.isNotEmpty) {
         _addresses[0] = AddressModel(
@@ -240,7 +246,7 @@ class _AddressListState extends State<AddressList> {
         );
       }
     });
-    
+
     // In a real app, you would delete this from your backend
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -299,7 +305,8 @@ class _AddressListState extends State<AddressList> {
                         onPressed: _addNewAddress,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFB71A4A),
-                          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
                         ),
                         child: Text('Add New Address'),
                       ),
@@ -327,7 +334,8 @@ class _AddressListState extends State<AddressList> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       _userName ?? 'User',
@@ -342,11 +350,13 @@ class _AddressListState extends State<AddressList> {
                                             horizontal: 8, vertical: 4),
                                         decoration: BoxDecoration(
                                           color: Color(0xFFB71A4A),
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                         child: Text(
                                           'Default',
-                                          style: const TextStyle(color: Colors.white),
+                                          style: const TextStyle(
+                                              color: Colors.white),
                                         ),
                                       ),
                                   ],
@@ -354,7 +364,7 @@ class _AddressListState extends State<AddressList> {
                                 SizedBox(height: 4),
                                 Text(_userPhone ?? ''),
                                 SizedBox(height: 8),
-                                Text(address.formattedAddress ?? 
+                                Text(address.formattedAddress ??
                                     '${address.streetAddress}, ${address.barangay}, ${address.city}, ${address.province}, ${address.country}, ${address.postalCode}'),
                                 SizedBox(height: 12),
                                 Row(
@@ -370,7 +380,8 @@ class _AddressListState extends State<AddressList> {
                                       onPressed: () => _editAddress(index),
                                     ),
                                     IconButton(
-                                      icon: const Icon(Icons.delete, color: Colors.red),
+                                      icon: const Icon(Icons.delete,
+                                          color: Colors.red),
                                       onPressed: () => _deleteAddress(index),
                                     ),
                                   ],
@@ -386,8 +397,8 @@ class _AddressListState extends State<AddressList> {
       floatingActionButton: FloatingActionButton(
         onPressed: _addNewAddress,
         backgroundColor: Color(0xFFB71A4A),
-        child: const Icon(Icons.add, color: Colors.white),
         tooltip: 'Add a new address',
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
