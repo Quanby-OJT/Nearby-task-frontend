@@ -1167,7 +1167,7 @@ class ProfileController {
           rating: 0);
 
       AddressModel address = AddressModel(
-        id: 0,
+        id: '',
         streetAddress: streetAddressController.text.trim(),
         barangay: barangayController.text.trim(),
         city: cityController.text.trim(),

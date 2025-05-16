@@ -1,7 +1,7 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class AddressModel {
-  final int id;
+  final String id;
   final double? latitude;
   final double? longitude;
   final String streetAddress;
@@ -94,7 +94,7 @@ class AddressModel {
 
   factory AddressModel.fromJson(Map<String, dynamic> json) {
     return AddressModel(
-      id: json['id'] ?? json['user_id'] as int,
+      id: json['id'] ?? json['id'] as String,
       streetAddress: json['street'] ?? json['street_address'] ?? '',
       barangay: json['barangay'] ?? '',
       city: json['city'] ?? '',
