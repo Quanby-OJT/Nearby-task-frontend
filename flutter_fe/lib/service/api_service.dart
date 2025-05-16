@@ -771,20 +771,25 @@ class ApiService {
       // Create a salt using timestamp
       String salt = DateTime.now().millisecondsSinceEpoch.toString();
 
-      debugPrint('Request Body: ${user.toJson}'); // Debug log
+      // Create the request body
+      Map<String, dynamic> requestBody = {...user.toJson(), "salt": salt};
+
+      // Debug logs
+      debugPrint('Register User - Request Body: ${json.encode(requestBody)}');
+      debugPrint(
+          'Register User - Password included: ${requestBody.containsKey("password")}');
+
       final response = await _client.post(
         Uri.parse("$apiUrl/create-new-account"),
         headers: {
           "Content-Type": "application/json",
           "Accept": "application/json",
         },
-        body: json.encode({...user.toJson(), "salt": salt}),
+        body: json.encode(requestBody),
       );
 
-      // var data = jsonDecode(response.body);
-
-      debugPrint('Response Status: ${response.statusCode}');
-      debugPrint('Response Body: ${response.body}');
+      debugPrint('Register User - Response Status: ${response.statusCode}');
+      debugPrint('Register User - Response Body: ${response.body}');
 
       final responseData = jsonDecode(response.body);
 

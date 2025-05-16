@@ -94,7 +94,7 @@ class UserModel {
       "middle_name": middleName,
       "last_name": lastName,
       "email": email,
-      "hashed_password": password,
+      "password": password,
       "user_role": role,
       "acc_status": accStatus,
       "contact": contact,

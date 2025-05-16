@@ -289,7 +289,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               Navigator.pop(context);
               final result = await Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const FillUpClient()),
+                MaterialPageRoute(
+                    builder: (context) => const VerificationPage()),
               );
               if (result == true) {
                 setState(() {
@@ -418,6 +419,50 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         overlayEntry.remove();
                       },
                     ),
+//                     if (_role == "Client") ...[
+//                       ListTile(
+//                         leading: Icon(
+//                           FontAwesomeIcons.coins,
+//                           color: const Color(0xFFB71A4A),
+//                         ),
+//                         title: Text(
+//                           'Manage Tokens',
+//                           style: GoogleFonts.poppins(
+//                             color: Colors.black,
+//                             fontSize: 14,
+//                             fontWeight: FontWeight.w300,
+//                           ),
+//                         ),
+//                         onTap: () {
+//                           if (_user?.user.accStatus?.toLowerCase() ==
+//                               'review') {
+//                             Navigator.push(
+//                               context,
+//                               MaterialPageRoute(
+//                                   builder: (context) => EscrowTokenScreen()),
+//                             );
+//                             overlayEntry.remove();
+//                             return;
+//                           }
+
+//                           if (_existingProfileImageUrl == null ||
+//                               _existingIDImageUrl == null ||
+//                               _existingProfileImageUrl!.isEmpty ||
+//                               _existingIDImageUrl!.isEmpty ||
+//                               !_documentValid) {
+//                             overlayEntry.remove();
+//                             _showWarningDialog();
+//                             return;
+//                           }
+//                           Navigator.push(
+//                             context,
+//                             MaterialPageRoute(
+//                                 builder: (context) => EscrowTokenScreen()),
+//                           );
+//                           overlayEntry.remove();
+//                         },
+//                       ),
+//                     ],
                     // ListTile(
                     //   leading: Icon(
                     //     FontAwesomeIcons.coins,
@@ -828,6 +873,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                     _cardCounter();
                                   } else if (swipeDirection ==
                                       CardSwiperDirection.right) {
+                                    if (_user?.user.accStatus?.toLowerCase() ==
+                                        'review') {
+                                      _saveLikedTasker(
+                                          taskers[previousIndex].user);
+                                      _cardCounter();
+                                      return true;
+                                    }
+
                                     if (_existingProfileImageUrl == null ||
                                         _existingIDImageUrl == null ||
                                         _existingProfileImageUrl!.isEmpty ||

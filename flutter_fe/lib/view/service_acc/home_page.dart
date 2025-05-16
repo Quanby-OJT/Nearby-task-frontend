@@ -319,7 +319,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => const FillUpTaskerLogin()),
+                    builder: (context) => const VerificationPage()),
               );
               if (result == true) {
                 setState(() {
