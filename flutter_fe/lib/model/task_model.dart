@@ -5,22 +5,25 @@ class TaskModel {
   final int id;
   final int? clientId;
   final String title;
-  final String specialization;
-  final int? specializationId;
   final String description;
-  final String location;
-  final String period;
-  final String duration;
-  final String urgency;
-  final String status;
-  final int contactPrice;
-  final String? remarks;
-  final String taskBeginDate;
+  final String specialization;
+  final List<int>? relatedSpecializationsIds;
+  final int? specializationId;
   final String workType;
+  final String scope;
+  final bool? isVerifiedDocument;
+  final int contactPrice;
+  final String urgency;
+  final String? remarks;
+  final String status;
+  final String? addressID;
   final ClientModel? client;
   final AddressModel? address;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final String? taskBeginDate;
+  final String? period;
+  final String? duration;
 
   TaskModel({
     required this.id,
@@ -28,20 +31,23 @@ class TaskModel {
     required this.title,
     required this.specialization,
     this.specializationId,
+    this.relatedSpecializationsIds,
+    this.addressID,
     required this.description,
-    required this.location,
-    required this.period,
-    required this.duration,
+    this.period,
+    this.duration,
     required this.urgency,
     required this.status,
     required this.contactPrice,
     this.remarks,
-    required this.taskBeginDate,
+    this.taskBeginDate,
     required this.workType,
+    required this.scope,
+    this.isVerifiedDocument,
     this.client,
-    this.address,
     this.createdAt,
     this.updatedAt,
+    this.address,
   });
 
   Map<String, dynamic> toJson() {
@@ -51,9 +57,9 @@ class TaskModel {
       "task_title": title,
       "specialization": specialization,
       "specialization_id": specializationId,
+      "related_specializations": relatedSpecializationsIds,
       "task_description": description,
-      "location": location,
-      "duration": duration != null ? int.tryParse(duration) ?? 0 : 0,
+      "duration": duration != null ? int.tryParse(duration!) ?? 0 : null,
       "period": period,
       "urgent": urgency == "Urgent",
       "proposed_price": contactPrice,
@@ -61,6 +67,9 @@ class TaskModel {
       "task_begin_date": taskBeginDate,
       "status": status,
       "work_type": workType,
+      "address_id": addressID,
+      "scope": scope,
+      "is_verified_document": isVerifiedDocument,
       "client": client?.toJson(),
       "address": address?.toJson(),
       "created_at": createdAt?.toIso8601String(),
@@ -69,32 +78,37 @@ class TaskModel {
   }
 
   factory TaskModel.fromJson(Map<String, dynamic> json) {
-    String? urgencyValue;
+    String urgencyValue;
     final urgentField = json['urgent'];
     if (urgentField is bool) {
       urgencyValue = urgentField ? "Urgent" : "Non-Urgent";
     } else if (urgentField is String) {
       urgencyValue = urgentField;
     } else {
-      urgencyValue = "Unknown";
+      urgencyValue = "Non-Urgent";
     }
 
     return TaskModel(
-      id: json['task_id'] as int,
+      id: json['task_id'] as int? ?? 0,
       clientId: json['client_id'] as int?,
-      title: json['task_title'] != null ? json['task_title'] as String : '',
-      specialization: json['specialization'] != null ? json['specialization'] as String : '',
+      title: json['task_title']?.toString() ?? '',
+      specialization: json['specialization']?.toString() ?? '',
       specializationId: json['specialization_id'] as int?,
-      description: json['task_description'] != null ? json['task_description'] as String : '',
-      location: json['location'] != null ? json['location'] as String : '',
-      duration: json['duration'] != null ? json['duration'].toString() : '',
-      period: json['period'] != null ? json['period'] as String : '',
+      relatedSpecializationsIds: json['related_specializations'] != null
+          ? List<int>.from(json['related_specializations'])
+          : null,
+      description: json['task_description']?.toString() ?? '',
+      duration: json['duration'] != null ? json['duration'].toString() : null,
+      period: json['period']?.toString() ?? '',
       urgency: urgencyValue,
-      contactPrice: json['proposed_price'] != null ? json['proposed_price'] as int : 0,
-      remarks: json['remarks'] as String?,
-      taskBeginDate: json['task_begin_date'] != null ? json['task_begin_date'] as String : '',
-      status: json['status'] != null ? json['status'] as String : '',
-      workType: json['work_type'] != null ? json['work_type'] as String : '',
+      contactPrice: json['proposed_price'] as int? ?? 0,
+      remarks: json['remarks']?.toString(),
+      taskBeginDate: json['task_begin_date']?.toString(),
+      status: json['status']?.toString() ?? '',
+      workType: json['work_type']?.toString() ?? '',
+      addressID: json['address_id']?.toString(),
+      scope: json['scope']?.toString() ?? '',
+      isVerifiedDocument: json['is_verified_document'] as bool?,
       client: json['clients'] != null && json['clients']['user'] != null
           ? ClientModel.fromJson({
               'preferences': '',
@@ -106,16 +120,16 @@ class TaskModel {
           ? AddressModel.fromJson(json['address'])
           : null,
       createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'])
+          ? DateTime.tryParse(json['created_at'].toString())
           : null,
       updatedAt: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'])
+          ? DateTime.tryParse(json['updated_at'].toString())
           : null,
     );
   }
 
   @override
   String toString() {
-    return 'TaskModel(id: $id, title: $title, specialization: $specialization, specializationId: $specializationId, description: $description, location: $location, period: $period, duration: $duration, urgency: $urgency, status: $status, contactPrice: $contactPrice, remarks: $remarks, taskBeginDate: $taskBeginDate, workType: $workType, client: $client, address: $address, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'TaskModel(id: $id, clientId: $clientId, title: $title, description: $description, specialization: $specialization, relatedSpecializationsIds: $relatedSpecializationsIds, specializationId: $specializationId, workType: $workType, scope: $scope, isVerifiedDocument: $isVerifiedDocument, contactPrice: $contactPrice, urgency: $urgency, remarks: $remarks, status: $status, client: $client, address: $address, createdAt: $createdAt, updatedAt: $updatedAt, taskBeginDate: $taskBeginDate, period: $period, duration: $duration, addressID: $addressID)';
   }
 }

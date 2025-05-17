@@ -98,8 +98,8 @@ class _TaskerOngoingState extends State<TaskerOngoing> {
   void _startCountdownTimer() {
     if (_taskInformation?.duration != null &&
         _taskInformation?.period != null) {
-      int durationInDays = int.parse(_taskInformation!.duration);
-      String period = _taskInformation!.period.toLowerCase();
+      int durationInDays = int.parse(_taskInformation!.duration!);
+      String period = _taskInformation!.period!.toLowerCase();
 
       if (period.contains('week')) {
         durationInDays *= 7;
@@ -339,12 +339,6 @@ class _TaskerOngoingState extends State<TaskerOngoing> {
                   ),
                 ),
               ],
-            ),
-            SizedBox(height: 16),
-            _buildTaskInfoRow(
-              icon: Icons.location_pin,
-              label: 'Location',
-              value: _taskInformation?.location ?? 'Not specified',
             ),
             SizedBox(height: 12),
             _buildTaskInfoRow(

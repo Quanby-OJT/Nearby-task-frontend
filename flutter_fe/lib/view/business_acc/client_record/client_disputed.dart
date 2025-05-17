@@ -236,12 +236,6 @@ class _ClientDisputedState extends State<ClientDisputed> {
             ),
             SizedBox(height: 16),
             _buildTaskInfoRow(
-              icon: Icons.location_pin,
-              label: 'Location',
-              value: _taskInformation?.location ?? 'Not specified',
-            ),
-            SizedBox(height: 12),
-            _buildTaskInfoRow(
               icon: Icons.calendar_today,
               label: 'Date',
               value: _taskInformation?.duration ?? 'Not specified',

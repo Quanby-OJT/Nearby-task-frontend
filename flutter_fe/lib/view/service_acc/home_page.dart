@@ -916,21 +916,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                         ),
                                       ),
                                       SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          Icon(Icons.location_pin,
-                                              size: 20,
-                                              color: Colors.grey[600]),
-                                          SizedBox(width: 8),
-                                          Text(
-                                            task.location ?? 'No Location',
-                                            style: GoogleFonts.openSans(
-                                              fontSize: 14,
-                                              color: Colors.grey[600],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
                                     ],
                                   ),
                                   Column(
