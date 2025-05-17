@@ -900,7 +900,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                               (conv) => conv.taskTakenId == taskAssignment.taskTakenId,
                                         );
 
-                                        debugPrint("Conversations for TaskTakenId ${taskAssignment.taskTakenId}: $conversations");
+                                        //debugPrint("Conversations for TaskTakenId ${taskAssignment.taskTakenId}: $conversations");
                                         return conversationCard(taskAssignment, conversations);
                                       },
                                     )
@@ -953,9 +953,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
     final senderId = conversation?.userId;
     debugPrint("Current User ID: $currentUserId, Sender Id: $senderId, and Role: $role");
-    final bool isSender = senderId != currentUserId;
+    final bool isReceiver = senderId != currentUserId;
     final bool isUnread = taskTaken.unreadCount > 0;
-    debugPrint("Is Receiver: $isSender, Unread Messages for Task: ${taskTaken.taskTakenId} - ${taskTaken.unreadCount}");
+    debugPrint("Is Receiver: $isReceiver, Unread Messages for Task: ${taskTaken.taskTakenId} - ${taskTaken.unreadCount}");
     final user = role == 'Tasker' ? taskTaken.client?.user : taskTaken.tasker?.user;
 
     return Container(
@@ -1021,7 +1021,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       Text(
                         "${user?.firstName ?? ''} ${user?.middleName ?? ''} ${user?.lastName ?? ''}",
                         style: GoogleFonts.poppins(
-                          fontWeight: isSender && isUnread
+                          fontWeight: isReceiver && isUnread
                               ? FontWeight.bold
                               : FontWeight.normal,
                           ),

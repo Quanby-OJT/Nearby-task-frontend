@@ -314,7 +314,7 @@ class TaskController {
       }
 
       // Extract tasks array from response
-      final tasks = response['tasks'] as List<dynamic>? ?? [];
+      final tasks = response['task_taken'] as List<dynamic>? ?? [];
       final unreadMessages = response['unread_messages'] as List<dynamic>? ?? [];
 
       debugPrint(unreadMessages.toString());
@@ -323,76 +323,34 @@ class TaskController {
 
       // Parse task assignments
       final taskAssignments = tasks.map((taskJson) {
-        final clientUser = taskJson['clients']['user'] as Map<String, dynamic>;
-        final taskerUser = taskJson['tasker']['user'] as Map<String, dynamic>;
+        final clientUser = taskJson['clients'] as Map<String, dynamic>;
+        final taskerUser = taskJson['tasker'] as Map<String, dynamic>;
 
-        return TaskAssignment(
+        final client = ClientModel.fromJson(clientUser);
+        final tasker = TaskerModel.fromJson(taskerUser);
+
+        debugPrint('Client: $client');
+        debugPrint('Tasker: $tasker');
+
+        final task = TaskModel.fromJson(taskJson['post_task']);
+
+        final taskAssignment = TaskAssignment(
           taskTakenId: taskJson['task_taken_id'],
+          client: client,
+          tasker: tasker,
+          task: task,
           taskStatus: taskJson['task_status'],
-          unreadCount: taskJson['unread_count'] ?? 0,
-          client: ClientModel(
-            preferences: '',
-            clientAddress: '',
-            user: UserModel(
-              id: clientUser['user_id'],
-              firstName: clientUser['first_name'],
-              middleName: clientUser['middle_name'] ?? '',
-              lastName: clientUser['last_name'],
-              email: '',
-              role: '',
-              image: clientUser['image_link'],
-            ),
-          ),
-          tasker: TaskerModel(
-            id: taskerUser['user_id'],
-            bio: '',
-            specialization: '',
-            skills: '',
-            availability: false,
-            wage: 0.0,
-            payPeriod: '',
-            birthDate: DateTime.now(),
-            rating: 0.0,
-            user: UserModel(
-              id: taskerUser['user_id'],
-              firstName: taskerUser['first_name'],
-              middleName: taskerUser['middle_name'] ?? '',
-              lastName: taskerUser['last_name'],
-              email: '',
-              role: '',
-              image: taskerUser['image_link'],
-            ),
-          ),
-          task: TaskModel(
-            id: taskJson['post_task']['task_id'],
-            title: taskJson['post_task']['task_title'],
-            specialization: '',
-            description: '',
-            location: '',
-            duration: '0',
-            period: '',
-            urgency: '',
-            contactPrice: 0,
-            workType: '',
-            remarks: '',
-            taskBeginDate: '',
-            status: taskJson['task_status'],
-            clientId: taskJson['client_id'],
-          ),
         );
+
+        return taskAssignment;
       }).toList();
 
-
-
-      final conversations = unreadMessages.map((message) {
-        // debugPrint('All Sender IDs: ${message['user_id']}');
-        return Conversation(
-          userId: message['user_id'] as int,
-          taskTakenId: message['task_taken_id'] as int,
-        );
-      }).toList();
-
-      debugPrint('Conversations: $conversations');
+      // Parse conversations
+      final conversations = (response['conversation'] as List<dynamic>?)
+          ?.map((convJson) => Conversation(
+            userId: convJson['user_id'],
+            taskTakenId: convJson['task_taken_id'],
+          )).toList() ?? [];
 
       debugPrint('Fetched tasks: $taskAssignments');
       debugPrint('Fetched conversations: $conversations');
