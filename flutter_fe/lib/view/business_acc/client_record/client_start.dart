@@ -525,11 +525,6 @@ class _ClientStartState extends State<ClientStart> {
               value: _taskInformation!.specialization ?? 'N/A',
             ),
             _buildTaskInfoRow(
-              icon: FontAwesomeIcons.locationPin,
-              label: 'Location',
-              value: _taskInformation!.location ?? 'Not specified',
-            ),
-            _buildTaskInfoRow(
               icon: FontAwesomeIcons.dollarSign,
               label: 'Contract Price',
               value: _taskInformation!.contactPrice.toString() ?? 'N/A',
@@ -537,8 +532,8 @@ class _ClientStartState extends State<ClientStart> {
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.calendar,
               label: 'Start Date',
-              value: _taskInformation!.taskBeginDate != null
-                  ? (_taskInformation!.taskBeginDate)
+              value: _taskInformation!.taskBeginDate! != null
+                  ? (_taskInformation!.taskBeginDate!)
                   : 'N/A',
             ),
             _buildTaskInfoRow(

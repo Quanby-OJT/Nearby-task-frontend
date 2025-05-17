@@ -200,26 +200,26 @@ class _JobPostPageState extends State<JobPostPage>
         _errors['location'] =
             'Indicate Your Location where the Task will be held.';
       }
-      String jobTime = controller.jobTimeController.text.trim();
-      if (jobTime.isEmpty) {
-        _errors['num_of_days'] = 'Indicate the Time Needed to Finish the Task';
-      } else if (int.tryParse(jobTime) == null || int.parse(jobTime) <= 0) {
-        _errors['num_of_days'] = 'Time Needed must be a valid positive number';
-      }
-      String startDate = controller.jobTaskBeginDateController.text.trim();
-      if (startDate.isEmpty) {
-        _errors['task_begin_date'] = 'Indicate When to Start Your Task';
-      } else {
-        try {
-          DateTime taskBeginDate = DateTime.parse(startDate);
-          if (taskBeginDate.isBefore(DateTime.now())) {
-            _errors['task_begin_date'] =
-                'Task start date must be in the future';
-          }
-        } catch (e) {
-          _errors['task_begin_date'] = 'Invalid date format';
-        }
-      }
+      // String jobTime = controller.jobTimeController.text.trim();
+      // if (jobTime.isEmpty) {
+      //   _errors['num_of_days'] = 'Indicate the Time Needed to Finish the Task';
+      // } else if (int.tryParse(jobTime) == null || int.parse(jobTime) <= 0) {
+      //   _errors['num_of_days'] = 'Time Needed must be a valid positive number';
+      // }
+      // String startDate = controller.jobTaskBeginDateController.text.trim();
+      // if (startDate.isEmpty) {
+      //   _errors['task_begin_date'] = 'Indicate When to Start Your Task';
+      // } else {
+      //   try {
+      //     DateTime taskBeginDate = DateTime.parse(startDate);
+      //     if (taskBeginDate.isBefore(DateTime.now())) {
+      //       _errors['task_begin_date'] =
+      //           'Task start date must be in the future';
+      //     }
+      //   } catch (e) {
+      //     _errors['task_begin_date'] = 'Invalid date format';
+      //   }
+      // }
       if (selectedUrgency == null) {
         _errors['urgency'] =
             'Please Indicate if Your Task Needs to be finished ASAP.';
@@ -269,10 +269,10 @@ class _JobPostPageState extends State<JobPostPage>
         controller.jobTitleController.clear();
         controller.jobDescriptionController.clear();
         controller.jobLocationController.clear();
-        controller.jobTimeController.clear();
+        // controller.jobTimeController.clear();
         controller.contactPriceController.clear();
         controller.jobRemarksController.clear();
-        controller.jobTaskBeginDateController.clear();
+        // controller.jobTaskBeginDateController.clear();
 
         setState(() {
           selectedSpecialization = null;
@@ -539,22 +539,22 @@ class _JobPostPageState extends State<JobPostPage>
                     setState(() => selectedTimePeriod = value),
                 errorText: _errors['time_period'],
               ),
-              SizedBox(height: 16),
-              _buildTextField(
-                controller: controller.jobTimeController,
-                label: 'Duration *',
-                hint: 'Enter duration (e.g., 5)',
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                errorText: _errors['num_of_days'],
-              ),
-              SizedBox(height: 16),
-              _buildDateField(
-                controller: controller.jobTaskBeginDateController,
-                label: 'Start Date *',
-                hint: 'Select a date',
-                errorText: _errors['task_begin_date'],
-              ),
+              // SizedBox(height: 16),
+              // _buildTextField(
+              //   controller: controller.jobTimeController,
+              //   label: 'Duration *',
+              //   hint: 'Enter duration (e.g., 5)',
+              //   keyboardType: TextInputType.number,
+              //   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              //   errorText: _errors['num_of_days'],
+              // ),
+              // SizedBox(height: 16),
+              // _buildDateField(
+              //   controller: controller.jobTaskBeginDateController,
+              //   label: 'Start Date *',
+              //   hint: 'Select a date',
+              //   errorText: _errors['task_begin_date'],
+              // ),
               SizedBox(height: 16),
               _buildDropdownField(
                 value: selectedUrgency,

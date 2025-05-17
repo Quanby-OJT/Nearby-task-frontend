@@ -31,7 +31,6 @@ class _AddressState extends State<Address> {
   List<Map<String, dynamic>> _cities = [];
   List<Map<String, dynamic>> _barangays = [];
 
-  // Loading states
   bool _isLoadingRegions = false;
   bool _isLoadingProvinces = false;
   bool _isLoadingCities = false;
@@ -366,307 +365,307 @@ class _AddressState extends State<Address> {
           },
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildDropdown<Map<String, dynamic>>(
-              label: 'Region',
-              value: _selectedRegion,
-              items: _regions,
-              displayText: _locationService.getRegionDisplayName,
-              isLoading: _isLoadingRegions,
-              onChanged: (value) {
-                setState(() => _selectedRegion = value);
-                if (value != null) {
-                  _loadProvinces(value['code']);
-                }
-              },
-            ),
-            _buildDropdown<Map<String, dynamic>>(
-              label: 'Province',
-              value: _selectedProvince,
-              items: _provinces,
-              displayText: (item) => item['name'],
-              isLoading: _isLoadingProvinces,
-              onChanged: _provinces.isEmpty
-                  ? null
-                  : (value) {
-                      setState(() => _selectedProvince = value);
+      body: _isLoadingRegions
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildDropdown<Map<String, dynamic>>(
+                    label: 'Region',
+                    value: _selectedRegion,
+                    items: _regions,
+                    displayText: _locationService.getRegionDisplayName,
+                    isLoading: _isLoadingRegions,
+                    onChanged: (value) {
+                      setState(() => _selectedRegion = value);
                       if (value != null) {
-                        _loadCities(value['code']);
+                        _loadProvinces(value['code']);
                       }
                     },
-            ),
-            _buildDropdown<Map<String, dynamic>>(
-              label: 'City/Municipality',
-              value: _selectedCity,
-              items: _cities,
-              displayText: (item) => item['name'],
-              isLoading: _isLoadingCities,
-              onChanged: _cities.isEmpty
-                  ? null
-                  : (value) {
-                      setState(() => _selectedCity = value);
-                      if (value != null) {
-                        _loadBarangays(value['code']);
-                      }
-                    },
-            ),
-            _buildDropdown<Map<String, dynamic>>(
-              label: 'Barangay',
-              value: _selectedBarangay,
-              items: _barangays,
-              displayText: (item) => item['name'],
-              isLoading: _isLoadingBarangays,
-              onChanged: _barangays.isEmpty
-                  ? null
-                  : (value) {
-                      setState(() => _selectedBarangay = value);
-                      if (value != null) {
-                        _initializeMap();
-                      }
-                    },
-            ),
-            const SizedBox(height: 16),
-            if (_selectedRegion != null &&
-                _selectedProvince != null &&
-                _selectedCity != null &&
-                _selectedBarangay != null)
-              Card(
-                elevation: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Selected Address:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                  ),
+                  _buildDropdown<Map<String, dynamic>>(
+                    label: 'Province',
+                    value: _selectedProvince,
+                    items: _provinces,
+                    displayText: (item) => item['name'],
+                    isLoading: _isLoadingProvinces,
+                    onChanged: _provinces.isEmpty
+                        ? null
+                        : (value) {
+                            setState(() => _selectedProvince = value);
+                            if (value != null) {
+                              _loadCities(value['code']);
+                            }
+                          },
+                  ),
+                  _buildDropdown<Map<String, dynamic>>(
+                    label: 'City/Municipality',
+                    value: _selectedCity,
+                    items: _cities,
+                    displayText: (item) => item['name'],
+                    isLoading: _isLoadingCities,
+                    onChanged: _cities.isEmpty
+                        ? null
+                        : (value) {
+                            setState(() => _selectedCity = value);
+                            if (value != null) {
+                              _loadBarangays(value['code']);
+                            }
+                          },
+                  ),
+                  _buildDropdown<Map<String, dynamic>>(
+                    label: 'Barangay',
+                    value: _selectedBarangay,
+                    items: _barangays,
+                    displayText: (item) => item['name'],
+                    isLoading: _isLoadingBarangays,
+                    onChanged: _barangays.isEmpty
+                        ? null
+                        : (value) {
+                            setState(() => _selectedBarangay = value);
+                            if (value != null) {
+                              _initializeMap();
+                            }
+                          },
+                  ),
+
+                  if (_selectedBarangay != null)
+                    Column(
+                      children: [
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _postalCodeController,
+                          decoration: InputDecoration(
+                            labelText: 'Postal Code',
+                            hintText: 'Enter postal code',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey[100],
+                          ),
+                          keyboardType: TextInputType.number,
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _streetAddressController,
+                          decoration: InputDecoration(
+                            labelText: 'Street Address',
+                            hintText: 'Enter your street address',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey[100],
+                          ),
+                        ),
+                      ],
+                    ),
+                  const SizedBox(height: 16),
+                  if (_selectedRegion != null &&
+                      _selectedProvince != null &&
+                      _selectedCity != null &&
+                      _selectedBarangay != null)
+                    Card(
+                      elevation: 2,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Selected Address:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '${_selectedBarangay!['name']}, '
+                              '${_selectedCity!['name']}, '
+                              '${_selectedProvince!['name']}, '
+                              '${_locationService.getRegionDisplayName(_selectedRegion!)}',
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '${_selectedBarangay!['name']}, '
-                        '${_selectedCity!['name']}, '
-                        '${_selectedProvince!['name']}, '
-                        '${_locationService.getRegionDisplayName(_selectedRegion!)}',
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            const SizedBox(height: 16),
-            if (_selectedBarangay != null)
-              Card(
-                elevation: 2,
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    ),
+
+                  const SizedBox(height: 16),
+                  if (_selectedBarangay != null)
+                    Card(
+                      elevation: 2,
+                      child: Column(
                         children: [
-                          const Text(
-                            'Pin Your Exact Location',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Pin Your Exact Location',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          // ElevatedButton.icon(
-                          //   onPressed: _getCurrentLocation,
-                          //   icon: const Icon(Icons.my_location, size: 16),
-                          //   label: const Text('Use Current'),
-                          //   style: ElevatedButton.styleFrom(
-                          //     backgroundColor: Colors.blue,
-                          //     padding: const EdgeInsets.symmetric(
-                          //         horizontal: 8, vertical: 4),
-                          //   ),
-                          // ),
+                          SizedBox(
+                            height: 300,
+                            child: _isLoadingMap
+                                ? const Center(
+                                    child: CircularProgressIndicator())
+                                : _markerPosition == null
+                                    ? Center(
+                                        child: ElevatedButton(
+                                          onPressed: _initializeMap,
+                                          child: const Text('Load Map'),
+                                        ),
+                                      )
+                                    : GoogleMap(
+                                        initialCameraPosition: CameraPosition(
+                                          target: _markerPosition!,
+                                          zoom: 15,
+                                        ),
+                                        markers: {
+                                          Marker(
+                                            markerId:
+                                                const MarkerId('location'),
+                                            position: _markerPosition!,
+                                            draggable: true,
+                                            onDragEnd: (newPosition) {
+                                              _updateMarkerPosition(
+                                                  newPosition);
+                                            },
+                                          ),
+                                        },
+                                        onMapCreated: (controller) {
+                                          _mapController = controller;
+                                        },
+                                        myLocationEnabled: true,
+                                        myLocationButtonEnabled: true,
+                                        zoomControlsEnabled: true,
+                                        mapToolbarEnabled: true,
+                                        onTap: (position) {
+                                          _updateMarkerPosition(position);
+                                        },
+                                      ),
+                          ),
+                          if (_markerPosition != null)
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'Coordinates: ${_markerPosition!.latitude.toStringAsFixed(6)}, ${_markerPosition!.longitude.toStringAsFixed(6)}',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
                         ],
                       ),
                     ),
-                    SizedBox(
-                      height: 300,
-                      child: _isLoadingMap
-                          ? const Center(child: CircularProgressIndicator())
-                          : _markerPosition == null
-                              ? Center(
-                                  child: ElevatedButton(
-                                    onPressed: _initializeMap,
-                                    child: const Text('Load Map'),
-                                  ),
-                                )
-                              : GoogleMap(
-                                  initialCameraPosition: CameraPosition(
-                                    target: _markerPosition!,
-                                    zoom: 15,
-                                  ),
-                                  markers: {
-                                    Marker(
-                                      markerId: const MarkerId('location'),
-                                      position: _markerPosition!,
-                                      draggable: true,
-                                      onDragEnd: (newPosition) {
-                                        _updateMarkerPosition(newPosition);
-                                      },
-                                    ),
-                                  },
-                                  onMapCreated: (controller) {
-                                    _mapController = controller;
-                                  },
-                                  myLocationEnabled: true,
-                                  myLocationButtonEnabled: true,
-                                  zoomControlsEnabled: true,
-                                  mapToolbarEnabled: true,
-                                  onTap: (position) {
-                                    _updateMarkerPosition(position);
-                                  },
-                                ),
-                    ),
-                    if (_markerPosition != null)
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          'Coordinates: ${_markerPosition!.latitude.toStringAsFixed(6)}, ${_markerPosition!.longitude.toStringAsFixed(6)}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            // Street Address and Postal Code fields
-            if (_selectedBarangay != null)
-              Column(
-                children: [
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _streetAddressController,
-                    decoration: InputDecoration(
-                      labelText: 'Street Address',
-                      hintText: 'Enter your street address',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[100],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _postalCodeController,
-                    decoration: InputDecoration(
-                      labelText: 'Postal Code',
-                      hintText: 'Enter postal code',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[100],
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ],
-              ),
+                  // Street Address and Postal Code fields
 
-            if (_finalLocationData != null)
-              Card(
-                margin: const EdgeInsets.only(top: 16),
-                elevation: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Final Location:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                  if (_finalLocationData != null)
+                    Card(
+                      margin: const EdgeInsets.only(top: 16),
+                      elevation: 2,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Final Location:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                                'Address: ${_finalLocationData!['formattedAddress']}'),
+                            Text(
+                                'Coordinates: ${_finalLocationData!['latitude'].toStringAsFixed(6)}, ${_finalLocationData!['longitude'].toStringAsFixed(6)}'),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                          'Address: ${_finalLocationData!['formattedAddress']}'),
-                      Text(
-                          'Coordinates: ${_finalLocationData!['latitude'].toStringAsFixed(6)}, ${_finalLocationData!['longitude'].toStringAsFixed(6)}'),
+                    ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed:
+                              _markerPosition == null ? null : _saveLocation,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFB71A4A),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: Text(
+                            'Save Location',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
-                ),
+
+                  if (_finalLocationData != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                // Create AddressModel from the final location data
+                                final addressModel = AddressModel.fromMapData(
+                                    _finalLocationData!);
+
+                                // Call the callback if provided
+                                if (widget.onAddressSelected != null) {
+                                  widget.onAddressSelected!(addressModel);
+                                }
+
+                                // Return to previous screen
+                                Navigator.pop(context, addressModel);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                              ),
+                              child: Text(
+                                'Use This Address',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
               ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _markerPosition == null ? null : _saveLocation,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFB71A4A),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: Text(
-                      'Save Location',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
             ),
-
-            if (_finalLocationData != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 16.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // Create AddressModel from the final location data
-                          final addressModel =
-                              AddressModel.fromMapData(_finalLocationData!);
-
-                          // Call the callback if provided
-                          if (widget.onAddressSelected != null) {
-                            widget.onAddressSelected!(addressModel);
-                          }
-
-                          // Return to previous screen
-                          Navigator.pop(context, addressModel);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                        child: Text(
-                          'Use This Address',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ),
     );
   }
 }

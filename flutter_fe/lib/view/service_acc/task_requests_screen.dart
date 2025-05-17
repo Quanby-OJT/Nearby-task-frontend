@@ -345,7 +345,6 @@ class _TaskRequestsScreenState extends State<TaskRequestsScreen> {
           const SizedBox(height: 8),
           _buildInfoRow(
               'Description', request.task.description ?? 'No description'),
-          _buildInfoRow('Location', request.task.location ?? 'Not specified'),
           _buildInfoRow('Price', '\$${request.task.contactPrice ?? 0}'),
           _buildInfoRow('Urgency', request.task.urgency ?? 'Not specified'),
         ],
