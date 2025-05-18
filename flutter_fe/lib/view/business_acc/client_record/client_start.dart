@@ -530,20 +530,6 @@ class _ClientStartState extends State<ClientStart> {
               value: _taskInformation!.contactPrice.toString() ?? 'N/A',
             ),
             _buildTaskInfoRow(
-              icon: FontAwesomeIcons.calendar,
-              label: 'Start Date',
-              value: _taskInformation!.taskBeginDate! != null
-                  ? (_taskInformation!.taskBeginDate!)
-                  : 'N/A',
-            ),
-            _buildTaskInfoRow(
-              icon: FontAwesomeIcons.clock,
-              label: 'Period',
-              value:
-                  ('${_taskInformation!.duration} ${_taskInformation!.period}') ??
-                      'N/A',
-            ),
-            _buildTaskInfoRow(
               icon: FontAwesomeIcons.info,
               label: 'Status',
               value: _requestInformation!.task_status ?? 'Confirmed',

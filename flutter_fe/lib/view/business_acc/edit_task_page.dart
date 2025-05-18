@@ -66,16 +66,12 @@ class _EditTaskPageState extends State<EditTaskPage> {
     _titleController = TextEditingController(text: widget.task.title);
     _descriptionController =
         TextEditingController(text: widget.task.description);
-    _durationController = TextEditingController(text: widget.task.duration);
     _priceController =
         TextEditingController(text: widget.task.contactPrice.toString());
     _remarksController = TextEditingController(text: widget.task.remarks);
-    _startDateController =
-        TextEditingController(text: widget.task.taskBeginDate);
 
     _selectedSpecialization = widget.task.specialization;
     _selectedUrgency = widget.task.urgency;
-    _selectedPeriod = widget.task.period;
     _selectedWorkType = widget.task.workType;
   }
 
@@ -106,10 +102,8 @@ class _EditTaskPageState extends State<EditTaskPage> {
         "duration": int.tryParse(_durationController.text.trim()) ?? 0,
         "proposed_price": int.tryParse(_priceController.text.trim()) ?? 0,
         "remarks": _remarksController.text.trim(),
-        "task_begin_date": _startDateController.text.trim(),
         "specialization": _selectedSpecialization,
         "urgent": _selectedUrgency == "Urgent" ? true : false,
-        "period": _selectedPeriod,
         "work_type": _selectedWorkType,
       };
 

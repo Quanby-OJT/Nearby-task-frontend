@@ -436,11 +436,6 @@ class _TaskerPendingState extends State<TaskerPending> {
               ],
             ),
             SizedBox(height: 12),
-            _buildTaskInfoRow(
-              icon: Icons.calendar_today,
-              label: 'Date',
-              value: _taskInformation?.duration ?? 'Not specified',
-            ),
             SizedBox(height: 12),
             _buildTaskInfoRow(
               icon: Icons.info,

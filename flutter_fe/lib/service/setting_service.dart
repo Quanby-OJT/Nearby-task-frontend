@@ -8,7 +8,7 @@ import 'dart:convert';
 import 'package:flutter_fe/model/setting.dart';
 
 class SettingService {
-  static String url = apiUrl ?? "http://192.168.0.152:5000";
+  static String url = apiUrl ?? "http://192.168.43.15:5000";
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
   Future setLocation(
@@ -41,6 +41,56 @@ class SettingService {
     } else {
       debugPrint('Failed to set location');
       return "false";
+    }
+  }
+
+  Future setAddress(
+    int userId,
+    double latitude,
+    double longitude,
+    String formattedAddress,
+    String region,
+    String province,
+    String city,
+    String barangay,
+    String street,
+    String postalCode,
+    String country,
+  ) async {
+    debugPrint('Setting address: latitude=$latitude, longitude=$longitude, '
+        'formattedAddress=$formattedAddress, region=$region, province=$province, '
+        'city=$city, barangay=$barangay, street=$street, postalCode=$postalCode, country=$country');
+
+    final token = await AuthService.getSessionToken();
+    final response = await _client.put(
+      Uri.parse('$url/set-address/$userId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: json.encode({
+        'latitude': latitude,
+        'longitude': longitude,
+        'formatted_Address': formattedAddress,
+        'region': region,
+        'province': province,
+        'city': city,
+        'barangay': barangay,
+        'street': street,
+        'postal_code': postalCode,
+        'country': country,
+      }),
+    );
+
+    debugPrint('Response Status Code: ${response.statusCode}');
+    debugPrint('Response Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      debugPrint('Address set successfully');
+      return "true";
+    } else {
+      debugPrint('Failed to set address: ${response.body}');
+      throw Exception('Failed to set address: ${response.statusCode}');
     }
   }
 
@@ -175,15 +225,19 @@ class SettingService {
       final responseData = json.decode(response.body);
       if (responseData is Map<String, dynamic> &&
           responseData['data'] != null) {
-        final addressData = responseData['data']['address'];
-        if (addressData != null) {
-          return [AddressModel.fromJson(addressData)];
+        final addressData = responseData['data']['address'] as List<dynamic>?;
+        if (addressData != null && addressData.isNotEmpty) {
+          return addressData
+              .map((addressJson) =>
+                  AddressModel.fromJson(addressJson as Map<String, dynamic>))
+              .toList();
         }
       }
+      debugPrint('No addresses found in response');
+      return [];
     } else {
-      debugPrint('Failed to retrieve addresses');
+      debugPrint('Failed to retrieve addresses: ${response.statusCode}');
       throw Exception('Failed to retrieve addresses: ${response.statusCode}');
     }
-    return [];
   }
 }

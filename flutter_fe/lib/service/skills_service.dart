@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/service/auth_service.dart';
-import 'package:flutter_fe/config/url_strategy.dart';
 import 'package:get_storage/get_storage.dart';
 
 class SkillsService {
@@ -35,10 +34,6 @@ class SkillsService {
           'SkillsService: Testing direct API call to specializations endpoint...');
 
       final String token = await AuthService.getSessionToken();
-      if (token == null) {
-        debugPrint('SkillsService: No auth token available');
-        return;
-      }
 
       final String apiUrl = JobPostService.url;
       debugPrint('SkillsService: Using API URL: $apiUrl');
@@ -82,10 +77,6 @@ class SkillsService {
           'SkillsService: Fetching specializations directly from API...');
 
       final String token = await AuthService.getSessionToken();
-      if (token == null) {
-        debugPrint('SkillsService: No auth token available for direct fetch');
-        return [];
-      }
 
       final String apiUrl = JobPostService.url;
 

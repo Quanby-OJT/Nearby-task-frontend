@@ -108,7 +108,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
         _taskInformation = response?.task;
         _isLoading = false;
       });
-      _startCountdownTimer();
+      // _startCountdownTimer();
     } catch (e) {
       debugPrint("Error fetching task details: $e");
       setState(() {
@@ -117,32 +117,32 @@ class _ClientOngoingState extends State<ClientOngoing> {
     }
   }
 
-  void _startCountdownTimer() {
-    if (_taskInformation?.duration != null &&
-        _taskInformation?.period != null) {
-      int durationInDays = int.parse(_taskInformation!.duration!);
-      String period = _taskInformation!.period!.toLowerCase();
+  // void _startCountdownTimer() {
+  //   if (_taskInformation?.duration != null &&
+  //       _taskInformation?.period != null) {
+  //     int durationInDays = int.parse(_taskInformation!.duration!);
+  //     String period = _taskInformation!.period!.toLowerCase();
 
-      if (period.contains('week')) {
-        durationInDays *= 7;
-      } else if (period.contains('month')) {
-        durationInDays *= 30;
-      }
+  //     if (period.contains('week')) {
+  //       durationInDays *= 7;
+  //     } else if (period.contains('month')) {
+  //       durationInDays *= 30;
+  //     }
 
-      DateTime endDate = DateTime.now().add(Duration(days: durationInDays));
-      _timeRemaining = endDate.difference(DateTime.now());
+  //     DateTime endDate = DateTime.now().add(Duration(days: durationInDays));
+  //     _timeRemaining = endDate.difference(DateTime.now());
 
-      _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-        setState(() {
-          _timeRemaining = endDate.difference(DateTime.now());
-          if (_timeRemaining!.isNegative) {
-            _timeRemaining = Duration.zero;
-            timer.cancel();
-          }
-        });
-      });
-    }
-  }
+  //     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+  //       setState(() {
+  //         _timeRemaining = endDate.difference(DateTime.now());
+  //         if (_timeRemaining!.isNegative) {
+  //           _timeRemaining = Duration.zero;
+  //           timer.cancel();
+  //         }
+  //       });
+  //     });
+  //   }
+  // }
 
   String _formatDuration(Duration duration) {
     if (duration.isNegative) return 'Time’s up!';
@@ -875,12 +875,6 @@ class _ClientOngoingState extends State<ClientOngoing> {
               ],
             ),
             SizedBox(height: 16),
-            _buildTaskInfoRow(
-              icon: Icons.calendar_today,
-              label: 'Date',
-              value: _taskInformation?.period ?? 'Not specified',
-            ),
-            SizedBox(height: 12),
             _buildTaskInfoRow(
               icon: Icons.info,
               label: 'Status',

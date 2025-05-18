@@ -12,15 +12,12 @@ import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/controller/tasker_controller.dart';
 import 'package:flutter_fe/view/address/set-up_address.dart';
-import 'package:flutter_fe/view/business_acc/create_escrow_token.dart';
 import 'package:flutter_fe/view/business_acc/notif_screen.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
-import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/service_acc/notif_screen.dart';
 import 'package:flutter_fe/view/setting/setting.dart';
 import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
 import 'package:flutter_fe/view/verification/verification_page.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
@@ -419,81 +416,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         overlayEntry.remove();
                       },
                     ),
-//                     if (_role == "Client") ...[
-//                       ListTile(
-//                         leading: Icon(
-//                           FontAwesomeIcons.coins,
-//                           color: const Color(0xFFB71A4A),
-//                         ),
-//                         title: Text(
-//                           'Manage Tokens',
-//                           style: GoogleFonts.poppins(
-//                             color: Colors.black,
-//                             fontSize: 14,
-//                             fontWeight: FontWeight.w300,
-//                           ),
-//                         ),
-//                         onTap: () {
-//                           if (_user?.user.accStatus?.toLowerCase() ==
-//                               'review') {
-//                             Navigator.push(
-//                               context,
-//                               MaterialPageRoute(
-//                                   builder: (context) => EscrowTokenScreen()),
-//                             );
-//                             overlayEntry.remove();
-//                             return;
-//                           }
-
-//                           if (_existingProfileImageUrl == null ||
-//                               _existingIDImageUrl == null ||
-//                               _existingProfileImageUrl!.isEmpty ||
-//                               _existingIDImageUrl!.isEmpty ||
-//                               !_documentValid) {
-//                             overlayEntry.remove();
-//                             _showWarningDialog();
-//                             return;
-//                           }
-//                           Navigator.push(
-//                             context,
-//                             MaterialPageRoute(
-//                                 builder: (context) => EscrowTokenScreen()),
-//                           );
-//                           overlayEntry.remove();
-//                         },
-//                       ),
-//                     ],
-                    // ListTile(
-                    //   leading: Icon(
-                    //     FontAwesomeIcons.coins,
-                    //     color: const Color(0xFF03045E),
-                    //   ),
-                    //   title: Text(
-                    //     'Tokens',
-                    //     style: GoogleFonts.poppins(
-                    //       color: const Color(0xFF03045E),
-                    //       fontSize: 14,
-                    //       fontWeight: FontWeight.w300,
-                    //     ),
-                    //   ),
-                    //   onTap: () {
-                    //     if (_existingProfileImageUrl == null ||
-                    //         _existingIDImageUrl == null ||
-                    //         _existingProfileImageUrl!.isEmpty ||
-                    //         _existingIDImageUrl!.isEmpty ||
-                    //         !_documentValid) {
-                    //       overlayEntry.remove();
-                    //       _showWarningDialog();
-                    //       return;
-                    //     }
-                    //     Navigator.push(
-                    //       context,
-                    //       MaterialPageRoute(
-                    //           builder: (context) => EscrowTokenScreen()),
-                    //     );
-                    //     overlayEntry.remove();
-                    //   },
-                    // ),
                     ListTile(
                       leading: Icon(
                         Icons.help,

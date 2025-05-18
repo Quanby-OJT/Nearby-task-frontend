@@ -16,7 +16,7 @@ import '../model/client_model.dart';
 import '../model/tasker_model.dart';
 
 class JobPostService {
-  static String url = apiUrl ?? "http://192.168.0.152:5000/connect";
+  static String url = apiUrl ?? "http://192.168.43.15:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -496,8 +496,7 @@ class JobPostService {
 
       return tasks
           .map((task) => TaskModel.fromJson(task as Map<String, dynamic>))
-          .where(
-              (task) => !likedTaskIds.contains(task.id.toString().toString()))
+          .where((task) => !likedTaskIds.contains(task.toString().toString()))
           .toList();
     } catch (e) {
       debugPrint('Error fetching jobs: $e');
@@ -555,7 +554,7 @@ class JobPostService {
 
     final response = await _getRequest("/display-task-for-client/$clientId");
 
-    debugPrint("Client Task Response: ${response.toString()}");
+    debugPrint("Client Task Response api: ${response.toString()}");
 
     if (response.containsKey("success") && response["success"] == true) {
       return response;
