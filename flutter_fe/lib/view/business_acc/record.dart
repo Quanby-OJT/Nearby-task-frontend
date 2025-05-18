@@ -105,14 +105,33 @@ class _RecordPageState extends State<RecordPage> {
                         ),
                       ),
                       SizedBox(height: 12),
-                      Text(
-                        '\$${totalBalance.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 36,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      _isLoading
+                          ? Text(
+                              'Please Wait while we calculate your NearByTask Credits',
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.yellow.shade100),
+                              textAlign: TextAlign.left,
+                            )
+                          : _escrowManagementController.tokenCredits.value ==
+                                  0.0
+                              ? Text(
+                                  "No credits available. Earn more by taking tasks.",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                )
+                              : Text(
+                                  '\$${_escrowManagementController.tokenCredits.value.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 36,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                     ],
                   ),
                 ),
@@ -124,48 +143,56 @@ class _RecordPageState extends State<RecordPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
                 children: [
-                  // Income Card
+                  // Income Card changed to Deposit Card
                   Expanded(
                     child: Card(
                       elevation: 1,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 16,
-                                  backgroundColor: Colors.blue[50],
-                                  child: Icon(
-                                    Icons.arrow_downward,
-                                    color: Colors.blue,
-                                    size: 16,
+                      child: InkWell(
+                        onTap: () {
+                          // Show deposit dialog
+                          _showDepositDialog();
+                        },
+                        borderRadius: BorderRadius.circular(16),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 16,
+                                    backgroundColor: Colors.green[50],
+                                    child: Icon(
+                                      Icons.arrow_downward,
+                                      color: Colors.green,
+                                      size: 16,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Income',
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 14,
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Deposit',
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 14,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              '\$${income.toStringAsFixed(2)}',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                                ],
                               ),
-                            ),
-                          ],
+                              SizedBox(height: 8),
+                              Text(
+                                'Tap to deposit',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green[400],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -558,6 +585,123 @@ class _RecordPageState extends State<RecordPage> {
       SnackBar(
         content: Text(
             'Withdrawal of \$${amount.toStringAsFixed(2)} has been initiated'),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
+
+  void _showDepositDialog() {
+    final TextEditingController amountController = TextEditingController();
+    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Deposit Credits',
+          style: GoogleFonts.montserrat(
+            fontWeight: FontWeight.bold,
+            color: Color(0xFFB71A4A),
+          ),
+        ),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: amountController,
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  labelText: 'Amount',
+                  prefixIcon:
+                      Icon(Icons.attach_money, color: Color(0xFFB71A4A)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Color(0xFFB71A4A), width: 2),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter an amount';
+                  }
+
+                  final double? amount = double.tryParse(value);
+                  if (amount == null) {
+                    return 'Please enter a valid number';
+                  }
+
+                  if (amount <= 0) {
+                    return 'Amount must be greater than zero';
+                  }
+
+                  return null;
+                },
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Deposit will be processed from your linked payment method.',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                final double amount = double.parse(amountController.text);
+
+                // Process deposit
+                _processDeposit(amount);
+
+                Navigator.pop(context);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFFB71A4A),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              'Deposit',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _processDeposit(double amount) {
+    // Here you would call the API to process the deposit
+    // For now we'll just show a success message and update the UI
+    setState(() {
+      // Update UI or call API here
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+            'Deposit of \$${amount.toStringAsFixed(2)} has been initiated'),
         backgroundColor: Colors.green,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
