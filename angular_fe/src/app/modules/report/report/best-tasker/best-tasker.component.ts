@@ -35,6 +35,7 @@ export class BestTaskerComponent implements OnInit {
       next: (response) => {
         if (response.success) {
           this.taskers = response.taskers;
+          this.taskers.sort((a, b) => b.rating - a.rating); 
           this.filteredTaskers = [...this.taskers];
           this.updatePage();
         }
