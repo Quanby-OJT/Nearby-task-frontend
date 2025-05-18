@@ -24,6 +24,7 @@
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Address</th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Overall Task Requested</th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Gender</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Rating</th>
         </tr>
       </thead>
       <tbody>
@@ -34,6 +35,7 @@
           <td class="px-4 py-3 text-start">{{ client.address }}</td>
           <td class="px-4 py-3 text-start">{{ client.taskCount }}</td>
           <td class="px-4 py-3 text-start">{{ client.gender }}</td>
+          <td class="px-4 py-3 text-start">{{ client.rating | number:'1.1-1' }}</td>
         </tr>
       </tbody>
     </table>
