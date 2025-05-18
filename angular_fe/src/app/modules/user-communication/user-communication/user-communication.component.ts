@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, EventEmitter, Output } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { UserConversationService } from 'src/app/services/conversation.service';
-import { Conversation, Message } from 'src/model/user-communication'; // Import the Conversation and Message models
+import { Conversation, Message } from 'src/model/user-communication'; 
 import Swal from 'sweetalert2';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
