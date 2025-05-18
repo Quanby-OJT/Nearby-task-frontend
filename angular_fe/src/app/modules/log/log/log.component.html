@@ -47,6 +47,14 @@
                  placeholder="Search users logs" type="text" (input)="searchLogs($event)" />
         </label>
       </div>
+      <!-- Role filter dropdown -->
+      <select name="role" class="text-muted-foreground w-28! p-2" (change)="filterLogs($event)">
+        <option value="">All Roles</option>
+        <option value="admin">Admin</option>
+        <option value="moderator">Moderator</option>
+        <option value="client">Client</option>
+        <option value="tasker">Tasker</option>
+      </select>
       <!-- Status filter dropdown -->
       <select name="status" class="text-muted-foreground w-28! p-2" (change)="filterLogs($event)">
         <option value="">All Status</option>
