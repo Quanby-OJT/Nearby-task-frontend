@@ -1246,32 +1246,129 @@ class ApiService {
             "Content-Type": "application/json"
           });
 
-      debugPrint("Retreived Data from: ${response.body}");
+      debugPrint("Retrieved Data from: ${response.body}");
       var responseData = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
         UserModel user =
             UserModel.fromJson(responseData['user'] as Map<String, dynamic>);
+        debugPrint("Created user model from JSON: $user");
+
         if (responseData['user']['user_role'].toLowerCase() == "client") {
           debugPrint(
               "User is a client and has client data: ${responseData['client']}");
           ClientModel client = ClientModel.fromJson(
               responseData['client'] as Map<String, dynamic>);
+          // Set the user in the client model
+          client.user = user;
           return {"user": user, "client": client};
         } else if (responseData['user']['user_role'].toLowerCase() ==
             "tasker") {
           debugPrint(
-              "User is a tasker and has tasker data: ${responseData['tasker']}");
-          TaskerModel tasker = TaskerModel.fromJson(
-              responseData['tasker'] as Map<String, dynamic>);
+              "Processing tasker data from keys: ${responseData.keys.join(', ')}");
 
-          debugPrint("User is a tasker and has tasker data: $tasker");
+          // Create a tasker data map to build our model from
+          Map<String, dynamic> taskerData = {};
+
+          // If there's a direct tasker object, use that as a base
+          if (responseData['tasker'] != null) {
+            debugPrint("Found direct tasker object: ${responseData['tasker']}");
+            taskerData.addAll(responseData['tasker'] as Map<String, dynamic>);
+          } else {
+            debugPrint(
+                "No direct tasker object found, building from other properties");
+          }
+
+          // Set the ID to be the user's ID if not present
+          taskerData['tasker_id'] ??= user.id;
+
+          // Get social media links (either from tasker or taskerSocialMediaLinks)
+          if (taskerData['social_media_links'] == null &&
+              responseData['taskerSocialMediaLinks'] != null) {
+            debugPrint(
+                "Using taskerSocialMediaLinks: ${responseData['taskerSocialMediaLinks']}");
+            taskerData['social_media_links'] =
+                responseData['taskerSocialMediaLinks'];
+          } else if (taskerData['social_media_links'] == null &&
+              responseData['user']['social_media_links'] != null) {
+            debugPrint(
+                "Using user.social_media_links: ${responseData['user']['social_media_links']}");
+            taskerData['social_media_links'] =
+                responseData['user']['social_media_links'];
+          }
+
+          // Get bio from either source
+          if ((taskerData['bio'] == null || taskerData['bio'] == '') &&
+              responseData['taskerBio'] != null) {
+            debugPrint("Using taskerBio: ${responseData['taskerBio']}");
+            taskerData['bio'] = responseData['taskerBio'];
+          } else if ((taskerData['bio'] == null || taskerData['bio'] == '') &&
+              responseData['user']['bio'] != null) {
+            debugPrint("Using user.bio: ${responseData['user']['bio']}");
+            taskerData['bio'] = responseData['user']['bio'];
+          }
+
+          // Set default values if not present
+          taskerData['bio'] ??= '';
+          taskerData['skills'] ??= '';
+          taskerData['availability'] ??= false;
+          taskerData['wage_per_hour'] ??= 0.0;
+          taskerData['pay_period'] ??= 'Hourly';
+          taskerData['rating'] ??= 0.0;
+          taskerData['tasker_specialization'] ??= {"specialization": ""};
+
+          // Check for documents from taskerDocuments
+          if (responseData['taskerDocuments'] != null &&
+              responseData['taskerDocuments']['user_document_link'] != null) {
+            debugPrint(
+                "Using taskerDocuments.user_document_link: ${responseData['taskerDocuments']['user_document_link']}");
+            taskerData['tesda_document_link'] =
+                responseData['taskerDocuments']['user_document_link'];
+          } else if (responseData['taskerDocument'] != null &&
+              responseData['taskerDocument'] is List &&
+              responseData['taskerDocument'].isNotEmpty) {
+            debugPrint(
+                "Using taskerDocument[0].user_document_link: ${responseData['taskerDocument'][0]['user_document_link']}");
+            taskerData['tesda_document_link'] =
+                responseData['taskerDocument'][0]['user_document_link'];
+          }
+
+          // Add image URLs to user if available
+          if (responseData['faceImage'] != null &&
+              responseData['faceImage']['face_image'] != null) {
+            String faceImageUrl = responseData['faceImage']['face_image'];
+            debugPrint("Updating user model with face image: $faceImageUrl");
+            user = user.copyWith(image: faceImageUrl, imageName: faceImageUrl);
+          }
+
+          debugPrint("Built tasker data: $taskerData");
+
+          // Create the tasker model from our constructed data
+          TaskerModel tasker = TaskerModel.fromJson(taskerData);
+
+          // Set the user in the tasker model (after we've updated the user with image if needed)
+          tasker.user = user;
+
+          // Also ensure the image is set in the user model - using image from the response directly if available
+          if (user.image == null || user.image == '') {
+            if (responseData['faceImage'] != null &&
+                responseData['faceImage']['face_image'] != null) {
+              String faceImageUrl = responseData['faceImage']['face_image'];
+              user =
+                  user.copyWith(image: faceImageUrl, imageName: faceImageUrl);
+              // Update the user in the tasker as well
+              tasker.user = user;
+            }
+          }
+
+          debugPrint("Final tasker model: $tasker");
+          debugPrint("User details: ${user.toString()}");
 
           return {"user": user, "tasker": tasker};
         } else {
           return {
             "error": responseData['error'] ??
-                "An Error Occured while retrieving data"
+                "An Error Occurred while retrieving data"
           };
         }
       } else {
