@@ -243,23 +243,51 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
       int userId = int.parse(storage.read('user_id').toString());
       AuthenticatedUser? user =
           await _profileController.getAuthenticatedUser(context, userId);
-      final response = await _clientServices.fetchUserIDImage(userId);
 
-      if (response['success']) {
-        setState(() {
-          _existingProfileImageUrl = user?.user.image;
+      // Get profile image from user
+      _existingProfileImageUrl = user?.user.image;
+      String? accountStatus = user?.user.accStatus;
+
+      // Check if user account status is already in Review or Approved state
+      bool isVerifiedOrInReview = accountStatus == "Review" ||
+          accountStatus == "Approved" ||
+          accountStatus == "Verified";
+
+      // Try to fetch ID image, but handle errors gracefully
+      try {
+        final response = await _clientServices.fetchUserIDImage(userId);
+        if (response['success']) {
           _existingIDImageUrl = response['url'];
           _documentValid = response['status'];
-          _isLoading = false;
+        } else {
+          debugPrint("Error in ID image response: ${response['error']}");
+        }
+      } catch (idError) {
+        debugPrint("Error fetching ID image: $idError");
+        // Continue even if ID image fetch fails
+      }
+
+      // Always update the state, even if some requests failed
+      setState(() {
+        _isLoading = false;
+        // If account is already in review or approved, allow posting tasks
+        if (isVerifiedOrInReview) {
+          _showButton = true;
+        } else {
+          // Otherwise use the standard image checks
           _showButton = _existingProfileImageUrl != null &&
               _existingIDImageUrl != null &&
               _documentValid;
-        });
-      }
+        }
+
+        debugPrint("Account status: $accountStatus, _showButton: $_showButton");
+      });
     } catch (e) {
-      debugPrint("Error fetching ID image: $e");
+      debugPrint("Error in _fetchUserIDImage: $e");
+      // Always exit loading state even if there's an error
       setState(() {
         _isLoading = false;
+        _showButton = false; // Will show warning dialog when trying to submit
       });
     }
   }

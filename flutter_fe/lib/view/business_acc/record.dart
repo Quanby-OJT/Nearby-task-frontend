@@ -10,10 +10,9 @@ import 'package:flutter_fe/view/business_acc/client_record/display_list_finish.d
 import 'package:flutter_fe/view/business_acc/client_record/display_list_ongoing.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_pending.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_review.dart';
-import 'package:flutter_fe/widgets/expense_chart.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:math';
+import 'package:flutter/cupertino.dart';
 
 import 'client_record/display_list_reject.dart';
 
@@ -32,16 +31,16 @@ class _RecordPageState extends State<RecordPage> {
   AuthenticatedUser? _user;
   bool _isLoading = true;
 
-  // Monthly expense data
-  List<double> monthlyExpenses = [];
-  final Random random = Random();
+  // Sample financial data
+  double totalBalance = 4500.00;
+  double income = 10500.00;
+  double expense = 6000.00;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
-      _generateMonthlyExpenses();
     });
   }
 
@@ -49,12 +48,6 @@ class _RecordPageState extends State<RecordPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _loadData();
-  }
-
-  void _generateMonthlyExpenses() {
-    monthlyExpenses =
-        List.generate(12, (index) => 200 + random.nextDouble() * 800);
-    setState(() {});
   }
 
   Future<void> _loadData() async {
@@ -66,663 +59,165 @@ class _RecordPageState extends State<RecordPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          backgroundColor: Colors.white,
-          title: Center(
-            child: Text(
-              'Record',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.montserrat(
-                color: Color(0xFF0272B1),
-                fontWeight: FontWeight.w600,
-                fontSize: 18,
-              ),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.white,
+        title: Center(
+          child: Text(
+            'Wallet',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.montserrat(
+              color: Color(0xFFB71A4A),
+              fontWeight: FontWeight.w600,
+              fontSize: 18,
             ),
           ),
         ),
-        body: Column(children: [
-          Container(
-            color: Colors.white,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 16.0, top: 20.0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'You Currently Have:',
-                  style: GoogleFonts.montserrat(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                    color: Colors.black54,
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Financial Summary Card
+            Container(
+              width: double.infinity,
+              height: 150, // Fixed taller height
+              margin:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+              child: Card(
+                elevation: 4,
+                margin: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                color: Color(0xFFB71A4A), // Purple background color
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Total Balance',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                        ),
+                      ),
+                      SizedBox(height: 12),
+                      Text(
+                        '\$${totalBalance.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 36,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
-          ),
-          _isLoading
-              ? Container(
-                  color: Colors.white,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 16.0),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Calculating NearByTask credits...",
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.yellow.shade800),
-                      ),
-                    ),
-                  ),
-                )
-              : _escrowManagementController.tokenCredits.value == 0
-                  ? Container(
-                      color: Colors.white,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 16.0),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                              "You don't have any NearByTask Credits to your account. Add more by depositing the amount in order to use the system.",
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.roboto(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0XFFB62C5C))),
-                        ),
-                      ),
-                    )
-                  : Container(
-                      color: Colors.white,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 16.0),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text.rich(TextSpan(children: [
-                            TextSpan(
-                                style: GoogleFonts.openSans(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF0272B1)),
-                                text:
-                                    '${_escrowManagementController.tokenCredits.value} NearByTask Credits'),
-                          ])),
-                        ),
-                      ),
-                    ),
-          Expanded(
-              flex: 5,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                ),
-                padding: const EdgeInsets.only(left: 16.0, right: 16),
-                child: Column(
-                  children: [
-                    Expanded(
-                        child: Card(
-                      elevation: 4,
+
+            // Income and Expense Row
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                children: [
+                  // Income Card
+                  Expanded(
+                    child: Card(
+                      elevation: 1,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      child: Container(
+                      child: Padding(
                         padding: const EdgeInsets.all(16.0),
-                        width: double.infinity,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 16,
+                                  backgroundColor: Colors.blue[50],
+                                  child: Icon(
+                                    Icons.arrow_downward,
+                                    color: Colors.blue,
+                                    size: 16,
+                                  ),
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Income',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 8),
                             Text(
-                              'Monthly Expenses',
-                              style: GoogleFonts.montserrat(
-                                fontWeight: FontWeight.w600,
+                              '\$${income.toStringAsFixed(2)}',
+                              style: TextStyle(
                                 fontSize: 18,
-                                color: Color(0xFF0272B1),
+                                fontWeight: FontWeight.bold,
                               ),
-                            ),
-                            Text(
-                              'Expense overview for the year',
-                              style: GoogleFonts.montserrat(
-                                fontSize: 14,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Expanded(
-                              child: monthlyExpenses.isEmpty
-                                  ? Center(
-                                      child: CircularProgressIndicator(
-                                          color: Color(0xFF0272B1)))
-                                  : Padding(
-                                      padding: const EdgeInsets.only(
-                                          bottom: 8.0, top: 10),
-                                      child: SingleChildScrollView(
-                                        scrollDirection: Axis.vertical,
-                                        child: SingleChildScrollView(
-                                          scrollDirection: Axis.horizontal,
-                                          child: SizedBox(
-                                            width: MediaQuery.of(context)
-                                                    .size
-                                                    .width *
-                                                1.5,
-                                            height: MediaQuery.of(context)
-                                                    .size
-                                                    .height *
-                                                0.5, // Dynamic height based on screen size
-                                            child: MonthlyExpensesChart(
-                                              monthlyData: monthlyExpenses,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
                             ),
                           ],
                         ),
                       ),
-                    ))
-                  ],
-                ),
-              )),
-          //Client Task Progress
-          Expanded(
-            flex: 3,
-            child: Container(
-              color: Colors.white,
-              padding: const EdgeInsets.all(16.0),
-              alignment: Alignment.center,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                shrinkWrap: true,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 16.0),
-                    child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        hoverColor: Colors.yellow.withOpacity(0.1),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => DisplayListRecordPending(),
-                            ),
-                          ).then((value) {
-                            // setState(() {
-                            //   _isLoading = true;
-                            // });
-                            _loadData();
-                          });
-                        },
-                        child: Container(
-                          width: 150, // Width of each card
-                          padding: const EdgeInsets.all(16.0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Color(0xFFFFC107),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Pending Task',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 8),
-                              // Optionally, add more details like a count or icon
-                              Icon(
-                                Icons.pending,
-                                color: Colors.white,
-                                size: 24,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 16.0),
+                  SizedBox(width: 16),
+                  // Withdraw Button
+                  Expanded(
                     child: Card(
-                      elevation: 4,
+                      elevation: 1,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        hoverColor: Colors.yellow.withOpacity(0.1),
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => DisplayListRecordReview(),
-                            ),
-                          ).then((value) {
-                            // setState(() {
-                            //   _isLoading = true;
-                            // });
-                            _loadData();
-                          });
+                          // Show withdraw dialog
+                          _showWithdrawDialog();
                         },
-                        child: Container(
-                          width: 150, // Width of each card
+                        borderRadius: BorderRadius.circular(16),
+                        child: Padding(
                           padding: const EdgeInsets.all(16.0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.orangeAccent,
-                          ),
                           child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 16,
+                                    backgroundColor: Colors.red[50],
+                                    child: Icon(
+                                      Icons.arrow_upward,
+                                      color: Colors.red,
+                                      size: 16,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Withdraw',
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 8),
                               Text(
-                                'Review Task',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 16,
+                                'Tap to withdraw',
+                                style: TextStyle(
+                                  fontSize: 14,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: Colors.red[400],
                                 ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 8),
-                              // Optionally, add more details like a count or icon
-                              Icon(
-                                Icons.reviews,
-                                color: Colors.white,
-                                size: 24,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 16.0),
-                    child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        hoverColor: Colors.yellow.withOpacity(0.1),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => DisplayListRecordOngoing(),
-                            ),
-                          ).then((value) {
-                            // setState(() {
-                            //   _isLoading = true;
-                            // });
-                            _loadData();
-                          });
-                        },
-                        child: Container(
-                          width: 150, // Width of each card
-                          padding: const EdgeInsets.all(16.0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.indigo.shade300,
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Ongoing Task',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 8),
-                              // Optionally, add more details like a count or icon
-                              Icon(
-                                Icons.work,
-                                color: Colors.white,
-                                size: 24,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 16.0),
-                    child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        hoverColor: Colors.green.withOpacity(0.1),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    DisplayListRecordConfirmed()),
-                          ).then((value) {
-                            // setState(() {
-                            //   _isLoading = true;
-                            // });
-                            _loadData();
-                          });
-                        },
-                        child: Container(
-                          width: 150, // Width of each card
-                          padding: const EdgeInsets.all(16.0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.green.shade300,
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Confirmed Task',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 8),
-                              // Optionally, add more details like a count or icon
-                              Icon(
-                                Icons.handshake,
-                                color: Colors.white,
-                                size: 24,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 16.0),
-                    child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        hoverColor: Colors.blue.withOpacity(0.1),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    DisplayListRecordFinish()),
-                          ).then((value) {
-                            // setState(() {
-                            //   _isLoading = true;
-                            // });
-                            _loadData();
-                          });
-                        },
-                        child: Container(
-                          width: 150, // Width of each card
-                          padding: const EdgeInsets.all(16.0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.blue.shade300,
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Completed Task',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 8),
-                              // Optionally, add more details like a count or icon
-                              Icon(
-                                Icons.check,
-                                color: Colors.white,
-                                size: 24,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 16.0),
-                    child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        hoverColor: Colors.blue.withOpacity(0.1),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    DisplayListRecordDisputed()),
-                          ).then((value) {
-                            // setState(() {
-                            //   _isLoading = true;
-                            // });
-                            _loadData();
-                          });
-                        },
-                        child: Container(
-                          width: 150, // Width of each card
-                          padding: const EdgeInsets.all(16.0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.blue.shade300,
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Disputed Task',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 8),
-                              // Optionally, add more details like a count or icon
-                              Icon(
-                                Icons.check,
-                                color: Colors.white,
-                                size: 24,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 16.0),
-                    child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        hoverColor: Colors.blue.withOpacity(0.1),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    DisplayListRecordDisputedSettled()),
-                          ).then((value) {
-                            // setState(() {
-                            //   _isLoading = true;
-                            // });
-                            _loadData();
-                          });
-                        },
-                        child: Container(
-                          width: 150, // Width of each card
-                          padding: const EdgeInsets.all(16.0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.blue.shade300,
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Resolved Task Disputes',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 8),
-                              // Optionally, add more details like a count or icon
-                              Icon(
-                                Icons.check,
-                                color: Colors.white,
-                                size: 24,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 0.0),
-                    child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        hoverColor: Colors.red.withOpacity(0.1),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    DisplayListRecordCancel()),
-                          ).then((value) {
-                            // setState(() {
-                            //   _isLoading = true;
-                            // });
-                            _loadData();
-                          });
-                        },
-                        child: Container(
-                          width: 150, // Width of each card
-                          padding: const EdgeInsets.all(16.0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.red.shade300,
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Cancelled Task',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 8),
-                              // Optionally, add more details like a count or icon
-                              Icon(
-                                Icons.cancel,
-                                color: Colors.white,
-                                size: 24,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 0.0),
-                    child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        hoverColor: Colors.red.withOpacity(0.1),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    DisplayListRecordReject()),
-                          ).then((value) {
-                            // setState(() {
-                            //   _isLoading = true;
-                            // });
-                            _loadData();
-                          });
-                        },
-                        child: Container(
-                          width: 150, // Width of each card
-                          padding: const EdgeInsets.all(16.0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.red.shade300,
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Rejected Task',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 8),
-                              // Optionally, add more details like a count or icon
-                              Icon(
-                                Icons.cancel,
-                                color: Colors.white,
-                                size: 24,
                               ),
                             ],
                           ),
@@ -733,7 +228,342 @@ class _RecordPageState extends State<RecordPage> {
                 ],
               ),
             ),
+
+            // Task Status Cards - Vertical Scrolling
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Task Status',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+
+                  // Pending Task Card
+                  _buildStatusCard(
+                    title: 'Pending',
+                    color: Color(0xFFFFC107),
+                    icon: Icons.pending,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DisplayListRecordPending(),
+                        ),
+                      ).then((value) => _loadData());
+                    },
+                  ),
+
+                  // Review Task Card
+                  _buildStatusCard(
+                    title: 'Review',
+                    color: Colors.orangeAccent,
+                    icon: Icons.reviews,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DisplayListRecordReview(),
+                        ),
+                      ).then((value) => _loadData());
+                    },
+                  ),
+
+                  // Ongoing Task Card
+                  _buildStatusCard(
+                    title: 'Ongoing',
+                    color: Colors.indigo.shade300,
+                    icon: Icons.work,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DisplayListRecordOngoing(),
+                        ),
+                      ).then((value) => _loadData());
+                    },
+                  ),
+
+                  // Confirmed Task Card
+                  _buildStatusCard(
+                    title: 'Confirmed',
+                    color: Colors.green.shade300,
+                    icon: Icons.handshake,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DisplayListRecordConfirmed(),
+                        ),
+                      ).then((value) => _loadData());
+                    },
+                  ),
+
+                  // Completed Task Card
+                  _buildStatusCard(
+                    title: 'Completed',
+                    color: Colors.blue.shade300,
+                    icon: Icons.check,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DisplayListRecordFinish(),
+                        ),
+                      ).then((value) => _loadData());
+                    },
+                  ),
+
+                  // Disputed Task Card
+                  _buildStatusCard(
+                    title: 'Disputed',
+                    color: Colors.purple.shade300,
+                    icon: Icons.gavel,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DisplayListRecordDisputed(),
+                        ),
+                      ).then((value) => _loadData());
+                    },
+                  ),
+
+                  // Disputed Settled Task Card
+                  _buildStatusCard(
+                    title: 'Resolved Task Disputes',
+                    color: Colors.teal.shade300,
+                    icon: Icons.check_circle,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              DisplayListRecordDisputedSettled(),
+                        ),
+                      ).then((value) => _loadData());
+                    },
+                  ),
+
+                  // Cancelled Task Card
+                  _buildStatusCard(
+                    title: 'Cancelled',
+                    color: Colors.red.shade300,
+                    icon: Icons.cancel,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DisplayListRecordCancel(),
+                        ),
+                      ).then((value) => _loadData());
+                    },
+                  ),
+
+                  // Rejected Task Card
+                  _buildStatusCard(
+                    title: 'Rejected',
+                    color: Colors.red.shade700,
+                    icon: Icons.cancel,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DisplayListRecordReject(),
+                        ),
+                      ).then((value) => _loadData());
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusCard({
+    required String title,
+    required Color color,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Card(
+        elevation: 1,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        // Light gray background
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Row(
+              children: [
+                // Icon with colored background
+                CircleAvatar(
+                  radius: 22,
+                  backgroundColor: color.withOpacity(0.2),
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: 22,
+                  ),
+                ),
+                SizedBox(width: 16),
+                // Title
+                Expanded(
+                  child: Text(
+                    title,
+                    style: GoogleFonts.montserrat(
+                      fontSize: 14,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+                // Right arrow icon
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: Colors.grey,
+                  size: 16,
+                ),
+              ],
+            ),
           ),
-        ]));
+        ),
+      ),
+    );
+  }
+
+  void _showWithdrawDialog() {
+    final TextEditingController amountController = TextEditingController();
+    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Withdraw Credits',
+          style: GoogleFonts.montserrat(
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF0272B1),
+          ),
+        ),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: amountController,
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  labelText: 'Amount',
+                  prefixIcon:
+                      Icon(Icons.attach_money, color: Color(0xFF0272B1)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter an amount';
+                  }
+
+                  final double? amount = double.tryParse(value);
+                  if (amount == null) {
+                    return 'Please enter a valid number';
+                  }
+
+                  if (amount <= 0) {
+                    return 'Amount must be greater than zero';
+                  }
+
+                  if (amount > totalBalance) {
+                    return 'Amount exceeds available balance';
+                  }
+
+                  return null;
+                },
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Withdrawal will be processed to your linked payment method.',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                final double amount = double.parse(amountController.text);
+
+                // Process withdrawal
+                _processWithdrawal(amount);
+
+                Navigator.pop(context);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF0272B1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              'Withdraw',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _processWithdrawal(double amount) {
+    // Here you would call the API to process the withdrawal
+    // For now we'll just show a success message and update the UI
+
+    setState(() {
+      totalBalance -= amount;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+            'Withdrawal of \$${amount.toStringAsFixed(2)} has been initiated'),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
   }
 }

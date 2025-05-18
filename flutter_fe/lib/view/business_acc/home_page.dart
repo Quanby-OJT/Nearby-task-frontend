@@ -881,11 +881,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                       return true;
                                     }
 
-                                    if (_existingProfileImageUrl == null ||
+                                    // Only show verification dialog if the user isn't verified
+                                    // We check both document validity AND if both images exist
+                                    if (!_documentValid ||
+                                        _existingProfileImageUrl == null ||
                                         _existingIDImageUrl == null ||
                                         _existingProfileImageUrl!.isEmpty ||
-                                        _existingIDImageUrl!.isEmpty ||
-                                        !_documentValid) {
+                                        _existingIDImageUrl!.isEmpty) {
                                       _showWarningDialog();
                                       return false;
                                     }
