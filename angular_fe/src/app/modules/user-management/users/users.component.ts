@@ -17,6 +17,8 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { CommonModule, NgIf } from '@angular/common';
 import { saveAs } from 'file-saver';
+import { AuthService } from 'src/app/services/auth.service';
+
 
 @Component({
   selector: 'app-users',
@@ -43,12 +45,14 @@ export class UsersComponent implements OnInit {
   emailSortState: 'default' | 'asc' | 'desc' = 'default';
   activeSortColumn: 'profile' | 'email' | null = null;
   isLoading: boolean = true;
+  userRole: string | undefined;
 
   constructor(
     private http: HttpClient,
     public filterService: UserTableFilterService,
     private router: Router,
     private useraccount: UserAccountService,
+    private authService: AuthService
   ) {
     effect(() => {
       const currentPage = this.filterService.currentPageField();
@@ -72,6 +76,16 @@ export class UsersComponent implements OnInit {
     this.isLoading = true;
     this.fetchUsers();
     this.setUserSize();
+    this.authService.userInformation().subscribe(
+      (response: any) => {
+        this.userRole = response.user.user_role;
+        this.isLoading = false;
+      },
+      (error: any) => {
+        console.error('Error fetching user role:', error);
+        this.isLoading = false;
+      }
+    );
   }
 
   exportCSV() {

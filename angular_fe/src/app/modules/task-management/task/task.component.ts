@@ -9,7 +9,7 @@ import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { AuthService } from 'src/app/services/auth.service';
-import { Task } from 'src/model/task'; // Import the Task model
+import { Task } from 'src/model/task'; 
 
 @Component({
   selector: 'app-task',
