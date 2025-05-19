@@ -901,7 +901,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                     percentThresholdY) {
                                   final tasker = taskers[index];
                                   return Container(
-                                    width: MediaQuery.of(context).size.width,
+                                    width: double.infinity,
                                     height: MediaQuery.of(context).size.height,
                                     padding: EdgeInsets.only(top: 0, bottom: 8),
                                     child: Card(
