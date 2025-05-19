@@ -32,8 +32,8 @@ export class UserConversationService {
     });
   }
 
-  warnUser(id: number): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/warnUser/${id}`, {}, {
+  warnUser(id: number, loggedInUserId: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/warnUser/${id}`, { loggedInUserId }, {
       headers: this.getHeaders(),
       withCredentials: true
     });

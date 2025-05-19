@@ -1,10 +1,11 @@
 import { UserAccountService } from './../../../services/userAccount';
 import { NgClass, NgIf } from '@angular/common';
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterOutlet } from '@angular/router';
 import { ButtonComponent } from 'src/app/shared/components/button/button.component';
 import Swal from 'sweetalert2';
+
 
 @Component({
   selector: 'app-add-user',
@@ -21,11 +22,14 @@ export class AddUserComponent {
   duplicateEmailError: any = null;
   success_message: any = null;
   today: string; // Add property for current date
+  actionByName: string = '';
+
 
   constructor(
     private _formBuilder: FormBuilder,
     private UserAccountService: UserAccountService,
-    private router: Router
+    private router: Router,
+    private cdRef: ChangeDetectorRef
   ) {[]
     // Initialize today with current date in YYYY-MM-DD format
     const now = new Date();
@@ -34,6 +38,25 @@ export class AddUserComponent {
 
   ngOnInit(): void {
     this.formValidation();
+    this.loadActionByName();
+  }
+
+  loadActionByName(): void {
+    const actionById = localStorage.getItem('user_id');
+    if (actionById) {
+      this.UserAccountService.getUserById(Number(actionById)).subscribe({
+        next: (response: any) => {
+          const user = response.user || response;
+          this.actionByName = `${user.first_name || ''} ${user.middle_name || ''} ${user.last_name || ''}`.trim();
+          this.cdRef.detectChanges();
+        },
+        error: (error: any) => {
+          console.error('Error fetching action_by user data:', error);
+          this.actionByName = 'Unknown User';
+          this.cdRef.detectChanges();
+        },
+      });
+    }
   }
 
   formValidation(): void {
@@ -163,6 +186,8 @@ export class AddUserComponent {
     formData.append('contact', this.form.value.contact);
     formData.append('gender', this.form.value.gender);
     formData.append('password', this.form.value.password);
+    formData.append('action_by', localStorage.getItem('user_id') || '0');
+
     if (this.selectedFile) {
       formData.append('image', this.selectedFile); // Use the selected file
     }

@@ -17,6 +17,7 @@ import { DataService } from 'src/services/dataStorage';
 })
 export class UserTableRowComponent {
   @Input() user: Users = <Users>{};
+  actionByName: string = '';
 
   constructor(
     private route: Router,
@@ -24,6 +25,28 @@ export class UserTableRowComponent {
     private UserComponent: UsersComponent,
     private dataService: DataService,
   ) {}
+
+  ngOnInit(): void {
+    this.loadActionByName();
+  }
+
+  loadActionByName(): void {
+
+    if (this.user.action_by) {
+      this.UserAccountService.getUserById(Number(this.user.action_by)).subscribe({
+        next: (response: any) => {
+          const user = response.user || response;
+          this.actionByName = `${user.first_name || ''} ${user.middle_name || ''} ${user.last_name || ''}`.trim();
+        },
+        error: (error: any) => {
+          console.error('Error fetching action_by user data:', error);
+          this.actionByName = '	No Action Yet';
+        },
+      });
+    } else {
+      this.actionByName = '	No Action Yet';
+    }
+  }
 
   deleteUser(id: Number): void {
     Swal.fire({

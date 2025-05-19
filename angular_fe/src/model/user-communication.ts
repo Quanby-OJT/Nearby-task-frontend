@@ -27,6 +27,7 @@ export interface User {
     task_taken: TaskTaken;
     conversation: string;
     reported: boolean;
+    action_by: string;
   }
   
   export interface Message {

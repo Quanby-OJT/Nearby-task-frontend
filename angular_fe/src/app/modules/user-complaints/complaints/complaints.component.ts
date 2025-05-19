@@ -7,7 +7,7 @@ import { ReportService } from 'src/app/services/report.service';
 import { Subscription } from 'rxjs';
 import { SessionLocalStorage } from 'src/services/sessionStorage';
 import { AuthService } from 'src/app/services/auth.service';
-import { Report } from 'src/model/complain'; // Import the Report model
+import { Report } from 'src/model/complain';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';

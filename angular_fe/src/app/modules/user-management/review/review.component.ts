@@ -1,5 +1,5 @@
 import { NgClass, NgIf } from '@angular/common';
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
 import { UserAccountService } from 'src/app/services/userAccount';
 import { ButtonComponent } from 'src/app/shared/components/button/button.component';
@@ -38,8 +38,10 @@ export class ReviewComponent {
   isImage: boolean = false;
   faceImage: string | null = null; 
   isFaceImage: boolean = false; 
-  idImage: string | null = null; // Added for ID image
-  isIdImage: boolean = false;   // Added to check if ID image is valid
+  idImage: string | null = null; 
+  isIdImage: boolean = false;   
+  actionByName: string = '';
+
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -48,7 +50,8 @@ export class ReviewComponent {
     private route: ActivatedRoute,
     private dataService: DataService,
     private sessionStorage: SessionLocalStorage,
-    private http: HttpClient
+    private http: HttpClient,
+    private cdRef: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -58,7 +61,26 @@ export class ReviewComponent {
       this.router.navigate(['user-management']);
     } else if (this.userId) {
       this.loadUserData();
+      this.loadActionByName();
       console.log('User ID being reviewed:', this.userId);
+    }
+  }
+
+  loadActionByName(): void {
+    const actionById = localStorage.getItem('user_id');
+    if (actionById) {
+      this.userAccountService.getUserById(Number(actionById)).subscribe({
+        next: (response: any) => {
+          const user = response.user || response;
+          this.actionByName = `${user.first_name || ''} ${user.middle_name || ''} ${user.last_name || ''}`.trim();
+          this.cdRef.detectChanges();
+        },
+        error: (error: any) => {
+          console.error('Error fetching action_by user data:', error);
+          this.actionByName = 'Unknown User';
+          this.cdRef.detectChanges();
+        },
+      });
     }
   }
 
@@ -256,6 +278,7 @@ export class ReviewComponent {
     formData.append('email', this.form.value.email);
     formData.append('acc_status', this.form.value.status);
     formData.append('user_role', this.form.value.userRole);
+    formData.append('action_by', localStorage.getItem('user_id') || '0');
 
     if (this.imagePreview) {
       formData.append('image', this.imagePreview, this.imagePreview.name);

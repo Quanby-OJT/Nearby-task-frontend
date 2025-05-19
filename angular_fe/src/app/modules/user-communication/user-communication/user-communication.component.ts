@@ -8,6 +8,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import { AngularSvgIconModule } from 'angular-svg-icon';
+import { SessionLocalStorage } from 'src/services/sessionStorage';
 
 @Component({
   selector: 'app-user-communication',
@@ -42,6 +43,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
 
   constructor(
     private userConversationService: UserConversationService,
+    private sessionStorage: SessionLocalStorage
   ) {}
 
   ngOnInit(): void {
@@ -313,6 +315,12 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
   }
 
   warnUser(id: number): void {
+    const loggedInUserId = this.sessionStorage.getUserId(); 
+    if (!loggedInUserId) {
+      Swal.fire('Error!', 'Logged-in user not found.', 'error');
+      return;
+    }
+
     Swal.fire({
       title: 'Are you sure to warn this user?',
       text: 'This action cannot be undone!',
@@ -322,7 +330,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
       confirmButtonText: 'Yes, warn it!',
     }).then((result) => {
       if (result.isConfirmed) {
-        this.userConversationService.warnUser(id).subscribe((response) => {
+        this.userConversationService.warnUser(id, loggedInUserId).subscribe((response) => {
           if (response) {
             Swal.fire('Warned!', 'User has been warned.', 'success').then(() => {
               // Refresh the conversation list after warning

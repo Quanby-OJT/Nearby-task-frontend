@@ -7,12 +7,9 @@ import { UserTableActionComponent } from '../table/table-action/table-action.com
 import { UserTableFooterComponent } from '../table/table-footer/table-footer.component';
 import { UserTableHeaderComponent } from '../table/table-header/table-header.component';
 import { UserTableRowComponent } from '../table/table-row/table-row.component';
-import { AddUserComponent } from '../add-user/add-user.component';
-import { Router, RouterOutlet } from '@angular/router';
+import { Router } from '@angular/router';
 import { UserAccountService } from 'src/app/services/userAccount';
 import { UserTableFilterService } from 'src/services/user-table-filter';
-import { ButtonComponent } from 'src/app/shared/components/button/button.component';
-import { ReviewComponent } from '../review/review.component';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { CommonModule, NgIf } from '@angular/common';
