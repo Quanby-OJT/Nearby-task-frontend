@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/model/address.dart';
 import 'package:flutter_fe/model/setting.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/service/setting_service.dart';
@@ -60,5 +61,13 @@ class SettingController {
 
     return settingService.updateDistance(
         taskerId, distance, ageRange, showFurtherAway);
+  }
+
+  Future<List<AddressModel>> loadAddresses() async {
+    final userId = storage.read('user_id');
+    final addresses = await settingService.getAddresses(userId as int);
+
+    debugPrint('my addresses is this post: $addresses');
+    return addresses;
   }
 }

@@ -39,6 +39,41 @@ class TaskerModel {
     return "Tasker(id: $id, bio: $bio, specialization: $specialization, user: $user)";
   }
 
+  // Add a copyWith method to create a new instance with some properties changed
+  TaskerModel copyWith({
+    int? id,
+    String? bio,
+    bool? group,
+    String? specialization,
+    String? skills,
+    bool? availability,
+    Map<String, String>? address,
+    double? wage,
+    String? payPeriod,
+    DateTime? birthDate,
+    String? taskerDocuments,
+    Map<String, String>? socialMediaLinks,
+    UserModel? user,
+    double? rating,
+  }) {
+    return TaskerModel(
+      id: id ?? this.id,
+      bio: bio ?? this.bio,
+      group: group ?? this.group,
+      specialization: specialization ?? this.specialization,
+      skills: skills ?? this.skills,
+      availability: availability ?? this.availability,
+      address: address ?? this.address,
+      wage: wage ?? this.wage,
+      payPeriod: payPeriod ?? this.payPeriod,
+      birthDate: birthDate ?? this.birthDate,
+      taskerDocuments: taskerDocuments ?? this.taskerDocuments,
+      socialMediaLinks: socialMediaLinks ?? this.socialMediaLinks,
+      user: user ?? this.user,
+      rating: rating ?? this.rating,
+    );
+  }
+
   // Factory method to map JSON to TaskerModel
   factory TaskerModel.fromJson(Map<String, dynamic> json) {
     debugPrint('JSON Data: $json');
@@ -55,7 +90,7 @@ class TaskerModel {
           : null,
       // Safely handle tasker_specialization
       specialization: json['tasker_specialization'] != null &&
-          json['tasker_specialization']['specialization'] != null
+              json['tasker_specialization']['specialization'] != null
           ? json['tasker_specialization']['specialization']
           : '',
       taskerDocuments: json['tesda_document_link'] ?? '',
@@ -82,7 +117,6 @@ class TaskerModel {
       "tesda_documents_link": taskerDocuments,
       "social_media_links": socialMediaLinks ?? {},
       "address": address ?? {},
-
 
       // remove kasi nasa user na siya
       "group": group,

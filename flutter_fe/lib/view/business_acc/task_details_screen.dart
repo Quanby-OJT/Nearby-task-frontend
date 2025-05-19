@@ -154,23 +154,10 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                       Row(children: [
                                         Icon(Icons.location_pin,
                                             color: Colors.red),
-                                        Text(task.location ?? "N/A",
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                            ))
                                       ]),
-                                      // Text(
-                                      //   " | ",
-                                      //   style: TextStyle(
-                                      //     fontSize: 14,
-                                      //     fontWeight: FontWeight.bold,
-                                      //   )
-                                      // ),
                                       Text(
                                           "${task.duration} Needed ${task.period}")
                                     ]),
-                                //buildInfoRow("Location", task.location ?? "N/A"),
                                 _buildInfoRow("NOTE", task.urgency.toString()),
                                 Row(
                                   children: [

@@ -217,12 +217,6 @@ class _TaskerReviewState extends State<TaskerReview> {
                 ),
               ],
             ),
-            SizedBox(height: 16),
-            _buildTaskInfoRow(
-              icon: Icons.location_pin,
-              label: 'Location',
-              value: _taskInformation?.location ?? 'Not specified',
-            ),
             SizedBox(height: 12),
             _buildTaskInfoRow(
               icon: Icons.calendar_today,

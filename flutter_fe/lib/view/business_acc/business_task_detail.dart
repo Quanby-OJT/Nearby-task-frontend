@@ -201,8 +201,6 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
                             ),
                           ),
                           Divider(height: 30),
-                          _buildInfoRow(
-                              "Location", taskToDisplay.location ?? "N/A"),
                           _buildInfoRow("Specialization",
                               taskToDisplay.specialization ?? "N/A"),
                           _buildInfoRow("Description",

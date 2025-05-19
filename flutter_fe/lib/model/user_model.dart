@@ -94,7 +94,7 @@ class UserModel {
       "middle_name": middleName,
       "last_name": lastName,
       "email": email,
-      "hashed_password": password,
+      "password": password,
       "user_role": role,
       "acc_status": accStatus,
       "contact": contact,
@@ -111,5 +111,46 @@ class UserModel {
   @override
   String toString() {
     return 'UserModel(firstName: $firstName, middleName: $middleName, lastName: $lastName, email: $email, password: ${password != null ? "****" : "null"}, role: $role, accStatus: $accStatus, contact: $contact, gender: $gender, birthdate: $birthdate, image: $image, imageName: $imageName, verified: $verified, userPreferences: $userPreferences, bio: $bio, socialMediaLinks: $socialMediaLinks)';
+  }
+
+  // Add a copyWith method to create a new instance with modified properties
+  UserModel copyWith({
+    int? id,
+    String? firstName,
+    String? middleName,
+    String? lastName,
+    String? email,
+    String? birthdate,
+    String? password,
+    dynamic image,
+    String? imageName,
+    String? role,
+    String? accStatus,
+    String? contact,
+    String? gender,
+    bool? verified,
+    List<UserPreferenceModel>? userPreferences,
+    String? bio,
+    Map<String, String>? socialMediaLinks,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      firstName: firstName ?? this.firstName,
+      middleName: middleName ?? this.middleName,
+      lastName: lastName ?? this.lastName,
+      email: email ?? this.email,
+      birthdate: birthdate ?? this.birthdate,
+      password: password ?? this.password,
+      image: image ?? this.image,
+      imageName: imageName ?? this.imageName,
+      role: role ?? this.role,
+      accStatus: accStatus ?? this.accStatus,
+      contact: contact ?? this.contact,
+      gender: gender ?? this.gender,
+      verified: verified ?? this.verified,
+      userPreferences: userPreferences ?? this.userPreferences,
+      bio: bio ?? this.bio,
+      socialMediaLinks: socialMediaLinks ?? this.socialMediaLinks,
+    );
   }
 }

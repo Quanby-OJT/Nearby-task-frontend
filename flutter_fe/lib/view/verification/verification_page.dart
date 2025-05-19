@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/model/verification_model.dart';
 import 'package:flutter_fe/service/api_service.dart';
 
@@ -118,7 +119,8 @@ class _VerificationPageState extends State<VerificationPage> {
             });
 
             // Show appropriate message based on verification status
-            if (_verificationStatus == 'approved') {
+            if (_verificationStatus == 'approved' ||
+                _verificationStatus == 'Review') {
               Future.delayed(Duration.zero, () {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -412,7 +414,8 @@ class _VerificationPageState extends State<VerificationPage> {
           if (_verificationStatus != null)
             Container(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-              color: _verificationStatus == 'approved'
+              color: (_verificationStatus == 'approved' ||
+                      _verificationStatus == 'Review')
                   ? Colors.green[50]
                   : _verificationStatus == 'rejected'
                       ? Colors.red[50]
@@ -420,12 +423,14 @@ class _VerificationPageState extends State<VerificationPage> {
               child: Row(
                 children: [
                   Icon(
-                    _verificationStatus == 'approved'
+                    (_verificationStatus == 'approved' ||
+                            _verificationStatus == 'Review')
                         ? Icons.check_circle
                         : _verificationStatus == 'rejected'
                             ? Icons.cancel
                             : Icons.pending,
-                    color: _verificationStatus == 'approved'
+                    color: (_verificationStatus == 'approved' ||
+                            _verificationStatus == 'Review')
                         ? Colors.green
                         : _verificationStatus == 'rejected'
                             ? Colors.red
@@ -435,13 +440,15 @@ class _VerificationPageState extends State<VerificationPage> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      _verificationStatus == 'approved'
+                      (_verificationStatus == 'approved' ||
+                              _verificationStatus == 'Review')
                           ? 'Your account is verified. You can update your information.'
                           : _verificationStatus == 'rejected'
                               ? 'Your verification was rejected. Please update your information.'
                               : 'Your verification is pending review.',
                       style: TextStyle(
-                        color: _verificationStatus == 'approved'
+                        color: (_verificationStatus == 'approved' ||
+                                _verificationStatus == 'Review')
                             ? Colors.green[800]
                             : _verificationStatus == 'rejected'
                                 ? Colors.red[800]

@@ -8,6 +8,7 @@ import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/config/url_strategy.dart';
 
@@ -15,7 +16,7 @@ import '../model/client_model.dart';
 import '../model/tasker_model.dart';
 
 class JobPostService {
-  static String url = apiUrl ?? "http://192.168.43.15:5000/connect";
+  static String url = apiUrl ?? "http://192.168.0.152:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -251,21 +252,22 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> postJob(TaskModel task, int userId) async {
+  Future<Map<String, dynamic>> postJob(TaskModel task, int userId,
+      {List<File>? files}) async {
     try {
-      // Log the request for debugging
       debugPrint("Posting job with data: ${task.toJson()}");
+      debugPrint("Files: ${files?.length}");
 
-      // Make sure duration and proposed_price are properly formatted
+      var request = http.MultipartRequest('POST', Uri.parse('$url/addTask'));
+      request.headers['Authorization'] = 'Bearer $token';
+
       var taskData = task.toJson();
 
-      // Ensure duration is an integer
       if (taskData['duration'] is String) {
         taskData['duration'] =
             int.tryParse(taskData['duration'] as String) ?? 0;
       }
 
-      // Ensure proposed_price is an integer
       if (taskData['proposed_price'] == null) {
         taskData['proposed_price'] = 0;
       } else if (taskData['proposed_price'] is String) {
@@ -273,26 +275,47 @@ class JobPostService {
             int.tryParse(taskData['proposed_price'] as String) ?? 0;
       }
 
-      // Print the final data being sent
-      debugPrint("Posting job with data: $taskData");
+      taskData.forEach((key, value) {
+        if (value != null) {
+          if (key == 'related_specializations') {
+            request.fields[key] = jsonEncode(value);
+          } else {
+            request.fields[key] = value.toString();
+          }
+        }
+      });
 
-      Map<String, dynamic> response = await _postRequest(
-        endpoint: "/addTask",
-        body: {...taskData, "user_id": userId},
-      );
+      request.fields['user_id'] = userId.toString();
 
-      // Ensure the success field is always a boolean
+      if (files != null && files.isNotEmpty && await files.first.exists()) {
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'photo',
+            files.first.path,
+            contentType: MediaType('image', files.first.path.split('.').last),
+          ),
+        );
+      }
+
+      debugPrint("Posting job with fields: ${request.fields}");
+      var response = await request.send();
+      var responseData = await http.Response.fromStream(response);
+      var result = jsonDecode(responseData.body) as Map<String, dynamic>;
+
       return {
-        'success': response.containsKey('success')
-            ? response['success'] == true
-            : false,
-        'message': response['message'] ?? 'Task posted successfully',
-        'error': response['error']
+        'success':
+            result.containsKey('success') ? result['success'] == true : false,
+        'message': result['message'] ?? 'Task posted successfully',
+        'error': result['error'],
+        'task': result['task'],
       };
-    } catch (e) {
-      debugPrint(e.toString());
-      debugPrintStack();
-      return {'success': false, "error": "Error: $e"};
+    } catch (e, stackTrace) {
+      debugPrint('Error in postJob: $e');
+      debugPrint(stackTrace.toString());
+      return {
+        'success': false,
+        'error': 'Failed to post job: $e',
+      };
     }
   }
 

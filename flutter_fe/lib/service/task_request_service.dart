@@ -9,7 +9,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 
 class TaskRequestService {
-  static String url = apiUrl ?? "http://192.168.43.15:5000/connect";
+  static String url = apiUrl ?? "http://192.168.0.152:5000/connect";
   static final storage = GetStorage();
 
   Future<String?> getUserId() async => storage.read('user_id')?.toString();
@@ -287,12 +287,13 @@ class TaskRequestService {
             id: taskId, // Use the task_id from the root level
             title: taskData['task_title'] ?? '',
             description: taskData['task_description'] ?? '',
-            location: taskData['location'] ?? '',
             contactPrice: taskData['proposed_price'] ?? 0,
             urgency: taskData['urgent'] == true ? 'Urgent' : 'Non-Urgent',
             specialization: taskData['specialization'],
             period: taskData['period'],
+            addressID: taskData['address_id'] ?? '',
             status: taskData['status'],
+            scope: taskData['scope'],
             duration: '',
             taskBeginDate: '',
             workType: '');
@@ -303,12 +304,13 @@ class TaskRequestService {
           id: taskId,
           title: "Task #$taskId",
           description: "No details available",
-          location: "",
+          addressID: "",
           contactPrice: 0,
           urgency: "Unknown",
           specialization: '',
           period: '',
           status: '',
+          scope: '',
           duration: '',
           taskBeginDate: '',
           workType: '');
@@ -320,12 +322,13 @@ class TaskRequestService {
           id: taskId,
           title: "Task #$taskId",
           description: "No details available",
-          location: "",
+          addressID: "",
           contactPrice: 0,
           urgency: "Unknown",
           specialization: '',
           period: '',
           status: '',
+          scope: '',
           duration: '',
           taskBeginDate: '',
           workType: '');
@@ -497,7 +500,8 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> releaseEscrowPayment(int taskerId, double amount, String paymentMethod) async {
+  Future<Map<String, dynamic>> releaseEscrowPayment(
+      int taskerId, double amount, String paymentMethod) async {
     try {
       debugPrint("Releasing escrow payment with tasker ID: $taskerId");
 
@@ -516,100 +520,6 @@ class TaskRequestService {
         'success': false,
         'error': 'Failed to release the payment. Please Try Again.'
       };
-    }
-  }
-
-  // For demo/development: Generate mock task requests
-  Future<List<TaskRequest>> getMockTaskRequests() async {
-    // This is for testing UI without backend implementation
-    try {
-      final userId = await getUserId();
-      if (userId == null) return [];
-
-      // Create dummy client
-      final client = UserModel(
-        id: 1,
-        firstName: "John",
-        lastName: "Doe",
-        email: "john.doe@example.com",
-        role: "client",
-      );
-
-      // Create dummy tasker (current user)
-      final tasker = UserModel(
-        id: int.parse(userId),
-        firstName: "Current",
-        lastName: "User",
-        email: "current.user@example.com",
-        role: "tasker",
-      );
-
-      // Create dummy tasks
-      List<TaskModel> tasks = [
-        TaskModel(
-            id: 101,
-            clientId: 1,
-            title: "Fix Plumbing",
-            description: "Need to fix a leaking pipe in the kitchen",
-            location: "123 Main St",
-            contactPrice: 120,
-            urgency: "Urgent",
-            specialization: '',
-            period: '',
-            status: '',
-            duration: '',
-            taskBeginDate: '',
-            workType: ''),
-        TaskModel(
-            id: 102,
-            clientId: 1,
-            title: "Install Ceiling Fan",
-            description: "Need to install a new ceiling fan in the living room",
-            location: "456 Oak Ave",
-            contactPrice: 80,
-            urgency: "Non-Urgent",
-            specialization: '',
-            period: '',
-            status: '',
-            duration: '',
-            taskBeginDate: '',
-            workType: ''),
-        TaskModel(
-            id: 103,
-            clientId: 1,
-            title: "Paint Bedroom",
-            description: "Paint the walls of a medium-sized bedroom",
-            location: "789 Pine Blvd",
-            contactPrice: 200,
-            urgency: "Non-Urgent",
-            specialization: '',
-            period: '',
-            status: '',
-            duration: '',
-            taskBeginDate: '',
-            workType: ''),
-      ];
-
-      // Create dummy requests
-      List<TaskRequest> requests = [];
-      for (var i = 0; i < tasks.length; i++) {
-        requests.add(
-          TaskRequest(
-            requestId: 1000 + i,
-            task: tasks[i],
-            client: client,
-            tasker: tasker,
-            status: 'pending',
-            createdAt:
-                DateTime.now().subtract(Duration(days: i)).toIso8601String(),
-          ),
-        );
-      }
-
-      return requests;
-    } catch (e) {
-      debugPrint("Error generating mock requests: $e");
-      return [];
     }
   }
 }
