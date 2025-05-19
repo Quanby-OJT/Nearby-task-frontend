@@ -150,7 +150,7 @@ export class ReviewComponent {
                 name: doc.doc_name || 'User_Document'
               }))];
             }
-            // Check for id_image from user_id table (now an array)
+         
             if (docResponse.user?.user_id?.length > 0 && docResponse.user.user_id[0]?.id_image) {
               console.log('Processing ID image:', docResponse.user.user_id[0].id_image);
               this.idImage = docResponse.user.user_id[0].id_image; // Set idImage directly
