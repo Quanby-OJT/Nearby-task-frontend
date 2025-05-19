@@ -87,8 +87,7 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> _postRequest(
-      {required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     try {
       String formattedEndpoint =
@@ -112,8 +111,7 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> _putRequest(
-      {required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _putRequest({required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.put(
@@ -400,8 +398,8 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> depositEscrowPayment(
-      double depositAmount, String paymentMethod, String acctNumber) async {
+  //Escrow Deposit and Withdrawal
+  Future<Map<String, dynamic>> depositEscrowPayment(double depositAmount, String paymentMethod, String acctNumber) async {
     try {
       final userId = await getUserId();
       if (userId == null) {
@@ -450,6 +448,47 @@ class TaskRequestService {
     }
   }
 
+  Future<Map<String, dynamic>> releaseEscrowPayment(int taskerId, double amount, String paymentMethod, String acctNumber) async {
+    try {
+      debugPrint("Releasing escrow payment with tasker ID: $taskerId");
+      return await _postRequest(
+        endpoint: '/withdraw-escrow-amount',
+        body: {
+          'tasker id': taskerId,
+          'amount': amount,
+          'payment_method': paymentMethod,
+          'account_number': acctNumber
+        },
+      );
+    } catch (e, stackTrace) {
+      debugPrint("Error releasing escrow payment: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {
+        'success': false,
+        'error': 'Failed to release the payment. Please Try Again.'
+      };
+    }
+  }
+
+  //Confirmation of Authorized Payment
+  Future<Map<String, dynamic>> confirmPayment(int userId, double amount, bool success, String transactionId) async {
+    try{
+      return await _putRequest(
+          endpoint: "/webhook/paymongo/$userId/$transactionId",
+          body: {
+            "amount": amount,
+            "success": success,
+          });
+    }catch(error, stackTrace){
+      debugPrint("Error confirming payment: $error");
+      debugPrintStack(stackTrace: stackTrace);
+      return {
+        'success': false,
+        'message': 'Failed to confirm payment. Please Try Again',
+      };
+    }
+  }
+
   // Decline a task request from task_taken table
   Future<Map<String, dynamic>> declineTaskRequest(int requestId) async {
     try {
@@ -479,8 +518,7 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> rejectTaskerOrCancelTask(
-      int requestId, String rejectOrCancel, String rejectionReason) async {
+  Future<Map<String, dynamic>> rejectTaskerOrCancelTask(int requestId, String rejectOrCancel, String rejectionReason) async {
     try {
       return await _putRequest(
           endpoint: "/update-status-tasker/$requestId",
@@ -494,27 +532,6 @@ class TaskRequestService {
       return {
         'success': false,
         'message': 'Failed to reject the tasker. Please Try Again.'
-      };
-    }
-  }
-
-  Future<Map<String, dynamic>> releaseEscrowPayment(int taskerId, double amount, String paymentMethod) async {
-    try {
-      debugPrint("Releasing escrow payment with tasker ID: $taskerId");
-      return await _postRequest(
-        endpoint: '/withdraw-escrow-amount',
-        body: {
-          'tasker id': taskerId,
-          'amount': amount,
-          'payment_method': paymentMethod
-        },
-      );
-    } catch (e, stackTrace) {
-      debugPrint("Error releasing escrow payment: $e");
-      debugPrintStack(stackTrace: stackTrace);
-      return {
-        'success': false,
-        'error': 'Failed to release the payment. Please Try Again.'
       };
     }
   }

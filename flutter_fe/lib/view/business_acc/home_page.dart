@@ -25,14 +25,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:flip_card/flip_card.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class ClientHomePage extends StatefulWidget {
+  const ClientHomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<ClientHomePage> createState() => _ClientHomePageState();
 }
 
-class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
+class _ClientHomePageState extends State<ClientHomePage> with TickerProviderStateMixin {
   final ProfileController _profileController = ProfileController();
   final AuthenticationController _authController = AuthenticationController();
   final GetStorage storage = GetStorage();

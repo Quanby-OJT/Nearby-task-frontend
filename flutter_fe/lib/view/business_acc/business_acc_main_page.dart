@@ -73,7 +73,7 @@ class _BusinessAccMainState extends State<BusinessAccMain>
           });
         },
         children: [
-          HomePage(),
+          ClientHomePage(),
           JobPostPage(),
           RecordPage(),
           ChatScreen(),

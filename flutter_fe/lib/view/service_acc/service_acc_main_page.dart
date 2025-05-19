@@ -73,7 +73,7 @@ class _ServiceAccMainState extends State<ServiceAccMain>
           });
         },
         children: [
-          HomePage(),
+          TaskerHomePage(),
           TaskPage(),
           RecordTaskerPage(),
           ChatScreen(),
