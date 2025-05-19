@@ -340,7 +340,7 @@ class _LikesScreenState extends State<LikesScreen> {
         title: Text(
           'Liked Taskers',
           style: GoogleFonts.montserrat(
-            color: Color(0xFF0272B1),
+            color: Color(0xFFB71A4A),
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -597,105 +597,126 @@ class _LikesScreenState extends State<LikesScreen> {
   }
 
   Widget _buildTaskerCard(TaskerModel tasker) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Profile Image
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  image: tasker.user?.image != null &&
-                          tasker.user?.image!.isNotEmpty
-                      ? DecorationImage(
-                          image: NetworkImage(tasker.user?.image!),
-                          fit: BoxFit.cover,
-                          onError: (exception, stackTrace) =>
-                              AssetImage('assets/images/image1.jpg'),
-                        )
-                      : DecorationImage(
-                          image: AssetImage('assets/images/image1.jpg'),
-                          fit: BoxFit.cover,
-                        ),
-                ),
+    return Container(
+      margin: EdgeInsets.only(bottom: 1),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide(color: Colors.grey[200]!, width: 1),
+        ),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Profile Image
+          ClipRRect(
+            borderRadius: BorderRadius.circular(50),
+            child: Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                image:
+                    tasker.user?.image != null && tasker.user?.image!.isNotEmpty
+                        ? DecorationImage(
+                            image: NetworkImage(tasker.user?.image!),
+                            fit: BoxFit.cover,
+                            onError: (exception, stackTrace) =>
+                                AssetImage('assets/images/image1.jpg'),
+                          )
+                        : DecorationImage(
+                            image: AssetImage('assets/images/image1.jpg'),
+                            fit: BoxFit.cover,
+                          ),
               ),
             ),
-            SizedBox(width: 12),
-            // Tasker Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    tasker.user?.firstName ?? 'Unknown Tasker',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF0272B1),
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    tasker.user?.email ?? 'No email',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 4),
-                  if (tasker.user?.accStatus != null)
-                    Chip(
-                      label: Text(
-                        tasker.user!.accStatus!,
-                        style: GoogleFonts.montserrat(
-                          fontSize: 10,
-                          color: Colors.green[700],
-                        ),
-                      ),
-                      backgroundColor: Colors.green[50],
-                      padding: EdgeInsets.symmetric(horizontal: 8),
-                    ),
-                ],
-              ),
-            ),
-            // Actions
-            Column(
+          ),
+          SizedBox(width: 16),
+          // Tasker Info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                IconButton(
-                  icon: Icon(Icons.favorite, color: Colors.red[400], size: 24),
-                  onPressed: () => _unlikeJob(tasker.user!),
+                Text(
+                  tasker.user?.firstName ?? 'Unknown Tasker',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFB71A4A),
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 8),
-                IconButton(
-                  icon: Icon(Icons.info_outline,
-                      color: Color(0xFF0272B1), size: 24),
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TaskerProfilePage(
-                            tasker: tasker,
-                            isSaved: true,
-                            taskerId: tasker.id,
-                          ),
-                        ));
-                  },
+                Row(
+                  children: [
+                    Icon(Icons.work_outline, size: 16, color: Colors.grey),
+                    SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        tasker.user?.email ?? 'No email',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
+                SizedBox(height: 8),
+                if (tasker.user?.accStatus != null)
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      tasker.user!.accStatus!,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 10,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
               ],
             ),
-          ],
-        ),
+          ),
+          // Action buttons
+          Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: Color(0xFF78DCFA),
+                radius: 20,
+                child: IconButton(
+                  icon: Icon(Icons.info_outline, color: Colors.white, size: 20),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TaskerProfilePage(
+                          tasker: tasker,
+                          isSaved: true,
+                          taskerId: tasker.id,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              SizedBox(width: 12),
+              CircleAvatar(
+                backgroundColor: Colors.red,
+                radius: 20,
+                child: IconButton(
+                  icon: Icon(Icons.favorite, color: Colors.white, size: 20),
+                  onPressed: () => _unlikeJob(tasker.user!),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
