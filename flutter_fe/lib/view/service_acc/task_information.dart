@@ -287,17 +287,29 @@ class _TaskInformationState extends State<TaskInformation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
+        centerTitle: true,
         title: Text(
           'Task Information',
-          style: GoogleFonts.montserrat(
-            color: const Color(0xFF03045E),
+          style: GoogleFonts.poppins(
+            color: const Color(0xFFB71A4A),
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
         ),
+        backgroundColor: Colors.grey[100],
         elevation: 0,
-        backgroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: Color(0xFFB71A4A),
+            size: 20,
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: SafeArea(
         child: LayoutBuilder(
@@ -455,7 +467,8 @@ class _TaskInformationState extends State<TaskInformation> {
             _buildInfoRow(
               icon: FontAwesomeIcons.screwdriverWrench,
               label: 'Specialization',
-              value: _taskInformation!.specialization ?? 'N/A',
+              value: _taskInformation!.taskerSpecialization?.specialization ??
+                  'N/A',
             ),
             _buildInfoRow(
               icon: FontAwesomeIcons.pesoSign,

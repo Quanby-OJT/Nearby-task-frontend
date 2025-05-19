@@ -39,6 +39,12 @@ class _TaskerPendingState extends State<TaskerPending> {
     _fetchRequestDetails();
     _updateNotif();
     _fetchUserDetails();
+    debugId();
+  }
+
+  void debugId() {
+    debugPrint("Request ID: ${widget.requestID}");
+    debugPrint("Role: ${widget.role}");
   }
 
   Future<void> _updateNotif() async {
@@ -102,6 +108,8 @@ class _TaskerPendingState extends State<TaskerPending> {
       setState(() {
         _requestInformation = response;
       });
+
+      debugPrint("Fetched request details: ${_requestInformation}");
 
       await _fetchTaskDetails();
       if (widget.role == "Tasker") {

@@ -160,6 +160,8 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
 
       final tasks =
           await taskController.getCreatedTasksByClient(int.parse(clientId));
+
+      debugPrint("Fetched tasks: ${tasks.length}");
       TaskCache.setTasks(tasks);
       return tasks;
     } catch (e) {

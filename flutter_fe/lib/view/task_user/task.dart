@@ -11,6 +11,8 @@ import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/business_acc/client_record/client_finish.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
+import 'package:flutter_fe/view/service_acc/tasker_record/tasker_ongoing.dart';
+import 'package:flutter_fe/view/service_acc/tasker_record/tasker_pending.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -709,8 +711,20 @@ class _TaskPageState extends State<TaskPage>
               context,
               MaterialPageRoute(
                 builder: (context) => FinishTask(
-                  finishID: task.id,
-                  role: "Tasker",
+                  finishID: task.taskTakenId,
+                  role: task.client?.user?.role ?? "Unknown",
+                ),
+              ),
+            );
+          }
+
+          if (task.taskStatus == "Pending") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TaskerPending(
+                  requestID: task.taskTakenId,
+                  role: task.client?.user?.role ?? "Unknown",
                 ),
               ),
             );

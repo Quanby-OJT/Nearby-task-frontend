@@ -82,8 +82,7 @@ class TaskController {
             specializationId: specializationId,
             addressID: addressId,
             description: jobDescriptionController.text.trim(),
-            relatedSpecializationsIds:
-                relatedSpecializationsIds as List<String>?,
+            relatedSpecializationsIds: relatedSpecializationsIds,
             isVerifiedDocument: isVerifiedDocument,
             urgency: urgency,
             contactPrice: int.parse(contactPriceController.text.trim()),

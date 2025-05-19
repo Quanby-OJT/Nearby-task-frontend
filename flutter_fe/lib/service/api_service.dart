@@ -1228,7 +1228,6 @@ class ApiService {
     try {
       final String token = await AuthService.getSessionToken();
 
-      // Check if token is empty and handle accordingly
       if (token.isEmpty) {
         return {"error": "No valid session token. Please log in again."};
       }
