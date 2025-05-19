@@ -196,85 +196,75 @@ class _DocumentUploadPageState extends State<DocumentUploadPage> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Choose Upload Method',
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[800],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Camera Upload Option
-                          GestureDetector(
-                            onTap: _captureDocumentImage,
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey[300]!),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.1),
-                                    spreadRadius: 1,
-                                    blurRadius: 3,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 52,
-                                    height: 52,
-                                    decoration: BoxDecoration(
-                                      color: Colors.blue[50],
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      Icons.camera_alt,
-                                      size: 28,
-                                      color: const Color(0xFF0272B1),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Take Photo of Document',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.grey[800],
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          'Use your camera to capture document',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 13,
-                                            color: Colors.grey[600],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Icon(
-                                    Icons.arrow_forward_ios,
-                                    size: 16,
-                                    color: Colors.grey[400],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
+                          // // Camera Upload Option
+                          // GestureDetector(
+                          //   onTap: _captureDocumentImage,
+                          //   child: Container(
+                          //     width: double.infinity,
+                          //     padding: const EdgeInsets.all(20),
+                          //     decoration: BoxDecoration(
+                          //       color: Colors.white,
+                          //       borderRadius: BorderRadius.circular(12),
+                          //       border: Border.all(color: Colors.grey[300]!),
+                          //       boxShadow: [
+                          //         BoxShadow(
+                          //           color: Colors.grey.withOpacity(0.1),
+                          //           spreadRadius: 1,
+                          //           blurRadius: 3,
+                          //           offset: const Offset(0, 2),
+                          //         ),
+                          //       ],
+                          //     ),
+                          //     child: Row(
+                          //       children: [
+                          //         Container(
+                          //           width: 52,
+                          //           height: 52,
+                          //           decoration: BoxDecoration(
+                          //             color: Colors.blue[50],
+                          //             shape: BoxShape.circle,
+                          //           ),
+                          //           child: Icon(
+                          //             Icons.camera_alt,
+                          //             size: 28,
+                          //             color: const Color(0xFF0272B1),
+                          //           ),
+                          //         ),
+                          //         const SizedBox(width: 16),
+                          //         Expanded(
+                          //           child: Column(
+                          //             crossAxisAlignment:
+                          //                 CrossAxisAlignment.start,
+                          //             children: [
+                          //               Text(
+                          //                 'Take Photo of Document',
+                          //                 style: GoogleFonts.poppins(
+                          //                   fontSize: 16,
+                          //                   fontWeight: FontWeight.w600,
+                          //                   color: Colors.grey[800],
+                          //                 ),
+                          //               ),
+                          //               const SizedBox(height: 4),
+                          //               Text(
+                          //                 'Use your camera to capture document',
+                          //                 style: GoogleFonts.poppins(
+                          //                   fontSize: 13,
+                          //                   color: Colors.grey[600],
+                          //                 ),
+                          //               ),
+                          //             ],
+                          //           ),
+                          //         ),
+                          //         Icon(
+                          //           Icons.arrow_forward_ios,
+                          //           size: 16,
+                          //           color: Colors.grey[400],
+                          //         ),
+                          //       ],
+                          //     ),
+                          //   ),
+                          // ),
+                          // const SizedBox(height: 16),
 
                           // File Upload Option
                           GestureDetector(
