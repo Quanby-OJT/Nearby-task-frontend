@@ -418,50 +418,50 @@ class _ClientHomePageState extends State<ClientHomePage> with TickerProviderStat
                         overlayEntry.remove();
                       },
                     ),
-//                     if (_role == "Client") ...[
-//                       ListTile(
-//                         leading: Icon(
-//                           FontAwesomeIcons.coins,
-//                           color: const Color(0xFFB71A4A),
-//                         ),
-//                         title: Text(
-//                           'Manage Tokens',
-//                           style: GoogleFonts.poppins(
-//                             color: Colors.black,
-//                             fontSize: 14,
-//                             fontWeight: FontWeight.w300,
-//                           ),
-//                         ),
-//                         onTap: () {
-//                           if (_user?.user.accStatus?.toLowerCase() ==
-//                               'review') {
-//                             Navigator.push(
-//                               context,
-//                               MaterialPageRoute(
-//                                   builder: (context) => EscrowTokenScreen()),
-//                             );
-//                             overlayEntry.remove();
-//                             return;
-//                           }
-
-//                           if (_existingProfileImageUrl == null ||
-//                               _existingIDImageUrl == null ||
-//                               _existingProfileImageUrl!.isEmpty ||
-//                               _existingIDImageUrl!.isEmpty ||
-//                               !_documentValid) {
-//                             overlayEntry.remove();
-//                             _showWarningDialog();
-//                             return;
-//                           }
-//                           Navigator.push(
-//                             context,
-//                             MaterialPageRoute(
-//                                 builder: (context) => EscrowTokenScreen()),
-//                           );
-//                           overlayEntry.remove();
-//                         },
-//                       ),
-//                     ],
+                    // if (_role == "Client") ...[
+                    //   ListTile(
+                    //     leading: Icon(
+                    //       FontAwesomeIcons.coins,
+                    //       color: const Color(0xFFB71A4A),
+                    //     ),
+                    //     title: Text(
+                    //       'Manage Tokens',
+                    //       style: GoogleFonts.poppins(
+                    //         color: Colors.black,
+                    //         fontSize: 14,
+                    //         fontWeight: FontWeight.w300,
+                    //       ),
+                    //     ),
+                    //     onTap: () {
+                    //       if (_user?.user.accStatus?.toLowerCase() ==
+                    //           'review') {
+                    //         Navigator.push(
+                    //           context,
+                    //           MaterialPageRoute(
+                    //               builder: (context) => EscrowTokenScreen()),
+                    //         );
+                    //         overlayEntry.remove();
+                    //         return;
+                    //       }
+                    //
+                    //       if (_existingProfileImageUrl == null ||
+                    //           _existingIDImageUrl == null ||
+                    //           _existingProfileImageUrl!.isEmpty ||
+                    //           _existingIDImageUrl!.isEmpty ||
+                    //           !_documentValid) {
+                    //         overlayEntry.remove();
+                    //         _showWarningDialog();
+                    //         return;
+                    //       }
+                    //       Navigator.push(
+                    //         context,
+                    //         MaterialPageRoute(
+                    //             builder: (context) => EscrowTokenScreen()),
+                    //       );
+                    //       overlayEntry.remove();
+                    //     },
+                    //   ),
+                    // ],
                     // ListTile(
                     //   leading: Icon(
                     //     FontAwesomeIcons.coins,
@@ -880,11 +880,13 @@ class _ClientHomePageState extends State<ClientHomePage> with TickerProviderStat
                                       return true;
                                     }
 
-                                    if (_existingProfileImageUrl == null ||
+                                    // Only show verification dialog if the user isn't verified
+                                    // We check both document validity AND if both images exist
+                                    if (!_documentValid ||
+                                        _existingProfileImageUrl == null ||
                                         _existingIDImageUrl == null ||
                                         _existingProfileImageUrl!.isEmpty ||
-                                        _existingIDImageUrl!.isEmpty ||
-                                        !_documentValid) {
+                                        _existingIDImageUrl!.isEmpty) {
                                       _showWarningDialog();
                                       return false;
                                     }

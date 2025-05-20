@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/model/address.dart';
 import 'package:flutter_fe/service/auth_service.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
@@ -7,7 +8,7 @@ import 'dart:convert';
 import 'package:flutter_fe/model/setting.dart';
 
 class SettingService {
-  static String url = apiUrl ?? "http://localhost:5000";
+  static String url = apiUrl ?? "http://192.168.0.152:5000";
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
   Future setLocation(
@@ -154,5 +155,35 @@ class SettingService {
       debugPrint('Failed to update distance');
       throw Exception('Failed to update distance: ${response.statusCode}');
     }
+  }
+
+  Future<List<AddressModel>> getAddresses(int userId) async {
+    debugPrint('Getting addresses for user ID: $userId');
+    final token = await AuthService.getSessionToken();
+    final response = await _client.get(
+      Uri.parse('$url/get-addresses/$userId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    debugPrint('Response Status Code of addresses: ${response.statusCode}');
+    debugPrint('Response Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final responseData = json.decode(response.body);
+      if (responseData is Map<String, dynamic> &&
+          responseData['data'] != null) {
+        final addressData = responseData['data']['address'];
+        if (addressData != null) {
+          return [AddressModel.fromJson(addressData)];
+        }
+      }
+    } else {
+      debugPrint('Failed to retrieve addresses');
+      throw Exception('Failed to retrieve addresses: ${response.statusCode}');
+    }
+    return [];
   }
 }

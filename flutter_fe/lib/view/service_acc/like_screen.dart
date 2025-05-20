@@ -526,10 +526,6 @@ class _LikeScreenState extends State<LikeScreen> {
             children: [
               Padding(
                 padding: const EdgeInsets.only(bottom: 8.0),
-                child: Text(
-                  'Company: ${job.location}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
               ),
               Padding(
                 padding: const EdgeInsets.only(bottom: 8.0),

@@ -15,7 +15,8 @@ import '../../model/auth_user.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PaymentProcessingPage extends StatefulWidget {
-  const PaymentProcessingPage({super.key});
+  final String transferMethod;
+  const PaymentProcessingPage({super.key, required this.transferMethod});
 
   @override
   State<PaymentProcessingPage> createState() => _PaymentProcessingPageState();
@@ -32,13 +33,13 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
   bool _isMethodSelected = false;
   final _formKey = GlobalKey<FormState>();
   int taskerId = 0;
-  StreamSubscription? _subscribe;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     _initDeepLinkListener();
+    fetchTaskerClientId();
   }
 
   void _initDeepLinkListener() async{
@@ -108,6 +109,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
       AuthenticatedUser? user = await profileController.getAuthenticatedUser(context, userId);
 
       if(role == "Tasker"){
+        debugPrint("Tasker ID: ${user?.tasker?.id}");
         setState(() {
           taskerId = user?.tasker?.id ?? 0;
         });
@@ -148,6 +150,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
       // Handle the response
       final isSuccess = result['success'] ?? false;
       if (isSuccess) {
+        ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
         final redirectUrl = result['payment_url'];
         if (redirectUrl != null) {
           final uri = Uri.parse(redirectUrl);
@@ -186,10 +189,6 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
         ],
       ),
     );
-
-    Future.delayed(const Duration(seconds: 5), () {
-      if (mounted) scaffoldMessenger.hideCurrentMaterialBanner();
-    });
   }
 
 
@@ -217,7 +216,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                 child: Column(
                     children: [
                       Text(
-                          role == "Tasker" ? "How much would you like to withdraw?" : "How much would you want to deposit?",
+                          widget.transferMethod == "withdraw" ? "How much would you like to withdraw?" : "How much would you want to deposit?",
                           style: GoogleFonts.poppins(
                               fontSize: 18,
                               color: Color(0xFF0272B1),
@@ -232,16 +231,16 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                         icon: FontAwesomeIcons.pesoSign,
                         keyboardType: TextInputType.number,
                         validator: (value) {
-                          switch(role){
-                            case "Tasker":
+                          switch(widget.transferMethod){
+                            case "withdraw":
                               if(value == null || value.isEmpty){
                                 return "Please enter an amount to withdraw.";
-                              }else if(double.parse(value) < 20000){
+                              }else if(double.parse(value) > 20000){
                                 return "The Maximum Amount that you can withdraw is PHP 20,000.00.";
                               }else{
                                 return null;
                               }
-                            case "Client":
+                            case "deposit":
                               if(value == null || value.isEmpty){
                                 return "Please enter an amount to deposit.";
                               }else if(double.parse(value) < 500){
@@ -260,7 +259,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                         ]
                       ),
                       SizedBox(height: 10),
-                      if(role == "Tasker") Text(
+                      if(widget.transferMethod == "withdraw") Text(
                         "NOTE: The minimum amount that you can withdraw is P100.00, while the maximum amount that you can withdraw is PHP 20,000.00.",
                         style: GoogleFonts.poppins(
                           fontSize: 12,
@@ -268,7 +267,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                         ),
                         textAlign: TextAlign.justify,
                       ),
-                      if(role == "Client") Text(
+                      if(widget.transferMethod == "deposit") Text(
                         "NOTE: The minimum amount that you can deposit is PHP 500.00 and the maximum is PHP 30,000.00.",
                         style: GoogleFonts.poppins(
                           fontSize: 12,
@@ -280,7 +279,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                       //Select Payment/Withdraw Method
                       Center(
                         child: Text(
-                          role == "Tasker" ? "Select Your Payment Withdrawal Method" : "Select Your Method of Deposit",
+                          widget.transferMethod == "withdraw" ? "Select Your Payment Withdrawal Method" : "Select Your Method of Deposit",
                           style: GoogleFonts.poppins(
                             fontSize: 20,
                             color: Color(0xFF0272B1),
@@ -314,14 +313,14 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                               TextSpan(
                                 text: "You have Chosen: ",
                                 style: GoogleFonts.poppins(
-                                  fontSize: 16,
+                                  fontSize: 20,
                                   color: Colors.black,
                                 ),
                               ),
                               TextSpan(
                                 text: _selectedPaymentMethod,
                                 style: GoogleFonts.poppins(
-                                  fontSize: 16,
+                                  fontSize: 30,
                                   color: Colors.black,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -330,29 +329,29 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                           )
                         ),
                       ],
-                      if(role == "Tasker")...[
+                      if(widget.transferMethod == "withdraw")...[
                         _buildTextField(
-                          controller: _escrowController.acctNumberController,
-                          label: "Enter Your Account Number based On Your Selected Withdrawal Method",
-                          icon: FontAwesomeIcons.buildingColumns,
-                          validator: (value) {
-                            if(value == null || value.isEmpty){
-                              return "Please enter your account number.";
-                            }else{
-                              return null;
+                            controller: _escrowController.acctNumberController,
+                            label: "Enter Your Account Number based On Your Selected Withdrawal Method",
+                            icon: FontAwesomeIcons.buildingColumns,
+                            validator: (value) {
+                              if(value == null || value.isEmpty){
+                                return "Please enter your account number.";
+                              }else{
+                                return null;
+                              }
                             }
-                          }
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          "NOTE: You will receive your amount to your wallet within 1-2 business days.",
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: Colors.red,
-                          ),
-                          textAlign: TextAlign.justify,
                         ),
                       ],
+                      SizedBox(height: 8),
+                      Text(
+                        "NOTE: You will receive your amount to your wallet within 1-2 business days.",
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: Colors.red,
+                        ),
+                        textAlign: TextAlign.justify,
+                      ),
                       //Confirmation Button
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -397,7 +396,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                               }),
                         ),
                         child: Text(
-                            role == "Tasker" ? "Withdraw Amount" : "Deposit Amount",
+                            widget.transferMethod == "withdraw" ? "Withdraw Amount" : "Deposit Amount",
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               color: Colors.white,

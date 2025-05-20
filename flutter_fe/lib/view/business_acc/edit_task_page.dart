@@ -66,7 +66,6 @@ class _EditTaskPageState extends State<EditTaskPage> {
     _titleController = TextEditingController(text: widget.task.title);
     _descriptionController =
         TextEditingController(text: widget.task.description);
-    _locationController = TextEditingController(text: widget.task.location);
     _durationController = TextEditingController(text: widget.task.duration);
     _priceController =
         TextEditingController(text: widget.task.contactPrice.toString());

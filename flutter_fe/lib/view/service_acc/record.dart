@@ -4,6 +4,7 @@ import 'package:flutter_fe/view/business_acc/client_record/display_list_finish.d
 import 'package:flutter_fe/view/business_acc/client_record/display_list_ongoing.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_reject.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_review.dart';
+import 'package:flutter_fe/view/profile/payment_processing.dart';
 
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -82,557 +83,549 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
           ),
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-              flex: 5,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Financial Summary Card
+            Container(
+              width: double.infinity,
+              height: 150,
+              margin:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+              child: Card(
+                elevation: 4,
+                margin: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    Expanded(
-                        child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                color: Color(0xFFB71A4A),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'NearByTask Credits',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                        ),
                       ),
-                      child: Container(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(children: [
-                          //UI Must be improved.
-                          _isLoading
-                              ? Text(
-                                  'Please Wait while we calculate your NearByTask Credits',
-                                  style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.yellow.shade800),
-                                  textAlign: TextAlign.center,
-                                )
-                              : _escrowManagementController
-                                          .tokenCredits.value ==
-                                      0.0
-                                  ? Text(
-                                      "You don't have any NearByTask Credits to your account. Earn More by taking more tasks.",
-                                      textAlign: TextAlign.center,
-                                      style: GoogleFonts.poppins(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0XFFB62C5C)))
-                                  : Text.rich(TextSpan(children: [
-                                      TextSpan(
-                                          text: 'You Had Earned: ',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 16,
-                                          )),
-                                      TextSpan(
-                                          text:
-                                              '${formatCurrency(_escrowManagementController.tokenCredits.value.toDouble())} to your Existing Wallet.',
-                                          style: GoogleFonts.poppins(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.yellow.shade800)),
-                                    ])),
-                          SizedBox(height: 10),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.star_rate_rounded,
-                                color: Colors.amber,
-                                size: 24,
-                              ),
-                              SizedBox(width: 4),
-                              Text(
-                                "Client Reviews",
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 16,
+                      SizedBox(height: 12),
+                      _isLoading
+                          ? Text(
+                              'Please Wait while we calculate your NearByTask Credits',
+                              style: TextStyle(
+                                  fontSize: 14,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black,
+                                  color: Colors.yellow.shade100),
+                              textAlign: TextAlign.left,
+                            )
+                          : _escrowManagementController.tokenCredits.value ==
+                                  0.0
+                              ? Text(
+                                  "No credits available. Earn more by taking tasks.",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                )
+                              : Text(
+                                  formatCurrency(_escrowManagementController
+                                      .tokenCredits.value
+                                      .toDouble()),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 36,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // Income and Expense Row
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                children: [
+                  // Income Card
+                  Expanded(
+                    child: Card(
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 16,
+                                  backgroundColor: Colors.blue[50],
+                                  child: Icon(
+                                    Icons.arrow_downward,
+                                    color: Colors.blue,
+                                    size: 16,
+                                  ),
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Income',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              formatCurrency(_escrowManagementController
+                                  .tokenCredits.value
+                                  .toDouble()),
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  // Withdraw Button
+                  Expanded(
+                    child: Card(
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: InkWell(
+                        onTap: () {
+                          // Show withdraw dialog
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PaymentProcessingPage(transferMethod: "withdraw"),
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(16),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 16,
+                                    backgroundColor: Colors.red[50],
+                                    child: Icon(
+                                      Icons.arrow_upward,
+                                      color: Colors.red,
+                                      size: 16,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Withdraw',
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Tap to withdraw',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.red[400],
                                 ),
                               ),
                             ],
                           ),
-                          SizedBox(height: 10),
-                          if (taskerFeedback.isNotEmpty)
-                            Container(
-                              padding: EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Color(0xFF0272B1).withOpacity(0.05),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Average Rating",
-                                        style: GoogleFonts.montserrat(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                      SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          Text(
-                                            _calculateAverageRating(
-                                                taskerFeedback),
-                                            style: GoogleFonts.montserrat(
-                                              fontSize: 24,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF0272B1),
-                                            ),
-                                          ),
-                                          SizedBox(width: 8),
-                                          Row(
-                                            children: List.generate(
-                                              5,
-                                              (index) => Icon(
-                                                index <
-                                                        _getAverageRatingAsInt(
-                                                            taskerFeedback)
-                                                    ? Icons.star
-                                                    : index ==
-                                                                _getAverageRatingAsInt(
-                                                                    taskerFeedback) &&
-                                                            _hasHalfStar(
-                                                                taskerFeedback)
-                                                        ? Icons.star_half
-                                                        : Icons.star_border,
-                                                color: Colors.amber,
-                                                size: 18,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                  Spacer(),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        "${taskerFeedback.length} reviews",
-                                        style: GoogleFonts.montserrat(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                      SizedBox(height: 4),
-                                      Text(
-                                        _getCompletionRate(taskerFeedback),
-                                        style: GoogleFonts.montserrat(
-                                          fontSize: 12,
-                                          color: Colors.green[700],
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          SizedBox(height: 10),
-                          Expanded(
-                            child: taskerFeedback.isEmpty
-                                ? Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.rate_review_outlined,
-                                          size: 48,
-                                          color: Colors.grey[400],
-                                        ),
-                                        SizedBox(height: 16),
-                                        Text(
-                                          "No reviews yet",
-                                          style: GoogleFonts.montserrat(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.grey[600],
-                                          ),
-                                        ),
-                                        Text(
-                                          "Complete tasks to get client reviews",
-                                          style: GoogleFonts.montserrat(
-                                            fontSize: 14,
-                                            color: Colors.grey[500],
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                : SingleChildScrollView(
-                                    child: Column(
-                                      children: taskerFeedback
-                                          .map((feedback) => _buildReviewItem(
-                                              "${feedback.client.user?.firstName} ${feedback.client.user?.lastName}",
-                                              feedback.comment,
-                                              feedback.rating.toInt()))
-                                          .toList(),
-                                    ),
-                                  ),
-                          )
-                        ]),
-                      ),
-                    )),
-                  ],
-                ),
-              )),
-          Expanded(
-            flex: 2,
-            child: Container(
-              color: Colors.white,
-              padding: const EdgeInsets.only(left: 16.0, right: 16, bottom: 16),
-              alignment: Alignment.center,
-              child: SizedBox(
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  shrinkWrap: true,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 16.0),
-                      child: Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(12),
-                          hoverColor: Colors.yellow.withOpacity(0.1),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    DisplayListRecordPending(),
-                              ),
-                            ).then((value) {
-                              setState(() {
-                                _isLoading = true;
-                              });
-                            });
-                          },
-                          child: Container(
-                            width: 150, // Width of each card
-                            padding: const EdgeInsets.all(16.0),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              color: Color(0xFFFFC107),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Pending Task',
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 8),
-                                // Optionally, add more details like a count or icon
-                                Icon(
-                                  Icons.pending,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
-                              ],
-                            ),
-                          ),
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 16.0),
-                      child: Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(12),
-                          hoverColor: Colors.yellow.withOpacity(0.1),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => DisplayListRecordReview(),
-                              ),
-                            ).then((value) {
-                              setState(() {
-                                _isLoading = true;
-                              });
-                            });
-                          },
-                          child: Container(
-                            width: 150, // Width of each card
-                            padding: const EdgeInsets.all(16.0),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              color: Colors.orangeAccent,
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Review Task',
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 8),
-                                // Optionally, add more details like a count or icon
-                                Icon(
-                                  Icons.reviews,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 16.0),
-                      child: Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(12),
-                          hoverColor: Colors.orange.withOpacity(0.1),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    DisplayListRecordOngoing(),
-                              ),
-                            ).then((value) {
-                              setState(() {
-                                _isLoading = true;
-                              });
-                            });
-                          },
-                          child: Container(
-                            width: 150, // Width of each card
-                            padding: const EdgeInsets.all(16.0),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              color: Colors.indigo.shade300,
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Ongoing Task',
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 8),
-                                // Optionally, add more details like a count or icon
-                                Icon(
-                                  Icons.work,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 16.0),
-                      child: Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(12),
-                          hoverColor: Colors.green.withOpacity(0.1),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      DisplayListRecordConfirmed()),
-                            ).then((value) {
-                              setState(() {
-                                _isLoading = true;
-                              });
-                            });
-                          },
-                          child: Container(
-                            width: 150, // Width of each card
-                            padding: const EdgeInsets.all(16.0),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              color: Colors.blue.shade300,
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Confirmed Task',
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 8),
-                                // Optionally, add more details like a count or icon
-                                Icon(
-                                  Icons.handshake,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 16.0),
-                      child: Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(12),
-                          hoverColor: Colors.green.withOpacity(0.1),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      DisplayListRecordFinish()),
-                            ).then((value) {
-                              setState(() {
-                                _isLoading = true;
-                              });
-                            });
-                          },
-                          child: Container(
-                            width: 150, // Width of each card
-                            padding: const EdgeInsets.all(16.0),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              color: Colors.green.shade300,
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Completed Task',
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 8),
-                                // Optionally, add more details like a count or icon
-                                Icon(
-                                  Icons.check,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 0.0),
-                      child: Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(12),
-                          hoverColor: Colors.red.withOpacity(0.1),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      DisplayListRecordReject()),
-                            ).then((value) {
-                              setState(() {
-                                _isLoading = true;
-                              });
-                            });
-                          },
-                          child: Container(
-                            width: 150, // Width of each card
-                            padding: const EdgeInsets.all(16.0),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              color: Colors.red.shade300,
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Rejected Task',
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 8),
-                                // Optionally, add more details like a count or icon
-                                Icon(
-                                  Icons.cancel,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          )
-        ],
+
+            // Reviews Card
+            // Padding(
+            //   padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            //   child: Card(
+            //     elevation: 2,
+            //     shape: RoundedRectangleBorder(
+            //       borderRadius: BorderRadius.circular(16),
+            //     ),
+            //     child: Padding(
+            //       padding: const EdgeInsets.all(16.0),
+            //       child: Column(
+            //         crossAxisAlignment: CrossAxisAlignment.start,
+            //         children: [
+            //           Row(
+            //             children: [
+            //               Icon(
+            //                 Icons.star_rate_rounded,
+            //                 color: Colors.amber,
+            //                 size: 24,
+            //               ),
+            //               SizedBox(width: 8),
+            //               Text(
+            //                 "Client Reviews",
+            //                 style: GoogleFonts.montserrat(
+            //                   fontSize: 16,
+            //                   fontWeight: FontWeight.bold,
+            //                   color: Colors.black,
+            //                 ),
+            //               ),
+            //             ],
+            //           ),
+            //           SizedBox(height: 16),
+            //           if (taskerFeedback.isNotEmpty)
+            //             Container(
+            //               padding: EdgeInsets.all(12),
+            //               decoration: BoxDecoration(
+            //                 color: Color(0xFF0272B1).withOpacity(0.05),
+            //                 borderRadius: BorderRadius.circular(8),
+            //               ),
+            //               child: Row(
+            //                 children: [
+            //                   Column(
+            //                     crossAxisAlignment: CrossAxisAlignment.start,
+            //                     children: [
+            //                       Text(
+            //                         "Average Rating",
+            //                         style: GoogleFonts.montserrat(
+            //                           fontSize: 14,
+            //                           fontWeight: FontWeight.w500,
+            //                           color: Colors.black87,
+            //                         ),
+            //                       ),
+            //                       SizedBox(height: 4),
+            //                       Row(
+            //                         children: [
+            //                           Text(
+            //                             _calculateAverageRating(taskerFeedback),
+            //                             style: GoogleFonts.montserrat(
+            //                               fontSize: 24,
+            //                               fontWeight: FontWeight.bold,
+            //                               color: Color(0xFF0272B1),
+            //                             ),
+            //                           ),
+            //                           SizedBox(width: 8),
+            //                           Row(
+            //                             children: List.generate(
+            //                               5,
+            //                               (index) => Icon(
+            //                                 index <
+            //                                         _getAverageRatingAsInt(
+            //                                             taskerFeedback)
+            //                                     ? Icons.star
+            //                                     : index ==
+            //                                                 _getAverageRatingAsInt(
+            //                                                     taskerFeedback) &&
+            //                                             _hasHalfStar(
+            //                                                 taskerFeedback)
+            //                                         ? Icons.star_half
+            //                                         : Icons.star_border,
+            //                                 color: Colors.amber,
+            //                                 size: 18,
+            //                               ),
+            //                             ),
+            //                           ),
+            //                         ],
+            //                       ),
+            //                     ],
+            //                   ),
+            //                   Spacer(),
+            //                   Column(
+            //                     crossAxisAlignment: CrossAxisAlignment.end,
+            //                     children: [
+            //                       Text(
+            //                         "${taskerFeedback.length} reviews",
+            //                         style: GoogleFonts.montserrat(
+            //                           fontSize: 14,
+            //                           fontWeight: FontWeight.w500,
+            //                           color: Colors.black87,
+            //                         ),
+            //                       ),
+            //                       SizedBox(height: 4),
+            //                       Text(
+            //                         _getCompletionRate(taskerFeedback),
+            //                         style: GoogleFonts.montserrat(
+            //                           fontSize: 12,
+            //                           color: Colors.green[700],
+            //                           fontWeight: FontWeight.bold,
+            //                         ),
+            //                       ),
+            //                     ],
+            //                   ),
+            //                 ],
+            //               ),
+            //             ),
+            //           SizedBox(height: 16),
+            //           Container(
+            //             height: 200, // Fixed height for the review list
+            //             child: taskerFeedback.isEmpty
+            //                 ? Center(
+            //                     child: Column(
+            //                       mainAxisAlignment: MainAxisAlignment.center,
+            //                       children: [
+            //                         Icon(
+            //                           Icons.rate_review_outlined,
+            //                           size: 48,
+            //                           color: Colors.grey[400],
+            //                         ),
+            //                         SizedBox(height: 16),
+            //                         Text(
+            //                           "No reviews yet",
+            //                           style: GoogleFonts.montserrat(
+            //                             fontSize: 16,
+            //                             fontWeight: FontWeight.w500,
+            //                             color: Colors.grey[600],
+            //                           ),
+            //                         ),
+            //                         Text(
+            //                           "Complete tasks to get client reviews",
+            //                           style: GoogleFonts.montserrat(
+            //                             fontSize: 14,
+            //                             color: Colors.grey[500],
+            //                           ),
+            //                           textAlign: TextAlign.center,
+            //                         ),
+            //                       ],
+            //                     ),
+            //                   )
+            //                 : ListView.builder(
+            //                     itemCount: taskerFeedback.length,
+            //                     itemBuilder: (context, index) {
+            //                       final feedback = taskerFeedback[index];
+            //                       return _buildReviewItem(
+            //                         "${feedback.client.user?.firstName} ${feedback.client.user?.lastName}",
+            //                         feedback.comment,
+            //                         feedback.rating.toInt(),
+            //                       );
+            //                     },
+            //                   ),
+            //           ),
+            //         ],
+            //       ),
+            //     ),
+            //   ),
+            // ),
+
+            // Task Status Cards - Vertical Scrolling
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Task Status',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+
+                  // Pending Task Card
+                  _buildStatusCard(
+                    title: 'Pending Task',
+                    color: Color(0xFFFFC107),
+                    icon: Icons.pending,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DisplayListRecordPending(),
+                        ),
+                      ).then((value) {
+                        setState(() {
+                          _isLoading = true;
+                        });
+                        _loadData();
+                      });
+                    },
+                  ),
+
+                  // Review Task Card
+                  _buildStatusCard(
+                    title: 'Review Task',
+                    color: Colors.orangeAccent,
+                    icon: Icons.reviews,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DisplayListRecordReview(),
+                        ),
+                      ).then((value) {
+                        setState(() {
+                          _isLoading = true;
+                        });
+                        _loadData();
+                      });
+                    },
+                  ),
+
+                  // Ongoing Task Card
+                  _buildStatusCard(
+                    title: 'Ongoing Task',
+                    color: Colors.indigo.shade300,
+                    icon: Icons.work,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DisplayListRecordOngoing(),
+                        ),
+                      ).then((value) {
+                        setState(() {
+                          _isLoading = true;
+                        });
+                        _loadData();
+                      });
+                    },
+                  ),
+
+                  // Confirmed Task Card
+                  _buildStatusCard(
+                    title: 'Confirmed Task',
+                    color: Colors.blue.shade300,
+                    icon: Icons.handshake,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DisplayListRecordConfirmed(),
+                        ),
+                      ).then((value) {
+                        setState(() {
+                          _isLoading = true;
+                        });
+                        _loadData();
+                      });
+                    },
+                  ),
+
+                  // Completed Task Card
+                  _buildStatusCard(
+                    title: 'Completed Task',
+                    color: Colors.green.shade300,
+                    icon: Icons.check,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DisplayListRecordFinish(),
+                        ),
+                      ).then((value) {
+                        setState(() {
+                          _isLoading = true;
+                        });
+                        _loadData();
+                      });
+                    },
+                  ),
+
+                  // Rejected Task Card
+                  _buildStatusCard(
+                    title: 'Rejected Task',
+                    color: Colors.red.shade300,
+                    icon: Icons.cancel,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DisplayListRecordReject(),
+                        ),
+                      ).then((value) {
+                        setState(() {
+                          _isLoading = true;
+                        });
+                        _loadData();
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusCard({
+    required String title,
+    required Color color,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Card(
+        elevation: 1,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Row(
+              children: [
+                // Icon with colored background
+                CircleAvatar(
+                  radius: 22,
+                  backgroundColor: color.withOpacity(0.2),
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: 22,
+                  ),
+                ),
+                SizedBox(width: 16),
+                // Title
+                Expanded(
+                  child: Text(
+                    title,
+                    style: GoogleFonts.montserrat(
+                      fontSize: 14,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+                // Right arrow icon
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: Colors.grey,
+                  size: 16,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -754,5 +747,128 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
     }
     double completionRate = (completedTasks / feedback.length) * 100;
     return "${completionRate.toStringAsFixed(0)}%";
+  }
+
+  void _showWithdrawDialog() {
+    final TextEditingController amountController = TextEditingController();
+    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+    final double availableBalance =
+        _escrowManagementController.tokenCredits.value.toDouble();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Withdraw Credits',
+          style: GoogleFonts.montserrat(
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF0272B1),
+          ),
+        ),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: amountController,
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  labelText: 'Amount',
+                  prefixIcon:
+                      Icon(Icons.attach_money, color: Color(0xFF0272B1)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter an amount';
+                  }
+
+                  final double? amount = double.tryParse(value);
+                  if (amount == null) {
+                    return 'Please enter a valid number';
+                  }
+
+                  if (amount <= 0) {
+                    return 'Amount must be greater than zero';
+                  }
+
+                  if (amount > availableBalance) {
+                    return 'Amount exceeds available balance';
+                  }
+
+                  return null;
+                },
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Withdrawal will be processed to your linked payment method.',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                final double amount = double.parse(amountController.text);
+
+                // Process withdrawal
+                _processWithdrawal(amount);
+
+                Navigator.pop(context);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF0272B1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              'Withdraw',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _processWithdrawal(double amount) {
+    // Here you would call the API to process the withdrawal
+    // For now we'll just show a success message and update the UI
+    setState(() {
+      // You might need to call your backend API here
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content:
+            Text('Withdrawal of ${formatCurrency(amount)} has been initiated'),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
   }
 }

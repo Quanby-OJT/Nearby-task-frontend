@@ -1,7 +1,7 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class AddressModel {
-  final String id;
+  final String? id;
   final double? latitude;
   final double? longitude;
   final String streetAddress;
@@ -17,7 +17,7 @@ class AddressModel {
   final String? regionName;
 
   AddressModel({
-    required this.id,
+    this.id,
     this.latitude,
     this.longitude,
     required this.streetAddress,

@@ -25,25 +25,44 @@ class TaskController {
   final jobSpecializationController = TextEditingController();
   final jobDescriptionController = TextEditingController();
   final jobLocationController = TextEditingController();
-  final jobDurationController = TextEditingController();
-  final jobTimeController = TextEditingController();
+  // final jobDurationController = TextEditingController();
+  // final jobTimeController = TextEditingController();
   final jobUrgencyController = TextEditingController();
   final contactPriceController = TextEditingController();
+  final jobScopeController = TextEditingController();
   final jobRemarksController = TextEditingController();
-  final jobTaskBeginDateController = TextEditingController();
+  // final jobTaskBeginDateController = TextEditingController();
   final contactpriceController = TextEditingController();
   final rejectionController = TextEditingController();
   final storage = GetStorage();
 
-  Future<Map<String, dynamic>> postJob(String specialization, String urgency,
-      String period, String workType) async {
+  void clearControllers() {
+    jobIdController.clear();
+    jobTitleController.clear();
+    jobSpecializationController.clear();
+    jobDescriptionController.clear();
+    jobLocationController.clear();
+    // jobDurationController.clear();
+    // jobTimeController.clear();
+    jobUrgencyController.clear();
+    contactPriceController.clear();
+    jobRemarksController.clear();
+    // jobTaskBeginDateController.clear();
+    contactpriceController.clear();
+    rejectionController.clear();
+  }
+
+  Future<Map<String, dynamic>> postJob(
+      String specialization, String urgency, String scope, String workType,
+      {List<int>? relatedSpecializationsIds,
+      File? photo,
+      int? specializationId,
+      bool? isVerifiedDocument,
+      String? addressId}) async {
     try {
       int userId = storage.read('user_id');
-      debugPrint('Submitting data...');
-
       // Parse the duration as an integer
-      final durationText = jobTimeController.text.trim();
-      final durationInt = int.tryParse(durationText) ?? 0;
+      // final durationInt = int.tryParse(durationText) ?? 0;
 
       // Parse the price as an integer
       final priceText = contactPriceController.text.trim();
@@ -64,19 +83,23 @@ class TaskController {
             clientId: userId,
             title: jobTitleController.text.trim(),
             specialization: specialization,
+            specializationId: specializationId,
+            addressID: addressId,
             description: jobDescriptionController.text.trim(),
-            location: jobLocationController.text.trim(),
-            duration: durationInt.toString(),
-            period: period,
+            relatedSpecializationsIds: relatedSpecializationsIds,
+            isVerifiedDocument: isVerifiedDocument,
             urgency: urgency,
-            contactPrice: priceInt,
+            contactPrice: int.parse(contactPriceController.text.trim()),
+            scope: scope,
             remarks: jobRemarksController.text.trim(),
-            taskBeginDate: jobTaskBeginDateController.text.trim(),
             workType: workType,
             status: "Available");
 
-        print('Task data: ${task.toJson()}');
-        return await _jobPostService.postJob(task, userId);
+        debugPrint('Task data from postJob: ${task.toJson()}');
+        debugPrint('User ID from postJob: $userId');
+        debugPrint('Photo from postJob: ${photo?.path}');
+        return await _jobPostService.postJob(task, userId,
+            files: photo != null ? [photo] : null);
       }
     } catch (e, stackTrace) {
       debugPrint('Error in postJob: $e');

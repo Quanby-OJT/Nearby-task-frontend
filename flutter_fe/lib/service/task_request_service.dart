@@ -285,12 +285,13 @@ class TaskRequestService {
             id: taskId, // Use the task_id from the root level
             title: taskData['task_title'] ?? '',
             description: taskData['task_description'] ?? '',
-            location: taskData['location'] ?? '',
             contactPrice: taskData['proposed_price'] ?? 0,
             urgency: taskData['urgent'] == true ? 'Urgent' : 'Non-Urgent',
             specialization: taskData['specialization'],
             period: taskData['period'],
+            addressID: taskData['address_id'] ?? '',
             status: taskData['status'],
+            scope: taskData['scope'],
             duration: '',
             taskBeginDate: '',
             workType: '');
@@ -301,12 +302,13 @@ class TaskRequestService {
           id: taskId,
           title: "Task #$taskId",
           description: "No details available",
-          location: "",
+          addressID: "",
           contactPrice: 0,
           urgency: "Unknown",
           specialization: '',
           period: '',
           status: '',
+          scope: '',
           duration: '',
           taskBeginDate: '',
           workType: '');
@@ -318,12 +320,13 @@ class TaskRequestService {
           id: taskId,
           title: "Task #$taskId",
           description: "No details available",
-          location: "",
+          addressID: "",
           contactPrice: 0,
           urgency: "Unknown",
           specialization: '',
           period: '',
           status: '',
+          scope: '',
           duration: '',
           taskBeginDate: '',
           workType: '');
@@ -398,8 +401,8 @@ class TaskRequestService {
     }
   }
 
-  //Escrow Deposit and Withdrawal
-  Future<Map<String, dynamic>> depositEscrowPayment(double depositAmount, String paymentMethod, String acctNumber) async {
+  Future<Map<String, dynamic>> depositEscrowPayment(
+      double depositAmount, String paymentMethod) async {
     try {
       final userId = await getUserId();
       if (userId == null) {
@@ -416,7 +419,6 @@ class TaskRequestService {
           'client_id': int.parse(userId),
           'amount': depositAmount,
           'payment_method': paymentMethod,
-          'account_number': acctNumber
         },
       );
     } catch (e) {
@@ -452,9 +454,8 @@ class TaskRequestService {
     try {
       debugPrint("Releasing escrow payment with tasker ID: $taskerId");
       return await _postRequest(
-        endpoint: '/withdraw-escrow-amount',
+        endpoint: '/withdraw-escrow-amount/$taskerId',
         body: {
-          'tasker id': taskerId,
           'amount': amount,
           'payment_method': paymentMethod,
           'account_number': acctNumber
@@ -568,7 +569,7 @@ class TaskRequestService {
             clientId: 1,
             title: "Fix Plumbing",
             description: "Need to fix a leaking pipe in the kitchen",
-            location: "123 Main St",
+            scope: "123 Main St",
             contactPrice: 120,
             urgency: "Urgent",
             specialization: '',
@@ -582,7 +583,7 @@ class TaskRequestService {
             clientId: 1,
             title: "Install Ceiling Fan",
             description: "Need to install a new ceiling fan in the living room",
-            location: "456 Oak Ave",
+            scope: "456 Oak Ave",
             contactPrice: 80,
             urgency: "Non-Urgent",
             specialization: '',
@@ -596,7 +597,7 @@ class TaskRequestService {
             clientId: 1,
             title: "Paint Bedroom",
             description: "Paint the walls of a medium-sized bedroom",
-            location: "789 Pine Blvd",
+            scope: "789 Pine Blvd",
             contactPrice: 200,
             urgency: "Non-Urgent",
             specialization: '',

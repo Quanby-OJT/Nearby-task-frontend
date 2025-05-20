@@ -458,11 +458,6 @@ class _TaskInformationState extends State<TaskInformation> {
               value: _taskInformation!.specialization ?? 'N/A',
             ),
             _buildInfoRow(
-              icon: FontAwesomeIcons.locationPin,
-              label: 'Location',
-              value: _taskInformation!.location ?? 'Not specified',
-            ),
-            _buildInfoRow(
               icon: FontAwesomeIcons.pesoSign,
               label: 'Contract Price',
               value: _taskInformation!.contactPrice.toString() ?? 'N/A',

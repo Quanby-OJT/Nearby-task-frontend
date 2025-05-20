@@ -257,8 +257,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
             softWrap: true,
             textAlign: TextAlign.justify,
           ),
-          _buildInfoRowIcon(FontAwesomeIcons.locationPin, Color(0XFFD43D4D),
-              taskAssignment?.task?.location ?? "N/A"),
+
           _buildInfoRowIcon(FontAwesomeIcons.screwdriverWrench,
               Color(0XFF3C3C54), taskAssignment?.task?.specialization ?? "N/A"),
           _buildInfoRowIcon(FontAwesomeIcons.coins, Color(0XFFB58326),

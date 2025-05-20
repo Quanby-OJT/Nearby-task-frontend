@@ -71,7 +71,6 @@ class EscrowManagementController {
       var response = await _requestService.depositEscrowPayment(
           double.parse(amountController.text.replaceAll("₱", "").replaceAll(",", "")),
           paymentMethod,
-          acctNumberController.text
       );
 
       // Check for success
