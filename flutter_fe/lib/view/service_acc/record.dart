@@ -73,10 +73,10 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
         backgroundColor: Colors.white,
         title: Center(
           child: Text(
-            'My Record',
+            'Wallet',
             textAlign: TextAlign.center,
             style: GoogleFonts.montserrat(
-              color: Color(0xFF0272B1),
+              color: Color(0xFFB71A4A),
               fontWeight: FontWeight.w600,
               fontSize: 18,
             ),

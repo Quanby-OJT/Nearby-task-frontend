@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
@@ -19,6 +20,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 import '../../controller/conversation_controller.dart';
+import '../../model/chat_push_notifications.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -707,7 +709,7 @@ class _ChatScreenState extends State<ChatScreen> {
               Text(
                 "Chat Messages",
                 style: GoogleFonts.montserrat(
-                  color: Color(0xFF2A1999),
+                  color: Color(0xFFB71A4A),
                   fontWeight: FontWeight.w600,
                   fontSize: 18,
                 ),
@@ -739,7 +741,7 @@ class _ChatScreenState extends State<ChatScreen> {
             : taskAssignments.isEmpty
                 ? RefreshIndicator(
                     onRefresh: _fetchTaskAssignments,
-                    color: Color(0xFF0272B1),
+                    color: Color(0xFFB71A4A),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
@@ -749,7 +751,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           Icon(
                             FontAwesomeIcons.signalMessenger,
                             size: 100,
-                            color: Color(0xFF0272B1),
+                            color: Color(0xFFB71A4A),
                           ),
                           SizedBox(height: 10),
                           Padding(
@@ -903,9 +905,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                         //debugPrint("Conversations for TaskTakenId ${taskAssignment.taskTakenId}: $conversations");
                                         return conversationCard(taskAssignment, conversations);
                                       },
-                                    )
-                        )
-                    )
+                                    )))
                   ]));
   }
 

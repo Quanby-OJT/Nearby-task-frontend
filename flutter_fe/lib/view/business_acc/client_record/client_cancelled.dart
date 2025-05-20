@@ -107,13 +107,13 @@ class _ClientCancelledState extends State<ClientCancelled> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Color(0xFF03045E)),
+          icon: Icon(Icons.arrow_back, color: Color(0xFFB71A4A)),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Cancelled Task',
           style: GoogleFonts.montserrat(
-            color: Color(0xFF03045E),
+            color: Color(0xFFB71A4A),
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -121,7 +121,7 @@ class _ClientCancelledState extends State<ClientCancelled> {
         centerTitle: true,
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator(color: Color(0xFF03045E)))
+          ? Center(child: CircularProgressIndicator(color: Color(0xFFB71A4A)))
           : _taskInformation == null
               ? Center(
                   child: Text(
