@@ -164,7 +164,7 @@ class _LikeScreenState extends State<LikeScreen> {
       appBar: AppBar(
         centerTitle: true,
         title: Text(
-          'Saved Jobs',
+          'Saved',
           style: GoogleFonts.poppins(
             color: const Color(0xFFB71A4A),
             fontSize: 20,
