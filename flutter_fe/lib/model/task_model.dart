@@ -74,8 +74,7 @@ class TaskModel {
       "created_at": createdAt?.toIso8601String(),
       "updated_at": updatedAt?.toIso8601String(),
       "image_url": imageUrl,
-      "tasker_specialization": taskerSpecialization
-          ?.toJson(), // Updated to handle TaskerSpecialization
+      "tasker_specialization": taskerSpecialization?.toJson(),
     };
   }
 
@@ -97,7 +96,9 @@ class TaskModel {
       specialization: json['specialization']?.toString() ?? '',
       specializationId: json['specialization_id'] as int?,
       relatedSpecializationsIds: json['related_specializations'] != null
-          ? List<String>.from(json['related_specializations'])
+          ? (json['related_specializations'] as List)
+              .map((e) => e.toString())
+              .toList()
           : null,
       description: json['task_description']?.toString() ?? '',
       urgency: urgencyValue,
@@ -107,12 +108,12 @@ class TaskModel {
       workType: json['work_type']?.toString() ?? '',
       addressID: json['address_id']?.toString(),
       scope: json['scope']?.toString() ?? '',
-      isVerifiedDocument: json['is_verified_document'] as bool?,
-      client: json['clients'] != null && json['clients']['user'] != null
+      isVerifiedDocument: json['is_verified'] as bool?,
+      client: json['client'] != null && json['client']['user'] != null
           ? ClientModel.fromJson({
               'preferences': '',
               'client_address': '',
-              'user': json['clients']['user'],
+              'user': json['client']['user'],
             })
           : null,
       address: json['address'] != null
@@ -127,7 +128,7 @@ class TaskModel {
       imageUrl: json['image_url']?.toString(),
       taskerSpecialization: json['tasker_specialization'] != null
           ? TaskerSpecialization.fromJson(json['tasker_specialization'])
-          : null, // Updated to parse TaskerSpecialization
+          : null,
     );
   }
 

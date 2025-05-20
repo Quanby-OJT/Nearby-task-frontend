@@ -2,12 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/chat_push_notifications.dart';
-import 'package:flutter_fe/model/client_model.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/model/task_model.dart';
-import 'package:flutter_fe/model/tasker_model.dart';
-import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/service/task_information.dart';
 import 'package:get_storage/get_storage.dart';

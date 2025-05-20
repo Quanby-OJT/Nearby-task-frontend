@@ -89,11 +89,13 @@ class EscrowManagementController {
     }
   }
 
-  Future<String> releaseEscrowPayment(int taskerId, String paymentMethod) async {
+  Future<String> releaseEscrowPayment(
+      int taskerId, String paymentMethod) async {
     try {
       debugPrint(
           "TaskRequestController: Releasing escrow payment for task taken with ID $taskerId");
-      var response = await _requestService.releaseEscrowPayment(taskerId, double.parse(amountController.text), paymentMethod);
+      var response = await _requestService.releaseEscrowPayment(
+          taskerId, double.parse(amountController.text), paymentMethod);
       if (response.containsKey("message")) {
         return response["message"];
       } else if (response.containsKey("error")) {
@@ -109,7 +111,7 @@ class EscrowManagementController {
   }
 
   void connectWebSocket() async {
-    _channel = IOWebSocketChannel.connect('ws://192.168.43.15:5000');
+    _channel = IOWebSocketChannel.connect('ws://192.1`68.43.15:5000');
     _channel!.stream.listen((message) {
       debugPrint('Received message: $message');
 

@@ -11,7 +11,6 @@ class TaskFetch {
   final int? taskerId;
   final TaskModel taskDetails;
   final AddressModel? address;
-  final ClientModel? client;
 
   TaskFetch({
     required this.taskTakenId,
@@ -21,7 +20,6 @@ class TaskFetch {
     this.clientId,
     this.taskerId,
     required this.taskDetails,
-    this.client,
     this.address,
   });
 
@@ -34,7 +32,6 @@ class TaskFetch {
       'client_id': clientId,
       'tasker_id': taskerId,
       'task': taskDetails.toJson(),
-      'client': client?.toJson(),
       'address': address?.toJson(),
     };
   }
@@ -50,21 +47,13 @@ class TaskFetch {
       clientId: json['client_id'] as int?,
       taskerId: json['tasker_id'] as int?,
       taskDetails: TaskModel.fromJson(json['task'] as Map<String, dynamic>),
-      client: json['client'] != null && json['client']['user'] != null
-          ? ClientModel.fromJson({
-              'preferences': '',
-              'client_address': json['client']['client_address'] ?? '',
-              'user': json['client']['user'],
-            })
-          : null,
-      address: json['address'] != null
-          ? AddressModel.fromJson(json['address'])
-          : null,
+      // The address is already included in the task object, so we don't need to parse it separately
+      address: null,
     );
   }
 
   @override
   String toString() {
-    return 'TaskModel(taskTakenId: $taskTakenId, id: $id, taskStatus: $taskStatus, createdAt: $createdAt, clientId: $clientId, taskerId: $taskerId, taskDetails: $taskDetails, client: $client, address: $address)';
+    return 'TaskModel(taskTakenId: $taskTakenId, id: $id, taskStatus: $taskStatus, createdAt: $createdAt, clientId: $clientId, taskerId: $taskerId, taskDetails: $taskDetails, address: $address)';
   }
 }

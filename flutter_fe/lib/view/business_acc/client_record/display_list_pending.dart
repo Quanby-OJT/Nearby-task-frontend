@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/notificationController.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
-import 'package:flutter_fe/view/service_acc/tasker_record/tasker_pending.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -125,20 +124,7 @@ class _DisplayListRecordPendingState extends State<DisplayListRecordPending> {
                         ),
                         child: InkWell(
                           borderRadius: BorderRadius.circular(12),
-                          onTap: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => TaskerPending(
-                                          requestID: request["id"],
-                                          role: request["role"],
-                                        ))).then((value) {
-                              setState(() {
-                                _isLoading = true;
-                              });
-                              _fetchRequests();
-                            });
-                          },
+                          onTap: () {},
                           child: Padding(
                             padding: EdgeInsets.all(16),
                             child: Column(

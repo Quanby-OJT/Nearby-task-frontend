@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_fe/controller/escrow_management_controller.dart';
@@ -11,11 +12,10 @@ import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/business_acc/client_record/client_finish.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
-import 'package:flutter_fe/view/service_acc/tasker_record/tasker_ongoing.dart';
-import 'package:flutter_fe/view/service_acc/tasker_record/tasker_pending.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter_fe/view/task/task_pending.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
 import '../../model/client_model.dart';
 
@@ -712,7 +712,7 @@ class _TaskPageState extends State<TaskPage>
               MaterialPageRoute(
                 builder: (context) => FinishTask(
                   finishID: task.taskTakenId,
-                  role: task.client?.user?.role ?? "Unknown",
+                  role: task.taskDetails.client?.user?.role ?? "Unknown",
                 ),
               ),
             );
@@ -722,9 +722,8 @@ class _TaskPageState extends State<TaskPage>
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => TaskerPending(
-                  requestID: task.taskTakenId,
-                  role: task.client?.user?.role ?? "Unknown",
+                builder: (context) => TaskPending(
+                  taskInformation: task,
                 ),
               ),
             );
@@ -735,40 +734,127 @@ class _TaskPageState extends State<TaskPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildTaskStatusColor(task),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: Text(
-                      task.taskDetails.title ?? 'Untitled Task',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
+                  _buildTaskRecieved(task),
+                  _buildTaskStatusColor(task),
                 ],
               ),
               SizedBox(height: 8),
-              _buildTaskInfoRow(
-                icon: FontAwesomeIcons.locationPin,
-                color: Colors.red[400]!,
-                text:
-                    "${task.taskDetails.address?.city ?? 'N/A'}, ${task.taskDetails.address?.province ?? 'N/A'}",
-              ),
-              SizedBox(height: 8),
-              _buildTaskInfoRow(
-                icon: FontAwesomeIcons.coins,
-                color: Colors.green[400]!,
-                text: task.taskDetails.description,
+              Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildTaskTaskInfo(task),
+                ],
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTaskTaskInfo(TaskFetch task, {double size = 40.0}) {
+    final String? imageUrl = task.taskDetails.client?.user?.image;
+    final bool hasValidImage =
+        imageUrl != null && imageUrl.isNotEmpty && imageUrl != "Unknown";
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(size / 2),
+          child: Container(
+            height: size,
+            width: size,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.grey.shade300, width: 1),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: hasValidImage
+                ? CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    errorWidget: (context, url, error) => const Icon(
+                      Icons.person,
+                      color: Colors.grey,
+                      size: 24,
+                    ),
+                  )
+                : const Icon(
+                    Icons.person,
+                    color: Colors.grey,
+                    size: 24,
+                  ),
+          ),
+        ),
+        SizedBox(width: 8),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              task.taskDetails.title != null
+                  ? task.taskDetails.title.length > 25
+                      ? '${task.taskDetails.title.substring(0, 25)}...'
+                      : task.taskDetails.title
+                  : 'Untitled Task',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            Text(
+              "${task.taskDetails.client?.user?.firstName ?? 'Unknown'} ${task.taskDetails.client?.user?.lastName ?? 'Unknown'}",
+              style:
+                  GoogleFonts.poppins(color: Color(0xFFB71A4A), fontSize: 10),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTaskRecieved(TaskFetch task) {
+    DateTime createdDateTime = DateTime.parse(task.createdAt.toString());
+
+    String formattedDate = DateFormat('MMM d, yyyy').format(createdDateTime);
+
+    DateTime now = DateTime.now().toUtc();
+    Duration difference = now.difference(createdDateTime);
+
+    String timeAgo;
+    if (difference.inMinutes < 60) {
+      int minutesAgo = difference.inMinutes;
+      timeAgo = '$minutesAgo ${minutesAgo == 1 ? 'min' : 'mins'} ago';
+    } else {
+      int hoursAgo = difference.inHours;
+      timeAgo = '$hoursAgo ${hoursAgo == 1 ? 'hour' : 'hours'} ago';
+    }
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(formattedDate, style: const TextStyle(fontSize: 14)),
+        Text(
+          timeAgo,
+          style: const TextStyle(fontSize: 12, color: Colors.grey),
+        ),
+      ],
     );
   }
 
@@ -811,33 +897,6 @@ class _TaskPageState extends State<TaskPage>
               fontWeight: FontWeight.w600,
               color: Colors.white,
             ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTaskInfoRow({
-    required IconData icon,
-    required Color color,
-    required String text,
-  }) {
-    return Row(
-      children: [
-        FaIcon(
-          icon,
-          size: 16,
-          color: color,
-        ),
-        SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: Colors.black,
-            ),
-            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
