@@ -13,7 +13,6 @@ import 'package:flutter_fe/view/business_acc/client_record/display_list_review.d
 import 'package:flutter_fe/view/profile/payment_processing.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter/cupertino.dart';
 
 import 'client_record/display_list_reject.dart';
 
@@ -67,7 +66,7 @@ class _RecordPageState extends State<RecordPage> {
           child: Text(
             'Wallet',
             textAlign: TextAlign.center,
-            style: GoogleFonts.montserrat(
+            style: GoogleFonts.poppins(
               color: Color(0xFFB71A4A),
               fontWeight: FontWeight.w600,
               fontSize: 18,
@@ -121,7 +120,7 @@ class _RecordPageState extends State<RecordPage> {
                                   "You haven't made a deposit. To Create tasks, you must deposit first.",
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 18,
+                                    fontSize: 36,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 )
@@ -180,7 +179,7 @@ class _RecordPageState extends State<RecordPage> {
                                   SizedBox(width: 8),
                                   Text(
                                     'Deposit',
-                                    style: TextStyle(
+                                    style: GoogleFonts.poppins(
                                       color: Colors.grey,
                                       fontSize: 14,
                                     ),
@@ -190,7 +189,7 @@ class _RecordPageState extends State<RecordPage> {
                               SizedBox(height: 8),
                               Text(
                                 'Tap to deposit',
-                                style: TextStyle(
+                                style: GoogleFonts.poppins(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.green[400],
@@ -237,7 +236,7 @@ class _RecordPageState extends State<RecordPage> {
                                   SizedBox(width: 8),
                                   Text(
                                     'Withdraw',
-                                    style: TextStyle(
+                                    style: GoogleFonts.poppins(
                                       color: Colors.grey,
                                       fontSize: 14,
                                     ),
@@ -247,7 +246,7 @@ class _RecordPageState extends State<RecordPage> {
                               SizedBox(height: 8),
                               Text(
                                 'Tap to withdraw',
-                                style: TextStyle(
+                                style: GoogleFonts.poppins(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.red[400],
@@ -271,7 +270,7 @@ class _RecordPageState extends State<RecordPage> {
                 children: [
                   Text(
                     'Task Status',
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -458,7 +457,7 @@ class _RecordPageState extends State<RecordPage> {
                 Expanded(
                   child: Text(
                     title,
-                    style: GoogleFonts.montserrat(
+                    style: GoogleFonts.poppins(
                       fontSize: 14,
                       fontWeight: FontWeight.normal,
                       color: Colors.black87,
@@ -488,7 +487,7 @@ class _RecordPageState extends State<RecordPage> {
       builder: (context) => AlertDialog(
         title: Text(
           'Withdraw Credits',
-          style: GoogleFonts.montserrat(
+          style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
             color: Color(0xFF0272B1),
           ),
@@ -537,7 +536,7 @@ class _RecordPageState extends State<RecordPage> {
               SizedBox(height: 16),
               Text(
                 'Withdrawal will be processed to your linked payment method.',
-                style: TextStyle(
+                style: GoogleFonts.poppins(
                   fontSize: 12,
                   color: Colors.grey[600],
                 ),
@@ -550,7 +549,7 @@ class _RecordPageState extends State<RecordPage> {
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Cancel',
-              style: TextStyle(color: Colors.grey[600]),
+              style: GoogleFonts.poppins(color: Colors.grey[600]),
             ),
           ),
           ElevatedButton(
@@ -572,7 +571,7 @@ class _RecordPageState extends State<RecordPage> {
             ),
             child: Text(
               'Withdraw',
-              style: TextStyle(color: Colors.white),
+              style: GoogleFonts.poppins(color: Colors.white),
             ),
           ),
         ],
@@ -610,7 +609,7 @@ class _RecordPageState extends State<RecordPage> {
       builder: (context) => AlertDialog(
         title: Text(
           'Deposit Credits',
-          style: GoogleFonts.montserrat(
+          style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
             color: Color(0xFFB71A4A),
           ),
@@ -655,7 +654,7 @@ class _RecordPageState extends State<RecordPage> {
               SizedBox(height: 16),
               Text(
                 'Deposit will be processed from your linked payment method.',
-                style: TextStyle(
+                style: GoogleFonts.poppins(
                   fontSize: 12,
                   color: Colors.grey[600],
                 ),
@@ -668,7 +667,7 @@ class _RecordPageState extends State<RecordPage> {
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Cancel',
-              style: TextStyle(color: Colors.grey[600]),
+              style: GoogleFonts.poppins(color: Colors.grey[600]),
             ),
           ),
           ElevatedButton(
@@ -690,7 +689,7 @@ class _RecordPageState extends State<RecordPage> {
             ),
             child: Text(
               'Deposit',
-              style: TextStyle(color: Colors.white),
+              style: GoogleFonts.poppins(color: Colors.white),
             ),
           ),
         ],

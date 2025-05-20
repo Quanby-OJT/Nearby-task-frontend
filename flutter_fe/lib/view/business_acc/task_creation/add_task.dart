@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,7 +9,6 @@ import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
-import 'package:flutter_fe/view/address/address.dart';
 import 'package:flutter_fe/view/address/address_list.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:get_storage/get_storage.dart';
@@ -37,13 +35,13 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
 
   String? _message;
   String? selectedTimePeriod;
-  String? selectedUrgency;
+  String? selectedUrgency = "Non-Urgent";
   String? selectedSpecialization;
   String? selectedWorkType = "Solo";
-  String? selectedScope = "Less than a month"; // Default value
-  String? selectedExperience;
+  String? selectedScope = "Less than a month";
+  String? selectedExperience = "Without verified document";
   List<String> relatedSpecializations = [];
-  List<int> relatedSpecializationsIds = [];
+  List<String> relatedSpecializationsIds = [];
   File? _photo;
   List<String> items = ['Day/s', 'Week/s', 'Month/s', 'Year/s'];
   List<String> urgency = ['Non-Urgent', 'Urgent'];
@@ -120,51 +118,23 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
       int userId = int.parse(storage.read('user_id').toString());
       AuthenticatedUser? user =
           await _profileController.getAuthenticatedUser(context, userId);
+      final response = await _clientServices.fetchUserIDImage(userId);
 
-      // Get profile image from user
-      _existingProfileImageUrl = user?.user.image;
-      String? accountStatus = user?.user.accStatus;
-
-      // Check if user account status is already in Review or Approved state
-      bool isVerifiedOrInReview = accountStatus == "Review" ||
-          accountStatus == "Approved" ||
-          accountStatus == "Verified";
-
-      // Try to fetch ID image, but handle errors gracefully
-      try {
-        final response = await _clientServices.fetchUserIDImage(userId);
-        if (response['success']) {
+      if (response['success']) {
+        setState(() {
+          _existingProfileImageUrl = user?.user.image;
           _existingIDImageUrl = response['url'];
           _documentValid = response['status'];
-        } else {
-          debugPrint("Error in ID image response: ${response['error']}");
-        }
-      } catch (idError) {
-        debugPrint("Error fetching ID image: $idError");
-        // Continue even if ID image fetch fails
-      }
-
-      // Always update the state, even if some requests failed
-      setState(() {
-        _isLoading = false;
-        // If account is already in review or approved, allow posting tasks
-        if (isVerifiedOrInReview) {
-          _showButton = true;
-        } else {
-          // Otherwise use the standard image checks
+          _isLoading = false;
           _showButton = _existingProfileImageUrl != null &&
               _existingIDImageUrl != null &&
               _documentValid;
-        }
-
-        debugPrint("Account status: $accountStatus, _showButton: $_showButton");
-      });
+        });
+      }
     } catch (e) {
-      debugPrint("Error in _fetchUserIDImage: $e");
-      // Always exit loading state even if there's an error
+      debugPrint("Error fetching ID image: $e");
       setState(() {
         _isLoading = false;
-        _showButton = false; // Will show warning dialog when trying to submit
       });
     }
   }
@@ -361,6 +331,16 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
         _isVerifiedDocument = true;
       });
     }
+
+    debugPrint("Selected Specialization: $selectedSpecialization");
+    debugPrint("Selected Urgency: $selectedUrgency");
+    debugPrint("Selected Scope: $selectedScope");
+    debugPrint("Selected Work Type: $selectedWorkType");
+    debugPrint("Related Specializations IDs: $relatedSpecializationsIds");
+    debugPrint("Is Verified Document: $_isVerifiedDocument");
+    debugPrint("Photo: $_photo");
+    debugPrint("Specialization ID: $specializationId");
+    debugPrint("Address ID: $_addressID");
 
     try {
       final result = await controller.postJob(
@@ -871,8 +851,11 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
     );
     if (selectedAddress != null) {
       setState(() {
-        controller.jobLocationController.text =
-            '${selectedAddress.city ?? ''}, ${selectedAddress.province ?? ''}';
+        controller.jobLocationController
+            .text = selectedAddress.formattedAddress != null &&
+                selectedAddress.formattedAddress!.isNotEmpty
+            ? selectedAddress.formattedAddress!
+            : '${selectedAddress.city ?? ''}, ${selectedAddress.province ?? ''}';
 
         _addressID = selectedAddress.id ?? '';
       });
@@ -1053,7 +1036,8 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
                           onChanged: (value) => setState(() {
                             relatedSpecializations = value;
                             relatedSpecializationsIds = value
-                                .map((e) => selectedSpecializations[e]!)
+                                .map((e) =>
+                                    selectedSpecializations[e]!.toString())
                                 .toList();
                           }),
                           errorText: _errors['related_specializations'],

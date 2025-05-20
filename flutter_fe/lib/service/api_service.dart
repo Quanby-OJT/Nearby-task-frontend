@@ -14,7 +14,7 @@ import '../model/client_model.dart';
 import 'package:flutter_fe/config/url_strategy.dart';
 
 class ApiService {
-  static String url = apiUrl ?? "http://192.168.0.152:5000";
+  static String url = apiUrl ?? "http://192.168.43.15:5000";
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
   static final Map<String, String> _cookies = {};
@@ -872,13 +872,6 @@ class ApiService {
       String token = await AuthService.getSessionToken();
       debugPrint("ApiService: Submitting tasker verification to new table");
       debugPrint("ApiService: Verification data: $verificationData");
-
-      if (userId == null) {
-        return {
-          "success": false,
-          "error": "User ID is missing from verification data"
-        };
-      }
       // Check if this is an update to existing verification
       final bool isUpdate = verificationData['status'] != null &&
           verificationData['status'] != 'pending';

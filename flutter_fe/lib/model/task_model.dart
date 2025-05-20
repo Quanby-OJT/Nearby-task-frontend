@@ -1,29 +1,32 @@
 import 'package:flutter_fe/model/client_model.dart';
 import 'package:flutter_fe/model/address.dart';
+import 'package:json_annotation/json_annotation.dart';
 
+part 'task_model.g.dart';
+
+@JsonSerializable()
 class TaskModel {
   final int id;
   final int? clientId;
   final String title;
   final String description;
-  final String specialization;
-  final List<int>? relatedSpecializationsIds;
+  final String? specialization;
+  final List<String>? relatedSpecializationsIds;
   final int? specializationId;
+  final String? addressID;
   final String workType;
   final String scope;
   final bool? isVerifiedDocument;
   final int contactPrice;
-  final String urgency;
+  final String? urgency;
   final String? remarks;
   final String status;
-  final String? addressID;
   final ClientModel? client;
   final AddressModel? address;
   final DateTime? createdAt;
   final DateTime? updatedAt;
-  final String? taskBeginDate;
-  final String? period;
-  final String? duration;
+  final String? imageUrl;
+  final TaskerSpecialization? taskerSpecialization;
 
   TaskModel({
     required this.id,
@@ -34,13 +37,10 @@ class TaskModel {
     this.relatedSpecializationsIds,
     this.addressID,
     required this.description,
-    this.period,
-    this.duration,
     required this.urgency,
     required this.status,
     required this.contactPrice,
     this.remarks,
-    this.taskBeginDate,
     required this.workType,
     required this.scope,
     this.isVerifiedDocument,
@@ -48,6 +48,8 @@ class TaskModel {
     this.createdAt,
     this.updatedAt,
     this.address,
+    this.imageUrl,
+    this.taskerSpecialization,
   });
 
   Map<String, dynamic> toJson() {
@@ -59,12 +61,9 @@ class TaskModel {
       "specialization_id": specializationId,
       "related_specializations": relatedSpecializationsIds,
       "task_description": description,
-      "duration": duration != null ? int.tryParse(duration!) ?? 0 : null,
-      "period": period,
       "urgent": urgency == "Urgent",
       "proposed_price": contactPrice,
       "remarks": remarks,
-      "task_begin_date": taskBeginDate,
       "status": status,
       "work_type": workType,
       "address_id": addressID,
@@ -74,6 +73,8 @@ class TaskModel {
       "address": address?.toJson(),
       "created_at": createdAt?.toIso8601String(),
       "updated_at": updatedAt?.toIso8601String(),
+      "image_url": imageUrl,
+      "tasker_specialization": taskerSpecialization?.toJson(),
     };
   }
 
@@ -95,27 +96,24 @@ class TaskModel {
       specialization: json['specialization']?.toString() ?? '',
       specializationId: json['specialization_id'] as int?,
       relatedSpecializationsIds: json['related_specializations'] != null
-          ? (json['related_specializations'] as List<dynamic>)
-              .map((e) => int.tryParse(e.toString()) ?? 0)
+          ? (json['related_specializations'] as List)
+              .map((e) => e.toString())
               .toList()
           : null,
       description: json['task_description']?.toString() ?? '',
-      duration: json['duration']?.toString(),
-      period: json['period']?.toString() ?? '',
       urgency: urgencyValue,
       contactPrice: json['proposed_price'] as int? ?? 0,
       remarks: json['remarks']?.toString(),
-      taskBeginDate: json['task_begin_date']?.toString(),
       status: json['status']?.toString() ?? '',
       workType: json['work_type']?.toString() ?? '',
       addressID: json['address_id']?.toString(),
       scope: json['scope']?.toString() ?? '',
-      isVerifiedDocument: json['is_verified_document'] as bool?,
-      client: json['clients'] != null && json['clients']['user'] != null
+      isVerifiedDocument: json['is_verified'] as bool?,
+      client: json['client'] != null && json['client']['user'] != null
           ? ClientModel.fromJson({
               'preferences': '',
               'client_address': '',
-              'user': json['clients']['user'],
+              'user': json['client']['user'],
             })
           : null,
       address: json['address'] != null
@@ -127,11 +125,30 @@ class TaskModel {
       updatedAt: json['updated_at'] != null
           ? DateTime.tryParse(json['updated_at'].toString())
           : null,
+      imageUrl: json['image_url']?.toString(),
+      taskerSpecialization: json['tasker_specialization'] != null
+          ? TaskerSpecialization.fromJson(json['tasker_specialization'])
+          : null,
     );
   }
 
   @override
   String toString() {
-    return 'TaskModel(id: $id, clientId: $clientId, title: $title, description: $description, specialization: $specialization, relatedSpecializationsIds: $relatedSpecializationsIds, specializationId: $specializationId, workType: $workType, scope: $scope, isVerifiedDocument: $isVerifiedDocument, contactPrice: $contactPrice, urgency: $urgency, remarks: $remarks, status: $status, client: $client, address: $address, createdAt: $createdAt, updatedAt: $updatedAt, taskBeginDate: $taskBeginDate, period: $period, duration: $duration, addressID: $addressID)';
+    return 'TaskModel(id: $id, clientId: $clientId, title: $title, description: $description, specialization: $specialization, relatedSpecializationsIds: $relatedSpecializationsIds, specializationId: $specializationId, workType: $workType, scope: $scope, isVerifiedDocument: $isVerifiedDocument, contactPrice: $contactPrice, urgency: $urgency, remarks: $remarks, status: $status, client: $client, address: $address, createdAt: $createdAt, updatedAt: $updatedAt, addressID: $addressID, imageUrl: $imageUrl, taskerSpecialization: $taskerSpecialization)';
   }
+}
+
+@JsonSerializable()
+class TaskerSpecialization {
+  final String specialization;
+
+  TaskerSpecialization({required this.specialization});
+
+  factory TaskerSpecialization.fromJson(Map<String, dynamic> json) =>
+      _$TaskerSpecializationFromJson(json);
+
+  Map<String, dynamic> toJson() => _$TaskerSpecializationToJson(this);
+
+  @override
+  String toString() => 'TaskerSpecialization(specialization: $specialization)';
 }

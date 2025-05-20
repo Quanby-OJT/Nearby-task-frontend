@@ -234,12 +234,6 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
                 ),
               ],
             ),
-            SizedBox(height: 16),
-            _buildTaskInfoRow(
-              icon: Icons.calendar_today,
-              label: 'Date',
-              value: _taskInformation?.duration ?? 'Not specified',
-            ),
             SizedBox(height: 12),
             _buildTaskInfoRow(
               icon: Icons.info,

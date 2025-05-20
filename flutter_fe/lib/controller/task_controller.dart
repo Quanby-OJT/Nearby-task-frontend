@@ -54,17 +54,13 @@ class TaskController {
 
   Future<Map<String, dynamic>> postJob(
       String specialization, String urgency, String scope, String workType,
-      {List<int>? relatedSpecializationsIds,
+      {List<String>? relatedSpecializationsIds,
       File? photo,
       int? specializationId,
       bool? isVerifiedDocument,
       String? addressId}) async {
     try {
       int userId = storage.read('user_id');
-      // Parse the duration as an integer
-      // final durationInt = int.tryParse(durationText) ?? 0;
-
-      // Parse the price as an integer
       final priceText = contactPriceController.text.trim();
       final priceInt = int.tryParse(priceText) ?? 0;
 
@@ -123,24 +119,30 @@ class TaskController {
         : assignedTask['error'].toString();
   }
 
-  Future<List<TaskModel?>> getJobsforClient(
+  Future<List<TaskModel>> getJobsforClient(
       BuildContext context, int clientId) async {
-    final clientTask = await _jobPostService.fetchJobsForClient(clientId);
-    debugPrint("Client Task: ${clientTask.toString()}");
+    try {
+      final clientTask = await _jobPostService.fetchJobsForClient(clientId);
+      debugPrint("Client Task Response: ${clientTask.toString()}");
 
-    if (clientTask.containsKey('tasks')) {
-      List<dynamic> tasksList = clientTask['tasks'];
-      List<TaskModel> tasks =
-          tasksList.map((task) => TaskModel.fromJson(task)).toList();
-      return tasks;
+      if (clientTask.containsKey('tasks') && clientTask['tasks'] is List) {
+        final tasksList = clientTask['tasks'] as List<dynamic>;
+        return tasksList.map((task) => TaskModel.fromJson(task)).toList();
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(clientTask['error']?.toString() ?? 'No tasks found'),
+        ),
+      );
+      return [];
+    } catch (e) {
+      debugPrint("Error fetching created tasks: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching tasks: $e')),
+      );
+      return [];
     }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-          content: Text(clientTask['error'] ??
-              "Something Went Wrong while Retrieving Your Tasks.")),
-    );
-    return [];
   }
 
   Future<List<TaskFetch?>> getTask(BuildContext context) async {

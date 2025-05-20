@@ -219,12 +219,6 @@ class _TaskerReviewState extends State<TaskerReview> {
             ),
             SizedBox(height: 12),
             _buildTaskInfoRow(
-              icon: Icons.calendar_today,
-              label: 'Date',
-              value: _taskInformation?.period ?? 'Not specified',
-            ),
-            SizedBox(height: 12),
-            _buildTaskInfoRow(
               icon: Icons.info,
               label: 'Status',
               value: _requestInformation?.task_status ?? 'Ongoing',

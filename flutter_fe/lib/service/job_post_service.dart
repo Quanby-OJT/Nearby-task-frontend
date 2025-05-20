@@ -16,7 +16,7 @@ import '../model/client_model.dart';
 import '../model/tasker_model.dart';
 
 class JobPostService {
-  static String url = apiUrl ?? "http://192.168.0.152:5000/connect";
+  static String url = apiUrl ?? "http://192.168.43.15:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -411,7 +411,6 @@ class JobPostService {
             taskTakenId: taskData['task_taken_id'] ?? 0);
       }
 
-      // Return null if no tasks found or invalid format
       debugPrint("No valid task data found in response");
       return null;
     } catch (e, stackTrace) {
@@ -427,7 +426,6 @@ class JobPostService {
           await _getRequest("/display-assigned-task/$taskTakenID");
       debugPrint("Assigned Task Information Retrieved: ${response.toString()}");
 
-      // Check if response is not empty and is a Map
       if (response['success']) {
         debugPrint("Mapped: ${response.toString()}");
         return TaskAssignment(
@@ -496,8 +494,7 @@ class JobPostService {
 
       return tasks
           .map((task) => TaskModel.fromJson(task as Map<String, dynamic>))
-          .where(
-              (task) => !likedTaskIds.contains(task.id.toString().toString()))
+          .where((task) => !likedTaskIds.contains(task.toString().toString()))
           .toList();
     } catch (e, stackTrace) {
       debugPrint('Error fetching jobs: $e');
@@ -588,7 +585,7 @@ class JobPostService {
 
   Future<List<TaskModel>> fetchCreatedTasksByClient(int clientId) async {
     try {
-      final response = await _getRequest("/getCreatedTaskByClient/$clientId");
+      final response = await _getRequest("/display-task-for-client/$clientId");
 
       debugPrint("Created Tasks Response: $response");
 

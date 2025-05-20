@@ -288,12 +288,9 @@ class TaskRequestService {
             contactPrice: taskData['proposed_price'] ?? 0,
             urgency: taskData['urgent'] == true ? 'Urgent' : 'Non-Urgent',
             specialization: taskData['specialization'],
-            period: taskData['period'],
             addressID: taskData['address_id'] ?? '',
             status: taskData['status'],
             scope: taskData['scope'],
-            duration: '',
-            taskBeginDate: '',
             workType: '');
       }
 
@@ -306,11 +303,8 @@ class TaskRequestService {
           contactPrice: 0,
           urgency: "Unknown",
           specialization: '',
-          period: '',
           status: '',
           scope: '',
-          duration: '',
-          taskBeginDate: '',
           workType: '');
     } catch (e, stackTrace) {
       debugPrint("Error creating TaskModel: $e");
@@ -324,11 +318,8 @@ class TaskRequestService {
           contactPrice: 0,
           urgency: "Unknown",
           specialization: '',
-          period: '',
           status: '',
           scope: '',
-          duration: '',
-          taskBeginDate: '',
           workType: '');
     }
   }
@@ -575,10 +566,7 @@ class TaskRequestService {
             contactPrice: 120,
             urgency: "Urgent",
             specialization: '',
-            period: '',
             status: '',
-            duration: '',
-            taskBeginDate: '',
             workType: ''),
         TaskModel(
             id: 102,
@@ -589,10 +577,7 @@ class TaskRequestService {
             contactPrice: 80,
             urgency: "Non-Urgent",
             specialization: '',
-            period: '',
             status: '',
-            duration: '',
-            taskBeginDate: '',
             workType: ''),
         TaskModel(
             id: 103,
@@ -603,10 +588,7 @@ class TaskRequestService {
             contactPrice: 200,
             urgency: "Non-Urgent",
             specialization: '',
-            period: '',
             status: '',
-            duration: '',
-            taskBeginDate: '',
             workType: ''),
       ];
 

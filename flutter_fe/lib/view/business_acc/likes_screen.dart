@@ -5,14 +5,12 @@ import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
-import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/verification/verification_page.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/task_model.dart';
-
 import '../../model/tasker_model.dart';
 
 class LikesScreen extends StatefulWidget {
@@ -41,15 +39,40 @@ class _LikesScreenState extends State<LikesScreen> {
   @override
   void initState() {
     super.initState();
-    _loadLikedTasks();
+    _initializeData();
     _searchController.addListener(_filterTaskFunction);
-    _fetchUserIDImage();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _initializeData() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      // Wait for both data fetching operations to complete
+      await Future.wait([
+        _loadLikedTasks(),
+        _fetchUserIDImage(),
+      ]);
+
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (e, st) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Error initializing data. Please try again.';
+        debugPrint('Initialization error: $e');
+        debugPrint(st.toString());
+      });
+    }
   }
 
   void _filterTaskFunction() {
@@ -65,15 +88,9 @@ class _LikesScreenState extends State<LikesScreen> {
 
   Future<void> _loadLikedTasks() async {
     try {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
-
       final userId = await _clientServices.getUserId();
       if (userId == null || userId.isEmpty) {
         setState(() {
-          _isLoading = false;
           _errorMessage = 'Please log in again to view your liked tasks';
         });
         return;
@@ -84,14 +101,12 @@ class _LikesScreenState extends State<LikesScreen> {
         _likedTasks = likedTasks;
         _filteredTasks = List.from(_likedTasks);
         savedTasksCount = _filteredTasks.length;
-        _isLoading = false;
       });
     } catch (e, st) {
       setState(() {
-        _isLoading = false;
-        debugPrint(e.toString());
-        debugPrint(st.toString());
         _errorMessage = 'Error loading liked tasks. Please try again.';
+        debugPrint('Load liked tasks error: $e');
+        debugPrint(st.toString());
       });
     }
   }
@@ -102,52 +117,34 @@ class _LikesScreenState extends State<LikesScreen> {
       AuthenticatedUser? user =
           await _profileController.getAuthenticatedUser(context, userId);
 
-      // Debug: Print user account status and role
       debugPrint("Fetched User accStatus: ${user?.user.accStatus}");
       debugPrint("Fetched User role: ${user?.user.role}");
 
       final response = await _clientServices.fetchUserIDImage(userId);
       debugPrint("Document response: $response");
 
-      if (response['success']) {
-        setState(() {
-          _user = user;
-          _existingProfileImageUrl = user?.user.image;
-          _existingIDImageUrl = response['url'];
-          _isLoading = false;
-          _role = _user?.user.role ?? '';
+      setState(() {
+        _user = user;
+        _existingProfileImageUrl = user?.user.image;
+        _existingIDImageUrl = response['success'] ? response['url'] : null;
+        _role = user?.user.role ?? '';
 
-          debugPrint("ID Image URL set to: $_existingIDImageUrl");
+        debugPrint("ID Image URL set to: $_existingIDImageUrl");
+        debugPrint("Updated User accStatus in state: ${_user?.user.accStatus}");
 
-          // Debug: Print updated user account status
+        if (_user?.user.accStatus != null) {
           debugPrint(
-              "Updated User accStatus in state: ${_user?.user.accStatus}");
-
-          // Add special logging for the account status
-          if (_user?.user.accStatus != null) {
-            debugPrint(
-                "Account status details - Original value: '${_user?.user.accStatus}'");
-            debugPrint(
-                "Account status details - Lowercase: '${_user?.user.accStatus?.toLowerCase()}'");
-            debugPrint(
-                "Account status details - Trimmed: '${_user?.user.accStatus?.trim()}'");
-            debugPrint(
-                "Account status details - Trimmed+Lowercase: '${_user?.user.accStatus?.trim().toLowerCase()}'");
-          } else {
-            debugPrint("Account status is null");
-          }
-        });
-      } else {
-        debugPrint("Failed to fetch user document: ${response['message']}");
-        // If the fetch failed, still set the user and role
-        setState(() {
-          _user = user;
-          _isLoading = false;
-          _role = _user?.user.role ?? '';
-          _existingProfileImageUrl = user?.user.image;
-          // Keep _existingIDImageUrl as null or empty since fetch failed
-        });
-      }
+              "Account status details - Original: '${_user?.user.accStatus}'");
+          debugPrint(
+              "Account status details - Lowercase: '${_user?.user.accStatus?.toLowerCase()}'");
+          debugPrint(
+              "Account status details - Trimmed: '${_user?.user.accStatus?.trim()}'");
+          debugPrint(
+              "Account status details - Trimmed+Lowercase: '${_user?.user.accStatus?.trim().toLowerCase()}'");
+        } else {
+          debugPrint("Account status is null");
+        }
+      });
     } catch (e) {
       debugPrint("Error fetching ID image: $e");
       ScaffoldMessenger.of(context).showSnackBar(
@@ -169,7 +166,7 @@ class _LikesScreenState extends State<LikesScreen> {
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Text(
             'Remove from Liked Tasks?',
-            style: GoogleFonts.montserrat(
+            style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: Color(0xFF0272B1),
@@ -178,8 +175,7 @@ class _LikesScreenState extends State<LikesScreen> {
           ),
           content: Text(
             'This tasker will be removed from your liked tasks list.',
-            style:
-                GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
+            style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
           actions: [
@@ -190,7 +186,7 @@ class _LikesScreenState extends State<LikesScreen> {
                   onPressed: () => Navigator.pop(context, false),
                   child: Text(
                     'Cancel',
-                    style: GoogleFonts.montserrat(
+                    style: GoogleFonts.poppins(
                       fontSize: 14,
                       color: Colors.grey[600],
                     ),
@@ -206,7 +202,7 @@ class _LikesScreenState extends State<LikesScreen> {
                   ),
                   child: Text(
                     'Remove',
-                    style: GoogleFonts.montserrat(
+                    style: GoogleFonts.poppins(
                       fontSize: 14,
                       color: Colors.white,
                     ),
@@ -334,18 +330,17 @@ class _LikesScreenState extends State<LikesScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
-        elevation: 0,
+        centerTitle: true,
         title: Text(
-          'Liked Taskers',
-          style: GoogleFonts.montserrat(
-            color: Color(0xFFB71A4A),
+          'Saved',
+          style: GoogleFonts.poppins(
+            color: const Color(0xFFB71A4A),
             fontSize: 20,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        centerTitle: true,
+        backgroundColor: Colors.grey[100],
+        elevation: 0,
       ),
       body: Column(
         children: [
@@ -358,7 +353,7 @@ class _LikesScreenState extends State<LikesScreen> {
                 filled: true,
                 fillColor: Colors.white,
                 hintText: 'Search taskers...',
-                hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
+                hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
                 prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -373,19 +368,18 @@ class _LikesScreenState extends State<LikesScreen> {
                   borderSide: BorderSide(color: Color(0xFFB71A4A), width: 2),
                 ),
               ),
-              style: GoogleFonts.montserrat(fontSize: 14),
+              style: GoogleFonts.poppins(fontSize: 14),
             ),
           ),
           // Task Count
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 5),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Found $savedTasksCount taskers',
-                style: GoogleFonts.montserrat(
-                  fontSize: 14,
-                  color: Colors.grey[600],
+                '$savedTasksCount taskers',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
                 ),
               ),
             ),
@@ -402,10 +396,6 @@ class _LikesScreenState extends State<LikesScreen> {
       return Center(child: CircularProgressIndicator(color: Color(0xFFB71A4A)));
     }
 
-    // Debug: Print account status to see the actual value
-    debugPrint("Account Status: ${_user?.user.accStatus}");
-
-    // Check for error message first
     if (_errorMessage != null) {
       return Center(
         child: Column(
@@ -415,7 +405,7 @@ class _LikesScreenState extends State<LikesScreen> {
             SizedBox(height: 16),
             Text(
               _errorMessage!,
-              style: GoogleFonts.montserrat(
+              style: GoogleFonts.poppins(
                 fontSize: 16,
                 color: Colors.red[700],
               ),
@@ -423,7 +413,7 @@ class _LikesScreenState extends State<LikesScreen> {
             ),
             SizedBox(height: 16),
             ElevatedButton(
-              onPressed: _loadLikedTasks,
+              onPressed: _initializeData,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFFB71A4A),
                 shape: RoundedRectangleBorder(
@@ -433,7 +423,7 @@ class _LikesScreenState extends State<LikesScreen> {
               ),
               child: Text(
                 'Try Again',
-                style: GoogleFonts.montserrat(
+                style: GoogleFonts.poppins(
                   fontSize: 14,
                   color: Colors.white,
                 ),
@@ -444,40 +434,16 @@ class _LikesScreenState extends State<LikesScreen> {
       );
     }
 
-    // Skip verification check if account status is in review
-    if (_user?.user.accStatus == null) {
-      // If status is null, default to showing verification warning
-      debugPrint("Status is null - showing warning");
-      if (_existingProfileImageUrl == null ||
-          _existingIDImageUrl == null ||
-          _existingProfileImageUrl!.isEmpty ||
-          _existingIDImageUrl!.isEmpty) {
-        return _buildMissingInformation();
-      }
-    } else {
-      // Use exact case match for "Review" as used in the backend
-      String status = _user!.user.accStatus!;
-      debugPrint("Checking status (exact): '$status'");
-
-      // Check for exact match "Review" (with capital R) as used in the backend
-      bool isReview = status == "Review";
-
-      debugPrint("Is review status (exact match): $isReview");
-
-      if (isReview) {
-        // Status is review, skip verification check
-        debugPrint("Status is exactly 'Review' - skipping verification");
-      } else if (_existingProfileImageUrl == null ||
-          _existingIDImageUrl == null ||
-          _existingProfileImageUrl!.isEmpty ||
-          _existingIDImageUrl!.isEmpty) {
-        // Status is not review and verification is needed
-        debugPrint("Status not 'Review' - showing warning");
-        return _buildMissingInformation();
-      }
+    if (_user?.user.accStatus?.trim().toLowerCase() != 'review' &&
+        (_existingProfileImageUrl == null ||
+            _existingIDImageUrl == null ||
+            _existingProfileImageUrl!.isEmpty ||
+            _existingIDImageUrl!.isEmpty)) {
+      debugPrint(
+          "Showing missing information - Status: ${_user?.user.accStatus}");
+      return _buildMissingInformation();
     }
 
-    // Show empty state or task list
     if (_filteredTasks.isEmpty) {
       return Center(
         child: Column(
@@ -487,7 +453,7 @@ class _LikesScreenState extends State<LikesScreen> {
             SizedBox(height: 16),
             Text(
               'No liked taskers yet',
-              style: GoogleFonts.montserrat(
+              style: GoogleFonts.poppins(
                 fontSize: 18,
                 color: Colors.grey[600],
               ),
@@ -510,7 +476,7 @@ class _LikesScreenState extends State<LikesScreen> {
               ),
               child: Text(
                 'Browse Taskers',
-                style: GoogleFonts.montserrat(
+                style: GoogleFonts.poppins(
                   fontSize: 14,
                   color: Colors.white,
                 ),
@@ -521,9 +487,8 @@ class _LikesScreenState extends State<LikesScreen> {
       );
     }
 
-    // Display the list of liked taskers
     return RefreshIndicator(
-      onRefresh: _loadLikedTasks,
+      onRefresh: _initializeData,
       color: Color(0xFF0272B1),
       child: ListView.builder(
         padding: EdgeInsets.all(16),
@@ -545,7 +510,7 @@ class _LikesScreenState extends State<LikesScreen> {
           SizedBox(height: 16),
           Text(
             'Complete Your Profile',
-            style: GoogleFonts.montserrat(
+            style: GoogleFonts.poppins(
               fontSize: 18,
               color: Colors.orange[700],
               fontWeight: FontWeight.w600,
@@ -555,7 +520,7 @@ class _LikesScreenState extends State<LikesScreen> {
           SizedBox(height: 8),
           Text(
             'Please upload your profile and ID images to continue.',
-            style: GoogleFonts.montserrat(
+            style: GoogleFonts.poppins(
               fontSize: 14,
               color: Colors.grey[600],
             ),
@@ -570,10 +535,7 @@ class _LikesScreenState extends State<LikesScreen> {
                     builder: (context) => const VerificationPage()),
               );
               if (result == true) {
-                setState(() {
-                  _isLoading = true;
-                });
-                await _fetchUserIDImage();
+                await _initializeData();
               }
             },
             style: ElevatedButton.styleFrom(
@@ -585,7 +547,7 @@ class _LikesScreenState extends State<LikesScreen> {
             ),
             child: Text(
               'Upload Profile',
-              style: GoogleFonts.montserrat(
+              style: GoogleFonts.poppins(
                 fontSize: 14,
                 color: Colors.white,
               ),
@@ -620,7 +582,6 @@ class _LikesScreenState extends State<LikesScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Profile Image
             ClipRRect(
               borderRadius: BorderRadius.circular(50),
               child: Container(
@@ -644,14 +605,13 @@ class _LikesScreenState extends State<LikesScreen> {
               ),
             ),
             SizedBox(width: 16),
-            // Tasker Info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     tasker.user?.firstName ?? 'Unknown Tasker',
-                    style: GoogleFonts.montserrat(
+                    style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFFB71A4A),
@@ -666,7 +626,7 @@ class _LikesScreenState extends State<LikesScreen> {
                       Expanded(
                         child: Text(
                           tasker.user?.email ?? 'No email',
-                          style: GoogleFonts.montserrat(
+                          style: GoogleFonts.poppins(
                             fontSize: 14,
                             color: Colors.grey[600],
                           ),
@@ -685,7 +645,7 @@ class _LikesScreenState extends State<LikesScreen> {
                       ),
                       child: Text(
                         tasker.user!.accStatus!,
-                        style: GoogleFonts.montserrat(
+                        style: GoogleFonts.poppins(
                           fontSize: 10,
                           color: Colors.white,
                         ),
@@ -694,7 +654,6 @@ class _LikesScreenState extends State<LikesScreen> {
                 ],
               ),
             ),
-            // Action buttons
             Row(
               children: [
                 CircleAvatar(
@@ -746,7 +705,7 @@ class _TaskSelectionDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Text(
         'Select a Task to Assign',
-        style: GoogleFonts.montserrat(
+        style: GoogleFonts.poppins(
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: Color(0xFF0272B1),
@@ -760,7 +719,7 @@ class _TaskSelectionDialog extends StatelessWidget {
             ? Center(
                 child: Text(
                   'No tasks available',
-                  style: GoogleFonts.montserrat(
+                  style: GoogleFonts.poppins(
                     fontSize: 14,
                     color: Colors.grey[600],
                   ),
@@ -780,7 +739,7 @@ class _TaskSelectionDialog extends StatelessWidget {
                       contentPadding: EdgeInsets.all(12),
                       title: Text(
                         task.title ?? 'Untitled Task',
-                        style: GoogleFonts.montserrat(
+                        style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: Color(0xFF0272B1),
@@ -790,7 +749,7 @@ class _TaskSelectionDialog extends StatelessWidget {
                         task.description ?? 'No description',
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.montserrat(
+                        style: GoogleFonts.poppins(
                           fontSize: 12,
                           color: Colors.grey[600],
                         ),
@@ -798,7 +757,7 @@ class _TaskSelectionDialog extends StatelessWidget {
                       trailing: task.contactPrice != null
                           ? Text(
                               '\$${task.contactPrice}',
-                              style: GoogleFonts.montserrat(
+                              style: GoogleFonts.poppins(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.green[700],
@@ -816,7 +775,7 @@ class _TaskSelectionDialog extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
           child: Text(
             'Cancel',
-            style: GoogleFonts.montserrat(
+            style: GoogleFonts.poppins(
               fontSize: 14,
               color: Colors.red[400],
             ),

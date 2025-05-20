@@ -155,8 +155,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                         Icon(Icons.location_pin,
                                             color: Colors.red),
                                       ]),
-                                      Text(
-                                          "${task.duration} Needed ${task.period}")
                                     ]),
                                 _buildInfoRow("NOTE", task.urgency.toString()),
                                 Row(
