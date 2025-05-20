@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TaskService } from 'src/app/services/task.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -7,7 +7,7 @@ import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-create-specialization',
-  imports: [RouterLink, FormsModule, CommonModule],
+  imports: [ FormsModule, CommonModule],
   templateUrl: './create-specialization.component.html',
   styleUrls: ['./create-specialization.component.css']
 })
