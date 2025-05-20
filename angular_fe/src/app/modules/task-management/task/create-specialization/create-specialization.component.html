@@ -43,17 +43,21 @@
           <table class="w-full">
             <thead>
               <tr class="bg-white sticky top-0">
-                <th class=" p-2 text-start text-sm font-medium">Specialization List</th>
+                <th class="p-2 text-start text-sm font-medium">Specialization List</th>
                 <th class="p-2 text-start text-sm font-medium">Date Created</th>
+                <th class="p-2 text-start text-sm font-medium">Handled By</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let specialization of specializations; let i = index" class="hover:bg-card/50 h-[60px]">
                 <td class="p-2 text-sm text-start"> {{ i + 1 }}. {{ specialization.specialization }}</td>
                 <td class="p-2 text-sm text-start"> {{ specialization.created_at }}</td>
+                <td class="p-2 text-sm text-start">
+                  {{ specialization.action_by_user ? (specialization.action_by_user.first_name + ' ' + (specialization.action_by_user.middle_name ? specialization.action_by_user.middle_name + ' ' : '') + specialization.action_by_user.last_name) : 'N/A' }}
+                </td>
               </tr>
               <tr *ngIf="!specializations || specializations.length === 0">
-                <td class="p-2 text-sm text-white" colspan="2">No specializations available</td>
+                <td class="p-2 text-sm text-white" colspan="3">No specializations available</td>
               </tr>
             </tbody>
           </table>

@@ -4,10 +4,11 @@ import { TaskService } from 'src/app/services/task.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import Swal from 'sweetalert2';
+import { SessionLocalStorage } from 'src/services/sessionStorage';
 
 @Component({
   selector: 'app-create-specialization',
-  imports: [ FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule],
   templateUrl: './create-specialization.component.html',
   styleUrls: ['./create-specialization.component.css']
 })
@@ -16,7 +17,11 @@ export class CreateSpecializationComponent implements OnInit {
   specializations: any[] = [];
   submitted: boolean = false;
 
-  constructor(private router: Router, private taskService: TaskService) {}
+  constructor(
+    private router: Router,
+    private taskService: TaskService,
+    private sessionStorage: SessionLocalStorage
+  ) {}
 
   ngOnInit(): void {
     this.loadSpecializations();
@@ -25,7 +30,7 @@ export class CreateSpecializationComponent implements OnInit {
   loadSpecializations(): void {
     this.taskService.getSpecializations().subscribe({
       next: (response) => {
-        this.specializations = response.specializations; 
+        this.specializations = response.specializations;
       },
       error: (error) => {
         console.error('Error fetching specializations:', error);
@@ -47,7 +52,8 @@ export class CreateSpecializationComponent implements OnInit {
         cancelButtonText: 'Cancel'
       }).then((result) => {
         if (result.isConfirmed) {
-          this.taskService.createSpecialization({ specialization: this.specializationName }).subscribe({
+          const userId = this.sessionStorage.getUserId();
+          this.taskService.createSpecialization({ specialization: this.specializationName, user_id: userId }).subscribe({
             next: () => {
               this.specializationName = '';
               this.submitted = false;
