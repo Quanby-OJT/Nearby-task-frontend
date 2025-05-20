@@ -126,7 +126,7 @@
         </span>
         <div class="inline-flex items-center gap-2">
           <button (click)="previousPage()" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300">
-            ◀
+            <svg-icon src="./assets/icons/heroicons/outline/arrow-long-left.svg" [svgClass]="'h-4 w-4'"> </svg-icon>
           </button>
           <button *ngFor="let page of paginationButtons"
                   [disabled]="page === '...'"
@@ -137,7 +137,7 @@
             {{ page }}
           </button>
           <button (click)="nextPage()" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300">
-            ▶
+            <svg-icon src="./assets/icons/heroicons/outline/arrow-long-right.svg" [svgClass]="'h-4 w-4'"> </svg-icon>
           </button>
         </div>
       </div>

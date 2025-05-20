@@ -314,13 +314,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
     });
   }
 
-  warnUser(id: number): void {
-    const loggedInUserId = this.sessionStorage.getUserId(); 
-    if (!loggedInUserId) {
-      Swal.fire('Error!', 'Logged-in user not found.', 'error');
-      return;
-    }
-
+  warnUser(id: number, taskTakenId: number): void {
     Swal.fire({
       title: 'Are you sure to warn this user?',
       text: 'This action cannot be undone!',
@@ -330,21 +324,24 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
       confirmButtonText: 'Yes, warn it!',
     }).then((result) => {
       if (result.isConfirmed) {
-        this.userConversationService.warnUser(id, loggedInUserId).subscribe((response) => {
-          if (response) {
-            Swal.fire('Warned!', 'User has been warned.', 'success').then(() => {
-              // Refresh the conversation list after warning
-              this.userConversationService.getUserConversation().subscribe((response: { data: Conversation[] }) => {
-                if (response && response.data) {
-                  this.conversation = response.data;
-                  this.filteredConversations = [...this.conversation];
-                  this.updatePage();
-                }
+        this.userConversationService.warnUser(id, taskTakenId).subscribe({
+          next: (response) => {
+            if (response) {
+              Swal.fire('Warned!', 'User has been warned.', 'success').then(() => {
+                // Refresh the conversation list after warning
+                this.userConversationService.getUserConversation().subscribe((response: { data: Conversation[] }) => {
+                  if (response && response.data) {
+                    this.conversation = response.data;
+                    this.filteredConversations = [...this.conversation];
+                    this.updatePage();
+                  }
+                });
               });
-            });
+            }
+          },
+          error: (error) => {
+            Swal.fire('Error!', error.message || 'Failed to warn the user.', 'error');
           }
-        }, (error) => {
-          Swal.fire('Error!', 'Failed to warn the user.', 'error');
         });
       }
     });
@@ -355,84 +352,84 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
     console.log('Viewing user_id:', viewingUserId);
 
     this.userConversationService.getTaskConversations(taskTakenId).subscribe(
-        (response: { data: Message[] }) => {
-            if (response && response.data) {
-                const messages = response.data;
-                console.log('Messages received:', messages);
+      (response: { data: Message[] }) => {
+        if (response && response.data) {
+          const messages = response.data;
+          console.log('Messages received:', messages);
 
-                const messagesHtml = messages.map((msg: Message) => {
-                    const messageUserId = Number(msg.user_id);
-                    const isViewingUser = messageUserId === viewingUserId;
-                    console.log(`Message User ID: ${messageUserId}, Viewing User ID: ${viewingUserId}, isViewingUser: ${isViewingUser}`);
+          const messagesHtml = messages.map((msg: Message) => {
+            const messageUserId = Number(msg.user_id);
+            const isViewingUser = messageUserId === viewingUserId;
+            console.log(`Message User ID: ${messageUserId}, Viewing User ID: ${viewingUserId}, isViewingUser: ${isViewingUser}`);
 
-                    const alignment = isViewingUser ? 'right' : 'left';
-                    const bgColor = isViewingUser ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-800';
-                    const margin = isViewingUser ? 'ml-auto' : 'mr-auto';
-                    const roundedCorners = isViewingUser ? 'rounded-tl-lg rounded-bl-lg rounded-br-lg' : 'rounded-tr-lg rounded-br-lg rounded-bl-lg';
+            const alignment = isViewingUser ? 'right' : 'left';
+            const bgColor = isViewingUser ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-800';
+            const margin = isViewingUser ? 'ml-auto' : 'mr-auto';
+            const roundedCorners = isViewingUser ? 'rounded-tl-lg rounded-bl-lg rounded-br-lg' : 'rounded-tr-lg rounded-br-lg rounded-bl-lg';
 
-                    const userName = msg.user
-                        ? `${msg.user.first_name || ''} ${msg.user.middle_name || ''} ${msg.user.last_name || ''}`.trim()
-                        : 'Unknown User';
+            const userName = msg.user
+              ? `${msg.user.first_name || ''} ${msg.user.middle_name || ''} ${msg.user.last_name || ''}`.trim()
+              : 'Unknown User';
 
-                    const timestamp = msg.created_at || 'No Timestamp';
+            const timestamp = msg.created_at || 'No Timestamp';
 
-                    return `
-                        <div class="flex justify-${alignment} mb-4">
-                            <div class="${margin} max-w-[70%]">
-                                <div class="font-semibold text-sm mb-1 ${alignment === 'right' ? 'text-right' : 'text-left'}">
-                                    ${userName}
-                                </div>
-                                <div class="${bgColor} ${roundedCorners} px-4 py-2 text-justify">
-                                    ${msg.conversation}
-                                </div>
-                                <div class="text-xs text-gray-500 mt-1 ${alignment === 'right' ? 'text-right' : 'text-left'}">
-                                    ${timestamp}
-                                </div>
-                            </div>
-                        </div>`;
-                }).join('');
+            return `
+              <div class="flex justify-${alignment} mb-4">
+                <div class="${margin} max-w-[70%]">
+                  <div class="font-semibold text-sm mb-1 ${alignment === 'right' ? 'text-right' : 'text-left'}">
+                    ${userName}
+                  </div>
+                  <div class="${bgColor} ${roundedCorners} px-4 py-2 text-justify">
+                    ${msg.conversation}
+                  </div>
+                  <div class="text-xs text-gray-500 mt-1 ${alignment === 'right' ? 'text-right' : 'text-left'}">
+                    ${timestamp}
+                  </div>
+                </div>
+              </div>`;
+          }).join('');
 
-                const html = `
-                    <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
-                        ${messagesHtml}
-                    </div>
-                `;
-                Swal.fire({
-                    title: 'Users Conversation',
-                    html: html,
-                    width: '800px',
-                    confirmButtonText: 'Close',
-                    confirmButtonColor: '#3085d6',
-                    showCancelButton: false,
-                    customClass: {
-                        htmlContainer: 'text-left',
-                        actions: 'swal2-actions-right'
-                    },
-                    didOpen: () => {
-                        const container = document.querySelector('.swal2-html-container > div');
-                        if (container) {
-                            container.scrollTop = container.scrollHeight;
-                        }
-                        // Add custom CSS to ensure right alignment
-                        const style = document.createElement('style');
-                        style.textContent = `
-                            .swal2-actions-right {
-                                display: flex !important;
-                                justify-content: flex-end !important;
-                                width: 100% !important;
-                                padding-right: 20px !important;
-                            }
-                        `;
-                        document.head.appendChild(style);
-                    }
-                });
-            } else {
-                Swal.fire('Error', 'No messages found', 'error');
+          const html = `
+            <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
+              ${messagesHtml}
+            </div>
+          `;
+          Swal.fire({
+            title: 'Users Conversation',
+            html: html,
+            width: '800px',
+            confirmButtonText: 'Close',
+            confirmButtonColor: '#3085d6',
+            showCancelButton: false,
+            customClass: {
+              htmlContainer: 'text-left',
+              actions: 'swal2-actions-right'
+            },
+            didOpen: () => {
+              const container = document.querySelector('.swal2-html-container > div');
+              if (container) {
+                container.scrollTop = container.scrollHeight;
+              }
+              // Add custom CSS to ensure right alignment
+              const style = document.createElement('style');
+              style.textContent = `
+                .swal2-actions-right {
+                  display: flex !important;
+                  justify-content: flex-end !important;
+                  width: 100% !important;
+                  padding-right: 20px !important;
+                }
+              `;
+              document.head.appendChild(style);
             }
-        },
-        (error) => {
-            Swal.fire('Error', 'Failed to load conversation', 'error');
+          });
+        } else {
+          Swal.fire('Error', 'No messages found', 'error');
         }
+      },
+      (error) => {
+        Swal.fire('Error', 'Failed to load conversation', 'error');
+      }
     );
   }
 
@@ -444,7 +441,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
         `"${convo.task_taken.clients.user.first_name} ${convo.task_taken.clients.user.middle_name || ''} ${convo.task_taken.clients.user.last_name}"`,
         `"${convo.task_taken.tasker.user.first_name} ${convo.task_taken.tasker.user.middle_name || ''} ${convo.task_taken.tasker.user.last_name}"`,
         `"${convo.conversation || ''}"`,
-        `"${convo.task_taken.created_at || ''}"`,
+       `"${convo.task_taken.created_at || ''}"`,
         convo.task_taken.task_status || '',
       ];
       console.log('CSV Row:', row);
@@ -474,11 +471,11 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
       console.error('Failed to load Quanby.png:', e);
     }
 
-  // Nearby Task Part
-  const title = 'Nearby Task';
-  doc.setFontSize(20);
-  doc.setTextColor('#170A66');
-  doc.text(title, 170, 52);
+    // Nearby Task Part
+    const title = 'Nearby Task';
+    doc.setFontSize(20);
+    doc.setTextColor('#170A66');
+    doc.text(title, 170, 52);
 
     // Line Part
     doc.setDrawColor(0, 0, 0);
