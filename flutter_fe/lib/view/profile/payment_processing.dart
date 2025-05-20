@@ -132,7 +132,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
         // Handle the response
         final isSuccess = result['success'] ?? false;
         if (isSuccess) {
-          _showStatusModal(context, result['message'], Icon(
+          _showStatusModal(context, result['message'] ?? "Successfully Withdrew Your Amount.", Icon(
             Icons.check_circle,
             color: Colors.green,
             size: 70,
