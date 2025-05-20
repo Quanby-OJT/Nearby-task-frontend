@@ -9,7 +9,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 
 class TaskRequestService {
-  static String url = apiUrl ?? "http://192.168.0.152:5000/connect";
+  static String url = apiUrl ?? "http://192.168.43.15:5000/connect";
   static final storage = GetStorage();
 
   Future<String?> getUserId() async => storage.read('user_id')?.toString();
@@ -290,12 +290,9 @@ class TaskRequestService {
             contactPrice: taskData['proposed_price'] ?? 0,
             urgency: taskData['urgent'] == true ? 'Urgent' : 'Non-Urgent',
             specialization: taskData['specialization'],
-            period: taskData['period'],
             addressID: taskData['address_id'] ?? '',
             status: taskData['status'],
             scope: taskData['scope'],
-            duration: '',
-            taskBeginDate: '',
             workType: '');
       }
 
@@ -308,11 +305,8 @@ class TaskRequestService {
           contactPrice: 0,
           urgency: "Unknown",
           specialization: '',
-          period: '',
           status: '',
           scope: '',
-          duration: '',
-          taskBeginDate: '',
           workType: '');
     } catch (e, stackTrace) {
       debugPrint("Error creating TaskModel: $e");
@@ -326,11 +320,8 @@ class TaskRequestService {
           contactPrice: 0,
           urgency: "Unknown",
           specialization: '',
-          period: '',
           status: '',
           scope: '',
-          duration: '',
-          taskBeginDate: '',
           workType: '');
     }
   }

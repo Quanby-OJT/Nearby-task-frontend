@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
@@ -13,14 +12,12 @@ import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:get/get_connect/sockets/src/socket_notifier.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 import '../../controller/conversation_controller.dart';
-import '../../model/chat_push_notifications.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});

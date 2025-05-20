@@ -14,7 +14,6 @@ import 'package:flutter_fe/view/address/set-up_address.dart';
 import 'package:flutter_fe/view/business_acc/create_escrow_token.dart';
 import 'package:flutter_fe/view/business_acc/notif_screen.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
-import 'package:flutter_fe/view/service_acc/fill_up.dart';
 import 'package:flutter_fe/view/service_acc/notif_screen.dart';
 import 'package:flutter_fe/view/setting/setting.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -849,127 +848,172 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: Color(0xFF0272B1).withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      task.specialization ??
-                                          'No Specialization',
-                                      style: GoogleFonts.openSans(
-                                        fontSize: 14,
-                                        color: Color(0xFF0272B1),
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 16),
-                              Text(
-                                task.title ?? 'No Title',
-                                style: GoogleFonts.openSans(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey[800],
-                                ),
-                              ),
-                              SizedBox(height: 12),
-                              Expanded(
-                                child: Text(
-                                  task.description ?? 'No Description',
-                                  style: GoogleFonts.openSans(
-                                    fontSize: 16,
-                                    color: Colors.grey[600],
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 4,
-                                ),
-                              ),
-                              SizedBox(height: 12),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice.roundToDouble() ?? 0)}',
-                                        style: GoogleFonts.openSans(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.green,
+                        child: Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: task.imageUrl != null &&
+                                      task.imageUrl!.isNotEmpty
+                                  ? Image.network(
+                                      task.imageUrl!,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return Container(
+                                          color: Colors.grey[200],
+                                          child: Center(
+                                            child: Icon(
+                                              Icons.work_outline_outlined,
+                                              size: 100,
+                                              color: Colors.grey[400],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    )
+                                  : Container(
+                                      color: Colors.grey[200],
+                                      child: Center(
+                                        child: Icon(
+                                          Icons.work_outline_outlined,
+                                          size: 100,
+                                          color: Colors.grey[400],
                                         ),
                                       ),
-                                      SizedBox(height: 8),
+                                    ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(20.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: Color(0xFF0272B1)
+                                              .withOpacity(0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          task.taskerSpecialization
+                                                  ?.specialization ??
+                                              'No Specialization',
+                                          style: GoogleFonts.openSans(
+                                            fontSize: 14,
+                                            color: Color(0xFF0272B1),
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
                                     ],
                                   ),
-                                  Column(
-                                    children: [
-                                      Positioned(
-                                        bottom: 16,
-                                        right: 16,
-                                        child: Column(
-                                          children: [
-                                            ElevatedButton(
-                                              onPressed: () {
-                                                controller.swipe(
-                                                    CardSwiperDirection.left);
-                                              },
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor:
-                                                    Colors.transparent,
-                                                shape: CircleBorder(),
-                                                fixedSize: Size(50, 50),
-                                                padding: EdgeInsets.zero,
-                                              ),
-                                              child: Icon(
-                                                Icons.close,
-                                                color: Colors.white,
-                                                size: 24,
-                                              ),
-                                            ),
-                                            SizedBox(height: 10),
-                                            ElevatedButton(
-                                              onPressed: () {
-                                                controller.swipe(
-                                                    CardSwiperDirection.right);
-                                              },
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: Colors.red,
-                                                shape: CircleBorder(),
-                                                fixedSize: Size(50, 50),
-                                                padding: EdgeInsets.zero,
-                                              ),
-                                              child: Icon(
-                                                Icons.favorite,
-                                                color: Colors.white,
-                                                size: 24,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    task.title ?? 'No Title',
+                                    style: GoogleFonts.openSans(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey[800],
+                                    ),
+                                  ),
+                                  SizedBox(height: 12),
+                                  Expanded(
+                                    child: Text(
+                                      task.description ?? 'No Description',
+                                      style: GoogleFonts.openSans(
+                                        fontSize: 16,
+                                        color: Colors.grey[600],
                                       ),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 4,
+                                    ),
+                                  ),
+                                  SizedBox(height: 12),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice.roundToDouble() ?? 0)}',
+                                            style: GoogleFonts.openSans(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.green,
+                                            ),
+                                          ),
+                                          SizedBox(height: 8),
+                                        ],
+                                      ),
+                                      Column(
+                                        children: [
+                                          Positioned(
+                                            bottom: 16,
+                                            right: 16,
+                                            child: Column(
+                                              children: [
+                                                ElevatedButton(
+                                                  onPressed: () {
+                                                    controller.swipe(
+                                                        CardSwiperDirection
+                                                            .left);
+                                                  },
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor:
+                                                        Colors.transparent,
+                                                    shape: CircleBorder(),
+                                                    fixedSize: Size(50, 50),
+                                                    padding: EdgeInsets.zero,
+                                                  ),
+                                                  child: Icon(
+                                                    Icons.close,
+                                                    color: Colors.white,
+                                                    size: 24,
+                                                  ),
+                                                ),
+                                                SizedBox(height: 10),
+                                                ElevatedButton(
+                                                  onPressed: () {
+                                                    controller.swipe(
+                                                        CardSwiperDirection
+                                                            .right);
+                                                  },
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor: Colors.red,
+                                                    shape: CircleBorder(),
+                                                    fixedSize: Size(50, 50),
+                                                    padding: EdgeInsets.zero,
+                                                  ),
+                                                  child: Icon(
+                                                    Icons.favorite,
+                                                    color: Colors.white,
+                                                    size: 24,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      )
                                     ],
                                   )
                                 ],
-                              )
-                            ],
-                          ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),

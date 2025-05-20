@@ -15,7 +15,6 @@ import 'package:flutter_fe/view/address/set-up_address.dart';
 import 'package:flutter_fe/view/business_acc/create_escrow_token.dart';
 import 'package:flutter_fe/view/business_acc/notif_screen.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
-import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:flutter_fe/view/service_acc/notif_screen.dart';
 import 'package:flutter_fe/view/setting/setting.dart';
 import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
@@ -24,7 +23,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
-import 'package:flip_card/flip_card.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

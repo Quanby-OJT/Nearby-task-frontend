@@ -68,17 +68,13 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
-        title: Center(
-          child: Text(
-            'Wallet',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.montserrat(
-              color: Color(0xFFB71A4A),
-              fontWeight: FontWeight.w600,
-              fontSize: 18,
-            ),
+        centerTitle: true,
+        title: Text(
+          'Wallet',
+          style: GoogleFonts.poppins(
+            color: const Color(0xFFB71A4A),
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
@@ -106,7 +102,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'NearByTask Credits',
+                        'Total Balance',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 18,
@@ -115,8 +111,8 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                       SizedBox(height: 12),
                       _isLoading
                           ? Text(
-                              'Please Wait while we calculate your NearByTask Credits',
-                              style: TextStyle(
+                              'Please Wait while we calculate your credits',
+                              style: GoogleFonts.poppins(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.yellow.shade100),
@@ -125,10 +121,10 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                           : _escrowManagementController.tokenCredits.value ==
                                   0.0
                               ? Text(
-                                  "No credits available. Earn more by taking tasks.",
-                                  style: TextStyle(
+                                  "0.00",
+                                  style: GoogleFonts.poppins(
                                     color: Colors.white,
-                                    fontSize: 18,
+                                    fontSize: 36,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 )
@@ -136,7 +132,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                                   formatCurrency(_escrowManagementController
                                       .tokenCredits.value
                                       .toDouble()),
-                                  style: TextStyle(
+                                  style: GoogleFonts.poppins(
                                     color: Colors.white,
                                     fontSize: 36,
                                     fontWeight: FontWeight.bold,
@@ -179,7 +175,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                                 SizedBox(width: 8),
                                 Text(
                                   'Income',
-                                  style: TextStyle(
+                                  style: GoogleFonts.poppins(
                                     color: Colors.grey,
                                     fontSize: 14,
                                   ),
@@ -191,7 +187,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                               formatCurrency(_escrowManagementController
                                   .tokenCredits.value
                                   .toDouble()),
-                              style: TextStyle(
+                              style: GoogleFonts.poppins(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -234,7 +230,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                                   SizedBox(width: 8),
                                   Text(
                                     'Withdraw',
-                                    style: TextStyle(
+                                    style: GoogleFonts.poppins(
                                       color: Colors.grey,
                                       fontSize: 14,
                                     ),
@@ -244,7 +240,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                               SizedBox(height: 8),
                               Text(
                                 'Tap to withdraw',
-                                style: TextStyle(
+                                style: GoogleFonts.poppins(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.red[400],
@@ -260,171 +256,6 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
               ),
             ),
 
-            // Reviews Card
-            // Padding(
-            //   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            //   child: Card(
-            //     elevation: 2,
-            //     shape: RoundedRectangleBorder(
-            //       borderRadius: BorderRadius.circular(16),
-            //     ),
-            //     child: Padding(
-            //       padding: const EdgeInsets.all(16.0),
-            //       child: Column(
-            //         crossAxisAlignment: CrossAxisAlignment.start,
-            //         children: [
-            //           Row(
-            //             children: [
-            //               Icon(
-            //                 Icons.star_rate_rounded,
-            //                 color: Colors.amber,
-            //                 size: 24,
-            //               ),
-            //               SizedBox(width: 8),
-            //               Text(
-            //                 "Client Reviews",
-            //                 style: GoogleFonts.montserrat(
-            //                   fontSize: 16,
-            //                   fontWeight: FontWeight.bold,
-            //                   color: Colors.black,
-            //                 ),
-            //               ),
-            //             ],
-            //           ),
-            //           SizedBox(height: 16),
-            //           if (taskerFeedback.isNotEmpty)
-            //             Container(
-            //               padding: EdgeInsets.all(12),
-            //               decoration: BoxDecoration(
-            //                 color: Color(0xFF0272B1).withOpacity(0.05),
-            //                 borderRadius: BorderRadius.circular(8),
-            //               ),
-            //               child: Row(
-            //                 children: [
-            //                   Column(
-            //                     crossAxisAlignment: CrossAxisAlignment.start,
-            //                     children: [
-            //                       Text(
-            //                         "Average Rating",
-            //                         style: GoogleFonts.montserrat(
-            //                           fontSize: 14,
-            //                           fontWeight: FontWeight.w500,
-            //                           color: Colors.black87,
-            //                         ),
-            //                       ),
-            //                       SizedBox(height: 4),
-            //                       Row(
-            //                         children: [
-            //                           Text(
-            //                             _calculateAverageRating(taskerFeedback),
-            //                             style: GoogleFonts.montserrat(
-            //                               fontSize: 24,
-            //                               fontWeight: FontWeight.bold,
-            //                               color: Color(0xFF0272B1),
-            //                             ),
-            //                           ),
-            //                           SizedBox(width: 8),
-            //                           Row(
-            //                             children: List.generate(
-            //                               5,
-            //                               (index) => Icon(
-            //                                 index <
-            //                                         _getAverageRatingAsInt(
-            //                                             taskerFeedback)
-            //                                     ? Icons.star
-            //                                     : index ==
-            //                                                 _getAverageRatingAsInt(
-            //                                                     taskerFeedback) &&
-            //                                             _hasHalfStar(
-            //                                                 taskerFeedback)
-            //                                         ? Icons.star_half
-            //                                         : Icons.star_border,
-            //                                 color: Colors.amber,
-            //                                 size: 18,
-            //                               ),
-            //                             ),
-            //                           ),
-            //                         ],
-            //                       ),
-            //                     ],
-            //                   ),
-            //                   Spacer(),
-            //                   Column(
-            //                     crossAxisAlignment: CrossAxisAlignment.end,
-            //                     children: [
-            //                       Text(
-            //                         "${taskerFeedback.length} reviews",
-            //                         style: GoogleFonts.montserrat(
-            //                           fontSize: 14,
-            //                           fontWeight: FontWeight.w500,
-            //                           color: Colors.black87,
-            //                         ),
-            //                       ),
-            //                       SizedBox(height: 4),
-            //                       Text(
-            //                         _getCompletionRate(taskerFeedback),
-            //                         style: GoogleFonts.montserrat(
-            //                           fontSize: 12,
-            //                           color: Colors.green[700],
-            //                           fontWeight: FontWeight.bold,
-            //                         ),
-            //                       ),
-            //                     ],
-            //                   ),
-            //                 ],
-            //               ),
-            //             ),
-            //           SizedBox(height: 16),
-            //           Container(
-            //             height: 200, // Fixed height for the review list
-            //             child: taskerFeedback.isEmpty
-            //                 ? Center(
-            //                     child: Column(
-            //                       mainAxisAlignment: MainAxisAlignment.center,
-            //                       children: [
-            //                         Icon(
-            //                           Icons.rate_review_outlined,
-            //                           size: 48,
-            //                           color: Colors.grey[400],
-            //                         ),
-            //                         SizedBox(height: 16),
-            //                         Text(
-            //                           "No reviews yet",
-            //                           style: GoogleFonts.montserrat(
-            //                             fontSize: 16,
-            //                             fontWeight: FontWeight.w500,
-            //                             color: Colors.grey[600],
-            //                           ),
-            //                         ),
-            //                         Text(
-            //                           "Complete tasks to get client reviews",
-            //                           style: GoogleFonts.montserrat(
-            //                             fontSize: 14,
-            //                             color: Colors.grey[500],
-            //                           ),
-            //                           textAlign: TextAlign.center,
-            //                         ),
-            //                       ],
-            //                     ),
-            //                   )
-            //                 : ListView.builder(
-            //                     itemCount: taskerFeedback.length,
-            //                     itemBuilder: (context, index) {
-            //                       final feedback = taskerFeedback[index];
-            //                       return _buildReviewItem(
-            //                         "${feedback.client.user?.firstName} ${feedback.client.user?.lastName}",
-            //                         feedback.comment,
-            //                         feedback.rating.toInt(),
-            //                       );
-            //                     },
-            //                   ),
-            //           ),
-            //         ],
-            //       ),
-            //     ),
-            //   ),
-            // ),
-
             // Task Status Cards - Vertical Scrolling
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -433,7 +264,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                 children: [
                   Text(
                     'Task Status',
-                    style: TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -803,7 +634,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
               SizedBox(height: 16),
               Text(
                 'Withdrawal will be processed to your linked payment method.',
-                style: TextStyle(
+                style: GoogleFonts.poppins(
                   fontSize: 12,
                   color: Colors.grey[600],
                 ),
@@ -816,7 +647,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Cancel',
-              style: TextStyle(color: Colors.grey[600]),
+              style: GoogleFonts.poppins(color: Colors.grey[600]),
             ),
           ),
           ElevatedButton(
@@ -838,7 +669,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
             ),
             child: Text(
               'Withdraw',
-              style: TextStyle(color: Colors.white),
+              style: GoogleFonts.poppins(color: Colors.white),
             ),
           ),
         ],
