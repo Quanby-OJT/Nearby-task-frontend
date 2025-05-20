@@ -69,16 +69,22 @@ export class TaskComponent implements OnInit {
         console.error('Error fetching user role:', error);
         this.isLoading = false;
       }
-
     );
   }
 
   fetchTasks(): void {
     this.taskService.getTasks().subscribe(
-      (response: { tasks: Task[] }) => {
+      (response: { tasks: any[] }) => {
         console.log('Fetched tasks:', response.tasks);
-        this.tasks = response.tasks;
-        this.filteredTasks = response.tasks;
+        this.tasks = response.tasks.map(task => ({
+          ...task,
+          actionByUser: task.action_by_user ? {
+            first_name: task.action_by_user.first_name,
+            middle_name: task.action_by_user.middle_name || '',
+            last_name: task.action_by_user.last_name
+          } : undefined
+        }));
+        this.filteredTasks = this.tasks;
         this.updatePagination();
       },
       (error) => console.error('Error fetching tasks:', error)

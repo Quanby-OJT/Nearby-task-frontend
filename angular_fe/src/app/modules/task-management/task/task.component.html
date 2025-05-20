@@ -149,15 +149,16 @@
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[150px]">Urgent</th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[230px]">Status</th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[100px]">Action</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[230px]">Action By</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let task of displayedTasks; let i = index" class="hover:bg-card/50 h-[60px]">
           <td class="px-4 py-3 text-start">{{ task.clients.user.first_name }} {{ task.clients.user.middle_name || '' }} {{ task.clients.user.last_name }}</td>
-          <td class="px-4 py-3 text-start">{{ task.task_title || '' }}</td>
-          <td class="px-4 py-3 text-start">{{ task.specialization || '' }}</td>
+          <td class="px-4 py-3 text-start">{{ task.task_title || 'Empty' }}</td>
+          <td class="px-4 py-3 text-start">{{ task.specialization || 'Empty' }}</td>
           <td class="px-4 py-3 text-start">{{ task.proposed_price || 0 }}</td>
-          <td class="px-4 py-3 text-start">{{ task.location || '' }}</td>
+          <td class="px-4 py-3 text-start">{{ task.location || 'Empty' }}</td>
           <td class="px-4 py-3 text-start">{{ task.urgent ? 'Yes' : 'No' }}</td>
           <td class="px-4 py-3 text-start">
             <span
@@ -174,6 +175,7 @@
               <img src="https://img.icons8.com/?size=100&id=54137&format=png&color=FA5252" (click)="disableTask(task.task_id)" class="h-5 w-5">
             </button>
           </td>
+          <td class="px-4 py-3 text-start">{{ task.actionByUser ? (task.actionByUser.first_name + ' ' + (task.actionByUser.middle_name || '') + ' ' + task.actionByUser.last_name) : (task.action_by || 'Empty') }}</td>
         </tr>
         <!-- Placeholder rows with consistent styling -->
         <tr *ngFor="let placeholder of placeholderRows">
@@ -232,7 +234,7 @@
                   (click)="goToPage(page)">
             {{ page }}
           </button>
-          <span *ngIf="page === '...'" class="text-gray-500">...</span>
+          <span *ngIf="page === '...'">...</span>
         </ng-container>
 
         <!-- Next page button -->
