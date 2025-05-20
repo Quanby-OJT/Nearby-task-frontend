@@ -21,7 +21,7 @@ export class UserConversationService {
     });
   }
 
-  // Get the conversation from the backend server
+
   getUserConversation(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/getUserConversation`, {
       headers: this.getHeaders(),
@@ -29,11 +29,23 @@ export class UserConversationService {
     });
   }
 
-  banUser(id: number): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/banUser/${id}`, {}, {
-      headers: this.getHeaders(),
-      withCredentials: true,
-    });
+  banUser(id: number, taskTakenId: number): Observable<any> {
+    const userId = this.sessionStorage.getUserId();
+    if (!userId) {
+      return new Observable((observer) => {
+        observer.error('Logged-in user ID not found');
+        observer.complete();
+      });
+    }
+
+    return this.http.post<any>(
+      `${this.apiUrl}/banUser/${id}`,
+      { loggedInUserId: Number(userId), taskTakenId },
+      {
+        headers: this.getHeaders(),
+        withCredentials: true,
+      }
+    );
   }
 
   warnUser(id: number, taskTakenId: number): Observable<any> {

@@ -283,7 +283,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
     }
   }
 
-  banUser(id: number): void {
+  banUser(id: number, taskTakenId: number): void {
     Swal.fire({
       title: 'Are you sure to ban?',
       text: 'This action cannot be undone!',
@@ -294,10 +294,9 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
       confirmButtonText: 'Yes, ban it!',
     }).then((result) => {
       if (result.isConfirmed) {
-        this.userConversationService.banUser(id).subscribe((response) => {
+        this.userConversationService.banUser(id, taskTakenId).subscribe((response) => {
           if (response) {
             Swal.fire('Banned!', 'User has been banned.', 'success').then(() => {
-              // Refresh the conversation list after banning
               this.userConversationService.getUserConversation().subscribe((response: { data: Conversation[] }) => {
                 if (response && response.data) {
                   this.conversation = response.data;
