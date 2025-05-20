@@ -453,12 +453,14 @@ class TaskRequestService {
   Future<Map<String, dynamic>> releaseEscrowPayment(int taskerId, double amount, String paymentMethod, String acctNumber) async {
     try {
       debugPrint("Releasing escrow payment with tasker ID: $taskerId");
+      final String role = storage.read("role");
       return await _postRequest(
         endpoint: '/withdraw-escrow-amount/$taskerId',
         body: {
           'amount': amount,
           'payment_method': paymentMethod,
-          'account_number': acctNumber
+          'account_number': acctNumber,
+          'role': role
         },
       );
     } catch (e, stackTrace) {
