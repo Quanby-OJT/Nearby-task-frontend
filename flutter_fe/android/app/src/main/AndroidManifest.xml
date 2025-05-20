@@ -36,8 +36,7 @@
         <category android:name="android.intent.category.DEFAULT" />
         <category android:name="android.intent.category.BROWSABLE" />
         <data android:scheme="myapp" android:host="verify" />
-        <data android:scheme="myapp" android:host="paymongo" android:pathPrefix="/success" />
-        <data android:scheme="myapp" android:host="paymongo" android:pathPrefix="/failed" />
+        <data android:scheme="myapp" android:host="paymongo" />
         <data android:scheme="myapp" android:host="nextpay" />
       </intent-filter>
 

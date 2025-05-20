@@ -13,7 +13,8 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../sign_in/reset_password.dart';
 
 class WelcomePageViewMain extends StatefulWidget {
-  const WelcomePageViewMain({super.key});
+  final Uri? uri;
+  const WelcomePageViewMain({super.key, this.uri});
 
   @override
   State<WelcomePageViewMain> createState() => _WelcomePageViewMainState();
@@ -29,11 +30,12 @@ class _WelcomePageViewMainState extends State<WelcomePageViewMain> {
   @override
   void initState() {
     super.initState();
-    _initDeepLinkListener();
+    _handleDeepLink(widget.uri);
   }
-  Future<void> _handleDeepLink(Uri uri) async {
-    final token = uri.queryParameters['token'];
-    final email = uri.queryParameters['email'];
+
+  Future<void> _handleDeepLink(Uri? uri) async {
+    final token = uri?.queryParameters['token'];
+    final email = uri?.queryParameters['email'];
 
     if (token != null && email != null) {
       final int userId = await _authController.verifyEmail(context, token, email);
@@ -56,37 +58,9 @@ class _WelcomePageViewMainState extends State<WelcomePageViewMain> {
         debugPrint("Email verification failed/");
       }
     } else {
-      debugPrint("Invalid verification link");
+      debugPrint("Invalid verification link. Please Try Again.");
     }
   }
-
-  Future<void> _initDeepLinkListener() async {
-    final appLinks = AppLinks();
-    debugPrint("Handling Forgot Password Deeplink...");
-    try {
-      final Uri? initialUri = await appLinks.getInitialLink();
-      if (initialUri != null) {
-        _handleDeepLink(initialUri);
-      }
-    } catch (e, stackTrace) {
-      debugPrint(e.toString());
-      debugPrint(stackTrace.toString());
-    }
-
-    _linkSubscription = appLinks.uriLinkStream.listen(
-          (Uri? uri) {
-        if (uri != null) {
-          _handleDeepLink(uri);
-        }
-      },
-      onError: (err, stackTrace) {
-        debugPrint(err.toString());
-        debugPrintStack(stackTrace: stackTrace);
-      },
-    );
-  }
-
-
 
   @override
   Widget build(BuildContext context) {

@@ -108,7 +108,7 @@ class _RecordPageState extends State<RecordPage> {
                       SizedBox(height: 12),
                       _isLoading
                           ? Text(
-                              'Please Wait while we calculate your NearByTask Credits',
+                              'Please Wait while we calculate your Current Amount in QTask',
                               style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
@@ -118,7 +118,7 @@ class _RecordPageState extends State<RecordPage> {
                           : _escrowManagementController.tokenCredits.value ==
                                   0.0
                               ? Text(
-                                  "No credits available. Earn more by taking tasks.",
+                                  "You haven't made a deposit. To Create tasks, you must deposit first.",
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 18,
@@ -126,7 +126,7 @@ class _RecordPageState extends State<RecordPage> {
                                   ),
                                 )
                               : Text(
-                                  '\$${_escrowManagementController.tokenCredits.value.toStringAsFixed(2)}',
+                                  '₱${_escrowManagementController.tokenCredits.value.toStringAsFixed(2)}',
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 36,

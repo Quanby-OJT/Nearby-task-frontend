@@ -15,8 +15,9 @@ import '../../model/auth_user.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PaymentProcessingPage extends StatefulWidget {
-  final String transferMethod;
-  const PaymentProcessingPage({super.key, required this.transferMethod});
+  final String? transferMethod;
+  final Uri? uri;
+  const PaymentProcessingPage({super.key, this.transferMethod, this.uri});
 
   @override
   State<PaymentProcessingPage> createState() => _PaymentProcessingPageState();
@@ -38,64 +39,37 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    _initDeepLinkListener();
     fetchTaskerClientId();
+    _handleDeepLink(widget.uri);
   }
 
-  void _initDeepLinkListener() async{
-    final appLinks = AppLinks();
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
-    try{
-      final Uri? redirectUrl = await appLinks.getInitialLink();
-
-      if(redirectUrl != null){
-        _handleDeepLink(redirectUrl);
-      }
-    }catch(e, stackTrace){
-      debugPrint("Error getting initial link: $e");
-      debugPrintStack(stackTrace: stackTrace);
-      _showBanner(scaffoldMessenger, "AN Error Occurred while validating Your Payment.", Colors.red);
-    }
-  }
-
-  Future<void> _handleDeepLink(Uri uri) async {
-    final amount = uri.queryParameters['amount'];
-    final transactionId = uri.queryParameters['transaction_id'];
+  Future<void> _handleDeepLink(Uri? uri) async {
+    final amount = uri?.queryParameters['amount'];
+    final transactionId = uri?.queryParameters['transaction_id'];
 
     if (amount != null && transactionId != null) {
-      switch(uri.host){
-        case "payment-success":
-          final String result = await _escrowController.validatePayment(true, storage.read("user_id"), transactionId, double.parse(amount));
-          if(result == "Your Payment has been successfully processed."){
-            _showBanner(ScaffoldMessenger.of(context), result, Colors.green);
+      final String result = await _escrowController.validatePayment(true, storage.read("user_id"), transactionId, double.parse(amount));
+      if(result == "Your Payment has been Deposited Successfully. You can now create new Tasks."){
+        _showBanner(ScaffoldMessenger.of(context), result, Colors.green);
 
-            if(role == "Tasker"){
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => TaskerHomePage()
-                ),
-              );
-            }else if(role == "Client"){
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => ClientHomePage()
-                ),
-              );
-            }
-          }else{
-            _showBanner(ScaffoldMessenger.of(context), result, Colors.red);
-          }
-          break;
-        case "payment-failure":
-          final isSuccess = await _escrowController.validatePayment(false, storage.read("user_id"), transactionId, double.parse(amount));
-          _showBanner(ScaffoldMessenger.of(context), isSuccess, Colors.red);
-          break;
-        default:
-          debugPrint("Unknown deep link: $uri");
-          break;
+        if(role == "Tasker"){
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => TaskerHomePage()
+            ),
+          );
+        }else if(role == "Client"){
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => ClientHomePage()
+            ),
+          );
+        }
+      }else{
+        _showBanner(ScaffoldMessenger.of(context), result, Colors.red);
       }
     } else {
       debugPrint("Payment Update Failed");
