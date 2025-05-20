@@ -6,7 +6,6 @@ import { Router, RouterOutlet } from '@angular/router';
 import { ButtonComponent } from 'src/app/shared/components/button/button.component';
 import Swal from 'sweetalert2';
 
-
 @Component({
   selector: 'app-add-user',
   imports: [RouterOutlet, ReactiveFormsModule, NgIf, ButtonComponent, NgClass],
@@ -14,7 +13,6 @@ import Swal from 'sweetalert2';
   styleUrl: './add-user.component.css',
 })
 export class AddUserComponent {
-[x: string]: any;
   form!: FormGroup;
   submitted = false;
   imagePreview: string | null = null;
@@ -24,13 +22,12 @@ export class AddUserComponent {
   today: string; // Add property for current date
   actionByName: string = '';
 
-
   constructor(
     private _formBuilder: FormBuilder,
     private UserAccountService: UserAccountService,
     private router: Router,
     private cdRef: ChangeDetectorRef
-  ) {[]
+  ) {
     // Initialize today with current date in YYYY-MM-DD format
     const now = new Date();
     this.today = now.toISOString().split('T')[0];
@@ -186,7 +183,7 @@ export class AddUserComponent {
     formData.append('contact', this.form.value.contact);
     formData.append('gender', this.form.value.gender);
     formData.append('password', this.form.value.password);
-    formData.append('action_by', localStorage.getItem('user_id') || '0');
+    formData.append('added_by', localStorage.getItem('user_id') || '0');
 
     if (this.selectedFile) {
       formData.append('image', this.selectedFile); // Use the selected file
