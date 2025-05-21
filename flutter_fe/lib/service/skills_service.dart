@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/service/auth_service.dart';
-import 'package:flutter_fe/config/url_strategy.dart';
 import 'package:get_storage/get_storage.dart';
 
 class SkillsService {

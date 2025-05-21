@@ -12,6 +12,8 @@ import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/business_acc/client_record/client_finish.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
+import 'package:flutter_fe/view/task/task_confirmed.dart';
+import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:flutter_fe/view/task/task_pending.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -90,10 +92,7 @@ class _TaskPageState extends State<TaskPage>
         });
       }
     });
-    fetchSpecialization();
-    _loadSkills();
-    _fetchUserIDImage();
-    fetchCreatedTasks();
+    _loadMethod();
     _searchController.addListener(_filterTasks);
   }
 
@@ -102,6 +101,22 @@ class _TaskPageState extends State<TaskPage>
     _tabController.dispose();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _loadMethod() async {
+    setState(() {
+      _isLoading = true;
+    });
+    await Future(() async {
+      await fetchSpecialization();
+      await _loadSkills();
+      await _fetchUserIDImage();
+      await fetchCreatedTasks();
+      _searchController.addListener(_filterTasks);
+    });
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   Future<void> fetchSpecialization() async {
@@ -137,10 +152,6 @@ class _TaskPageState extends State<TaskPage>
   List<String> _skills = [];
 
   Future<void> fetchCreatedTasks() async {
-    setState(() {
-      _isLoading = true;
-    });
-
     try {
       final tasks = await controller.getTask(context);
       setState(() {
@@ -159,15 +170,11 @@ class _TaskPageState extends State<TaskPage>
           duration: Duration(seconds: 2),
           action: SnackBarAction(
             label: 'Retry',
-            onPressed: fetchCreatedTasks,
+            onPressed: _loadMethod,
             textColor: Colors.white,
           ),
         ),
       );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
@@ -200,14 +207,10 @@ class _TaskPageState extends State<TaskPage>
           _existingProfileImageUrl = user?.user.image;
           _existingIDImageUrl = response['url'];
           _documentValid = response['status'];
-          _isLoading = false;
         });
       }
     } catch (e) {
       debugPrint("Error fetching ID image: $e");
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
@@ -726,7 +729,41 @@ class _TaskPageState extends State<TaskPage>
                   taskInformation: task,
                 ),
               ),
-            );
+            ).then((value) {
+              if (value != null) {
+                _loadMethod();
+              }
+            });
+          }
+
+          if (task.taskStatus == "Confirmed") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TaskConfirmed(
+                  taskInformation: task,
+                ),
+              ),
+            ).then((value) {
+              if (value != null) {
+                _loadMethod();
+              }
+            });
+          }
+
+          if (task.taskStatus == "Ongoing") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TaskOngoing(
+                  taskInformation: task,
+                ),
+              ),
+            ).then((value) {
+              if (value != null) {
+                _loadMethod();
+              }
+            });
           }
         },
         child: Padding(

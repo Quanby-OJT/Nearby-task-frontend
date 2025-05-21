@@ -13,7 +13,6 @@ import 'package:flutter_fe/controller/escrow_management_controller.dart';
 import '../model/client_model.dart';
 import '../model/conversation.dart';
 import '../model/tasker_model.dart';
-import '../model/user_model.dart';
 
 class TaskController {
   final JobPostService _jobPostService = JobPostService();
@@ -186,11 +185,13 @@ class TaskController {
   }
 
   Future<String> assignTask(
-      int? taskId, int? clientId, int? taskerId, String role) async {
+      int? taskId, int? clientId, int? taskerId, String role,
+      {int? daysAvailable, String? availableDate}) async {
     debugPrint("Assigning task...");
     debugPrint("Role: $role");
-    final assignedTask =
-        await _jobPostService.assignTask(taskId!, clientId!, taskerId!, role);
+    final assignedTask = await _jobPostService.assignTask(
+        taskId!, clientId!, taskerId!, role,
+        daysAvailable: daysAvailable, availableDate: availableDate);
     return assignedTask.containsKey('message')
         ? assignedTask['message'].toString()
         : assignedTask['error'].toString();
@@ -338,44 +339,17 @@ class TaskController {
         );
       }
 
-      // Extract tasks array from response
-      final tasks = response['task_taken'] as List<dynamic>? ?? [];
-      final unreadMessages = response['unread_messages'] as List<dynamic>? ?? [];
-
-      debugPrint(unreadMessages.toString());
-
-      debugPrint('Tasks: $tasks');
-
       // Parse task assignments
-      final taskAssignments = tasks.map((taskJson) {
-        final clientUser = taskJson['clients'] as Map<String, dynamic>;
-        final taskerUser = taskJson['tasker'] as Map<String, dynamic>;
-
-        final client = ClientModel.fromJson(clientUser);
-        final tasker = TaskerModel.fromJson(taskerUser);
-
-        debugPrint('Client: $client');
-        debugPrint('Tasker: $tasker');
-
-        final task = TaskModel.fromJson(taskJson['post_task']);
-
-        final taskAssignment = TaskAssignment(
-          taskTakenId: taskJson['task_taken_id'],
-          client: client,
-          tasker: tasker,
-          task: task,
-          taskStatus: taskJson['task_status'],
-        );
-
-        return taskAssignment;
-      }).toList();
+      final taskAssignments = (response['task_taken'] as List<dynamic>?)
+              ?.map((taskJson) => TaskAssignment.fromJson(taskJson))
+              .toList() ??
+          [];
 
       // Parse conversations
       final conversations = (response['conversation'] as List<dynamic>?)
-          ?.map((convJson) => Conversation(
-            userId: convJson['user_id'],
-            taskTakenId: convJson['task_taken_id'],
-          )).toList() ?? [];
+              ?.map((convJson) => Conversation.fromJson(convJson))
+              .toList() ??
+          [];
 
       debugPrint('Fetched tasks: $taskAssignments');
       debugPrint('Fetched conversations: $conversations');
