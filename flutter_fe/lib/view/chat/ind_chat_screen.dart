@@ -17,13 +17,12 @@ class IndividualChatScreen extends StatefulWidget {
   final int taskTakenId;
   final int taskId;
   final String taskTakenStatus;
-  const IndividualChatScreen({
-    super.key,
-    this.taskTitle,
-    required this.taskTakenId,
-    required this.taskId,
-    required this.taskTakenStatus
-  });
+  const IndividualChatScreen(
+      {super.key,
+      this.taskTitle,
+      required this.taskTakenId,
+      required this.taskId,
+      required this.taskTakenStatus});
 
   @override
   State<IndividualChatScreen> createState() => _IndividualChatScreenState();
@@ -36,7 +35,8 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   final ScrollController _scrollController = ScrollController();
   // Logged In UserId Start
   final storage = GetStorage();
-  final ConversationController conversationController = ConversationController();
+  final ConversationController conversationController =
+      ConversationController();
   final JobPostService jobPostService = JobPostService();
   final ReportController reportController = ReportController();
   TaskModel? task;
@@ -116,6 +116,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        iconTheme: IconThemeData(color: Color(0xFFB71A4A)),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -126,7 +127,10 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                 children: [
                   Text(
                     widget.taskTitle ?? "Please Wait...",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFB71A4A)),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -139,7 +143,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                 // (1) Info Icon (unchanged)
                 IconButton(
                   icon: Icon(FontAwesomeIcons.circleInfo,
-                      color: Color(0xFF0272B1)),
+                      color: Color(0xFFB71A4A)),
                   onPressed: () {
                     debugPrint(widget.taskTakenId.toString());
                     Navigator.push(
@@ -244,14 +248,15 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                         Icon(
                           FontAwesomeIcons.message,
                           size: 100,
-                          color: Color(0xFF0272B1),
+                          color: Color(0xFFB71A4A),
                         ),
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 20),
                           child: Text(
                             "You Don't Have Messages Yet, You can Start a Conversation By Sending Your First Message to your Client.",
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 16),
+                            style: TextStyle(
+                                fontSize: 16, color: Color(0xFFB71A4A)),
                           ),
                         ),
                       ],
@@ -368,10 +373,10 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                             child: TextField(
                               controller: reasonController,
                               maxLines: 5,
-                              cursorColor: Color(0xFF0272B1),
+                              cursorColor: Color(0xFFB71A4A),
                               decoration: InputDecoration(
                                 label: Text('Report Description *'),
-                                labelStyle: TextStyle(color: Color(0xFF0272B1)),
+                                labelStyle: TextStyle(color: Color(0xFFB71A4A)),
                                 alignLabelWithHint: true,
                                 filled: true,
                                 fillColor: Color(0xFFF1F4FF),
@@ -387,7 +392,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
                                   borderSide: BorderSide(
-                                      color: Color(0xFF0272B1), width: 2),
+                                      color: Color(0xFFB71A4A), width: 2),
                                 ),
                               ),
                             ),
@@ -401,7 +406,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                                 Text(
                                   'Upload Proof (Limited to 5 images only)',
                                   style: TextStyle(
-                                    color: Color(0xFF0272B1),
+                                    color: Color(0xFFB71A4A),
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -422,7 +427,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                                       style: TextStyle(color: Colors.white),
                                     ),
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Color(0xFF0272B1),
+                                      backgroundColor: Color(0xFFB71A4A),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(10),
                                       ),
@@ -640,7 +645,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF0272B1),
+                            backgroundColor: Color(0xFFB71A4A),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),

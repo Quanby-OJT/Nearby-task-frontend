@@ -177,7 +177,7 @@ class _LikeScreenState extends State<LikeScreen> {
                       color: Colors.grey,
                     )),
                 filled: true,
-                fillColor: Color(0xFFF1F4FF),
+                fillColor: Color(0xFFB71A4A).withOpacity(0.1),
                 hintText: 'Search jobs...',
                 hintStyle: GoogleFonts.montserrat(color: Colors.grey),
                 enabledBorder: OutlineInputBorder(
@@ -186,8 +186,8 @@ class _LikeScreenState extends State<LikeScreen> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide:
-                      BorderSide(color: Colors.blue, width: 2), // Fixed color
+                  borderSide: BorderSide(
+                      color: Color(0xFFB71A4A), width: 2), // Fixed color
                 ),
               ),
             ),
