@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
-import 'package:flutter_fe/view/chat/dispute_chat_screen.dart';
+import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
+import 'package:flutter_fe/view/task/task_confirmed.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
@@ -37,9 +38,21 @@ class _TaskPendingState extends State<TaskPending> {
   @override
   void initState() {
     super.initState();
-    _fetchRequestDetails();
-    _updateNotif();
-    _fetchUserDetails();
+    _loadMethod();
+  }
+
+  void _loadMethod() async {
+    setState(() {
+      _isLoading = true;
+    });
+    await Future(() async {
+      await _fetchRequestDetails();
+      await _updateNotif();
+      await _fetchUserDetails();
+    });
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   Future<void> _updateNotif() async {
@@ -72,9 +85,6 @@ class _TaskPendingState extends State<TaskPending> {
       debugPrint("Fetched user details: $_userRole");
     } catch (e) {
       debugPrint("Error fetching user details: $e");
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
@@ -89,9 +99,6 @@ class _TaskPendingState extends State<TaskPending> {
       });
     } catch (e) {
       debugPrint("Error fetching tasker details: $e");
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
@@ -117,9 +124,6 @@ class _TaskPendingState extends State<TaskPending> {
       }
     } catch (e) {
       debugPrint("Error fetching request details: $e");
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
@@ -129,13 +133,9 @@ class _TaskPendingState extends State<TaskPending> {
           .fetchTaskInformation(_requestInformation?.task_id ?? 0);
       setState(() {
         _taskInformation = response?.task;
-        _isLoading = false;
       });
     } catch (e) {
       debugPrint("Error fetching task details: $e");
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
@@ -143,46 +143,89 @@ class _TaskPendingState extends State<TaskPending> {
     bool? confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(
-          'Reject Task',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(5),
+        ),
+        title: Center(
+          child: Text(
+            'Reject Task',
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
         ),
         content: Text(
           'Are you sure you want to reject this task? This action cannot be undone.',
-          style: GoogleFonts.poppins(),
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w300,
+            color: Colors.grey[800],
+          ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('No', style: GoogleFonts.poppins(color: Colors.grey)),
-          ),
-          TextButton(
-            onPressed: () async {
-              setState(() {
-                _isLoading = true;
-              });
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton(
+                child: Text(
+                  'Cancel',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFFB71A4A),
+                  ),
+                ),
+                onPressed: () => Navigator.pop(context, false),
+              ),
+              const SizedBox(width: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  color: Color(0xFFB71A4A),
+                ),
+                child: TextButton(
+                  child: Text(
+                    'Confirm',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                    ),
+                  ),
+                  onPressed: () async {
+                    setState(() {
+                      _isLoading = true;
+                    });
 
-              final String value = 'Reject';
-              bool result = await taskController.acceptRequest(
-                  _requestInformation?.task_taken_id ?? 0,
-                  value,
-                  _role ?? 'Unknown');
-              if (result) {
-                Navigator.pop(context);
-                setState(() {
-                  _isLoading = true;
-                });
-                await _fetchRequestDetails();
-                setState(() {
-                  _isLoading = false;
-                });
-              } else {
-                setState(() {
-                  _isLoading = false;
-                });
-              }
-            },
-            child: Text('Yes', style: GoogleFonts.poppins(color: Colors.red)),
+                    final String value = 'Reject';
+                    bool result = await taskController.acceptRequest(
+                      _requestInformation?.task_taken_id ?? 0,
+                      value,
+                      _role ?? 'Unknown',
+                    );
+                    if (result) {
+                      Navigator.pop(context, true);
+                      setState(() {
+                        _isLoading = true;
+                      });
+                      await _fetchRequestDetails();
+                      setState(() {
+                        _isLoading = false;
+                      });
+                    } else {
+                      Navigator.pop(context, false);
+                      setState(() {
+                        _isLoading = false;
+                      });
+                    }
+                  },
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -190,7 +233,23 @@ class _TaskPendingState extends State<TaskPending> {
 
     if (confirm == true) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Task rejection requested')),
+        SnackBar(
+          content: Text(
+            'Task rejection requested',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Color(0xFFB71A4A),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
       );
     }
   }
@@ -249,57 +308,6 @@ class _TaskPendingState extends State<TaskPending> {
         SnackBar(content: Text('Task rejection requested')),
       );
     }
-  }
-
-  Future<void> _handleAcceptTask(BuildContext context) async {
-    bool? confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'Accept Task',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-        ),
-        content: Text(
-          'Are you sure you want to accept this task? This action cannot be undone.',
-          style: GoogleFonts.poppins(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('No', style: GoogleFonts.poppins(color: Colors.grey)),
-          ),
-          TextButton(
-            onPressed: () async {
-              setState(() {
-                _isLoading = true;
-              });
-              debugPrint("Accept request role: $_role");
-              final String value = 'Accept';
-              bool result = await taskController.acceptRequest(
-                  _requestInformation?.task_taken_id ?? 0,
-                  value,
-                  _role ?? 'Unknown');
-              setState(() {
-                _isLoading = false;
-              });
-              if (result) {
-                Navigator.pop(context, true);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Task accepted successfully')),
-                );
-                Navigator.pop(context);
-              } else {
-                Navigator.pop(context, false);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to accept task')),
-                );
-              }
-            },
-            child: Text('Yes', style: GoogleFonts.poppins(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -369,28 +377,98 @@ class _TaskPendingState extends State<TaskPending> {
   }
 
   Widget _buildStatusSection() {
+    // Handle null cases
+    if (_requestInformation?.created_at == null ||
+        _requestInformation?.time_request == null) {
+      return Container(
+        width: double.infinity,
+        child: Column(
+          children: [
+            Icon(
+              Icons.hourglass_empty,
+              color: Colors.blue[600],
+              size: 36,
+            ),
+            SizedBox(height: 12),
+            Text(
+              'Pending to Confirm',
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.blue[900],
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              _requestInformation?.requested_from != _userRole
+                  ? _needToConfirm
+                  : _needToBeConfirmed,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                color: Colors.grey[700],
+                height: 1.5,
+              ),
+            ),
+            SizedBox(height: 12),
+            Text(
+              'Deadline information unavailable',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.red[600],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Calculate deadline: created_at + time_request days
+    final createdAt = _requestInformation!.created_at!;
+    final daysToConfirm = _requestInformation!.time_request ?? 1;
+    final deadline = createdAt.add(Duration(days: daysToConfirm));
+
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(20),
+      padding: EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue[100]!),
+        gradient: LinearGradient(
+          colors: [Colors.blue[50]!, Colors.white],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue[100]!.withOpacity(0.3),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          Icon(
-            Icons.hourglass_empty,
-            color: Colors.blue[600],
-            size: 40,
+          AnimatedContainer(
+            duration: Duration(milliseconds: 300),
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blue[100]!.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.hourglass_empty,
+              color: Colors.blue[600],
+              size: 36,
+            ),
           ),
           SizedBox(height: 12),
           Text(
             'Pending to Confirm',
             style: GoogleFonts.poppins(
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: Colors.blue[800],
+              color: Colors.blue[900],
             ),
           ),
           SizedBox(height: 8),
@@ -400,13 +478,70 @@ class _TaskPendingState extends State<TaskPending> {
                 : _needToBeConfirmed,
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
-              fontSize: 10,
-              color: Colors.grey[600],
+              fontSize: 12,
+              color: Colors.grey[700],
+              height: 1.5,
             ),
+          ),
+          SizedBox(height: 16),
+          StreamBuilder(
+            stream: Stream.periodic(Duration(seconds: 1)),
+            builder: (context, snapshot) {
+              final now = DateTime.now();
+              final difference = deadline.difference(now);
+
+              // Animation for timer text
+              return AnimatedOpacity(
+                opacity: difference.isNegative ? 1.0 : 0.9,
+                duration: Duration(milliseconds: 500),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Time Remaining',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                      SizedBox(height: 6),
+                      Text(
+                        difference.isNegative
+                            ? 'Deadline Expired'
+                            : _formatDuration(difference),
+                        style: GoogleFonts.poppins(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: difference.isNegative
+                              ? Colors.red[700]
+                              : Colors.blue[900],
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),
     );
+  }
+
+// Helper method to format duration
+  String _formatDuration(Duration difference) {
+    final days = difference.inDays;
+    final hours = difference.inHours % 24;
+    final minutes = difference.inMinutes % 60;
+    final seconds = difference.inSeconds % 60;
+
+    if (days > 0) {
+      return '$days${days == 1 ? ' day' : ' days'} ${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    }
+    return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
   Widget _buildTaskCard() {
@@ -502,16 +637,27 @@ class _TaskPendingState extends State<TaskPending> {
             ),
             SizedBox(height: 16),
             _buildProfileInfoRow(
-                'Name', tasker?.user.firstName ?? 'Not available'),
+              'Name',
+              (widget.taskInformation?.taskDetails?.client?.user != null)
+                  ? '${widget.taskInformation!.taskDetails!.client!.user!.firstName ?? ''} ${widget.taskInformation!.taskDetails!.client!.user!.lastName ?? ''}'
+                      .trim()
+                  : 'Not available',
+            ),
             SizedBox(height: 8),
             _buildProfileInfoRow(
-                'Email', tasker?.user.email ?? 'Not available'),
+                'Email',
+                widget.taskInformation?.taskDetails.client?.user?.email ??
+                    'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow(
-                'Phone', tasker?.user.contact ?? 'Not available'),
+                'Phone',
+                widget.taskInformation?.taskDetails.client?.user?.contact ??
+                    'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow(
-                'Status', tasker?.user.accStatus ?? 'Not available'),
+                'Status',
+                widget.taskInformation?.taskDetails.client?.user?.accStatus ??
+                    'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow('Account', 'Verified', isVerified: true),
           ],
@@ -550,13 +696,36 @@ class _TaskPendingState extends State<TaskPending> {
   Widget _buildActionButtons(String requestedFrom) {
     return Column(
       children: [
-        // Accept button (shown only if requestedFrom != _userRole)
         if (requestedFrom != _userRole)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.only(bottom: 12),
             child: ElevatedButton(
-              onPressed: () => _handleAcceptTask(context),
+              onPressed: () async {
+                setState(() {
+                  _isLoading = true;
+                });
+                debugPrint("Accept request role: $_role");
+                final String value = 'Accept';
+                bool result = await taskController.acceptRequest(
+                    _requestInformation?.task_taken_id ?? 0,
+                    value,
+                    _role ?? 'Unknown');
+                if (result) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TaskConfirmed(
+                        taskInformation: widget.taskInformation,
+                      ),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to accept task')),
+                  );
+                }
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFFB71A4A),
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -649,7 +818,18 @@ class _TaskPendingState extends State<TaskPending> {
     );
   }
 
-  void _handleMessage(BuildContext context) {}
+  void _handleMessage(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => IndividualChatScreen(
+          taskTitle: _taskInformation?.title,
+          taskTakenId: _requestInformation?.task_taken_id,
+          taskId: _requestInformation?.task_id,
+        ),
+      ),
+    );
+  }
 
   Widget _buildTaskInfoRow(
       {required IconData icon, required String label, required String value}) {

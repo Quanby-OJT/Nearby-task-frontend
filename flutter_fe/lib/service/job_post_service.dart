@@ -16,7 +16,7 @@ import '../model/client_model.dart';
 import '../model/tasker_model.dart';
 
 class JobPostService {
-  static String url = apiUrl ?? "http://192.168.43.15:5000/connect";
+  static String url = apiUrl ?? "https://192.168.43.15:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -744,7 +744,8 @@ class JobPostService {
   }
 
   Future<Map<String, dynamic>> assignTask(
-      int taskId, int clientId, int taskerId, String role) async {
+      int taskId, int clientId, int taskerId, String role,
+      {int? daysAvailable, String? availableDate}) async {
     final userId = await getUserId();
     if (userId == null) {
       return {
@@ -763,7 +764,9 @@ class JobPostService {
       "client_id": clientId,
       "task_id": taskId,
       "role": role,
-      "task_status": "Pending"
+      "task_status": "Pending",
+      "days_available": daysAvailable,
+      "available_date": availableDate
     });
   }
 
