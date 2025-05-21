@@ -48,15 +48,15 @@ class _AddressListState extends State<AddressList> {
 
   Future<void> _loadAddresses() async {
     setState(() => _isLoading = true);
-    final Address_response = await _addressController.loadAddresses();
+    final addressResponse = await _addressController.loadAddresses();
 
-    debugPrint('my addresses is this : $Address_response');
+    debugPrint('my addresses is this : $addressResponse');
 
     try {
       await Future.delayed(Duration(milliseconds: 500));
 
       setState(() {
-        _addresses = Address_response;
+        _addresses = addressResponse;
 
         _isLoading = false;
       });
@@ -72,39 +72,20 @@ class _AddressListState extends State<AddressList> {
   }
 
   Future<void> _addNewAddress() async {
-    final result = await Navigator.push<AddressModel>(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            Address(onAddressSelected: widget.onAddressSelected),
-      ),
-    );
+    try {
+      final result = await Navigator.push<AddressModel>(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              Address(onAddressSelected: widget.onAddressSelected),
+        ),
+      );
 
-    if (result != null) {
-      // In a real app, you would save this address to your backend
-      setState(() {
-        _addresses.add(result);
-      });
-
-      // If this is the first address, make it the default
-      if (_addresses.length == 1) {
-        setState(() {
-          _addresses[0] = AddressModel(
-            id: _addresses[0].id,
-            streetAddress: _addresses[0].streetAddress,
-            barangay: _addresses[0].barangay,
-            city: _addresses[0].city,
-            province: _addresses[0].province,
-            postalCode: _addresses[0].postalCode,
-            country: _addresses[0].country,
-            latitude: _addresses[0].latitude,
-            longitude: _addresses[0].longitude,
-            defaultAddress: true,
-            formattedAddress: _addresses[0].formattedAddress,
-            regionName: _addresses[0].regionName,
-          );
-        });
-      }
+      await _loadAddresses();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to add address: $e')),
+      );
     }
   }
 
@@ -116,43 +97,6 @@ class _AddressListState extends State<AddressList> {
   }
 
   void _setAsDefault(int index) {
-    setState(() {
-      for (int i = 0; i < _addresses.length; i++) {
-        if (i == index) {
-          _addresses[i] = AddressModel(
-            id: _addresses[i].id,
-            streetAddress: _addresses[i].streetAddress,
-            barangay: _addresses[i].barangay,
-            city: _addresses[i].city,
-            province: _addresses[i].province,
-            postalCode: _addresses[i].postalCode,
-            country: _addresses[i].country,
-            latitude: _addresses[i].latitude,
-            longitude: _addresses[i].longitude,
-            defaultAddress: true,
-            formattedAddress: _addresses[i].formattedAddress,
-            regionName: _addresses[i].regionName,
-          );
-        } else if (_addresses[i].defaultAddress == true) {
-          _addresses[i] = AddressModel(
-            id: _addresses[i].id,
-            streetAddress: _addresses[i].streetAddress,
-            barangay: _addresses[i].barangay,
-            city: _addresses[i].city,
-            province: _addresses[i].province,
-            postalCode: _addresses[i].postalCode,
-            country: _addresses[i].country,
-            latitude: _addresses[i].latitude,
-            longitude: _addresses[i].longitude,
-            defaultAddress: false,
-            formattedAddress: _addresses[i].formattedAddress,
-            regionName: _addresses[i].regionName,
-          );
-        }
-      }
-    });
-
-    // In a real app, you would update this in your backend
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Default address updated'),
@@ -310,13 +254,6 @@ class _AddressListState extends State<AddressList> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      _userName ?? 'User',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
                                     if (address.defaultAddress == true)
                                       Container(
                                         padding: const EdgeInsets.symmetric(
@@ -332,10 +269,36 @@ class _AddressListState extends State<AddressList> {
                                               color: Colors.white),
                                         ),
                                       ),
+                                    if (address.defaultAddress == false)
+                                      Row(
+                                        children: [
+                                          if (address.defaultAddress != true)
+                                            TextButton(
+                                              onPressed: () =>
+                                                  _setAsDefault(index),
+                                              child: Text('Set as Default'),
+                                            ),
+                                        ],
+                                      ),
+                                    Container(
+                                      child: Row(
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(Icons.edit),
+                                            onPressed: () =>
+                                                _editAddress(index),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.delete,
+                                                color: Colors.red),
+                                            onPressed: () =>
+                                                _deleteAddress(index),
+                                          ),
+                                        ],
+                                      ),
+                                    )
                                   ],
                                 ),
-                                SizedBox(height: 4),
-                                Text(_userPhone ?? 'No phone number'),
                                 SizedBox(height: 8),
                                 Text(
                                   displayAddress,
@@ -353,26 +316,6 @@ class _AddressListState extends State<AddressList> {
                                           color: Colors.grey[600]),
                                     ),
                                   ),
-                                SizedBox(height: 12),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    if (address.defaultAddress != true)
-                                      TextButton(
-                                        onPressed: () => _setAsDefault(index),
-                                        child: Text('Set as Default'),
-                                      ),
-                                    IconButton(
-                                      icon: const Icon(Icons.edit),
-                                      onPressed: () => _editAddress(index),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete,
-                                          color: Colors.red),
-                                      onPressed: () => _deleteAddress(index),
-                                    ),
-                                  ],
-                                ),
                               ],
                             ),
                           ),

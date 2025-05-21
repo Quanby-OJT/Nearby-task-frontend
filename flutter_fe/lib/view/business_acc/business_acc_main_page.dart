@@ -61,7 +61,7 @@ class _BusinessAccMainState extends State<BusinessAccMain>
       FontAwesomeIcons.solidMessage,
       FontAwesomeIcons.solidHeart,
     ];
-    final List<String> labels = ['Home', 'Task', 'Wallet', 'Chat', 'Likes'];
+    final List<String> labels = ['Home', 'Task', 'Wallet', 'Chat', 'Saved'];
 
     return Scaffold(
       body: PageView(
@@ -73,7 +73,7 @@ class _BusinessAccMainState extends State<BusinessAccMain>
           });
         },
         children: [
-          HomePage(),
+          ClientHomePage(),
           JobPostPage(),
           RecordPage(),
           ChatScreen(),

@@ -62,8 +62,9 @@ class AddressModel {
         return createdAt;
       case 'updated_at':
         return updatedAt;
-      case 'formatted_address':
+      case 'formatted_Address':
         return formattedAddress;
+      case 'region':
       case 'region_name':
         return regionName;
       default:
@@ -94,28 +95,33 @@ class AddressModel {
 
   factory AddressModel.fromJson(Map<String, dynamic> json) {
     return AddressModel(
-      id: json['id'] ?? json['user_id'] as String?,
-      streetAddress: json['street'] ?? json['street_address'] ?? '',
-      barangay: json['barangay'] ?? '',
-      city: json['city'] ?? '',
-      province: json['province'] ?? '',
-      postalCode: json['postal_code'] ?? '',
-      country: json['country'] ?? '',
+      id: json['id'] ?? json['id'] as String?,
+      streetAddress: json['street']?.toString() ??
+          json['street_address']?.toString() ??
+          '',
+      barangay: json['barangay']?.toString(),
+      city: json['city']?.toString() ?? 'Unknown City',
+      province: json['province']?.toString() ?? 'Unknown Province',
+      postalCode: json['postal_code']?.toString() ?? '',
+      country: json['country']?.toString() ?? 'Philippines',
       latitude: json['latitude'] != null
-          ? double.parse(json['latitude'].toString())
+          ? double.tryParse(json['latitude'].toString()) ?? 0.0
           : null,
       longitude: json['longitude'] != null
-          ? double.parse(json['longitude'].toString())
+          ? double.tryParse(json['longitude'].toString()) ?? 0.0
           : null,
-      defaultAddress: json['default'] ?? false,
+      defaultAddress: json['default'] as bool? ?? false,
       createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'])
+          ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()
           : null,
       updatedAt: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'])
+          ? DateTime.tryParse(json['updated_at'].toString()) ?? DateTime.now()
           : null,
-      formattedAddress: json['formatted_address'] ?? '',
-      regionName: json['region_name'] ?? '',
+      formattedAddress: json['formatted_address']?.toString() ??
+          json['formatted_Address']?.toString() ??
+          '',
+      regionName:
+          json['region']?.toString() ?? json['region_name']?.toString() ?? '',
     );
   }
 
@@ -154,16 +160,21 @@ class AddressModel {
   // Create a new instance from map data
   factory AddressModel.fromMapData(Map<String, dynamic> mapData) {
     return AddressModel(
-      streetAddress: mapData['street_address'] ?? '',
-      barangay: mapData['barangay'],
-      city: mapData['city'] ?? '',
-      province: mapData['province'] ?? '',
-      postalCode: mapData['postal_code'] ?? '',
-      country: mapData['country'] ?? 'Philippines',
-      latitude: mapData['latitude'],
-      longitude: mapData['longitude'],
-      formattedAddress: mapData['formattedAddress'],
-      regionName: mapData['region'],
+      id: mapData['id'] ?? 0,
+      streetAddress: mapData['street_address']?.toString() ?? '',
+      barangay: mapData['barangay']?.toString(),
+      city: mapData['city']?.toString() ?? 'Unknown City',
+      province: mapData['province']?.toString() ?? 'Unknown Province',
+      postalCode: mapData['postal_code']?.toString() ?? '',
+      country: mapData['country']?.toString() ?? 'Philippines',
+      latitude: mapData['latitude'] != null
+          ? double.tryParse(mapData['latitude'].toString()) ?? 0.0
+          : null,
+      longitude: mapData['longitude'] != null
+          ? double.tryParse(mapData['longitude'].toString()) ?? 0.0
+          : null,
+      formattedAddress: mapData['formattedAddress']?.toString() ?? '',
+      regionName: mapData['region']?.toString() ?? '',
     );
   }
 }

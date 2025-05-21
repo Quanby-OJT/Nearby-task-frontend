@@ -206,16 +206,10 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
                           _buildInfoRow("Description",
                               taskToDisplay.description ?? "N/A"),
                           _buildInfoRow("Contract Price", "₱ $priceDisplay"),
-                          _buildInfoRow("Duration",
-                              taskToDisplay.duration.toString() ?? "N/A"),
-                          _buildInfoRow(
-                              "Period", taskToDisplay.period ?? "N/A"),
                           _buildInfoRow(
                               "Urgency", taskToDisplay.urgency ?? "N/A"),
                           _buildInfoRow(
                               "Work Type", taskToDisplay.workType ?? "N/A"),
-                          _buildInfoRow("Start Date",
-                              taskToDisplay.taskBeginDate ?? "N/A"),
                           _buildInfoRow(
                               "Status", taskToDisplay.status ?? "Active"),
                           _buildInfoRow(

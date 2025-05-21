@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/model/task_fetch.dart';
+import 'package:flutter_fe/view/chat/dispute_chat_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
@@ -8,16 +10,15 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:get_storage/get_storage.dart';
 
-class TaskerPending extends StatefulWidget {
-  final int? requestID;
-  final String role;
-  const TaskerPending({super.key, this.requestID, required this.role});
+class TaskPending extends StatefulWidget {
+  final TaskFetch? taskInformation;
+  const TaskPending({super.key, this.taskInformation});
 
   @override
-  State<TaskerPending> createState() => _TaskerPendingState();
+  State<TaskPending> createState() => _TaskPendingState();
 }
 
-class _TaskerPendingState extends State<TaskerPending> {
+class _TaskPendingState extends State<TaskPending> {
   final JobPostService _jobPostService = JobPostService();
   final TaskController taskController = TaskController();
   final ProfileController _profileController = ProfileController();
@@ -45,7 +46,7 @@ class _TaskerPendingState extends State<TaskerPending> {
     try {
       final int userId = storage.read("user_id") ?? 0;
       final response = await taskController.updateNotif(
-        widget.requestID ?? 0,
+        widget.taskInformation?.taskTakenId ?? 0,
         userId,
       );
       debugPrint("Update notification response: ${response.toString()}");
@@ -96,18 +97,23 @@ class _TaskerPendingState extends State<TaskerPending> {
 
   Future<void> _fetchRequestDetails() async {
     try {
-      debugPrint("Fetching request details for task ID: ${widget.requestID}");
-      final response =
-          await _jobPostService.fetchRequestInformation(widget.requestID ?? 0);
+      debugPrint(
+          "Fetching request details for task ID: ${widget.taskInformation?.taskTakenId}");
+      final response = await _jobPostService
+          .fetchRequestInformation(widget.taskInformation?.taskTakenId ?? 0);
       setState(() {
         _requestInformation = response;
       });
 
+      debugPrint("Fetched request details: $_requestInformation");
+
       await _fetchTaskDetails();
-      if (widget.role == "Tasker") {
-        await _fetchTaskerDetails(_requestInformation?.tasker_id ?? 0);
+      if (widget.taskInformation?.taskDetails.client?.user?.role == "Tasker") {
+        await _fetchTaskerDetails(
+            widget.taskInformation?.taskDetails.client?.user?.id ?? 0);
       } else {
-        await _fetchTaskerDetails(_requestInformation?.client_id ?? 0);
+        await _fetchTaskerDetails(
+            widget.taskInformation?.taskDetails.client?.user?.id ?? 0);
       }
     } catch (e) {
       debugPrint("Error fetching request details: $e");
@@ -139,17 +145,16 @@ class _TaskerPendingState extends State<TaskerPending> {
       builder: (context) => AlertDialog(
         title: Text(
           'Reject Task',
-          style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
         ),
         content: Text(
           'Are you sure you want to reject this task? This action cannot be undone.',
-          style: GoogleFonts.montserrat(),
+          style: GoogleFonts.poppins(),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child:
-                Text('No', style: GoogleFonts.montserrat(color: Colors.grey)),
+            child: Text('No', style: GoogleFonts.poppins(color: Colors.grey)),
           ),
           TextButton(
             onPressed: () async {
@@ -177,8 +182,7 @@ class _TaskerPendingState extends State<TaskerPending> {
                 });
               }
             },
-            child:
-                Text('Yes', style: GoogleFonts.montserrat(color: Colors.red)),
+            child: Text('Yes', style: GoogleFonts.poppins(color: Colors.red)),
           ),
         ],
       ),
@@ -197,17 +201,16 @@ class _TaskerPendingState extends State<TaskerPending> {
       builder: (context) => AlertDialog(
         title: Text(
           'Cancel Task',
-          style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
         ),
         content: Text(
           'Are you sure you want to cancel this task? This action cannot be undone.',
-          style: GoogleFonts.montserrat(),
+          style: GoogleFonts.poppins(),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child:
-                Text('No', style: GoogleFonts.montserrat(color: Colors.grey)),
+            child: Text('No', style: GoogleFonts.poppins(color: Colors.grey)),
           ),
           TextButton(
             onPressed: () async {
@@ -235,8 +238,7 @@ class _TaskerPendingState extends State<TaskerPending> {
                 });
               }
             },
-            child:
-                Text('Yes', style: GoogleFonts.montserrat(color: Colors.red)),
+            child: Text('Yes', style: GoogleFonts.poppins(color: Colors.red)),
           ),
         ],
       ),
@@ -255,17 +257,16 @@ class _TaskerPendingState extends State<TaskerPending> {
       builder: (context) => AlertDialog(
         title: Text(
           'Accept Task',
-          style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
         ),
         content: Text(
           'Are you sure you want to accept this task? This action cannot be undone.',
-          style: GoogleFonts.montserrat(),
+          style: GoogleFonts.poppins(),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child:
-                Text('No', style: GoogleFonts.montserrat(color: Colors.grey)),
+            child: Text('No', style: GoogleFonts.poppins(color: Colors.grey)),
           ),
           TextButton(
             onPressed: () async {
@@ -294,8 +295,7 @@ class _TaskerPendingState extends State<TaskerPending> {
                 );
               }
             },
-            child:
-                Text('Yes', style: GoogleFonts.montserrat(color: Colors.red)),
+            child: Text('Yes', style: GoogleFonts.poppins(color: Colors.red)),
           ),
         ],
       ),
@@ -307,21 +307,27 @@ class _TaskerPendingState extends State<TaskerPending> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Color(0xFF03045E)),
-          onPressed: () => Navigator.pop(context),
-        ),
+        centerTitle: true,
         title: Text(
           'Pending Task',
-          style: GoogleFonts.montserrat(
-            color: Color(0xFF03045E),
+          style: GoogleFonts.poppins(
+            color: const Color(0xFFB71A4A),
             fontSize: 20,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        centerTitle: true,
+        backgroundColor: Colors.grey[100],
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: Color(0xFFB71A4A),
+            size: 20,
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: Color(0xFF03045E)))
@@ -329,7 +335,7 @@ class _TaskerPendingState extends State<TaskerPending> {
               ? Center(
                   child: Text(
                     'No task information available',
-                    style: GoogleFonts.montserrat(
+                    style: GoogleFonts.poppins(
                       fontSize: 16,
                       color: Colors.grey[600],
                     ),
@@ -381,8 +387,8 @@ class _TaskerPendingState extends State<TaskerPending> {
           SizedBox(height: 12),
           Text(
             'Pending to Confirm',
-            style: GoogleFonts.montserrat(
-              fontSize: 18,
+            style: GoogleFonts.poppins(
+              fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Colors.blue[800],
             ),
@@ -393,8 +399,8 @@ class _TaskerPendingState extends State<TaskerPending> {
                 ? _needToConfirm
                 : _needToBeConfirmed,
             textAlign: TextAlign.center,
-            style: GoogleFonts.montserrat(
-              fontSize: 14,
+            style: GoogleFonts.poppins(
+              fontSize: 10,
               color: Colors.grey[600],
             ),
           ),
@@ -426,7 +432,7 @@ class _TaskerPendingState extends State<TaskerPending> {
                 Expanded(
                   child: Text(
                     _taskInformation?.title ?? 'Task',
-                    style: GoogleFonts.montserrat(
+                    style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF03045E),
@@ -435,6 +441,7 @@ class _TaskerPendingState extends State<TaskerPending> {
                 ),
               ],
             ),
+            SizedBox(height: 12),
             SizedBox(height: 12),
             _buildTaskInfoRow(
               icon: Icons.info,
@@ -472,10 +479,11 @@ class _TaskerPendingState extends State<TaskerPending> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.role == "Tasker"
+                      widget.taskInformation?.taskDetails.client?.user?.role ==
+                              "Tasker"
                           ? "Tasker Profile"
                           : "Client Profile",
-                      style: GoogleFonts.montserrat(
+                      style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF03045E),
@@ -483,7 +491,7 @@ class _TaskerPendingState extends State<TaskerPending> {
                     ),
                     Text(
                       'Details',
-                      style: GoogleFonts.montserrat(
+                      style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: Colors.grey[600],
                       ),
@@ -529,7 +537,7 @@ class _TaskerPendingState extends State<TaskerPending> {
         ),
         child: Text(
           'Back to Tasks',
-          style: GoogleFonts.montserrat(
+          style: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w600,
             color: Colors.white,
@@ -540,37 +548,18 @@ class _TaskerPendingState extends State<TaskerPending> {
   }
 
   Widget _buildActionButtons(String requestedFrom) {
-    return Row(
+    return Column(
       children: [
+        // Accept button (shown only if requestedFrom != _userRole)
         if (requestedFrom != _userRole)
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () => _handleRejectTask(context),
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: Colors.red[400]!),
-                padding: EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                'Reject',
-                style: GoogleFonts.montserrat(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.red[400],
-                ),
-              ),
-            ),
-          ),
-        SizedBox(width: 12),
-        if (requestedFrom != _userRole)
-          Expanded(
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(bottom: 12),
             child: ElevatedButton(
               onPressed: () => _handleAcceptTask(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue[600],
-                padding: EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: Color(0xFFB71A4A),
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -578,7 +567,7 @@ class _TaskerPendingState extends State<TaskerPending> {
               ),
               child: Text(
                 'Accept',
-                style: GoogleFonts.montserrat(
+                style: GoogleFonts.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
@@ -586,30 +575,81 @@ class _TaskerPendingState extends State<TaskerPending> {
               ),
             ),
           ),
-        if (requestedFrom == _userRole)
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () => _handleCancelTask(context),
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: Colors.red[400]!),
-                padding: EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+        Row(
+          children: [
+            if (requestedFrom != _userRole) ...[
+              // Reject button
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => _handleRejectTask(context),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Colors.red[400]!),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Reject',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.red[400],
+                    ),
+                  ),
                 ),
               ),
-              child: Text(
-                'Cancel',
-                style: GoogleFonts.montserrat(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.red[400],
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => _handleMessage(context),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Colors.blue[600]!),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Message',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.blue[600],
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
+            ],
+            if (requestedFrom == _userRole)
+              // Cancel button
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => _handleCancelTask(context),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Colors.red[400]!),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Cancel',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.red[400],
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ],
     );
   }
+
+  void _handleMessage(BuildContext context) {}
 
   Widget _buildTaskInfoRow(
       {required IconData icon, required String label, required String value}) {
@@ -619,7 +659,7 @@ class _TaskerPendingState extends State<TaskerPending> {
         SizedBox(width: 8),
         Text(
           '$label: ',
-          style: GoogleFonts.montserrat(
+          style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w500,
             color: Colors.grey[600],
@@ -628,7 +668,7 @@ class _TaskerPendingState extends State<TaskerPending> {
         Expanded(
           child: Text(
             value,
-            style: GoogleFonts.montserrat(
+            style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w500,
               color: Color(0xFF03045E),
@@ -645,7 +685,7 @@ class _TaskerPendingState extends State<TaskerPending> {
       children: [
         Text(
           '$label: ',
-          style: GoogleFonts.montserrat(
+          style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w500,
             color: Colors.grey[600],
@@ -657,7 +697,7 @@ class _TaskerPendingState extends State<TaskerPending> {
               Flexible(
                 child: Text(
                   value,
-                  style: GoogleFonts.montserrat(
+                  style: GoogleFonts.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                     color: Color(0xFF03045E),

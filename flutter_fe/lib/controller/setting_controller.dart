@@ -70,4 +70,38 @@ class SettingController {
     debugPrint('my addresses is this post: $addresses');
     return addresses;
   }
+
+  Future setAddress(
+    double latitude,
+    double longitude,
+    String formattedAddress,
+    String region,
+    String province,
+    String city,
+    String barangay,
+    String street,
+    String postalCode,
+    String country,
+  ) async {
+    final userId = storage.read('user_id');
+
+    if (userId == null) {
+      debugPrint('Error: user_id is null in storage');
+      throw Exception('User ID not found. Please login again.');
+    }
+
+    return settingService.setAddress(
+      userId,
+      latitude,
+      longitude,
+      formattedAddress,
+      region,
+      province,
+      city,
+      barangay,
+      street,
+      postalCode,
+      country,
+    );
+  }
 }

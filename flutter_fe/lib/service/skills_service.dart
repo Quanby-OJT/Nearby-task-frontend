@@ -35,10 +35,6 @@ class SkillsService {
           'SkillsService: Testing direct API call to specializations endpoint...');
 
       final String token = await AuthService.getSessionToken();
-      if (token == null) {
-        debugPrint('SkillsService: No auth token available');
-        return;
-      }
 
       final String apiUrl = JobPostService.url;
       debugPrint('SkillsService: Using API URL: $apiUrl');
@@ -82,10 +78,6 @@ class SkillsService {
           'SkillsService: Fetching specializations directly from API...');
 
       final String token = await AuthService.getSessionToken();
-      if (token == null) {
-        debugPrint('SkillsService: No auth token available for direct fetch');
-        return [];
-      }
 
       final String apiUrl = JobPostService.url;
 
