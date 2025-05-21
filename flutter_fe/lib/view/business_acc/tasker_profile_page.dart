@@ -5,6 +5,7 @@ import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/view/business_acc/assignment/task_assignment.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -281,113 +282,122 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
     }
   }
 
-  Future<void> _assignTask(TaskerModel tasker) async {
-    if (_isAssigning) return;
-
-    debugPrint(
-        "Filtering available tasks for tasker ${tasker.id} and client ${_user?.user.id}");
-
-    debugPrint("Assigning task to tasker ${tasker.id}");
-    setState(() {
-      _isAssigning = true;
-    });
-
-    try {
-      List<TaskModel> clientTasks =
-          _preloadedTasks ?? await _fetchClientTasks();
-
-      if (clientTasks.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('You have no active tasks to assign.'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-        return;
-      }
-
-      final availableTasks =
-          await _filterAvailableTasks(clientTasks, widget.tasker.id);
-
-      debugPrint(
-          "Available tasks: ${clientTasks.length} tasks ${widget.tasker.id}");
-
-      if (availableTasks.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('All your active tasks are already assigned.'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-        return;
-      }
-
-      final selectedTask = await _showTaskSelectionDialog(availableTasks);
-      if (selectedTask == null) return;
-
-      final clientServices = ClientServices();
-      final String? clientId = await clientServices.getUserId();
-      if (clientId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Unable to identify client. Please log in again.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-
-      OverlayEntry? loadingOverlay;
-      try {
-        loadingOverlay = OverlayEntry(
-          builder: (context) => Container(
-            color: Colors.black45,
-            child: const Center(child: CircularProgressIndicator()),
-          ),
-        );
-        if (mounted) Overlay.of(context).insert(loadingOverlay);
-
-        final result = await taskController.assignTask(
-          selectedTask.id,
-          int.parse(clientId),
-          tasker.id ?? 0,
-          _role ?? 'client',
-        );
-
-        final isSuccess = !result.toLowerCase().contains('already') &&
-            !result.toLowerCase().contains('error') &&
-            !result.toLowerCase().contains('failed');
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result),
-            backgroundColor: isSuccess ? Colors.green : Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-
-        if (isSuccess) {
-          final jobPostService = JobPostService();
-          jobPostService.updateAssignmentCache(
-              selectedTask.id, tasker.id ?? 0, true, clientId);
-          TaskCache.clear();
-          _preloadClientTasks();
-        }
-      } finally {
-        loadingOverlay?.remove();
-      }
-    } catch (e) {
-      debugPrint("Error in _assignTask: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to assign task: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      if (mounted) setState(() => _isAssigning = false);
-    }
+  void _assignTask(TaskerModel tasker) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TaskAssignmentScreen(tasker: tasker),
+      ),
+    );
   }
+
+  // Future<void> _assignTask(TaskerModel tasker) async {
+  //   if (_isAssigning) return;
+
+  //   debugPrint(
+  //       "Filtering available tasks for tasker ${tasker.id} and client ${_user?.user.id}");
+
+  //   debugPrint("Assigning task to tasker ${tasker.id}");
+  //   setState(() {
+  //     _isAssigning = true;
+  //   });
+
+  //   try {
+  //     List<TaskModel> clientTasks =
+  //         _preloadedTasks ?? await _fetchClientTasks();
+
+  //     if (clientTasks.isEmpty) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(
+  //           content: Text('You have no active tasks to assign.'),
+  //           backgroundColor: Colors.orange,
+  //         ),
+  //       );
+  //       return;
+  //     }
+
+  //     final availableTasks =
+  //         await _filterAvailableTasks(clientTasks, widget.tasker.id);
+
+  //     debugPrint(
+  //         "Available tasks: ${clientTasks.length} tasks ${widget.tasker.id}");
+
+  //     if (availableTasks.isEmpty) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(
+  //           content: Text('All your active tasks are already assigned.'),
+  //           backgroundColor: Colors.orange,
+  //         ),
+  //       );
+  //       return;
+  //     }
+
+  //     final selectedTask = await _showTaskSelectionDialog(availableTasks);
+  //     if (selectedTask == null) return;
+
+  //     final clientServices = ClientServices();
+  //     final String? clientId = await clientServices.getUserId();
+  //     if (clientId == null) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(
+  //           content: Text('Unable to identify client. Please log in again.'),
+  //           backgroundColor: Colors.red,
+  //         ),
+  //       );
+  //       return;
+  //     }
+
+  //     OverlayEntry? loadingOverlay;
+  //     try {
+  //       loadingOverlay = OverlayEntry(
+  //         builder: (context) => Container(
+  //           color: Colors.black45,
+  //           child: const Center(child: CircularProgressIndicator()),
+  //         ),
+  //       );
+  //       if (mounted) Overlay.of(context).insert(loadingOverlay);
+
+  //       final result = await taskController.assignTask(
+  //         selectedTask.id,
+  //         int.parse(clientId),
+  //         tasker.id ?? 0,
+  //         _role ?? 'client',
+  //       );
+
+  //       final isSuccess = !result.toLowerCase().contains('already') &&
+  //           !result.toLowerCase().contains('error') &&
+  //           !result.toLowerCase().contains('failed');
+
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text(result),
+  //           backgroundColor: isSuccess ? Colors.green : Colors.red,
+  //           duration: const Duration(seconds: 3),
+  //         ),
+  //       );
+
+  //       if (isSuccess) {
+  //         final jobPostService = JobPostService();
+  //         jobPostService.updateAssignmentCache(
+  //             selectedTask.id, tasker.id ?? 0, true, clientId);
+  //         TaskCache.clear();
+  //         _preloadClientTasks();
+  //       }
+  //     } finally {
+  //       loadingOverlay?.remove();
+  //     }
+  //   } catch (e) {
+  //     debugPrint("Error in _assignTask: $e");
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Failed to assign task: $e'),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //   } finally {
+  //     if (mounted) setState(() => _isAssigning = false);
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -611,6 +621,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                                 child: ElevatedButton.icon(
                                   onPressed: _isAssigning
                                       ? null
+                                      // : () => _assignTask(widget.tasker),
                                       : () => _assignTask(widget.tasker),
                                   icon: const Icon(Icons.assignment_turned_in,
                                       color: Colors.white),

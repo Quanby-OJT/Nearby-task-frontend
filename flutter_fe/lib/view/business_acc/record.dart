@@ -98,7 +98,7 @@ class _RecordPageState extends State<RecordPage> {
                     children: [
                       Text(
                         'Total Balance',
-                        style: TextStyle(
+                        style: GoogleFonts.poppins(
                           color: Colors.white,
                           fontSize: 18,
                         ),
@@ -106,12 +106,12 @@ class _RecordPageState extends State<RecordPage> {
                       SizedBox(height: 12),
                       _isLoading
                           ? Text(
-                              'Please Wait while we calculate your NearByTask Credits',
-                              style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.yellow.shade100),
-                              textAlign: TextAlign.left,
+                              '0.00',
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 36,
+                                fontWeight: FontWeight.bold,
+                              ),
                             )
                           : _escrowManagementController.tokenCredits.value ==
                                   0.0
