@@ -354,14 +354,14 @@ class _LikesScreenState extends State<LikesScreen> {
                 fillColor: Colors.white,
                 hintText: 'Search taskers...',
                 hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
-                prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
+                prefixIcon: const Icon(Icons.search, color: Color(0xFFB71A4A)),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                  borderSide: const BorderSide(color: Color(0xFFB71A4A)),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[200]!),
+                  borderSide: BorderSide(color: Color(0xFFB71A4A)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),

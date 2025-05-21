@@ -283,11 +283,10 @@ class _ClientRequestState extends State<ClientRequest> {
                                       debugPrint("Reject request role: $_role");
                                       bool result =
                                           await taskController.acceptRequest(
-                                              _requestInformation!
-                                                  .task_taken_id!,
-                                              value,
-                                              _role!,
-                                          );
+                                        _requestInformation!.task_taken_id!,
+                                        value,
+                                        _role!,
+                                      );
                                       debugPrint(
                                           "Reject request result: $result");
                                       if (result) {
@@ -333,10 +332,10 @@ class _ClientRequestState extends State<ClientRequest> {
                                       final String value = 'Accept';
                                       bool result =
                                           await taskController.acceptRequest(
-                                            _requestInformation!.task_taken_id!,
-                                            value,
-                                            _role!,
-                                          );
+                                        _requestInformation!.task_taken_id!,
+                                        value,
+                                        _role!,
+                                      );
                                       if (result) {
                                         Navigator.push(
                                           context,
@@ -349,9 +348,6 @@ class _ClientRequestState extends State<ClientRequest> {
                                                   .task_taken_id as int,
                                               taskId: _requestInformation!
                                                   .client_id as int,
-                                              taskTakenStatus:
-                                                  _requestInformation!
-                                                      .task_status as String,
                                             ),
                                           ),
                                         ).then((value) {

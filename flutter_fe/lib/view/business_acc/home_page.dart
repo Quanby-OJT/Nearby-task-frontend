@@ -18,7 +18,6 @@ import 'package:flutter_fe/view/service_acc/notif_screen.dart';
 import 'package:flutter_fe/view/setting/setting.dart';
 import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
 import 'package:flutter_fe/view/verification/verification_page.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
@@ -30,7 +29,8 @@ class ClientHomePage extends StatefulWidget {
   State<ClientHomePage> createState() => _ClientHomePageState();
 }
 
-class _ClientHomePageState extends State<ClientHomePage> with TickerProviderStateMixin {
+class _ClientHomePageState extends State<ClientHomePage>
+    with TickerProviderStateMixin {
   final ProfileController _profileController = ProfileController();
   final AuthenticationController _authController = AuthenticationController();
   final GetStorage storage = GetStorage();

@@ -3,7 +3,6 @@ import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/view/sign_in/forgot_password.dart';
 import 'package:get/get.dart';
-import '../view/auth/email_verification_page.dart';
 import '../view/profile/payment_processing.dart';
 
 class DeepLinkController extends GetxController {
@@ -40,7 +39,7 @@ class DeepLinkController extends GetxController {
         Get.to(() => PaymentProcessingPage(uri: uri));
         break;
       case 'nextpay':
-      // Add other cases here
+        // Add other cases here
         break;
       default:
         debugPrint("⚠️ Unknown deep link host: ${uri.host}");

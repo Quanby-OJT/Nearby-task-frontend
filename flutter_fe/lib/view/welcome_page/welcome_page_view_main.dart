@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/view/sign_in/sign_in.dart';
@@ -38,7 +37,8 @@ class _WelcomePageViewMainState extends State<WelcomePageViewMain> {
     final email = uri?.queryParameters['email'];
 
     if (token != null && email != null) {
-      final int userId = await _authController.verifyEmail(context, token, email);
+      final int userId =
+          await _authController.verifyEmail(context, token, email);
 
       if (userId != 0) {
         debugPrint("User ID: $userId");
