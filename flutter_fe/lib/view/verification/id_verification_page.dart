@@ -144,13 +144,13 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
   void _verifyId() {
     if (_formKey.currentState!.validate()) {
       if (_idImage != null) {
-        // Use the captured image
-        widget.onIdVerified(_idImage!, _selectedIdType!);
+        // Use the captured image with empty string for ID type
+        widget.onIdVerified(_idImage!, _selectedIdType ?? '');
       } else if (_idImageUrl != null) {
         // If we have an existing image URL but no new image captured,
         // create a dummy file to continue the flow
         final dummyFile = File('dummy_path');
-        widget.onIdVerified(dummyFile, _selectedIdType!);
+        widget.onIdVerified(dummyFile, _selectedIdType ?? '');
       } else {
         // No image at all
         ScaffoldMessenger.of(context).showSnackBar(
@@ -164,12 +164,11 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
   }
 
   bool get _canProceed {
-    final hasIdType = _selectedIdType != null;
+    // Only check if we have an image, ID type is no longer required
     final hasImage = _idImage != null || _idImageUrl != null;
-    final canProceed = hasIdType && hasImage;
+    final canProceed = hasImage;
 
     debugPrint('Can proceed check:');
-    debugPrint('  - Has ID Type: $hasIdType (value: $_selectedIdType)');
     debugPrint(
         '  - Has Image: $hasImage (new: ${_idImage != null}, existing: ${_idImageUrl != null})');
     debugPrint('  - Can Proceed: $canProceed');
@@ -332,42 +331,6 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                       ),
                     if (_verificationStatus != 'approved')
                       const SizedBox(height: 24),
-
-                    // ID Type Dropdown
-                    Text(
-                      'ID Type',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    DropdownButtonFormField<String>(
-                      decoration: _inputDecoration(
-                        hintText: 'Select ID Type',
-                        prefixIcon: Icons.badge,
-                      ),
-                      value: _selectedIdType,
-                      items: _idTypes
-                          .map(
-                            (String idType) => DropdownMenuItem<String>(
-                              value: idType,
-                              child: Text(idType),
-                            ),
-                          )
-                          .toList(),
-                      validator: (value) =>
-                          value == null ? 'Please select an ID type' : null,
-                      onChanged: _isVerified
-                          ? null
-                          : (String? newValue) {
-                              setState(() {
-                                _selectedIdType = newValue;
-                              });
-                            },
-                    ),
-                    const SizedBox(height: 24),
 
                     // ID Photo Container
                     Text(
