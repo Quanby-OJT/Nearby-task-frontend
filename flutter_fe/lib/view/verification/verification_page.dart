@@ -400,7 +400,7 @@ class _VerificationPageState extends State<VerificationPage> {
         title: Text(_isUpdateMode
             ? 'Update ${_pageTitles[_currentPageIndex]}'
             : _pageTitles[_currentPageIndex]),
-        backgroundColor: const Color(0xFF0272B1),
+        backgroundColor: const Color(0xFFB71A4A),
         foregroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
@@ -548,7 +548,7 @@ class _VerificationPageState extends State<VerificationPage> {
                   });
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0272B1),
+                  backgroundColor: const Color(0xFFB71A4A),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -559,6 +559,7 @@ class _VerificationPageState extends State<VerificationPage> {
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
+                    color: Colors.white,
                   ),
                 ),
               ),
