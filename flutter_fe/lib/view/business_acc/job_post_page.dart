@@ -1085,7 +1085,7 @@ class _JobPostPageState extends State<JobPostPage>
               MaterialPageRoute(
                 builder: (context) => AddTask(),
               ),
-            ),
+            ).then((value) => fetchCreatedTasks()),
             backgroundColor: const Color(0xFFB71A4A),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -1181,9 +1181,8 @@ class _JobPostPageState extends State<JobPostPage>
               _buildTaskInfoRow(
                 icon: FontAwesomeIcons.locationPin,
                 color: Colors.red[400]!,
-                text: (task.address?.city ?? 'N/A') +
-                    ', ' +
-                    (task.address?.province ?? 'N/A'),
+                text:
+                    '${task.address?.city ?? 'N/A'}, ${task.address?.province ?? 'N/A'}',
               ),
               SizedBox(height: 8),
               _buildTaskInfoRow(
@@ -1196,12 +1195,6 @@ class _JobPostPageState extends State<JobPostPage>
                 icon: FontAwesomeIcons.screwdriverWrench,
                 color: Color(0xFFE23670),
                 text: task.specialization ?? 'N/A',
-              ),
-              SizedBox(height: 8),
-              _buildTaskInfoRow(
-                icon: FontAwesomeIcons.clock,
-                color: Colors.orange[400]!,
-                text: '${task.duration ?? 'N/A'} ${task.period ?? ''}',
               ),
             ],
           ),

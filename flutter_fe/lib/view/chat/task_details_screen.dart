@@ -263,14 +263,12 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
           _buildInfoRowIcon(FontAwesomeIcons.coins, Color(0XFFB58326),
               "₱ ${NumberFormat("#,##0.00", "en_PH").format(taskAssignment?.task?.contactPrice.roundToDouble() ?? 0.00)}"),
           Divider(height: 30),
-          _buildInfoRowIcon(FontAwesomeIcons.calendar, Color(0XFF331FB3),
-              "${taskAssignment?.task?.duration} ${taskAssignment?.task?.period}"),
+
           _buildInfoRowIcon(Icons.alarm, Color(0XFF3E9B52),
               taskAssignment?.task?.urgency ?? "N/A"),
           _buildInfoRowIcon(FontAwesomeIcons.userGroup, Colors.black45,
               taskAssignment?.task?.workType ?? "N/A"),
-          _buildInfoRowIcon(FontAwesomeIcons.calendarDay, Colors.red,
-              taskAssignment?.task?.taskBeginDate ?? "N/A"),
+
           if (role == "Tasker") ...[
             _buildInfoRowIcon(FontAwesomeIcons.a, Colors.black,
                 taskAssignment?.task?.status ?? "Unknown Status"),

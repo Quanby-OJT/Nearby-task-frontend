@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/controller/setting_controller.dart';
 import 'package:flutter_fe/model/address.dart';
 import 'package:flutter_fe/service/philippines_location_service.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,7 +11,7 @@ import 'package:get_storage/get_storage.dart';
 class Address extends StatefulWidget {
   final Function(AddressModel)? onAddressSelected;
 
-  const Address({Key? key, this.onAddressSelected}) : super(key: key);
+  const Address({super.key, this.onAddressSelected});
 
   @override
   State<Address> createState() => _AddressState();
@@ -18,6 +19,7 @@ class Address extends StatefulWidget {
 
 class _AddressState extends State<Address> {
   final _locationService = PhilippineLocationService();
+  final SettingController _settingController = SettingController();
 
   // Selected values
   Map<String, dynamic>? _selectedRegion;
@@ -42,6 +44,7 @@ class _AddressState extends State<Address> {
   LatLng? _markerPosition;
   Map<String, dynamic>? _finalLocationData;
   bool _mapInitialized = false;
+  String selectedAddress = '';
 
   // Form controller for street address
   final TextEditingController _streetAddressController =
@@ -88,6 +91,7 @@ class _AddressState extends State<Address> {
       final provinces = await _locationService.getProvincesByRegion(regionCode);
       setState(() {
         _provinces = provinces;
+
         _isLoadingProvinces = false;
       });
     } catch (e) {
@@ -145,12 +149,10 @@ class _AddressState extends State<Address> {
 
     setState(() => _isLoadingMap = true);
     try {
-      // Default coordinates for Philippines (fallback)
       double latitude = 14.5995;
       double longitude = 120.9842;
 
       try {
-        // Construct the full address
         final address = '${_selectedBarangay!['name']}, '
             '${_selectedCity!['name']}, '
             '${_selectedProvince!['name']}, '
@@ -170,7 +172,6 @@ class _AddressState extends State<Address> {
         }
       } catch (e) {
         print('Error geocoding address: ${e.toString()}');
-        // Continue with default coordinates
       }
 
       setState(() {
@@ -242,7 +243,13 @@ class _AddressState extends State<Address> {
     try {
       setState(() => _isLoadingMap = true);
 
-      // Reverse geocode the marker position to get a formatted address
+      selectedAddress =
+          '${_streetAddressController.text.isNotEmpty ? '${_streetAddressController.text}, ' : ''}'
+          '${_selectedBarangay!['name']}, '
+          '${_selectedCity!['name']}, '
+          '${_selectedProvince!['name']}, '
+          '${_locationService.getRegionDisplayName(_selectedRegion!)}';
+
       final placemarks = await placemarkFromCoordinates(
         _markerPosition!.latitude,
         _markerPosition!.longitude,
@@ -273,13 +280,20 @@ class _AddressState extends State<Address> {
         _isLoadingMap = false;
       });
 
-      // Show confirmation
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Location saved successfully'),
-          backgroundColor: Colors.green,
-        ),
+      await _settingController.setAddress(
+        _markerPosition!.latitude,
+        _markerPosition!.longitude,
+        selectedAddress,
+        _locationService.getRegionDisplayName(_selectedRegion!),
+        _selectedProvince!['name'],
+        _selectedCity!['name'],
+        _selectedBarangay!['name'],
+        _streetAddressController.text,
+        _postalCodeController.text,
+        'Philippines',
       );
+
+      Navigator.pop(context);
     } catch (e) {
       setState(() => _isLoadingMap = false);
       _showError('Failed to save location: ${e.toString()}');
@@ -415,6 +429,7 @@ class _AddressState extends State<Address> {
                             }
                           },
                   ),
+
                   _buildDropdown<Map<String, dynamic>>(
                     label: 'Barangay',
                     value: _selectedBarangay,
@@ -436,20 +451,6 @@ class _AddressState extends State<Address> {
                       children: [
                         const SizedBox(height: 16),
                         TextFormField(
-                          controller: _postalCodeController,
-                          decoration: InputDecoration(
-                            labelText: 'Postal Code',
-                            hintText: 'Enter postal code',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            filled: true,
-                            fillColor: Colors.grey[100],
-                          ),
-                          keyboardType: TextInputType.number,
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
                           controller: _streetAddressController,
                           decoration: InputDecoration(
                             labelText: 'Street Address',
@@ -460,6 +461,9 @@ class _AddressState extends State<Address> {
                             filled: true,
                             fillColor: Colors.grey[100],
                           ),
+                          onChanged: (value) => setState(() {
+                            _streetAddressController.text;
+                          }),
                         ),
                       ],
                     ),
@@ -484,6 +488,7 @@ class _AddressState extends State<Address> {
                             ),
                             const SizedBox(height: 8),
                             Text(
+                              '${_streetAddressController.text.isNotEmpty ? '${_streetAddressController.text}, ' : ''}'
                               '${_selectedBarangay!['name']}, '
                               '${_selectedCity!['name']}, '
                               '${_selectedProvince!['name']}, '
@@ -586,9 +591,9 @@ class _AddressState extends State<Address> {
                                 fontSize: 16,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                                'Address: ${_finalLocationData!['formattedAddress']}'),
+                            // const SizedBox(height: 8),
+                            // Text(
+                            //     'Address: ${_finalLocationData!['formattedAddress']}'),
                             Text(
                                 'Coordinates: ${_finalLocationData!['latitude'].toStringAsFixed(6)}, ${_finalLocationData!['longitude'].toStringAsFixed(6)}'),
                           ],

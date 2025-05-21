@@ -9,7 +9,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 
 class TaskRequestService {
-  static String url = apiUrl ?? "http://192.168.0.152:5000/connect";
+  static String url = apiUrl ?? "http://localhost:5000/connect";
   static final storage = GetStorage();
 
   Future<String?> getUserId() async => storage.read('user_id')?.toString();
@@ -87,8 +87,7 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> _postRequest(
-      {required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     try {
       String formattedEndpoint =
@@ -112,8 +111,7 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> _putRequest(
-      {required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _putRequest({required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.put(
@@ -290,12 +288,9 @@ class TaskRequestService {
             contactPrice: taskData['proposed_price'] ?? 0,
             urgency: taskData['urgent'] == true ? 'Urgent' : 'Non-Urgent',
             specialization: taskData['specialization'],
-            period: taskData['period'],
             addressID: taskData['address_id'] ?? '',
             status: taskData['status'],
             scope: taskData['scope'],
-            duration: '',
-            taskBeginDate: '',
             workType: '');
       }
 
@@ -308,11 +303,8 @@ class TaskRequestService {
           contactPrice: 0,
           urgency: "Unknown",
           specialization: '',
-          period: '',
           status: '',
           scope: '',
-          duration: '',
-          taskBeginDate: '',
           workType: '');
     } catch (e, stackTrace) {
       debugPrint("Error creating TaskModel: $e");
@@ -326,11 +318,8 @@ class TaskRequestService {
           contactPrice: 0,
           urgency: "Unknown",
           specialization: '',
-          period: '',
           status: '',
           scope: '',
-          duration: '',
-          taskBeginDate: '',
           workType: '');
     }
   }
@@ -420,7 +409,7 @@ class TaskRequestService {
         body: {
           'client_id': int.parse(userId),
           'amount': depositAmount,
-          'payment_method': paymentMethod
+          'payment_method': paymentMethod,
         },
       );
     } catch (e) {
@@ -448,6 +437,48 @@ class TaskRequestService {
       return {
         'success': false,
         'error': 'Failed to check balance: $e',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> releaseEscrowPayment(int taskerId, double amount, String paymentMethod, String acctNumber) async {
+    try {
+      debugPrint("Releasing escrow payment with tasker ID: $taskerId");
+      final String role = storage.read("role");
+      return await _postRequest(
+        endpoint: '/withdraw-escrow-amount/$taskerId',
+        body: {
+          'amount': amount,
+          'payment_method': paymentMethod,
+          'account_number': acctNumber,
+          'role': role
+        },
+      );
+    } catch (e, stackTrace) {
+      debugPrint("Error releasing escrow payment: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {
+        'success': false,
+        'error': 'Failed to release the payment. Please Try Again.'
+      };
+    }
+  }
+
+  //Confirmation of Authorized Payment
+  Future<Map<String, dynamic>> confirmPayment(int userId, double amount, bool success, String transactionId) async {
+    try{
+      return await _putRequest(
+          endpoint: "/webhook/paymongo/$userId/$transactionId",
+          body: {
+            "amount": amount,
+            "success": success,
+          });
+    }catch(error, stackTrace){
+      debugPrint("Error confirming payment: $error");
+      debugPrintStack(stackTrace: stackTrace);
+      return {
+        'success': false,
+        'message': 'Failed to confirm payment. Please Try Again',
       };
     }
   }
@@ -481,8 +512,7 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> rejectTaskerOrCancelTask(
-      int requestId, String rejectOrCancel, String rejectionReason) async {
+  Future<Map<String, dynamic>> rejectTaskerOrCancelTask(int requestId, String rejectOrCancel, String rejectionReason) async {
     try {
       return await _putRequest(
           endpoint: "/update-status-tasker/$requestId",
@@ -500,26 +530,88 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> releaseEscrowPayment(
-      int taskerId, double amount, String paymentMethod) async {
+  // For demo/development: Generate mock task requests
+  Future<List<TaskRequest>> getMockTaskRequests() async {
+    // This is for testing UI without backend implementation
     try {
-      debugPrint("Releasing escrow payment with tasker ID: $taskerId");
+      final userId = await getUserId();
+      if (userId == null) return [];
 
-      return await _postRequest(
-        endpoint: '/withdraw-escrow-amount',
-        body: {
-          'tasker id': taskerId,
-          'amount': amount,
-          'payment_method': paymentMethod
-        },
+      // Create dummy client
+      final client = UserModel(
+        id: 1,
+        firstName: "John",
+        lastName: "Doe",
+        email: "john.doe@example.com",
+        role: "client",
       );
-    } catch (e, stackTrace) {
-      debugPrint("Error releasing escrow payment: $e");
-      debugPrintStack(stackTrace: stackTrace);
-      return {
-        'success': false,
-        'error': 'Failed to release the payment. Please Try Again.'
-      };
+
+      // Create dummy tasker (current user)
+      final tasker = UserModel(
+        id: int.parse(userId),
+        firstName: "Current",
+        lastName: "User",
+        email: "current.user@example.com",
+        role: "tasker",
+      );
+
+      // Create dummy tasks
+      List<TaskModel> tasks = [
+        TaskModel(
+            id: 101,
+            clientId: 1,
+            title: "Fix Plumbing",
+            description: "Need to fix a leaking pipe in the kitchen",
+            scope: "123 Main St",
+            contactPrice: 120,
+            urgency: "Urgent",
+            specialization: '',
+            status: '',
+            workType: ''),
+        TaskModel(
+            id: 102,
+            clientId: 1,
+            title: "Install Ceiling Fan",
+            description: "Need to install a new ceiling fan in the living room",
+            scope: "456 Oak Ave",
+            contactPrice: 80,
+            urgency: "Non-Urgent",
+            specialization: '',
+            status: '',
+            workType: ''),
+        TaskModel(
+            id: 103,
+            clientId: 1,
+            title: "Paint Bedroom",
+            description: "Paint the walls of a medium-sized bedroom",
+            scope: "789 Pine Blvd",
+            contactPrice: 200,
+            urgency: "Non-Urgent",
+            specialization: '',
+            status: '',
+            workType: ''),
+      ];
+
+      // Create dummy requests
+      List<TaskRequest> requests = [];
+      for (var i = 0; i < tasks.length; i++) {
+        requests.add(
+          TaskRequest(
+            requestId: 1000 + i,
+            task: tasks[i],
+            client: client,
+            tasker: tasker,
+            status: 'pending',
+            createdAt:
+                DateTime.now().subtract(Duration(days: i)).toIso8601String(),
+          ),
+        );
+      }
+
+      return requests;
+    } catch (e) {
+      debugPrint("Error generating mock requests: $e");
+      return [];
     }
   }
 }

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
@@ -13,14 +12,12 @@ import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:get/get_connect/sockets/src/socket_notifier.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 import '../../controller/conversation_controller.dart';
-import '../../model/chat_push_notifications.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -63,7 +60,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     conversationController.searchConversation.addListener(filterMessages);
 
-    socket = IO.io('http://192.168.43.15:5000', <String, dynamic>{
+    socket = IO.io('http://localhost:5000', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
     });
@@ -135,16 +132,18 @@ class _ChatScreenState extends State<ChatScreen> {
 
       final taskAndConversationResult = await _taskController.fetchTasksAndConversations();
 
+      //debugPrint("TaskAndConversationResult: ${taskAndConversationResult.conversations}");
+
       // Extract tasks and conversations from result
       final tasks = taskAndConversationResult.taskAssignments;
-      final convs = taskAndConversationResult.conversations;
+      final convos = taskAndConversationResult.conversations;
 
-      debugPrint("Raw Conversations: $convs");
+      debugPrint("Raw Conversations: $convos");
       debugPrint("Task Assignments: $tasks");
 
       setState(() {
         taskAssignments = tasks;
-        conversation = convs;
+        conversation = convos;
         filteredTaskAssignments = tasks; // Maintain same filtering logic
         _isLoading = false;
       });
@@ -707,7 +706,7 @@ class _ChatScreenState extends State<ChatScreen> {
               Text(
                 "Chat Messages",
                 style: GoogleFonts.montserrat(
-                  color: Color(0xFF2A1999),
+                  color: Color(0xFFB71A4A),
                   fontWeight: FontWeight.w600,
                   fontSize: 18,
                 ),
@@ -739,7 +738,7 @@ class _ChatScreenState extends State<ChatScreen> {
             : taskAssignments.isEmpty
                 ? RefreshIndicator(
                     onRefresh: _fetchTaskAssignments,
-                    color: Color(0xFF0272B1),
+                    color: Color(0xFFB71A4A),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
@@ -749,7 +748,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           Icon(
                             FontAwesomeIcons.signalMessenger,
                             size: 100,
-                            color: Color(0xFF0272B1),
+                            color: Color(0xFFB71A4A),
                           ),
                           SizedBox(height: 10),
                           Padding(
@@ -838,7 +837,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                           contentPadding: EdgeInsets.symmetric(horizontal: 20),
                           suffixIcon: Icon(FontAwesomeIcons.magnifyingGlass),
-                          focusColor: Color(0xFF20127F),
+                          focusColor: Color(0xFFB71A4A),
                         ),
                       ),
                     ),
@@ -846,7 +845,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         child: _isLoading
                             ? Center(
                                 child: CircularProgressIndicator(
-                                  color: Color(0xFF0272B1),
+                                  color: Color(0xFFB71A4A),
                                 ),
                               )
                             : filteredTaskAssignments.isEmpty
@@ -863,13 +862,13 @@ class _ChatScreenState extends State<ChatScreen> {
                                             Icon(
                                               FontAwesomeIcons.signalMessenger,
                                               size: 100,
-                                              color: Color(0xFF0272B1),
+                                              color: Color(0xFFB71A4A),
                                             ),
                                             SizedBox(height: 16),
                                             Text(
                                               "Message Not Found.",
                                               style: GoogleFonts.montserrat(
-                                                color: Color(0xFF0272B1),
+                                                color: Color(0xFFB71A4A),
                                                 fontWeight: FontWeight.w600,
                                                 fontSize: 18,
                                               ),
@@ -885,7 +884,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                         )))
                                 : RefreshIndicator(
                                     onRefresh: _fetchTaskAssignments,
-                                    color: Color(0xFF0272B1),
+                                    color: Color(0xFFB71A4A),
                                     child: ListView.builder(
                                       padding: EdgeInsets.symmetric(vertical: 16),
                                       itemCount: filteredTaskAssignments.length,
@@ -899,11 +898,11 @@ class _ChatScreenState extends State<ChatScreen> {
                                         final conversations = conversation.firstWhereOrNull(
                                               (conv) => conv.taskTakenId == taskAssignment.taskTakenId,
                                         );
+
+                                        //debugPrint("Conversations for TaskTakenId ${taskAssignment.taskTakenId}: $conversations");
                                         return conversationCard(taskAssignment, conversations);
                                       },
-                                    )
-                        )
-                    )
+                                    )))
                   ]));
   }
 
@@ -949,9 +948,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final currentUserId = storage.read('user_id');
     final role = storage.read('role');
 
-    final senderId = conversation?.userId ??
-        (role == 'Tasker' ? taskTaken.client?.user?.id : taskTaken.tasker?.user?.id) ??
-        0;
+    final senderId = conversation?.userId;
     debugPrint("Current User ID: $currentUserId, Sender Id: $senderId, and Role: $role");
     final bool isReceiver = senderId != currentUserId;
     final bool isUnread = taskTaken.unreadCount > 0;
@@ -999,7 +996,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       child: Text(
                         taskTaken.task?.title ?? 'No Title',
                         style: GoogleFonts.montserrat(
-                          color: Color(0xFF0272B1),
+                          color: Color(0xFFB71A4A),
                           fontWeight: FontWeight.w600,
                           fontSize: 18,
                         ),
@@ -1011,32 +1008,22 @@ class _ChatScreenState extends State<ChatScreen> {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (!isReceiver) // Show checkmarks only for receiver
-                          readIconMarker(
-                            isUnread
-                                ? FontAwesomeIcons.check
-                                : FontAwesomeIcons.checkDouble,
-                            Colors.green,
-                          ),
-                        SizedBox(width: 4),
-                        if(isReceiver)...[
-                        Text(
-                          "${user?.firstName ?? ''} ${user?.middleName ?? ''} ${user?.lastName ?? ''}",
-                          style: GoogleFonts.poppins(
-                            fontWeight: isUnread
-                                ? FontWeight.bold
-                                : FontWeight.normal,
+                        readIconMarker(
+                          isUnread
+                              ? FontAwesomeIcons.check
+                              : FontAwesomeIcons.checkDouble,
+                          Colors.green,
+                        ),
+                      SizedBox(width: 4),
+                      Text(
+                        "${user?.firstName ?? ''} ${user?.middleName ?? ''} ${user?.lastName ?? ''}",
+                        style: GoogleFonts.poppins(
+                          fontWeight: isReceiver && isUnread
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                           ),
                         ),
-                        ]
-                        else
-                        Text(
-                          "${user?.firstName ?? ''} ${user?.middleName ?? ''} ${user?.lastName ?? ''}",
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.normal,
-                          ),
-                        )
-                      ],
+                      ]
                     ),
                   ],
                 ),

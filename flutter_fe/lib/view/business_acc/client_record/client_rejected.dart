@@ -185,12 +185,6 @@ class _ClientRejectedState extends State<ClientRejected> {
                 ),
               ],
             ),
-            SizedBox(height: 16),
-            _buildTaskInfoRow(
-              icon: Icons.calendar_today,
-              label: 'Date',
-              value: _taskInformation?.duration ?? 'Not specified',
-            ),
           ],
         ),
       ),

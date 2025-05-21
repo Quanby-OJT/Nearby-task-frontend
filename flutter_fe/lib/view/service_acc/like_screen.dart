@@ -160,10 +160,24 @@ class _LikeScreenState extends State<LikeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        centerTitle: true,
+        title: Text(
+          'Saved',
+          style: GoogleFonts.poppins(
+            color: const Color(0xFFB71A4A),
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Colors.grey[100],
+        elevation: 0,
+      ),
       body: Column(
         children: [
           Padding(
-            padding: EdgeInsets.all(16.0), // Added padding
+            padding: EdgeInsets.all(16.0),
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
@@ -177,7 +191,7 @@ class _LikeScreenState extends State<LikeScreen> {
                       color: Colors.grey,
                     )),
                 filled: true,
-                fillColor: Color(0xFFF1F4FF),
+                fillColor: Color(0xFFB71A4A).withOpacity(0.1),
                 hintText: 'Search jobs...',
                 hintStyle: GoogleFonts.montserrat(color: Colors.grey),
                 enabledBorder: OutlineInputBorder(
@@ -186,8 +200,8 @@ class _LikeScreenState extends State<LikeScreen> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide:
-                      BorderSide(color: Colors.blue, width: 2), // Fixed color
+                  borderSide: BorderSide(
+                      color: Color(0xFFB71A4A), width: 2), // Fixed color
                 ),
               ),
             ),
@@ -276,8 +290,7 @@ class _LikeScreenState extends State<LikeScreen> {
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => ServiceAccMain()),
-                  (route) =>
-                      false, // Removes all previous routes from the stack
+                  (route) => false,
                 );
               },
               child: const Text('Browse Jobs'),
@@ -303,7 +316,7 @@ class _LikeScreenState extends State<LikeScreen> {
   Widget _buildJobCard(TaskModel task) {
     return Card(
       color: Color.fromARGB(255, 239, 254, 255),
-      elevation: 2, // No shadow, as requested
+      elevation: 2,
       margin: const EdgeInsets.only(top: 16),
       child: InkWell(
         onTap: () {
@@ -314,7 +327,6 @@ class _LikeScreenState extends State<LikeScreen> {
                   TaskInformation(taskID: task.id, role: _role),
             ),
           );
-          print('Card tapped: ${task.id}');
         },
         borderRadius: BorderRadius.circular(12),
         hoverColor: Colors.grey.withOpacity(0.2),

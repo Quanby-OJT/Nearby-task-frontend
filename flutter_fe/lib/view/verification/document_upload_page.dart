@@ -131,7 +131,7 @@ class _DocumentUploadPageState extends State<DocumentUploadPage> {
                             style: GoogleFonts.poppins(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF0272B1),
+                              color: const Color(0xFFB71A4A),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -152,23 +152,24 @@ class _DocumentUploadPageState extends State<DocumentUploadPage> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.blue[50],
+                        color: Color(0xFFB71A4A).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.blue[200]!),
+                        border: Border.all(color: Color(0xFFB71A4A)),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.info_outline, color: Colors.blue[700]),
+                              Icon(Icons.info_outline,
+                                  color: Color(0xFFB71A4A)),
                               const SizedBox(width: 8),
                               Text(
                                 'This step is optional',
                                 style: GoogleFonts.poppins(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.blue[800],
+                                  color: Color(0xFFB71A4A),
                                 ),
                               ),
                             ],
@@ -196,85 +197,75 @@ class _DocumentUploadPageState extends State<DocumentUploadPage> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Choose Upload Method',
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[800],
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Camera Upload Option
-                          GestureDetector(
-                            onTap: _captureDocumentImage,
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey[300]!),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.1),
-                                    spreadRadius: 1,
-                                    blurRadius: 3,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 52,
-                                    height: 52,
-                                    decoration: BoxDecoration(
-                                      color: Colors.blue[50],
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      Icons.camera_alt,
-                                      size: 28,
-                                      color: const Color(0xFF0272B1),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Take Photo of Document',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.grey[800],
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          'Use your camera to capture document',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 13,
-                                            color: Colors.grey[600],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Icon(
-                                    Icons.arrow_forward_ios,
-                                    size: 16,
-                                    color: Colors.grey[400],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
+                          // // Camera Upload Option
+                          // GestureDetector(
+                          //   onTap: _captureDocumentImage,
+                          //   child: Container(
+                          //     width: double.infinity,
+                          //     padding: const EdgeInsets.all(20),
+                          //     decoration: BoxDecoration(
+                          //       color: Colors.white,
+                          //       borderRadius: BorderRadius.circular(12),
+                          //       border: Border.all(color: Colors.grey[300]!),
+                          //       boxShadow: [
+                          //         BoxShadow(
+                          //           color: Colors.grey.withOpacity(0.1),
+                          //           spreadRadius: 1,
+                          //           blurRadius: 3,
+                          //           offset: const Offset(0, 2),
+                          //         ),
+                          //       ],
+                          //     ),
+                          //     child: Row(
+                          //       children: [
+                          //         Container(
+                          //           width: 52,
+                          //           height: 52,
+                          //           decoration: BoxDecoration(
+                          //             color: Colors.blue[50],
+                          //             shape: BoxShape.circle,
+                          //           ),
+                          //           child: Icon(
+                          //             Icons.camera_alt,
+                          //             size: 28,
+                          //             color: const Color(0xFF0272B1),
+                          //           ),
+                          //         ),
+                          //         const SizedBox(width: 16),
+                          //         Expanded(
+                          //           child: Column(
+                          //             crossAxisAlignment:
+                          //                 CrossAxisAlignment.start,
+                          //             children: [
+                          //               Text(
+                          //                 'Take Photo of Document',
+                          //                 style: GoogleFonts.poppins(
+                          //                   fontSize: 16,
+                          //                   fontWeight: FontWeight.w600,
+                          //                   color: Colors.grey[800],
+                          //                 ),
+                          //               ),
+                          //               const SizedBox(height: 4),
+                          //               Text(
+                          //                 'Use your camera to capture document',
+                          //                 style: GoogleFonts.poppins(
+                          //                   fontSize: 13,
+                          //                   color: Colors.grey[600],
+                          //                 ),
+                          //               ),
+                          //             ],
+                          //           ),
+                          //         ),
+                          //         Icon(
+                          //           Icons.arrow_forward_ios,
+                          //           size: 16,
+                          //           color: Colors.grey[400],
+                          //         ),
+                          //       ],
+                          //     ),
+                          //   ),
+                          // ),
+                          // const SizedBox(height: 16),
 
                           // File Upload Option
                           GestureDetector(
@@ -307,7 +298,7 @@ class _DocumentUploadPageState extends State<DocumentUploadPage> {
                                     child: Icon(
                                       Icons.upload_file,
                                       size: 28,
-                                      color: const Color(0xFF0272B1),
+                                      color: const Color(0xFFB71A4A),
                                     ),
                                   ),
                                   const SizedBox(width: 16),
@@ -435,7 +426,7 @@ class _DocumentUploadPageState extends State<DocumentUploadPage> {
                                                     ? Icons.description
                                                     : Icons.insert_drive_file,
                                             size: 36,
-                                            color: const Color(0xFF0272B1),
+                                            color: const Color(0xFFB71A4A),
                                           ),
                                         ),
                                         const SizedBox(width: 16),
@@ -512,7 +503,8 @@ class _DocumentUploadPageState extends State<DocumentUploadPage> {
                       height: 50,
                       child: ElevatedButton.icon(
                         onPressed: _completeVerification,
-                        icon: const Icon(Icons.check_circle),
+                        icon:
+                            const Icon(Icons.check_circle, color: Colors.white),
                         label: Text(
                           _documentFile == null
                               ? "Skip & Complete Verification"
@@ -523,7 +515,7 @@ class _DocumentUploadPageState extends State<DocumentUploadPage> {
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0272B1),
+                          backgroundColor: const Color(0xFFB71A4A),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
@@ -543,7 +535,7 @@ class _DocumentUploadPageState extends State<DocumentUploadPage> {
             color: Colors.black54,
             child: const Center(
               child: CircularProgressIndicator(
-                color: Color(0xFF0272B1),
+                color: Color(0xFFB71A4A),
               ),
             ),
           ),
@@ -562,7 +554,7 @@ class _DocumentUploadPageState extends State<DocumentUploadPage> {
             '•',
             style: TextStyle(
               fontSize: 16,
-              color: Colors.blue[700],
+              color: Color(0xFFB71A4A),
               fontWeight: FontWeight.bold,
             ),
           ),

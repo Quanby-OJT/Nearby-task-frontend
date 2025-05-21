@@ -2,18 +2,18 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/chat_push_notifications.dart';
-import 'package:flutter_fe/model/client_model.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/model/task_model.dart';
-import 'package:flutter_fe/model/tasker_model.dart';
-import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/service/task_information.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/controller/escrow_management_controller.dart';
 
+import '../model/client_model.dart';
 import '../model/conversation.dart';
+import '../model/tasker_model.dart';
+import '../model/user_model.dart';
 
 class TaskController {
   final JobPostService _jobPostService = JobPostService();
@@ -54,17 +54,13 @@ class TaskController {
 
   Future<Map<String, dynamic>> postJob(
       String specialization, String urgency, String scope, String workType,
-      {List<int>? relatedSpecializationsIds,
+      {List<String>? relatedSpecializationsIds,
       File? photo,
       int? specializationId,
       bool? isVerifiedDocument,
       String? addressId}) async {
     try {
       int userId = storage.read('user_id');
-      // Parse the duration as an integer
-      // final durationInt = int.tryParse(durationText) ?? 0;
-
-      // Parse the price as an integer
       final priceText = contactPriceController.text.trim();
       final priceInt = int.tryParse(priceText) ?? 0;
 
@@ -123,24 +119,30 @@ class TaskController {
         : assignedTask['error'].toString();
   }
 
-  Future<List<TaskModel?>> getJobsforClient(
+  Future<List<TaskModel>> getJobsforClient(
       BuildContext context, int clientId) async {
-    final clientTask = await _jobPostService.fetchJobsForClient(clientId);
-    debugPrint("Client Task: ${clientTask.toString()}");
+    try {
+      final clientTask = await _jobPostService.fetchJobsForClient(clientId);
+      debugPrint("Client Task Response: ${clientTask.toString()}");
 
-    if (clientTask.containsKey('tasks')) {
-      List<dynamic> tasksList = clientTask['tasks'];
-      List<TaskModel> tasks =
-          tasksList.map((task) => TaskModel.fromJson(task)).toList();
-      return tasks;
+      if (clientTask.containsKey('tasks') && clientTask['tasks'] is List) {
+        final tasksList = clientTask['tasks'] as List<dynamic>;
+        return tasksList.map((task) => TaskModel.fromJson(task)).toList();
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(clientTask['error']?.toString() ?? 'No tasks found'),
+        ),
+      );
+      return [];
+    } catch (e) {
+      debugPrint("Error fetching created tasks: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching tasks: $e')),
+      );
+      return [];
     }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-          content: Text(clientTask['error'] ??
-              "Something Went Wrong while Retrieving Your Tasks.")),
-    );
-    return [];
   }
 
   Future<List<TaskFetch?>> getTask(BuildContext context) async {
@@ -336,24 +338,44 @@ class TaskController {
         );
       }
 
+      // Extract tasks array from response
+      final tasks = response['task_taken'] as List<dynamic>? ?? [];
+      final unreadMessages = response['unread_messages'] as List<dynamic>? ?? [];
+
+      debugPrint(unreadMessages.toString());
+
+      debugPrint('Tasks: $tasks');
+
       // Parse task assignments
-      final taskAssignments = (response['task_taken'] as List<dynamic>?)
-              ?.map((taskJson) => TaskAssignment.fromJson(taskJson))
-              .toList() ??
-          [];
+      final taskAssignments = tasks.map((taskJson) {
+        final clientUser = taskJson['clients'] as Map<String, dynamic>;
+        final taskerUser = taskJson['tasker'] as Map<String, dynamic>;
+
+        final client = ClientModel.fromJson(clientUser);
+        final tasker = TaskerModel.fromJson(taskerUser);
+
+        debugPrint('Client: $client');
+        debugPrint('Tasker: $tasker');
+
+        final task = TaskModel.fromJson(taskJson['post_task']);
+
+        final taskAssignment = TaskAssignment(
+          taskTakenId: taskJson['task_taken_id'],
+          client: client,
+          tasker: tasker,
+          task: task,
+          taskStatus: taskJson['task_status'],
+        );
+
+        return taskAssignment;
+      }).toList();
 
       // Parse conversations
       final conversations = (response['conversation'] as List<dynamic>?)
-              ?.map((convJson) => Conversation.fromJson({
-                    ...convJson,
-                    'task_taken': taskAssignments.firstWhere(
-                      (task) => task.taskTakenId == convJson['task_taken_id'],
-                      orElse: () =>
-                          TaskAssignment(taskTakenId: 0, taskStatus: ''),
-                    ),
-                  }))
-              .toList() ??
-          [];
+          ?.map((convJson) => Conversation(
+            userId: convJson['user_id'],
+            taskTakenId: convJson['task_taken_id'],
+          )).toList() ?? [];
 
       debugPrint('Fetched tasks: $taskAssignments');
       debugPrint('Fetched conversations: $conversations');

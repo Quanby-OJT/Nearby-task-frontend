@@ -6,6 +6,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/model/verification_model.dart';
 import 'package:flutter_fe/service/api_service.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 // Import separate verification pages
 import 'general_info_page.dart';
@@ -400,7 +401,7 @@ class _VerificationPageState extends State<VerificationPage> {
         title: Text(_isUpdateMode
             ? 'Update ${_pageTitles[_currentPageIndex]}'
             : _pageTitles[_currentPageIndex]),
-        backgroundColor: const Color(0xFF0272B1),
+        backgroundColor: const Color(0xFFB71A4A),
         foregroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
@@ -548,7 +549,7 @@ class _VerificationPageState extends State<VerificationPage> {
                   });
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0272B1),
+                  backgroundColor: const Color(0xFFB71A4A),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -559,6 +560,7 @@ class _VerificationPageState extends State<VerificationPage> {
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
+                    color: Colors.white,
                   ),
                 ),
               ),

@@ -42,11 +42,12 @@ class TaskerProfilePage extends StatefulWidget {
   final int? taskerId;
   final bool isSaved;
 
-  const TaskerProfilePage(
-      {super.key,
-      required this.tasker,
-      required this.isSaved,
-      required this.taskerId});
+  const TaskerProfilePage({
+    super.key,
+    required this.tasker,
+    required this.isSaved,
+    required this.taskerId,
+  });
 
   @override
   State<TaskerProfilePage> createState() => _TaskerProfilePageState();
@@ -69,24 +70,34 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
   @override
   void initState() {
     super.initState();
-    _loadAllFunction();
-    setState(() {
-      skills = widget.tasker.skills.split(',');
-    });
+    _initializeData();
   }
 
-  Future<void> _loadAllFunction() async {
+  Future<void> _initializeData() async {
     try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      skills = widget.tasker.skills.split(',');
+
       await Future.wait([
         _loadTaskerDetails(),
         _fetchUserData(),
         _preloadClientTasks(),
         getAllTaskerReviews(),
       ]);
-    } catch (e) {
+
       setState(() {
         _isLoading = false;
-        _errorMessage = "Failed to load tasker details: $e";
+      });
+    } catch (e, stackTrace) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = "Failed to load tasker profile: $e";
+        debugPrint("Initialization error: $e");
+        debugPrintStack(stackTrace: stackTrace);
       });
     }
   }
@@ -101,32 +112,19 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
       setState(() {
         _user = user;
         _role = user?.user.role;
-
         debugPrint("Role: $_role");
-        debugPrint("Print Id then: ${_user?.user.id}");
+        debugPrint("User ID: ${_user?.user.id}");
       });
     } catch (e) {
       debugPrint("Error fetching user data: $e");
-      setState(() => _isLoading = false);
     }
   }
 
   Future<void> _loadTaskerDetails() async {
     try {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
       await Future.delayed(Duration(milliseconds: 500));
-
-      setState(() {
-        _isLoading = false;
-      });
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = "Failed to load tasker details: $e";
-      });
+      debugPrint("Error loading tasker details: $e");
     }
   }
 
@@ -177,16 +175,13 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
       final assignmentStatuses = await Future.wait(
         tasks.map((task) async {
           try {
-            // Check if the task has ever been assigned to this tasker
-
             final userId = await storage.read('user_id');
-
             debugPrint("Checking task ${task.id} for tasker $taskerId");
             return await jobPostService.hasTaskEverBeenAssignedToTasker(
                 task.id, taskerId, userId! as int);
           } catch (e) {
             debugPrint("Error checking task ${task.id}: $e");
-            return false; // On error, assume not assigned to show the task
+            return false;
           }
         }),
       );
@@ -194,13 +189,11 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
       return tasks
           .asMap()
           .entries
-          .where((entry) => !assignmentStatuses[
-              entry.key]) // Only include tasks that have never been assigned
+          .where((entry) => !assignmentStatuses[entry.key])
           .map((entry) => entry.value)
           .toList();
     } catch (e) {
       debugPrint("Error in _filterAvailableTasks: $e");
-      // In case of error, return all tasks to avoid blocking the user
       return tasks;
     }
   }
@@ -213,7 +206,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
         title: Center(
           child: Text(
             'Select a Task to Assign',
-            style: GoogleFonts.montserrat(
+            style: GoogleFonts.poppins(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: const Color(0xFF03045E),
@@ -235,7 +228,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                       child: ListTile(
                         title: Text(
                           task.title ?? 'Untitled Task',
-                          style: GoogleFonts.montserrat(
+                          style: GoogleFonts.poppins(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                           ),
@@ -244,11 +237,11 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                           task.description ?? 'No description',
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.montserrat(fontSize: 12),
+                          style: GoogleFonts.poppins(fontSize: 12),
                         ),
                         trailing: Text(
                           '\$${task.contactPrice ?? 0}',
-                          style: GoogleFonts.montserrat(
+                          style: GoogleFonts.poppins(
                             fontWeight: FontWeight.bold,
                             color: Colors.green,
                           ),
@@ -264,7 +257,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
             onPressed: () => Navigator.of(context).pop(),
             child: Text(
               'Cancel',
-              style: GoogleFonts.montserrat(color: Colors.red),
+              style: GoogleFonts.poppins(color: Colors.red),
             ),
           ),
         ],
@@ -288,7 +281,6 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
     }
   }
 
-// --------------------------------------------------------------------------
   Future<void> _assignTask(TaskerModel tasker) async {
     if (_isAssigning) return;
 
@@ -330,11 +322,9 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
         return;
       }
 
-      // Show dialog
       final selectedTask = await _showTaskSelectionDialog(availableTasks);
       if (selectedTask == null) return;
 
-      // Get client ID
       final clientServices = ClientServices();
       final String? clientId = await clientServices.getUserId();
       if (clientId == null) {
@@ -347,7 +337,6 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
         return;
       }
 
-      // Show loading overlay
       OverlayEntry? loadingOverlay;
       try {
         loadingOverlay = OverlayEntry(
@@ -358,7 +347,6 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
         );
         if (mounted) Overlay.of(context).insert(loadingOverlay);
 
-        // Assign task
         final result = await taskController.assignTask(
           selectedTask.id,
           int.parse(clientId),
@@ -366,7 +354,6 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
           _role ?? 'client',
         );
 
-        // Handle result
         final isSuccess = !result.toLowerCase().contains('already') &&
             !result.toLowerCase().contains('error') &&
             !result.toLowerCase().contains('failed');
@@ -379,13 +366,12 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
           ),
         );
 
-        // Update cache on success
         if (isSuccess) {
           final jobPostService = JobPostService();
           jobPostService.updateAssignmentCache(
               selectedTask.id, tasker.id ?? 0, true, clientId);
-          TaskCache.clear(); // Invalidate cache
-          _preloadClientTasks(); // Refresh preloaded tasks
+          TaskCache.clear();
+          _preloadClientTasks();
         }
       } finally {
         loadingOverlay?.remove();
@@ -420,7 +406,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: _loadTaskerDetails,
+                        onPressed: _initializeData,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF0272B1),
                           foregroundColor: Colors.white,
@@ -432,7 +418,6 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                 )
               : CustomScrollView(
                   slivers: [
-                    // Profile Header
                     SliverAppBar(
                       expandedHeight: 300,
                       floating: false,
@@ -447,7 +432,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
                                   colors: [
-                                    Color(0xFF0272B1),
+                                    Color(0xFFB71A4A),
                                     Color(0xFFE3F2FD),
                                   ],
                                 ),
@@ -477,7 +462,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                                                 .isEmpty
                                         ? Text(
                                             "${widget.tasker.user?.firstName[0]}${widget.tasker.user?.lastName[0]}",
-                                            style: GoogleFonts.montserrat(
+                                            style: GoogleFonts.poppins(
                                               fontSize: 36,
                                               fontWeight: FontWeight.bold,
                                               color: Color(0xFF0272B1),
@@ -488,7 +473,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                                   const SizedBox(height: 12),
                                   Text(
                                     "${widget.tasker.user?.firstName} ${widget.tasker.user?.lastName}",
-                                    style: GoogleFonts.montserrat(
+                                    style: GoogleFonts.poppins(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,
@@ -511,8 +496,8 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                                     ),
                                     child: Text(
                                       widget.tasker.user!.role,
-                                      style: GoogleFonts.montserrat(
-                                        color: const Color(0xFF0272B1),
+                                      style: GoogleFonts.poppins(
+                                        color: const Color(0xFFB71A4A),
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -528,8 +513,6 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                         onPressed: () => Navigator.pop(context),
                       ),
                     ),
-
-                    // Stats
                     SliverToBoxAdapter(
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -545,15 +528,13 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                         ),
                       ),
                     ),
-
-                    // About Section
                     SliverToBoxAdapter(
                       child: _buildSectionCard(
                         "About",
                         [
                           Text(
                             "Experienced tasker specializing in various home services with a commitment to quality and customer satisfaction.",
-                            style: GoogleFonts.montserrat(
+                            style: GoogleFonts.poppins(
                               fontSize: 14,
                               color: Colors.grey[600],
                             ),
@@ -561,8 +542,6 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                         ],
                       ),
                     ),
-
-                    // Contact Information
                     SliverToBoxAdapter(
                       child: _buildSectionCard(
                         "Contact Information",
@@ -574,23 +553,17 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                         ],
                       ),
                     ),
-
-                    // Basic Information
                     SliverToBoxAdapter(
                       child: _buildSectionCard(
                         "Basic Information",
                         [
                           _buildInfoRow(
                               Icons.badge, "ID", "#${widget.tasker.id}"),
-                          // _buildInfoRow(Icons.location_on, "Location",
-                          //     widget.tasker.address!.values.join(", ")),
                           _buildInfoRow(Icons.work, "Specialization",
                               widget.tasker.specialization),
                         ],
                       ),
                     ),
-
-                    // Skills & Expertise
                     SliverToBoxAdapter(
                       child: _buildSectionCard(
                         "Skills & Expertise",
@@ -599,15 +572,12 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                             spacing: 8,
                             runSpacing: 8,
                             children: skills.map((skill) {
-                              // Assuming skills is a List<String>
                               return _buildSkillChip(skill);
                             }).toList(),
                           ),
                         ],
                       ),
                     ),
-
-                    // Action Buttons
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.all(16),
@@ -660,8 +630,6 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                         ),
                       ),
                     ),
-
-                    // Reviews
                     SliverToBoxAdapter(
                       child: taskerFeedback != null &&
                               taskerFeedback!.isNotEmpty
@@ -671,13 +639,11 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                                   .map((feedback) => _buildReviewItem(
                                       "${feedback.client.user!.firstName} ${feedback.client.user!.lastName}",
                                       feedback.comment,
-                                      feedback.rating
-                                          .toInt())) // Convert double to int for star display
+                                      feedback.rating.toInt()))
                                   .toList())
                           : _buildSectionCard(
                               "Reviews", [const Text("No reviews yet.")]),
                     ),
-
                     const SliverToBoxAdapter(child: SizedBox(height: 20)),
                   ],
                 ),
@@ -689,21 +655,21 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
       children: [
         Row(
           children: [
-            Icon(icon, color: const Color(0xFF0272B1), size: 20),
+            Icon(icon, color: const Color(0xFFB71A4A), size: 20),
             const SizedBox(width: 4),
             Text(
               value,
-              style: GoogleFonts.montserrat(
+              style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF0272B1),
+                color: const Color(0xFFB71A4A),
               ),
             ),
           ],
         ),
         Text(
           label,
-          style: GoogleFonts.montserrat(
+          style: GoogleFonts.poppins(
             fontSize: 12,
             color: Colors.grey[600],
           ),
@@ -726,10 +692,10 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
           children: [
             Text(
               title,
-              style: GoogleFonts.montserrat(
+              style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF0272B1),
+                color: const Color(0xFFB71A4A),
               ),
             ),
             const SizedBox(height: 12),
@@ -745,7 +711,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          Icon(icon, color: const Color(0xFF0272B1), size: 20),
+          Icon(icon, color: const Color(0xFFB71A4A), size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -753,14 +719,14 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
               children: [
                 Text(
                   label,
-                  style: GoogleFonts.montserrat(
+                  style: GoogleFonts.poppins(
                     fontSize: 12,
                     color: Colors.grey[600],
                   ),
                 ),
                 Text(
                   value,
-                  style: GoogleFonts.montserrat(
+                  style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                   ),
@@ -777,7 +743,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
     return Chip(
       label: Text(skill),
       backgroundColor: const Color(0xFFE3F2FD),
-      labelStyle: GoogleFonts.montserrat(
+      labelStyle: GoogleFonts.poppins(
         color: const Color(0xFF0272B1),
         fontWeight: FontWeight.w500,
       ),
@@ -798,7 +764,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
             children: [
               Text(
                 reviewer,
-                style: GoogleFonts.montserrat(
+                style: GoogleFonts.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),
@@ -819,7 +785,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
           const SizedBox(height: 4),
           Text(
             comment,
-            style: GoogleFonts.montserrat(
+            style: GoogleFonts.poppins(
               fontSize: 14,
               color: Colors.grey[600],
             ),
@@ -835,15 +801,12 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
       final result = await clientServices.saveLikedTasker(widget.tasker.id);
 
       if (result.containsKey('message')) {
-        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result['message'] ?? "Tasker liked successfully!"),
             backgroundColor: Colors.green,
           ),
         );
-
-        // Close the tasker profile page
         Navigator.of(context).pop();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

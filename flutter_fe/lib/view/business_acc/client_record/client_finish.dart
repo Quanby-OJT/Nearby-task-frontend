@@ -338,13 +338,13 @@ class _FinishTaskState extends State<FinishTask> {
             _buildTaskInfoRow(
               icon: Icons.location_pin,
               label: 'Location',
-              value: _requestInformation!.taskDetails.location,
+              value: _requestInformation!.taskDetails.address?.city ?? '',
             ),
             const SizedBox(height: 12),
             _buildTaskInfoRow(
               icon: Icons.calendar_today,
               label: 'Duration',
-              value: _requestInformation!.taskDetails.duration,
+              value: _requestInformation!.taskDetails.address?.province ?? '',
             ),
             const SizedBox(height: 12),
             _buildTaskInfoRow(
@@ -364,7 +364,7 @@ class _FinishTaskState extends State<FinishTask> {
             _buildTaskInfoRow(
               icon: Icons.monetization_on,
               label: 'Price',
-              value: '₱${_requestInformation!.taskDetails.proposedPrice}',
+              value: '₱${_requestInformation!.taskDetails.contactPrice}',
             ),
           ],
         ),
