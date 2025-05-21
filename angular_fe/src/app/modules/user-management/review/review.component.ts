@@ -35,7 +35,7 @@ export class ReviewComponent {
   profileImage: string | null = null;
   documentUrl: string | null = null;
   documentName: string | null = null;
-  isImage: boolean = false; 
+  isImage: boolean = false;
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -246,11 +246,11 @@ export class ReviewComponent {
       return;
     }
 
-    const filePath = urlParts[1]; 
+    const filePath = urlParts[1];
     console.log('Extracted file path:', filePath);
 
     // Construct the URL to fetch the PDF
-    const url = `http://localhost:5000/connect/viewDocument/${encodeURIComponent(filePath)}`;
+    const url = `https://localhost:5000/connect/viewDocument/${encodeURIComponent(filePath)}`;
     const token = this.sessionStorage.getSessionToken();
     if (!token) {
       console.error('No session token found. Please log in.');

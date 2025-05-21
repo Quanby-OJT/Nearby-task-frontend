@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class DisputeManagementService {
-  private apiUrl = 'http://localhost:5000/connect'
+  private apiUrl = 'https://localhost:5000/connect'
 
   constructor(
     private http: HttpClient,

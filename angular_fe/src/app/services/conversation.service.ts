@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class UserConversationService {
 
-  private apiUrl = 'http://localhost:5000/connect';
+  private apiUrl = 'https://localhost:5000/connect';
 
   constructor(private http: HttpClient) {}
 

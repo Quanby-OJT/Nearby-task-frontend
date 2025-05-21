@@ -9,7 +9,7 @@ import { SessionLocalStorage } from 'src/services/sessionStorage';
 })
 export class FeedbackService {
 
-    private apiUrl = 'http://localhost:5000/connect';
+    private apiUrl = 'https://localhost:5000/connect';
 
     constructor(
         private http: HttpClient,
@@ -24,7 +24,7 @@ export class FeedbackService {
     }
 
     getFeedback(): Observable<any> {
-        return this.http.get(`${this.apiUrl}/get-all-tasker-feedback`, { 
+        return this.http.get(`${this.apiUrl}/get-all-tasker-feedback`, {
             headers: this.getHeader(),
             withCredentials: true
         });

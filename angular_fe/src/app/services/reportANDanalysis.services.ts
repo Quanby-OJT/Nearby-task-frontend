@@ -7,7 +7,7 @@ import { SessionLocalStorage } from 'src/services/sessionStorage';
   providedIn: 'root'
 })
 export class ReportService {
-  private apiUrl = 'http://localhost:5000/connect';
+  private apiUrl = 'https://localhost:5000/connect';
 
   constructor(
     private http: HttpClient,
@@ -19,7 +19,7 @@ export class ReportService {
       'Authorization': `Bearer ${this.sessionStorage.getSessionToken()}`
     });
   }
-  
+
   getSpecialization(trendType: 'requested' | 'applied' = 'applied', month?: string): Observable<{
     success: boolean;
     rankedSpecializations: { specialization: string; total_requested: number; total_applied: number }[];

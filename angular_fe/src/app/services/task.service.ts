@@ -7,7 +7,7 @@ import { SessionLocalStorage } from 'src/services/sessionStorage';
   providedIn: 'root',
 })
 export class TaskService {
-  private apiUrl = 'http://localhost:5000/connect';
+  private apiUrl = 'https://localhost:5000/connect';
 
   constructor(private http: HttpClient, private sessionStorage: SessionLocalStorage) {}
 
@@ -19,23 +19,23 @@ export class TaskService {
   }
 
   getTasks(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/displayTask`, { 
+    return this.http.get<any>(`${this.apiUrl}/displayTask`, {
       headers: this.getHeaders(),
       withCredentials: true
     });
   }
 
   getTaskById(id: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/displayTask/${id}`, { 
+    return this.http.get<any>(`${this.apiUrl}/displayTask/${id}`, {
       headers: this.getHeaders(),
       withCredentials: true
     });
   }
 
   disableTask(id: string): Observable<any> {
-    return this.http.patch(`${this.apiUrl}/displayTask/${id}`, {}, { 
+    return this.http.patch(`${this.apiUrl}/displayTask/${id}`, {}, {
       headers: this.getHeaders(),
-      withCredentials: true 
+      withCredentials: true
     });
   }
 
