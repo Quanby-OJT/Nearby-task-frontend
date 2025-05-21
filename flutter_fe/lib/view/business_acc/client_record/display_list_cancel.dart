@@ -201,7 +201,7 @@ class _DisplayListRecordCancelState extends State<DisplayListRecordCancel> {
                 child: Icon(
                   Icons.notifications_outlined,
                   size: 60,
-                  color: Color(0xFFADE1E5),
+                  color: Color(0xFFB71A4A).withOpacity(0.5),
                 ),
               ),
             ],
@@ -236,12 +236,12 @@ class _DisplayListRecordCancelState extends State<DisplayListRecordCancel> {
         title: Text(
           'Cancelled Tasks',
           style: GoogleFonts.montserrat(
-            color: Color(0xFF0272B1),
+            color: Color(0xFFB71A4A),
             fontWeight: FontWeight.w600,
             fontSize: 18,
           ),
         ),
-        iconTheme: IconThemeData(color: Color(0xFF0272B1)),
+        iconTheme: IconThemeData(color: Color(0xFFB71A4A)),
       ),
       body: Column(
         children: [

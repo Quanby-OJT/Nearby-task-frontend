@@ -175,7 +175,7 @@ class _SelfieVerificationPageState extends State<SelfieVerificationPage> {
                             style: GoogleFonts.poppins(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF0272B1),
+                              color: const Color(0xFFB71A4A),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -274,9 +274,9 @@ class _SelfieVerificationPageState extends State<SelfieVerificationPage> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.blue[50],
+                          color: Color(0xFFB71A4A).withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.blue[200]!),
+                          border: Border.all(color: Color(0xFFB71A4A)),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -286,7 +286,7 @@ class _SelfieVerificationPageState extends State<SelfieVerificationPage> {
                               style: GoogleFonts.poppins(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.blue[800],
+                                color: Color(0xFFB71A4A),
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -328,7 +328,7 @@ class _SelfieVerificationPageState extends State<SelfieVerificationPage> {
                                   color: _selfieImage != null ||
                                           _selfieImageUrl != null
                                       ? Colors.green
-                                      : const Color(0xFF0272B1)
+                                      : const Color(0xFFB71A4A)
                                           .withOpacity(0.5),
                                   width: _selfieImage != null ||
                                           _selfieImageUrl != null
@@ -365,7 +365,7 @@ class _SelfieVerificationPageState extends State<SelfieVerificationPage> {
                                                               .expectedTotalBytes!
                                                       : null,
                                                   color:
-                                                      const Color(0xFF0272B1),
+                                                      const Color(0xFFB71A4A),
                                                 ),
                                                 const SizedBox(height: 8),
                                                 Text(
@@ -484,7 +484,8 @@ class _SelfieVerificationPageState extends State<SelfieVerificationPage> {
                             height: 50,
                             child: ElevatedButton.icon(
                               onPressed: _isVerified ? null : _captureSelfie,
-                              icon: const Icon(Icons.camera_alt),
+                              icon: const Icon(Icons.camera_alt,
+                                  color: Colors.white),
                               label: Text(
                                 _selfieImage == null
                                     ? "Take Selfie"
@@ -514,7 +515,8 @@ class _SelfieVerificationPageState extends State<SelfieVerificationPage> {
                             height: 50,
                             child: ElevatedButton.icon(
                               onPressed: _canProceed ? _verifySelfie : null,
-                              icon: const Icon(Icons.arrow_forward),
+                              icon: const Icon(Icons.arrow_forward,
+                                  color: Colors.white),
                               label: Text(
                                 "Next",
                                 style: GoogleFonts.poppins(
@@ -523,7 +525,7 @@ class _SelfieVerificationPageState extends State<SelfieVerificationPage> {
                                 ),
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF0272B1),
+                                backgroundColor: const Color(0xFFB71A4A),
                                 foregroundColor: Colors.white,
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 12),
@@ -548,7 +550,7 @@ class _SelfieVerificationPageState extends State<SelfieVerificationPage> {
             color: Colors.black54,
             child: const Center(
               child: CircularProgressIndicator(
-                color: Color(0xFF0272B1),
+                color: Color(0xFFB71A4A),
               ),
             ),
           ),
@@ -566,7 +568,7 @@ class _SelfieVerificationPageState extends State<SelfieVerificationPage> {
             width: 24,
             height: 24,
             decoration: BoxDecoration(
-              color: Colors.blue[700],
+              color: Color(0xFFB71A4A),
               shape: BoxShape.circle,
             ),
             child: Center(

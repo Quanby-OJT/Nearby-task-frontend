@@ -218,7 +218,7 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF0272B1),
+              primary: Color(0xFFB71A4A),
               onPrimary: Colors.white,
             ),
           ),
@@ -300,7 +300,7 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
                             style: GoogleFonts.poppins(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF0272B1),
+                              color: const Color(0xFFB71A4A),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -617,7 +617,7 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
                       child: ElevatedButton(
                         onPressed: _submitInfo,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0272B1),
+                          backgroundColor: const Color(0xFFB71A4A),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -644,7 +644,7 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
             color: Colors.black54,
             child: const Center(
               child: CircularProgressIndicator(
-                color: Color(0xFF0272B1),
+                color: Color(0xFFB71A4A),
               ),
             ),
           ),
@@ -729,11 +729,11 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: isSelected
-                ? const Color(0xFF0272B1).withOpacity(0.1)
+                ? const Color(0xFFB71A4A).withOpacity(0.1)
                 : Colors.grey[100],
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: isSelected ? const Color(0xFF0272B1) : Colors.grey[300]!,
+              color: isSelected ? const Color(0xFFB71A4A) : Colors.grey[300]!,
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -741,7 +741,7 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
             children: [
               Icon(
                 genderIcon,
-                color: isSelected ? const Color(0xFF0272B1) : Colors.grey[600],
+                color: isSelected ? const Color(0xFFB71A4A) : Colors.grey[600],
                 size: 28,
               ),
               const SizedBox(height: 8),
@@ -751,7 +751,7 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
                   fontSize: 14,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                   color:
-                      isSelected ? const Color(0xFF0272B1) : Colors.grey[700],
+                      isSelected ? const Color(0xFFB71A4A) : Colors.grey[700],
                 ),
               ),
             ],

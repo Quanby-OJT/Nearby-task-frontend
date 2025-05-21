@@ -382,9 +382,9 @@ class _NotifScreenState extends State<NotifScreen> {
       appBar: AppBar(
         title: Text(
           'Notifications',
-          style: GoogleFonts.montserrat(color: Color(0xFF0272B1)),
+          style: GoogleFonts.montserrat(color: Color(0xFFB71A4A)),
         ),
-        iconTheme: IconThemeData(color: Color(0xFF0272B1)),
+        iconTheme: IconThemeData(color: Color(0xFFB71A4A)),
       ),
       body: Column(
         children: [
@@ -401,11 +401,11 @@ class _NotifScreenState extends State<NotifScreen> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _selectedTabIndex == index
-                            ? Color(0xFF0272B1)
+                            ? Color(0xFFB71A4A)
                             : Colors.grey.shade200,
                         foregroundColor: _selectedTabIndex == index
                             ? Colors.white
-                            : Color(0xFF0272B1),
+                            : Color(0xFFB71A4A),
                         elevation: _selectedTabIndex == index ? 2 : 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),

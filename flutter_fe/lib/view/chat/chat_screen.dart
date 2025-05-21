@@ -837,7 +837,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                           contentPadding: EdgeInsets.symmetric(horizontal: 20),
                           suffixIcon: Icon(FontAwesomeIcons.magnifyingGlass),
-                          focusColor: Color(0xFF20127F),
+                          focusColor: Color(0xFFB71A4A),
                         ),
                       ),
                     ),
@@ -845,7 +845,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         child: _isLoading
                             ? Center(
                                 child: CircularProgressIndicator(
-                                  color: Color(0xFF0272B1),
+                                  color: Color(0xFFB71A4A),
                                 ),
                               )
                             : filteredTaskAssignments.isEmpty
@@ -862,13 +862,13 @@ class _ChatScreenState extends State<ChatScreen> {
                                             Icon(
                                               FontAwesomeIcons.signalMessenger,
                                               size: 100,
-                                              color: Color(0xFF0272B1),
+                                              color: Color(0xFFB71A4A),
                                             ),
                                             SizedBox(height: 16),
                                             Text(
                                               "Message Not Found.",
                                               style: GoogleFonts.montserrat(
-                                                color: Color(0xFF0272B1),
+                                                color: Color(0xFFB71A4A),
                                                 fontWeight: FontWeight.w600,
                                                 fontSize: 18,
                                               ),
@@ -884,7 +884,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                         )))
                                 : RefreshIndicator(
                                     onRefresh: _fetchTaskAssignments,
-                                    color: Color(0xFF0272B1),
+                                    color: Color(0xFFB71A4A),
                                     child: ListView.builder(
                                       padding: EdgeInsets.symmetric(vertical: 16),
                                       itemCount: filteredTaskAssignments.length,
@@ -996,7 +996,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       child: Text(
                         taskTaken.task?.title ?? 'No Title',
                         style: GoogleFonts.montserrat(
-                          color: Color(0xFF0272B1),
+                          color: Color(0xFFB71A4A),
                           fontWeight: FontWeight.w600,
                           fontSize: 18,
                         ),
