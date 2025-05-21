@@ -114,7 +114,7 @@
           <th *ngIf="userRole === 'Admin'" class="px-4 py-2 text-start min-w-[100px] lg:min-w-[250px] xl:min-w-[150px]">Handled By</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody *ngIf="displayConversations.length > 0">
         <tr *ngFor="let convo of displayConversations" class="hover:bg-card/50 h-[60px]">
           <td class="px-4 py-3 text-start">{{ convo.user.first_name }} {{ convo.user.middlename }} {{ convo.user.last_name }}</td>
           <td class="px-4 py-3 text-start">{{ convo.task_taken.clients.user.first_name }} {{ convo.task_taken.clients.user.middle_name || '' }} {{ convo.task_taken.clients.user.last_name }}</td>
@@ -145,6 +145,11 @@
         <!-- Placeholder rows to maintain fixed table size -->
         <tr *ngFor="let placeholder of placeholderRows">
           <td class="px-4 py-3 text-center" colspan="4"></td>
+        </tr>
+      </tbody>
+      <tbody *ngIf="displayConversations.length === 0">
+        <tr [ngStyle]="{'height': conversationsPerPage * 60 + 'px'}">
+          <td colspan="5" class="text-center align-middle">No Data Found</td>
         </tr>
       </tbody>
     </table>

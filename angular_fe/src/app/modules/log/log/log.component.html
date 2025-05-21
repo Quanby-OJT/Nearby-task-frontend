@@ -91,7 +91,7 @@
           <th class="px-4 py-2 text-start pl-11 min-w-[150px] lg:min-w-[300px] xl:min-w-[100px]">Status</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody *ngIf="displayLogs.length > 0">
         <!-- Loop through logs to show each row -->
         <tr *ngFor="let log of displayLogs; let i = index" class="hover:bg-card/50 h-[60px]">
           <td class="px-4 py-3 text-start font-normal">{{ log.user.first_name }} {{ log.user.middle_name }} {{ log.user.last_name }}</td>
@@ -113,6 +113,11 @@
           <td class="px-4 py-3 text-center pl-13 font-normal"></td>
           <td class="px-4 py-3 text-center pl-13 font-normal"></td>
           <td class="px-4 py-3 text-center pl-10 font-normal"></td>
+        </tr>
+      </tbody>
+      <tbody *ngIf="displayLogs.length === 0">
+        <tr [ngStyle]="{'height': logsPerPage * 60 + 'px'}">
+          <td colspan="5" class="text-center align-middle">No Data Found</td>
         </tr>
       </tbody>
     </table>

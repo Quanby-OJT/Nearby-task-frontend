@@ -152,7 +152,7 @@
           <th *ngIf="userRole === 'Admin'" class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[230px]">Action By</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody *ngIf="displayedTasks.length > 0">
         <tr *ngFor="let task of displayedTasks; let i = index" class="hover:bg-card/50 h-[60px]">
           <td class="px-4 py-3 text-start">{{ task.clients.user.first_name }} {{ task.clients.user.middle_name || '' }} {{ task.clients.user.last_name }}</td>
           <td class="px-4 py-3 text-start">{{ task.task_title || 'Empty' }}</td>
@@ -189,6 +189,11 @@
           <td class="px-4 py-3 text-center"></td>
           <td class="px-4 py-3 text-center"></td>
           <td class="flex items-center justify-center pt-3 pb-0"></td>
+        </tr>
+      </tbody>
+      <tbody *ngIf="displayedTasks.length === 0">
+        <tr [ngStyle]="{'height': tasksPerPage * 60 + 'px'}">
+          <td colspan="5" class="text-center align-middle">No Data Found</td>
         </tr>
       </tbody>
     </table>

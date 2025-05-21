@@ -110,7 +110,7 @@
         </tr>
       </thead>
       
-      <tbody>
+      <tbody *ngIf="displayPaymentLogs.length > 0">
         <tr *ngFor="let log of displayPaymentLogs; let i = index" class="hover:bg-card/50 h-[60px]">
           <td class="px-4 py-3 text-start">{{ log.user_name }}</td>
           <td class="px-4 py-3 text-start">{{ log.amount }}</td>
@@ -125,6 +125,11 @@
           <td class="px-4 py-3 text-center"></td>
           <td class="px-4 py-3 text-center"></td>
           <td class="px-4 py-3 text-center"></td>
+        </tr>
+      </tbody>
+      <tbody *ngIf="displayPaymentLogs.length === 0">
+        <tr [ngStyle]="{'height': logsPerPage * 60 + 'px'}">
+          <td colspan="5" class="text-center align-middle">No Data Found</td>
         </tr>
       </tbody>
     </table>

@@ -110,7 +110,7 @@
             <th class="px-4 py-2 text-start min-w-[80px] lg:min-w-[80px] xl:min-w-[80px]">Action</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody *ngIf="displayReports.length > 0">
           <tr *ngFor="let report of displayReports; let i = index" class="hover:bg-card/50 h-[60px]">
             <td class="px-4 py-3 text-start">{{ report.reporter.first_name }} {{ report.reporter.middle_name || '' }} {{ report.reporter.last_name }}</td>
             <td class="px-4 py-3 text-start">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.violator.last_name }}</td>
@@ -146,6 +146,11 @@
             <td class="px-4 py-3 text-center"></td>
             <td class="px-4 py-3 text-center"></td>
             <td class="px-4 py-3 text-center"></td>
+          </tr>
+        </tbody>
+        <tbody *ngIf="displayReports.length === 0">
+          <tr [ngStyle]="{'height': reportsPerPage * 60 + 'px'}">
+            <td colspan="5" class="text-center align-middle">No Data Found</td>
           </tr>
         </tbody>
       </table>
@@ -259,7 +264,7 @@
             <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[150px]">Handled By</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody *ngIf="displayReports.length > 0">
           <tr *ngFor="let report of displayReports" class="hover:bg-card/50 h-[60px]">
             <td class="px-4 py-3 text-start">{{ report.reporter.first_name }} {{ report.reporter.middle_name || '' }} {{ report.reporter.last_name }}</td>
             <td class="px-4 py-3 text-start">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.violator.last_name }}</td>
@@ -295,6 +300,11 @@
             <td class="px-4 py-3 text-center"></td>
             <td class="px-4 py-3 text-center"></td>
             <td class="px-4 py-3 text-center"></td>
+          </tr>
+        </tbody>
+        <tbody *ngIf="displayReports.length === 0">
+          <tr [ngStyle]="{'height': reportsPerPage * 60 + 'px'}">
+            <td colspan="5" class="text-center align-middle">No Data Found</td>
           </tr>
         </tbody>
       </table>
