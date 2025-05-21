@@ -39,7 +39,6 @@ export class TaskComponent implements OnInit {
     location: 'default',
     proposedPrice: 'default'
   };
-
   @Output() onCheck = new EventEmitter<boolean>();
   @Output() onSort = new EventEmitter<'asc' | 'desc'>();
 

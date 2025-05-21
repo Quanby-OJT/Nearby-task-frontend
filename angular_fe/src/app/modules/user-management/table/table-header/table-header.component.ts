@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { AngularSvgIconModule } from 'angular-svg-icon';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: '[app-table-header]',
@@ -8,12 +9,26 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
   templateUrl: './table-header.component.html',
   styleUrl: './table-header.component.css',
 })
-export class UserTableHeaderComponent {
+export class UserTableHeaderComponent implements OnInit{
   @Output() onCheck = new EventEmitter<boolean>();
   @Output() onSort = new EventEmitter<{ column: 'profile' | 'email'; state: 'default' | 'asc' | 'desc' }>();
-
+  userRole: string | undefined;
   profileSortState: 'default' | 'asc' | 'desc' = 'default';
   emailSortState: 'default' | 'asc' | 'desc' = 'default';
+
+  constructor( private authService: AuthService ){}
+
+
+  ngOnInit(): void {
+    this.authService.userInformation().subscribe(
+      (response: any) => {
+        this.userRole = response.user.user_role;
+      },
+      (error: any) => {
+        console.error('Error fetching user role:', error);
+      }
+    );
+  }
 
   public toggle(event: Event) {
     const value = (event.target as HTMLInputElement).checked;

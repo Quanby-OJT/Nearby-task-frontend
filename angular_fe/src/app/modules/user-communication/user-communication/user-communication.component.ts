@@ -9,6 +9,7 @@ import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { SessionLocalStorage } from 'src/services/sessionStorage';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-user-communication',
@@ -36,14 +37,15 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
   dateSortMode: 'default' | 'newestToOldest' | 'oldestToNewest' = 'default';
   viewedUserSortMode: 'default' | 'asc' | 'desc' = 'default';
   isLoading: boolean = true;
-
+  userRole: string | undefined;
   @Output() onCheck = new EventEmitter<boolean>();
 
   private conversationSubscription!: Subscription;
 
   constructor(
     private userConversationService: UserConversationService,
-    private sessionStorage: SessionLocalStorage
+    private sessionStorage: SessionLocalStorage,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -62,6 +64,16 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
       },
       (error) => {
         console.error("Error getting logs:", error);
+        this.isLoading = false;
+      }
+    );
+    this.authService.userInformation().subscribe(
+      (response: any) => {
+        this.userRole = response.user.user_role;
+        this.isLoading = false;
+      },
+      (error: any) => {
+        console.error('Error fetching user role:', error);
         this.isLoading = false;
       }
     );
