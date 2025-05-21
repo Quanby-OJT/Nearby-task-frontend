@@ -87,7 +87,10 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                 children: [
                   Text(
                     widget.taskTitle ?? "Please Wait...",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFB71A4A)),
                     overflow: TextOverflow.ellipsis, // Prevents text overflow
                   ),
                 ],
@@ -98,7 +101,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
               mainAxisSize: MainAxisSize.min, // Keeps icons tightly packed
               children: [
                 IconButton(
-                  icon: Icon(Icons.info_outline, color: Color(0xFF0272B1)),
+                  icon: Icon(Icons.info_outline, color: Color(0xFFB71A4A)),
 
                   ///
                   /// NOTE: When retrieving task information, task_id must be used to retrieve task information
@@ -133,7 +136,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                         Icon(
                           Icons.message,
                           size: 100,
-                          color: Color(0xFF0272B1),
+                          color: Color(0xFFB71A4A),
                         ),
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 20),

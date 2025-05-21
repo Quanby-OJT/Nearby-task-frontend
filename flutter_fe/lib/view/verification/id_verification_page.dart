@@ -144,13 +144,13 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
   void _verifyId() {
     if (_formKey.currentState!.validate()) {
       if (_idImage != null) {
-        // Use the captured image
-        widget.onIdVerified(_idImage!, _selectedIdType!);
+        // Use the captured image with empty string for ID type
+        widget.onIdVerified(_idImage!, _selectedIdType ?? '');
       } else if (_idImageUrl != null) {
         // If we have an existing image URL but no new image captured,
         // create a dummy file to continue the flow
         final dummyFile = File('dummy_path');
-        widget.onIdVerified(dummyFile, _selectedIdType!);
+        widget.onIdVerified(dummyFile, _selectedIdType ?? '');
       } else {
         // No image at all
         ScaffoldMessenger.of(context).showSnackBar(
@@ -164,12 +164,11 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
   }
 
   bool get _canProceed {
-    final hasIdType = _selectedIdType != null;
+    // Only check if we have an image, ID type is no longer required
     final hasImage = _idImage != null || _idImageUrl != null;
-    final canProceed = hasIdType && hasImage;
+    final canProceed = hasImage;
 
     debugPrint('Can proceed check:');
-    debugPrint('  - Has ID Type: $hasIdType (value: $_selectedIdType)');
     debugPrint(
         '  - Has Image: $hasImage (new: ${_idImage != null}, existing: ${_idImageUrl != null})');
     debugPrint('  - Can Proceed: $canProceed');
@@ -206,7 +205,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                             style: GoogleFonts.poppins(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF0272B1),
+                              color: const Color(0xFFB71A4A),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -305,9 +304,10 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.blue[50],
+                          color: Color(0xFFB71A4A).withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.blue[200]!),
+                          border: Border.all(
+                              color: Color(0xFFB71A4A).withOpacity(0.5)),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -317,7 +317,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                               style: GoogleFonts.poppins(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.blue[800],
+                                color: Color(0xFFB71A4A),
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -332,42 +332,6 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                       ),
                     if (_verificationStatus != 'approved')
                       const SizedBox(height: 24),
-
-                    // ID Type Dropdown
-                    Text(
-                      'ID Type',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    DropdownButtonFormField<String>(
-                      decoration: _inputDecoration(
-                        hintText: 'Select ID Type',
-                        prefixIcon: Icons.badge,
-                      ),
-                      value: _selectedIdType,
-                      items: _idTypes
-                          .map(
-                            (String idType) => DropdownMenuItem<String>(
-                              value: idType,
-                              child: Text(idType),
-                            ),
-                          )
-                          .toList(),
-                      validator: (value) =>
-                          value == null ? 'Please select an ID type' : null,
-                      onChanged: _isVerified
-                          ? null
-                          : (String? newValue) {
-                              setState(() {
-                                _selectedIdType = newValue;
-                              });
-                            },
-                    ),
-                    const SizedBox(height: 24),
 
                     // ID Photo Container
                     Text(
@@ -390,7 +354,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                           border: Border.all(
                             color: _idImage != null || _idImageUrl != null
                                 ? Colors.green
-                                : const Color(0xFF0272B1).withOpacity(0.5),
+                                : const Color(0xFFB71A4A).withOpacity(0.5),
                             width:
                                 _idImage != null || _idImageUrl != null ? 2 : 1,
                           ),
@@ -423,7 +387,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                                                     loadingProgress
                                                         .expectedTotalBytes!
                                                 : null,
-                                            color: const Color(0xFF0272B1),
+                                            color: const Color(0xFFB71A4A),
                                           ),
                                           const SizedBox(height: 8),
                                           Text(
@@ -542,7 +506,8 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                             height: 50,
                             child: ElevatedButton.icon(
                               onPressed: _isVerified ? null : _captureIdImage,
-                              icon: const Icon(Icons.camera_alt),
+                              icon: const Icon(Icons.camera_alt,
+                                  color: Colors.white),
                               label: Text(
                                 _idImage == null
                                     ? "Capture ID"
@@ -572,7 +537,8 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                             height: 50,
                             child: ElevatedButton.icon(
                               onPressed: canProceed ? _verifyId : null,
-                              icon: const Icon(Icons.arrow_forward),
+                              icon: const Icon(Icons.arrow_forward,
+                                  color: Colors.white),
                               label: Text(
                                 "Next",
                                 style: GoogleFonts.poppins(
@@ -581,7 +547,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                                 ),
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF0272B1),
+                                backgroundColor: const Color(0xFFB71A4A),
                                 foregroundColor: Colors.white,
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 12),
@@ -628,7 +594,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
             color: Colors.black54,
             child: const Center(
               child: CircularProgressIndicator(
-                color: Color(0xFF0272B1),
+                color: Color(0xFFB71A4A),
               ),
             ),
           ),
@@ -646,7 +612,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
             width: 24,
             height: 24,
             decoration: BoxDecoration(
-              color: Colors.blue[700],
+              color: Color(0xFFB71A4A),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -691,7 +657,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Color(0xFF0272B1), width: 2),
+        borderSide: const BorderSide(color: Color(0xFFB71A4A), width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),

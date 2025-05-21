@@ -247,12 +247,12 @@ class _DisplayListRecordDisputedState extends State<DisplayListRecordDisputed> {
         title: Text(
           'Disputed Tasks',
           style: GoogleFonts.montserrat(
-            color: Color(0xFF0272B1),
+            color: Color(0xFFB71A4A),
             fontWeight: FontWeight.w600,
             fontSize: 18,
           ),
         ),
-        iconTheme: IconThemeData(color: Color(0xFF0272B1)),
+        iconTheme: IconThemeData(color: Color(0xFFB71A4A)),
       ),
       body: Column(
         children: [
