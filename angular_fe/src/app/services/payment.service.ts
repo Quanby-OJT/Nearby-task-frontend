@@ -8,7 +8,7 @@ import { SessionLocalStorage } from 'src/services/sessionStorage';
 })
 export class PaymentService {
   
-  private apiUrl = 'http://localhost:5000/connect';
+  private apiUrl = 'https://localhost:5000/connect';
   
   constructor(
     private http: HttpClient,
