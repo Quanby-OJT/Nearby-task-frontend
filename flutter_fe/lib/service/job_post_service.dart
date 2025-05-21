@@ -496,8 +496,9 @@ class JobPostService {
           .map((task) => TaskModel.fromJson(task as Map<String, dynamic>))
           .where((task) => !likedTaskIds.contains(task.toString().toString()))
           .toList();
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('Error fetching jobs: $e');
+      debugPrintStack(stackTrace: stackTrace);
       return [];
     }
   }
