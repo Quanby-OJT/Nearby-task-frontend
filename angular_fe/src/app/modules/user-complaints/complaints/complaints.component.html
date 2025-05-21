@@ -255,6 +255,7 @@
               </div>
             </th>
             <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[220px]">Status</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[110px]">Action</th>
             <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[150px]">Handled By</th>
           </tr>
         </thead>
@@ -275,6 +276,12 @@
               >
                 {{ report.status ? 'Processed' : 'Pending' }}
               </span>
+            </td>
+            <td class="flex items-start justify-start pt-3 pb-0 w-20">
+              <button (click)="openModal(report.report_id)" class="flex items-start text-blue-500 hover:opacity-70">
+                <img src="https://img.icons8.com/?size=100&id=cRLuJXPEgWhK&format=png&color=0000FF" alt="View Icon" class="w-5 h-5 mr-2">
+                View
+              </button>
             </td>
             <td class="px-4 py-3 text-start">{{ report.actionBy && (report.actionBy.first_name !== 'Unknown' || report.actionBy.middle_name !== 'Unknown' || report.actionBy.last_name !== 'Unknown') ? report.actionBy.first_name + ' ' + (report.actionBy.middle_name || '') + ' ' + report.actionBy.last_name : 'No Action Yet' }}</td>
           </tr>
