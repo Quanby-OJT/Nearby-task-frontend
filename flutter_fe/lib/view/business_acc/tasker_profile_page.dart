@@ -447,7 +447,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
                                   colors: [
-                                    Color(0xFF0272B1),
+                                    Color(0xFFB71A4A),
                                     Color(0xFFE3F2FD),
                                   ],
                                 ),
@@ -512,7 +512,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                                     child: Text(
                                       widget.tasker.user!.role,
                                       style: GoogleFonts.montserrat(
-                                        color: const Color(0xFF0272B1),
+                                        color: Color(0xFFB71A4A),
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -689,14 +689,14 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
       children: [
         Row(
           children: [
-            Icon(icon, color: const Color(0xFF0272B1), size: 20),
+            Icon(icon, color: const Color(0xFFB71A4A), size: 20),
             const SizedBox(width: 4),
             Text(
               value,
               style: GoogleFonts.montserrat(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF0272B1),
+                color: const Color(0xFFB71A4A),
               ),
             ),
           ],
@@ -729,7 +729,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
               style: GoogleFonts.montserrat(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF0272B1),
+                color: const Color(0xFFB71A4A),
               ),
             ),
             const SizedBox(height: 12),
@@ -745,7 +745,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          Icon(icon, color: const Color(0xFF0272B1), size: 20),
+          Icon(icon, color: const Color(0xFFB71A4A), size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
