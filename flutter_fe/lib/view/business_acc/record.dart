@@ -10,6 +10,7 @@ import 'package:flutter_fe/view/business_acc/client_record/display_list_finish.d
 import 'package:flutter_fe/view/business_acc/client_record/display_list_ongoing.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_pending.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_review.dart';
+import 'package:flutter_fe/view/profile/payment_processing.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -116,16 +117,16 @@ class _RecordPageState extends State<RecordPage> {
                           : _escrowManagementController.tokenCredits.value ==
                                   0.0
                               ? Text(
-                                  "0.00",
-                                  style: GoogleFonts.poppins(
+                                  "You haven't made a deposit. To Create tasks, you must deposit first.",
+                                  style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 36,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 )
                               : Text(
-                                  '\$${_escrowManagementController.tokenCredits.value.toStringAsFixed(2)}',
-                                  style: GoogleFonts.poppins(
+                                  '₱${_escrowManagementController.tokenCredits.value.toStringAsFixed(2)}',
+                                  style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 36,
                                     fontWeight: FontWeight.bold,
@@ -152,7 +153,13 @@ class _RecordPageState extends State<RecordPage> {
                       child: InkWell(
                         onTap: () {
                           // Show deposit dialog
-                          _showDepositDialog();
+                          Navigator.push(context, MaterialPageRoute(
+                            builder: (context) {
+                              return PaymentProcessingPage(
+                                transferMethod: "deposit",
+                              );
+                            },
+                          ));
                         },
                         borderRadius: BorderRadius.circular(16),
                         child: Padding(
@@ -207,7 +214,11 @@ class _RecordPageState extends State<RecordPage> {
                       child: InkWell(
                         onTap: () {
                           // Show withdraw dialog
-                          _showWithdrawDialog();
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => PaymentProcessingPage(
+                                      transferMethod: "withdraw")));
                         },
                         borderRadius: BorderRadius.circular(16),
                         child: Padding(

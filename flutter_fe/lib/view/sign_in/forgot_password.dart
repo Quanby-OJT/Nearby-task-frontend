@@ -9,7 +9,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class ForgotPassword extends StatefulWidget {
-  const ForgotPassword({super.key});
+  final Uri? uri;
+  const ForgotPassword({super.key, this.uri});
 
   @override
   State<ForgotPassword> createState() => _ForgotPasswordState();

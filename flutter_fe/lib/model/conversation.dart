@@ -5,14 +5,14 @@ class Conversation {
   final UserModel? user;
   final TaskAssignment? taskTaken;
   final String? conversationMessage;
-  final int? userId;
+  final int userId;
   final int? taskTakenId;
 
   Conversation({
     this.user,
     this.conversationMessage,
     this.taskTaken,
-    this.userId,
+    required this.userId,
     this.taskTakenId
   });
 

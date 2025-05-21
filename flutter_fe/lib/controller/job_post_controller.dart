@@ -168,8 +168,8 @@ class JobPostController {
 
       return result;
     } catch (e, stackTrace) {
-      debugPrint("Error fetching jobs: $e");
-      debugPrint(stackTrace.toString());
+      debugPrint("Error while fetching jobs for tasker: $e");
+      debugPrintStack(stackTrace: stackTrace);
       return [];
     }
   }

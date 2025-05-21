@@ -4,6 +4,7 @@ import 'package:flutter_fe/view/business_acc/client_record/display_list_finish.d
 import 'package:flutter_fe/view/business_acc/client_record/display_list_ongoing.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_reject.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_review.dart';
+import 'package:flutter_fe/view/profile/payment_processing.dart';
 
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -208,7 +209,12 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                       child: InkWell(
                         onTap: () {
                           // Show withdraw dialog
-                          _showWithdrawDialog();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PaymentProcessingPage(transferMethod: "withdraw"),
+                            ),
+                          );
                         },
                         borderRadius: BorderRadius.circular(16),
                         child: Padding(
