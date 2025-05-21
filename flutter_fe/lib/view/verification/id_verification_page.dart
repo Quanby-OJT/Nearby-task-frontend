@@ -205,7 +205,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                             style: GoogleFonts.poppins(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF0272B1),
+                              color: const Color(0xFFB71A4A),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -304,9 +304,10 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.blue[50],
+                          color: Color(0xFFB71A4A).withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.blue[200]!),
+                          border: Border.all(
+                              color: Color(0xFFB71A4A).withOpacity(0.5)),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -316,7 +317,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                               style: GoogleFonts.poppins(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.blue[800],
+                                color: Color(0xFFB71A4A),
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -353,7 +354,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                           border: Border.all(
                             color: _idImage != null || _idImageUrl != null
                                 ? Colors.green
-                                : const Color(0xFF0272B1).withOpacity(0.5),
+                                : const Color(0xFFB71A4A).withOpacity(0.5),
                             width:
                                 _idImage != null || _idImageUrl != null ? 2 : 1,
                           ),
@@ -386,7 +387,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                                                     loadingProgress
                                                         .expectedTotalBytes!
                                                 : null,
-                                            color: const Color(0xFF0272B1),
+                                            color: const Color(0xFFB71A4A),
                                           ),
                                           const SizedBox(height: 8),
                                           Text(
@@ -505,7 +506,8 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                             height: 50,
                             child: ElevatedButton.icon(
                               onPressed: _isVerified ? null : _captureIdImage,
-                              icon: const Icon(Icons.camera_alt),
+                              icon: const Icon(Icons.camera_alt,
+                                  color: Colors.white),
                               label: Text(
                                 _idImage == null
                                     ? "Capture ID"
@@ -535,7 +537,8 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                             height: 50,
                             child: ElevatedButton.icon(
                               onPressed: canProceed ? _verifyId : null,
-                              icon: const Icon(Icons.arrow_forward),
+                              icon: const Icon(Icons.arrow_forward,
+                                  color: Colors.white),
                               label: Text(
                                 "Next",
                                 style: GoogleFonts.poppins(
@@ -544,7 +547,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                                 ),
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF0272B1),
+                                backgroundColor: const Color(0xFFB71A4A),
                                 foregroundColor: Colors.white,
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 12),
@@ -591,7 +594,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
             color: Colors.black54,
             child: const Center(
               child: CircularProgressIndicator(
-                color: Color(0xFF0272B1),
+                color: Color(0xFFB71A4A),
               ),
             ),
           ),
@@ -609,7 +612,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
             width: 24,
             height: 24,
             decoration: BoxDecoration(
-              color: Colors.blue[700],
+              color: Color(0xFFB71A4A),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -654,7 +657,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Color(0xFF0272B1), width: 2),
+        borderSide: const BorderSide(color: Color(0xFFB71A4A), width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
