@@ -651,7 +651,7 @@ class _LikesScreenState extends State<LikesScreen> {
                 children: [
                   Text(
                     tasker.user?.firstName ?? 'Unknown Tasker',
-                    style: GoogleFonts.montserrat(
+                    style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFFB71A4A),
@@ -666,7 +666,7 @@ class _LikesScreenState extends State<LikesScreen> {
                       Expanded(
                         child: Text(
                           tasker.user?.email ?? 'No email',
-                          style: GoogleFonts.montserrat(
+                          style: GoogleFonts.poppins(
                             fontSize: 14,
                             color: Colors.grey[600],
                           ),
