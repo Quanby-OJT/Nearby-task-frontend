@@ -117,7 +117,7 @@ class _RecordPageState extends State<RecordPage> {
                           : _escrowManagementController.tokenCredits.value ==
                                   0.0
                               ? Text(
-                                  "You haven't made a deposit. To Create tasks, you must deposit first.",
+                                  "₱ 0.00",
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 36,
