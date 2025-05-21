@@ -21,6 +21,17 @@ export class AddUserComponent {
   success_message: any = null;
   today: string; // Add property for current date
   actionByName: string = '';
+  passwordTextType: boolean = false; // Track password visibility
+  confirmPasswordTextType: boolean = false; // Track confirm password visibility
+  // Object to track password validation requirements
+  passwordValidation = {
+    minLength: false,
+    lowercase: false,
+    uppercase: false,
+    number: false,
+    specialChar: false,
+    noSpaces: false,
+  };
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -65,14 +76,62 @@ export class AddUserComponent {
       userRole: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       bday: ['', Validators.required],
-      profileImage: [null, Validators.required], // Changed to null initial value
+      profileImage: [null, Validators.required],
       contact: ['', Validators.required],
       gender: ['', Validators.required],
-      password: ['', Validators.required],
-      confirmPassword: ['', Validators.required]
+      password: ['', [Validators.required, this.passwordValidator()]],
+      confirmPassword: ['', [Validators.required, this.passwordValidator()]]
     }, {
       validators: this.mustMatch('password', 'confirmPassword')
     });
+
+    // Subscribe to password value changes for real-time validation
+    this.form.get('password')?.valueChanges.subscribe((value) => {
+      this.validatePassword(value);
+    });
+  }
+
+  // Custom validator for password requirements
+  passwordValidator() {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value || '';
+      const errors: ValidationErrors = {};
+
+      if (!value) {
+        return { required: true }; // Required validation handled separately
+      }
+
+      if (value.length < 8) {
+        errors['minlength'] = true;
+      }
+      if (!/[a-z]/.test(value)) {
+        errors['lowercase'] = true;
+      }
+      if (!/[A-Z]/.test(value)) {
+        errors['uppercase'] = true;
+      }
+      if (!/\d/.test(value)) {
+        errors['number'] = true;
+      }
+      if (!/[!@#$%^&*()]/.test(value)) {
+        errors['specialChar'] = true;
+      }
+      if (/\s/.test(value)) {
+        errors['noSpaces'] = true;
+      }
+
+      return Object.keys(errors).length > 0 ? errors : null;
+    };
+  }
+
+  // Validate password requirements as the user types
+  validatePassword(value: string) {
+    this.passwordValidation.minLength = value.length >= 8;
+    this.passwordValidation.lowercase = /[a-z]/.test(value);
+    this.passwordValidation.uppercase = /[A-Z]/.test(value);
+    this.passwordValidation.number = /\d/.test(value);
+    this.passwordValidation.specialChar = /[!@#$%^&*()]/.test(value);
+    this.passwordValidation.noSpaces = !/\s/.test(value);
   }
 
   // Custom validator to check if password and confirmPassword match
@@ -97,6 +156,14 @@ export class AddUserComponent {
         return null;
       }
     };
+  }
+
+  togglePasswordTextType() {
+    this.passwordTextType = !this.passwordTextType;
+  }
+
+  toggleConfirmPasswordTextType() {
+    this.confirmPasswordTextType = !this.confirmPasswordTextType;
   }
 
   onFileChange(event: Event) {
@@ -200,6 +267,14 @@ export class AddUserComponent {
           this.submitted = false;
           this.imagePreview = null;
           this.selectedFile = null;
+          this.passwordValidation = {
+            minLength: false,
+            lowercase: false,
+            uppercase: false,
+            number: false,
+            specialChar: false,
+            noSpaces: false,
+          };
           this.router.navigate(['user-management']);
         });
       },
