@@ -48,7 +48,7 @@ export class UserAccountService {
   }
 
   getAllUsers(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/userDisplay`, {
+    return this.http.get<any>(`${this.apiUrl}/userAutherizedDisplay`, {
       headers: this.getHeaders(),
       withCredentials: true
     });

@@ -122,6 +122,8 @@ class _TaskInformationState extends State<TaskInformation> {
   ClientRequestModel? _requestInformation;
   ClientRequestModel? _requestTaskStatus;
   String _requestStatus = 'Unknown';
+  bool _isTaskCardExpanded = false;
+  bool _isClientCardExpanded = false;
 
   @override
   void initState() {
@@ -418,58 +420,99 @@ class _TaskInformationState extends State<TaskInformation> {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _taskInformation!.title ?? 'Untitled Task',
-              style: GoogleFonts.montserrat(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF03045E),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: () {
+              setState(() {
+                _isTaskCardExpanded = !_isTaskCardExpanded;
+              });
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _taskInformation!.title ?? 'Untitled Task',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF03045E),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: statusColor(_taskInformation!.status),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            _taskInformation!.status,
+                            style: GoogleFonts.montserrat(
+                              color: Colors.white,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    _isTaskCardExpanded
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
+                    color: const Color(0xFF03045E),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: statusColor(_taskInformation!.status),
-                borderRadius: BorderRadius.circular(12),
+          ),
+          AnimatedCrossFade(
+            firstChild: Container(height: 0),
+            secondChild: Padding(
+              padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  _buildInfoRow(
+                    icon: FontAwesomeIcons.briefcase,
+                    label: 'Required Tasker',
+                    value: _taskInformation!.workType ?? 'N/A',
+                  ),
+                  _buildInfoRow(
+                    icon: FontAwesomeIcons.screwdriverWrench,
+                    label: 'Specialization',
+                    value: _taskInformation!.specialization ?? 'N/A',
+                  ),
+                  _buildInfoRow(
+                    icon: FontAwesomeIcons.pesoSign,
+                    label: 'Contract Price',
+                    value: _taskInformation!.contactPrice.toString() ?? 'N/A',
+                  ),
+                  _buildInfoRow(
+                    icon: FontAwesomeIcons.fileAlt,
+                    label: 'Description',
+                    value: _taskInformation!.description ??
+                        'No description available',
+                  ),
+                ],
               ),
-              child: Text(
-                _taskInformation!.status,
-                style: GoogleFonts.montserrat(
-                  color: Colors.white,
-                  fontSize: 12,
-                ),
-              ),
             ),
-            const SizedBox(height: 16),
-            _buildInfoRow(
-              icon: FontAwesomeIcons.briefcase,
-              label: 'Required Tasker',
-              value: _taskInformation!.workType ?? 'N/A',
-            ),
-            _buildInfoRow(
-              icon: FontAwesomeIcons.screwdriverWrench,
-              label: 'Specialization',
-              value: _taskInformation!.specialization ?? 'N/A',
-            ),
-            _buildInfoRow(
-              icon: FontAwesomeIcons.pesoSign,
-              label: 'Contract Price',
-              value: _taskInformation!.contactPrice.toString() ?? 'N/A',
-            ),
-            _buildInfoRow(
-              icon: FontAwesomeIcons.fileAlt,
-              label: 'Description',
-              value:
-                  _taskInformation!.description ?? 'No description available',
-            ),
-          ],
-        ),
+            crossFadeState: _isTaskCardExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 300),
+          ),
+        ],
       ),
     );
   }
@@ -479,48 +522,81 @@ class _TaskInformationState extends State<TaskInformation> {
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       color: const Color(0xFFF5F9FF),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Client Information',
-              style: GoogleFonts.montserrat(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFF03045E),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: () {
+              setState(() {
+                _isClientCardExpanded = !_isClientCardExpanded;
+              });
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Client Information',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF03045E),
+                    ),
+                  ),
+                  Icon(
+                    _isClientCardExpanded
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
+                    color: const Color(0xFF03045E),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            _buildInfoRow(
-              icon: FontAwesomeIcons.user,
-              label: 'Name',
-              value:
-                  '${_client?.user.firstName ?? ''} ${_client?.user.middleName ?? ''} ${_client?.user.lastName ?? ''}',
+          ),
+          AnimatedCrossFade(
+            firstChild: Container(height: 0),
+            secondChild: Padding(
+              padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  _buildInfoRow(
+                    icon: FontAwesomeIcons.user,
+                    label: 'Name',
+                    value:
+                        '${_client?.user.firstName ?? ''} ${_client?.user.middleName ?? ''} ${_client?.user.lastName ?? ''}',
+                  ),
+                  _buildInfoRow(
+                    icon: FontAwesomeIcons.checkCircle,
+                    label: 'Account Status',
+                    value: _client?.user.accStatus ?? 'Verified',
+                  ),
+                  _buildInfoRow(
+                    icon: FontAwesomeIcons.envelope,
+                    label: 'Email',
+                    value: _client?.user.email ?? 'N/A',
+                  ),
+                  _buildInfoRow(
+                    icon: FontAwesomeIcons.phone,
+                    label: 'Phone',
+                    value: _client?.user.contact ?? 'N/A',
+                  ),
+                  _buildInfoRow(
+                    icon: FontAwesomeIcons.solidStar,
+                    label: 'Rating',
+                    value: _client?.client?.rating.toString() ?? 'N/A',
+                  ),
+                ],
+              ),
             ),
-            _buildInfoRow(
-              icon: FontAwesomeIcons.checkCircle,
-              label: 'Account Status',
-              value: _client?.user.accStatus ?? 'Verified',
-            ),
-            _buildInfoRow(
-              icon: FontAwesomeIcons.envelope,
-              label: 'Email',
-              value: _client?.user.email ?? 'N/A',
-            ),
-            _buildInfoRow(
-              icon: FontAwesomeIcons.phone,
-              label: 'Phone',
-              value: _client?.user.contact ?? 'N/A',
-            ),
-            _buildInfoRow(
-              icon: FontAwesomeIcons.solidStar,
-              label: 'Rating',
-              value: _client?.client?.rating.toString() ?? 'N/A',
-            ),
-          ],
-        ),
+            crossFadeState: _isClientCardExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 300),
+          ),
+        ],
       ),
     );
   }

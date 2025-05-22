@@ -14,6 +14,7 @@ export interface SpecializationRank {
     userName: string;
     specialization: string;
     taskCount: number;
+    rating: number;
   }
   
   export interface Client {
@@ -21,6 +22,7 @@ export interface SpecializationRank {
     address: string;
     taskCount: number;
     gender: string;
+    rating: number;
   }
   
   export interface MonthlyTrends {

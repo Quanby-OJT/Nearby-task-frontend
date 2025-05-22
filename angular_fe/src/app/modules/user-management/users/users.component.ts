@@ -7,16 +7,15 @@ import { UserTableActionComponent } from '../table/table-action/table-action.com
 import { UserTableFooterComponent } from '../table/table-footer/table-footer.component';
 import { UserTableHeaderComponent } from '../table/table-header/table-header.component';
 import { UserTableRowComponent } from '../table/table-row/table-row.component';
-import { AddUserComponent } from '../add-user/add-user.component';
-import { Router, RouterOutlet } from '@angular/router';
+import { Router } from '@angular/router';
 import { UserAccountService } from 'src/app/services/userAccount';
 import { UserTableFilterService } from 'src/services/user-table-filter';
-import { ButtonComponent } from 'src/app/shared/components/button/button.component';
-import { ReviewComponent } from '../review/review.component';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { CommonModule, NgIf } from '@angular/common';
 import { saveAs } from 'file-saver';
+import { AuthService } from 'src/app/services/auth.service';
+
 
 @Component({
   selector: 'app-users',
@@ -43,12 +42,14 @@ export class UsersComponent implements OnInit {
   emailSortState: 'default' | 'asc' | 'desc' = 'default';
   activeSortColumn: 'profile' | 'email' | null = null;
   isLoading: boolean = true;
+  userRole: string | undefined;
 
   constructor(
     private http: HttpClient,
     public filterService: UserTableFilterService,
     private router: Router,
     private useraccount: UserAccountService,
+    private authService: AuthService
   ) {
     effect(() => {
       const currentPage = this.filterService.currentPageField();
@@ -72,6 +73,16 @@ export class UsersComponent implements OnInit {
     this.isLoading = true;
     this.fetchUsers();
     this.setUserSize();
+    this.authService.userInformation().subscribe(
+      (response: any) => {
+        this.userRole = response.user.user_role;
+        this.isLoading = false;
+      },
+      (error: any) => {
+        console.error('Error fetching user role:', error);
+        this.isLoading = false;
+      }
+    );
   }
 
   exportCSV() {
@@ -228,6 +239,8 @@ export class UsersComponent implements OnInit {
           return user.acc_status === 'Deactivate';
         case '8':
           return user.acc_status === 'Review';
+        case '9':
+          return user.acc_status === 'Reject';
         default:
           return true;
       }

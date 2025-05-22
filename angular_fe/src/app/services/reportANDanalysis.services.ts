@@ -54,11 +54,11 @@ export class ReportService {
 
   getTopTasker(): Observable<{
     success: boolean;
-    taskers: { userName: string; specialization: string; taskCount: number }[];
+    taskers: { userName: string; specialization: string; taskCount: number; rating: number }[];
   }> {
     return this.http.get<{
       success: boolean;
-      taskers: { userName: string; specialization: string; taskCount: number }[];
+      taskers: { userName: string; specialization: string; taskCount: number; rating: number }[];
     }>(`${this.apiUrl}/getTopTasker`, {
       headers: this.getHeader(),
       withCredentials: true,
@@ -67,11 +67,11 @@ export class ReportService {
 
   getTopClient(): Observable<{
     success: boolean;
-    clients: { userName: string; address: string; taskCount: number; gender: string }[];
+    clients: { userName: string; address: string; taskCount: number; gender: string; rating: number }[];
   }> {
     return this.http.get<{
       success: boolean;
-      clients: { userName: string; address: string; taskCount: number; gender: string }[];
+      clients: { userName: string; address: string; taskCount: number; gender: string; rating: number }[];
     }>(`${this.apiUrl}/getTopClient`, {
       headers: this.getHeader(),
       withCredentials: true,

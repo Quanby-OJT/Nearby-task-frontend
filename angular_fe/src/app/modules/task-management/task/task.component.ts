@@ -9,7 +9,7 @@ import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { AuthService } from 'src/app/services/auth.service';
-import { Task } from 'src/model/task'; // Import the Task model
+import { Task } from 'src/model/task'; 
 
 @Component({
   selector: 'app-task',
@@ -39,7 +39,6 @@ export class TaskComponent implements OnInit {
     location: 'default',
     proposedPrice: 'default'
   };
-
   @Output() onCheck = new EventEmitter<boolean>();
   @Output() onSort = new EventEmitter<'asc' | 'desc'>();
 
@@ -69,16 +68,22 @@ export class TaskComponent implements OnInit {
         console.error('Error fetching user role:', error);
         this.isLoading = false;
       }
-
     );
   }
 
   fetchTasks(): void {
     this.taskService.getTasks().subscribe(
-      (response: { tasks: Task[] }) => {
+      (response: { tasks: any[] }) => {
         console.log('Fetched tasks:', response.tasks);
-        this.tasks = response.tasks;
-        this.filteredTasks = response.tasks;
+        this.tasks = response.tasks.map(task => ({
+          ...task,
+          actionByUser: task.action_by_user ? {
+            first_name: task.action_by_user.first_name,
+            middle_name: task.action_by_user.middle_name || '',
+            last_name: task.action_by_user.last_name
+          } : undefined
+        }));
+        this.filteredTasks = this.tasks;
         this.updatePagination();
       },
       (error) => console.error('Error fetching tasks:', error)

@@ -17,6 +17,8 @@ export class ForgotPasswordComponent implements OnInit {
   otp: string = '';
   newPassword: string = '';
   confirmPassword: string = '';
+  showNewPassword: boolean = false;
+  showConfirmPassword: boolean = false;
 
   // Object to track password validation requirements
   passwordValidation = {
@@ -40,6 +42,14 @@ export class ForgotPasswordComponent implements OnInit {
     this.passwordValidation.number = /\d/.test(this.newPassword);
     this.passwordValidation.specialChar = /[!@#$%^&*()]/.test(this.newPassword);
     this.passwordValidation.noSpaces = !/\s/.test(this.newPassword);
+  }
+
+  togglePasswordVisibility(field: string) {
+    if (field === 'newPassword') {
+      this.showNewPassword = !this.showNewPassword;
+    } else if (field === 'confirmPassword') {
+      this.showConfirmPassword = !this.showConfirmPassword;
+    }
   }
 
   async nextStep(form: NgForm) {

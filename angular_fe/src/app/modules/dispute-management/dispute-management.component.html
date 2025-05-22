@@ -72,7 +72,7 @@
         <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[150px] xl:min-w-[150px]">Action</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody *ngIf="displayDisputes.length > 0">
         <tr *ngFor="let dispute of displayDisputes" class="hover:bg-card/50 h-[60px]">
         <td class="px-4 py-3 text-left">{{ dispute.task_taken.post_task.task_title }}</td>
         <td class="px-4 py-3 text-left">{{ dispute.task_taken.clients.user.first_name }} {{ dispute.task_taken.clients.user.middle_name }} {{ dispute.task_taken.clients.user.last_name }} ({{dispute.task_taken.clients.user.user_role}})</td>
@@ -98,6 +98,11 @@
         <td class="px-4 py-3 text-center"></td>
         <td class="px-4 py-3 text-center"></td>
         <td class="px-4 py-3 text-center"></td>
+        </tr>
+      </tbody>
+      <tbody *ngIf="displayDisputes.length === 0">
+        <tr [ngStyle]="{'height': logsPerPage * 60 + 'px'}">
+          <td colspan="5" class="text-center align-middle">No Data Found</td>
         </tr>
       </tbody>
       </table>
@@ -126,7 +131,7 @@
         </span>
         <div class="inline-flex items-center gap-2">
           <button (click)="previousPage()" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300">
-            ◀
+            <svg-icon src="./assets/icons/heroicons/outline/arrow-long-left.svg" [svgClass]="'h-4 w-4'"> </svg-icon>
           </button>
           <button *ngFor="let page of paginationButtons"
                   [disabled]="page === '...'"
@@ -137,7 +142,7 @@
             {{ page }}
           </button>
           <button (click)="nextPage()" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300">
-            ▶
+            <svg-icon src="./assets/icons/heroicons/outline/arrow-long-right.svg" [svgClass]="'h-4 w-4'"> </svg-icon>
           </button>
         </div>
       </div>

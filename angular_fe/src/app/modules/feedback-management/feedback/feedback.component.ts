@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FeedbackService } from 'src/app/services/feedback.service';
-import { Feedback } from 'src/model/feedback'; // Import the Feedback model
+import { Feedback } from 'src/model/feedback'; 
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';

@@ -1,6 +1,6 @@
 import { UserAccountService } from './../../../services/userAccount';
 import { NgClass, NgIf } from '@angular/common';
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterOutlet } from '@angular/router';
 import { ButtonComponent } from 'src/app/shared/components/button/button.component';
@@ -13,7 +13,6 @@ import Swal from 'sweetalert2';
   styleUrl: './add-user.component.css',
 })
 export class AddUserComponent {
-[x: string]: any;
   form!: FormGroup;
   submitted = false;
   imagePreview: string | null = null;
@@ -21,12 +20,25 @@ export class AddUserComponent {
   duplicateEmailError: any = null;
   success_message: any = null;
   today: string; // Add property for current date
+  actionByName: string = '';
+  passwordTextType: boolean = false; // Track password visibility
+  confirmPasswordTextType: boolean = false; // Track confirm password visibility
+  // Object to track password validation requirements
+  passwordValidation = {
+    minLength: false,
+    lowercase: false,
+    uppercase: false,
+    number: false,
+    specialChar: false,
+    noSpaces: false,
+  };
 
   constructor(
     private _formBuilder: FormBuilder,
     private UserAccountService: UserAccountService,
-    private router: Router
-  ) {[]
+    private router: Router,
+    private cdRef: ChangeDetectorRef
+  ) {
     // Initialize today with current date in YYYY-MM-DD format
     const now = new Date();
     this.today = now.toISOString().split('T')[0];
@@ -34,6 +46,25 @@ export class AddUserComponent {
 
   ngOnInit(): void {
     this.formValidation();
+    this.loadActionByName();
+  }
+
+  loadActionByName(): void {
+    const actionById = localStorage.getItem('user_id');
+    if (actionById) {
+      this.UserAccountService.getUserById(Number(actionById)).subscribe({
+        next: (response: any) => {
+          const user = response.user || response;
+          this.actionByName = `${user.first_name || ''} ${user.middle_name || ''} ${user.last_name || ''}`.trim();
+          this.cdRef.detectChanges();
+        },
+        error: (error: any) => {
+          console.error('Error fetching action_by user data:', error);
+          this.actionByName = 'Unknown User';
+          this.cdRef.detectChanges();
+        },
+      });
+    }
   }
 
   formValidation(): void {
@@ -45,14 +76,62 @@ export class AddUserComponent {
       userRole: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       bday: ['', Validators.required],
-      profileImage: [null, Validators.required], // Changed to null initial value
+      profileImage: [null, Validators.required],
       contact: ['', Validators.required],
       gender: ['', Validators.required],
-      password: ['', Validators.required],
-      confirmPassword: ['', Validators.required]
+      password: ['', [Validators.required, this.passwordValidator()]],
+      confirmPassword: ['', [Validators.required, this.passwordValidator()]]
     }, {
       validators: this.mustMatch('password', 'confirmPassword')
     });
+
+    // Subscribe to password value changes for real-time validation
+    this.form.get('password')?.valueChanges.subscribe((value) => {
+      this.validatePassword(value);
+    });
+  }
+
+  // Custom validator for password requirements
+  passwordValidator() {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value || '';
+      const errors: ValidationErrors = {};
+
+      if (!value) {
+        return { required: true }; // Required validation handled separately
+      }
+
+      if (value.length < 8) {
+        errors['minlength'] = true;
+      }
+      if (!/[a-z]/.test(value)) {
+        errors['lowercase'] = true;
+      }
+      if (!/[A-Z]/.test(value)) {
+        errors['uppercase'] = true;
+      }
+      if (!/\d/.test(value)) {
+        errors['number'] = true;
+      }
+      if (!/[!@#$%^&*()]/.test(value)) {
+        errors['specialChar'] = true;
+      }
+      if (/\s/.test(value)) {
+        errors['noSpaces'] = true;
+      }
+
+      return Object.keys(errors).length > 0 ? errors : null;
+    };
+  }
+
+  // Validate password requirements as the user types
+  validatePassword(value: string) {
+    this.passwordValidation.minLength = value.length >= 8;
+    this.passwordValidation.lowercase = /[a-z]/.test(value);
+    this.passwordValidation.uppercase = /[A-Z]/.test(value);
+    this.passwordValidation.number = /\d/.test(value);
+    this.passwordValidation.specialChar = /[!@#$%^&*()]/.test(value);
+    this.passwordValidation.noSpaces = !/\s/.test(value);
   }
 
   // Custom validator to check if password and confirmPassword match
@@ -77,6 +156,14 @@ export class AddUserComponent {
         return null;
       }
     };
+  }
+
+  togglePasswordTextType() {
+    this.passwordTextType = !this.passwordTextType;
+  }
+
+  toggleConfirmPasswordTextType() {
+    this.confirmPasswordTextType = !this.confirmPasswordTextType;
   }
 
   onFileChange(event: Event) {
@@ -163,6 +250,8 @@ export class AddUserComponent {
     formData.append('contact', this.form.value.contact);
     formData.append('gender', this.form.value.gender);
     formData.append('password', this.form.value.password);
+    formData.append('added_by', localStorage.getItem('user_id') || '0');
+
     if (this.selectedFile) {
       formData.append('image', this.selectedFile); // Use the selected file
     }
@@ -178,6 +267,14 @@ export class AddUserComponent {
           this.submitted = false;
           this.imagePreview = null;
           this.selectedFile = null;
+          this.passwordValidation = {
+            minLength: false,
+            lowercase: false,
+            uppercase: false,
+            number: false,
+            specialChar: false,
+            noSpaces: false,
+          };
           this.router.navigate(['user-management']);
         });
       },

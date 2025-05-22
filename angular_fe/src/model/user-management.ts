@@ -18,4 +18,5 @@ export interface Users {
   contact: string | null;
   gender: string | null;
   verified: boolean;
+  action_by: string;
 }

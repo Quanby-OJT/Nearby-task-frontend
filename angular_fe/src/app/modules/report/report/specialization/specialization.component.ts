@@ -45,6 +45,14 @@ export class SpecializationComponent implements OnInit {
             // If no month is selected
             this.rankedSpecializations = response.rankedSpecializations;
           }
+        
+          this.rankedSpecializations = this.rankedSpecializations.sort((a, b) => {
+            if (b.total_applied !== a.total_applied) {
+              return b.total_applied - a.total_applied;
+            } else {
+              return a.specialization.localeCompare(b.specialization);
+            }
+          });
           this.monthlyTrends = response.monthlyTrends;
           this.updateChart();
         }

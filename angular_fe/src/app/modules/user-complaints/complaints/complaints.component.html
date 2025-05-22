@@ -110,7 +110,7 @@
             <th class="px-4 py-2 text-start min-w-[80px] lg:min-w-[80px] xl:min-w-[80px]">Action</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody *ngIf="displayReports.length > 0">
           <tr *ngFor="let report of displayReports; let i = index" class="hover:bg-card/50 h-[60px]">
             <td class="px-4 py-3 text-start">{{ report.reporter.first_name }} {{ report.reporter.middle_name || '' }} {{ report.reporter.last_name }}</td>
             <td class="px-4 py-3 text-start">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.violator.last_name }}</td>
@@ -148,6 +148,11 @@
             <td class="px-4 py-3 text-center"></td>
           </tr>
         </tbody>
+        <tbody *ngIf="displayReports.length === 0">
+          <tr [ngStyle]="{'height': reportsPerPage * 60 + 'px'}">
+            <td colspan="5" class="text-center align-middle">No Data Found</td>
+          </tr>
+        </tbody>
       </table>
     </div>
 
@@ -173,7 +178,7 @@
 
         <div class="inline-flex items-center gap-2">
           <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 disabled:opacity-50" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
-            ◀
+            <svg-icon src="./assets/icons/heroicons/outline/arrow-long-left.svg" [svgClass]="'h-4 w-4'"> </svg-icon>
           </button>
 
           <ng-container *ngFor="let page of paginationButtons">
@@ -184,7 +189,7 @@
           </ng-container>
 
           <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
-            ▶
+            <svg-icon src="./assets/icons/heroicons/outline/arrow-long-right.svg" [svgClass]="'h-4 w-4'"> </svg-icon>
           </button>
         </div>
       </div>
@@ -255,10 +260,11 @@
               </div>
             </th>
             <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[220px]">Status</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[110px]">Action</th>
             <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[150px]">Handled By</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody *ngIf="displayReports.length > 0">
           <tr *ngFor="let report of displayReports" class="hover:bg-card/50 h-[60px]">
             <td class="px-4 py-3 text-start">{{ report.reporter.first_name }} {{ report.reporter.middle_name || '' }} {{ report.reporter.last_name }}</td>
             <td class="px-4 py-3 text-start">{{ report.violator.first_name }} {{ report.violator.middle_name }} {{ report.violator.last_name }}</td>
@@ -276,6 +282,12 @@
                 {{ report.status ? 'Processed' : 'Pending' }}
               </span>
             </td>
+            <td class="flex items-start justify-start pt-3 pb-0 w-20">
+              <button (click)="openModal(report.report_id)" class="flex items-start text-blue-500 hover:opacity-70">
+                <img src="https://img.icons8.com/?size=100&id=cRLuJXPEgWhK&format=png&color=0000FF" alt="View Icon" class="w-5 h-5 mr-2">
+                View
+              </button>
+            </td>
             <td class="px-4 py-3 text-start">{{ report.actionBy && (report.actionBy.first_name !== 'Unknown' || report.actionBy.middle_name !== 'Unknown' || report.actionBy.last_name !== 'Unknown') ? report.actionBy.first_name + ' ' + (report.actionBy.middle_name || '') + ' ' + report.actionBy.last_name : 'No Action Yet' }}</td>
           </tr>
 
@@ -288,6 +300,11 @@
             <td class="px-4 py-3 text-center"></td>
             <td class="px-4 py-3 text-center"></td>
             <td class="px-4 py-3 text-center"></td>
+          </tr>
+        </tbody>
+        <tbody *ngIf="displayReports.length === 0">
+          <tr [ngStyle]="{'height': reportsPerPage * 60 + 'px'}">
+            <td colspan="5" class="text-center align-middle">No Data Found</td>
           </tr>
         </tbody>
       </table>
@@ -314,7 +331,7 @@
 
         <div class="inline-flex items-center gap-2">
           <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 disabled:opacity-50" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
-            ◀
+            <svg-icon src="./assets/icons/heroicons/outline/arrow-long-left.svg" [svgClass]="'h-4 w-4'"> </svg-icon>
           </button>
 
           <ng-container *ngFor="let page of paginationButtons">
@@ -325,7 +342,7 @@
           </ng-container>
 
           <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
-            ▶
+            <svg-icon src="./assets/icons/heroicons/outline/arrow-long-right.svg" [svgClass]="'h-4 w-4'"> </svg-icon>
           </button>
         </div>
       </div>

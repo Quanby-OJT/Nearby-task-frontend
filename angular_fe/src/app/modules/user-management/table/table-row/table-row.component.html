@@ -29,7 +29,7 @@
         'bg-blue-500': user.acc_status === 'Review',
         'bg-green-500': user.acc_status === 'Active',
         'bg-red-300': user.acc_status === 'Deactivate',
-        'bg-red-400': user.acc_status === 'Block',
+        'bg-red-400': user.acc_status === 'Reject',
         'bg-red-600': user.acc_status === 'Ban',
         'bg-red-500': user.acc_status === 'Suspend',
         'bg-yellow-300': user.acc_status === 'Pending',
@@ -71,6 +71,10 @@
         <img src="https://img.icons8.com/?size=100&id=5vIes7nAVj0R&format=png&color=000000" class="h-5 w-5" alt="Review Icon">
       </button>
     </div>
+  </td>
+
+  <td *ngIf="userRole === 'Admin'" class="border-b border-muted/20 px-6 py-4 text-[0.875rem] text-left align-middle">
+    {{ actionByName || 'No Action Yet' }}
   </td>
 
   <!-- *ngIf="user.acc_status === 'Review'" -->

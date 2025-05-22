@@ -8,6 +8,7 @@ import { UserAccountService } from 'src/app/services/userAccount';
 import Swal from 'sweetalert2';
 import { UsersComponent } from '../../users/users.component';
 import { DataService } from 'src/services/dataStorage';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: '[app-table-row]',
@@ -17,13 +18,45 @@ import { DataService } from 'src/services/dataStorage';
 })
 export class UserTableRowComponent {
   @Input() user: Users = <Users>{};
-
+  actionByName: string = '';
+  userRole: string | undefined;
   constructor(
     private route: Router,
     private UserAccountService: UserAccountService,
     private UserComponent: UsersComponent,
     private dataService: DataService,
+    private authService: AuthService
   ) {}
+
+  ngOnInit(): void {
+    this.loadActionByName();
+    this.authService.userInformation().subscribe(
+      (response: any) => {
+        this.userRole = response.user.user_role;
+      },
+      (error: any) => {
+        console.error('Error fetching user role:', error);
+      }
+    );
+  }
+
+  loadActionByName(): void {
+
+    if (this.user.action_by) {
+      this.UserAccountService.getUserById(Number(this.user.action_by)).subscribe({
+        next: (response: any) => {
+          const user = response.user || response;
+          this.actionByName = `${user.first_name || ''} ${user.middle_name || ''} ${user.last_name || ''}`.trim();
+        },
+        error: (error: any) => {
+          console.error('Error fetching action_by user data:', error);
+          this.actionByName = '	No Action Yet';
+        },
+      });
+    } else {
+      this.actionByName = '	No Action Yet';
+    }
+  }
 
   deleteUser(id: Number): void {
     Swal.fire({

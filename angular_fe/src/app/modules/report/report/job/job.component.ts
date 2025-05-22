@@ -46,6 +46,14 @@ export class JobComponent implements OnInit {
             // If no month is selected, show all specializations
             this.rankedSpecializations = response.rankedSpecializations;
           }
+          // Sort by total_requested descending, then by specialization ascending
+          this.rankedSpecializations.sort((a, b) => {
+            if (b.total_requested !== a.total_requested) {
+              return b.total_requested - a.total_requested;
+            } else {
+              return a.specialization.localeCompare(b.specialization);
+            }
+          });
           this.monthlyTrends = response.monthlyTrends;
           this.updateChart();
         }
@@ -111,11 +119,9 @@ export class JobComponent implements OnInit {
     });
 
     try {
-  
       doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 140, 35, 28, 25); 
     } catch (e) {
       console.error('Failed to load NearbyTasks.png:', e);
-
     }
 
     try {
@@ -140,24 +146,24 @@ export class JobComponent implements OnInit {
     doc.setTextColor('#000000');
     doc.text('Top Jobs', 30, 90);
 
-// Date and Time Part
-const currentDate = new Date();
-const formattedDate = currentDate.toLocaleString('en-US', {
-  month: '2-digit',
-  day: '2-digit',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-  second: '2-digit',
-  hour12: true
-}).replace(/,/, ', ');
-console.log('Formatted Date:', formattedDate); 
+    // Date and Time Part
+    const currentDate = new Date();
+    const formattedDate = currentDate.toLocaleString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    }).replace(/,/, ', ');
+    console.log('Formatted Date:', formattedDate); 
 
-// Date and Time Position and Size
-doc.setFontSize(12);
-doc.setTextColor('#000000');
-console.log('Rendering date at position x=400, y=90'); 
-doc.text(formattedDate, 310, 90); 
+    // Date and Time Position and Size
+    doc.setFontSize(12);
+    doc.setTextColor('#000000');
+    console.log('Rendering date at position x=400, y=90'); 
+    doc.text(formattedDate, 310, 90); 
 
     const headers = ['No', 'Specialization', 'Total Requested', 'Total Applied'];
     const rows = this.rankedSpecializations.map((spec, index) => [
