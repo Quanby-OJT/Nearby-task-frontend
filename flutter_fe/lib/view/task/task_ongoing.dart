@@ -2,6 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/view/task/task_finished.dart';
+import 'package:flutter_fe/view/task/task_review.dart';
+import 'package:flutter_fe/view/task_user/user_feedback.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
@@ -11,14 +14,14 @@ import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
-import 'package:flutter_fe/view/business_acc/client_record/client_finish.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:async';
 
 class TaskOngoing extends StatefulWidget {
   final TaskFetch? taskInformation;
-  const TaskOngoing({super.key, this.taskInformation});
+  final String? role;
+  const TaskOngoing({super.key, this.taskInformation, this.role});
 
   @override
   State<TaskOngoing> createState() => _TaskOngoingState();
@@ -37,18 +40,31 @@ class _TaskOngoingState extends State<TaskOngoing> {
   Timer? _timer;
   String _requestStatus = 'Unknown';
 
-  // Feedback Bottom Sheet State
   int _rating = 0;
   final TextEditingController _feedbackController = TextEditingController();
   final TextEditingController _reportController = TextEditingController();
   bool _isSatisfied = true;
 
-  // Dispute Bottom Sheet State
   final TextEditingController _disputeTypeController = TextEditingController();
   final TextEditingController _disputeDetailsController =
       TextEditingController();
   final List<File> _imageEvidence = [];
   final ImagePicker _picker = ImagePicker();
+  String? selectedReason = 'Task is finished';
+  String? _role;
+
+  final List<String> finishReasons = [
+    'Task is finished',
+    'All requirements met',
+    'Completed ahead of schedule',
+    'Successfully collaborated with team',
+    'No further action needed',
+    'Task marked complete by supervisor',
+    'Automated process completed it',
+    'Duplicate of another completed task',
+    'Task is no longer necessary',
+    'Other'
+  ];
 
   @override
   void initState() {
@@ -72,7 +88,10 @@ class _TaskOngoingState extends State<TaskOngoing> {
           await _profileController.getAuthenticatedUser(context, userId);
       setState(() {
         tasker = user;
+        _role = user?.user.role;
       });
+
+      debugPrint("User Role: $_role");
     } catch (e) {
       debugPrint("Error fetching tasker details: $e");
       setState(() {
@@ -108,48 +127,12 @@ class _TaskOngoingState extends State<TaskOngoing> {
         _taskInformation = response?.task;
         _isLoading = false;
       });
-      // _startCountdownTimer();
     } catch (e) {
       debugPrint("Error fetching task details: $e");
       setState(() {
         _isLoading = false;
       });
     }
-  }
-
-  // void _startCountdownTimer() {
-  //   if (_taskInformation?.duration != null &&
-  //       _taskInformation?.period != null) {
-  //     int durationInDays = int.parse(_taskInformation!.duration!);
-  //     String period = _taskInformation!.period!.toLowerCase();
-
-  //     if (period.contains('week')) {
-  //       durationInDays *= 7;
-  //     } else if (period.contains('month')) {
-  //       durationInDays *= 30;
-  //     }
-
-  //     DateTime endDate = DateTime.now().add(Duration(days: durationInDays));
-  //     _timeRemaining = endDate.difference(DateTime.now());
-
-  //     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-  //       setState(() {
-  //         _timeRemaining = endDate.difference(DateTime.now());
-  //         if (_timeRemaining!.isNegative) {
-  //           _timeRemaining = Duration.zero;
-  //           timer.cancel();
-  //         }
-  //       });
-  //     });
-  //   }
-  // }
-
-  String _formatDuration(Duration duration) {
-    if (duration.isNegative) return 'Time’s up!';
-    final days = duration.inDays;
-    final hours = duration.inHours % 24;
-    final minutes = duration.inMinutes % 60;
-    return '${days}d ${hours}h ${minutes}m';
   }
 
   Future<void> _pickImage() async {
@@ -223,7 +206,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
           children: [
             Text(
               'Rate & Review Tasker',
-              style: GoogleFonts.montserrat(
+              style: GoogleFonts.poppins(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF03045E),
@@ -253,7 +236,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
             // Feedback Field
             Text(
               'Feedback',
-              style: GoogleFonts.montserrat(
+              style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
                 color: Color(0xFF03045E),
@@ -265,7 +248,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
               maxLines: 3,
               decoration: InputDecoration(
                 hintText: 'Share your experience...',
-                hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
+                hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(color: Colors.grey[300]!),
@@ -279,13 +262,13 @@ class _TaskOngoingState extends State<TaskOngoing> {
                   borderSide: BorderSide(color: Color(0xFF03045E)),
                 ),
               ),
-              style: GoogleFonts.montserrat(fontSize: 14),
+              style: GoogleFonts.poppins(fontSize: 14),
             ),
             if (!_isSatisfied) ...[
               SizedBox(height: 16),
               Text(
                 'Report Issue',
-                style: GoogleFonts.montserrat(
+                style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                   color: Colors.red[700],
@@ -297,7 +280,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
                 maxLines: 3,
                 decoration: InputDecoration(
                   hintText: 'Describe the issue for reporting...',
-                  hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
+                  hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Colors.grey[300]!),
@@ -311,7 +294,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
                     borderSide: BorderSide(color: Colors.red[700]!),
                   ),
                 ),
-                style: GoogleFonts.montserrat(fontSize: 14),
+                style: GoogleFonts.poppins(fontSize: 14),
               ),
             ],
             SizedBox(height: 24),
@@ -350,11 +333,8 @@ class _TaskOngoingState extends State<TaskOngoing> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => FinishTask(
-                            finishID: _requestInformation?.task_taken_id ?? 0,
-                            role: widget.taskInformation?.taskDetails.client
-                                    ?.user?.role ??
-                                '',
+                          builder: (context) => TaskFinished(
+                            taskInformation: widget.taskInformation,
                           ),
                         ),
                       );
@@ -389,7 +369,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
                 ),
                 child: Text(
                   'Submit Feedback & Release Payment',
-                  style: GoogleFonts.montserrat(
+                  style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
@@ -420,7 +400,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
             Center(
               child: Text(
                 'File a Dispute',
-                style: GoogleFonts.montserrat(
+                style: GoogleFonts.poppins(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
                   color: Color(0xFF03045E),
@@ -430,7 +410,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
             SizedBox(height: 16),
             Text(
               'Reason for Dispute',
-              style: GoogleFonts.montserrat(
+              style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
                 color: Color(0xFF03045E),
@@ -451,8 +431,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
               ].map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
-                  child:
-                      Text(value, style: GoogleFonts.montserrat(fontSize: 14)),
+                  child: Text(value, style: GoogleFonts.poppins(fontSize: 14)),
                 );
               }).toList(),
               onChanged: (String? newValue) {
@@ -474,7 +453,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
             SizedBox(height: 16),
             Text(
               'Details of the Dispute',
-              style: GoogleFonts.montserrat(
+              style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
                 color: Color(0xFF03045E),
@@ -486,7 +465,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
               maxLines: 3,
               decoration: InputDecoration(
                 hintText: 'Provide Details About the Dispute',
-                hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
+                hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(color: Colors.grey[300]!),
@@ -500,12 +479,12 @@ class _TaskOngoingState extends State<TaskOngoing> {
                   borderSide: BorderSide(color: Color(0xFF03045E)),
                 ),
               ),
-              style: GoogleFonts.montserrat(fontSize: 14),
+              style: GoogleFonts.poppins(fontSize: 14),
             ),
             SizedBox(height: 16),
             Text(
               'Provide some Evidence',
-              style: GoogleFonts.montserrat(
+              style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
                 color: Color(0xFF03045E),
@@ -582,12 +561,6 @@ class _TaskOngoingState extends State<TaskOngoing> {
                       setState(() {
                         _requestStatus = 'Disputed';
                       });
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (context) => DisplayListRecordOngoing(),
-                      //   ),
-                      // );
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
@@ -619,7 +592,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
                 ),
                 child: Text(
                   'Open a Dispute',
-                  style: GoogleFonts.montserrat(
+                  style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
@@ -639,21 +612,27 @@ class _TaskOngoingState extends State<TaskOngoing> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Color(0xFF03045E)),
-          onPressed: () => Navigator.pop(context),
-        ),
+        centerTitle: true,
         title: Text(
-          'Ongoing Task',
-          style: GoogleFonts.montserrat(
-            color: Color(0xFF03045E),
+          'Task Information',
+          style: GoogleFonts.poppins(
+            color: const Color(0xFFB71A4A),
             fontSize: 20,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        centerTitle: true,
+        backgroundColor: Colors.grey[100],
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: Color(0xFFB71A4A),
+            size: 20,
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: Color(0xFF03045E)))
@@ -661,7 +640,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
               ? Center(
                   child: Text(
                     'No task information available',
-                    style: GoogleFonts.montserrat(
+                    style: GoogleFonts.poppins(
                       fontSize: 16,
                       color: Colors.grey[600],
                     ),
@@ -673,22 +652,19 @@ class _TaskOngoingState extends State<TaskOngoing> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (_requestStatus == 'Ongoing') _buildTimerSection(),
-                        if (_requestStatus == 'Disputed')
-                          _buildDisputeSection(),
-                        if (_requestStatus == 'Completed')
-                          _buildCompletionSection(),
+                        if (_requestStatus == 'Ongoing') _buildStatusSection(),
                         SizedBox(height: 16),
                         _buildTaskCard(),
                         SizedBox(height: 16),
-                        _buildProfileCard(),
-                        SizedBox(height: 24),
-                        if (_requestStatus != 'Completed' &&
-                            _requestStatus != 'Disputed')
-                          _buildActionButton(),
-                        if (_requestStatus == 'Completed' ||
-                            _requestStatus == 'Disputed')
-                          _buildBackButton(),
+                        if (widget.taskInformation?.tasker?.user == null)
+                          _buildClientProfileCard(),
+                        if (widget.taskInformation?.tasker?.user == null)
+                          _buildtaskerActionButton(),
+                        if (widget.taskInformation?.tasker?.user != null)
+                          _buildTaskerProfileCard(),
+                        if (widget.taskInformation?.tasker?.user != null)
+                          SizedBox(height: 16),
+                        _buildclientActionButton()
                       ],
                     ),
                   ),
@@ -696,109 +672,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
     );
   }
 
-  Widget _buildDisputeSection() {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.yellow[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.green[100]!),
-      ),
-      child: Column(
-        children: [
-          Icon(
-            FontAwesomeIcons.gavel,
-            color: Colors.yellow[600],
-            size: 48,
-          ),
-          SizedBox(height: 12),
-          Text(
-            'Dispute Raised to this Task!',
-            style: GoogleFonts.montserrat(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: Colors.yellow[800]),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Please Wait for Our Team to review your dispute and file Appropriate Action.',
-            textAlign: TextAlign.center,
-            style:
-                GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCompletionSection() {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.green[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.green[100]!),
-      ),
-      child: Column(
-        children: [
-          Icon(
-            Icons.check_circle,
-            color: Colors.green[600],
-            size: 48,
-          ),
-          SizedBox(height: 12),
-          Text(
-            'Task Completed!',
-            style: GoogleFonts.montserrat(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: Colors.green[800],
-            ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Congratulations on successfully completing this task!',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.montserrat(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBackButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () {
-          Navigator.pop(context); // Return to previous screen
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Color(0xFF03045E),
-          padding: EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 2,
-        ),
-        child: Text(
-          'Back to Tasks',
-          style: GoogleFonts.montserrat(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTimerSection() {
+  Widget _buildStatusSection() {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -820,27 +694,376 @@ class _TaskOngoingState extends State<TaskOngoing> {
               color: Colors.white,
               size: 40,
             ),
-            SizedBox(height: 12),
-            Text(
-              'Time Remaining',
-              style: GoogleFonts.montserrat(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
             SizedBox(height: 8),
             Text(
-              _timeRemaining != null
-                  ? _formatDuration(_timeRemaining!)
-                  : 'Calculating...',
-              style: GoogleFonts.montserrat(
+              'Active Task',
+              style: GoogleFonts.poppins(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleTaskerFinishTask(BuildContext context) async {
+    bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(5),
+        ),
+        title: Center(
+          child: Text(
+            'Finish Task',
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to finish this task?',
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w300,
+                color: Colors.grey[800],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Leave a review message:',
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[800],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[400]!),
+                borderRadius: BorderRadius.circular(5),
+              ),
+              child: DropdownButton<String>(
+                value: selectedReason,
+                isExpanded: true,
+                underline: SizedBox(),
+                items: finishReasons.map((String reason) {
+                  return DropdownMenuItem<String>(
+                    value: reason,
+                    child: Text(
+                      reason,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black,
+                      ),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  if (newValue != null) {
+                    setState(() {
+                      selectedReason = newValue;
+                    });
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton(
+                child: Text(
+                  'Cancel',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFFB71A4A),
+                  ),
+                ),
+                onPressed: () => Navigator.pop(context, false),
+              ),
+              const SizedBox(width: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  color: Color(0xFFB71A4A),
+                ),
+                child: TextButton(
+                  child: Text(
+                    'Confirm',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                    ),
+                  ),
+                  onPressed: () async {
+                    setState(() {
+                      _isLoading = true;
+                    });
+
+                    final String value = 'Review';
+                    bool result = await taskController.acceptRequest(
+                      _requestInformation?.task_taken_id ?? 0,
+                      value,
+                      'Tasker',
+                      rejectionReason: selectedReason,
+                    );
+                    if (result) {
+                      if (!mounted) return;
+                      Navigator.pop(context, true);
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TaskReview(
+                            taskInformation: widget.taskInformation,
+                          ),
+                        ),
+                      );
+                    } else {
+                      Navigator.pop(context, false);
+                      setState(() {
+                        _isLoading = false;
+                      });
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Task Review requested',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleClientFinishTask(BuildContext context) async {
+    bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(5),
+        ),
+        title: Center(
+          child: Text(
+            'Finish Task',
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to finish this task?',
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w300,
+                color: Colors.grey[800],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Leave a review message:',
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[800],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[400]!),
+                borderRadius: BorderRadius.circular(5),
+              ),
+              child: DropdownButton<String>(
+                value: selectedReason,
+                isExpanded: true,
+                underline: SizedBox(),
+                items: finishReasons.map((String reason) {
+                  return DropdownMenuItem<String>(
+                    value: reason,
+                    child: Text(
+                      reason,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black,
+                      ),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  if (newValue != null) {
+                    setState(() {
+                      selectedReason = newValue;
+                    });
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton(
+                child: Text(
+                  'Cancel',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFFB71A4A),
+                  ),
+                ),
+                onPressed: () => Navigator.pop(context, false),
+              ),
+              const SizedBox(width: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  color: Color(0xFFB71A4A),
+                ),
+                child: TextButton(
+                  child: Text(
+                    'Confirm',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                    ),
+                  ),
+                  onPressed: () async {
+                    setState(() {
+                      _isLoading = true;
+                    });
+
+                    final String value = 'Finish';
+                    bool result = await taskController.acceptRequest(
+                      _requestInformation?.task_taken_id ?? 0,
+                      value,
+                      'Client',
+                      rejectionReason: selectedReason,
+                    );
+                    if (result) {
+                      if (!mounted) return;
+                      Navigator.pop(context, true);
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UserFeedback(
+                            taskInformation: widget.taskInformation,
+                          ),
+                        ),
+                      );
+                    } else {
+                      Navigator.pop(context, false);
+                      setState(() {
+                        _isLoading = false;
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to finish task')),
+                      );
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Task Finished',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  Widget _buildtaskerActionButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () => _handleTaskerFinishTask(context),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Color(0xFF03045E),
+          padding: EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 2,
+        ),
+        child: Text(
+          'Finish Task',
+          style: GoogleFonts.montserrat(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
         ),
       ),
     );
@@ -869,7 +1092,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
                 Expanded(
                   child: Text(
                     _taskInformation!.title ?? 'Task',
-                    style: GoogleFonts.montserrat(
+                    style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF03045E),
@@ -878,19 +1101,13 @@ class _TaskOngoingState extends State<TaskOngoing> {
                 ),
               ],
             ),
-            SizedBox(height: 12),
-            _buildTaskInfoRow(
-              icon: Icons.info,
-              label: 'Status',
-              value: _requestInformation?.task_status ?? 'Ongoing',
-            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildProfileCard() {
+  Widget _buildTaskerProfileCard() {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -915,8 +1132,8 @@ class _TaskOngoingState extends State<TaskOngoing> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Tasker Profile',
-                      style: GoogleFonts.montserrat(
+                      "Tasker Profile",
+                      style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF03045E),
@@ -924,7 +1141,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
                     ),
                     Text(
                       'Details',
-                      style: GoogleFonts.montserrat(
+                      style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: Colors.grey[600],
                       ),
@@ -935,16 +1152,25 @@ class _TaskOngoingState extends State<TaskOngoing> {
             ),
             SizedBox(height: 16),
             _buildProfileInfoRow(
-                'Name', tasker?.user.firstName ?? 'Not available'),
+              'Name',
+              (widget.taskInformation?.tasker?.user != null)
+                  ? '${widget.taskInformation!.tasker!.user!.firstName ?? ''} ${widget.taskInformation!.tasker!.user!.lastName ?? ''}'
+                      .trim()
+                  : 'Not available',
+            ),
+            SizedBox(height: 8),
+            _buildProfileInfoRow('Email',
+                widget.taskInformation?.tasker?.user?.email ?? 'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow(
-                'Email', tasker?.user.email ?? 'Not available'),
+                'Phone',
+                widget.taskInformation?.tasker?.user?.contact ??
+                    'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow(
-                'Phone', tasker?.user.contact ?? 'Not available'),
-            SizedBox(height: 8),
-            _buildProfileInfoRow(
-                'Status', tasker?.user.accStatus ?? 'Not available'),
+                'Status',
+                widget.taskInformation?.tasker?.user?.accStatus ??
+                    'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow('Account', 'Verified', isVerified: true),
           ],
@@ -953,11 +1179,126 @@ class _TaskOngoingState extends State<TaskOngoing> {
     );
   }
 
-  Widget _buildActionButton() {
+  Widget _buildClientProfileCard() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: Color(0xFF03045E).withOpacity(0.1),
+                  child: Icon(
+                    Icons.person,
+                    color: Color(0xFF03045E),
+                    size: 28,
+                  ),
+                ),
+                SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Client Profile",
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF03045E),
+                      ),
+                    ),
+                    Text(
+                      'Details',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            _buildProfileInfoRow(
+              'Name',
+              (widget.taskInformation?.taskDetails.client?.user != null)
+                  ? '${widget.taskInformation!.taskDetails.client!.user!.firstName ?? ''} ${widget.taskInformation!.taskDetails.client!.user!.lastName ?? ''}'
+                      .trim()
+                  : 'Not available',
+            ),
+            SizedBox(height: 8),
+            _buildProfileInfoRow(
+                'Email',
+                widget.taskInformation?.taskDetails.client?.user?.email ??
+                    'Not available'),
+            SizedBox(height: 8),
+            _buildProfileInfoRow(
+                'Phone',
+                widget.taskInformation?.taskDetails.client?.user?.contact ??
+                    'Not available'),
+            SizedBox(height: 8),
+            _buildProfileInfoRow(
+                'Status',
+                widget.taskInformation?.taskDetails.client?.user?.accStatus ??
+                    'Not available'),
+            SizedBox(height: 8),
+            _buildProfileInfoRow('Account', 'Verified', isVerified: true),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileInfoRow(String label, String value,
+      {bool isVerified = false}) {
+    return Row(
+      children: [
+        Text(
+          '$label: ',
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey[600],
+          ),
+        ),
+        Expanded(
+          child: Row(
+            children: [
+              Flexible(
+                child: Text(
+                  value,
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF03045E),
+                  ),
+                ),
+              ),
+              if (isVerified)
+                Padding(
+                  padding: EdgeInsets.only(left: 8),
+                  child: Icon(
+                    Icons.verified,
+                    color: Colors.green[400],
+                    size: 18,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildclientActionButton() {
     return Column(
       children: [
         ElevatedButton(
-          onPressed: _handleFinishTask,
+          onPressed: () => _handleClientFinishTask(context),
           style: ElevatedButton.styleFrom(
             minimumSize: Size(double.infinity, 50),
             backgroundColor: Color(0xFF3E9B52),
@@ -969,9 +1310,9 @@ class _TaskOngoingState extends State<TaskOngoing> {
           ),
           child: Text(
             _requestInformation?.task_status != 'Dispute Settled'
-                ? 'Finish Task and Release Payment'
-                : 'Settle Dispute and Release Payment',
-            style: GoogleFonts.montserrat(
+                ? 'Finish Task'
+                : 'Settle Dispute',
+            style: GoogleFonts.poppins(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Colors.white,
@@ -993,82 +1334,13 @@ class _TaskOngoingState extends State<TaskOngoing> {
             ),
             child: Text(
               'File a Dispute',
-              style: GoogleFonts.montserrat(
+              style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Colors.white,
               ),
             ),
           ),
-      ],
-    );
-  }
-
-  Widget _buildTaskInfoRow(
-      {required IconData icon, required String label, required String value}) {
-    return Row(
-      children: [
-        Icon(icon, color: Colors.grey[600], size: 20),
-        SizedBox(width: 8),
-        Text(
-          '$label: ',
-          style: GoogleFonts.montserrat(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Colors.grey[600],
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: GoogleFonts.montserrat(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF03045E),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildProfileInfoRow(String label, String value,
-      {bool isVerified = false}) {
-    return Row(
-      children: [
-        Text(
-          '$label: ',
-          style: GoogleFonts.montserrat(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Colors.grey[600],
-          ),
-        ),
-        Expanded(
-          child: Row(
-            children: [
-              Flexible(
-                child: Text(
-                  value,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF03045E),
-                  ),
-                ),
-              ),
-              if (isVerified)
-                Padding(
-                  padding: EdgeInsets.only(left: 8),
-                  child: Icon(
-                    Icons.verified,
-                    color: Colors.green[400],
-                    size: 18,
-                  ),
-                ),
-            ],
-          ),
-        ),
       ],
     );
   }
