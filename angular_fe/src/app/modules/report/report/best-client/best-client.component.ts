@@ -35,6 +35,7 @@ export class BestClientComponent implements OnInit {
       next: (response) => {
         if (response.success) {
           this.clients = response.clients;
+          this.clients.sort((a, b) => b.rating - a.rating);
           this.filteredClients = [...this.clients];
           this.updatePage();
         }

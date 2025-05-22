@@ -26,7 +26,8 @@ export class LogComponent implements OnInit, OnDestroy {
   startIndex: number = 1;
   endIndex: number = 0;
   currentSearchText: string = '';
-  currentStatusFilter: string = '';
+  currentRoleFilter: string = ''; // Renamed from currentStatusFilter for clarity
+  currentStatusFilter: string = ''; // Added for status (Online/Offline)
   placeholderRows: any[] = [];
   sortDirection: 'asc' | 'desc' | 'default' = 'default'; // Default to newest first
   isLoading: boolean = false; // Changed to false initially
@@ -83,7 +84,12 @@ export class LogComponent implements OnInit, OnDestroy {
   }
 
   filterLogs(event: Event) {
-    this.currentStatusFilter = (event.target as HTMLSelectElement).value;
+    const target = event.target as HTMLSelectElement;
+    if (target.name === 'role') {
+      this.currentRoleFilter = target.value;
+    } else if (target.name === 'status') {
+      this.currentStatusFilter = target.value;
+    }
     this.applyFilters();
   }
 
@@ -108,6 +114,14 @@ export class LogComponent implements OnInit, OnDestroy {
 
         // Check if all search terms are present in the full name
         return searchTerms.every(term => fullName.includes(term));
+      });
+    }
+
+    // Apply role filter if a role is selected
+    if (this.currentRoleFilter) {
+      tempLogs = tempLogs.filter(log => {
+        const userRole = log.user.user_role || '';
+        return userRole.toLowerCase() === this.currentRoleFilter.toLowerCase();
       });
     }
 

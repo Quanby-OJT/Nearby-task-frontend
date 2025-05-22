@@ -153,7 +153,7 @@ export class NftChartCardComponent implements OnInit, OnDestroy {
           labelFormatter = (val: string) => {
             const [year, month] = val.split('-');
             const date = new Date(parseInt(year), parseInt(month) - 1);
-            return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            return date.toLocaleDateString('en-US', { month: 'long' });
           };
           const taskCountsMonthly = this.groupTasksBy(this.tasks, groupBy);
           const monthlyResult = this.generateFiveCategories(taskCountsMonthly, groupBy);
@@ -224,71 +224,29 @@ export class NftChartCardComponent implements OnInit, OnDestroy {
   private generateFiveCategories(taskCounts: { [key: string]: number }, groupBy: 'day' | 'month' | 'year') {
     const categories: string[] = [];
     const data: number[] = [];
-    const sortedKeys = Object.keys(taskCounts).sort();
-    
-    
-    const now = new Date('2025-04-16'); 
-    let currentKey: string;
+    const now = new Date(); 
+
     if (groupBy === 'day') {
-      currentKey = now.toISOString().split('T')[0]; 
-    } else if (groupBy === 'month') {
-      currentKey = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
-    } else {
-      currentKey = now.getFullYear().toString(); 
-    }
-
-    // Get up to 3 past periods with data
-    let pastKeys = sortedKeys.filter(key => key < currentKey).slice(-3);
-    
-    // Add past periods
-    pastKeys.forEach(key => {
-      categories.push(key);
-      data.push(taskCounts[key] || 0);
-    });
-
-    // Add current period (4th slot)
-    if (!categories.includes(currentKey)) {
-      categories.push(currentKey);
-      data.push(taskCounts[currentKey] || 0);
-    }
-
-    // Add future period (5th slot)
-    let futureKey: string;
-    if (groupBy === 'day') {
-      const nextDay = new Date(now);
-      nextDay.setDate(now.getDate() + 1);
-      futureKey = nextDay.toISOString().split('T')[0]; // e.g., '2025-04-17'
-    } else if (groupBy === 'month') {
-      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-      futureKey = `${nextMonth.getFullYear()}-${(nextMonth.getMonth() + 1).toString().padStart(2, '0')}`; // e.g., '2025-05'
-    } else {
-      futureKey = (now.getFullYear() + 1).toString(); // e.g., '2026'
-    }
-    categories.push(futureKey);
-    data.push(0);
-
-    // Trim to exactly 5 records if more than 5
-    if (categories.length > 5) {
-      categories.splice(0, categories.length - 5);
-      data.splice(0, data.length - 5);
-    }
-
-    // Pad with empty periods if less than 5
-    while (categories.length < 5) {
-      let prevKey: string;
-      if (groupBy === 'day') {
-        const firstDate = new Date(categories[0]);
-        firstDate.setDate(firstDate.getDate() - 1);
-        prevKey = firstDate.toISOString().split('T')[0];
-      } else if (groupBy === 'month') {
-        const [year, month] = categories[0].split('-');
-        const prevMonth = new Date(parseInt(year), parseInt(month) - 2, 1);
-        prevKey = `${prevMonth.getFullYear()}-${(prevMonth.getMonth() + 1).toString().padStart(2, '0')}`;
-      } else {
-        prevKey = (parseInt(categories[0]) - 1).toString();
+      for (let i = -4; i <= 0; i++) {
+        const date = new Date(now);
+        date.setDate(now.getDate() + i);
+        const key = date.toISOString().split('T')[0]; 
+        categories.push(key);
+        data.push(taskCounts[key] || 0);
       }
-      categories.unshift(prevKey);
-      data.unshift(0);
+    } else if (groupBy === 'month') {
+      for (let i = -4; i <= 0; i++) {
+        const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
+        const key = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+        categories.push(key);
+        data.push(taskCounts[key] || 0);
+      }
+    } else {
+      for (let i = -4; i <= 0; i++) {
+        const year = (now.getFullYear() + i).toString(); 
+        categories.push(year);
+        data.push(taskCounts[year] || 0);
+      }
     }
 
     return { categories, data };
@@ -296,21 +254,22 @@ export class NftChartCardComponent implements OnInit, OnDestroy {
 
   private generateEmptyCategories(): string[] {
     const categories: string[] = [];
-    const now = new Date('2025-04-16');
+    const now = new Date(); 
+
     if (this.selectedFilter === 'daily') {
-      for (let i = -3; i <= 1; i++) {
+      for (let i = -4; i <= 0; i++) {
         const date = new Date(now);
         date.setDate(now.getDate() + i);
-        categories.push(date.toISOString().split('T')[0]);
+        categories.push(date.toISOString().split('T')[0]); 
       }
     } else if (this.selectedFilter === 'monthly') {
-      for (let i = -3; i <= 1; i++) {
+      for (let i = -4; i <= 0; i++) {
         const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
-        categories.push(`${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`);
+        categories.push(`${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`); 
       }
     } else {
-      for (let i = -3; i <= 1; i++) {
-        categories.push((now.getFullYear() + i).toString());
+      for (let i = -4; i <= 0; i++) {
+        categories.push((now.getFullYear() + i).toString()); 
       }
     }
     return categories;

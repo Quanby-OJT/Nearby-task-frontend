@@ -110,7 +110,7 @@
         </tr>
       </thead>
       
-      <tbody>
+      <tbody *ngIf="displayPaymentLogs.length > 0">
         <tr *ngFor="let log of displayPaymentLogs; let i = index" class="hover:bg-card/50 h-[60px]">
           <td class="px-4 py-3 text-start">{{ log.user_name }}</td>
           <td class="px-4 py-3 text-start">{{ log.amount }}</td>
@@ -125,6 +125,11 @@
           <td class="px-4 py-3 text-center"></td>
           <td class="px-4 py-3 text-center"></td>
           <td class="px-4 py-3 text-center"></td>
+        </tr>
+      </tbody>
+      <tbody *ngIf="displayPaymentLogs.length === 0">
+        <tr [ngStyle]="{'height': logsPerPage * 60 + 'px'}">
+          <td colspan="5" class="text-center align-middle">No Data Found</td>
         </tr>
       </tbody>
     </table>
@@ -152,7 +157,7 @@
 
       <div class="inline-flex items-center gap-2">
         <button (click)="previousPage()" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300">
-          ◀
+          <svg-icon src="./assets/icons/heroicons/outline/arrow-long-left.svg" [svgClass]="'h-4 w-4'"> </svg-icon>
         </button>
 
         <button *ngFor="let page of paginationButtons"
@@ -165,7 +170,7 @@
         </button>
 
         <button (click)="nextPage()" class="inline-flex h-8 w-8 items-center justify-center rounded-md">
-          ▶
+          <svg-icon src="./assets/icons/heroicons/outline/arrow-long-right.svg" [svgClass]="'h-4 w-4'"> </svg-icon>
         </button>
       </div>
     </div>

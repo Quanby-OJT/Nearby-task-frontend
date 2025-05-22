@@ -24,6 +24,7 @@
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Address</th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Overall Task Requested</th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Gender</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Rating</th>
         </tr>
       </thead>
       <tbody>
@@ -34,6 +35,7 @@
           <td class="px-4 py-3 text-start">{{ client.address }}</td>
           <td class="px-4 py-3 text-start">{{ client.taskCount }}</td>
           <td class="px-4 py-3 text-start">{{ client.gender }}</td>
+          <td class="px-4 py-3 text-start">{{ client.rating | number:'1.1-1' }}</td>
         </tr>
       </tbody>
     </table>
@@ -68,7 +70,7 @@
         <!-- Previous page button -->
         <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 disabled:opacity-50"
                 [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
-          ◀
+                <svg-icon src="./assets/icons/heroicons/outline/arrow-long-left.svg" [svgClass]="'h-4 w-4'"> </svg-icon>
         </button>
 
         <!-- Page number buttons -->
@@ -85,7 +87,7 @@
         <!-- Next page button -->
         <button class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300"
                 [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
-          ▶
+                <svg-icon src="./assets/icons/heroicons/outline/arrow-long-right.svg" [svgClass]="'h-4 w-4'"> </svg-icon>
         </button>
       </div>
     </div>

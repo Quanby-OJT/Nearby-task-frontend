@@ -1,7 +1,7 @@
 import { NgClass, NgIf } from '@angular/common';
-import { Component, numberAttribute } from '@angular/core';
+import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { UserAccountService } from 'src/app/services/userAccount';
 import { ButtonComponent } from 'src/app/shared/components/button/button.component';
 import { DataService } from 'src/services/dataStorage';
@@ -10,7 +10,7 @@ import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-update-user',
-  imports: [RouterOutlet, ReactiveFormsModule, NgIf, ButtonComponent, NgClass],
+  imports: [ReactiveFormsModule, NgIf, ButtonComponent, NgClass],
   templateUrl: './update-user.component.html',
   styleUrl: './update-user.component.css',
 })
@@ -27,7 +27,7 @@ export class UpdateUserComponent {
   profileImage: string | null = null;
   isLoading: boolean = true;
   today: string;
- // Add property for current date
+  actionByName: string = '';
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -36,8 +36,8 @@ export class UpdateUserComponent {
     private route: ActivatedRoute,
     private dataService: DataService,
     private cdRef: ChangeDetectorRef
-  ) {[]
-    const now= new Date();
+  ) {
+    const now = new Date();
     this.today = now.toISOString().split('T')[0];
   }
 
@@ -48,8 +48,21 @@ export class UpdateUserComponent {
       this.router.navigate(['user-management']);
     } else {
       this.loadUserData();
+      this.loadActionByName();
       console.log('User ID:', this.userId);
     }
+  }
+
+  calculateAge(birthdate: string): number {
+    if (!birthdate) return 0;
+    const today = new Date();
+    const birthDate = new Date(birthdate);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
   }
 
   formValidation(): void {
@@ -61,6 +74,7 @@ export class UpdateUserComponent {
       userRole: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       bday: ['', Validators.required],
+      age: [{ value: '', disabled: true }, Validators.required]
     });
   }
 
@@ -73,43 +87,39 @@ export class UpdateUserComponent {
       next: (response: any) => {
         console.log('Raw Backend Response:', response);
         
-        // Handle different response structures
         if (response.userme) {
-          // Tasker response
           this.userData = response.user;
         } else if (response.client) {
-          // Client response
           this.userData = response.user;
         } else if (response.user) {
-          // Admin/Moderator/Other response
           this.userData = response.user;
         } else {
-          // Fallback if none of the above
           this.userData = response;
         }
         
         console.log('Processed User Data:', this.userData);
 
         if (this.userData) {
-          // Map the data from Supabase columns to form fields
+          const birthdate = this.userData.birthdate
+            ? new Date(this.userData.birthdate).toISOString().split('T')[0]
+            : '';
+          const age = this.calculateAge(birthdate);
+
           this.form.patchValue({
             firstName: this.userData.first_name || '',
             middleName: this.userData.middle_name || '',
             lastName: this.userData.last_name || '',
-            bday: this.userData.birthdate
-              ? new Date(this.userData.birthdate).toISOString().split('T')[0]
-              : '',
-            userRole: this.userData.user_role || '', 
+            bday: birthdate,
+            age: age,
+            userRole: this.userData.user_role || '',
             email: this.userData.email || '',
             status: this.userData.acc_status || this.userData.status || '',
           });
 
-          // Handle profile image
           this.profileImage = this.userData.image_link || null;
           console.log('Form Value After Patch:', this.form.value);
           console.log('Profile Image:', this.profileImage);
           
-          // Force change detection
           this.cdRef.detectChanges();
         } else {
           console.warn('No user data found in response');
@@ -127,10 +137,28 @@ export class UpdateUserComponent {
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'Failed to load user data: ' + (error.message || 'Unknown error'),
+          text: 'Failed to load user data: ' + (error.message915 || 'Unknown error'),
         });
       },
     });
+  }
+
+  loadActionByName(): void {
+    const actionById = localStorage.getItem('user_id');
+    if (actionById) {
+      this.userAccountService.getUserById(Number(actionById)).subscribe({
+        next: (response: any) => {
+          const user = response.user || response;
+          this.actionByName = `${user.first_name || ''} ${user.middle_name || ''} ${user.last_name || ''}`.trim();
+          this.cdRef.detectChanges();
+        },
+        error: (error: any) => {
+          console.error('Error fetching action_by user data:', error);
+          this.actionByName = 'Unknown User';
+          this.cdRef.detectChanges();
+        },
+      });
+    }
   }
 
   onFileChange(event: Event) {
@@ -175,6 +203,7 @@ export class UpdateUserComponent {
     formData.append('email', this.form.value.email);
     formData.append('acc_status', this.form.value.status);
     formData.append('user_role', this.form.value.userRole);
+    formData.append('action_by', localStorage.getItem('user_id') || '0');
 
     if (this.imagePreview) {
       formData.append('image', this.imagePreview, this.imagePreview.name);

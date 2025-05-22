@@ -2,12 +2,14 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, EventEmitter, Output } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { UserConversationService } from 'src/app/services/conversation.service';
-import { Conversation, Message } from 'src/model/user-communication'; // Import the Conversation and Message models
+import { Conversation, Message } from 'src/model/user-communication'; 
 import Swal from 'sweetalert2';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import { AngularSvgIconModule } from 'angular-svg-icon';
+import { SessionLocalStorage } from 'src/services/sessionStorage';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-user-communication',
@@ -35,13 +37,15 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
   dateSortMode: 'default' | 'newestToOldest' | 'oldestToNewest' = 'default';
   viewedUserSortMode: 'default' | 'asc' | 'desc' = 'default';
   isLoading: boolean = true;
-
+  userRole: string | undefined;
   @Output() onCheck = new EventEmitter<boolean>();
 
   private conversationSubscription!: Subscription;
 
   constructor(
     private userConversationService: UserConversationService,
+    private sessionStorage: SessionLocalStorage,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -60,6 +64,16 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
       },
       (error) => {
         console.error("Error getting logs:", error);
+        this.isLoading = false;
+      }
+    );
+    this.authService.userInformation().subscribe(
+      (response: any) => {
+        this.userRole = response.user.user_role;
+        this.isLoading = false;
+      },
+      (error: any) => {
+        console.error('Error fetching user role:', error);
         this.isLoading = false;
       }
     );
@@ -281,7 +295,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
     }
   }
 
-  banUser(id: number): void {
+  banUser(id: number, taskTakenId: number): void {
     Swal.fire({
       title: 'Are you sure to ban?',
       text: 'This action cannot be undone!',
@@ -292,10 +306,9 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
       confirmButtonText: 'Yes, ban it!',
     }).then((result) => {
       if (result.isConfirmed) {
-        this.userConversationService.banUser(id).subscribe((response) => {
+        this.userConversationService.banUser(id, taskTakenId).subscribe((response) => {
           if (response) {
             Swal.fire('Banned!', 'User has been banned.', 'success').then(() => {
-              // Refresh the conversation list after banning
               this.userConversationService.getUserConversation().subscribe((response: { data: Conversation[] }) => {
                 if (response && response.data) {
                   this.conversation = response.data;
@@ -312,7 +325,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
     });
   }
 
-  warnUser(id: number): void {
+  warnUser(id: number, taskTakenId: number): void {
     Swal.fire({
       title: 'Are you sure to warn this user?',
       text: 'This action cannot be undone!',
@@ -322,21 +335,24 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
       confirmButtonText: 'Yes, warn it!',
     }).then((result) => {
       if (result.isConfirmed) {
-        this.userConversationService.warnUser(id).subscribe((response) => {
-          if (response) {
-            Swal.fire('Warned!', 'User has been warned.', 'success').then(() => {
-              // Refresh the conversation list after warning
-              this.userConversationService.getUserConversation().subscribe((response: { data: Conversation[] }) => {
-                if (response && response.data) {
-                  this.conversation = response.data;
-                  this.filteredConversations = [...this.conversation];
-                  this.updatePage();
-                }
+        this.userConversationService.warnUser(id, taskTakenId).subscribe({
+          next: (response) => {
+            if (response) {
+              Swal.fire('Warned!', 'User has been warned.', 'success').then(() => {
+                // Refresh the conversation list after warning
+                this.userConversationService.getUserConversation().subscribe((response: { data: Conversation[] }) => {
+                  if (response && response.data) {
+                    this.conversation = response.data;
+                    this.filteredConversations = [...this.conversation];
+                    this.updatePage();
+                  }
+                });
               });
-            });
+            }
+          },
+          error: (error) => {
+            Swal.fire('Error!', error.message || 'Failed to warn the user.', 'error');
           }
-        }, (error) => {
-          Swal.fire('Error!', 'Failed to warn the user.', 'error');
         });
       }
     });
@@ -347,84 +363,84 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
     console.log('Viewing user_id:', viewingUserId);
 
     this.userConversationService.getTaskConversations(taskTakenId).subscribe(
-        (response: { data: Message[] }) => {
-            if (response && response.data) {
-                const messages = response.data;
-                console.log('Messages received:', messages);
+      (response: { data: Message[] }) => {
+        if (response && response.data) {
+          const messages = response.data;
+          console.log('Messages received:', messages);
 
-                const messagesHtml = messages.map((msg: Message) => {
-                    const messageUserId = Number(msg.user_id);
-                    const isViewingUser = messageUserId === viewingUserId;
-                    console.log(`Message User ID: ${messageUserId}, Viewing User ID: ${viewingUserId}, isViewingUser: ${isViewingUser}`);
+          const messagesHtml = messages.map((msg: Message) => {
+            const messageUserId = Number(msg.user_id);
+            const isViewingUser = messageUserId === viewingUserId;
+            console.log(`Message User ID: ${messageUserId}, Viewing User ID: ${viewingUserId}, isViewingUser: ${isViewingUser}`);
 
-                    const alignment = isViewingUser ? 'right' : 'left';
-                    const bgColor = isViewingUser ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-800';
-                    const margin = isViewingUser ? 'ml-auto' : 'mr-auto';
-                    const roundedCorners = isViewingUser ? 'rounded-tl-lg rounded-bl-lg rounded-br-lg' : 'rounded-tr-lg rounded-br-lg rounded-bl-lg';
+            const alignment = isViewingUser ? 'right' : 'left';
+            const bgColor = isViewingUser ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-800';
+            const margin = isViewingUser ? 'ml-auto' : 'mr-auto';
+            const roundedCorners = isViewingUser ? 'rounded-tl-lg rounded-bl-lg rounded-br-lg' : 'rounded-tr-lg rounded-br-lg rounded-bl-lg';
 
-                    const userName = msg.user
-                        ? `${msg.user.first_name || ''} ${msg.user.middle_name || ''} ${msg.user.last_name || ''}`.trim()
-                        : 'Unknown User';
+            const userName = msg.user
+              ? `${msg.user.first_name || ''} ${msg.user.middle_name || ''} ${msg.user.last_name || ''}`.trim()
+              : 'Unknown User';
 
-                    const timestamp = msg.created_at || 'No Timestamp';
+            const timestamp = msg.created_at || 'No Timestamp';
 
-                    return `
-                        <div class="flex justify-${alignment} mb-4">
-                            <div class="${margin} max-w-[70%]">
-                                <div class="font-semibold text-sm mb-1 ${alignment === 'right' ? 'text-right' : 'text-left'}">
-                                    ${userName}
-                                </div>
-                                <div class="${bgColor} ${roundedCorners} px-4 py-2 text-justify">
-                                    ${msg.conversation}
-                                </div>
-                                <div class="text-xs text-gray-500 mt-1 ${alignment === 'right' ? 'text-right' : 'text-left'}">
-                                    ${timestamp}
-                                </div>
-                            </div>
-                        </div>`;
-                }).join('');
+            return `
+              <div class="flex justify-${alignment} mb-4">
+                <div class="${margin} max-w-[70%]">
+                  <div class="font-semibold text-sm mb-1 ${alignment === 'right' ? 'text-right' : 'text-left'}">
+                    ${userName}
+                  </div>
+                  <div class="${bgColor} ${roundedCorners} px-4 py-2 text-justify">
+                    ${msg.conversation}
+                  </div>
+                  <div class="text-xs text-gray-500 mt-1 ${alignment === 'right' ? 'text-right' : 'text-left'}">
+                    ${timestamp}
+                  </div>
+                </div>
+              </div>`;
+          }).join('');
 
-                const html = `
-                    <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
-                        ${messagesHtml}
-                    </div>
-                `;
-                Swal.fire({
-                    title: 'Users Conversation',
-                    html: html,
-                    width: '800px',
-                    confirmButtonText: 'Close',
-                    confirmButtonColor: '#3085d6',
-                    showCancelButton: false,
-                    customClass: {
-                        htmlContainer: 'text-left',
-                        actions: 'swal2-actions-right'
-                    },
-                    didOpen: () => {
-                        const container = document.querySelector('.swal2-html-container > div');
-                        if (container) {
-                            container.scrollTop = container.scrollHeight;
-                        }
-                        // Add custom CSS to ensure right alignment
-                        const style = document.createElement('style');
-                        style.textContent = `
-                            .swal2-actions-right {
-                                display: flex !important;
-                                justify-content: flex-end !important;
-                                width: 100% !important;
-                                padding-right: 20px !important;
-                            }
-                        `;
-                        document.head.appendChild(style);
-                    }
-                });
-            } else {
-                Swal.fire('Error', 'No messages found', 'error');
+          const html = `
+            <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
+              ${messagesHtml}
+            </div>
+          `;
+          Swal.fire({
+            title: 'Users Conversation',
+            html: html,
+            width: '800px',
+            confirmButtonText: 'Close',
+            confirmButtonColor: '#3085d6',
+            showCancelButton: false,
+            customClass: {
+              htmlContainer: 'text-left',
+              actions: 'swal2-actions-right'
+            },
+            didOpen: () => {
+              const container = document.querySelector('.swal2-html-container > div');
+              if (container) {
+                container.scrollTop = container.scrollHeight;
+              }
+              // Add custom CSS to ensure right alignment
+              const style = document.createElement('style');
+              style.textContent = `
+                .swal2-actions-right {
+                  display: flex !important;
+                  justify-content: flex-end !important;
+                  width: 100% !important;
+                  padding-right: 20px !important;
+                }
+              `;
+              document.head.appendChild(style);
             }
-        },
-        (error) => {
-            Swal.fire('Error', 'Failed to load conversation', 'error');
+          });
+        } else {
+          Swal.fire('Error', 'No messages found', 'error');
         }
+      },
+      (error) => {
+        Swal.fire('Error', 'Failed to load conversation', 'error');
+      }
     );
   }
 
@@ -436,7 +452,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
         `"${convo.task_taken.clients.user.first_name} ${convo.task_taken.clients.user.middle_name || ''} ${convo.task_taken.clients.user.last_name}"`,
         `"${convo.task_taken.tasker.user.first_name} ${convo.task_taken.tasker.user.middle_name || ''} ${convo.task_taken.tasker.user.last_name}"`,
         `"${convo.conversation || ''}"`,
-        `"${convo.task_taken.created_at || ''}"`,
+       `"${convo.task_taken.created_at || ''}"`,
         convo.task_taken.task_status || '',
       ];
       console.log('CSV Row:', row);
@@ -466,11 +482,11 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
       console.error('Failed to load Quanby.png:', e);
     }
 
-  // Nearby Task Part
-  const title = 'Nearby Task';
-  doc.setFontSize(20);
-  doc.setTextColor('#170A66');
-  doc.text(title, 170, 52);
+    // Nearby Task Part
+    const title = 'Nearby Task';
+    doc.setFontSize(20);
+    doc.setTextColor('#170A66');
+    doc.text(title, 170, 52);
 
     // Line Part
     doc.setDrawColor(0, 0, 0);
