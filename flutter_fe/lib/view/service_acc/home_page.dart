@@ -15,6 +15,8 @@ import 'package:flutter_fe/view/business_acc/notif_screen.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
 import 'package:flutter_fe/view/service_acc/notif_screen.dart';
 import 'package:flutter_fe/view/setting/setting.dart';
+import 'package:flutter_fe/view/sign_in/sign_in.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -167,19 +169,28 @@ class _TaskerHomePageState extends State<TaskerHomePage> with TickerProviderStat
         return;
       }
 
-      setState(() {
-        _user = user;
-        _fullName = [
-          _user?.user.firstName ?? '',
-          _user?.user.middleName ?? '',
-          _user?.user.lastName ?? '',
-        ].where((name) => name.isNotEmpty).join(' ');
-        _role = _user?.user.role ?? "Unknown";
-        _image = user.user.image ?? "Unknown";
-        _profileController.firstNameController.text = _fullName;
-        _profileController.roleController.text = _role;
-        _profileController.imageController.text = _image;
-      });
+      //Checker if User has been already been warned.
+      if(!mounted) return;
+
+      if(user.user.accStatus == "Warn"){
+        showWarnUser();
+      }else if(user.user.accStatus == "Ban"){
+        showBanUser();
+      }else{
+        setState(() {
+          _user = user;
+          _fullName = [
+            _user?.user.firstName ?? '',
+            _user?.user.middleName ?? '',
+            _user?.user.lastName ?? '',
+          ].where((name) => name.isNotEmpty).join(' ');
+          _role = _user?.user.role ?? "Unknown";
+          _image = user.user.image ?? "Unknown";
+          _profileController.firstNameController.text = _fullName;
+          _profileController.roleController.text = _role;
+          _profileController.imageController.text = _image;
+        });
+      }
     } catch (e) {
       debugPrint("Error fetching user data: $e");
       setState(() {
@@ -188,6 +199,82 @@ class _TaskerHomePageState extends State<TaskerHomePage> with TickerProviderStat
         _image = "Error fetching user image";
       });
     }
+  }
+
+  void showWarnUser() {
+    showDialog(
+      context: context,
+      builder: (BuildContext childContext){
+        return AlertDialog(
+          content: Row(
+            children: [
+              Icon(
+                FontAwesomeIcons.triangleExclamation,
+                color: Color(0XFFE7A335),
+                size: 50,
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  "You have been flagged for suspicious activity in your account. Please Contact Support for more information. Tap anywhere to remove this warning.",
+                  style: GoogleFonts.poppins(
+                    color: Colors.black,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w300,
+                  ),
+                )
+              )
+            ]
+          )
+        );
+      }
+    );
+  }
+
+  void showBanUser() {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext childContext){
+        return AlertDialog(
+          content: Row(
+            children: [
+              Icon(
+                FontAwesomeIcons.triangleExclamation,
+                color: Color(0XFFEB5A63),
+                size: 50,
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  "You have been banned from using this application. Please contact our support if you want to appeal.",
+                  style: GoogleFonts.poppins(
+                    color: Colors.black,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w300,
+                  ),
+                )
+              )
+            ]
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async{
+                await _authController.logout(context, () => mounted);
+              },
+              child: Text(
+                "Log Out",
+                style: GoogleFonts.poppins(
+                  color: Color(0xFFB71A4A),
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              )
+            )
+          ]
+        );
+      }
+    );
   }
 
   Future<void> _fetchUserIDImage() async {
