@@ -21,10 +21,9 @@
     {{ user.email | slice:0:20 }}...
   </td>
   
-  <td class="border-b border-muted/20 px-6 py-4 text-[0.875rem] align-middle">
-    <span
-      class="inline-block w-full text-center rounded-lg py-1.5 px-4 text-sm font-semibold text-white"
-      [ngClass]="{
+  <td class="px-4 py-3 pl-10 text-start font-normal">
+    <div class="flex items-center gap-2.5 font-['Arial']">
+      <div class="h-2.5 w-2.5 rounded-full" [ngClass]="{
         'bg-black': user.acc_status === 'not-odd:ull',
         'bg-blue-500': user.acc_status === 'Review',
         'bg-green-500': user.acc_status === 'Active',
@@ -34,20 +33,16 @@
         'bg-red-500': user.acc_status === 'Suspend',
         'bg-yellow-300': user.acc_status === 'Pending',
         'bg-yellow-500': user.acc_status === 'Warn'
-      }">
-      {{ user.acc_status ? user.acc_status : 'Null' }}
-    </span>
+      }"></div>
+      <span class="text-sm text-black">{{ user.acc_status ? user.acc_status : 'Null' }}</span>
+    </div>
   </td>
   
-  <td class="border-b border-muted/20 px-6 py-4 text-[0.875rem] align-middle">
-    <span
-      class="inline-block w-full text-center rounded-lg py-1.5 px-4 text-sm font-semibold text-white"
-      [ngClass]="{
-        'bg-green-500': user.status === true,
-        'bg-red-400': user.status === false
-      }">
-      {{ user.status ? 'Online' : 'Offline' }}
-    </span>
+  <td class="px-4 py-3 pl-10 text-start font-normal">
+    <div class="flex items-center gap-2.5 font-['Arial']">
+      <div class="h-2.5 w-2.5 rounded-full" [ngClass]="user.status ? 'bg-green-500' : 'bg-red-500'"></div>
+      <span class="text-sm text-black">{{ user.status ? 'Online' : 'Offline' }}</span>
+    </div>
   </td>
   
   <td class="border-b border-muted/20 px-6 py-4 text-[0.875rem] align-middle">

@@ -9,7 +9,6 @@ import { SessionLocalStorage } from 'src/services/sessionStorage';
 export class UserConversationService {
   private apiUrl = 'https://localhost:5000/connect';
   
-
   constructor(
     private http: HttpClient,
     private sessionStorage: SessionLocalStorage
@@ -18,9 +17,9 @@ export class UserConversationService {
   private getHeaders(): HttpHeaders {
     return new HttpHeaders({
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${this.sessionStorage.getSessionToken()}`
     });
   }
-
 
   getUserConversation(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/getUserConversation`, {
