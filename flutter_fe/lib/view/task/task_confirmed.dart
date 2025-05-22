@@ -1,4 +1,5 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
@@ -7,7 +8,8 @@ import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
-import 'package:flutter_fe/view/business_acc/client_record/client_ongoing.dart';
+import 'package:flutter_fe/view/task/task_cancelled.dart';
+import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -36,11 +38,45 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
   bool _isLoading = true;
   bool _hasError = false;
   String _errorMessage = '';
+  Timer? _timer;
+  String? selectedReason = 'Incomplete task details';
+  final List<String> rejectionReasons = [
+    'Incomplete task details',
+    'Insufficient time',
+    'Lack of resources',
+    'Task not relevant',
+    'Other'
+  ];
 
   @override
   void initState() {
     super.initState();
     _fetchData();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          if (_requestInformation?.start_date != null &&
+              _requestInformation!.task_status?.toLowerCase() == 'confirmed' &&
+              !_isStartButtonEnabled()) {
+          } else {
+            timer.cancel();
+          }
+        });
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   Future<void> _fetchData() async {
@@ -90,6 +126,7 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
         _fetchTaskDetails(),
         _fetchTaskerDetails(response.tasker_id as int),
       ]);
+      _startTimer();
     } catch (e) {
       throw Exception('Failed to fetch request details: $e');
     }
@@ -125,6 +162,12 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
 
   Future<void> _handleStartTask() async {
     if (_requestInformation == null || _role == null) return;
+    if (!_isStartButtonEnabled()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Task cannot be started yet.')),
+      );
+      return;
+    }
     setState(() {
       _isLoading = true;
     });
@@ -135,14 +178,14 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
         _role!,
       );
       if (result) {
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                ClientOngoing(ongoingID: _requestInformation!.task_taken_id!),
+            builder: (context) => TaskOngoing(
+              taskInformation: widget.taskInformation,
+            ),
           ),
         );
-        await _fetchRequestDetails();
       } else {
         throw Exception('Failed to start task');
       }
@@ -150,193 +193,193 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error starting task: $e')),
       );
-    } finally {
       setState(() {
         _isLoading = false;
       });
     }
   }
 
-  Future<void> _handleCancelTask() async {
-    final bool? confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Cancel Task',
-            style: GoogleFonts.montserrat(fontWeight: FontWeight.w600)),
-        content: Text(
-          'Are you sure you want to cancel this task? This action cannot be undone.',
-          style: GoogleFonts.montserrat(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child:
-                Text('No', style: GoogleFonts.montserrat(color: Colors.grey)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child:
-                Text('Yes', style: GoogleFonts.montserrat(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
+  Future<void> _handleCancelTask(BuildContext context) async {
+    setState(() {
+      selectedReason = rejectionReasons[0];
+    });
 
-    if (confirm == true && _requestInformation != null && _role != null) {
-      setState(() {
-        _isLoading = true;
-      });
-      try {
-        final result = await taskController.acceptRequest(
-          _requestInformation!.task_taken_id!,
-          'Cancel',
-          _role!,
-        );
-        if (result) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Task cancelled successfully')),
-          );
-          await _fetchRequestDetails();
-        } else {
-          throw Exception('Cancellation failed');
-        }
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error cancelling task: $e')),
-        );
-      } finally {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _handleRescheduleTask() async {
-    final DateTime? selectedDate = await showDatePicker(
+    bool? confirm = await showDialog<bool>(
       context: context,
-      initialDate: DateTime.now().add(const Duration(days: 1)),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 30)),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFF03045E),
-              onPrimary: Colors.white,
-              surface: Colors.white,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          title: Center(
+            child: Text(
+              'Cancel Task',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
             ),
-            dialogBackgroundColor: Colors.white,
           ),
-          child: child!,
-        );
-      },
-    );
-
-    if (selectedDate != null && _requestInformation != null && _role != null) {
-      final bool? confirm = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Confirm Reschedule',
-              style: GoogleFonts.montserrat(fontWeight: FontWeight.w600)),
-          content: Text(
-            'Request to reschedule task for ${DateFormat('MMM dd, yyyy').format(selectedDate)}?',
-            style: GoogleFonts.montserrat(),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Are you sure you want to cancel this task? This action cannot be undone.',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w300,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Reason for cancellation:',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey[400]!),
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: DropdownButton<String>(
+                  value: selectedReason,
+                  isExpanded: true,
+                  underline: SizedBox(),
+                  items: rejectionReasons.map((String reason) {
+                    return DropdownMenuItem<String>(
+                      value: reason,
+                      child: Text(
+                        reason,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.black,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    if (newValue != null) {
+                      setDialogState(() {
+                        selectedReason = newValue;
+                      });
+                    }
+                  },
+                ),
+              ),
+            ],
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text('Cancel',
-                  style: GoogleFonts.montserrat(color: Colors.grey)),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: Text('Confirm',
-                  style:
-                      GoogleFonts.montserrat(color: const Color(0xFF03045E))),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton(
+                  child: Text(
+                    'Cancel',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFFB71A4A),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop(false);
+                  },
+                ),
+                const SizedBox(width: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                    color: Color(0xFFB71A4A),
+                  ),
+                  child: TextButton(
+                    child: Text(
+                      'Confirm',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
+                    ),
+                    onPressed: () async {
+                      setState(() {
+                        _isLoading = true;
+                      });
+
+                      final String value = 'Cancel';
+                      bool result = await taskController.acceptRequest(
+                        _requestInformation?.task_taken_id ?? 0,
+                        value,
+                        _role ?? 'Unknown',
+                        rejectionReason: selectedReason,
+                      );
+                      if (result) {
+                        Navigator.pop(context);
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TaskCancelled(
+                              taskInformation: widget.taskInformation,
+                            ),
+                          ),
+                        );
+                      } else {
+                        Navigator.pop(context);
+                        setState(() {
+                          _isLoading = false;
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-      );
-
-      if (confirm == true) {
-        setState(() {
-          _isLoading = true;
-        });
-        try {
-          // TODO: Implement actual reschedule API call
-          // Example: await taskController.rescheduleTask(_requestInformation!.task_taken_id, selectedDate);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(
-                    'Reschedule requested for ${DateFormat('MMM dd, yyyy').format(selectedDate)}')),
-          );
-          await _fetchRequestDetails();
-        } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error requesting reschedule: $e')),
-          );
-        } finally {
-          setState(() {
-            _isLoading = false;
-          });
-        }
-      }
-    }
-  }
-
-  Future<void> _handleFinishTask() async {
-    final bool? confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Finish Task',
-            style: GoogleFonts.montserrat(fontWeight: FontWeight.w600)),
-        content: Text(
-          'Are you sure you want to mark this task as finished?',
-          style: GoogleFonts.montserrat(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child:
-                Text('No', style: GoogleFonts.montserrat(color: Colors.grey)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text('Yes',
-                style: GoogleFonts.montserrat(color: const Color(0xFF03045E))),
-          ),
-        ],
       ),
     );
 
-    if (confirm == true && _requestInformation != null && _role != null) {
-      setState(() {
-        _isLoading = true;
-      });
-      try {
-        final result = await taskController.acceptRequest(
-          _requestInformation!.task_taken_id!,
-          'Finish',
-          _role!,
-        );
-        if (result) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Task marked as finished')),
-          );
-          await _fetchRequestDetails();
-        } else {
-          throw Exception('Failed to finish task');
-        }
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error finishing task: $e')),
-        );
-      } finally {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+    if (confirm == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Task cancel requested',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Color(0xFFB71A4A),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  bool _isStartButtonEnabled() {
+    if (_requestInformation?.start_date == null) return false;
+    try {
+      final startDate = _requestInformation!.start_date!;
+      final now = DateTime.now();
+      return now.isAfter(startDate);
+    } catch (e) {
+      return false;
     }
   }
 
@@ -345,28 +388,34 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF03045E)),
-          onPressed: () => Navigator.pop(context),
-          tooltip: 'Back',
-        ),
+        centerTitle: true,
         title: Text(
           'Task Information',
-          style: GoogleFonts.montserrat(
-            color: const Color(0xFF03045E),
+          style: GoogleFonts.poppins(
+            color: const Color(0xFFB71A4A),
             fontSize: 20,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        centerTitle: true,
+        backgroundColor: Colors.grey[100],
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: Color(0xFFB71A4A),
+            size: 20,
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
             return RefreshIndicator(
               onRefresh: _fetchData,
+              color: Theme.of(context).colorScheme.primary,
               child: _buildBody(constraints),
             );
           },
@@ -377,8 +426,9 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
 
   Widget _buildBody(BoxConstraints constraints) {
     if (_isLoading) {
-      return const Center(
-          child: CircularProgressIndicator(color: Color(0xFF03045E)));
+      return Center(
+          child: CircularProgressIndicator(
+              color: Theme.of(context).colorScheme.primary));
     }
 
     if (_hasError) {
@@ -388,19 +438,21 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
           children: [
             Text(
               'Error: $_errorMessage',
-              style: GoogleFonts.montserrat(color: Colors.red, fontSize: 16),
+              style: GoogleFonts.poppins(
+                  color: Theme.of(context).colorScheme.error, fontSize: 16),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _fetchData,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF03045E),
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
               ),
               child: Text('Retry',
-                  style: GoogleFonts.montserrat(color: Colors.white)),
+                  style: GoogleFonts.poppins(
+                      color: Theme.of(context).colorScheme.onPrimary)),
             ),
           ],
         ),
@@ -411,7 +463,7 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
       return Center(
         child: Text(
           'No task information available',
-          style: GoogleFonts.montserrat(fontSize: 16),
+          style: GoogleFonts.poppins(fontSize: 16),
         ),
       );
     }
@@ -425,43 +477,121 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
           const SizedBox(height: 16),
           _buildTaskCard(constraints),
           const SizedBox(height: 16),
-          _buildTaskerCard(constraints),
-          const SizedBox(height: 24),
-          if (_requestInformation!.task_status == 'Confirmed')
-            _buildConfirmedActionButtons()
-          else if (_requestInformation!.task_status == 'Ongoing' ||
-              _requestInformation!.task_status == 'Cancelled' ||
-              _requestInformation!.task_status == 'Finished')
-            _buildOngoingActionButtons()
+          if (_role == "Tasker")
+            _buildClientProfileCard()
           else
-            const SizedBox.shrink(),
+            _buildTaskerProfileCard(),
+          const SizedBox(height: 24),
+          _buildConfirmedActionButtons(),
         ],
       ),
     );
   }
 
+  String _formatDuration(Duration duration) {
+    final days = duration.inDays;
+    final hours = duration.inHours % 24;
+    final minutes = duration.inMinutes % 60;
+    final seconds = duration.inSeconds % 60;
+
+    if (days > 0) {
+      return '$days days, $hours hrs, $minutes min, $seconds sec';
+    } else if (hours > 0) {
+      return '$hours hrs, $minutes min, $seconds sec';
+    } else if (minutes > 0) {
+      return '$minutes min, $seconds sec';
+    } else {
+      return '$seconds sec';
+    }
+  }
+
   Widget _buildStatusSection() {
     final status = _requestInformation!.task_status ?? 'Unknown';
+    final isConfirmed = status.toLowerCase() == 'confirmed';
+
+    if (_requestInformation?.start_date == null) {
+      return SizedBox(
+        width: double.infinity,
+        child: Column(
+          children: [
+            Icon(
+              statusIcon(status),
+              color: statusColor(status),
+              size: 36,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              status,
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: statusColor(status),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              statusMessage(status),
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Start date unavailable',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final startDate = _requestInformation!.start_date!;
+    final showCountdown = isConfirmed && !_isStartButtonEnabled();
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: statusColor(status).withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: statusColor(status).withOpacity(0.3)),
+        gradient: LinearGradient(
+          colors: [Colors.blue[50]!, Colors.white],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue[100]!.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          Icon(
-            statusIcon(status),
-            color: statusColor(status),
-            size: 40,
-            semanticLabel: 'Task Status',
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blue[100]!.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              statusIcon(status),
+              color: statusColor(status),
+              size: 36,
+            ),
           ),
           const SizedBox(height: 12),
           Text(
             status,
-            style: GoogleFonts.montserrat(
+            style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: statusColor(status),
@@ -471,11 +601,58 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
           Text(
             statusMessage(status),
             textAlign: TextAlign.center,
-            style: GoogleFonts.montserrat(
-              fontSize: 14,
-              color: Colors.grey[600],
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              height: 1.5,
             ),
           ),
+          if (showCountdown) ...[
+            const SizedBox(height: 16),
+            StreamBuilder(
+              stream: Stream.periodic(const Duration(seconds: 1)),
+              builder: (context, snapshot) {
+                final now = DateTime.now().toLocal();
+                final difference = startDate.difference(now);
+
+                return AnimatedOpacity(
+                  opacity: difference.isNegative ? 1.0 : 0.9,
+                  duration: const Duration(milliseconds: 500),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Time Remaining',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          difference.isNegative
+                              ? 'Task can start now'
+                              : _formatDuration(difference),
+                          style: GoogleFonts.poppins(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: difference.isNegative
+                                ? Theme.of(context).colorScheme.primary
+                                : Colors.blue[900],
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
         ],
       ),
     );
@@ -485,6 +662,7 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Theme.of(context).colorScheme.surfaceContainer,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -495,20 +673,21 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF03045E).withOpacity(0.1),
+                    color:
+                        Theme.of(context).colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.task,
-                      color: Color(0xFF03045E), size: 24),
+                  child: Icon(Icons.task,
+                      color: Theme.of(context).colorScheme.primary, size: 24),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     _taskInformation!.title ?? 'Task',
-                    style: GoogleFonts.montserrat(
+                    style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF03045E),
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -535,238 +714,257 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
               label: 'Status',
               value: _requestInformation!.task_status ?? 'Confirmed',
             ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.calendar,
+              label: 'Start Date',
+              value: _requestInformation!.start_date != null
+                  ? DateFormat('MMM dd, yyyy HH:mm a')
+                      .format(_requestInformation!.start_date!.toUtc())
+                  : 'N/A',
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTaskerCard(BoxConstraints constraints) {
+  Widget _buildTaskerProfileCard() {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: const Color(0xFFF5F9FF),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                _tasker?.user.image != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(24),
-                        child: CachedNetworkImage(
-                          imageUrl: _tasker!.user.image!,
-                          width: 48,
-                          height: 48,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) =>
-                              const CircularProgressIndicator(),
-                          errorWidget: (context, url, error) =>
-                              const Icon(Icons.person, size: 48),
-                        ),
-                      )
-                    : const CircleAvatar(
-                        radius: 24,
-                        backgroundColor: Color(0xFF03045E),
-                        child:
-                            Icon(Icons.person, color: Colors.white, size: 28),
-                      ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Tasker Profile',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF03045E),
-                        ),
-                      ),
-                      Text(
-                        'Details',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: Color(0xFF03045E).withOpacity(0.1),
+                  child: Icon(
+                    Icons.person,
+                    color: Color(0xFF03045E),
+                    size: 28,
                   ),
+                ),
+                SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Tasker Profile",
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF03045E),
+                      ),
+                    ),
+                    Text(
+                      'Details',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             _buildProfileInfoRow(
-              label: 'Name',
-              value: _tasker != null
-                  ? '${_tasker!.user.firstName} ${_tasker!.user.lastName}'
+              'Name',
+              (widget.taskInformation?.tasker?.user != null)
+                  ? '${widget.taskInformation!.tasker!.user!.firstName ?? ''} ${widget.taskInformation!.tasker!.user!.lastName ?? ''}'
                       .trim()
                   : 'Not available',
             ),
+            SizedBox(height: 8),
+            _buildProfileInfoRow('Email',
+                widget.taskInformation?.tasker?.user?.email ?? 'Not available'),
+            SizedBox(height: 8),
             _buildProfileInfoRow(
-              label: 'Email',
-              value: _tasker?.user.email ?? 'Not available',
-            ),
+                'Phone',
+                widget.taskInformation?.tasker?.user?.contact ??
+                    'Not available'),
+            SizedBox(height: 8),
             _buildProfileInfoRow(
-              label: 'Phone',
-              value: _tasker?.user.contact ?? 'Not available',
-            ),
-            _buildProfileInfoRow(
-              label: 'Status',
-              value: _tasker?.user.accStatus ?? 'Not available',
-            ),
+                'Status',
+                widget.taskInformation?.tasker?.user?.accStatus ??
+                    'Not available'),
+            SizedBox(height: 8),
+            _buildProfileInfoRow('Account', 'Verified', isVerified: true),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildConfirmedActionButtons() {
-    return Column(
-      children: [
-        Column(
+  Widget _buildClientProfileCard() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _handleStartTask,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF03045E),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  elevation: 2,
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: Color(0xFF03045E).withOpacity(0.1),
+                  child: Icon(
+                    Icons.person,
+                    color: Color(0xFF03045E),
+                    size: 28,
+                  ),
                 ),
+                SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Client Profile",
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF03045E),
+                      ),
+                    ),
+                    Text(
+                      'Details',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            _buildProfileInfoRow(
+              'Name',
+              (widget.taskInformation?.taskDetails.client?.user != null)
+                  ? '${widget.taskInformation!.taskDetails.client!.user!.firstName ?? ''} ${widget.taskInformation!.taskDetails.client!.user!.lastName ?? ''}'
+                      .trim()
+                  : 'Not available',
+            ),
+            SizedBox(height: 8),
+            _buildProfileInfoRow(
+                'Email',
+                widget.taskInformation?.taskDetails.client?.user?.email ??
+                    'Not available'),
+            SizedBox(height: 8),
+            _buildProfileInfoRow(
+                'Phone',
+                widget.taskInformation?.taskDetails.client?.user?.contact ??
+                    'Not available'),
+            SizedBox(height: 8),
+            _buildProfileInfoRow(
+                'Status',
+                widget.taskInformation?.taskDetails.client?.user?.accStatus ??
+                    'Not available'),
+            SizedBox(height: 8),
+            _buildProfileInfoRow('Account', 'Verified', isVerified: true),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileInfoRow(String label, String value,
+      {bool isVerified = false}) {
+    return Row(
+      children: [
+        Text(
+          '$label: ',
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey[600],
+          ),
+        ),
+        Expanded(
+          child: Row(
+            children: [
+              Flexible(
                 child: Text(
-                  'Start Task',
-                  style: GoogleFonts.montserrat(
+                  value,
+                  style: GoogleFonts.poppins(
                     fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF03045E),
                   ),
                 ),
               ),
+              if (isVerified)
+                Padding(
+                  padding: EdgeInsets.only(left: 8),
+                  child: Icon(
+                    Icons.verified,
+                    color: Colors.green[400],
+                    size: 18,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildConfirmedActionButtons() {
+    final isStartEnabled = _isStartButtonEnabled();
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: isStartEnabled && !_isLoading ? _handleStartTask : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFFB71A4A),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              elevation: 2,
             ),
-          ],
+            child: Text(
+              'Start Task',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ),
         ),
         const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
               child: OutlinedButton(
-                onPressed: _handleCancelTask,
+                onPressed: _isLoading ? null : () => _handleCancelTask(context),
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.red),
+                  side: BorderSide(color: Color(0xFFB71A4A)),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
                 child: Text(
                   'Cancel Task',
-                  style: GoogleFonts.montserrat(
+                  style: GoogleFonts.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: Colors.red,
+                    color: Theme.of(context).colorScheme.error,
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 12),
-            // Expanded(
-            //   child: ElevatedButton(
-            //     onPressed: _handleRescheduleTask,
-            //     style: ElevatedButton.styleFrom(
-            //       backgroundColor: Colors.yellow[700],
-            //       padding: const EdgeInsets.symmetric(vertical: 16),
-            //       shape: RoundedRectangleBorder(
-            //           borderRadius: BorderRadius.circular(12)),
-            //       elevation: 2,
-            //     ),
-            //     child: Text(
-            //       'Reschedule',
-            //       style: GoogleFonts.montserrat(
-            //         fontSize: 14,
-            //         fontWeight: FontWeight.w600,
-            //         color: Colors.black,
-            //       ),
-            //     ),
-            //   ),
-            // ),
           ],
         ),
       ],
-    );
-  }
-
-  Widget _buildActionButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () {
-          Navigator.pop(context);
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Color(0xFF03045E),
-          padding: EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 2,
-        ),
-        child: Text(
-          'Back to Tasks',
-          style: GoogleFonts.montserrat(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOngoingActionButtons() {
-    final status = _requestInformation!.task_status;
-    String label;
-    VoidCallback? onPressed;
-    Color backgroundColor;
-
-    if (status == 'Ongoing') {
-      label = 'Back to Task';
-      onPressed = () => Navigator.pop(context);
-      backgroundColor = const Color(0xFF03045E);
-    } else if (status == 'Cancelled' || status == 'Finished') {
-      label = 'Back to Tasks';
-      onPressed = () => Navigator.pop(context);
-      backgroundColor = const Color(0xFF03045E);
-    } else {
-      return const SizedBox.shrink(); // Hide button for unknown statuses
-    }
-
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        key: ValueKey('${label.toLowerCase().replaceAll(' ', '_')}_button'),
-        onPressed: _isLoading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          elevation: 2,
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.montserrat(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-      ),
     );
   }
 
@@ -779,71 +977,24 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
-          FaIcon(icon, size: 18, color: const Color(0xFF03045E)),
+          FaIcon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
           const SizedBox(width: 12),
           Text(
             '$label: ',
-            style: GoogleFonts.montserrat(
+            style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: Colors.grey[600],
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: GoogleFonts.montserrat(
+              style: GoogleFonts.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFF03045E),
+                color: Theme.of(context).colorScheme.onSurface,
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProfileInfoRow({
-    required String label,
-    required String value,
-    bool isVerified = false,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Text(
-            '$label: ',
-            style: GoogleFonts.montserrat(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey[600],
-            ),
-          ),
-          Expanded(
-            child: Row(
-              children: [
-                Flexible(
-                  child: Text(
-                    value,
-                    style: GoogleFonts.montserrat(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xFF03045E),
-                    ),
-                  ),
-                ),
-                if (isVerified)
-                  const Padding(
-                    padding: EdgeInsets.only(left: 8),
-                    child: Icon(
-                      Icons.verified,
-                      color: Colors.green,
-                      size: 18,
-                    ),
-                  ),
-              ],
             ),
           ),
         ],
@@ -854,13 +1005,7 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
   Color statusColor(String status) {
     switch (status.toLowerCase()) {
       case 'confirmed':
-        return const Color(0xFF2E763E);
-      case 'ongoing':
-        return const Color(0xFF0288D1);
-      case 'cancelled':
-        return const Color(0xFFD43D4D);
-      case 'finished':
-        return const Color(0xFF7B1FA2);
+        return Colors.green;
       default:
         return Colors.grey;
     }
@@ -870,12 +1015,6 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
     switch (status.toLowerCase()) {
       case 'confirmed':
         return Icons.check_circle;
-      case 'ongoing':
-        return Icons.hourglass_empty;
-      case 'cancelled':
-        return Icons.cancel;
-      case 'finished':
-        return Icons.done_all;
       default:
         return Icons.info;
     }
@@ -885,12 +1024,6 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
     switch (status.toLowerCase()) {
       case 'confirmed':
         return 'The task is confirmed and ready to start.';
-      case 'ongoing':
-        return 'The task is in progress.';
-      case 'cancelled':
-        return 'The task has been cancelled.';
-      case 'finished':
-        return 'The task has been completed.';
       default:
         return 'Task status is unknown.';
     }

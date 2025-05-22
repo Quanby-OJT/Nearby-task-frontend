@@ -16,7 +16,7 @@ class _NearbyTaskRulesState extends State<NearbyTaskRules> {
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           title: Text(
-            "Welcome to NearByTask",
+            "Welcome to QTask",
           ),
         ),
         body: SingleChildScrollView(
@@ -27,7 +27,7 @@ class _NearbyTaskRulesState extends State<NearbyTaskRules> {
                 padding: const EdgeInsets.only(
                     left: 20, right: 20, top: 10, bottom: 10),
                 child: Text(
-                  "Welcome to NearByTask",
+                  "Welcome to QTask",
                   style: TextStyle(
                       fontSize: 30,
                       fontWeight: FontWeight.bold,
@@ -136,8 +136,7 @@ class _NearbyTaskRulesState extends State<NearbyTaskRules> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) =>
-                            FillUpTaskerLogin()));
+                        builder: (context) => FillUpTaskerLogin()));
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF0272B1),

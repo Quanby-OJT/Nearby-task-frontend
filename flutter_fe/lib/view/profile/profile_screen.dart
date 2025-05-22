@@ -1,10 +1,8 @@
 import 'dart:io';
 
-import 'package:currency_text_input_formatter/currency_text_input_formatter.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/escrow_management_controller.dart';
-import 'package:flutter_fe/view/profile/payment_processing.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
@@ -12,7 +10,6 @@ import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:intl/intl.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';

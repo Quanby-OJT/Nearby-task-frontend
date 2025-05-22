@@ -1,20 +1,28 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
+import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/view/task/task_cancelled.dart';
+import 'package:flutter_fe/view/task/task_confirmed.dart';
+import 'package:flutter_fe/view/task/task_finished.dart';
+import 'package:flutter_fe/view/task/task_ongoing.dart';
+import 'package:flutter_fe/view/task/task_pending.dart';
+import 'package:flutter_fe/view/task/task_review.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_fe/view/business_acc/edit_task_page.dart';
 
 class BusinessTaskDetail extends StatefulWidget {
-  final int taskID;
-  final TaskModel? task; // Optional task model if already loaded
+  final TaskModel? task;
+  final String? role;
 
   const BusinessTaskDetail({
     super.key,
-    required this.taskID,
     this.task,
+    this.role,
   });
 
   @override
@@ -45,7 +53,7 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
   Future<void> _fetchTaskDetails() async {
     try {
       final response =
-          await _jobPostService.fetchTaskInformation(widget.taskID);
+          await _jobPostService.fetchTaskInformation(widget.task!.id);
       setState(() {
         _taskInformation = response?.task;
         _isLoading = false;
@@ -89,13 +97,12 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
     });
 
     try {
-      final result = await _taskController.deleteTask(widget.taskID);
+      final result = await _taskController.deleteTask(widget.task!.id);
       if (result['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Task deleted successfully')),
         );
-        Navigator.pop(
-            context, true); // Return true to indicate task was deleted
+        Navigator.pop(context, true);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -118,7 +125,6 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
   Widget build(BuildContext context) {
     TaskModel? taskToDisplay = widget.task ?? _taskInformation;
 
-    // Format the price safely
     String priceDisplay = "N/A";
     if (taskToDisplay?.contactPrice != null) {
       try {
@@ -162,7 +168,7 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => EditTaskPage(task: taskToDisplay),
+                        builder: (context) => EditTaskPage(task: widget.task!),
                       ),
                     );
                     if (result == true) {
@@ -215,6 +221,185 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
                           _buildInfoRow(
                               "Remarks", taskToDisplay.remarks ?? "N/A"),
                           const SizedBox(height: 20),
+                          Text(
+                            "Tasker Applicants",
+                            style: GoogleFonts.montserrat(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFE23670),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          taskToDisplay.taskTaken == null ||
+                                  taskToDisplay.taskTaken!.isEmpty
+                              ? Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 8.0),
+                                  child: Text(
+                                    "No taskers have applied to this task.",
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 16,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                )
+                              : ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: taskToDisplay.taskTaken!.length,
+                                  itemBuilder: (context, index) {
+                                    final taskFetch =
+                                        taskToDisplay.taskTaken![index];
+
+                                    debugPrint(
+                                        "Tasker $index: taskerId=${taskFetch.taskDetails.client?.user?.firstName}, status=${taskFetch.taskStatus}, taskTakenId=${taskFetch.taskTakenId}");
+                                    return Card(
+                                      elevation: 3,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12)),
+                                      color: Colors.white,
+                                      margin: EdgeInsets.only(bottom: 12),
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(12),
+                                        onTap: () {
+                                          if (taskFetch.taskStatus ==
+                                              "Completed") {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    TaskFinished(
+                                                        taskInformation:
+                                                            taskFetch),
+                                              ),
+                                            );
+                                          }
+
+                                          if (taskFetch.taskStatus ==
+                                              "Pending") {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    TaskPending(
+                                                  taskInformation: taskFetch,
+                                                ),
+                                              ),
+                                            ).then((value) {
+                                              if (value != null) {
+                                                _fetchTaskDetails();
+                                              }
+                                            });
+                                          }
+
+                                          if (taskFetch.taskStatus ==
+                                              "Cancelled") {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    TaskCancelled(
+                                                  taskInformation: taskFetch,
+                                                ),
+                                              ),
+                                            ).then((value) {
+                                              if (value != null) {
+                                                _fetchTaskDetails();
+                                              }
+                                            });
+                                          }
+
+                                          if (taskFetch.taskStatus ==
+                                              "Confirmed") {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    TaskConfirmed(
+                                                        taskInformation:
+                                                            taskFetch),
+                                              ),
+                                            ).then((value) {
+                                              if (value != null) {
+                                                _fetchTaskDetails();
+                                              }
+                                            });
+                                          }
+
+                                          if (taskFetch.taskStatus ==
+                                              "Ongoing") {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    TaskOngoing(
+                                                        taskInformation:
+                                                            taskFetch,
+                                                        role: widget.role),
+                                              ),
+                                            ).then((value) {
+                                              if (value != null) {
+                                                _fetchTaskDetails();
+                                              }
+                                            });
+                                          }
+
+                                          if (taskFetch.taskStatus ==
+                                              "Review") {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    TaskReview(
+                                                  taskInformation: taskFetch,
+                                                ),
+                                              ),
+                                            ).then((value) {
+                                              if (value != null) {
+                                                _fetchTaskDetails();
+                                              }
+                                            });
+                                          }
+                                        },
+                                        child: Padding(
+                                          padding: EdgeInsets.all(16),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  _buildTaskRecieved(taskFetch),
+                                                  _buildTaskStatusColor(
+                                                      taskFetch),
+                                                ],
+                                              ),
+                                              SizedBox(height: 8),
+                                              Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  _buildTaskTaskInfo(taskFetch),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                          const SizedBox(
+                            height: 20,
+                          ),
                           ElevatedButton.icon(
                             onPressed: _isDeleting ? null : _deleteTask,
                             icon: _isDeleting
@@ -244,29 +429,177 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: Colors.grey[700],
+  Widget _buildTaskTaskInfo(TaskFetch taskFetch, {double size = 40.0}) {
+    final String? imageUrl = taskFetch.taskDetails.client?.user?.image;
+    final bool hasValidImage =
+        imageUrl != null && imageUrl.isNotEmpty && imageUrl != "Unknown";
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(size / 2),
+          child: Container(
+            height: size,
+            width: size,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.grey.shade300, width: 1),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
+            child: hasValidImage
+                ? CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    errorWidget: (context, url, error) => const Icon(
+                      Icons.person,
+                      color: Colors.grey,
+                      size: 24,
+                    ),
+                  )
+                : const Icon(
+                    Icons.person,
+                    color: Colors.grey,
+                    size: 24,
+                  ),
           ),
-          SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(fontSize: 16),
-          ),
-          SizedBox(height: 8),
-          Divider(height: 1),
-        ],
-      ),
+        ),
+        SizedBox(width: 8),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              taskFetch.taskDetails.title != null
+                  ? taskFetch.taskDetails.title.length > 25
+                      ? '${taskFetch.taskDetails.title.substring(0, 25)}...'
+                      : taskFetch.taskDetails.title
+                  : 'Untitled Task',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            Text(
+              "${taskFetch.tasker?.user?.firstName ?? 'Unknown'} ${taskFetch.tasker?.user?.lastName ?? 'Unknown'}",
+              style:
+                  GoogleFonts.poppins(color: Color(0xFFB71A4A), fontSize: 10),
+            ),
+          ],
+        ),
+      ],
     );
   }
+
+  Widget _buildTaskRecieved(TaskFetch taskFetch) {
+    DateTime createdDateTime = DateTime.parse(taskFetch.createdAt.toString());
+
+    String formattedDate = DateFormat('MMM d, yyyy').format(createdDateTime);
+
+    DateTime now = DateTime.now().toUtc();
+    Duration difference = now.difference(createdDateTime);
+
+    String timeAgo;
+    if (difference.inMinutes < 60) {
+      int minutesAgo = difference.inMinutes;
+      timeAgo = '$minutesAgo ${minutesAgo == 1 ? 'min' : 'mins'} ago';
+    } else {
+      int hoursAgo = difference.inHours;
+      timeAgo = '$hoursAgo ${hoursAgo == 1 ? 'hour' : 'hours'} ago';
+    }
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(formattedDate, style: const TextStyle(fontSize: 14)),
+        Text(
+          timeAgo,
+          style: const TextStyle(fontSize: 12, color: Colors.grey),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTaskStatusColor(TaskFetch taskFetch) {
+    return Row(
+      children: [
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: taskFetch.taskStatus == 'Pending'
+                ? Colors.grey[500]
+                : taskFetch.taskStatus == 'Completed'
+                    ? Colors.green
+                    : taskFetch.taskStatus == 'Confirmed'
+                        ? Colors.green
+                        : taskFetch.taskStatus == 'Dispute Settled'
+                            ? Colors.green
+                            : taskFetch.taskStatus == 'Ongoing'
+                                ? Colors.blue
+                                : taskFetch.taskStatus == 'Interested'
+                                    ? Colors.blue
+                                    : taskFetch.taskStatus == 'Review'
+                                        ? Colors.yellow
+                                        : taskFetch.taskStatus == 'Disputed'
+                                            ? Colors.orange
+                                            : taskFetch.taskStatus == 'Rejected'
+                                                ? Colors.red
+                                                : taskFetch.taskStatus ==
+                                                        'Declined'
+                                                    ? Colors.red
+                                                    : taskFetch.taskStatus ==
+                                                            'Cancelled'
+                                                        ? Colors.red
+                                                        : Colors.red,
+          ),
+          child: Text(
+            taskFetch.taskStatus,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+Widget _buildInfoRow(String label, String value) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: Colors.grey[700],
+          ),
+        ),
+        SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(fontSize: 16),
+        ),
+        SizedBox(height: 8),
+        Divider(height: 1),
+      ],
+    ),
+  );
 }

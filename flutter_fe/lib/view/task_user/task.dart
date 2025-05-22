@@ -10,11 +10,12 @@ import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
-import 'package:flutter_fe/view/business_acc/client_record/client_finish.dart';
-import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
+import 'package:flutter_fe/view/task/task_cancelled.dart';
 import 'package:flutter_fe/view/task/task_confirmed.dart';
+import 'package:flutter_fe/view/task/task_finished.dart';
 import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:flutter_fe/view/task/task_pending.dart';
+import 'package:flutter_fe/view/task/task_review.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -62,15 +63,15 @@ class _TaskPageState extends State<TaskPage>
   ];
   List<String> specialization = [];
   List<TaskFetch?> clientTasks = [];
-  List<TaskFetch?> _filteredTasks = [];
-  final Map<String, String> _errors = {};
-  String? _existingProfileImageUrl;
-  String? _existingIDImageUrl;
-  AuthenticatedUser? _user;
-  bool _isLoading = true;
+  List<TaskFetch?> filteredTasks = [];
+  final Map<String, String> errors = {};
+  String? existingProfileImageUrl;
+  String? existingIDImageUrl;
+  AuthenticatedUser? user;
+  bool isLoading = true;
 
-  bool _isUploadDialogShown = false;
-  bool _documentValid = false;
+  final bool _isUploadDialogShown = false;
+  bool documentValid = false;
 
   final List<String> _tabStatuses = ["All", "Ongoing", "More"];
   late TabController _tabController;
@@ -105,7 +106,7 @@ class _TaskPageState extends State<TaskPage>
 
   void _loadMethod() async {
     setState(() {
-      _isLoading = true;
+      isLoading = true;
     });
     await Future(() async {
       await fetchSpecialization();
@@ -115,7 +116,7 @@ class _TaskPageState extends State<TaskPage>
       _searchController.addListener(_filterTasks);
     });
     setState(() {
-      _isLoading = false;
+      isLoading = false;
     });
   }
 
@@ -140,7 +141,7 @@ class _TaskPageState extends State<TaskPage>
           await rootBundle.loadString('assets/tesda_skills.json');
       final data = jsonDecode(response);
       setState(() {
-        _skills = List<String>.from(data['tesda_skills']);
+        skills = List<String>.from(data['tesda_skills']);
       });
     } catch (e, stackTrace) {
       print('Error loading skills: $e');
@@ -148,15 +149,15 @@ class _TaskPageState extends State<TaskPage>
     }
   }
 
-  String? _selectedSkill;
-  List<String> _skills = [];
+  String? selectedSkill;
+  List<String> skills = [];
 
   Future<void> fetchCreatedTasks() async {
     try {
       final tasks = await controller.getTask(context);
       setState(() {
         clientTasks = tasks;
-        _filteredTasks = List.from(clientTasks);
+        filteredTasks = List.from(clientTasks);
       });
 
       debugPrint("Tasker Tasks: ${clientTasks.toString()}");
@@ -181,7 +182,7 @@ class _TaskPageState extends State<TaskPage>
   void _filterTasks() {
     String query = _searchController.text.trim().toLowerCase();
     setState(() {
-      _filteredTasks = clientTasks.where((task) {
+      filteredTasks = clientTasks.where((task) {
         if (task == null) return false;
         bool matchesSearch =
             (task.taskDetails.title.toLowerCase().contains(query) ?? false) ||
@@ -203,93 +204,15 @@ class _TaskPageState extends State<TaskPage>
 
       if (response['success']) {
         setState(() {
-          _user = user;
-          _existingProfileImageUrl = user?.user.image;
-          _existingIDImageUrl = response['url'];
-          _documentValid = response['status'];
+          user = user;
+          existingProfileImageUrl = user?.user.image;
+          existingIDImageUrl = response['url'];
+          documentValid = response['status'];
         });
       }
     } catch (e) {
       debugPrint("Error fetching ID image: $e");
     }
-  }
-
-  void _showWarningDialog() {
-    if (_isUploadDialogShown) return;
-    setState(() {
-      _isUploadDialogShown = true;
-    });
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          'Complete Your Profile',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF0272B1),
-          ),
-        ),
-        content: Text(
-          'Please upload your profile and ID images to post tasks.',
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            color: Colors.grey[600],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() {
-                _isUploadDialogShown = false;
-              });
-            },
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: Colors.red[400],
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const FillUpClient()),
-              );
-              if (result == true) {
-                setState(() {
-                  _isLoading = true;
-                });
-                await _fetchUserIDImage();
-              }
-              setState(() {
-                _isUploadDialogShown = false;
-              });
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF0272B1),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: Text(
-              'Verify Now',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   void _showFilterModal() {
@@ -530,7 +453,7 @@ class _TaskPageState extends State<TaskPage>
         backgroundColor: Colors.grey[100],
         elevation: 0,
       ),
-      body: _isLoading
+      body: isLoading
           ? Center(
               child: CircularProgressIndicator(),
             )
@@ -635,7 +558,7 @@ class _TaskPageState extends State<TaskPage>
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          '${_filteredTasks.length} ${_currentFilter == null ? "" : "$_currentFilter"} tasks',
+                          '${filteredTasks.length} ${_currentFilter == null ? "" : "$_currentFilter"} tasks',
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                           ),
@@ -644,11 +567,11 @@ class _TaskPageState extends State<TaskPage>
                     ),
                     // Task List
                     Expanded(
-                      child: _isLoading
+                      child: isLoading
                           ? Center(
                               child: CircularProgressIndicator(
                                   color: Color(0xFF0272B1)))
-                          : _filteredTasks.isEmpty
+                          : filteredTasks.isEmpty
                               ? Center(
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
@@ -682,9 +605,9 @@ class _TaskPageState extends State<TaskPage>
                                   color: Color(0xFF0272B1),
                                   child: ListView.builder(
                                     padding: EdgeInsets.all(16),
-                                    itemCount: _filteredTasks.length,
+                                    itemCount: filteredTasks.length,
                                     itemBuilder: (context, index) {
-                                      final task = _filteredTasks[index];
+                                      final task = filteredTasks[index];
                                       if (task == null) {
                                         return SizedBox.shrink();
                                       }
@@ -713,9 +636,8 @@ class _TaskPageState extends State<TaskPage>
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => FinishTask(
-                  finishID: task.taskTakenId,
-                  role: task.taskDetails.client?.user?.role ?? "Unknown",
+                builder: (context) => TaskFinished(
+                  taskInformation: task,
                 ),
               ),
             );
@@ -751,11 +673,42 @@ class _TaskPageState extends State<TaskPage>
             });
           }
 
+          if (task.taskStatus == "Cancelled") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TaskCancelled(
+                  taskInformation: task,
+                ),
+              ),
+            ).then((value) {
+              if (value != null) {
+                _loadMethod();
+              }
+            });
+          }
+
           if (task.taskStatus == "Ongoing") {
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => TaskOngoing(
+                  taskInformation: task,
+                  role: user?.user.role,
+                ),
+              ),
+            ).then((value) {
+              if (value != null) {
+                _loadMethod();
+              }
+            });
+          }
+
+          if (task.taskStatus == "Review") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TaskReview(
                   taskInformation: task,
                 ),
               ),
