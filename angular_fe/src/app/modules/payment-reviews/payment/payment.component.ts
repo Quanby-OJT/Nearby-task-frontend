@@ -6,7 +6,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import { AngularSvgIconModule } from 'angular-svg-icon';
-import { PaymentLog } from 'src/model/payment-review'; // Import the PaymentLog model
+import { PaymentLog } from 'src/model/payment-review'; 
 
 @Component({
   selector: 'app-payment',
@@ -99,8 +99,8 @@ export class PaymentComponent implements OnInit {
           return amountB - amountA; // Highest to lowest (default and highToLow)
         }
       } else if (this.sortColumn === 'depositDate') {
-        const dateA = new Date(a.deposit_date || '1970-01-01').getTime();
-        const dateB = new Date(b.deposit_date || '1970-01-01').getTime();
+        const dateA = new Date(a.transaction_date || '1970-01-01').getTime(); // Fixed: transaction_date
+        const dateB = new Date(b.transaction_date || '1970-01-01').getTime(); // Fixed: transaction_date
         if (this.sortDirections['depositDate'] === 'asc') {
           return dateA - dateB; // Oldest to newest
         } else {
@@ -115,7 +115,7 @@ export class PaymentComponent implements OnInit {
       user_name: log.user_name,
       amount: log.amount,
       payment_type: log.payment_type,
-      deposit_date: log.deposit_date
+      transaction_date: log.transaction_date // Fixed: transaction_date
     })));
 
     this.filteredPaymentLogs = tempLogs;
@@ -197,7 +197,7 @@ export class PaymentComponent implements OnInit {
   }
 
   exportCSV() {
-    const headers = ['No', 'User Name', 'Amount', 'Payment Type', 'Created At', 'Deposit Date'];
+    const headers = ['No', 'User Name', 'Amount', 'Payment Type', 'Created At', 'Transaction Date']; // Fixed: Transaction Date
     const rows = this.displayPaymentLogs.map((log, index) => {
       const row = [
         (this.currentPage - 1) * this.logsPerPage + index + 1,
@@ -205,7 +205,7 @@ export class PaymentComponent implements OnInit {
         log.amount,
         `"${log.payment_type || ''}"`,
         `"${log.created_at || ''}"`,
-        `"${log.deposit_date || ''}"`
+        `"${log.transaction_date || ''}"` // Fixed: transaction_date
       ];
       console.log('CSV Row:', row);
       return row;
@@ -251,8 +251,6 @@ export class PaymentComponent implements OnInit {
     doc.setTextColor('#000000');
     doc.text('Payment Reviews', 30, 90);
   
-
-
   // Date and Time Part
     const currentDate = new Date();
     const formattedDate = currentDate.toLocaleString('en-US', {
@@ -272,16 +270,14 @@ export class PaymentComponent implements OnInit {
     console.log('Rendering date at position x=400, y=90'); 
     doc.text(formattedDate, 310, 90); 
   
- 
-  
-    const columns = ['No', 'User Name', 'Amount', 'Payment Type', 'Created At', 'Deposit Date'];
+    const columns = ['No', 'User Name', 'Amount', 'Payment Type', 'Created At', 'Transaction Date']; // Fixed: Transaction Date
     const rows = this.displayPaymentLogs.map((log, index) => [
       (this.currentPage - 1) * this.logsPerPage + index + 1,
       log.user_name || '',
       log.amount,
       log.payment_type || '',
       log.created_at || '',
-      log.deposit_date || ''
+      log.transaction_date || '' // Removed the erroneous ">"
     ]);
     autoTable(doc, {
       startY: 125,
