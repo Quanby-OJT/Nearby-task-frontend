@@ -904,6 +904,12 @@ class _ChatScreenState extends State<ChatScreen> {
         ? DateFormat('h:mm a').format(conversation!.createdAt!)
         : '';
 
+    debugPrint("Role: $role");
+    debugPrint("Current User ID: $currentUserId");
+    debugPrint("Sender ID: $senderId");
+    debugPrint("Is Receiver: $isReceiver");
+    debugPrint("Is Unread: $isUnread");
+
     return Container(
       margin: EdgeInsets.symmetric(vertical: 4),
       child: Card(
@@ -1000,19 +1006,18 @@ class _ChatScreenState extends State<ChatScreen> {
                       SizedBox(height: 4),
                       Row(
                         children: [
-                          if (!isReceiver)
-                            readIconMarker(
-                              isUnread
-                                  ? FontAwesomeIcons.check
-                                  : FontAwesomeIcons.checkDouble,
-                              isUnread ? Colors.grey : Color(0xFF0272B1),
-                            ),
+                          readIconMarker(
+                            isUnread
+                                ? FontAwesomeIcons.check
+                                : FontAwesomeIcons.checkDouble,
+                            isUnread ? Colors.grey : Color(0xFF0272B1),
+                          ),
                           Flexible(
                             child: Text(
                               "${user?.firstName ?? ''} ${user?.middleName ?? ''} ${user?.lastName ?? ''}",
                               style: GoogleFonts.poppins(
                                 fontSize: 14,
-                                color: isUnread
+                                color: isUnread && isReceiver
                                     ? Colors.black87
                                     : Colors.grey[600],
                                 fontWeight: isUnread
