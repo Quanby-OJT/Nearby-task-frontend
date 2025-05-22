@@ -222,7 +222,7 @@ export class PaymentComponent implements OnInit {
       format: 'a4',
     });
   
-    // Nearby Tasks Logo
+  
     try {
       doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 140, 35, 28, 25);
     } catch (e) {
@@ -270,7 +270,7 @@ export class PaymentComponent implements OnInit {
     console.log('Rendering date at position x=400, y=90'); 
     doc.text(formattedDate, 310, 90); 
   
-    const columns = ['No', 'User Name', 'Amount', 'Payment Type', 'Created At', 'Transaction Date']; // Fixed: Transaction Date
+    const columns = ['No', 'User Name', 'Amount', 'Payment Type', 'Created At', 'Transaction Date']; 
     const rows = this.displayPaymentLogs.map((log, index) => [
       (this.currentPage - 1) * this.logsPerPage + index + 1,
       log.user_name || '',
