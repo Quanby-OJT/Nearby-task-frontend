@@ -9,7 +9,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 
 class TaskRequestService {
-  static String url = apiUrl ?? "http://localhost:5000/connect";
+  static String url = apiUrl ?? "https://192.168.43.15:5000/connect";
   static final storage = GetStorage();
 
   Future<String?> getUserId() async => storage.read('user_id')?.toString();
@@ -87,7 +87,8 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _postRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     try {
       String formattedEndpoint =
@@ -111,7 +112,8 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> _putRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _putRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.put(
@@ -441,7 +443,8 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> releaseEscrowPayment(int taskerId, double amount, String paymentMethod, String acctNumber) async {
+  Future<Map<String, dynamic>> releaseEscrowPayment(int taskerId, double amount,
+      String paymentMethod, String acctNumber) async {
     try {
       debugPrint("Releasing escrow payment with tasker ID: $taskerId");
       final String role = storage.read("role");
@@ -465,15 +468,16 @@ class TaskRequestService {
   }
 
   //Confirmation of Authorized Payment
-  Future<Map<String, dynamic>> confirmPayment(int userId, double amount, bool success, String transactionId) async {
-    try{
+  Future<Map<String, dynamic>> confirmPayment(
+      int userId, double amount, bool success, String transactionId) async {
+    try {
       return await _putRequest(
           endpoint: "/webhook/paymongo/$userId/$transactionId",
           body: {
             "amount": amount,
             "success": success,
           });
-    }catch(error, stackTrace){
+    } catch (error, stackTrace) {
       debugPrint("Error confirming payment: $error");
       debugPrintStack(stackTrace: stackTrace);
       return {
@@ -512,7 +516,8 @@ class TaskRequestService {
     }
   }
 
-  Future<Map<String, dynamic>> rejectTaskerOrCancelTask(int requestId, String rejectOrCancel, String rejectionReason) async {
+  Future<Map<String, dynamic>> rejectTaskerOrCancelTask(
+      int requestId, String rejectOrCancel, String rejectionReason) async {
     try {
       return await _putRequest(
           endpoint: "/update-status-tasker/$requestId",

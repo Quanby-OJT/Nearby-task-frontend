@@ -16,7 +16,8 @@ import 'package:get_storage/get_storage.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
-
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:intl/intl.dart';
 import '../../controller/conversation_controller.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -35,16 +36,13 @@ class _ChatScreenState extends State<ChatScreen> {
   final ReportController reportController = ReportController();
   final ConversationController conversationController =
       ConversationController();
-
   final ProfileController _profileController = ProfileController();
   final ClientServices _clientServices = ClientServices();
   List<UserModel> tasker = [];
   int? cardNumber = 0;
   bool _isUploadDialogShown = false;
   bool _isLoading = true;
-  final bool _isRead = false;
   IO.Socket? socket;
-
   AuthenticatedUser? _user;
   String? _existingProfileImageUrl;
   String? _existingIDImageUrl;
@@ -55,27 +53,22 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-
     loadAll();
-
     conversationController.searchConversation.addListener(filterMessages);
 
-    socket = IO.io('http://localhost:5000', <String, dynamic>{
+    socket = IO.io('http://192.168.43.15:5000', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
     });
 
     socket?.on('new_message', (data) {
       if (data['user_id'] != storage.read('user_id')) {
-        setState(() {
-          _fetchTaskAssignments();
-        });
+        _fetchTaskAssignments();
       }
     });
 
     socket?.on('message_read', (data) {
       _fetchTaskAssignments();
-      setState(() {});
     });
   }
 
@@ -100,8 +93,8 @@ class _ChatScreenState extends State<ChatScreen> {
     reportController.reasonController.dispose();
     conversationController.searchConversation.dispose();
     _selectedReportCategory = null;
-    super.dispose();
     socket?.disconnect();
+    super.dispose();
   }
 
   void filterMessages() {
@@ -130,21 +123,18 @@ class _ChatScreenState extends State<ChatScreen> {
         _isLoading = true;
       });
 
-      final taskAndConversationResult = await _taskController.fetchTasksAndConversations();
-
-      //debugPrint("TaskAndConversationResult: ${taskAndConversationResult.conversations}");
-
-      // Extract tasks and conversations from result
+      final taskAndConversationResult =
+          await _taskController.fetchTasksAndConversations();
       final tasks = taskAndConversationResult.taskAssignments;
-      final convos = taskAndConversationResult.conversations;
+      final convs = taskAndConversationResult.conversations;
 
-      debugPrint("Raw Conversations: $convos");
+      debugPrint("Raw Conversations: $convs");
       debugPrint("Task Assignments: $tasks");
 
       setState(() {
         taskAssignments = tasks;
-        conversation = convos;
-        filteredTaskAssignments = tasks; // Maintain same filtering logic
+        conversation = convs;
+        filteredTaskAssignments = tasks;
         _isLoading = false;
       });
     } catch (e, st) {
@@ -173,6 +163,26 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() {});
   }
 
+  Future<void> _fetchUserIDImage() async {
+    try {
+      int userId = int.parse(storage.read('user_id').toString());
+      AuthenticatedUser? user =
+          await _profileController.getAuthenticatedUser(context, userId);
+      final response = await _clientServices.fetchUserIDImage(userId);
+
+      if (response['success']) {
+        setState(() {
+          _user = user;
+          _existingProfileImageUrl = user?.user.image;
+          _existingIDImageUrl = response['url'];
+          _documentValid = response['status'];
+        });
+      }
+    } catch (e) {
+      debugPrint("Error fetching ID image: $e");
+    }
+  }
+
   void _showReportModal() {
     setState(() {
       _isModalOpen = true;
@@ -191,8 +201,7 @@ class _ChatScreenState extends State<ChatScreen> {
             return Container(
               height: MediaQuery.of(context).size.height * 0.75,
               padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
+                  bottom: MediaQuery.of(context).viewInsets.bottom),
               child: Column(
                 children: [
                   Expanded(
@@ -209,18 +218,18 @@ class _ChatScreenState extends State<ChatScreen> {
                               children: [
                                 Text(
                                   "Report User",
-                                  style: TextStyle(
+                                  style: GoogleFonts.montserrat(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.indigo,
+                                    color: Color(0xFFB71A4A),
                                     fontSize: 24,
                                   ),
                                 ),
                                 SizedBox(height: 5),
                                 Text(
                                   "Please fill in the details below",
-                                  style: TextStyle(
+                                  style: GoogleFonts.poppins(
                                     fontWeight: FontWeight.normal,
-                                    color: Colors.indigo,
+                                    color: Colors.grey[600],
                                     fontSize: 12,
                                   ),
                                 ),
@@ -251,10 +260,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                   filled: true,
                                   fillColor: Color(0xFFF1F4FF),
                                   enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: Colors.transparent,
-                                      width: 0,
-                                    ),
+                                    borderSide:
+                                        BorderSide(color: Colors.transparent),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   focusedBorder: OutlineInputBorder(
@@ -274,7 +281,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 });
                               },
                               validator: (value) =>
-                                  value == null ? 'Select a Category' : null,
+                                  value == null ? 'Select a User' : null,
                             ),
                           ),
                           Padding(
@@ -291,12 +298,10 @@ class _ChatScreenState extends State<ChatScreen> {
                                 filled: true,
                                 fillColor: Color(0xFFF1F4FF),
                                 hintText: 'Enter description...',
-                                hintStyle: TextStyle(color: Colors.grey),
+                                hintStyle: TextStyle(color: Colors.grey[500]),
                                 enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Colors.transparent,
-                                    width: 0,
-                                  ),
+                                  borderSide:
+                                      BorderSide(color: Colors.transparent),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 focusedBorder: OutlineInputBorder(
@@ -315,38 +320,34 @@ class _ChatScreenState extends State<ChatScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Upload Proof (Limited to 5 images only)',
-                                  style: TextStyle(
+                                  'Upload Proof (Max 5 images)',
+                                  style: GoogleFonts.poppins(
                                     color: Color(0xFF0272B1),
                                     fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 SizedBox(height: 10),
-                                Container(
-                                  alignment: Alignment.centerLeft,
-                                  child: ElevatedButton.icon(
-                                    onPressed: () async {
-                                      await reportController
-                                          .pickImages(modalContext);
-                                      setModalState(() {});
-                                    },
-                                    icon: Icon(Icons.upload_file,
+                                ElevatedButton.icon(
+                                  onPressed: () async {
+                                    await reportController
+                                        .pickImages(modalContext);
+                                    setModalState(() {});
+                                  },
+                                  icon: Icon(Icons.upload_file,
+                                      color: Colors.white),
+                                  label: Text(
+                                    'Upload Images',
+                                    style: GoogleFonts.poppins(
                                         color: Colors.white),
-                                    label: Text(
-                                      'Upload Images',
-                                      style: TextStyle(color: Colors.white),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Color(0xFF0272B1),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Color(0xFF0272B1),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      padding:
-                                          EdgeInsets.only(left: 16, right: 16),
-                                      alignment: Alignment.centerLeft,
-                                      minimumSize: Size(150, 50),
-                                    ),
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 12),
                                   ),
                                 ),
                                 if (reportController.imageUploadError !=
@@ -362,7 +363,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                     .selectedImages.isNotEmpty) ...[
                                   SizedBox(height: 10),
                                   SizedBox(
-                                    height: 140,
+                                    height: 120,
                                     child: ListView.builder(
                                       scrollDirection: Axis.horizontal,
                                       itemCount: reportController
@@ -386,8 +387,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                                           ConnectionState
                                                               .waiting) {
                                                         return SizedBox(
-                                                          height: 100,
-                                                          width: 100,
+                                                          height: 80,
+                                                          width: 80,
                                                           child: Center(
                                                               child:
                                                                   CircularProgressIndicator()),
@@ -395,17 +396,17 @@ class _ChatScreenState extends State<ChatScreen> {
                                                       }
                                                       if (snapshot.hasError) {
                                                         return SizedBox(
-                                                          height: 100,
-                                                          width: 100,
+                                                          height: 80,
+                                                          width: 80,
                                                           child: Center(
                                                               child: Text(
-                                                                  'Error loading image')),
+                                                                  'Error')),
                                                         );
                                                       }
                                                       return Image.memory(
                                                         snapshot.data!,
-                                                        height: 100,
-                                                        width: 100,
+                                                        height: 80,
+                                                        width: 80,
                                                         fit: BoxFit.cover,
                                                       );
                                                     },
@@ -426,7 +427,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                                         child: Icon(
                                                           Icons.close,
                                                           color: Colors.white,
-                                                          size: 20,
+                                                          size: 16,
                                                         ),
                                                       ),
                                                     ),
@@ -436,8 +437,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                               SizedBox(height: 5),
                                               Text(
                                                 'Image ${index + 1}',
-                                                style: TextStyle(
-                                                    color: Colors.grey),
+                                                style: GoogleFonts.poppins(
+                                                    color: Colors.grey[600],
+                                                    fontSize: 12),
                                               ),
                                             ],
                                           ),
@@ -470,16 +472,15 @@ class _ChatScreenState extends State<ChatScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.red,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
+                                borderRadius: BorderRadius.circular(10)),
                             padding: EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 15),
+                                horizontal: 20, vertical: 12),
                           ),
                           child: Text(
                             'Cancel',
-                            style: TextStyle(
+                            style: GoogleFonts.poppins(
                               color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
@@ -496,10 +497,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                 _existingIDImageUrl!.isEmpty ||
                                 !_documentValid) {
                               _showWarningDialog();
-                              debugPrint("Image validation failed");
                               return;
                             }
-                            // Selected tasker's user_id
                             reportController.validateAndSubmit(
                                 context, setModalState, userId, reportedWhom);
                             setState(() {
@@ -509,16 +508,15 @@ class _ChatScreenState extends State<ChatScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Color(0xFF0272B1),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
+                                borderRadius: BorderRadius.circular(10)),
                             padding: EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 15),
+                                horizontal: 20, vertical: 12),
                           ),
                           child: Text(
                             'Submit',
-                            style: TextStyle(
+                            style: GoogleFonts.poppins(
                               color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
@@ -538,37 +536,19 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  Future<void> _fetchUserIDImage() async {
-    try {
-      int userId = int.parse(storage.read('user_id').toString());
-
-      AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
-      debugPrint(user.toString());
-
-      final response = await _clientServices.fetchUserIDImage(userId);
-
-      if (response['success']) {
-        setState(() {
-          _user = user;
-          _existingProfileImageUrl = user?.user.image;
-          _existingIDImageUrl = response['url'];
-          _documentValid = response['status'];
-        });
-      }
-    } catch (e) {
-      debugPrint("Error fetching ID image: $e");
-    }
-  }
-
   void _showWarningDialog() {
     showDialog(
       context: context,
-      barrierDismissible: false, // Prevent dismissing by tapping outside
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text("Account Verification"),
-        content: const Text(
-            "Upload your Profile and ID images to complete your account. Verification will follow."),
+        title: Text(
+          "Account Verification",
+          style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+        ),
+        content: Text(
+          "Upload your Profile and ID images to complete your account. Verification will follow.",
+          style: GoogleFonts.poppins(fontSize: 14),
+        ),
         actions: [
           TextButton(
             onPressed: () async {
@@ -580,27 +560,31 @@ class _ChatScreenState extends State<ChatScreen> {
               if (result == true) {
                 setState(() {
                   _isLoading = true;
-                  // Keep the flag true since we're refreshing data
                 });
-
-                await _fetchUserIDImage(); // Refresh user profile and ID image data
+                await _fetchUserIDImage();
               } else {
                 setState(() {
                   _isUploadDialogShown = false;
                 });
               }
             },
-            child: const Text("Verify Account"),
+            child: Text(
+              "Verify Account",
+              style: GoogleFonts.poppins(color: Color(0xFF0272B1)),
+            ),
           ),
           TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                // Reset the flag when user cancels
-                setState(() {
-                  _isUploadDialogShown = false;
-                });
-              },
-              child: Text('Cancel')),
+            onPressed: () {
+              Navigator.pop(context);
+              setState(() {
+                _isUploadDialogShown = false;
+              });
+            },
+            child: Text(
+              "Cancel",
+              style: GoogleFonts.poppins(color: Colors.grey),
+            ),
+          ),
         ],
       ),
     );
@@ -618,19 +602,20 @@ class _ChatScreenState extends State<ChatScreen> {
             children: [
               Text(
                 "Report History",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.indigo,
-                  fontSize: 24,
+                style: GoogleFonts.montserrat(
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFFB71A4A),
+                  fontSize: 20,
                 ),
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 16),
               Expanded(
                 child: reportController.reportHistory.isEmpty
                     ? Center(
                         child: Text(
                           "No report history available yet.",
-                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                          style: GoogleFonts.poppins(
+                              fontSize: 16, color: Colors.grey[600]),
                         ),
                       )
                     : ListView.builder(
@@ -638,25 +623,42 @@ class _ChatScreenState extends State<ChatScreen> {
                         itemBuilder: (context, index) {
                           final report = reportController.reportHistory[index];
                           return Card(
-                            margin: EdgeInsets.symmetric(vertical: 5),
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                            margin: EdgeInsets.symmetric(vertical: 8),
                             child: ListTile(
+                              contentPadding: EdgeInsets.all(12),
                               title: Text(
                                 "Report #${report.reportId ?? 'N/A'}",
-                                style: TextStyle(fontWeight: FontWeight.bold),
+                                style: GoogleFonts.montserrat(
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF0272B1),
+                                ),
                               ),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                      "Reason: ${report.reason ?? 'No reason provided'}"),
+                                    "Reason: ${report.reason ?? 'No reason provided'}",
+                                    style: GoogleFonts.poppins(fontSize: 14),
+                                  ),
                                   Text(
-                                      "Reported By: ${report.reportedByName ?? 'Unknown'}"),
+                                    "Reported By: ${report.reportedByName ?? 'Unknown'}",
+                                    style: GoogleFonts.poppins(fontSize: 14),
+                                  ),
                                   Text(
-                                      "Reported Whom: ${report.reportedWhomName ?? 'Unknown'}"),
+                                    "Reported Whom: ${report.reportedWhomName ?? 'Unknown'}",
+                                    style: GoogleFonts.poppins(fontSize: 14),
+                                  ),
                                   Text(
-                                      "Created At: ${report.createdAt ?? 'N/A'}"),
+                                    "Created At: ${report.createdAt ?? 'N/A'}",
+                                    style: GoogleFonts.poppins(fontSize: 14),
+                                  ),
                                   Text(
-                                      "Status: ${report.status != null ? (report.status! ? 'Resolved' : 'Pending') : 'N/A'}"),
+                                    "Status: ${report.status != null ? (report.status! ? 'Resolved' : 'Pending') : 'N/A'}",
+                                    style: GoogleFonts.poppins(fontSize: 14),
+                                  ),
                                 ],
                               ),
                             ),
@@ -668,21 +670,18 @@ class _ChatScreenState extends State<ChatScreen> {
               Align(
                 alignment: Alignment.centerRight,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
+                  onPressed: () => Navigator.pop(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                        borderRadius: BorderRadius.circular(10)),
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   ),
                   child: Text(
-                    'Cancel',
-                    style: TextStyle(
+                    'Close',
+                    style: GoogleFonts.poppins(
                       color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -697,213 +696,157 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          backgroundColor: Colors.white,
-          title: Column(
-            children: [
-              Text(
-                "Chat Messages",
-                style: GoogleFonts.montserrat(
-                  color: Color(0xFFB71A4A),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 18,
-                ),
-                textAlign: TextAlign.left,
-              ),
-              SizedBox(height: 5),
-            ],
+        elevation: 2,
+        title: Text(
+          "Messages",
+          style: GoogleFonts.montserrat(
+            color: Color(0xFFB71A4A),
+            fontWeight: FontWeight.w700,
+            fontSize: 22,
           ),
         ),
-        floatingActionButton: (taskAssignments.isNotEmpty && !_isModalOpen)
-            ? FloatingActionButton(
-                onPressed: () {
-                  _showReportModal();
-                },
-                backgroundColor: Colors.redAccent,
-                elevation: 6,
-                tooltip: 'Report User',
-                child: Icon(
-                  Icons.flag,
-                  color: Colors.white,
-                  size: 28,
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'report_user') {
+                _showReportModal();
+              } else if (value == 'report_history') {
+                _showReportHistoryModal();
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              PopupMenuItem<String>(
+                value: 'report_user',
+                child: Row(
+                  children: [
+                    Icon(Icons.report, color: Colors.redAccent),
+                    SizedBox(width: 8),
+                    Text('Report User', style: GoogleFonts.poppins()),
+                  ],
                 ),
-              )
-            : null,
-        body: _isLoading
-            ? Center(
-                child: CircularProgressIndicator(),
-              )
-            : taskAssignments.isEmpty
-                ? RefreshIndicator(
-                    onRefresh: _fetchTaskAssignments,
-                    color: Color(0xFFB71A4A),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Icon(
-                            FontAwesomeIcons.signalMessenger,
-                            size: 100,
-                            color: Color(0xFFB71A4A),
-                          ),
-                          SizedBox(height: 10),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 20),
-                            child: Text(
-                              "You don't have messages yet. Check your task requests to accept a tasker, or wait for them to accept your task.",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 16),
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.2),
-                                      blurRadius: 6,
-                                      offset: Offset(0, 3),
-                                    ),
-                                  ],
-                                ),
-                                child: Material(
-                                  color: Colors.redAccent,
-                                  shape: CircleBorder(),
-                                  child: PopupMenuButton<String>(
-                                    onSelected: (value) {
-                                      if (value == 'report_user') {
-                                        _showReportModal();
-                                      } else if (value == 'report_history') {
-                                        _showReportHistoryModal();
-                                      }
-                                    },
-                                    itemBuilder: (BuildContext context) => [
-                                      PopupMenuItem<String>(
-                                        value: 'report_user',
-                                        child: Row(
-                                          children: [
-                                            Icon(Icons.report,
-                                                color: Colors.redAccent),
-                                            SizedBox(width: 10),
-                                            Text('Report User'),
-                                          ],
-                                        ),
-                                      ),
-                                      PopupMenuItem<String>(
-                                        value: 'report_history',
-                                        child: Row(
-                                          children: [
-                                            Icon(Icons.history,
-                                                color: Colors.green),
-                                            SizedBox(width: 10),
-                                            Text('Report History'),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                    child: Container(
-                                      padding: EdgeInsets.all(12),
-                                      child: Icon(
-                                        Icons.flag,
-                                        color: Colors.white,
-                                        size: 28,
+              ),
+              PopupMenuItem<String>(
+                value: 'report_history',
+                child: Row(
+                  children: [
+                    Icon(Icons.history, color: Color(0xFF0272B1)),
+                    SizedBox(width: 8),
+                    Text('Report History', style: GoogleFonts.poppins()),
+                  ],
+                ),
+              ),
+            ],
+            icon: Icon(Icons.more_vert, color: Color(0xFFB71A4A)),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: conversationController.searchConversation,
+                decoration: InputDecoration(
+                  hintText: 'Search messages...',
+                  hintStyle: GoogleFonts.poppins(color: Colors.grey[500]),
+                  border: InputBorder.none,
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  suffixIcon: Icon(
+                    FontAwesomeIcons.magnifyingGlass,
+                    color: Color(0xFF0272B1),
+                    size: 18,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: _isLoading
+                ? Center(
+                    child: CircularProgressIndicator(color: Color(0xFF0272B1)),
+                  )
+                : taskAssignments.isEmpty
+                    ? RefreshIndicator(
+                        onRefresh: _fetchTaskAssignments,
+                        color: Color(0xFFB71A4A),
+                        child: SingleChildScrollView(
+                          physics: AlwaysScrollableScrollPhysics(),
+                          child: Container(
+                            height: MediaQuery.of(context).size.height - 200,
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    FontAwesomeIcons.commentSlash,
+                                    size: 80,
+                                    color: Color(0xFF0272B1),
+                                  ),
+                                  SizedBox(height: 16),
+                                  Padding(
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 32),
+                                    child: Text(
+                                      "No messages yet. Accept a tasker or wait for your task to be accepted.",
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 16,
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                   ),
-                                ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
-                        ],
-                      ),
-                    ))
-                : Column(children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20),
-                      child: TextField(
-                        controller: conversationController.searchConversation,
-                        decoration: InputDecoration(
-                          hintText: 'Search Messages...',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(40),
-                          ),
-                          contentPadding: EdgeInsets.symmetric(horizontal: 20),
-                          suffixIcon: Icon(FontAwesomeIcons.magnifyingGlass),
-                          focusColor: Color(0xFFB71A4A),
+                        ),
+                      )
+                    : RefreshIndicator(
+                        onRefresh: _fetchTaskAssignments,
+                        color: Color(0xFFB71A4A),
+                        child: ListView.builder(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          itemCount: filteredTaskAssignments.length,
+                          itemBuilder: (context, index) {
+                            final taskAssignment =
+                                filteredTaskAssignments[index];
+                            if (taskAssignment == null) {
+                              return SizedBox.shrink();
+                            }
+                            final conversation =
+                                this.conversation.firstWhereOrNull(
+                                      (conv) =>
+                                          conv.taskTakenId ==
+                                          taskAssignment.taskTakenId,
+                                    );
+                            return conversationCard(
+                                taskAssignment, conversation);
+                          },
                         ),
                       ),
-                    ),
-                    Expanded(
-                        child: _isLoading
-                            ? Center(
-                                child: CircularProgressIndicator(
-                                  color: Color(0xFFB71A4A),
-                                ),
-                              )
-                            : filteredTaskAssignments.isEmpty
-                                ? Center(
-                                    child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 20),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              FontAwesomeIcons.signalMessenger,
-                                              size: 100,
-                                              color: Color(0xFFB71A4A),
-                                            ),
-                                            SizedBox(height: 16),
-                                            Text(
-                                              "Message Not Found.",
-                                              style: GoogleFonts.montserrat(
-                                                color: Color(0xFFB71A4A),
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 18,
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                            SizedBox(height: 8),
-                                            Text(
-                                              " Maybe You haven't accept a tasker that applied for your task.",
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(fontSize: 16),
-                                            ),
-                                          ],
-                                        )))
-                                : RefreshIndicator(
-                                    onRefresh: _fetchTaskAssignments,
-                                    color: Color(0xFFB71A4A),
-                                    child: ListView.builder(
-                                      padding: EdgeInsets.symmetric(vertical: 16),
-                                      itemCount: filteredTaskAssignments.length,
-                                      itemBuilder: (context, index) {
-                                        final taskAssignment = filteredTaskAssignments[index];
-                                        if (taskAssignment == null) {
-                                          return SizedBox.shrink();
-                                        }
-
-                                        // Find the conversation for this taskAssignment, or pass null if not found
-                                        final conversations = conversation.firstWhereOrNull(
-                                              (conv) => conv.taskTakenId == taskAssignment.taskTakenId,
-                                        );
-
-                                        //debugPrint("Conversations for TaskTakenId ${taskAssignment.taskTakenId}: $conversations");
-                                        return conversationCard(taskAssignment, conversations);
-                                      },
-                                    )))
-                  ]));
+          ),
+        ],
+      ),
+    );
   }
 
   void showMessageOptions(BuildContext context, int taskTakenId) {
@@ -911,31 +854,31 @@ class _ChatScreenState extends State<ChatScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Delete Conversation',
-              style: GoogleFonts.montserrat(fontWeight: FontWeight.bold)),
+          title: Text(
+            'Delete Conversation',
+            style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+          ),
           content: Text(
-              'Are you sure you want to delete this conversation? This cannot be undone.'),
-          actions: <Widget>[
+            'Are you sure you want to delete this conversation? This cannot be undone.',
+            style: GoogleFonts.poppins(fontSize: 14),
+          ),
+          actions: [
             TextButton(
               child: Text(
                 'Cancel',
-                style: TextStyle(color: Colors.grey),
+                style: GoogleFonts.poppins(color: Colors.grey),
               ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
             ),
             TextButton(
               child: Text(
                 'Delete',
-                style: TextStyle(color: Colors.red),
+                style: GoogleFonts.poppins(color: Colors.red),
               ),
               onPressed: () {
                 conversationController.deleteMessage(context, taskTakenId);
                 Navigator.of(context).pop();
-                setState(() {
-                  _fetchTaskAssignments();
-                });
+                _fetchTaskAssignments();
               },
             ),
           ],
@@ -944,91 +887,158 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget conversationCard(TaskAssignment taskTaken, Conversation? conversation) {
+  Widget conversationCard(
+      TaskAssignment taskTaken, Conversation? conversation) {
     final currentUserId = storage.read('user_id');
     final role = storage.read('role');
-
-    final senderId = conversation?.userId;
-    debugPrint("Current User ID: $currentUserId, Sender Id: $senderId, and Role: $role");
+    final senderId = conversation?.userId ??
+        (role == 'Tasker'
+            ? taskTaken.client?.user?.id
+            : taskTaken.tasker?.user?.id) ??
+        0;
     final bool isReceiver = senderId != currentUserId;
     final bool isUnread = taskTaken.unreadCount > 0;
-    debugPrint("Is Receiver: $isReceiver, Unread Messages for Task: ${taskTaken.taskTakenId} - ${taskTaken.unreadCount}");
-    final user = role == 'Tasker' ? taskTaken.client?.user : taskTaken.tasker?.user;
+    final user =
+        role == 'Tasker' ? taskTaken.client?.user : taskTaken.tasker?.user;
+    final timestamp = conversation?.createdAt != null
+        ? DateFormat('h:mm a').format(conversation!.createdAt!)
+        : '';
 
     return Container(
-      margin: EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => IndividualChatScreen(
-                taskTakenId: taskTaken.taskTakenId,
-                taskId: taskTaken.task?.id ?? 0,
-                taskTitle: taskTaken.task?.title ?? '',
-                taskTakenStatus: taskTaken.taskStatus,
-              ),
-            ),
-          ).then((_) => _fetchTaskAssignments());
-        },
-        onLongPress: () => showMessageOptions(context, taskTaken.taskTakenId),
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundImage: user?.imageName != null
-                    ? NetworkImage(user!.imageName!)
-                    : null,
-                child: user?.imageName == null
-                    ? Icon(FontAwesomeIcons.user, size: 30)
-                    : null,
-              ),
-              SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: double.infinity,
-                      child: Text(
-                        taskTaken.task?.title ?? 'No Title',
-                        style: GoogleFonts.montserrat(
-                          color: Color(0xFFB71A4A),
-                          fontWeight: FontWeight.w600,
-                          fontSize: 18,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        readIconMarker(
-                          isUnread
-                              ? FontAwesomeIcons.check
-                              : FontAwesomeIcons.checkDouble,
-                          Colors.green,
-                        ),
-                      SizedBox(width: 4),
-                      Text(
-                        "${user?.firstName ?? ''} ${user?.middleName ?? ''} ${user?.lastName ?? ''}",
-                        style: GoogleFonts.poppins(
-                          fontWeight: isReceiver && isUnread
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                          ),
-                        ),
-                      ]
-                    ),
-                  ],
+      margin: EdgeInsets.symmetric(vertical: 4),
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => IndividualChatScreen(
+                  taskTakenId: taskTaken.taskTakenId,
+                  taskId: taskTaken.task?.id ?? 0,
+                  taskTitle: taskTaken.task?.title ?? '',
                 ),
               ),
-            ],
+            ).then((_) => _fetchTaskAssignments());
+          },
+          onLongPress: () => showMessageOptions(context, taskTaken.taskTakenId),
+          child: Padding(
+            padding: EdgeInsets.all(12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Stack(
+                  children: [
+                    CircleAvatar(
+                      radius: 28,
+                      backgroundColor: Color(0xFF0272B1),
+                      backgroundImage: user?.imageName != null
+                          ? CachedNetworkImageProvider(user!.imageName!)
+                          : null,
+                      child: user?.imageName == null
+                          ? Text(
+                              user?.firstName?.isNotEmpty == true
+                                  ? user!.firstName![0]
+                                  : 'U',
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                            )
+                          : null,
+                    ),
+                    if (isUnread)
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: CircleAvatar(
+                          radius: 10,
+                          backgroundColor: Color(0xFFB71A4A),
+                          child: Text(
+                            taskTaken.unreadCount.toString(),
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              taskTaken.task?.title ?? 'No Title',
+                              style: GoogleFonts.montserrat(
+                                color: Color(0xFF0272B1),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Text(
+                            timestamp,
+                            style: GoogleFonts.poppins(
+                              color: Colors.grey[500],
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 4),
+                      Row(
+                        children: [
+                          if (!isReceiver)
+                            readIconMarker(
+                              isUnread
+                                  ? FontAwesomeIcons.check
+                                  : FontAwesomeIcons.checkDouble,
+                              isUnread ? Colors.grey : Color(0xFF0272B1),
+                            ),
+                          Flexible(
+                            child: Text(
+                              "${user?.firstName ?? ''} ${user?.middleName ?? ''} ${user?.lastName ?? ''}",
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: isUnread
+                                    ? Colors.black87
+                                    : Colors.grey[600],
+                                fontWeight: isUnread
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (conversation?.conversationMessage != null)
+                        Text(
+                          conversation!.conversationMessage!,
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            color: isUnread ? Colors.black54 : Colors.grey[500],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1037,11 +1047,12 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget readIconMarker(IconData icon, Color color) {
     return Padding(
-        padding: EdgeInsets.only(right: 10),
-        child: Icon(
-          icon,
-          color: color, // Single check for sent but not necessarily read
-          size: 16,
-        ));
+      padding: EdgeInsets.only(right: 8),
+      child: Icon(
+        icon,
+        color: color,
+        size: 14,
+      ),
+    );
   }
 }

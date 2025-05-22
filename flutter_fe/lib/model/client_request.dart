@@ -8,6 +8,8 @@ class ClientRequestModel {
   final String? reason_for_rejection_or_cancellation;
   final String? remark;
   final String? requested_from;
+  final int? time_request;
+  final DateTime? start_date;
 
   ClientRequestModel({
     this.task_taken_id,
@@ -19,6 +21,8 @@ class ClientRequestModel {
     this.reason_for_rejection_or_cancellation,
     this.remark,
     this.requested_from,
+    this.time_request,
+    this.start_date,
   });
 
   Map<String, dynamic> toJson() {
@@ -33,6 +37,8 @@ class ClientRequestModel {
           reason_for_rejection_or_cancellation,
       "remark": remark,
       "requested_from": requested_from,
+      "time_request": time_request,
+      "start_date": start_date,
     };
   }
 
@@ -55,6 +61,10 @@ class ClientRequestModel {
           json['reason_for_rejection_or_cancellation'] as String?,
       remark: json['remark'] as String?,
       requested_from: json['requested_from'] as String?,
+      time_request: json['time_request'] as int?,
+      start_date: json['start_date'] != null
+          ? DateTime.tryParse(json['start_date'] as String? ?? '')
+          : null,
     );
   }
 }

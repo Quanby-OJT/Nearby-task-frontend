@@ -52,7 +52,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String saveText = "Save";
   final updateTasker = GlobalKey<FormState>();
 
-  bool _isAmountVisible = false;
+  final bool _isAmountVisible = false;
   @override
   void initState() {
     super.initState();
@@ -302,7 +302,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: Text(
           'Your Profile Information',
           style: GoogleFonts.poppins(
-            color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
+              color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -310,91 +310,84 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20),
         child: SingleChildScrollView(
-          child: Form(
-            key: updateTasker,
-            child: Column(
-              children: [
-                Center(
-                  child: Column(
-                    children: [
-                      Text(
-                        "${_user?.user.firstName} ${_user?.user.middleName} ${_user?.user.lastName}",
-                        style: GoogleFonts.poppins(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+            child: Form(
+                key: updateTasker,
+                child: Column(children: [
+                  Center(
+                      child: Column(children: [
+                    Text(
+                      "${_user?.user.firstName} ${_user?.user.middleName} ${_user?.user.lastName}",
+                      style: GoogleFonts.poppins(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ]
-                  )
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Add your social media profiles to enhance your verification',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    color: Colors.grey[600],
+                    ),
+                  ])),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Add your social media profiles to enhance your verification',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // Facebook
-                _buildTextField(
-                  controller: _userController.fbLinkController,
-                  label: 'Facebook Profile URL',
-                  icon: Icons.facebook,
-                  keyboardType: TextInputType.url,
-                  hintText: 'https://facebook.com/yourusername',
-                  validator: (value) {
-                    if (value != null && value.isNotEmpty) {
-                      if (!value.contains('facebook.com')) {
-                        return 'Please enter a valid Facebook URL';
+                  // Facebook
+                  _buildTextField(
+                    controller: _userController.fbLinkController,
+                    label: 'Facebook Profile URL',
+                    icon: Icons.facebook,
+                    keyboardType: TextInputType.url,
+                    hintText: 'https://facebook.com/yourusername',
+                    validator: (value) {
+                      if (value != null && value.isNotEmpty) {
+                        if (!value.contains('facebook.com')) {
+                          return 'Please enter a valid Facebook URL';
+                        }
                       }
-                    }
-                    return null; // Optional field
-                  },
-                ),
-                const SizedBox(height: 16),
+                      return null; // Optional field
+                    },
+                  ),
+                  const SizedBox(height: 16),
 
-                // Instagram
-                _buildTextField(
-                  controller: _userController.instaLinkController,
-                  label: 'Instagram Profile URL',
-                  icon: Icons.camera_alt,
-                  keyboardType: TextInputType.url,
-                  hintText: 'https://instagram.com/yourusername',
-                  validator: (value) {
-                    if (value != null && value.isNotEmpty) {
-                      if (!value.contains('instagram.com')) {
-                        return 'Please enter a valid Instagram URL';
+                  // Instagram
+                  _buildTextField(
+                    controller: _userController.instaLinkController,
+                    label: 'Instagram Profile URL',
+                    icon: Icons.camera_alt,
+                    keyboardType: TextInputType.url,
+                    hintText: 'https://instagram.com/yourusername',
+                    validator: (value) {
+                      if (value != null && value.isNotEmpty) {
+                        if (!value.contains('instagram.com')) {
+                          return 'Please enter a valid Instagram URL';
+                        }
                       }
-                    }
-                    return null; // Optional field
-                  },
-                ),
-                const SizedBox(height: 16),
+                      return null; // Optional field
+                    },
+                  ),
+                  const SizedBox(height: 16),
 
-                // Twitter
-                _buildTextField(
-                  controller: _userController.telegramLinkController,
-                  label: 'Twitter Profile URL',
-                  icon: Icons.chat,
-                  keyboardType: TextInputType.url,
-                  hintText: 'https://twitter.com/yourusername',
-                  validator: (value) {
-                    if (value != null && value.isNotEmpty) {
-                      if (!value.contains('twitter.com') &&
-                          !value.contains('x.com')) {
-                        return 'Please enter a valid Twitter/X URL';
+                  // Twitter
+                  _buildTextField(
+                    controller: _userController.telegramLinkController,
+                    label: 'Twitter Profile URL',
+                    icon: Icons.chat,
+                    keyboardType: TextInputType.url,
+                    hintText: 'https://twitter.com/yourusername',
+                    validator: (value) {
+                      if (value != null && value.isNotEmpty) {
+                        if (!value.contains('twitter.com') &&
+                            !value.contains('x.com')) {
+                          return 'Please enter a valid Twitter/X URL';
+                        }
                       }
-                    }
-                    return null; // Optional field
-                  },
-                ),
-                const SizedBox(height: 24),
-              ]
-            )
-          )
-        ),
+                      return null; // Optional field
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                ]))),
       ),
       bottomSheet: Padding(
         padding: const EdgeInsets.all(20),
@@ -406,8 +399,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   List<Widget> _buildActionButtons() {
-    return [
-    ];
+    return [];
   }
 
   // Helper method for sectioned layout
@@ -480,7 +472,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               borderSide: BorderSide(color: Colors.red[600]!, width: 2),
             ),
             contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             hintText: hintText,
           ),
           keyboardType: keyboardType,
