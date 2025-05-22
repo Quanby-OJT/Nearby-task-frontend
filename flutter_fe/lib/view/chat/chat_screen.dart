@@ -956,7 +956,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             )
                           : null,
                     ),
-                    if (isUnread)
+                    if (isUnread && isReceiver)
                       Positioned(
                         right: 0,
                         bottom: 0,
