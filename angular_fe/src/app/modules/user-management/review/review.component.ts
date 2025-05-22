@@ -42,7 +42,6 @@ export class ReviewComponent {
   isIdImage: boolean = false;   
   actionByName: string = '';
 
-
   constructor(
     private _formBuilder: FormBuilder,
     private userAccountService: UserAccountService,
@@ -333,8 +332,8 @@ export class ReviewComponent {
     const filePath = urlParts[1]; 
     console.log('Extracted file path:', filePath);
 
-    // Construct the URL to fetch the PDF
-    const url = `http://localhost:5000/connect/viewDocument/${encodeURIComponent(filePath)}`;
+    // Use the apiUrl from UserAccountService to ensure HTTPS
+    const url = `${this.userAccountService['apiUrl']}/viewDocument/${encodeURIComponent(filePath)}`;
     const token = this.sessionStorage.getSessionToken();
     if (!token) {
       console.error('No session token found. Please log in.');
@@ -347,15 +346,44 @@ export class ReviewComponent {
       return;
     }
 
-    // Open the URL in a new tab
-    const newWindow = window.open(url, '_blank');
-    if (!newWindow) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Preview Failed',
-        text: 'Unable to open the document. Please allow pop-ups for this site.',
-      });
-    }
+    // Use HttpClient to fetch the document with Authorization header
+    this.http.get(url, {
+      headers: new HttpHeaders({
+        'Authorization': `Bearer ${token}`
+      }),
+      responseType: 'blob',
+      withCredentials: true
+    }).subscribe({
+      next: (blob) => {
+        console.log('Document fetched successfully, creating blob URL');
+        const blobUrl = window.URL.createObjectURL(blob);
+        const newWindow = window.open(blobUrl, '_blank');
+        if (!newWindow) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Preview Failed',
+            text: 'Unable to open the document. Please allow pop-ups for this site.',
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Error fetching document:', err);
+        let message = 'Failed to fetch the document. Please try again.';
+        if (err.status === 401) {
+          message = 'Unauthorized. Please log in again.';
+          this.router.navigate(['login']);
+        } else if (err.status === 404) {
+          message = 'Document not found.';
+        } else if (err.status >= 500) {
+          message = `Server error (status: ${err.status}). Contact support with this error code.`;
+        }
+        Swal.fire({
+          icon: 'error',
+          title: 'Preview Failed',
+          text: message,
+        });
+      }
+    });
   }
 
   previewImage(): void {
@@ -431,7 +459,7 @@ export class ReviewComponent {
         </div>
       </div>
     `;
-  
+
     Swal.fire({
       title: 'Compare ID Photo and Selfie',
       html: htmlContent,
