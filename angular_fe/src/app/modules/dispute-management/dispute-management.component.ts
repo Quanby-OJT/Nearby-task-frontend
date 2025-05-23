@@ -391,66 +391,72 @@ export class DisputeManagementComponent {
   }
 
   exportCSV() {
-    // const headers = ['Dispute Id', 'Task Title', 'Reason for Dispute', 'Dispute Details', 'Raised By', 'Moderator Action', 'Created At'];
-    // const rows = this.displayDisputes.map((disputes, index) => {
-    //   const task_title = disputes.task_taken_
-    //     ? `${disputes.tasker.user.first_name || ''} ${disputes.tasker.user.middle_name || ''} ${disputes.tasker.user.last_name || ''}`.trim()
-    //     : '';
-    //   const clientName = disputes.task_taken?.client?.user
-    //     ? `${disputes.task_taken.client.user.first_name || ''} ${disputes.task_taken.client.user.middle_name || ''} ${disputes.task_taken.client.user.last_name || ''}`.trim()
-    //     : '';
-    //   const reported = disputes.reported ? disputes.reported : 'Empty';
-    //   return [
-    //     (this.currentPage - 1) * this.logsPerPage + index + 1,
-    //     `"${taskerName}"`,
-    //     `"${disputes.feedback || ''}"`,
-    //     disputes.rating || '',
-    //     `"${clientName}"`,
-    //     `"${reported}"`,
-    //     `"${disputes.created_at || ''}"`
-    //   ];
-    // });
-    // const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
-    // const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    // saveAs(blob, 'NearbyTask_Disputes.csv');
+    const headers = ['ID', 'Task Title', 'Reason for Dispute', 'Dispute Details', 'Raised By', 'Moderator Action', 'Dispute Notes', 'Date Raised'];
+    const rows = this.displayDisputes.map((disputes, index) => {
+      const taskerName = disputes.task_taken_
+        ? `${disputes.tasker.user.first_name || ''} ${disputes.tasker.user.middle_name || ''} ${disputes.tasker.user.last_name || ''}`.trim()
+        : '';
+      const clientName = disputes.task_taken?.client?.user
+        ? `${disputes.task_taken.clients.user.first_name || ''} ${disputes.task_taken.clients.user.middle_name || ''} ${disputes.task_taken.clients.user.last_name || ''}`.trim()
+        : '';
+      return [
+        (this.currentPage - 1) * this.logsPerPage + index + 1,
+        `"${disputes.task_taken.post_task.task_title || ''}"`,
+        disputes.reason_for_dispute || '',
+        `"${disputes.dispute_details}"`,
+        `"${clientName ?? taskerName}"`,
+        `"${disputes.moderator_action}"`,
+        `"${disputes.addl_dispute_notes}"`,
+        `"${disputes.created_at || ''}"`
+      ];
+    });
+    const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    saveAs(blob, 'NearbyTask_Disputes.csv');
   }
 
   exportPDF() {
-    // const doc = new jsPDF({
-    //   orientation: 'portrait',
-    //   unit: 'px',
-    //   format: 'a4',
-    // });
-    // const title = 'Feedback Management';
-    // doc.setFontSize(20);
-    // doc.text(title, 170, 45);
-    // const headers = ['No', 'Tasker Name', 'Feedback', 'Rating', 'Client', 'Reported', 'Created At'];
-    // const rows = this.displayFeedbacks.map((feedback, index) => {
-    //   const taskerName = feedback.tasker?.user
-    //     ? `${feedback.tasker.user.first_name || ''} ${feedback.tasker.user.middle_name || ''} ${feedback.tasker.user.last_name || ''}`.trim()
-    //     : '';
-    //   const clientName = feedback.task_taken?.client?.user
-    //     ? `${feedback.task_taken.client.user.first_name || ''} ${feedback.task_taken.client.user.middle_name || ''} ${feedback.task_taken.client.user.last_name || ''}`.trim()
-    //     : '';
-    //   const reported = feedback.reported ? feedback.reported : 'Empty';
-    //   return [
-    //     (this.currentPage - 1) * this.logsPerPage + index + 1,
-    //     taskerName,
-    //     feedback.feedback || '',
-    //     feedback.rating || '',
-    //     clientName,
-    //     reported,
-    //     feedback.created_at || ''
-    //   ];
-    // });
-    // autoTable(doc, {
-    //   startY: 100,
-    //   head: [headers],
-    //   body: rows,
-    //   theme: 'grid',
-    //   styles: { fontSize: 8, cellPadding: 5, textColor: 'black' },
-    //   headStyles: { fillColor: [60, 33, 146], textColor: 'white' },
-    // });
-    // doc.save('Feedbacks.pdf');
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'px',
+      format: 'a4',
+    });
+    const title = 'QTask Disputes';
+    doc.setFontSize(20);
+    doc.text(title, 170, 45);
+    const headers = ['ID', 'Task Title', 'Reason for Dispute', 'Dispute Details', 'Raised By', 'Moderator Action', 'Dispute Notes', 'Date Raised'];
+    const rows = this.displayDisputes.map((disputes, index) => {
+      const taskerName = disputes.task_taken.clients?.user
+        ? `${disputes.task_taken.tasker.user.first_name || ''} ${disputes.task_taken.tasker.user.middle_name || ''} ${disputes.task_taken.tasker.user.last_name || ''}`.trim()
+        : '';
+      const clientName = disputes.task_taken?.client?.user
+        ? `${disputes.task_taken.clients.user.first_name || ''} ${disputes.task_taken.clients.user.middle_name || ''} ${disputes.task_taken.clients.user.last_name || ''}`.trim()
+        : '';
+      return [
+        (this.currentPage - 1) * this.logsPerPage + index + 1,
+        `"${disputes.task_taken.post_task.task_title || ''}"`,
+        disputes.reason_for_dispute || '',
+        `"${disputes.dispute_details}"`,
+        `"${clientName ?? taskerName}"`,
+        `"${disputes.moderator_action}"`,
+        `"${disputes.addl_dispute_notes}"`,
+        `"${disputes.created_at || ''}"`
+      ];
+    });
+    autoTable(doc, {
+      startY: 100,
+      head: [headers],
+      body: rows,
+      theme: 'grid',
+      styles: { fontSize: 8, cellPadding: 5, textColor: 'black' },
+      headStyles: { fillColor: [60, 33, 146], textColor: 'white' },
+    });
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+    doc.save(`QTask Disputes as of ${formattedDate}.pdf`);
   }
 }
