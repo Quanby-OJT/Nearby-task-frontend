@@ -435,7 +435,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                         "About",
                         [
                           Text(
-                            "Experienced tasker specializing in various home services with a commitment to quality and customer satisfaction.",
+                            _user?.tasker?.bio ?? "Not Available",
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               color: Colors.grey[600],
