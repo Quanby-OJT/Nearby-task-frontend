@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_coinfirmed.dart';
+import 'package:flutter_fe/view/business_acc/client_record/display_list_disputed_settled.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_finish.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_ongoing.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_reject.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_review.dart';
 import 'package:flutter_fe/view/profile/payment_processing.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -14,6 +16,7 @@ import 'package:intl/intl.dart';
 
 import '../../model/tasker_feedback.dart';
 import '../../service/tasker_service.dart';
+import '../business_acc/client_record/display_list_disputed.dart';
 import '../business_acc/client_record/display_list_pending.dart';
 
 class RecordTaskerPage extends StatefulWidget {
@@ -316,7 +319,42 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                       });
                     },
                   ),
-
+                  _buildStatusCard(
+                    title: 'Disputed Tasks',
+                    color: Colors.purpleAccent,
+                    icon: FontAwesomeIcons.gavel,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DisplayListRecordDisputed(),
+                        ),
+                      ).then((value) {
+                        setState(() {
+                          _isLoading = true;
+                        });
+                        _loadData();
+                      });
+                    },
+                  ),
+                  _buildStatusCard(
+                    title: 'Settled Disputes',
+                    color: Colors.greenAccent,
+                    icon: FontAwesomeIcons.fileCircleCheck,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DisplayListRecordDisputedSettled(),
+                        ),
+                      ).then((value) {
+                        setState(() {
+                          _isLoading = true;
+                        });
+                        _loadData();
+                      });
+                    },
+                  ),
                   // Ongoing Task Card
                   _buildStatusCard(
                     title: 'Ongoing Task',
@@ -578,128 +616,5 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
     }
     double completionRate = (completedTasks / feedback.length) * 100;
     return "${completionRate.toStringAsFixed(0)}%";
-  }
-
-  void _showWithdrawDialog() {
-    final TextEditingController amountController = TextEditingController();
-    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-    final double availableBalance =
-        _escrowManagementController.tokenCredits.value.toDouble();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'Withdraw Credits',
-          style: GoogleFonts.montserrat(
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF0272B1),
-          ),
-        ),
-        content: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: amountController,
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
-                decoration: InputDecoration(
-                  labelText: 'Amount',
-                  prefixIcon:
-                      Icon(Icons.attach_money, color: Color(0xFF0272B1)),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Color(0xFF0272B1), width: 2),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter an amount';
-                  }
-
-                  final double? amount = double.tryParse(value);
-                  if (amount == null) {
-                    return 'Please enter a valid number';
-                  }
-
-                  if (amount <= 0) {
-                    return 'Amount must be greater than zero';
-                  }
-
-                  if (amount > availableBalance) {
-                    return 'Amount exceeds available balance';
-                  }
-
-                  return null;
-                },
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Withdrawal will be processed to your linked payment method.',
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.poppins(color: Colors.grey[600]),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                final double amount = double.parse(amountController.text);
-
-                // Process withdrawal
-                _processWithdrawal(amount);
-
-                Navigator.pop(context);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF0272B1),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Text(
-              'Withdraw',
-              style: GoogleFonts.poppins(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _processWithdrawal(double amount) {
-    // Here you would call the API to process the withdrawal
-    // For now we'll just show a success message and update the UI
-    setState(() {
-      // You might need to call your backend API here
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content:
-            Text('Withdrawal of ${formatCurrency(amount)} has been initiated'),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    );
   }
 }

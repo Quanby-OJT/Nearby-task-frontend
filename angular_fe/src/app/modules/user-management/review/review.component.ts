@@ -36,10 +36,10 @@ export class ReviewComponent {
   documentUrl: string | null = null;
   documentName: string | null = null;
   isImage: boolean = false;
-  faceImage: string | null = null; 
-  isFaceImage: boolean = false; 
-  idImage: string | null = null; 
-  isIdImage: boolean = false;   
+  faceImage: string | null = null;
+  isFaceImage: boolean = false;
+  idImage: string | null = null;
+  isIdImage: boolean = false;
   actionByName: string = '';
 
   constructor(
@@ -98,7 +98,7 @@ export class ReviewComponent {
 
   calculateAge(birthdate: string): number {
     if (!birthdate) return 0;
-    const today = new Date('2025-05-15'); 
+    const today = new Date('2025-05-15');
     const birthDate = new Date(birthdate);
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
@@ -149,7 +149,7 @@ export class ReviewComponent {
                 name: doc.doc_name || 'User_Document'
               }))];
             }
-         
+
             if (docResponse.user?.user_id?.length > 0 && docResponse.user.user_id[0]?.id_image) {
               console.log('Processing ID image:', docResponse.user.user_id[0].id_image);
               this.idImage = docResponse.user.user_id[0].id_image; // Set idImage directly
@@ -329,7 +329,7 @@ export class ReviewComponent {
       return;
     }
 
-    const filePath = urlParts[1]; 
+    const filePath = urlParts[1];
     console.log('Extracted file path:', filePath);
 
     // Use the apiUrl from UserAccountService to ensure HTTPS
@@ -424,7 +424,7 @@ export class ReviewComponent {
     } else {
       idImageHtml = '<div style="width: 200px; height: 200px; background: #f0f0f0; display: flex; justify-content: center; align-items: center; color: #666; font-size: 14px; text-align: center;">No ID Image Available</div>';
     }
-  
+
     let faceImageHtml = '';
     if (this.faceImage && this.isFaceImage) {
       faceImageHtml = `
@@ -440,7 +440,7 @@ export class ReviewComponent {
     } else {
       faceImageHtml = '<div style="width: 200px; height: 200px; background: #f0f0f0; display: flex; justify-content: center; align-items: center; color: #666; font-size: 14px; text-align: center;">No Selfie Image Available</div>';
     }
-  
+
     const htmlContent = `
       <style>
         @keyframes spin {

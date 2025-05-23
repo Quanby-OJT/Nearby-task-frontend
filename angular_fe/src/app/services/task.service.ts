@@ -19,14 +19,14 @@ export class TaskService {
   }
 
   getTasks(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/displayTask`, { 
+    return this.http.get<any>(`${this.apiUrl}/displayTask`, {
       headers: this.getHeaders(),
       withCredentials: true
     });
   }
 
   getTaskById(id: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/displayTask/${id}`, { 
+    return this.http.get<any>(`${this.apiUrl}/displayTask/${id}`, {
       headers: this.getHeaders(),
       withCredentials: true
     });
@@ -34,9 +34,9 @@ export class TaskService {
 
   disableTask(id: string): Observable<any> {
     const loggedInUserId = this.sessionStorage.getUserId();
-    return this.http.patch(`${this.apiUrl}/displayTask/${id}`, { loggedInUserId }, { 
+    return this.http.patch(`${this.apiUrl}/displayTask/${id}`, { loggedInUserId }, {
       headers: this.getHeaders(),
-      withCredentials: true 
+      withCredentials: true
     });
   }
 

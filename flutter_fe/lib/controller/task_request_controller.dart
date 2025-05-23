@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/model/disputes.dart';
 import 'package:flutter_fe/model/task_request.dart';
+import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/service/task_request_service.dart';
 
 class TaskRequestController {
   final TaskRequestService _requestService = TaskRequestService();
   final TextEditingController rejectionController = TextEditingController();
   final TextEditingController otherReasonController = TextEditingController();
+  final JobPostService jobPostService = JobPostService();
 
   Future<List<TaskRequest>> getTaskerRequests() async {
     try {
@@ -81,6 +84,30 @@ class TaskRequestController {
       debugPrint("Error in TaskRequestController.rejectTasker: $e");
       debugPrintStack(stackTrace: stackTrace);
       return "An Error Occured. Please Try Again.";
+    }
+  }
+
+  Future<Disputes> getDispute(int taskTakenId) async {
+    try {
+      if(taskTakenId == 0){
+        return Disputes(
+          disputeReason: "",
+          disputeDetails: "",
+          moderatorAction: "",
+          moderatorNotes: ""
+        );
+      }
+      final disputes = await jobPostService.getDispute(taskTakenId);
+      return Disputes.fromJson(disputes);
+    }catch(e, stackTrace){
+      debugPrint("Error in TaskRequestController.getDispute: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return Disputes(
+        disputeReason: "",
+        disputeDetails: "",
+        moderatorAction: "",
+        moderatorNotes: ""
+      );
     }
   }
 }

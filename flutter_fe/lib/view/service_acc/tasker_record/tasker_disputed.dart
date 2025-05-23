@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/task_request_controller.dart';
-import 'package:flutter_fe/model/disputes.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
@@ -11,21 +10,23 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:get_storage/get_storage.dart';
 
-class ClientDisputedSettled extends StatefulWidget {
+import '../../../model/disputes.dart';
+
+class TaskerDisputed extends StatefulWidget {
   final int? finishID;
   final String? role;
-  const ClientDisputedSettled({super.key, this.finishID, this.role});
+  const TaskerDisputed({super.key, this.finishID, this.role});
 
   @override
-  State<ClientDisputedSettled> createState() => _ClientDisputedSettledState();
+  State<TaskerDisputed> createState() => _TaskerDisputedState();
 }
 
-class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
+class _TaskerDisputedState extends State<TaskerDisputed> {
   final JobPostService _jobPostService = JobPostService();
   final TaskController taskController = TaskController();
+  final TaskRequestController taskRequestController = TaskRequestController();
   final ProfileController _profileController = ProfileController();
-  final TaskRequestController _taskRequestController = TaskRequestController();
-  Disputes? dispute;
+  Disputes? disputes;
   ClientRequestModel? _requestInformation;
   bool _isLoading = true;
   final storage = GetStorage();
@@ -96,9 +97,9 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
 
   Future<void> _fetchTaskDetails() async {
     try {
-      final response = await _taskRequestController.getDispute(widget.finishID ?? 0);
+      final response = await taskRequestController.getDispute(widget.finishID ?? 0);
       setState(() {
-        dispute = response;
+        disputes = response;
         _isLoading = false;
       });
     } catch (e) {
@@ -121,7 +122,7 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Settled Dispute Tasks',
+          'Task Disputed',
           style: GoogleFonts.montserrat(
             color: Color(0xFF03045E),
             fontSize: 20,
@@ -132,7 +133,7 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: Color(0xFF03045E)))
-          : dispute == null
+          : disputes == null
               ? Center(
                   child: Text(
                     'No task information available',
@@ -149,7 +150,7 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Completion Status Section
-                        _buildCompletionSection(),
+                        _buildDisputeSection(),
                         SizedBox(height: 16),
                         // Task Card
                         _buildTaskCard(),
@@ -166,39 +167,36 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
     );
   }
 
-  Widget _buildCompletionSection() {
+  Widget _buildDisputeSection() {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.green[50],
+        color: Colors.yellow[50],
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.green[100]!),
       ),
       child: Column(
         children: [
           Icon(
-            Icons.check_circle,
-            color: Colors.green[600],
+            FontAwesomeIcons.gavel,
+            color: Colors.yellow[600],
             size: 48,
           ),
           SizedBox(height: 12),
           Text(
-            'Disputed Task Settled.',
+            'Dispute Raised to this Task!',
             style: GoogleFonts.montserrat(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: Colors.green[800],
-            ),
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Colors.yellow[800]),
           ),
           SizedBox(height: 8),
           Text(
-            'Our Team had Successfully Settled this task. You can now rate the tasker.',
+            'Please Wait for Our Team to review your dispute and file Appropriate Action.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.montserrat(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
+            style:
+            GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
       ),
@@ -227,7 +225,7 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    dispute?.taskAssignment?.task?.title ?? 'Task',
+                    disputes?.taskAssignment?.task?.title ?? 'Task',
                     style: GoogleFonts.montserrat(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -237,60 +235,43 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
                 ),
               ],
             ),
-            _buildTaskInfoRow(
-              icon: Icons.info,
-              label: 'Dispute Reason',
-              value: dispute?.disputeReason ?? 'Not Available',
-            ),
-            SizedBox(height: 12),
-            _buildTaskInfoRow(
-              icon: Icons.info,
-              label: 'Dispute Details',
-              value: "",
-            ),
-            SizedBox(height: 12),
-            Text(
-              dispute?.disputeDetails ?? 'Not available',
-              style: GoogleFonts.montserrat(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF03045E),
-              )
-            ),
             SizedBox(height: 12),
             _buildTaskInfoRow(
               icon: Icons.info,
               label: 'Status',
-              value: _requestInformation?.task_status ?? 'Dispute has been Settled',
+              value: _requestInformation?.task_status ?? 'Disputed',
             ),
-            SizedBox(height: 12),
+            SizedBox(height: 8),
             _buildTaskInfoRow(
-              icon: Icons.info,
-              label: 'Moderator Action',
-              value: '',
+              icon: FontAwesomeIcons.gavel,
+              label: "Reason for Dispute",
+              value:  '',
             ),
             SizedBox(height: 8),
             Text(
-              dispute?.moderatorAction ?? 'Not available',
+              disputes?.disputeReason ?? 'Not available',
               style: GoogleFonts.montserrat(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: Color(0xFF03045E),
-              )
+              ),
+              textAlign: TextAlign.justify,
             ),
             SizedBox(height: 8),
             _buildTaskInfoRow(
-              icon: FontAwesomeIcons.noteSticky,
-              label: "Moderator Notes",
-              value: ""
+                icon: FontAwesomeIcons.noteSticky,
+                label: "Dispute Details",
+                value: ""
             ),
             SizedBox(height: 8),
             Text(
-              dispute?.moderatorNotes ?? 'Not available',
+              disputes?.disputeDetails ?? 'Not available',
               style: GoogleFonts.montserrat(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-              )
+                color: Color(0xFF03045E),
+              ),
+              textAlign: TextAlign.justify,
             )
           ],
         ),

@@ -11,6 +11,7 @@ import 'package:flutter_fe/view/business_acc/client_record/display_list_ongoing.
 import 'package:flutter_fe/view/business_acc/client_record/display_list_pending.dart';
 import 'package:flutter_fe/view/business_acc/client_record/display_list_review.dart';
 import 'package:flutter_fe/view/profile/payment_processing.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -117,7 +118,7 @@ class _RecordPageState extends State<RecordPage> {
                           : _escrowManagementController.tokenCredits.value ==
                                   0.0
                               ? Text(
-                                  "You haven't made a deposit. To Create tasks, you must deposit first.",
+                                  "₱ 0.00",
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 36,
@@ -375,7 +376,7 @@ class _RecordPageState extends State<RecordPage> {
                   _buildStatusCard(
                     title: 'Resolved Task Disputes',
                     color: Colors.teal.shade300,
-                    icon: Icons.check_circle,
+                    icon: FontAwesomeIcons.fileCircleCheck,
                     onTap: () {
                       Navigator.push(
                         context,

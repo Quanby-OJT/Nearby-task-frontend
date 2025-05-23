@@ -19,7 +19,7 @@ export class ReportService {
       'Authorization': `Bearer ${this.sessionStorage.getSessionToken()}`
     });
   }
-  
+
   getSpecialization(trendType: 'requested' | 'applied' = 'applied', month?: string): Observable<{
     success: boolean;
     rankedSpecializations: { specialization: string; total_requested: number; total_applied: number }[];

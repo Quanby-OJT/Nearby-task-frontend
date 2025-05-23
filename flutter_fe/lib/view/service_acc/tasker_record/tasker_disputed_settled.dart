@@ -11,16 +11,16 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:get_storage/get_storage.dart';
 
-class ClientDisputedSettled extends StatefulWidget {
+class TaskerDisputedSettled extends StatefulWidget {
   final int? finishID;
   final String? role;
-  const ClientDisputedSettled({super.key, this.finishID, this.role});
+  const TaskerDisputedSettled({super.key, this.finishID, this.role});
 
   @override
-  State<ClientDisputedSettled> createState() => _ClientDisputedSettledState();
+  State<TaskerDisputedSettled> createState() => _TaskerDisputedSettledState();
 }
 
-class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
+class _TaskerDisputedSettledState extends State<TaskerDisputedSettled> {
   final JobPostService _jobPostService = JobPostService();
   final TaskController taskController = TaskController();
   final ProfileController _profileController = ProfileController();
