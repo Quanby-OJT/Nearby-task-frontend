@@ -8,20 +8,19 @@ export class Menu {
       separator: false,
       items: [
         {
-          icon: 'assets/icons/heroicons/outline/view-grid.svg',
+          icon: 'assets/icons/heroicons/outline/dashboard.svg',
           label: 'Dashboard',
           route: '/dashboard',
           role: ['Admin', 'Moderator'],
         },
-
         {
-          icon: 'assets/icons/heroicons/outline/user-circle.svg',
+          icon: 'assets/icons/heroicons/outline/user-mangement.svg',
           label: 'User Management',
           route: '/user-management',
           role: ['Admin', 'Moderator'],
         },
         {
-          icon: 'assets/icons/heroicons/outline/users.svg',
+          icon: 'assets/icons/heroicons/outline/conversation.svg',
           label: 'User Communication',
           route: '/user-communication',
           role: ['Moderator', 'Admin'],
@@ -63,7 +62,7 @@ export class Menu {
           role: ['Moderator', 'Admin'],
         },
         {
-          icon: 'assets/icons/heroicons/outline/chart-pie.svg',
+          icon: 'assets/icons/heroicons/outline/graphs.svg',
           label: 'Reports & Analytics',
           route: '/reports',
           role: ['Admin'],

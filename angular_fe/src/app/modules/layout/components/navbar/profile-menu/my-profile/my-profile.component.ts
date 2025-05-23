@@ -324,13 +324,15 @@ export class MyProfileComponent implements OnInit, AfterViewInit {
       toast.error('User ID is missing. Cannot fetch addresses.');
       return;
     }
-
+  
     this.userAccountService.getAddresses(this.user.user_id).subscribe({
-      next: (response) => {
-        this.addresses = response.addresses || [];
-        // Use the first address if available
+      next: (response: { message: string; data: { address: Address[] } }) => {
+        console.log('Raw API Response:', response);
+        this.addresses = response.data?.address || []; // Access data.address instead of addresses
+        console.log('Assigned Addresses:', this.addresses);
         if (this.addresses.length > 0) {
           this.address = this.addresses[0];
+          console.log('Selected Address:', this.address);
           this.profileForm.patchValue({
             street: this.address.street || '',
             barangay: this.address.barangay || '',
@@ -342,8 +344,11 @@ export class MyProfileComponent implements OnInit, AfterViewInit {
             longitude: this.address.longitude || null,
             default: this.address.default || false
           });
+          console.log('Form Values After Patch:', this.profileForm.value);
+        } else {
+          console.log('No addresses found for user.');
         }
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (error) => {
         console.error('Error fetching addresses:', error);

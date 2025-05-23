@@ -1,12 +1,35 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { catchError, Observable, throwError } from 'rxjs';
+import { catchError, Observable, tap, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { SessionLocalStorage } from 'src/services/sessionStorage';
 
 interface DocumentResponse {
   url: string;
   filename: string;
+}
+
+interface Address {
+  id?: string;
+  user_id: number;
+  street: string;
+  barangay: string;
+  city: string;
+  province: string;
+  postal_code: string;
+  country: string;
+  latitude?: number;
+  longitude?: number;
+  default?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+interface AddressResponse {
+  message: string;
+  data: {
+    address: Address[];
+  };
 }
 
 @Injectable({
@@ -143,10 +166,16 @@ export class UserAccountService {
     });
   }
 
-  getAddresses(userId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/get-addresses/${userId}`, {
+  getAddresses(userId: number): Observable<AddressResponse> {
+    return this.http.get<AddressResponse>(`${this.apiUrl}/get-addresses/${userId}`, {
       headers: this.getHeaders(),
       withCredentials: true
-    });
+    }).pipe(
+      tap((response: any) => console.log('API Response for getAddresses:', response)),
+      catchError(error => {
+        console.error('Error in getAddresses:', error);
+        return throwError(error);
+      })
+    );
   }
 }
