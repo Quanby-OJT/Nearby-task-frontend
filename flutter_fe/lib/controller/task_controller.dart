@@ -177,7 +177,7 @@ class TaskController {
 
   Future<List<TaskModel>> getCreatedTasksByClient(int clientId) async {
     try {
-      return await _jobPostService.fetchCreatedTasksByClient(clientId);
+      return await _jobPostService.fetchAssignTasksByClient(clientId);
     } catch (e, stackTrace) {
       debugPrint("Error fetching created tasks: $e");
       debugPrintStack(stackTrace: stackTrace);

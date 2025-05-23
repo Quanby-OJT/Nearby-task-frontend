@@ -1,22 +1,20 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_fe/controller/escrow_management_controller.dart';
-import 'package:flutter_fe/controller/profile_controller.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
+import 'package:flutter_fe/controller/profile_controller.dart';
+import 'package:flutter_fe/controller/escrow_management_controller.dart';
+import 'package:flutter_fe/service/client_service.dart';
+import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_model.dart';
-import 'package:flutter_fe/service/client_service.dart';
-import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/business_acc/business_task_detail.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/add_task.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:get_storage/get_storage.dart';
-import 'package:google_fonts/google_fonts.dart';
-
-import '../../model/client_model.dart';
 
 class JobPostPage extends StatefulWidget {
   const JobPostPage({super.key});
@@ -35,45 +33,37 @@ class _JobPostPageState extends State<JobPostPage>
       EscrowManagementController();
   final GetStorage storage = GetStorage();
   final TextEditingController _searchController = TextEditingController();
-  ClientModel? clientModel;
-  String? _message;
-  final bool _isSuccess = false;
-  String? selectedTimePeriod;
-  String? selectedUrgency;
-  String? selectedSpecialization;
-  List<String> specialization = [];
+  final PageController _pageController = PageController();
+  TabController?
+      _tabController; // Changed to nullable to avoid late initialization issues
+
   List<TaskModel?> clientTasks = [];
   List<TaskModel?> _filteredTasks = [];
-  String? _existingProfileImageUrl;
-  String? _existingIDImageUrl;
-  AuthenticatedUser? _user;
+  String? _currentFilter = 'Pending';
   bool _isLoading = true;
   bool _showButton = false;
   bool _isUploadDialogShown = false;
   bool _documentValid = false;
-
-  final List<String> _tabStatuses = ["All", "Available", "More"];
-  late TabController _tabController;
-  String? _currentFilter;
+  String? _existingProfileImageUrl;
+  String? _existingIDImageUrl;
+  AuthenticatedUser? _user;
+  List<String> specialization = [];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-    _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) {
-        setState(() {
-          if (_tabController.index == 0) {
-            _currentFilter = null;
-          } else if (_tabController.index == 1) {
-            _currentFilter = "Available";
-          }
-          _filterTasks();
-        });
+    // Initialize TabController safely
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController?.addListener(() {
+      if (_tabController != null && !_tabController!.indexIsChanging) {
+        _pageController.animateToPage(
+          _tabController!.index,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
       }
     });
     fetchSpecialization();
-    _loadSkills();
     _fetchUserIDImage();
     fetchCreatedTasks();
     _searchController.addListener(_filterTasks);
@@ -81,7 +71,8 @@ class _JobPostPageState extends State<JobPostPage>
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _tabController?.dispose();
+    _pageController.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -93,53 +84,37 @@ class _JobPostPageState extends State<JobPostPage>
       setState(() {
         specialization =
             fetchedSpecializations.map((spec) => spec.specialization).toList();
-        debugPrint("Specializations: $specialization");
       });
-    } catch (error, stackTrace) {
+    } catch (error) {
       debugPrint('Error fetching specializations: $error');
-      debugPrintStack(stackTrace: stackTrace);
     }
   }
-
-  Future<void> _loadSkills() async {
-    try {
-      final String response =
-          await rootBundle.loadString('assets/tesda_skills.json');
-      final data = jsonDecode(response);
-      setState(() {
-        _skills = List<String>.from(data['tesda_skills']);
-      });
-    } catch (e, stackTrace) {
-      print('Error loading skills: $e');
-      debugPrintStack(stackTrace: stackTrace);
-    }
-  }
-
-  String? _selectedSkill;
-  List<String> _skills = [];
 
   Future<void> fetchCreatedTasks() async {
     setState(() {
       _isLoading = true;
     });
-
     try {
       final userId = storage.read('user_id');
       if (userId != null) {
         final tasks = await controller.getJobsforClient(context, userId);
-        debugPrint("Client Tasks this is: ${tasks.toString()}");
         setState(() {
-          clientTasks = tasks;
+          clientTasks = tasks ?? [];
           _filteredTasks = List.from(clientTasks);
+          _filterTasks();
         });
-        _filterTasks();
+      } else {
+        setState(() {
+          clientTasks = [];
+          _filteredTasks = [];
+        });
       }
     } catch (e) {
-      debugPrint("Error fetching created tasks: $e");
+      debugPrint("Error fetching tasks: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Failed to load tasks. Please try again."),
-          backgroundColor: Colors.red,
+          backgroundColor: Color(0xFFB71A4A),
           duration: Duration(seconds: 2),
           action: SnackBarAction(
             label: 'Retry',
@@ -155,38 +130,33 @@ class _JobPostPageState extends State<JobPostPage>
     }
   }
 
-  void _filterTasks() {
-    String query = _searchController.text.trim().toLowerCase();
-    setState(() {
-      _filteredTasks = clientTasks.where((task) {
-        if (task == null) return false;
-        bool matchesSearch =
-            (task.title.toLowerCase().contains(query) ?? false) ||
-                (task.description.toLowerCase().contains(query) ?? false);
-        bool matchesStatus = _currentFilter == null ||
-            task.getEffectiveStatus() == _currentFilter;
-        return matchesSearch && matchesStatus;
-      }).toList();
-    });
-  }
-
   Future<void> _fetchUserIDImage() async {
     try {
-      int userId = int.parse(storage.read('user_id').toString());
+      final userId = storage.read('user_id');
+      if (userId == null) {
+        setState(() {
+          _isLoading = false;
+        });
+        return;
+      }
+      int parsedUserId = int.parse(userId.toString());
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
-      final response = await _clientServices.fetchUserIDImage(userId);
-
-      if (response['success']) {
+          await _profileController.getAuthenticatedUser(context, parsedUserId);
+      final response = await _clientServices.fetchUserIDImage(parsedUserId);
+      if (response['success'] == true) {
         setState(() {
           _user = user;
           _existingProfileImageUrl = user?.user.image;
           _existingIDImageUrl = response['url'];
-          _documentValid = response['status'];
-          _isLoading = false;
+          _documentValid = response['status'] ?? false;
           _showButton = _existingProfileImageUrl != null &&
               _existingIDImageUrl != null &&
               _documentValid;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
         });
       }
     } catch (e) {
@@ -197,12 +167,25 @@ class _JobPostPageState extends State<JobPostPage>
     }
   }
 
+  void _filterTasks() {
+    String query = _searchController.text.trim().toLowerCase();
+    setState(() {
+      _filteredTasks = clientTasks.where((task) {
+        if (task == null) return false;
+        bool matchesSearch =
+            (task.title?.toLowerCase().contains(query) ?? false) ||
+                (task.description?.toLowerCase().contains(query) ?? false);
+        bool matchesStatus = _currentFilter == null ||
+            task.getEffectiveStatus() == _currentFilter;
+        return matchesSearch && matchesStatus;
+      }).toList();
+    });
+  }
+
   void _navigateToTaskDetail(TaskModel task) async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => BusinessTaskDetail(task: task),
-      ),
+      MaterialPageRoute(builder: (context) => BusinessTaskDetail(task: task)),
     );
     if (result == true) {
       await fetchCreatedTasks();
@@ -214,7 +197,6 @@ class _JobPostPageState extends State<JobPostPage>
     setState(() {
       _isUploadDialogShown = true;
     });
-
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -225,15 +207,12 @@ class _JobPostPageState extends State<JobPostPage>
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: Color(0xFFE23670),
+            color: Color(0xFFB71A4A),
           ),
         ),
         content: Text(
           'Please upload your profile and ID images to post tasks.',
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            color: Colors.grey[600],
-          ),
+          style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
         ),
         actions: [
           TextButton(
@@ -245,10 +224,8 @@ class _JobPostPageState extends State<JobPostPage>
             },
             child: Text(
               'Cancel',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: Colors.red[400],
-              ),
+              style:
+                  GoogleFonts.poppins(fontSize: 14, color: Color(0xFFB71A4A)),
             ),
           ),
           ElevatedButton(
@@ -271,15 +248,11 @@ class _JobPostPageState extends State<JobPostPage>
             style: ElevatedButton.styleFrom(
               backgroundColor: Color(0xFFE23670),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+                  borderRadius: BorderRadius.circular(8)),
             ),
             child: Text(
               'Verify Now',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: Colors.white,
-              ),
+              style: GoogleFonts.poppins(fontSize: 14, color: Colors.white),
             ),
           ),
         ],
@@ -292,10 +265,9 @@ class _JobPostPageState extends State<JobPostPage>
       context: context,
       isScrollControlled: true,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.4,
+        initialChildSize: 0.5,
         expand: false,
         builder: (context, scrollController) => SingleChildScrollView(
           controller: scrollController,
@@ -314,81 +286,42 @@ class _JobPostPageState extends State<JobPostPage>
                 ),
               ),
               SizedBox(height: 16),
-              Center(
-                child: Text(
-                  'Filter Tasks',
-                  style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFFB71A4A)),
+              Text(
+                'Filter Tasks',
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFFB71A4A),
                 ),
               ),
               SizedBox(height: 16),
-              RadioListTile<String>(
-                title:
-                    Text('Confirmed', style: GoogleFonts.poppins(fontSize: 14)),
-                value: 'Confirmed',
-                groupValue: _currentFilter,
-                onChanged: (value) {
-                  setState(() {
-                    _currentFilter = value;
-                    _filterTasks();
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              RadioListTile<String>(
-                title:
-                    Text('Ongoing', style: GoogleFonts.poppins(fontSize: 14)),
-                value: 'Ongoing',
-                groupValue: _currentFilter,
-                onChanged: (value) {
-                  setState(() {
-                    _currentFilter = value;
-                    _filterTasks();
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              RadioListTile<String>(
-                title:
-                    Text('Completed', style: GoogleFonts.poppins(fontSize: 14)),
-                value: 'Completed',
-                groupValue: _currentFilter,
-                onChanged: (value) {
-                  setState(() {
-                    _currentFilter = value;
-                    _filterTasks();
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              RadioListTile<String>(
-                title:
-                    Text('Disputed', style: GoogleFonts.poppins(fontSize: 14)),
-                value: 'Disputed',
-                groupValue: _currentFilter,
-                onChanged: (value) {
-                  setState(() {
-                    _currentFilter = value;
-                    _filterTasks();
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              RadioListTile<String>(
-                title:
-                    Text('Rejected', style: GoogleFonts.poppins(fontSize: 14)),
-                value: 'Rejected',
-                groupValue: _currentFilter,
-                onChanged: (value) {
-                  setState(() {
-                    _currentFilter = value;
-                    _filterTasks();
-                  });
-                  Navigator.pop(context);
-                },
-              ),
+              ...[
+                'Pending',
+                'Available',
+                'Confirmed',
+                'Ongoing',
+                'Review',
+                'Completed',
+                'Cancelled',
+                'Disputed',
+                'Rejected',
+                'Closed'
+              ]
+                  .map((status) => RadioListTile<String>(
+                        title: Text(status,
+                            style: GoogleFonts.poppins(fontSize: 14)),
+                        value: status,
+                        groupValue: _currentFilter,
+                        activeColor: Color(0xFFE23670),
+                        onChanged: (value) {
+                          setState(() {
+                            _currentFilter = value;
+                            _filterTasks();
+                          });
+                          Navigator.pop(context);
+                        },
+                      ))
+                  .toList(),
             ],
           ),
         ),
@@ -396,418 +329,208 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    int maxLines = 1,
-    TextInputType? keyboardType,
-    List<TextInputFormatter>? inputFormatters,
-    String? errorText,
-  }) {
-    return TextField(
-      controller: controller,
-      maxLines: maxLines,
-      keyboardType: keyboardType,
-      inputFormatters: inputFormatters,
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: GoogleFonts.poppins(
-          color: Color(0xFF0272B1),
-          fontSize: 14,
-        ),
-        hintText: hint,
-        hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[200]!),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Color(0xFFE23670), width: 2),
-        ),
-        errorText: errorText,
-        errorStyle: GoogleFonts.poppins(color: Colors.red[400]),
-      ),
-      style: GoogleFonts.poppins(fontSize: 14),
-    );
-  }
-
-  Widget _buildDropdownField({
-    String? value,
-    required List<String> items,
-    required String hint,
-    required Function(String?) onChanged,
-    String? errorText,
-  }) {
-    return DropdownButtonFormField<String>(
-      value: value,
-      decoration: InputDecoration(
-        labelText: hint,
-        labelStyle: GoogleFonts.poppins(
-          color: Color(0xFF0272B1),
-          fontSize: 14,
-        ),
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[200]!),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Color(0xFFE23670), width: 2),
-        ),
-        errorText: errorText,
-        errorStyle: GoogleFonts.poppins(color: Colors.red[400]),
-      ),
-      items: items.map((item) {
-        return DropdownMenuItem<String>(
-          value: item,
-          child: Text(
-            item,
+  Widget _buildTaskManagementView() {
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: TextField(
+            controller: _searchController,
+            cursorColor: Color(0xFFB71A4A),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
+              hintText: 'Search tasks...',
+              hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
+              prefixIcon: Icon(Icons.search, color: Color(0xFFB71A4A)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[200]!),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Color(0xFFE23670), width: 2),
+              ),
+            ),
             style: GoogleFonts.poppins(fontSize: 14),
           ),
-        );
-      }).toList(),
-      onChanged: onChanged,
-    );
-  }
-
-  Widget _buildDateField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    String? errorText,
-  }) {
-    return TextField(
-      controller: controller,
-      readOnly: true,
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: GoogleFonts.poppins(
-          color: Color(0xFF0272B1),
-          fontSize: 14,
         ),
-        hintText: hint,
-        hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[200]!),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Color(0xFFE23670), width: 2),
-        ),
-        suffixIcon: Icon(Icons.calendar_today, color: Color(0xFFE23670)),
-        errorText: errorText,
-        errorStyle: GoogleFonts.poppins(color: Colors.red[400]),
-      ),
-      style: GoogleFonts.poppins(fontSize: 14),
-      onTap: () async {
-        DateTime? pickedDate = await showDatePicker(
-          context: context,
-          initialDate: DateTime.now(),
-          firstDate: DateTime.now(),
-          lastDate: DateTime(2100),
-          builder: (context, child) {
-            return Theme(
-              data: ThemeData.light().copyWith(
-                colorScheme: ColorScheme.light(
-                  primary: Color(0xFFE23670),
-                  onPrimary: Colors.white,
-                  surface: Colors.white,
-                  onSurface: Colors.black,
-                ),
-                dialogBackgroundColor: Colors.white,
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${_filteredTasks.length} tasks',
+                style:
+                    GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600]),
               ),
-              child: child!,
-            );
-          },
-        );
-        if (pickedDate != null) {
-          String formattedDate =
-              "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
-          controller.text = formattedDate;
-        }
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text(
-          'Task',
-          style: GoogleFonts.poppins(
-            color: const Color(0xFFB71A4A),
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+              TextButton.icon(
+                onPressed: _showFilterModal,
+                icon: Icon(Icons.filter_list, color: Color(0xFFB71A4A)),
+                label: Text('Filter',
+                    style: GoogleFonts.poppins(color: Color(0xFFB71A4A))),
+              ),
+            ],
           ),
         ),
-        backgroundColor: Colors.grey[100],
-        elevation: 0,
-      ),
-      body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(),
-            )
-          : clientTasks.isEmpty
-              ? const Center(child: Text("No tasks available"))
-              : Column(
-                  children: [
-                    // Search
-                    Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      child: TextField(
-                        controller: _searchController,
-                        cursorColor: const Color(0xFFB71A4A),
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.white,
-                          hintText: 'Search tasks...',
-                          hintStyle:
-                              GoogleFonts.poppins(color: Colors.grey[400]),
-                          prefixIcon: const Icon(Icons.search,
-                              color: Color(0xFFB71A4A)),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide:
-                                const BorderSide(color: Color(0xFFB71A4A)),
+        Expanded(
+          child: _isLoading
+              ? Center(
+                  child: CircularProgressIndicator(color: Color(0xFFE23670)))
+              : _filteredTasks.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.task_alt,
+                              size: 64, color: Colors.grey[400]),
+                          SizedBox(height: 16),
+                          Text(
+                            'No tasks found',
+                            style: GoogleFonts.poppins(
+                                fontSize: 18, color: Colors.grey[600]),
                           ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Color(0xFFB71A4A)),
+                          Text(
+                            'Create a new task to get started!',
+                            style: GoogleFonts.poppins(
+                                fontSize: 14, color: Colors.grey[600]),
                           ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                                color: const Color(0xFFB71A4A), width: 2),
-                          ),
-                        ),
-                        style: GoogleFonts.poppins(fontSize: 14),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: fetchCreatedTasks,
+                      color: Color(0xFFE23670),
+                      child: ListView.builder(
+                        padding: EdgeInsets.all(16),
+                        itemCount: _filteredTasks.length,
+                        itemBuilder: (context, index) {
+                          final task = _filteredTasks[index];
+                          if (task == null) return SizedBox.shrink();
+                          return _buildTaskCard(task);
+                        },
                       ),
                     ),
-                    TabBar(
-                      controller: _tabController,
-                      isScrollable: false,
-                      padding: EdgeInsets.symmetric(horizontal: 20),
-                      indicatorColor: const Color(0xFFB71A4A),
-                      indicatorSize: TabBarIndicatorSize.tab,
-                      indicatorWeight: 3.0,
-                      labelColor: Colors.black,
-                      unselectedLabelColor: Colors.black,
-                      labelStyle: TextStyle(fontWeight: FontWeight.bold),
-                      unselectedLabelStyle:
-                          TextStyle(fontWeight: FontWeight.normal),
-                      onTap: (index) {
-                        if (index == 2) {
-                          _showFilterModal();
-                        } else {
-                          setState(() {
-                            if (index == 0) {
-                              _currentFilter = null;
-                            } else if (index == 1) {
-                              _currentFilter = "Available";
-                            }
-                            _filterTasks();
-                          });
-                        }
-                      },
-                      tabs: _tabStatuses.map((status) {
-                        return Tab(
-                          child: SizedBox(
-                            width: 90,
-                            child: Center(
-                              child: status == "More"
-                                  ? Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          status,
-                                          style: TextStyle(fontSize: 12),
-                                          softWrap: false,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        SizedBox(width: 4),
-                                        Icon(
-                                          Icons.arrow_drop_down,
-                                          size: 16,
-                                          color: Colors.black,
-                                        ),
-                                      ],
-                                    )
-                                  : Text(
-                                      status,
-                                      style: TextStyle(fontSize: 12),
-                                      softWrap: false,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          '${_filteredTasks.length} ${_currentFilter == null ? "" : "$_currentFilter"} tasks',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: _isLoading
-                          ? Center(
-                              child: CircularProgressIndicator(
-                                  color: Color(0xFFE23670)))
-                          : _filteredTasks.isEmpty
-                              ? Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.task_alt,
-                                        size: 64,
-                                        color: Colors.grey[400],
-                                      ),
-                                      SizedBox(height: 16),
-                                      Text(
-                                        'No tasks found',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 18,
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                      SizedBox(height: 8),
-                                      Text(
-                                        'Create a new task to get started!',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 14,
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              : RefreshIndicator(
-                                  onRefresh: fetchCreatedTasks,
-                                  color: Color(0xFFE23670),
-                                  child: ListView.builder(
-                                    padding: EdgeInsets.all(16),
-                                    itemCount: _filteredTasks.length,
-                                    itemBuilder: (context, index) {
-                                      final task = _filteredTasks[index];
-                                      if (task == null) {
-                                        return SizedBox.shrink();
-                                      }
-                                      return _buildTaskCard(task);
-                                    },
-                                  ),
-                                ),
-                    ),
-                  ],
-                ),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          SizedBox(height: 16),
-          FloatingActionButton(
-            heroTag: "addTaskBtn",
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AddTask(),
-              ),
-            ).then((value) => fetchCreatedTasks()),
-            backgroundColor: const Color(0xFFB71A4A),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(Icons.add, color: Colors.white),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildTaskStatusColor(TaskModel task) {
-    final status = task.getEffectiveStatus();
-    return Row(
+  Widget _buildTaskStatusView() {
+    return Column(
       children: [
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            color: status == 'Pending'
-                ? Colors.grey[500]
-                : status == 'Completed'
-                    ? Colors.green
-                    : status == 'Confirmed'
-                        ? Colors.green
-                        : status == 'Dispute Settled'
-                            ? Colors.green
-                            : status == 'Ongoing'
-                                ? Colors.blue
-                                : status == 'Interested'
-                                    ? Colors.blue
-                                    : status == 'Review'
-                                        ? Colors.yellow
-                                        : status == 'Disputed'
-                                            ? Colors.orange
-                                            : status == 'Rejected'
-                                                ? Colors.red
-                                                : status == 'Declined'
-                                                    ? Colors.red
-                                                    : status == 'Cancelled'
-                                                        ? Colors.red
-                                                        : status == 'Available'
-                                                            ? Colors.green
-                                                            : status ==
-                                                                    'Already Taken'
-                                                                ? Colors.blue
-                                                                : Colors.red,
-          ),
-          child: Text(
-            status,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: TextField(
+            controller: _searchController,
+            cursorColor: Color(0xFFB71A4A),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
+              hintText: 'Search tasks by status...',
+              hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
+              prefixIcon: Icon(Icons.search, color: Color(0xFFB71A4A)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[200]!),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Color(0xFFE23670), width: 2),
+              ),
             ),
+            style: GoogleFonts.poppins(fontSize: 14),
           ),
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${_filteredTasks.length} ${_currentFilter ?? "All"} tasks',
+                style:
+                    GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600]),
+              ),
+              TextButton.icon(
+                onPressed: _showFilterModal,
+                icon: Icon(Icons.filter_list, color: Color(0xFFB71A4A)),
+                label: Text('Filter',
+                    style: GoogleFonts.poppins(color: Color(0xFFB71A4A))),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: _isLoading
+              ? Center(
+                  child: CircularProgressIndicator(color: Color(0xFFE23670)))
+              : _filteredTasks.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.task_alt,
+                              size: 64, color: Colors.grey[400]),
+                          SizedBox(height: 16),
+                          Text(
+                            'No tasks found',
+                            style: GoogleFonts.poppins(
+                                fontSize: 18, color: Colors.grey[600]),
+                          ),
+                          Text(
+                            'Check task status here',
+                            style: GoogleFonts.poppins(
+                                fontSize: 14, color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: fetchCreatedTasks,
+                      color: Color(0xFFE23670),
+                      child: ListView.builder(
+                        padding: EdgeInsets.all(16),
+                        itemCount: _filteredTasks.length,
+                        itemBuilder: (context, index) {
+                          final task = _filteredTasks[index];
+                          if (task == null) return SizedBox.shrink();
+                          return _buildTaskCard(task);
+                        },
+                      ),
+                    ),
         ),
       ],
     );
   }
 
   Widget _buildTaskCard(TaskModel task) {
-    String priceDisplay = "${task.contactPrice} Credits";
+    String priceDisplay = "${task.contactPrice ?? 0} Credits";
+    final status = task.getEffectiveStatus() ?? 'Unknown';
+    final statusColor = status == 'Pending'
+        ? Colors.grey[500]
+        : status == 'Completed' ||
+                status == 'Confirmed' ||
+                status == 'Dispute Settled'
+            ? Colors.green
+            : status == 'Ongoing' ||
+                    status == 'Interested' ||
+                    status == 'Already Taken'
+                ? Colors.blue
+                : status == 'Review'
+                    ? Colors.yellow
+                    : status == 'Disputed'
+                        ? Colors.orange
+                        : Colors.red;
 
     return Card(
       elevation: 3,
@@ -822,42 +545,145 @@ class _JobPostPageState extends State<JobPostPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildTaskStatusColor(task),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: statusColor,
+                ),
+                child: Text(
+                  status,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                task.title ?? 'Untitled Task',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFFE23670),
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+              SizedBox(height: 8),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  FaIcon(FontAwesomeIcons.locationPin,
+                      size: 16, color: Colors.red[400]),
+                  SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      task.title ?? 'Untitled Task',
+                      '${task.address?.city ?? 'N/A'}, ${task.address?.province ?? 'N/A'}',
                       style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFFE23670),
-                      ),
+                          fontSize: 14, color: Colors.grey[800]),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
               SizedBox(height: 8),
-              _buildTaskInfoRow(
-                icon: FontAwesomeIcons.locationPin,
-                color: Colors.red[400]!,
-                text:
-                    '${task.address?.city ?? 'N/A'}, ${task.address?.province ?? 'N/A'}',
+              Row(
+                children: [
+                  FaIcon(FontAwesomeIcons.coins,
+                      size: 16, color: Colors.green[400]),
+                  SizedBox(width: 8),
+                  Text(
+                    priceDisplay,
+                    style: GoogleFonts.poppins(
+                        fontSize: 14, color: Colors.grey[800]),
+                  ),
+                ],
               ),
               SizedBox(height: 8),
-              _buildTaskInfoRow(
-                icon: FontAwesomeIcons.coins,
-                color: Colors.green[400]!,
-                text: priceDisplay,
+              Row(
+                children: [
+                  FaIcon(FontAwesomeIcons.screwdriverWrench,
+                      size: 16, color: Color(0xFFE23670)),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      task.specialization ?? 'N/A',
+                      style: GoogleFonts.poppins(
+                          fontSize: 14, color: Colors.grey[800]),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(height: 8),
-              _buildTaskInfoRow(
-                icon: FontAwesomeIcons.screwdriverWrench,
-                color: Color(0xFFE23670),
-                text: task.specialization ?? 'N/A',
-              ),
+              if (_tabController != null && _tabController!.index == 0) ...[
+                SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.edit, color: Color(0xFFE23670)),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => AddTask()),
+                        ).then((value) => fetchCreatedTasks());
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.delete, color: Color(0xFFB71A4A)),
+                      onPressed: () async {
+                        final confirm = await showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16)),
+                            title: Text(
+                              'Delete Task',
+                              style: GoogleFonts.poppins(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFFB71A4A)),
+                            ),
+                            content: Text(
+                              'Are you sure you want to delete this task?',
+                              style: GoogleFonts.poppins(
+                                  fontSize: 14, color: Colors.grey[600]),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: Text(
+                                  'Cancel',
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 14, color: Color(0xFFB71A4A)),
+                                ),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Color(0xFFE23670),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8)),
+                                ),
+                                child: Text(
+                                  'Delete',
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 14, color: Colors.white),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirm == true) {
+                          // Implement task deletion logic here
+                          await controller.deleteTask(task.id);
+                          fetchCreatedTasks();
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
@@ -865,30 +691,65 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
-  Widget _buildTaskInfoRow({
-    required IconData icon,
-    required Color color,
-    required String text,
-  }) {
-    return Row(
-      children: [
-        FaIcon(
-          icon,
-          size: 16,
-          color: color,
-        ),
-        SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: Colors.grey[800],
-            ),
-            overflow: TextOverflow.ellipsis,
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        title: Text(
+          'Tasks',
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFFB71A4A),
           ),
         ),
-      ],
+        centerTitle: true,
+        backgroundColor: Colors.grey[100],
+        elevation: 0,
+        bottom: _tabController == null
+            ? null
+            : TabBar(
+                controller: _tabController,
+                indicatorColor: Color(0xFFE23670),
+                indicatorWeight: 3,
+                labelColor: Color(0xFFB71A4A),
+                unselectedLabelColor: Colors.grey[600],
+                labelStyle: GoogleFonts.poppins(
+                    fontSize: 14, fontWeight: FontWeight.w600),
+                unselectedLabelStyle: GoogleFonts.poppins(fontSize: 14),
+                tabs: [
+                  Tab(text: 'Manage Tasks'),
+                  Tab(text: 'Task Status'),
+                ],
+              ),
+      ),
+      body: _tabController == null
+          ? Center(child: CircularProgressIndicator(color: Color(0xFFE23670)))
+          : PageView(
+              controller: _pageController,
+              onPageChanged: (index) {
+                _tabController?.animateTo(index);
+              },
+              children: [
+                _buildTaskManagementView(),
+                _buildTaskStatusView(),
+              ],
+            ),
+      floatingActionButton: _tabController != null && _tabController!.index == 0
+          ? FloatingActionButton(
+              onPressed: _showButton
+                  ? () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => AddTask()),
+                      ).then((value) => fetchCreatedTasks())
+                  : _showWarningDialog,
+              backgroundColor: Color(0xFFE23670),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              child: Icon(Icons.add, color: Colors.white),
+            )
+          : null,
     );
   }
 }
