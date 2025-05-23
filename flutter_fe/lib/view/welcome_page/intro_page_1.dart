@@ -20,7 +20,7 @@ class IntroPage1 extends StatelessWidget {
               children: [
                 Text(
                   textAlign: TextAlign.center,
-                  'Welcome to NearbyTask',
+                  'Welcome to QTask',
                   style: GoogleFonts.poppins(
                     color: const Color(0xFFB71A4A),
                     fontSize: 20,
@@ -30,7 +30,7 @@ class IntroPage1 extends StatelessWidget {
                 SizedBox(height: 10),
                 Text(
                   textAlign: TextAlign.center,
-                  'Find Tasks Near You with NearbyTask!',
+                  'Find Tasks Near You with QTask!',
                   style: GoogleFonts.poppins(
                       color: Colors.black, fontWeight: FontWeight.w300),
                 ),

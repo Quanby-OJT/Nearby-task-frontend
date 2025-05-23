@@ -115,9 +115,9 @@
           <td class="px-4 py-3 text-start">{{ log.user_name }}</td>
           <td class="px-4 py-3 text-start">{{ log.amount }}</td>
           <td class="px-4 py-3 text-start">{{ log.payment_type }}</td>
-          <td class="px-4 py-3 text-start">{{ log.deposit_date }}</td>
+          <td class="px-4 py-3 text-start">{{ log.transaction_date }}</td>
         </tr>
-        <!-- Placeholder rows to ensure total rows match logsPerPage -->
+
         <tr *ngFor="let placeholder of placeholderRows">
           <td class="px-4 py-3 text-center"></td>
           <td class="px-4 py-3 text-center"></td>

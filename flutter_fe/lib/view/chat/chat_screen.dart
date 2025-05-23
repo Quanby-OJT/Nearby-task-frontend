@@ -788,7 +788,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         color: Color(0xFFB71A4A),
                         child: SingleChildScrollView(
                           physics: AlwaysScrollableScrollPhysics(),
-                          child: Container(
+                          child: SizedBox(
                             height: MediaQuery.of(context).size.height - 200,
                             child: Center(
                               child: Column(
@@ -945,8 +945,8 @@ class _ChatScreenState extends State<ChatScreen> {
                           : null,
                       child: user?.imageName == null
                           ? Text(
-                              user?.firstName?.isNotEmpty == true
-                                  ? user!.firstName![0]
+                              user?.firstName.isNotEmpty == true
+                                  ? user!.firstName[0]
                                   : 'U',
                               style: GoogleFonts.poppins(
                                 color: Colors.white,

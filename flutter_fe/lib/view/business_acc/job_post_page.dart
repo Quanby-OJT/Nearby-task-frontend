@@ -37,18 +37,13 @@ class _JobPostPageState extends State<JobPostPage>
   final TextEditingController _searchController = TextEditingController();
   ClientModel? clientModel;
   String? _message;
-  bool _isSuccess = false;
+  final bool _isSuccess = false;
   String? selectedTimePeriod;
   String? selectedUrgency;
   String? selectedSpecialization;
-  String selectedWorkType = "Solo";
-  List<String> items = ['Day/s', 'Week/s', 'Month/s', 'Year/s'];
-  List<String> urgency = ['Non-Urgent', 'Urgent'];
-  List<String> workTypes = ['Solo', 'Group'];
   List<String> specialization = [];
   List<TaskModel?> clientTasks = [];
   List<TaskModel?> _filteredTasks = [];
-  final Map<String, String> _errors = {};
   String? _existingProfileImageUrl;
   String? _existingIDImageUrl;
   AuthenticatedUser? _user;
@@ -168,159 +163,11 @@ class _JobPostPageState extends State<JobPostPage>
         bool matchesSearch =
             (task.title.toLowerCase().contains(query) ?? false) ||
                 (task.description.toLowerCase().contains(query) ?? false);
-        bool matchesStatus =
-            _currentFilter == null || task.status == _currentFilter;
+        bool matchesStatus = _currentFilter == null ||
+            task.getEffectiveStatus() == _currentFilter;
         return matchesSearch && matchesStatus;
       }).toList();
     });
-  }
-
-  void _validateAndSubmit() {
-    setState(() {
-      _errors.clear();
-
-      if (controller.jobTitleController.text.trim().isEmpty) {
-        _errors['task_title'] = 'Please Indicate Your Needed Task';
-      }
-      if (selectedSpecialization == null) {
-        _errors['specialization'] = "Please Indicate the Needed Specialization";
-      }
-      if (controller.jobDescriptionController.text.trim().isEmpty) {
-        _errors['task_description'] = 'Please Elaborate Your Task.';
-      }
-      String contractPrice = controller.contactPriceController.text.trim();
-      if (contractPrice.isEmpty) {
-        _errors['contact_price'] = 'Indicate the Contract Price';
-      } else if (double.tryParse(contractPrice) == null ||
-          double.parse(contractPrice) <= 0) {
-        _errors['contact_price'] =
-            'Contract Price must be a valid positive number';
-      }
-      if (controller.jobLocationController.text.trim().isEmpty) {
-        _errors['location'] =
-            'Indicate Your Location where the Task will be held.';
-      }
-      // String jobTime = controller.jobTimeController.text.trim();
-      // if (jobTime.isEmpty) {
-      //   _errors['num_of_days'] = 'Indicate the Time Needed to Finish the Task';
-      // } else if (int.tryParse(jobTime) == null || int.parse(jobTime) <= 0) {
-      //   _errors['num_of_days'] = 'Time Needed must be a valid positive number';
-      // }
-      // String startDate = controller.jobTaskBeginDateController.text.trim();
-      // if (startDate.isEmpty) {
-      //   _errors['task_begin_date'] = 'Indicate When to Start Your Task';
-      // } else {
-      //   try {
-      //     DateTime taskBeginDate = DateTime.parse(startDate);
-      //     if (taskBeginDate.isBefore(DateTime.now())) {
-      //       _errors['task_begin_date'] =
-      //           'Task start date must be in the future';
-      //     }
-      //   } catch (e) {
-      //     _errors['task_begin_date'] = 'Invalid date format';
-      //   }
-      // }
-      if (selectedUrgency == null) {
-        _errors['urgency'] =
-            'Please Indicate if Your Task Needs to be finished ASAP.';
-      }
-      if (selectedTimePeriod == null) {
-        _errors['time_period'] = "Please Indicate the Time Period.";
-      }
-
-      if (_errors.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Please fix the errors before submitting'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      } else {
-        _submitJob();
-      }
-    });
-  }
-
-  Future<void> _submitJob() async {
-    setState(() {
-      _message = "";
-      _errors.clear();
-      _isSuccess = false;
-    });
-
-    try {
-      final result = await controller.postJob(
-        selectedSpecialization ?? "",
-        selectedUrgency ?? "",
-        selectedTimePeriod ?? "",
-        selectedWorkType,
-      );
-
-      if (result['success']) {
-        Navigator.pop(context);
-        setState(() {
-          _message = result['message'] ?? "Successfully Posted Task.";
-          _isSuccess = true;
-        });
-
-        await fetchCreatedTasks();
-
-        controller.jobTitleController.clear();
-        controller.jobDescriptionController.clear();
-        controller.jobLocationController.clear();
-        // controller.jobTimeController.clear();
-        controller.contactPriceController.clear();
-        controller.jobRemarksController.clear();
-        // controller.jobTaskBeginDateController.clear();
-
-        setState(() {
-          selectedSpecialization = null;
-          selectedUrgency = null;
-          selectedTimePeriod = null;
-          selectedWorkType = "Solo";
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_message!),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 3),
-          ),
-        );
-      } else {
-        Navigator.pop(context);
-        setState(() {
-          if (result.containsKey('errors') && result['errors'] is List) {
-            for (var error in result['errors']) {
-              if (error is Map<String, dynamic> &&
-                  error.containsKey('path') &&
-                  error.containsKey('msg')) {
-                _errors[error['path']] = error['msg'];
-              }
-            }
-          }
-          _message = result['error'] ?? 'Failed to post task';
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_message!),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
-          ),
-        );
-      }
-    } catch (error) {
-      debugPrint("Error submitting job: $error");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('An error occurred. Please try again.'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
-        ),
-      );
-    }
   }
 
   Future<void> _fetchUserIDImage() async {
@@ -354,7 +201,7 @@ class _JobPostPageState extends State<JobPostPage>
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => BusinessTaskDetail(task: task, taskID: task.id),
+        builder: (context) => BusinessTaskDetail(task: task),
       ),
     );
     if (result == true) {
@@ -440,210 +287,6 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
-  void _showCreateTaskModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.9,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, scrollController) => SingleChildScrollView(
-          controller: scrollController,
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-            left: 16,
-            right: 16,
-            top: 16,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2.5),
-                  ),
-                ),
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Create a New Task',
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFFE23670),
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                '* Required fields',
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
-              ),
-              SizedBox(height: 16),
-              _buildTextField(
-                controller: controller.jobTitleController,
-                label: 'Task Title *',
-                hint: 'Enter task title',
-                errorText: _errors['task_title'],
-              ),
-              SizedBox(height: 16),
-              _buildDropdownField(
-                value: selectedSpecialization,
-                items: specialization,
-                hint: 'Select Specialization *',
-                onChanged: (value) =>
-                    setState(() => selectedSpecialization = value),
-                errorText: _errors['specialization'],
-              ),
-              SizedBox(height: 16),
-              _buildTextField(
-                controller: controller.jobDescriptionController,
-                label: 'Task Description *',
-                hint: 'Describe your task...',
-                maxLines: 4,
-                errorText: _errors['task_description'],
-              ),
-              SizedBox(height: 16),
-              _buildTextField(
-                controller: controller.contactPriceController,
-                label: 'Contract Price *',
-                hint: 'Enter price',
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                errorText: _errors['contact_price'],
-              ),
-              SizedBox(height: 16),
-              _buildTextField(
-                controller: controller.jobLocationController,
-                label: 'Location *',
-                hint: 'Enter location',
-                errorText: _errors['location'],
-              ),
-              SizedBox(height: 16),
-              _buildDropdownField(
-                value: selectedTimePeriod,
-                items: items,
-                hint: 'Time Period *',
-                onChanged: (value) =>
-                    setState(() => selectedTimePeriod = value),
-                errorText: _errors['time_period'],
-              ),
-              // SizedBox(height: 16),
-              // _buildTextField(
-              //   controller: controller.jobTimeController,
-              //   label: 'Duration *',
-              //   hint: 'Enter duration (e.g., 5)',
-              //   keyboardType: TextInputType.number,
-              //   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              //   errorText: _errors['num_of_days'],
-              // ),
-              // SizedBox(height: 16),
-              // _buildDateField(
-              //   controller: controller.jobTaskBeginDateController,
-              //   label: 'Start Date *',
-              //   hint: 'Select a date',
-              //   errorText: _errors['task_begin_date'],
-              // ),
-              SizedBox(height: 16),
-              _buildDropdownField(
-                value: selectedUrgency,
-                items: urgency,
-                hint: 'Urgency *',
-                onChanged: (value) => setState(() => selectedUrgency = value),
-                errorText: _errors['urgency'],
-              ),
-              SizedBox(height: 16),
-              _buildDropdownField(
-                value: selectedWorkType,
-                items: workTypes,
-                hint: 'Work Type *',
-                onChanged: (value) => setState(() => selectedWorkType = value!),
-                errorText: _errors['work_type'],
-              ),
-              SizedBox(height: 16),
-              _buildTextField(
-                controller: controller.jobRemarksController,
-                label: 'Remarks',
-                hint: 'Additional notes...',
-                maxLines: 3,
-              ),
-              SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        setState(() {
-                          _message = "";
-                          _errors.clear();
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey[200],
-                        foregroundColor: Colors.grey[800],
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: Text(
-                        'Cancel',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (!_showButton) {
-                          _showWarningDialog();
-                          return;
-                        }
-                        _validateAndSubmit();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFFE23670),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: Text(
-                        'Post Task',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   void _showFilterModal() {
     showModalBottomSheet(
       context: context,
@@ -652,7 +295,7 @@ class _JobPostPageState extends State<JobPostPage>
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.3,
+        initialChildSize: 0.4,
         expand: false,
         builder: (context, scrollController) => SingleChildScrollView(
           controller: scrollController,
@@ -682,21 +325,9 @@ class _JobPostPageState extends State<JobPostPage>
               ),
               SizedBox(height: 16),
               RadioListTile<String>(
-                title: Text('Task Taken',
-                    style: GoogleFonts.poppins(fontSize: 14)),
-                value: 'Task Taken',
-                groupValue: _currentFilter,
-                onChanged: (value) {
-                  setState(() {
-                    _currentFilter = value;
-                    _filterTasks();
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              RadioListTile<String>(
-                title: Text('Closed', style: GoogleFonts.poppins(fontSize: 14)),
-                value: 'Closed',
+                title:
+                    Text('Confirmed', style: GoogleFonts.poppins(fontSize: 14)),
+                value: 'Confirmed',
                 groupValue: _currentFilter,
                 onChanged: (value) {
                   setState(() {
@@ -708,8 +339,8 @@ class _JobPostPageState extends State<JobPostPage>
               ),
               RadioListTile<String>(
                 title:
-                    Text('On Hold', style: GoogleFonts.poppins(fontSize: 14)),
-                value: 'On Hold',
+                    Text('Ongoing', style: GoogleFonts.poppins(fontSize: 14)),
+                value: 'Ongoing',
                 groupValue: _currentFilter,
                 onChanged: (value) {
                   setState(() {
@@ -721,8 +352,34 @@ class _JobPostPageState extends State<JobPostPage>
               ),
               RadioListTile<String>(
                 title:
-                    Text('Reported', style: GoogleFonts.poppins(fontSize: 14)),
-                value: 'Reported',
+                    Text('Completed', style: GoogleFonts.poppins(fontSize: 14)),
+                value: 'Completed',
+                groupValue: _currentFilter,
+                onChanged: (value) {
+                  setState(() {
+                    _currentFilter = value;
+                    _filterTasks();
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              RadioListTile<String>(
+                title:
+                    Text('Disputed', style: GoogleFonts.poppins(fontSize: 14)),
+                value: 'Disputed',
+                groupValue: _currentFilter,
+                onChanged: (value) {
+                  setState(() {
+                    _currentFilter = value;
+                    _filterTasks();
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              RadioListTile<String>(
+                title:
+                    Text('Rejected', style: GoogleFonts.poppins(fontSize: 14)),
+                value: 'Rejected',
                 groupValue: _currentFilter,
                 onChanged: (value) {
                   setState(() {
@@ -970,7 +627,9 @@ class _JobPostPageState extends State<JobPostPage>
                           setState(() {
                             if (index == 0) {
                               _currentFilter = null;
-                            } else if (index == 1) _currentFilter = "Available";
+                            } else if (index == 1) {
+                              _currentFilter = "Available";
+                            }
                             _filterTasks();
                           });
                         }
@@ -1009,7 +668,6 @@ class _JobPostPageState extends State<JobPostPage>
                         );
                       }).toList(),
                     ),
-
                     Padding(
                       padding:
                           EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1099,41 +757,44 @@ class _JobPostPageState extends State<JobPostPage>
   }
 
   Widget _buildTaskStatusColor(TaskModel task) {
+    final status = task.getEffectiveStatus();
     return Row(
       children: [
         Container(
           padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            color: task.status == 'Pending'
+            color: status == 'Pending'
                 ? Colors.grey[500]
-                : task.status == 'Completed'
+                : status == 'Completed'
                     ? Colors.green
-                    : task.status == 'Confirmed'
+                    : status == 'Confirmed'
                         ? Colors.green
-                        : task.status == 'Dispute Settled'
+                        : status == 'Dispute Settled'
                             ? Colors.green
-                            : task.status == 'Ongoing'
+                            : status == 'Ongoing'
                                 ? Colors.blue
-                                : task.status == 'Interested'
+                                : status == 'Interested'
                                     ? Colors.blue
-                                    : task.status == 'Review'
+                                    : status == 'Review'
                                         ? Colors.yellow
-                                        : task.status == 'Disputed'
+                                        : status == 'Disputed'
                                             ? Colors.orange
-                                            : task.status == 'Rejected'
+                                            : status == 'Rejected'
                                                 ? Colors.red
-                                                : task.status == 'Declined'
+                                                : status == 'Declined'
                                                     ? Colors.red
-                                                    : task.status == 'Cancelled'
+                                                    : status == 'Cancelled'
                                                         ? Colors.red
-                                                        : task.status ==
-                                                                'Available'
+                                                        : status == 'Available'
                                                             ? Colors.green
-                                                            : Colors.red,
+                                                            : status ==
+                                                                    'Already Taken'
+                                                                ? Colors.blue
+                                                                : Colors.red,
           ),
           child: Text(
-            task.status,
+            status,
             style: GoogleFonts.poppins(
               fontSize: 12,
               fontWeight: FontWeight.w600,

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
+import 'package:flutter_fe/view/task/task_cancelled.dart';
 import 'package:flutter_fe/view/task/task_confirmed.dart';
+import 'package:flutter_fe/view/task/task_rejected.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
@@ -10,6 +13,7 @@ import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:intl/intl.dart';
 
 class TaskPending extends StatefulWidget {
   final TaskFetch? taskInformation;
@@ -30,6 +34,14 @@ class _TaskPendingState extends State<TaskPending> {
   AuthenticatedUser? tasker;
   String? _role;
   String? _userRole;
+  String? selectedReason = 'Incomplete task details';
+  final List<String> rejectionReasons = [
+    'Incomplete task details',
+    'Insufficient time',
+    'Lack of resources',
+    'Task not relevant',
+    'Other'
+  ];
 
   final String _needToConfirm =
       'The task is pending confirmation. Waiting for your confirmation.';
@@ -156,13 +168,196 @@ class _TaskPendingState extends State<TaskPending> {
             ),
           ),
         ),
-        content: Text(
-          'Are you sure you want to reject this task? This action cannot be undone.',
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w300,
-            color: Colors.grey[800],
-          ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to reject this task? This action cannot be undone.',
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w300,
+                color: Colors.grey[800],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Reason for rejection:',
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[800],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[400]!),
+                borderRadius: BorderRadius.circular(5),
+              ),
+              child: DropdownButton<String>(
+                value: selectedReason,
+                isExpanded: true,
+                underline: SizedBox(),
+                items: rejectionReasons.map((String reason) {
+                  return DropdownMenuItem<String>(
+                    value: reason,
+                    child: Text(
+                      reason,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black,
+                      ),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  if (newValue != null) {
+                    Navigator.of(context).pop();
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        title: Center(
+                          child: Text(
+                            'Reject Task',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Are you sure you want to reject this task? This action cannot be undone.',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w300,
+                                color: Colors.grey[800],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Reason for rejection:',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[800],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey[400]!),
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              child: DropdownButton<String>(
+                                value: newValue,
+                                isExpanded: true,
+                                underline: SizedBox(),
+                                items: rejectionReasons.map((String reason) {
+                                  return DropdownMenuItem<String>(
+                                    value: reason,
+                                    child: Text(
+                                      reason,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w400,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                                onChanged: (String? newValue) {},
+                              ),
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              TextButton(
+                                child: Text(
+                                  'Cancel',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: Color(0xFFB71A4A),
+                                  ),
+                                ),
+                                onPressed: () => Navigator.pop(context, false),
+                              ),
+                              const SizedBox(width: 10),
+                              Container(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(5),
+                                  color: Color(0xFFB71A4A),
+                                ),
+                                child: TextButton(
+                                  child: Text(
+                                    'Confirm',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  onPressed: () async {
+                                    setState(() {
+                                      _isLoading = true;
+                                    });
+
+                                    final String value = 'Reject';
+                                    bool result =
+                                        await taskController.acceptRequest(
+                                      _requestInformation?.task_taken_id ?? 0,
+                                      value,
+                                      _role ?? 'Unknown',
+                                      rejectionReason: newValue,
+                                    );
+                                    if (result) {
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => TaskRejected(
+                                            taskInformation:
+                                                widget.taskInformation,
+                                          ),
+                                        ),
+                                      );
+                                    } else {
+                                      Navigator.pop(context, false);
+                                      setState(() {
+                                        _isLoading = false;
+                                      });
+                                    }
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                },
+              ),
+            ),
+          ],
         ),
         actions: [
           Row(
@@ -206,16 +401,18 @@ class _TaskPendingState extends State<TaskPending> {
                       _requestInformation?.task_taken_id ?? 0,
                       value,
                       _role ?? 'Unknown',
+                      rejectionReason: selectedReason,
                     );
                     if (result) {
-                      Navigator.pop(context, true);
-                      setState(() {
-                        _isLoading = true;
-                      });
-                      await _fetchRequestDetails();
-                      setState(() {
-                        _isLoading = false;
-                      });
+                      Navigator.pop(context);
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TaskRejected(
+                            taskInformation: widget.taskInformation,
+                          ),
+                        ),
+                      );
                     } else {
                       Navigator.pop(context, false);
                       setState(() {
@@ -255,57 +452,174 @@ class _TaskPendingState extends State<TaskPending> {
   }
 
   Future<void> _handleCancelTask(BuildContext context) async {
+    setState(() {
+      selectedReason = rejectionReasons[0];
+    });
+
     bool? confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'Cancel Task',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-        ),
-        content: Text(
-          'Are you sure you want to cancel this task? This action cannot be undone.',
-          style: GoogleFonts.poppins(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('No', style: GoogleFonts.poppins(color: Colors.grey)),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
           ),
-          TextButton(
-            onPressed: () async {
-              setState(() {
-                _isLoading = true;
-              });
+          title: Center(
+            child: Text(
+              'Cancel Task',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Are you sure you want to cancel this task? This action cannot be undone.',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w300,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Reason for cancellation:',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey[400]!),
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: DropdownButton<String>(
+                  value: selectedReason,
+                  isExpanded: true,
+                  underline: SizedBox(),
+                  items: rejectionReasons.map((String reason) {
+                    return DropdownMenuItem<String>(
+                      value: reason,
+                      child: Text(
+                        reason,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.black,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    if (newValue != null) {
+                      setDialogState(() {
+                        selectedReason = newValue;
+                      });
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton(
+                  child: Text(
+                    'Cancel',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFFB71A4A),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop(false);
+                  },
+                ),
+                const SizedBox(width: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                    color: Color(0xFFB71A4A),
+                  ),
+                  child: TextButton(
+                    child: Text(
+                      'Confirm',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
+                    ),
+                    onPressed: () async {
+                      setState(() {
+                        _isLoading = true;
+                      });
 
-              final String value = 'Cancel';
-              bool result = await taskController.acceptRequest(
-                  _requestInformation?.task_taken_id ?? 0,
-                  value,
-                  _role ?? 'Unknown');
-              if (result) {
-                Navigator.pop(context);
-                setState(() {
-                  _isLoading = true;
-                });
-                await _fetchRequestDetails();
-                setState(() {
-                  _isLoading = false;
-                });
-              } else {
-                setState(() {
-                  _isLoading = false;
-                });
-              }
-            },
-            child: Text('Yes', style: GoogleFonts.poppins(color: Colors.red)),
-          ),
-        ],
+                      final String value = 'Cancel';
+                      bool result = await taskController.acceptRequest(
+                        _requestInformation?.task_taken_id ?? 0,
+                        value,
+                        _role ?? 'Unknown',
+                        rejectionReason: selectedReason,
+                      );
+                      if (result) {
+                        Navigator.pop(context);
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TaskCancelled(
+                              taskInformation: widget.taskInformation,
+                            ),
+                          ),
+                        );
+                      } else {
+                        Navigator.pop(context);
+                        setState(() {
+                          _isLoading = false;
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
 
     if (confirm == true) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Task rejection requested')),
+        SnackBar(
+          content: Text(
+            'Task cancel requested',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Color(0xFFB71A4A),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
       );
     }
   }
@@ -317,7 +631,7 @@ class _TaskPendingState extends State<TaskPending> {
       appBar: AppBar(
         centerTitle: true,
         title: Text(
-          'Pending Task',
+          'Task Information',
           style: GoogleFonts.poppins(
             color: const Color(0xFFB71A4A),
             fontSize: 20,
@@ -380,7 +694,7 @@ class _TaskPendingState extends State<TaskPending> {
     // Handle null cases
     if (_requestInformation?.created_at == null ||
         _requestInformation?.time_request == null) {
-      return Container(
+      return SizedBox(
         width: double.infinity,
         child: Column(
           children: [
@@ -424,7 +738,6 @@ class _TaskPendingState extends State<TaskPending> {
       );
     }
 
-    // Calculate deadline: created_at + time_request days
     final createdAt = _requestInformation!.created_at!;
     final daysToConfirm = _requestInformation!.time_request ?? 1;
     final deadline = createdAt.add(Duration(days: daysToConfirm));
@@ -531,7 +844,6 @@ class _TaskPendingState extends State<TaskPending> {
     );
   }
 
-// Helper method to format duration
   String _formatDuration(Duration difference) {
     final days = difference.inDays;
     final hours = difference.inHours % 24;
@@ -577,11 +889,18 @@ class _TaskPendingState extends State<TaskPending> {
               ],
             ),
             SizedBox(height: 12),
-            SizedBox(height: 12),
             _buildTaskInfoRow(
               icon: Icons.info,
               label: 'Status',
               value: _requestInformation?.task_status ?? 'Pending',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.calendar,
+              label: 'Start Date',
+              value: _requestInformation!.start_date != null
+                  ? DateFormat('MMM dd, yyyy HH:mm a')
+                      .format(_requestInformation!.start_date!)
+                  : 'N/A',
             ),
           ],
         ),
@@ -638,8 +957,8 @@ class _TaskPendingState extends State<TaskPending> {
             SizedBox(height: 16),
             _buildProfileInfoRow(
               'Name',
-              (widget.taskInformation?.taskDetails?.client?.user != null)
-                  ? '${widget.taskInformation!.taskDetails!.client!.user!.firstName ?? ''} ${widget.taskInformation!.taskDetails!.client!.user!.lastName ?? ''}'
+              (widget.taskInformation?.taskDetails.client?.user != null)
+                  ? '${widget.taskInformation!.taskDetails.client!.user!.firstName ?? ''} ${widget.taskInformation!.taskDetails.client!.user!.lastName ?? ''}'
                       .trim()
                   : 'Not available',
             ),
@@ -747,7 +1066,6 @@ class _TaskPendingState extends State<TaskPending> {
         Row(
           children: [
             if (requestedFrom != _userRole) ...[
-              // Reject button
               Expanded(
                 child: OutlinedButton(
                   onPressed: () => _handleRejectTask(context),
@@ -831,31 +1149,37 @@ class _TaskPendingState extends State<TaskPending> {
     );
   }
 
-  Widget _buildTaskInfoRow(
-      {required IconData icon, required String label, required String value}) {
-    return Row(
-      children: [
-        Icon(icon, color: Colors.grey[600], size: 20),
-        SizedBox(width: 8),
-        Text(
-          '$label: ',
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Colors.grey[600],
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
+  Widget _buildTaskInfoRow({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          FaIcon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 12),
+          Text(
+            '$label: ',
             style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF03045E),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-        ),
-      ],
+          Expanded(
+            child: Text(
+              value,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

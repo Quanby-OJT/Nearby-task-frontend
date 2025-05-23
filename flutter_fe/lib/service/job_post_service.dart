@@ -553,7 +553,7 @@ class JobPostService {
 
     final response = await _getRequest("/display-task-for-client/$clientId");
 
-    debugPrint("Client Task Response: ${response.toString()}");
+    debugPrint("Client Task Response many: ${response.toString()}");
 
     if (response.containsKey("success") && response["success"] == true) {
       return response;
@@ -788,14 +788,19 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> acceptRequest(int taskTakenId, String value, String role) async {
+  Future<Map<String, dynamic>> acceptRequest(
+      int taskTakenId, String value, String role,
+      {String? rejectionReason}) async {
     try {
       int clientId = await storage.read('user_id');
       debugPrint(
           "Accepting task with ID: $taskTakenId with the task status of: $value");
-      return await _putRequest(
-          endpoint: '/update-request/$taskTakenId',
-          body: {"value": value, "role": role, "client_id": clientId});
+      return await _putRequest(endpoint: '/update-request/$taskTakenId', body: {
+        "value": value,
+        "role": role,
+        "client_id": clientId,
+        "rejection_reason": rejectionReason
+      });
     } catch (e) {
       debugPrint('Error accepting task: $e');
       debugPrintStack();

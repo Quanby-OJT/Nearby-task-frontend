@@ -63,7 +63,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
   String? _role;
   bool _isLoading = true;
   String? _errorMessage;
-  bool _isAssigning = false;
+  final bool _isAssigning = false;
   List<TaskModel>? _preloadedTasks;
   List<TaskerFeedback>? taskerFeedback;
   List<String> skills = [];

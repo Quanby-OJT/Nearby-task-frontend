@@ -98,11 +98,11 @@
           <td class="px-4 py-3 text-start pl-10 font-normal">{{ log.user.user_role ? log.user.user_role : 'Null' }}</td>
           <td class="px-4 py-3 text-start pl-13 font-normal">{{ log.logged_in }}</td>
           <td class="px-4 py-3 text-start pl-13 font-normal">{{ log.logged_out ? log.logged_out : 'Empty' }}</td>
-          <td class="px-4 py-3 text-start pl-10 font-normal">
-            <span class="py-1 text-sm text-center rounded-lg text-white font-normal"
-                  [ngClass]="log.user.status ? 'px-7 bg-green-400' : 'px-7 bg-red-400'">
-              {{ log.user.status ? 'Online' : 'Offline' }}
-            </span>
+          <td class="px-4 py-3 pl-10 text-start font-normal">
+            <div class="flex items-center gap-2.5 font-['Arial']">
+              <div class="h-2.5 w-2.5 rounded-full" [ngClass]="log.user.status ? 'bg-green-500' : 'bg-red-500'"></div>
+              <span class="text-sm text-black">{{ log.user.status ? 'Online' : 'Offline' }}</span>
+            </div>
           </td>
         </tr>
         <!-- Placeholder rows to ensure total rows match logsPerPage -->

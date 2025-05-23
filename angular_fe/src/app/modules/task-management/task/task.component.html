@@ -161,14 +161,15 @@
           <td class="px-4 py-3 text-start">{{ task.location || 'Empty' }}</td>
           <td class="px-4 py-3 text-start">{{ task.urgent ? 'Yes' : 'No' }}</td>
           <td class="px-4 py-3 text-start">
-            <span
-              class="py-1 text-sm font-semibold rounded-lg text-white inline-block text-center w-32"
-              [ngClass]="{
+            <div class="flex items-center gap-2.5 font-['Arial']">
+              <div class="h-2.5 w-2.5 rounded-full" [ngClass]="{
                 'bg-green-500': task.status === 'Available',
                 'bg-red-400': task.status === 'Closed',
-                'bg-yellow-400': task.status === 'Already Taken'}">
-              {{ task.status || 'Empty' }}
-            </span>
+                'bg-yellow-400': task.status === 'Already Taken',
+                'bg-gray-400': !task.status
+              }"></div>
+              <span class="text-sm text-black">{{ task.status || 'Empty' }}</span>
+            </div>
           </td>
           <td class="px-4 py-3 text-start">
             <button class="p-0 border-none bg-transparent cursor-pointer hover:scale-150 transition-transform duration-500">
