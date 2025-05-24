@@ -57,8 +57,7 @@ class JobPostService {
     }
   }
 
-  Future<List<TaskModel>> fetchJobsBySpecialization(
-      String specialization) async {
+  Future<List<TaskModel>> fetchJobsBySpecialization(String specialization) async {
     try {
       final userId = await getUserId();
       if (userId == null) {
@@ -96,8 +95,7 @@ class JobPostService {
     }
   }
 
-  Future<bool> hasTaskEverBeenAssignedToTasker(
-      int taskId, int taskerId, userId) async {
+  Future<bool> hasTaskEverBeenAssignedToTasker(int taskId, int taskerId, userId) async {
     try {
       debugPrint(
           "Checking if task $taskId has ever been assigned to tasker $taskerId, user ID: $userId");
@@ -163,8 +161,7 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> _postRequest(
-      {required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
     final response = await http.post(Uri.parse("$url$endpoint"),
         headers: {
           "Authorization": "Bearer $token",
@@ -175,8 +172,7 @@ class JobPostService {
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> _deleteRequest(
-      String endpoint, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
       final request = http.Request("DELETE", Uri.parse('$url$endpoint'))
@@ -231,8 +227,7 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> _putRequest(
-      {required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _putRequest({required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     debugPrint(body.toString());
     try {
@@ -375,8 +370,11 @@ class JobPostService {
 
   Future<List<TaskFetch>> taskerTaskInformation(int requestID) async {
     try {
-      Map<String, dynamic> response =
-          await _getRequest("/tasker/taskinformation/$requestID");
+      if(requestID == 0){
+        debugPrint("Invalid requestID: $requestID");
+        return [];
+      }
+      Map<String, dynamic> response = await _getRequest("/tasker/taskinformation/$requestID");
       debugPrint("Request Data Retrieved: ${response.toString()}");
 
       if (response.containsKey('data')) {
@@ -386,14 +384,14 @@ class JobPostService {
         debugPrint("Response does not contain a valid 'data' field");
         return [];
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('Error fetching request: $e');
-      debugPrintStack();
+      debugPrintStack(stackTrace: stackTrace);
       return [];
     }
   }
 
-  Future<TaskAssignment?> fetchTaskInformation(int taskID) async {
+  Future<TaskAssignment> fetchTaskInformation(int taskID) async {
     try {
       Map<String, dynamic> response = await _getRequest("/displayTask/$taskID");
 
@@ -412,11 +410,11 @@ class JobPostService {
       }
 
       debugPrint("No valid task data found in response");
-      return null;
+      return TaskAssignment(taskTakenId: 0, taskStatus: '');
     } catch (e, stackTrace) {
       debugPrint('Error fetching tasks: $e');
       debugPrintStack(stackTrace: stackTrace);
-      return null;
+      return TaskAssignment(taskTakenId: 0, taskStatus: '');
     }
   }
 
@@ -877,6 +875,16 @@ class JobPostService {
       debugPrint('Error rating the tasker: $e');
       debugPrintStack();
       return {'success': false, 'error': 'Error: $e'};
+    }
+  }
+
+  Future<Map<String, dynamic>> getClientFeedback(int taskTakenId) async {
+    try {
+      return await _getRequest('/get-client-feedback/$taskTakenId');
+    } catch (e) {
+      debugPrint('Error getting client feedback: $e');
+      debugPrintStack();
+      return {'success': false, 'error': 'An error occured while retrieving your feedback. Please Try Again.'};
     }
   }
 

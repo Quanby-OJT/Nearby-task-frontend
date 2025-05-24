@@ -36,7 +36,7 @@ export class DisputeManagementComponent {
   selectedAction: string = '';
   additionalNotes: string = '';
   isLoading: boolean = true;
-  constructor(private disputeService: DisputeManagementService) {}
+  constructor(private disputeService: DisputeManagementService) { }
 
   ngOnInit(): void {
     this.isLoading = true;
@@ -95,78 +95,81 @@ export class DisputeManagementComponent {
 
     const htmlContent = `
       <div class="p-6 bg-white rounded-lg shadow-md text-left">
-      <!-- Warning Note Section -->
-      <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-        <div class="flex">
-        <div class="ml-3">
-          <h3 class="text-yellow-800 font-medium">Note to Moderator</h3>
-          <p class="text-yellow-700 text-sm mt-2">
-          PLEASE review all data such as: Task Information, Chat History, and User Reports before you settle this dispute.
-          Additionally, you MUST contact BOTH the client and tasker and LISTEN to their dispute.
-          </p>
+        <!-- Warning Note Section -->
+        ${!this.disputeDetails.moderator_action ? `
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+          <div class="flex">
+          <div class="ml-3">
+            <h3 class="text-yellow-800 font-medium">Note to Moderator</h3>
+            <p class="text-yellow-700 text-sm mt-2">
+            PLEASE review all data such as: Task Information, Chat History, and User Reports before you settle this dispute.
+            Additionally, you MUST contact BOTH the client and tasker and LISTEN to their dispute.
+            </p>
+          </div>
+        </div>
+      </div>
+      ` : ''}
+      <!-- Task Information Section -->
+      <div class="grid grid-cols-1 gap-4 mb-6">
+      <div class="border-b pb-4">
+      <h3 class="text-lg font-semibold mb-4">Task Information</h3>
+      <div class="space-y-3">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <strong class="text-gray-700">Task Title:</strong>
+        <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.task_taken?.post_task?.task_title || 'N/A'}</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <strong class="text-gray-700">Reason for Dispute:</strong>
+        <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.reason_for_dispute || 'N/A'}</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <strong class="text-gray-700">Dispute Details:</strong>
+        <span class="text-gray-600 sm:col-span-2 text-sm">${this.disputeDetails.dispute_details || 'N/A'}</span>
+        </div>
+      </div>
+      </div>
+
+      <!-- Dispute Details Section -->
+      <div class="border-b pb-4">
+      <h3 class="text-lg font-semibold mb-4">Dispute Details</h3>
+      <div class="space-y-3">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <strong class="text-gray-700">Raised By:</strong>
+        <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.task_taken?.clients?.user?.first_name || 'N/A'} ${this.disputeDetails.task_taken?.clients?.user?.last_name || 'N/A'}</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <strong class="text-gray-700">Moderator Action:</strong>
+        <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.moderator_action || 'No Moderator Action'}</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <strong class="text-gray-700">Date Dispute was Raised:</strong>
+        <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.created_at || 'N/A'}</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <strong class="text-gray-700">Dispute Pictures:</strong>
+        <div class="sm:col-span-2 flex flex-wrap gap-2">
+          ${Array.isArray(this.disputeDetails.image_proof) && this.disputeDetails.image_proof.length > 0 ?
+        this.disputeDetails.image_proof.map((pic: any) => `
+            <img
+            src="${pic}"
+            alt="Dispute evidence"
+            class="w-24 h-24 object-cover cursor-pointer rounded"
+            onclick="window.open('${pic}', '_blank')"
+            />`
+        ).join('') :
+        '<span class="text-gray-600">No pictures available</span>'
+      }
         </div>
         </div>
       </div>
-      <!-- Task Information Section -->
-      <div class="grid grid-cols-1 gap-4 mb-6">
-        <div class="border-b pb-4">
-        <h3 class="text-lg font-semibold mb-4">Task Information</h3>
-        <div class="space-y-3">
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <strong class="text-gray-700">Task Title:</strong>
-          <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.task_taken?.post_task?.task_title || 'N/A'}</span>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <strong class="text-gray-700">Reason for Dispute:</strong>
-          <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.reason_for_dispute || 'N/A'}</span>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <strong class="text-gray-700">Dispute Details:</strong>
-          <span class="text-gray-600 sm:col-span-2 text-sm">${this.disputeDetails.dispute_details || 'N/A'}</span>
-          </div>
-        </div>
-        </div>
-
-        <!-- Dispute Details Section -->
-        <div class="border-b pb-4">
-        <h3 class="text-lg font-semibold mb-4">Dispute Details</h3>
-        <div class="space-y-3">
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <strong class="text-gray-700">Raised By:</strong>
-          <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.task_taken?.clients?.user?.first_name || 'N/A'} ${this.disputeDetails.task_taken?.clients?.user?.last_name || 'N/A'}</span>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <strong class="text-gray-700">Moderator Action:</strong>
-          <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.moderator_action || 'No Modertor Action'}</span>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <strong class="text-gray-700">Date Dispute was Raised:</strong>
-          <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.created_at || 'N/A'}</span>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <strong class="text-gray-700">Dispute Pictures:</strong>
-            <div class="sm:col-span-2 flex flex-wrap gap-2">
-              ${Array.isArray(this.disputeDetails.image_proof) && this.disputeDetails.image_proof.length > 0 ?
-                this.disputeDetails.image_proof.map((pic: any) => `
-                  <img
-                    src="${pic}"
-                    alt="Dispute evidence"
-                    class="w-24 h-24 object-cover cursor-pointer rounded"
-                    onclick="window.open('${pic}', '_blank')"
-                  />`
-                ).join('') :
-                '<span class="text-gray-600">No pictures available</span>'
-              }
-            </div>
-          </div>
-        </div>
-        </div>
+      </div>
       </div>
 
       <!-- Action Form Section -->
+      ${!this.disputeDetails.moderator_action ? `
       <div class="space-y-4">
         <div class="form-group">
-        <label for="moderatorAction" class="block text-gray-700 font-medium mb-2">Resolution Action:</label>
+        <label for="moderatorAction" class="block text-gray-700 font-medium mb-2">Moderator Action:</label>
         <select id="moderatorAction" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" required>
           <option value="">Select an action</option>
           <option value="refund_tokens">Refund NearByTask Tokens to Client</option>
@@ -180,6 +183,7 @@ export class DisputeManagementComponent {
         <textarea id="disputeNotes" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" rows="3" required></textarea>
         </div>
       </div>
+      ` : ''}
       </div>
     `;
 
@@ -188,81 +192,81 @@ export class DisputeManagementComponent {
       html: htmlContent,
       width: '800px',
       showCancelButton: true,
-      confirmButtonText: 'Update Dispute',
+      confirmButtonText: this.disputeDetails.moderator_action ? undefined : 'Update Dispute',
+      showConfirmButton: !this.disputeDetails.moderator_action,
       confirmButtonColor: '#3085d6',
       cancelButtonText: 'Close',
       cancelButtonColor: '#d33',
       customClass: {
-        htmlContainer: 'text-left'
+      htmlContainer: 'text-left'
       },
       preConfirm: () => {
+      if (!this.disputeDetails.moderator_action) {
         const action = document.getElementById('moderatorAction') as HTMLSelectElement;
         const notes = document.getElementById('disputeNotes') as HTMLTextAreaElement;
 
         if (!action.value || !notes.value) {
-          Swal.showValidationMessage('Please fill in all fields');
-          return false;
+        Swal.showValidationMessage('Please fill in all fields');
+        return false;
         }
 
         return {
-          action: action.value,
-          notes: notes.value
+        action: action.value,
+        notes: notes.value
         };
+      }
+      return false;
       }
     }).then((result) => {
       if (result.isConfirmed && result.value) {
-        // Add confirmation modal
-        Swal.fire({
-          title: 'Are you sure?',
-          text: 'This action cannot be undone. Do you want to proceed?',
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Update the Dispute',
+      // Add confirmation modal
+      Swal.fire({
+        title: 'Are you sure?',
           cancelButtonText: 'Review the Dispute',
           confirmButtonColor: '#3085d6',
           cancelButtonColor: '#d33',
         }).then((confirmResult) => {
-            if (confirmResult.isConfirmed) {
-              this.updateDispute(
-                this.disputeDetails.dispute_id,
-                this.disputeDetails.task_taken.task_taken_id,
-                this.disputeDetails.task_taken.post_task.task_id,
-                result.value.action,
-                result.value.notes
-              );
-            }
+          if (confirmResult.isConfirmed) {
+            this.updateDispute(
+              this.disputeDetails.dispute_id,
+              this.disputeDetails.task_taken.task_taken_id,
+              this.disputeDetails.task_taken.post_task.task_id,
+              result.value.action,
+              result.value.notes
+            );
+          }
         });
       }
     });
   }
 
-  updateDispute(dispute_id: number, task_taken_id: number, task_id: number, moderator_action: string, addl_dispute_notes: string, ) {
+  updateDispute(dispute_id: number, task_taken_id: number, task_id: number, moderator_action: string, addl_dispute_notes: string,) {
     console.log("Updating a dispute with ID:", dispute_id);
-    this.disputeService.updateADispute(dispute_id, task_taken_id, task_id, "Dispute Settled", moderator_action, addl_dispute_notes )
-    .subscribe({
-      next: (response) => {
-        Swal.fire({
-          title: "Successfully Updated Dispute",
-          text: response.message,
-          icon: 'success',
-          confirmButtonColor: '#3085d6',
-        })
-        console.log('Dispute updated successfully:', response);
-        this.ngOnInit();
-      },
-      error: (error) => {
-        console.error('Error updating dispute:', error);
-        Swal.fire({
-          title: 'Error',
-          text: 'Failed to update the dispute. Please try again.',
-          icon: 'error',
-          confirmButtonColor: '#3085d6',
-        });
-      }
-    });
+    this.disputeService.updateADispute(dispute_id, task_taken_id, task_id, "Dispute Settled", moderator_action, addl_dispute_notes)
+      .subscribe({
+        next: (response) => {
+          Swal.fire({
+            title: "Successfully Updated Dispute",
+            text: response.message,
+            icon: 'success',
+            confirmButtonColor: '#3085d6',
+          })
+          console.log('Dispute updated successfully:', response);
+          this.ngOnInit();
+        },
+        error: (error) => {
+          console.error('Error updating dispute:', error);
+          Swal.fire({
+            title: 'Error',
+            text: 'Failed to update the dispute. Please try again.',
+            icon: 'error',
+            confirmButtonColor: '#3085d6',
+          });
+        }
+      });
   }
 
-  archiveDispute(dispute_id: number){
+  archiveDispute(dispute_id: number) {
     this.disputeDetails = this.filteredDisputes.find(dispute => dispute.dispute_id === dispute_id);
     if (!this.disputeDetails) {
       Swal.fire('Error', 'Dispute Information Cannot be Displayed', 'error');
@@ -304,7 +308,7 @@ export class DisputeManagementComponent {
   updatePage() {
     this.totalPages = Math.ceil(this.filteredDisputes.length / this.logsPerPage);
     if (this.totalPages === 0) {
-        this.totalPages = 1;
+      this.totalPages = 1;
     }
     this.currentPage = Math.max(1, Math.min(this.currentPage, this.totalPages));
 
@@ -331,11 +335,11 @@ export class DisputeManagementComponent {
     let endPage = Math.min(this.totalPages, startPage + maxButtons - 1);
 
     if (endPage === this.totalPages) {
-        startPage = Math.max(1, this.totalPages - maxButtons + 1);
+      startPage = Math.max(1, this.totalPages - maxButtons + 1);
     }
 
     if (startPage === 1) {
-       endPage = Math.min(this.totalPages, maxButtons);
+      endPage = Math.min(this.totalPages, maxButtons);
     }
 
     if (startPage > 1) {
