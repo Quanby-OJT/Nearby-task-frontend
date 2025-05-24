@@ -30,7 +30,6 @@ class TaskModel {
   final DateTime? updatedAt;
   final String? imageUrl;
   final TaskerSpecialization? taskerSpecialization;
-  final List<TaskFetch>? taskTaken;
 
   TaskModel({
     required this.id,
@@ -55,7 +54,6 @@ class TaskModel {
     this.address,
     this.imageUrl,
     this.taskerSpecialization,
-    this.taskTaken,
   });
 
   factory TaskModel.fromJson(Map<String, dynamic> json) {
@@ -116,25 +114,7 @@ class TaskModel {
       taskerSpecialization: json['tasker_specialization'] != null
           ? TaskerSpecialization.fromJson(json['tasker_specialization'])
           : null,
-      taskTaken: json['taskTaken'] != null
-          ? (json['taskTaken'] as List)
-              .map((task) => TaskFetch.fromJson(task as Map<String, dynamic>))
-              .where((taskFetch) =>
-                  taskFetch.id == json['task_id']) // Filter by task_id
-              .toList()
-          : null,
     );
-  }
-
-  // Get the effective status for display
-  String getEffectiveStatus() {
-    if (taskTaken != null && taskTaken!.isNotEmpty) {
-      // Return the latest taskTaken status based on created_at
-      final latestTaskTaken = taskTaken!
-          .reduce((a, b) => a.createdAt!.isAfter(b.createdAt!) ? a : b);
-      return latestTaskTaken.taskStatus;
-    }
-    return status; // Fallback to post_task status
   }
 
   Map<String, dynamic> toJson() {
@@ -161,13 +141,12 @@ class TaskModel {
       "updated_at": updatedAt?.toIso8601String(),
       "image_url": imageUrl,
       "tasker_specialization": taskerSpecialization?.toJson(),
-      "taskTaken": taskTaken?.map((task) => task.toJson()).toList(),
     };
   }
 
   @override
   String toString() {
-    return 'TaskModel(id: $id, clientId: $clientId, title: $title, description: $description, specialization: $specialization, relatedSpecializationsIds: $relatedSpecializationsIds, specializationId: $specializationId, workType: $workType, scope: $scope, isVerifiedDocument: $isVerifiedDocument, contactPrice: $contactPrice, urgency: $urgency, remarks: $remarks, status: $status, client: $client, tasker: $tasker, address: $address, createdAt: $createdAt, updatedAt: $updatedAt, addressID: $addressID, imageUrl: $imageUrl, taskerSpecialization: $taskerSpecialization, taskTaken: $taskTaken)';
+    return 'TaskModel(id: $id, clientId: $clientId, title: $title, description: $description, specialization: $specialization, relatedSpecializationsIds: $relatedSpecializationsIds, specializationId: $specializationId, workType: $workType, scope: $scope, isVerifiedDocument: $isVerifiedDocument, contactPrice: $contactPrice, urgency: $urgency, remarks: $remarks, status: $status, client: $client, tasker: $tasker, address: $address, createdAt: $createdAt, updatedAt: $updatedAt, addressID: $addressID, imageUrl: $imageUrl, taskerSpecialization: $taskerSpecialization)';
   }
 }
 

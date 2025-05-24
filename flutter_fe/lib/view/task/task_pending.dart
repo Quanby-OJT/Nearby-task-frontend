@@ -127,12 +127,12 @@ class _TaskPendingState extends State<TaskPending> {
       debugPrint("Fetched request details: $_requestInformation");
 
       await _fetchTaskDetails();
-      if (widget.taskInformation?.taskDetails.client?.user?.role == "Tasker") {
+      if (widget.taskInformation?.taskDetails?.client?.user?.role == "Tasker") {
         await _fetchTaskerDetails(
-            widget.taskInformation?.taskDetails.client?.user?.id ?? 0);
+            widget.taskInformation?.taskDetails?.client?.user?.id ?? 0);
       } else {
         await _fetchTaskerDetails(
-            widget.taskInformation?.taskDetails.client?.user?.id ?? 0);
+            widget.taskInformation?.taskDetails?.client?.user?.id ?? 0);
       }
     } catch (e) {
       debugPrint("Error fetching request details: $e");
@@ -933,7 +933,7 @@ class _TaskPendingState extends State<TaskPending> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.taskInformation?.taskDetails.client?.user?.role ==
+                      widget.taskInformation?.taskDetails?.client?.user?.role ==
                               "Tasker"
                           ? "Tasker Profile"
                           : "Client Profile",
@@ -957,25 +957,25 @@ class _TaskPendingState extends State<TaskPending> {
             SizedBox(height: 16),
             _buildProfileInfoRow(
               'Name',
-              (widget.taskInformation?.taskDetails.client?.user != null)
-                  ? '${widget.taskInformation!.taskDetails.client!.user!.firstName ?? ''} ${widget.taskInformation!.taskDetails.client!.user!.lastName ?? ''}'
+              (widget.taskInformation?.taskDetails?.client?.user != null)
+                  ? '${widget.taskInformation!.taskDetails!.client!.user!.firstName ?? ''} ${widget.taskInformation!.taskDetails!.client!.user!.lastName ?? ''}'
                       .trim()
                   : 'Not available',
             ),
             SizedBox(height: 8),
             _buildProfileInfoRow(
                 'Email',
-                widget.taskInformation?.taskDetails.client?.user?.email ??
+                widget.taskInformation?.taskDetails?.client?.user?.email ??
                     'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow(
                 'Phone',
-                widget.taskInformation?.taskDetails.client?.user?.contact ??
+                widget.taskInformation?.taskDetails?.client?.user?.contact ??
                     'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow(
                 'Status',
-                widget.taskInformation?.taskDetails.client?.user?.accStatus ??
+                widget.taskInformation?.taskDetails?.client?.user?.accStatus ??
                     'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow('Account', 'Verified', isVerified: true),

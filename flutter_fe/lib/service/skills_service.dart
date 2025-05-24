@@ -7,27 +7,20 @@ import 'package:flutter_fe/service/auth_service.dart';
 import 'package:get_storage/get_storage.dart';
 
 class SkillsService {
-  // Singleton instance
   static final SkillsService _instance = SkillsService._internal();
 
-  // Cache data to reduce API calls
   final Map<String, dynamic> _cache = {};
 
-  // Job post service to fetch specializations
   final JobPostService _jobPostService = JobPostService();
 
-  // Storage for auth token
   final GetStorage storage = GetStorage();
 
-  // Factory constructor
   factory SkillsService() {
     return _instance;
   }
 
-  // Private constructor
   SkillsService._internal();
 
-  // Direct API test to check if the specializations endpoint is working
   Future<void> testSpecializationsAPI() async {
     try {
       debugPrint(

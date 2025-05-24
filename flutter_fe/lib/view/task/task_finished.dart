@@ -11,6 +11,7 @@ import 'package:get_storage/get_storage.dart';
 
 class TaskFinished extends StatefulWidget {
   final TaskFetch? taskInformation;
+
   const TaskFinished({super.key, this.taskInformation});
 
   @override
@@ -79,7 +80,7 @@ class _TaskFinishedState extends State<TaskFinished> {
         _requestInformation = response;
       });
       await _fetchTaskDetails();
-      if (widget.taskInformation?.taskDetails.client?.user?.role == "Tasker") {
+      if (widget.taskInformation?.taskDetails!.client?.user?.role == "Tasker") {
         await _fetchTaskerDetails(_requestInformation!.tasker_id as int);
       } else {
         await _fetchTaskerDetails(_requestInformation!.client_id as int);
@@ -224,7 +225,7 @@ class _TaskFinishedState extends State<TaskFinished> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.taskInformation?.taskDetails.client?.user?.role ==
+                      widget.taskInformation?.taskDetails!.client?.user?.role ==
                               "Client"
                           ? "Tasker Profile"
                           : "Client Profile",

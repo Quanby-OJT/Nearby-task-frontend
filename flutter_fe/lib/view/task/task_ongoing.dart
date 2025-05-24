@@ -315,7 +315,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
                     bool result = await taskController.acceptRequest(
                       _requestInformation?.task_taken_id ?? 0,
                       'Finish',
-                      widget.taskInformation?.taskDetails.client?.user?.role ??
+                      widget.taskInformation?.taskDetails!.client?.user?.role ??
                           '',
                     );
 
@@ -549,7 +549,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
                     bool result = await taskController.raiseADispute(
                       _requestInformation?.task_taken_id ?? 0,
                       'Disputed',
-                      widget.taskInformation?.taskDetails.client?.user?.role ??
+                      widget.taskInformation?.taskDetails!.client?.user?.role ??
                           '',
                       _disputeTypeController.text,
                       _disputeDetailsController.text,
@@ -1223,25 +1223,25 @@ class _TaskOngoingState extends State<TaskOngoing> {
             SizedBox(height: 16),
             _buildProfileInfoRow(
               'Name',
-              (widget.taskInformation?.taskDetails.client?.user != null)
-                  ? '${widget.taskInformation!.taskDetails.client!.user!.firstName ?? ''} ${widget.taskInformation!.taskDetails.client!.user!.lastName ?? ''}'
+              (widget.taskInformation?.taskDetails!.client?.user != null)
+                  ? '${widget.taskInformation!.taskDetails!.client!.user!.firstName ?? ''} ${widget.taskInformation!.taskDetails!.client!.user!.lastName ?? ''}'
                       .trim()
                   : 'Not available',
             ),
             SizedBox(height: 8),
             _buildProfileInfoRow(
                 'Email',
-                widget.taskInformation?.taskDetails.client?.user?.email ??
+                widget.taskInformation?.taskDetails!.client?.user?.email ??
                     'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow(
                 'Phone',
-                widget.taskInformation?.taskDetails.client?.user?.contact ??
+                widget.taskInformation?.taskDetails!.client?.user?.contact ??
                     'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow(
                 'Status',
-                widget.taskInformation?.taskDetails.client?.user?.accStatus ??
+                widget.taskInformation?.taskDetails!.client?.user?.accStatus ??
                     'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow('Account', 'Verified', isVerified: true),
