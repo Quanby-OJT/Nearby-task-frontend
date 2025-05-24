@@ -73,9 +73,9 @@ class _TaskPageState extends State<TaskPage>
   final bool _isUploadDialogShown = false;
   bool documentValid = false;
 
-  final List<String> _tabStatuses = ["All", "Ongoing", "More"];
+  final List<String> _tabStatuses = ["Pending", "Ongoing", "More"];
   late TabController _tabController;
-  String? _currentFilter;
+  String? _currentFilter = 'Pending';
 
   @override
   void initState() {
@@ -85,7 +85,7 @@ class _TaskPageState extends State<TaskPage>
       if (!_tabController.indexIsChanging) {
         setState(() {
           if (_tabController.index == 0) {
-            _currentFilter = null;
+            _currentFilter = 'Pending';
           } else if (_tabController.index == 1) {
             _currentFilter = "Ongoing";
           }
@@ -511,7 +511,7 @@ class _TaskPageState extends State<TaskPage>
                         } else {
                           setState(() {
                             if (index == 0) {
-                              _currentFilter = null;
+                              _currentFilter = 'Pending';
                             } else if (index == 1) _currentFilter = "Ongoing";
                             _filterTasks();
                           });

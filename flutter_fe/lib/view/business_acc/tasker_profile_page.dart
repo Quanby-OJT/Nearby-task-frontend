@@ -513,7 +513,6 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                                 child: ElevatedButton.icon(
                                   onPressed: _isAssigning
                                       ? null
-                                      // : () => _assignTask(widget.tasker),
                                       : () => _assignTask(widget.tasker),
                                   icon: const Icon(Icons.assignment_turned_in,
                                       color: Colors.white),

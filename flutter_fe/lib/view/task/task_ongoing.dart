@@ -655,7 +655,6 @@ class _TaskOngoingState extends State<TaskOngoing> {
                         if (_requestStatus == 'Ongoing') _buildStatusSection(),
                         SizedBox(height: 16),
                         _buildTaskCard(),
-                        SizedBox(height: 16),
                         if (widget.taskInformation?.tasker?.user == null)
                           _buildClientProfileCard(),
                         if (widget.taskInformation?.tasker?.user == null)
@@ -663,8 +662,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
                         if (widget.taskInformation?.tasker?.user != null)
                           _buildTaskerProfileCard(),
                         if (widget.taskInformation?.tasker?.user != null)
-                          SizedBox(height: 16),
-                        _buildclientActionButton()
+                          _buildclientActionButton()
                       ],
                     ),
                   ),
@@ -1297,11 +1295,12 @@ class _TaskOngoingState extends State<TaskOngoing> {
   Widget _buildclientActionButton() {
     return Column(
       children: [
+        SizedBox(height: 16),
         ElevatedButton(
           onPressed: () => _handleClientFinishTask(context),
           style: ElevatedButton.styleFrom(
             minimumSize: Size(double.infinity, 50),
-            backgroundColor: Color(0xFF3E9B52),
+            backgroundColor: Color(0xFFB71A4A),
             padding: EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -1321,23 +1320,22 @@ class _TaskOngoingState extends State<TaskOngoing> {
         ),
         SizedBox(height: 16),
         if (_requestInformation?.task_status != 'Disputed')
-          ElevatedButton(
-            onPressed: _handleTaskDispute,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFA73140),
-              padding: EdgeInsets.symmetric(vertical: 16),
+          OutlinedButton(
+            onPressed: () => _handleTaskDispute(),
+            style: OutlinedButton.styleFrom(
+              minimumSize: Size(double.infinity, 50),
+              side: BorderSide(color: Colors.blue[600]!),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              elevation: 2,
-              minimumSize: Size(double.infinity, 50),
             ),
             child: Text(
-              'File a Dispute',
+              'Dispute',
               style: GoogleFonts.poppins(
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Colors.white,
+                color: Colors.blue[600],
               ),
             ),
           ),

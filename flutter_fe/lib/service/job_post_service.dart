@@ -625,6 +625,51 @@ class JobPostService {
     }
   }
 
+  Future<List<TaskModel>> fetchAssignTasksByClient(int clientId) async {
+    try {
+      final response =
+          await _getRequest("/display-task-for-client-available/$clientId");
+
+      debugPrint("Created Tasks Response: $response");
+
+      if (response.containsKey("success") &&
+          response["success"] == true &&
+          response.containsKey("tasks")) {
+        final List<dynamic> tasks = response["tasks"] as List<dynamic>;
+        return tasks
+            .map((task) => TaskModel.fromJson(task as Map<String, dynamic>))
+            .toList();
+      } else {
+        debugPrint("Falling back to general task endpoint");
+        final allTasksResponse = await _getRequest("/displayTask");
+
+        if (allTasksResponse.containsKey("tasks") &&
+            allTasksResponse["tasks"] is List) {
+          final List<dynamic> allTasks =
+              allTasksResponse["tasks"] as List<dynamic>;
+
+          final filteredTasks = allTasks.where((task) {
+            return task is Map<String, dynamic> &&
+                task.containsKey("client_id") &&
+                task["client_id"] == clientId;
+          }).toList();
+
+          return filteredTasks
+              .map((task) => TaskModel.fromJson(task as Map<String, dynamic>))
+              .toList();
+        }
+
+        debugPrint(
+            "Error or empty response: ${response['error'] ?? 'No tasks found'}");
+        return [];
+      }
+    } catch (e, st) {
+      debugPrint("Exception in fetchCreatedTasksByClient: $e");
+      debugPrintStack(stackTrace: st);
+      return [];
+    }
+  }
+
   Future<List<TaskModel>> fetchUserLikedJobs() async {
     try {
       String? userId = await getUserId();

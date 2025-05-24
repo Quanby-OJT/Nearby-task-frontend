@@ -198,7 +198,7 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
                           Center(
                             child: Text(
                               taskToDisplay.title ?? "Untitled Task",
-                              style: GoogleFonts.montserrat(
+                              style: GoogleFonts.poppins(
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFFE23670),
@@ -223,7 +223,7 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
                           const SizedBox(height: 20),
                           Text(
                             "Tasker Applicants",
-                            style: GoogleFonts.montserrat(
+                            style: GoogleFonts.poppins(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFFE23670),
@@ -239,7 +239,7 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
                                       const EdgeInsets.symmetric(vertical: 8.0),
                                   child: Text(
                                     "No taskers have applied to this task.",
-                                    style: GoogleFonts.montserrat(
+                                    style: GoogleFonts.poppins(
                                       fontSize: 16,
                                       color: Colors.grey[600],
                                     ),
@@ -253,8 +253,6 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
                                     final taskFetch =
                                         taskToDisplay.taskTaken![index];
 
-                                    debugPrint(
-                                        "Tasker $index: taskerId=${taskFetch.taskDetails.client?.user?.firstName}, status=${taskFetch.taskStatus}, taskTakenId=${taskFetch.taskTakenId}");
                                     return Card(
                                       elevation: 3,
                                       shape: RoundedRectangleBorder(
@@ -398,29 +396,33 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
                                   },
                                 ),
                           const SizedBox(
-                            height: 20,
+                            height: 16,
                           ),
-                          ElevatedButton.icon(
-                            onPressed: _isDeleting ? null : _deleteTask,
-                            icon: _isDeleting
-                                ? SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : Icon(Icons.delete_outlined),
-                            label: Text(
-                                _isDeleting ? "Deleting..." : "Delete Task"),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(vertical: 12),
-                              minimumSize: Size(double.infinity, 50),
-                            ),
-                          ),
+                          Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  _isDeleting ? null : _deleteTask();
+                                },
+                                icon: Icon(Icons.delete, color: Colors.white),
+                                label: Text(
+                                  _isDeleting ? "Deleting..." : "Delete Task",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Color(0xFFB71A4A),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              )),
                         ],
                       ),
                     ),
@@ -430,7 +432,7 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
   }
 
   Widget _buildTaskTaskInfo(TaskFetch taskFetch, {double size = 40.0}) {
-    final String? imageUrl = taskFetch.taskDetails.client?.user?.image;
+    final String? imageUrl = taskFetch.tasker?.user?.imageName;
     final bool hasValidImage =
         imageUrl != null && imageUrl.isNotEmpty && imageUrl != "Unknown";
 
