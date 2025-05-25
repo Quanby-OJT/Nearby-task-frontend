@@ -185,8 +185,8 @@ class _TaskPageState extends State<TaskPage>
       filteredTasks = clientTasks.where((task) {
         if (task == null) return false;
         bool matchesSearch =
-            (task.taskDetails.title.toLowerCase().contains(query) ?? false) ||
-                (task.taskDetails.description.toLowerCase().contains(query) ??
+            (task.taskDetails!.title.toLowerCase().contains(query) ?? false) ||
+                (task.taskDetails!.description.toLowerCase().contains(query) ??
                     false);
         bool matchesStatus =
             _currentFilter == null || task.taskStatus == _currentFilter;
@@ -747,7 +747,7 @@ class _TaskPageState extends State<TaskPage>
   }
 
   Widget _buildTaskTaskInfo(TaskFetch task, {double size = 40.0}) {
-    final String? imageUrl = task.taskDetails.client?.user?.image;
+    final String? imageUrl = task.taskDetails!.client?.user?.image;
     final bool hasValidImage =
         imageUrl != null && imageUrl.isNotEmpty && imageUrl != "Unknown";
 
@@ -796,10 +796,10 @@ class _TaskPageState extends State<TaskPage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              task.taskDetails.title != null
-                  ? task.taskDetails.title.length > 25
-                      ? '${task.taskDetails.title.substring(0, 25)}...'
-                      : task.taskDetails.title
+              task.taskDetails!.title != null
+                  ? task.taskDetails!.title.length > 25
+                      ? '${task.taskDetails!.title.substring(0, 25)}...'
+                      : task.taskDetails!.title
                   : 'Untitled Task',
               style: GoogleFonts.poppins(
                 fontSize: 16,
@@ -808,7 +808,7 @@ class _TaskPageState extends State<TaskPage>
               ),
             ),
             Text(
-              "${task.taskDetails.client?.user?.firstName ?? 'Unknown'} ${task.taskDetails.client?.user?.lastName ?? 'Unknown'}",
+              "${task.taskDetails!.client?.user?.firstName ?? 'Unknown'} ${task.taskDetails!.client?.user?.lastName ?? 'Unknown'}",
               style:
                   GoogleFonts.poppins(color: Color(0xFFB71A4A), fontSize: 10),
             ),

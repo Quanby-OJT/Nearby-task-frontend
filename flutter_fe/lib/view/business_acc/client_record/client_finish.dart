@@ -333,7 +333,7 @@ class _FinishTaskState extends State<FinishTask> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    _requestInformation!.taskDetails.title,
+                    _requestInformation!.taskDetails!.title,
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -347,13 +347,13 @@ class _FinishTaskState extends State<FinishTask> {
             _buildTaskInfoRow(
               icon: Icons.location_pin,
               label: 'Location',
-              value: _requestInformation!.taskDetails.address?.city ?? '',
+              value: _requestInformation!.taskDetails!.address?.city ?? '',
             ),
             const SizedBox(height: 12),
             _buildTaskInfoRow(
               icon: Icons.calendar_today,
               label: 'Duration',
-              value: _requestInformation!.taskDetails.address?.province ?? '',
+              value: _requestInformation!.taskDetails!.address?.province ?? '',
             ),
             const SizedBox(height: 12),
             _buildTaskInfoRow(
@@ -371,7 +371,7 @@ class _FinishTaskState extends State<FinishTask> {
             ),
             const SizedBox(height: 12),
             Text(
-              _requestInformation?.taskDetails.description ?? '',
+              _requestInformation?.taskDetails?.description ?? '',
               style: GoogleFonts.poppins(
                 fontSize: 14,
                 color: const Color(0xFF03045E),
@@ -381,7 +381,7 @@ class _FinishTaskState extends State<FinishTask> {
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.pesoSign,
               label: '',
-              value: '${_requestInformation!.taskDetails.contactPrice}',
+              value: '${_requestInformation!.taskDetails?.contactPrice}',
             ),
           ],
         ),

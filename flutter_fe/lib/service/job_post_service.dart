@@ -16,7 +16,7 @@ import '../model/client_model.dart';
 import '../model/tasker_model.dart';
 
 class JobPostService {
-  static String url = apiUrl ?? "https://192.168.43.15:5000/connect";
+  static String url = apiUrl ?? "https://192.168.1.10:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -571,6 +571,27 @@ class JobPostService {
     }
 
     final response = await _getRequest("/fetchTasks/$userId");
+
+    debugPrint("Client fetchTasks Response: ${response.toString()}");
+
+    if (response.containsKey("success") && response["success"] == true) {
+      return response;
+    }
+
+    return {};
+  }
+
+  Future<Map<String, dynamic>> fetchTasksClient() async {
+    final userId = await getUserId();
+    if (userId == null) {
+      return {
+        'success': false,
+        'message': 'Please log in to view your tasks',
+        'requiresLogin': true
+      };
+    }
+
+    final response = await _getRequest("/fetchTasksClient/$userId");
 
     debugPrint("Client fetchTasks Response: ${response.toString()}");
 
