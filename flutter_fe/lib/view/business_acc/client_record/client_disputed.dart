@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/controller/task_request_controller.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
@@ -7,6 +9,8 @@ import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:get_storage/get_storage.dart';
+
+import '../../../model/disputes.dart';
 
 class ClientDisputed extends StatefulWidget {
   final int? finishID;
@@ -20,8 +24,9 @@ class ClientDisputed extends StatefulWidget {
 class _ClientDisputedState extends State<ClientDisputed> {
   final JobPostService _jobPostService = JobPostService();
   final TaskController taskController = TaskController();
+  final TaskRequestController taskRequestController = TaskRequestController();
   final ProfileController _profileController = ProfileController();
-  TaskModel? _taskInformation;
+  Disputes? disputes;
   ClientRequestModel? _requestInformation;
   bool _isLoading = true;
   final storage = GetStorage();
@@ -92,10 +97,9 @@ class _ClientDisputedState extends State<ClientDisputed> {
 
   Future<void> _fetchTaskDetails() async {
     try {
-      final response = await _jobPostService
-          .fetchTaskInformation(_requestInformation!.task_id as int);
+      final response = await taskRequestController.getDispute(widget.finishID ?? 0);
       setState(() {
-        _taskInformation = response?.task;
+        disputes = response;
         _isLoading = false;
       });
     } catch (e) {
@@ -129,7 +133,7 @@ class _ClientDisputedState extends State<ClientDisputed> {
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: Color(0xFF03045E)))
-          : _taskInformation == null
+          : disputes == null
               ? Center(
                   child: Text(
                     'No task information available',
@@ -146,7 +150,7 @@ class _ClientDisputedState extends State<ClientDisputed> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Completion Status Section
-                        _buildCompletionSection(),
+                        _buildDisputeSection(),
                         SizedBox(height: 16),
                         // Task Card
                         _buildTaskCard(),
@@ -163,39 +167,36 @@ class _ClientDisputedState extends State<ClientDisputed> {
     );
   }
 
-  Widget _buildCompletionSection() {
+  Widget _buildDisputeSection() {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.green[50],
+        color: Colors.yellow[50],
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.green[100]!),
       ),
       child: Column(
         children: [
           Icon(
-            Icons.check_circle,
-            color: Colors.green[600],
+            FontAwesomeIcons.gavel,
+            color: Colors.yellow[600],
             size: 48,
           ),
           SizedBox(height: 12),
           Text(
-            'Task Disputed!',
+            'Dispute Raised to this Task!',
             style: GoogleFonts.montserrat(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: Colors.green[800],
-            ),
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Colors.yellow[800]),
           ),
           SizedBox(height: 8),
           Text(
-            'Congratulations on successfully completing this task!',
+            'Please Wait for Our Team to review your dispute and file Appropriate Action.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.montserrat(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
+            style:
+            GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
       ),
@@ -224,7 +225,7 @@ class _ClientDisputedState extends State<ClientDisputed> {
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    _taskInformation!.title ?? 'Task',
+                    disputes?.taskAssignment?.task?.title ?? 'Task',
                     style: GoogleFonts.montserrat(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -240,6 +241,38 @@ class _ClientDisputedState extends State<ClientDisputed> {
               label: 'Status',
               value: _requestInformation?.task_status ?? 'Disputed',
             ),
+            SizedBox(height: 8),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.gavel,
+              label: "Reason for Dispute",
+              value:  '',
+            ),
+            SizedBox(height: 8),
+            Text(
+              disputes?.disputeReason ?? 'Not available',
+              style: GoogleFonts.montserrat(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF03045E),
+              ),
+              textAlign: TextAlign.justify,
+            ),
+            SizedBox(height: 8),
+            _buildTaskInfoRow(
+                icon: FontAwesomeIcons.noteSticky,
+                label: "Dispute Details",
+                value: ""
+            ),
+            SizedBox(height: 8),
+            Text(
+              disputes?.disputeDetails ?? 'Not available',
+              style: GoogleFonts.montserrat(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF03045E),
+              ),
+              textAlign: TextAlign.justify,
+            )
           ],
         ),
       ),

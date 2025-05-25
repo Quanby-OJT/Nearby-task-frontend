@@ -19,7 +19,7 @@ export class ReportService {
       'Authorization': `Bearer ${this.sessionStorage.getSessionToken()}`
     });
   }
-  
+
   getReport(): Observable<any> {
     return this.http.get(`${this.apiUrl}/getReports`, {
       headers: this.getHeader(),

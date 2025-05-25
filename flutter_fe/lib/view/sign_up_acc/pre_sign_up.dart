@@ -81,9 +81,18 @@ class _PreSignUpState extends State<PreSignUp> with TickerProviderStateMixin {
 
     return Scaffold(
       appBar: AppBar(
-        iconTheme: const IconThemeData(color: Colors.black),
+        backgroundColor: Colors.grey[100],
         elevation: 0,
-        backgroundColor: const Color(0xFFF1F4FF),
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: Color(0xFFB71A4A),
+            size: 20,
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: SingleChildScrollView(
         child: Center(

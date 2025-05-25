@@ -10,9 +10,7 @@ import 'package:flutter_fe/service/task_information.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/controller/escrow_management_controller.dart';
 
-import '../model/client_model.dart';
 import '../model/conversation.dart';
-import '../model/tasker_model.dart';
 
 class TaskController {
   final JobPostService _jobPostService = JobPostService();
@@ -124,9 +122,22 @@ class TaskController {
       final clientTask = await _jobPostService.fetchJobsForClient(clientId);
       debugPrint("Client Task Response: ${clientTask.toString()}");
 
-      if (clientTask.containsKey('tasks') && clientTask['tasks'] is List) {
+      if (clientTask.containsKey('success') &&
+          clientTask['success'] &&
+          clientTask['tasks'] is List) {
         final tasksList = clientTask['tasks'] as List<dynamic>;
-        return tasksList.map((task) => TaskModel.fromJson(task)).toList();
+        final taskTakenList = clientTask['taskTaken'] as List<dynamic>? ?? [];
+
+        return tasksList.map((taskJson) {
+          final matchingTaskTaken = taskTakenList
+              .where((taskTaken) => taskTaken['task_id'] == taskJson['task_id'])
+              .toList();
+
+          return TaskModel.fromJson({
+            ...taskJson as Map<String, dynamic>,
+            'taskTaken': matchingTaskTaken,
+          });
+        }).toList();
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -197,10 +208,12 @@ class TaskController {
         : assignedTask['error'].toString();
   }
 
-  Future<bool> acceptRequest(int taskTakenId, String value, String role) async {
+  Future<bool> acceptRequest(int taskTakenId, String value, String role,
+      {String? rejectionReason}) async {
     debugPrint("Assigning task...");
-    final assignedTask =
-        await _jobPostService.acceptRequest(taskTakenId, value, role);
+    final assignedTask = await _jobPostService.acceptRequest(
+        taskTakenId, value, role,
+        rejectionReason: rejectionReason);
     if (assignedTask.containsKey('message')) {
       return assignedTask['message'] = true;
     }

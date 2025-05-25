@@ -553,7 +553,7 @@ class JobPostService {
 
     final response = await _getRequest("/display-task-for-client/$clientId");
 
-    debugPrint("Client Task Response: ${response.toString()}");
+    debugPrint("Client Task Response many: ${response.toString()}");
 
     if (response.containsKey("success") && response["success"] == true) {
       return response;
@@ -743,9 +743,7 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> assignTask(
-      int taskId, int clientId, int taskerId, String role,
-      {int? daysAvailable, String? availableDate}) async {
+  Future<Map<String, dynamic>> assignTask(int taskId, int clientId, int taskerId, String role, {int? daysAvailable, String? availableDate}) async {
     final userId = await getUserId();
     if (userId == null) {
       return {
@@ -770,8 +768,7 @@ class JobPostService {
     });
   }
 
-  Future<Map<String, dynamic>> updateNotification(
-      int taskTakenId, int userId) async {
+  Future<Map<String, dynamic>> updateNotification(int taskTakenId, int userId) async {
     try {
       debugPrint("Updating notification with ID: $taskTakenId and $userId");
       final response = await http.put(
@@ -792,18 +789,32 @@ class JobPostService {
   }
 
   Future<Map<String, dynamic>> acceptRequest(
-      int taskTakenId, String value, String role) async {
+      int taskTakenId, String value, String role,
+      {String? rejectionReason}) async {
     try {
       int clientId = await storage.read('user_id');
       debugPrint(
           "Accepting task with ID: $taskTakenId with the task status of: $value");
-      return await _putRequest(
-          endpoint: '/update-request/$taskTakenId',
-          body: {"value": value, "role": role, "client_id": clientId});
+      return await _putRequest(endpoint: '/update-request/$taskTakenId', body: {
+        "value": value,
+        "role": role,
+        "client_id": clientId,
+        "rejection_reason": rejectionReason
+      });
     } catch (e) {
       debugPrint('Error accepting task: $e');
       debugPrintStack();
       return {'success': false, 'error': 'Error: $e'};
+    }
+  }
+
+  Future<Map<String, dynamic>> getDispute(int taskTakenId) async {
+    try {
+      return await _getRequest('/get-a-dispute/$taskTakenId');
+    }catch(e, stackTrace){
+      debugPrint('Error accepting task: $e');
+      debugPrintStack(stackTrace: stackTrace);
+      return {'success': false, 'error': 'An Error Occurred while displaying your task information. Please Try Again'};
     }
   }
 
@@ -852,8 +863,7 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> rateTheTasker(
-      int taskTakenId, int taskerId, int rating, String feedback) async {
+  Future<Map<String, dynamic>> rateTheTasker(int taskTakenId, int taskerId, int rating, String feedback) async {
     try {
       debugPrint(
           "Rating the tasker with rating: $rating and feedback: $feedback");
@@ -870,8 +880,7 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> fetchIsApplied(
-      int? taskId, int? clientId, int? taskerId) async {
+  Future<Map<String, dynamic>> fetchIsApplied(int? taskId, int? clientId, int? taskerId) async {
     final userId = await getUserId();
     if (userId == null) {
       return {
@@ -930,8 +939,7 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> updateTask(
-      int taskId, Map<String, dynamic> taskData) async {
+  Future<Map<String, dynamic>> updateTask(int taskId, Map<String, dynamic> taskData) async {
     try {
       debugPrint("Updating task with ID: $taskId");
       return await _putRequest(
@@ -946,8 +954,7 @@ class JobPostService {
   }
 
   // Method to disable a task
-  Future<Map<String, dynamic>> disableTask(int taskId,
-      [String status = "cancelled"]) async {
+  Future<Map<String, dynamic>> disableTask(int taskId, [String status = "cancelled"]) async {
     try {
       debugPrint("Disabling task with ID: $taskId with status: $status");
       final response = await http.put(

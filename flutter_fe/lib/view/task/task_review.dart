@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/controller/task_request_controller.dart';
-import 'package:flutter_fe/model/disputes.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
@@ -10,62 +8,50 @@ import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:get_storage/get_storage.dart';
+import 'dart:async';
+import 'package:intl/intl.dart';
 
-class ClientDisputedSettled extends StatefulWidget {
-  final int? finishID;
-  final String? role;
-  const ClientDisputedSettled({super.key, this.finishID, this.role});
+class TaskReview extends StatefulWidget {
+  final TaskFetch? taskInformation;
+  const TaskReview({super.key, this.taskInformation});
 
   @override
-  State<ClientDisputedSettled> createState() => _ClientDisputedSettledState();
+  State<TaskReview> createState() => _TaskReviewState();
 }
 
-class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
+class _TaskReviewState extends State<TaskReview> {
   final JobPostService _jobPostService = JobPostService();
   final TaskController taskController = TaskController();
   final ProfileController _profileController = ProfileController();
-  final TaskRequestController _taskRequestController = TaskRequestController();
-  Disputes? dispute;
+  TaskModel? _taskInformation;
   ClientRequestModel? _requestInformation;
   bool _isLoading = true;
   final storage = GetStorage();
-  String? _role;
-  AuthenticatedUser? tasker;
+  AuthenticatedUser? client;
+  Duration? _timeRemaining;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _fetchRequestDetails();
-    _fetchUserData();
-
-    debugPrint("Task ID from the widget: ${widget.finishID}");
   }
 
-  Future<void> _fetchUserData() async {
-    try {
-      int userId = storage.read("user_id");
-      AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
-      debugPrint(user.toString());
-      setState(() {
-        _role = user?.user.role;
-      });
-    } catch (e) {
-      print("Error fetching user data: $e");
-      setState(() => _isLoading = false);
-    }
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   Future<void> _fetchTaskerDetails(int userId) async {
     try {
       AuthenticatedUser? user =
           await _profileController.getAuthenticatedUser(context, userId);
-      debugPrint(user.toString());
       setState(() {
-        tasker = user;
+        client = user;
       });
     } catch (e) {
-      debugPrint("Error fetching tasker details: $e");
+      debugPrint("Error fetching client details: $e");
       setState(() {
         _isLoading = false;
       });
@@ -74,14 +60,13 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
 
   Future<void> _fetchRequestDetails() async {
     try {
-      final response =
-          await _jobPostService.fetchRequestInformation(widget.finishID ?? 0);
-      debugPrint("Fetched request details: $response");
+      final response = await _jobPostService
+          .fetchRequestInformation(widget.taskInformation?.taskTakenId ?? 0);
       setState(() {
         _requestInformation = response;
       });
       await _fetchTaskDetails();
-      if (widget.role == "Client") {
+      if (widget.taskInformation?.taskDetails.client?.user?.role == "Client") {
         await _fetchTaskerDetails(_requestInformation!.tasker_id as int);
       } else {
         await _fetchTaskerDetails(_requestInformation!.client_id as int);
@@ -96,9 +81,10 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
 
   Future<void> _fetchTaskDetails() async {
     try {
-      final response = await _taskRequestController.getDispute(widget.finishID ?? 0);
+      final response = await _jobPostService
+          .fetchTaskInformation(_requestInformation!.task_id as int);
       setState(() {
-        dispute = response;
+        _taskInformation = response?.task;
         _isLoading = false;
       });
     } catch (e) {
@@ -121,7 +107,7 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Settled Dispute Tasks',
+          'Review Task',
           style: GoogleFonts.montserrat(
             color: Color(0xFF03045E),
             fontSize: 20,
@@ -132,7 +118,7 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: Color(0xFF03045E)))
-          : dispute == null
+          : _taskInformation == null
               ? Center(
                   child: Text(
                     'No task information available',
@@ -148,16 +134,13 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Completion Status Section
-                        _buildCompletionSection(),
-                        SizedBox(height: 16),
                         // Task Card
+                        _buildReviewSection(),
+                        SizedBox(height: 16),
                         _buildTaskCard(),
                         SizedBox(height: 16),
-                        // Client/Tasker Profile Card
                         _buildProfileCard(),
                         SizedBox(height: 24),
-                        // Action Button
                         _buildActionButton(),
                       ],
                     ),
@@ -166,34 +149,34 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
     );
   }
 
-  Widget _buildCompletionSection() {
+  Widget _buildReviewSection() {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.green[50],
+        color: Colors.blue[50],
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.green[100]!),
+        border: Border.all(color: Colors.blue[100]!),
       ),
       child: Column(
         children: [
           Icon(
-            Icons.check_circle,
-            color: Colors.green[600],
-            size: 48,
+            Icons.hourglass_empty,
+            color: Colors.blue[600],
+            size: 40,
           ),
           SizedBox(height: 12),
           Text(
-            'Disputed Task Settled.',
+            'Pending to Review',
             style: GoogleFonts.montserrat(
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: Colors.green[800],
+              color: Colors.blue[800],
             ),
           ),
           SizedBox(height: 8),
           Text(
-            'Our Team had Successfully Settled this task. You can now rate the tasker.',
+            "Waiting for client review",
             textAlign: TextAlign.center,
             style: GoogleFonts.montserrat(
               fontSize: 14,
@@ -227,7 +210,7 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    dispute?.taskAssignment?.task?.title ?? 'Task',
+                    _taskInformation!.title ?? 'Task',
                     style: GoogleFonts.montserrat(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -237,61 +220,20 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
                 ),
               ],
             ),
-            _buildTaskInfoRow(
-              icon: Icons.info,
-              label: 'Dispute Reason',
-              value: dispute?.disputeReason ?? 'Not Available',
-            ),
-            SizedBox(height: 12),
-            _buildTaskInfoRow(
-              icon: Icons.info,
-              label: 'Dispute Details',
-              value: "",
-            ),
-            SizedBox(height: 12),
-            Text(
-              dispute?.disputeDetails ?? 'Not available',
-              style: GoogleFonts.montserrat(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF03045E),
-              )
-            ),
             SizedBox(height: 12),
             _buildTaskInfoRow(
               icon: Icons.info,
               label: 'Status',
-              value: _requestInformation?.task_status ?? 'Dispute has been Settled',
+              value: _requestInformation?.task_status ?? 'Ongoing',
             ),
-            SizedBox(height: 12),
             _buildTaskInfoRow(
-              icon: Icons.info,
-              label: 'Moderator Action',
-              value: '',
+              icon: Icons.calendar_today,
+              label: 'Finished Date',
+              value: _requestInformation!.start_date != null
+                  ? DateFormat('MMM dd, yyyy HH:mm')
+                      .format(_requestInformation!.start_date!.toLocal())
+                  : 'N/A',
             ),
-            SizedBox(height: 8),
-            Text(
-              dispute?.moderatorAction ?? 'Not available',
-              style: GoogleFonts.montserrat(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF03045E),
-              )
-            ),
-            SizedBox(height: 8),
-            _buildTaskInfoRow(
-              icon: FontAwesomeIcons.noteSticky,
-              label: "Moderator Notes",
-              value: ""
-            ),
-            SizedBox(height: 8),
-            Text(
-              dispute?.moderatorNotes ?? 'Not available',
-              style: GoogleFonts.montserrat(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              )
-            )
           ],
         ),
       ),
@@ -323,9 +265,7 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.role! == "Client"
-                          ? "Tasker Profile"
-                          : "Client Profile",
+                      'Client Profile',
                       style: GoogleFonts.montserrat(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -345,16 +285,27 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
             ),
             SizedBox(height: 16),
             _buildProfileInfoRow(
-                'Name', tasker?.user.firstName ?? 'Not available'),
+              'Name',
+              (widget.taskInformation?.taskDetails.client?.user != null)
+                  ? '${widget.taskInformation!.taskDetails.client!.user!.firstName ?? ''} ${widget.taskInformation!.taskDetails.client!.user!.lastName ?? ''}'
+                      .trim()
+                  : 'Not available',
+            ),
             SizedBox(height: 8),
             _buildProfileInfoRow(
-                'Email', tasker?.user.email ?? 'Not available'),
+                'Email',
+                widget.taskInformation?.taskDetails.client?.user?.email ??
+                    'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow(
-                'Phone', tasker?.user.contact ?? 'Not available'),
+                'Phone',
+                widget.taskInformation?.taskDetails.client?.user?.contact ??
+                    'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow(
-                'Status', tasker?.user.accStatus ?? 'Not available'),
+                'Status',
+                widget.taskInformation?.taskDetails.client?.user?.accStatus ??
+                    'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow('Account', 'Verified', isVerified: true),
           ],
@@ -368,7 +319,7 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
       width: double.infinity,
       child: ElevatedButton(
         onPressed: () {
-          Navigator.pop(context); // Return to previous screen
+          Navigator.pop(context);
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Color(0xFF03045E),
@@ -379,7 +330,7 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
           elevation: 2,
         ),
         child: Text(
-          'Back to Tasks',
+          'Back to Task',
           style: GoogleFonts.montserrat(
             fontSize: 16,
             fontWeight: FontWeight.w600,

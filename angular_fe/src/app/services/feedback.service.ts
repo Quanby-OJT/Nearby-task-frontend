@@ -24,7 +24,7 @@ export class FeedbackService {
     }
 
     getFeedback(): Observable<any> {
-        return this.http.get(`${this.apiUrl}/get-all-tasker-feedback`, { 
+        return this.http.get(`${this.apiUrl}/get-all-tasker-feedback`, {
             headers: this.getHeader(),
             withCredentials: true
         });

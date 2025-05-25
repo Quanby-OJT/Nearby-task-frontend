@@ -159,7 +159,7 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
     final query = _searchController.text.toLowerCase();
     setState(() {
       _filteredTasks = _availableTasks?.where((task) {
-            final title = task.title?.toLowerCase() ?? '';
+            final title = task.title.toLowerCase() ?? '';
             return title.contains(query);
           }).toList() ??
           [];

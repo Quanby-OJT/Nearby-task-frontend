@@ -21,7 +21,7 @@
     {{ user.email | slice:0:20 }}...
   </td>
   
-  <td class="px-4 py-3 pl-10 text-start font-normal">
+ <td class="px-4 py-3 pl-10 text-start font-normal">
     <div class="flex items-center gap-2.5 font-['Arial']">
       <div class="h-2.5 w-2.5 rounded-full" [ngClass]="{
         'bg-black': user.acc_status === 'not-odd:ull',
@@ -34,9 +34,11 @@
         'bg-yellow-300': user.acc_status === 'Pending',
         'bg-yellow-500': user.acc_status === 'Warn'
       }"></div>
-      <span class="text-sm text-black">{{ user.acc_status ? user.acc_status : 'Null' }}</span>
+      <span class="text-sm text-black">
+        {{ user.acc_status === 'Active' ? 'Verified' : (user.acc_status ? user.acc_status : 'Null') }}
+      </span>
     </div>
-  </td>
+</td>
   
   <td class="px-4 py-3 pl-10 text-start font-normal">
     <div class="flex items-center gap-2.5 font-['Arial']">

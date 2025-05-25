@@ -8,7 +8,7 @@ import { SessionLocalStorage } from 'src/services/sessionStorage';
 })
 export class UserConversationService {
   private apiUrl = 'https://localhost:5000/connect';
-  
+
   constructor(
     private http: HttpClient,
     private sessionStorage: SessionLocalStorage
