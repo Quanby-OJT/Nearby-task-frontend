@@ -1,8 +1,10 @@
+// File: best-client.component.ts
 import { Component, OnInit } from '@angular/core';
 import { ReportService } from '../../../../services/reportANDanalysis.services';
 import { CommonModule } from '@angular/common';
 import { Client } from '../../../../../model/reportANDanalysis';
 import { AngularSvgIconModule } from 'angular-svg-icon';
+import Swal from 'sweetalert2'; 
 
 @Component({
   selector: 'app-best-client',
@@ -119,5 +121,71 @@ export class BestClientComponent implements OnInit {
       this.currentPage = pageNum;
       this.updatePage();
     }
+  }
+
+  openClientHistory(client: Client) {
+    this.reportService.getClientHistory(client.clientId).subscribe({
+      next: (response) => {
+        if (response.success) {
+          const clientHistory = response.clientHistory;
+          const tableHtml = `
+            <div style="overflow-x: auto; max-height: 400px;">
+              <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+                <thead style="border-bottom: 1px solid #ddd;">
+                  <tr>
+                    <th style="padding: 8px 16px;">Tasker Name</th>
+                    <th style="padding: 8px 16px;">Task Description</th>
+                    <th style="padding: 8px 16px;">Status</th>
+                    <th style="padding: 8px 16px;">Address</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${clientHistory.length > 0
+                    ? clientHistory.map(history => `
+                        <tr style="border-bottom: 1px solid #eee;">
+                          <td style="padding: 12px 16px;">${history.taskerName}</td>
+                          <td style="padding: 12px 16px;">${history.taskDescription}</td>
+                          <td style="padding: 12px 16px;">${history.status}</td>
+                        <td style="padding: 12px 16px;">${history.address ? `${history.address.barangay}, ${history.address.city}, ${history.address.province}` : 'Empty'}</td>
+                        </tr>
+                      `).join('')
+                    : '<tr><td colspan="4" style="padding: 12px 16px; text-align: center;">No task history available.</td></tr>'
+                  }
+                </tbody>
+              </table>
+            </div>
+          `;
+
+          Swal.fire({
+            title: `Task History for ${client.userName}`,
+            html: tableHtml,
+            width: '800px',
+            showCloseButton: true,
+            focusConfirm: false,
+            confirmButtonText: 'Close',
+            customClass: {
+              htmlContainer: 'text-right',
+              actions: 'swal2-actions-right'
+            }
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to load task history. Please try again later.',
+            confirmButtonText: 'Close'
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Error fetching client history:', err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to load task history. Please try again later.',
+          confirmButtonText: 'Close'
+        });
+      }
+    });
   }
 }

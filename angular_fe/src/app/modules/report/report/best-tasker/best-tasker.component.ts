@@ -62,7 +62,6 @@ export class BestTaskerComponent implements OnInit {
 
   applyFilters() {
     let tempTaskers = [...this.taskers];
-    
     if (this.currentSearchText) {
       tempTaskers = tempTaskers.filter(tasker => {
         const userName = (tasker.userName || '').toLowerCase();

@@ -23,6 +23,7 @@ export interface Client {
   taskCount: number;
   gender: string;
   rating: number;
+  clientId: number; // Added for client history
 }
 
 export interface MonthlyTrends {
@@ -39,4 +40,15 @@ export interface TaskHistory {
   taskDescription: string;
   status: string;
   clientAddress: string;
+}
+
+export interface ClientHistory {
+  taskerName: string;
+  taskDescription: string;
+  status: string;
+  address: {
+    barangay: string;
+    city: string;
+    province: string;
+  };
 }

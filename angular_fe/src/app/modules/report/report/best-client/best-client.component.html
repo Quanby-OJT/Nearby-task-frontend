@@ -1,3 +1,4 @@
+<!-- File: best-client.component.html -->
 <!-- Main container with search, filter, table, and pagination -->
 <div class="border-muted-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
   <!-- Search and Filter Section -->
@@ -29,7 +30,7 @@
       </thead>
       <tbody>
         <!-- Dynamically display clients -->
-        <tr *ngFor="let client of displayClients; let i = index" class="hover:bg-card/50 h-[60px]">
+        <tr *ngFor="let client of displayClients; let i = index" class="hover:bg-card/50 h-[60px]" (click)="openClientHistory(client)">
           <td class="px-4 py-3 text-start">{{ (currentPage - 1) * clientsPerPage + i + 1 }}</td>
           <td class="px-4 py-3 text-start">{{ client.userName }}</td>
           <td class="px-4 py-3 text-start">{{ client.address }}</td>
