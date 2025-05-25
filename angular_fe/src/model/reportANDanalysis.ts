@@ -39,7 +39,11 @@ export interface TaskHistory {
   clientName: string;
   taskDescription: string;
   status: string;
-  clientAddress: string;
+  address: {
+    barangay: string;
+    city: string;
+    province: string;
+  };
 }
 
 export interface ClientHistory {

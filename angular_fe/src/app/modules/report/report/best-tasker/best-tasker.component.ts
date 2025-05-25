@@ -93,23 +93,10 @@ export class BestTaskerComponent implements OnInit {
 
     this.paginationButtons = [];
 
-    if (start > 1) {
-      this.paginationButtons.push(1);
-      if (start > 2) {
-        this.paginationButtons.push('...');
-      }
-    }
-
     for (let i = start; i <= end; i++) {
       this.paginationButtons.push(i);
     }
 
-    if (end < this.totalPages) {
-      if (end < this.totalPages - 1) {
-        this.paginationButtons.push('...');
-      }
-      this.paginationButtons.push(this.totalPages);
-    }
   }
 
   changeTaskersPerPage(event: Event) {
@@ -148,7 +135,7 @@ export class BestTaskerComponent implements OnInit {
                     <th style="padding: 8px 16px;">Client Name</th>
                     <th style="padding: 8px 16px;">Task Description</th>
                     <th style="padding: 8px 16px;">Status</th>
-                    <th style="padding: 8px 16px;">Address</th>
+                    <th style="padding: 8px 16px;">Task Taken Place</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -158,7 +145,7 @@ export class BestTaskerComponent implements OnInit {
                           <td style="padding: 12px 16px;">${task.clientName}</td>
                           <td style="padding: 12px 16px;">${task.taskDescription}</td>
                           <td style="padding: 12px 16px;">${task.status}</td>
-                          <td style="padding: 12px 16px;">${task.clientAddress}</td>
+                          <td style="padding: 12px 16px;">${task.address ? `${task.address.barangay}, ${task.address.city}, ${task.address.province}` : 'Empty'}</td>
                         </tr>
                       `).join('')
                     : '<tr><td colspan="4" style="padding: 12px 16px; text-align: center;">No task history available.</td></tr>'

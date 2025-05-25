@@ -90,23 +90,11 @@ export class BestClientComponent implements OnInit {
 
     this.paginationButtons = [];
 
-    if (start > 1) {
-      this.paginationButtons.push(1);
-      if (start > 2) {
-        this.paginationButtons.push('...');
-      }
-    }
 
     for (let i = start; i <= end; i++) {
       this.paginationButtons.push(i);
     }
 
-    if (end < this.totalPages) {
-      if (end < this.totalPages - 1) {
-        this.paginationButtons.push('...');
-      }
-      this.paginationButtons.push(this.totalPages);
-    }
   }
 
   changeClientsPerPage(event: Event) {
@@ -136,7 +124,7 @@ export class BestClientComponent implements OnInit {
                     <th style="padding: 8px 16px;">Tasker Name</th>
                     <th style="padding: 8px 16px;">Task Description</th>
                     <th style="padding: 8px 16px;">Status</th>
-                    <th style="padding: 8px 16px;">Address</th>
+                    <th style="padding: 8px 16px;">Task Taken Place</th>
                   </tr>
                 </thead>
                 <tbody>
