@@ -16,7 +16,7 @@ class _LegalTermsAndConditionsScreenState
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text("NearByTask Terms and Conditions",
+          title: Text("QTask Terms and Conditions",
               style: GoogleFonts.montserrat(
                 color: Colors.white,
                 fontSize: 16,

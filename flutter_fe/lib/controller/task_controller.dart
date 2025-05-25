@@ -23,13 +23,10 @@ class TaskController {
   final jobSpecializationController = TextEditingController();
   final jobDescriptionController = TextEditingController();
   final jobLocationController = TextEditingController();
-  // final jobDurationController = TextEditingController();
-  // final jobTimeController = TextEditingController();
   final jobUrgencyController = TextEditingController();
   final contactPriceController = TextEditingController();
   final jobScopeController = TextEditingController();
   final jobRemarksController = TextEditingController();
-  // final jobTaskBeginDateController = TextEditingController();
   final contactpriceController = TextEditingController();
   final rejectionController = TextEditingController();
   final storage = GetStorage();
@@ -40,12 +37,9 @@ class TaskController {
     jobSpecializationController.clear();
     jobDescriptionController.clear();
     jobLocationController.clear();
-    // jobDurationController.clear();
-    // jobTimeController.clear();
     jobUrgencyController.clear();
     contactPriceController.clear();
     jobRemarksController.clear();
-    // jobTaskBeginDateController.clear();
     contactpriceController.clear();
     rejectionController.clear();
   }
@@ -147,10 +141,11 @@ class TaskController {
         ),
       );
       return [];
-    } catch (e) {
-      debugPrint("Error fetching created tasks: $e");
+    } catch (e, stackTrace) {
+      debugPrint("Error rendering created tasks: $e");
+      debugPrintStack(stackTrace: stackTrace);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching tasks: $e')),
+        SnackBar(content: Text('Error while rendering your tasks. Please Try Again.'))
       );
       return [];
     }
@@ -270,17 +265,14 @@ class TaskController {
     return false;
   }
 
-  Future<bool> rateTheTasker(
-      int taskTakenId, int taskerId, int rating, String feedback) async {
-    debugPrint(
-        "Rating: $rating, Feedback: $feedback, Taken ID: $taskTakenId, Tasker ID: $taskerId");
+  Future<bool> rateTheTasker(int taskTakenId, int taskerId, int rating, String feedback) async {
+    debugPrint("Rating: $rating, Feedback: $feedback, Taken ID: $taskTakenId, Tasker ID: $taskerId");
     if (taskTakenId == 0 || rating == 0 || feedback.isEmpty) {
       return false;
     }
 
     try {
-      Map<String, dynamic> feedbackResult = await _jobPostService.rateTheTasker(
-          taskTakenId, taskerId, rating, feedback);
+      Map<String, dynamic> feedbackResult = await _jobPostService.rateTheTasker(taskTakenId, taskerId, rating, feedback);
 
       debugPrint("Feedback response: $feedbackResult");
       if (feedbackResult.containsKey('message')) {
@@ -296,9 +288,20 @@ class TaskController {
     }
   }
 
+  Future<Map<String, dynamic>> getClientFeedback(int taskTakenId) async {
+    try {
+      Map<String, dynamic> feedbackResult = await _jobPostService.getClientFeedback(taskTakenId);
+      debugPrint("Feedback response: $feedbackResult");
+      return feedbackResult;
+    } catch (e, stackTrace) {
+      debugPrint("Error in task controller getClientFeedback: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {"error": "An Error occured while retrieving your feedback. Please Try Again."};
+    }
+  }
+
   // Method to update a task
-  Future<Map<String, dynamic>> updateTask(
-      int taskId, Map<String, dynamic> taskData) async {
+  Future<Map<String, dynamic>> updateTask(int taskId, Map<String, dynamic> taskData) async {
     debugPrint("Updating task with ID: $taskId");
     try {
       if (_escrowManagementController.tokenCredits.value -
@@ -416,8 +419,7 @@ class TaskController {
   }
 
 //Update Task Status in Conversation
-  Future<void> updateTaskStatus(
-      BuildContext context, int taskTakenId, String? newStatus) async {
+  Future<void> updateTaskStatus(BuildContext context, int taskTakenId, String? newStatus) async {
     try {
       final response =
           await _taskDetailsService.updateTaskStatus(taskTakenId, newStatus);

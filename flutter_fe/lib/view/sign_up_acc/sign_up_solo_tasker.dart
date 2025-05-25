@@ -91,7 +91,7 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => NearbyTaskRules(userId: userId),
+              builder: (context) => QTaskRules(userId: userId),
             ),
           );
         }

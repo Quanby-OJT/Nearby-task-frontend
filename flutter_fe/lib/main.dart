@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/view/business_acc/business_acc_main_page.dart';
+import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:url_strategy/url_strategy.dart';
@@ -15,26 +17,39 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   setPathUrlStrategy();
   WebViewPlatform.instance = AndroidWebViewPlatform();
+
   await GetStorage.init();
+  final storage = GetStorage();
   await dotenv.load(fileName: ".env");
   HttpOverrides.global = MyHttpOverrides();
   Get.put(DeepLinkController());
-  runApp(const MyApp());
+
+  final session = storage.read('session');
+  final userId = storage.read('user_id');
+  final role = storage.read('role');
+
+  runApp(MyApp(
+    isLoggedIn: session != null,
+    role: role,
+  ));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isLoggedIn;
+  final String? role;
+
+  const MyApp({super.key, required this.isLoggedIn, required this.role});
 
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'NearbyTask',
+      title: 'QTask',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const WelcomePageViewMain(),
+      home: isLoggedIn ? (role == "Client" ? const BusinessAccMain() : const ServiceAccMain()) : const WelcomePageViewMain(),
     );
   }
 }
