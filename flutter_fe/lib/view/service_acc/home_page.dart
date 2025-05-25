@@ -64,6 +64,10 @@ class _TaskerHomePageState extends State<TaskerHomePage>
   AnimationController? _likeAnimationController;
   AnimationController? _dislikeAnimationController;
 
+  // Add flip animation controllers and state
+  Map<int, AnimationController> _flipControllers = {};
+  Map<int, bool> _isFlipped = {};
+
   @override
   void initState() {
     super.initState();
@@ -101,6 +105,8 @@ class _TaskerHomePageState extends State<TaskerHomePage>
   void dispose() {
     _likeAnimationController?.dispose();
     _dislikeAnimationController?.dispose();
+    // Dispose flip controllers
+    _flipControllers.values.forEach((controller) => controller.dispose());
     controller.dispose();
     super.dispose();
   }
@@ -171,8 +177,28 @@ class _TaskerHomePageState extends State<TaskerHomePage>
       }
 
       //Checker if User has been already been warned.
-      if(!mounted) return;
+      if (!mounted) return;
 
+// <<<<<<< update-saved-task-ui
+//       if (user.user.accStatus == "Warn") {
+//         showWarnUser();
+//       } else if (user.user.accStatus == "Ban") {
+//         showBanUser();
+//       } else {
+//         setState(() {
+//           _user = user;
+//           _fullName = [
+//             _user?.user.firstName ?? '',
+//             _user?.user.middleName ?? '',
+//             _user?.user.lastName ?? '',
+//           ].where((name) => name.isNotEmpty).join(' ');
+//           _role = _user?.user.role ?? "Unknown";
+//           _image = user.user.image ?? "Unknown";
+//           _profileController.firstNameController.text = _fullName;
+//           _profileController.roleController.text = _role;
+//           _profileController.imageController.text = _image;
+//         });
+// =======
       if(user.user.accStatus == "Warn"){
         bool hasShownWarning = storage.read('hasShownWarning') ?? false;
         if (!hasShownWarning) {
@@ -208,78 +234,67 @@ class _TaskerHomePageState extends State<TaskerHomePage>
 
   void showWarnUser() {
     showDialog(
-      context: context,
-      builder: (BuildContext childContext){
-        return AlertDialog(
-          content: Row(
-            children: [
-              Icon(
-                FontAwesomeIcons.triangleExclamation,
-                color: Color(0XFFE7A335),
-                size: 50,
-              ),
-              SizedBox(width: 10),
-              Expanded(
+        context: context,
+        builder: (BuildContext childContext) {
+          return AlertDialog(
+              content: Row(children: [
+            Icon(
+              FontAwesomeIcons.triangleExclamation,
+              color: Color(0XFFE7A335),
+              size: 50,
+            ),
+            SizedBox(width: 10),
+            Expanded(
                 child: Text(
-                  "You have been flagged for suspicious activity in your account. Please Contact Support for more information. Tap anywhere to remove this warning.",
-                  style: GoogleFonts.poppins(
-                    color: Colors.black,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w300,
-                  ),
-                )
-              )
-            ]
-          )
-        );
-      }
-    );
+              "You have been flagged for suspicious activity in your account. Please Contact Support for more information. Tap anywhere to remove this warning.",
+              style: GoogleFonts.poppins(
+                color: Colors.black,
+                fontSize: 14,
+                fontWeight: FontWeight.w300,
+              ),
+            ))
+          ]));
+        });
   }
 
   void showBanUser() {
     showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (BuildContext childContext){
-        return AlertDialog(
-          content: Row(
-            children: [
-              Icon(
-                FontAwesomeIcons.triangleExclamation,
-                color: Color(0XFFEB5A63),
-                size: 50,
-              ),
-              SizedBox(width: 10),
-              Expanded(
-                child: Text(
+        barrierDismissible: false,
+        context: context,
+        builder: (BuildContext childContext) {
+          return AlertDialog(
+              content: Row(children: [
+                Icon(
+                  FontAwesomeIcons.triangleExclamation,
+                  color: Color(0XFFEB5A63),
+                  size: 50,
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                    child: Text(
                   "You have been banned from using this application. Please contact our support if you want to appeal.",
                   style: GoogleFonts.poppins(
                     color: Colors.black,
                     fontSize: 14,
                     fontWeight: FontWeight.w300,
                   ),
-                )
-              )
-            ]
-          ),
-          actions: [
-            TextButton(
-              onPressed: () async{
-                await _authController.logout(context, () => mounted);
-              },
-              child: Text(
-                "Log Out",
-                style: GoogleFonts.poppins(
-                  color: Color(0xFFB71A4A),
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              )
-            )
-          ]
-        );
-      }
-    );
+                ))
+              ]),
+              actions: [
+                TextButton(
+                    onPressed: () async {
+                      await _authController.logout(context, () => mounted);
+                    },
+                    child: Text(
+                      "Log Out",
+                      style: GoogleFonts.poppins(
+                        color: Color(0xFFB71A4A),
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ))
+              ]);
+        });
   }
 
   Future<void> _fetchUserIDImage() async {
@@ -897,176 +912,35 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                 cardBuilder:
                     (context, index, percentThresholdX, percentThresholdY) {
                   final task = tasks[index];
+                  _initializeFlipController(index);
+
                   return Center(
                     child: SizedBox(
                       width: double.infinity,
-                      child: Card(
-                        elevation: 8,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: Color(0xFF0272B1).withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(12),
+                      height: 600,
+                      child: GestureDetector(
+                        onTap: () => _toggleCardFlip(index),
+                        child: AnimatedBuilder(
+                          animation: _flipControllers[index]!,
+                          builder: (context, child) {
+                            final isShowingFront =
+                                _flipControllers[index]!.value < 0.5;
+                            return Transform(
+                              alignment: Alignment.center,
+                              transform: Matrix4.identity()
+                                ..setEntry(3, 2, 0.001)
+                                ..rotateY(
+                                    _flipControllers[index]!.value * 3.14159),
+                              child: isShowingFront
+                                  ? _buildFrontCard(task, index)
+                                  : Transform(
+                                      alignment: Alignment.center,
+                                      transform: Matrix4.identity()
+                                        ..rotateY(3.14159),
+                                      child: _buildBackCard(task, index),
                                     ),
-                                    child: Text(
-                                      task.taskerSpecialization
-                                              ?.specialization ??
-                                          'No Specialization',
-                                      style: GoogleFonts.openSans(
-                                        fontSize: 14,
-                                        color: Color(0xFF0272B1),
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 16),
-                              Text(
-                                task.title ?? 'No Title',
-                                style: GoogleFonts.openSans(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey[800],
-                                ),
-                              ),
-                              SizedBox(height: 12),
-                              Text(
-                                task.description ?? 'No Description',
-                                style: GoogleFonts.openSans(
-                                  fontSize: 16,
-                                  color: Colors.grey[600],
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 4,
-                              ),
-                              SizedBox(height: 16),
-                              Container(
-                                width: 150,
-                                height: 150,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: task.imageUrl != null &&
-                                        task.imageUrl!.isNotEmpty
-                                    ? ClipRRect(
-                                        borderRadius: BorderRadius.circular(20),
-                                        child: Image.network(
-                                          task.imageUrl!,
-                                          fit: BoxFit.cover,
-                                          width: 150,
-                                          height: 150,
-                                          errorBuilder:
-                                              (context, error, stackTrace) {
-                                            return Container(
-                                              color: Colors.grey[200],
-                                              child: Center(
-                                                child: Icon(
-                                                  Icons.work_outline_outlined,
-                                                  size: 50,
-                                                  color: Colors.grey[400],
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      )
-                                    : Container(
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey[200],
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                        ),
-                                        child: Center(
-                                          child: Icon(
-                                            Icons.image_not_supported_outlined,
-                                            size: 50,
-                                            color: Colors.grey[400],
-                                          ),
-                                        ),
-                                      ),
-                              ),
-                              Spacer(),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice.roundToDouble() ?? 0)}',
-                                        style: GoogleFonts.openSans(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.green,
-                                        ),
-                                      ),
-                                      SizedBox(height: 8),
-                                    ],
-                                  ),
-                                  Column(
-                                    children: [
-                                      Row(
-                                        children: [
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              controller.swipe(
-                                                  CardSwiperDirection.left);
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  Colors.transparent,
-                                              shape: CircleBorder(),
-                                              fixedSize: Size(50, 50),
-                                              padding: EdgeInsets.zero,
-                                            ),
-                                            child: Icon(
-                                              Icons.close,
-                                              color: Colors.red,
-                                              size: 24,
-                                            ),
-                                          ),
-                                          SizedBox(width: 10),
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              controller.swipe(
-                                                  CardSwiperDirection.right);
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.red,
-                                              shape: CircleBorder(),
-                                              fixedSize: Size(50, 50),
-                                              padding: EdgeInsets.zero,
-                                            ),
-                                            child: Icon(
-                                              Icons.favorite,
-                                              color: Colors.white,
-                                              size: 24,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  )
-                                ],
-                              )
-                            ],
-                          ),
+                            );
+                          },
                         ),
                       ),
                     ),
@@ -1095,6 +969,548 @@ class _TaskerHomePageState extends State<TaskerHomePage>
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  // Add method to initialize flip controllers for cards
+  void _initializeFlipController(int index) {
+    if (!_flipControllers.containsKey(index)) {
+      _flipControllers[index] = AnimationController(
+        duration: Duration(milliseconds: 600),
+        vsync: this,
+      );
+      _isFlipped[index] = false;
+    }
+  }
+
+  // Add method to toggle card flip
+  void _toggleCardFlip(int index) {
+    _initializeFlipController(index);
+    if (_isFlipped[index] == true) {
+      _flipControllers[index]?.reverse();
+      _isFlipped[index] = false;
+    } else {
+      _flipControllers[index]?.forward();
+      _isFlipped[index] = true;
+    }
+  }
+
+  Widget _buildFrontCard(TaskModel task, int index) {
+    return Center(
+      child: SizedBox(
+        width: double.infinity,
+        height: 600,
+        child: Card(
+          elevation: 12,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Expanded image section
+                Expanded(
+                  child: Container(
+                    width: double.infinity,
+                    child: Stack(
+                      children: [
+                        // Main image
+                        Container(
+                          width: double.infinity,
+                          height: double.infinity,
+                          child: task.imageUrl != null &&
+                                  task.imageUrl!.isNotEmpty
+                              ? Image.network(
+                                  task.imageUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: [
+                                            Color(0xFF0272B1).withOpacity(0.8),
+                                            Color(0xFFB71A4A).withOpacity(0.8),
+                                          ],
+                                        ),
+                                      ),
+                                      child: Center(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.work_outline_outlined,
+                                              size: 60,
+                                              color: Colors.white,
+                                            ),
+                                            SizedBox(height: 12),
+                                            Text(
+                                              'No Image Available',
+                                              style: GoogleFonts.poppins(
+                                                color: Colors.white,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                )
+                              : Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Color(0xFF0272B1).withOpacity(0.8),
+                                        Color(0xFFB71A4A).withOpacity(0.8),
+                                      ],
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.image_not_supported_outlined,
+                                          size: 60,
+                                          color: Colors.white,
+                                        ),
+                                        SizedBox(height: 12),
+                                        Text(
+                                          'No Image Available',
+                                          style: GoogleFonts.poppins(
+                                            color: Colors.white,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                        ),
+
+                        // Flip indicator in top-right corner
+                        Positioned(
+                          top: 16,
+                          right: 16,
+                          child: Container(
+                            padding: EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.9),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 8,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              Icons.flip_to_back,
+                              color: Color(0xFF0272B1),
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Content section
+
+                Container(
+                  padding: EdgeInsets.all(20),
+                  color: Colors.white,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Category badge
+                      Container(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Color(0xFF0272B1).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Color(0xFF0272B1).withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          task.taskerSpecialization?.specialization ??
+                              'General',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            color: Color(0xFF0272B1),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+
+                      SizedBox(height: 12),
+
+                      // Title
+                      Text(
+                        task.title ?? 'No Title',
+                        style: GoogleFonts.poppins(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1A1A1A),
+                          height: 1.2,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+
+                      SizedBox(height: 12),
+
+                      // Bottom section with price and actions
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: Colors.green.withOpacity(0.3),
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice.roundToDouble() ?? 0)}',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green[700],
+                              ),
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[100],
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.grey[300]!,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: IconButton(
+                                  onPressed: () {
+                                    controller.swipe(CardSwiperDirection.left);
+                                  },
+                                  icon: Icon(
+                                    Icons.close,
+                                    color: Colors.red[600],
+                                    size: 24,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Color(0xFFB71A4A),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Color(0xFFB71A4A).withOpacity(0.3),
+                                      blurRadius: 8,
+                                      offset: Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: IconButton(
+                                  onPressed: () {
+                                    controller.swipe(CardSwiperDirection.right);
+                                  },
+                                  icon: Icon(
+                                    Icons.favorite,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackCard(TaskModel task, int index) {
+    return Center(
+      child: SizedBox(
+        width: double.infinity,
+        child: Card(
+          elevation: 12,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
+            height: 600,
+            padding: const EdgeInsets.all(24.0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white,
+                  Colors.grey[50]!,
+                ],
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header with category and flip icon
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Color(0xFF0272B1).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Color(0xFF0272B1).withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        task.taskerSpecialization?.specialization ?? 'General',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: Color(0xFF0272B1),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Color(0xFF0272B1).withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.flip_to_front,
+                        color: Color(0xFF0272B1),
+                        size: 20,
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 24),
+
+                // Title
+                Text(
+                  task.title ?? 'No Title',
+                  style: GoogleFonts.poppins(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1A1A1A),
+                    height: 1.2,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+
+                SizedBox(height: 20),
+
+                // Description section
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.grey[200]!,
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.description_outlined,
+                              color: Color(0xFF0272B1),
+                              size: 20,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              'Description',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF0272B1),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 16),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: Text(
+                              task.description ??
+                                  'No description available for this task.',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                color: Colors.grey[700],
+                                height: 1.6,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 20),
+
+                // Bottom section with price and actions
+                Container(
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.grey[200]!,
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Budget',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice.roundToDouble() ?? 0)}',
+                              style: GoogleFonts.poppins(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green[700],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.grey[300]!,
+                                width: 1,
+                              ),
+                            ),
+                            child: IconButton(
+                              onPressed: () {
+                                controller.swipe(CardSwiperDirection.left);
+                              },
+                              icon: Icon(
+                                Icons.close,
+                                color: Colors.red[600],
+                                size: 24,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Color(0xFFB71A4A),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Color(0xFFB71A4A).withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: IconButton(
+                              onPressed: () {
+                                controller.swipe(CardSwiperDirection.right);
+                              },
+                              icon: Icon(
+                                Icons.favorite,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

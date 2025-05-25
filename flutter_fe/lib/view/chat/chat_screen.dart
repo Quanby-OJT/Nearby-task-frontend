@@ -911,12 +911,32 @@ class _ChatScreenState extends State<ChatScreen> {
     debugPrint("Is Unread: $isUnread");
 
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 4),
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 4,
+            offset: Offset(0, 1),
+            spreadRadius: 0,
+          ),
+        ],
+        border: isUnread && isReceiver
+            ? Border.all(color: Color(0xFFB71A4A).withOpacity(0.2), width: 1.5)
+            : null,
+      ),
+      child: Material(
+        color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           onTap: () {
             Navigator.push(
               context,
@@ -931,114 +951,222 @@ class _ChatScreenState extends State<ChatScreen> {
           },
           onLongPress: () => showMessageOptions(context, taskTaken.taskTakenId),
           child: Padding(
-            padding: EdgeInsets.all(12),
+            padding: EdgeInsets.all(16),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Stack(
                   children: [
-                    CircleAvatar(
-                      radius: 28,
-                      backgroundColor: Color(0xFF0272B1),
-                      backgroundImage: user?.imageName != null
-                          ? CachedNetworkImageProvider(user!.imageName!)
-                          : null,
-                      child: user?.imageName == null
-                          ? Text(
-                              user?.firstName.isNotEmpty == true
-                                  ? user!.firstName[0]
-                                  : 'U',
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16,
-                              ),
-                            )
-                          : null,
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isUnread && isReceiver
+                              ? Color(0xFFB71A4A).withOpacity(0.3)
+                              : Colors.grey.withOpacity(0.2),
+                          width: 2,
+                        ),
+                      ),
+                      child: CircleAvatar(
+                        radius: 30,
+                        backgroundColor: Color(0xFF0272B1),
+                        backgroundImage: user?.imageName != null
+                            ? CachedNetworkImageProvider(user!.imageName!)
+                            : null,
+                        child: user?.imageName == null
+                            ? Text(
+                                user?.firstName.isNotEmpty == true
+                                    ? user!.firstName[0].toUpperCase()
+                                    : 'U',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 18,
+                                ),
+                              )
+                            : null,
+                      ),
                     ),
                     if (isUnread && isReceiver)
                       Positioned(
-                        right: 0,
-                        bottom: 0,
-                        child: CircleAvatar(
-                          radius: 10,
-                          backgroundColor: Color(0xFFB71A4A),
+                        right: -2,
+                        top: -2,
+                        child: Container(
+                          padding: EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Color(0xFFB71A4A),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(0xFFB71A4A).withOpacity(0.3),
+                                blurRadius: 4,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
                           child: Text(
-                            taskTaken.unreadCount.toString(),
+                            taskTaken.unreadCount > 99
+                                ? '99+'
+                                : taskTaken.unreadCount.toString(),
                             style: GoogleFonts.poppins(
                               color: Colors.white,
                               fontSize: 10,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
                       ),
                   ],
                 ),
-                SizedBox(width: 12),
+                SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Flexible(
-                            child: Text(
-                              taskTaken.task?.title ?? 'No Title',
-                              style: GoogleFonts.montserrat(
-                                color: Color(0xFF0272B1),
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16,
-                              ),
-                              overflow: TextOverflow.ellipsis,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  taskTaken.task?.title ?? 'No Title',
+                                  style: GoogleFonts.poppins(
+                                    color: Color(0xFF1A1A1A),
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                    height: 1.2,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                SizedBox(height: 4),
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: Color(0xFF0272B1).withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    'Task Chat',
+                                    style: GoogleFonts.poppins(
+                                      color: Color(0xFF0272B1),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          Text(
-                            timestamp,
-                            style: GoogleFonts.poppins(
-                              color: Colors.grey[500],
-                              fontSize: 12,
-                            ),
+                          SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                timestamp,
+                                style: GoogleFonts.poppins(
+                                  color: Colors.grey[500],
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              if (isUnread && isReceiver)
+                                Container(
+                                  margin: EdgeInsets.only(top: 4),
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: Color(0xFFB71A4A),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                            ],
                           ),
                         ],
                       ),
-                      SizedBox(height: 4),
+                      SizedBox(height: 12),
                       Row(
                         children: [
-                          readIconMarker(
-                            isUnread
-                                ? FontAwesomeIcons.check
-                                : FontAwesomeIcons.checkDouble,
-                            isUnread ? Colors.grey : Color(0xFF0272B1),
+                          Container(
+                            padding: EdgeInsets.only(right: 8),
+                            child: Icon(
+                              isUnread
+                                  ? Icons.check_circle_outline
+                                  : Icons.check_circle,
+                              color: isUnread
+                                  ? Colors.grey[400]
+                                  : Color(0xFF4CAF50),
+                              size: 16,
+                            ),
                           ),
-                          Flexible(
+                          Expanded(
                             child: Text(
-                              "${user?.firstName ?? ''} ${user?.middleName ?? ''} ${user?.lastName ?? ''}",
+                              "${user?.firstName ?? ''} ${user?.middleName ?? ''} ${user?.lastName ?? ''}"
+                                  .trim(),
                               style: GoogleFonts.poppins(
                                 fontSize: 14,
                                 color: isUnread && isReceiver
-                                    ? Colors.black87
+                                    ? Color(0xFF1A1A1A)
                                     : Colors.grey[600],
-                                fontWeight: isUnread
+                                fontWeight: isUnread && isReceiver
                                     ? FontWeight.w600
-                                    : FontWeight.normal,
+                                    : FontWeight.w500,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
                       ),
-                      if (conversation?.conversationMessage != null)
-                        Text(
-                          conversation!.conversationMessage!,
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            color: isUnread ? Colors.black54 : Colors.grey[500],
+                      if (conversation?.conversationMessage != null) ...[
+                        SizedBox(height: 8),
+                        Container(
+                          padding: EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isUnread && isReceiver
+                                ? Color(0xFFB71A4A).withOpacity(0.05)
+                                : Colors.grey[50],
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isUnread && isReceiver
+                                  ? Color(0xFFB71A4A).withOpacity(0.1)
+                                  : Colors.grey.withOpacity(0.1),
+                              width: 1,
+                            ),
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.chat_bubble_outline,
+                                size: 14,
+                                color: Colors.grey[500],
+                              ),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  conversation!.conversationMessage!,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13,
+                                    color: isUnread && isReceiver
+                                        ? Color(0xFF1A1A1A)
+                                        : Colors.grey[600],
+                                    fontWeight: isUnread && isReceiver
+                                        ? FontWeight.w500
+                                        : FontWeight.normal,
+                                    height: 1.3,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
+                      ],
                     ],
                   ),
                 ),
@@ -1046,17 +1174,6 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget readIconMarker(IconData icon, Color color) {
-    return Padding(
-      padding: EdgeInsets.only(right: 8),
-      child: Icon(
-        icon,
-        color: color,
-        size: 14,
       ),
     );
   }
