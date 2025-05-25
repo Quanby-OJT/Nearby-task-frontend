@@ -179,25 +179,49 @@ class _TaskerHomePageState extends State<TaskerHomePage>
       //Checker if User has been already been warned.
       if (!mounted) return;
 
-      if (user.user.accStatus == "Warn") {
-        showWarnUser();
-      } else if (user.user.accStatus == "Ban") {
+// <<<<<<< update-saved-task-ui
+//       if (user.user.accStatus == "Warn") {
+//         showWarnUser();
+//       } else if (user.user.accStatus == "Ban") {
+//         showBanUser();
+//       } else {
+//         setState(() {
+//           _user = user;
+//           _fullName = [
+//             _user?.user.firstName ?? '',
+//             _user?.user.middleName ?? '',
+//             _user?.user.lastName ?? '',
+//           ].where((name) => name.isNotEmpty).join(' ');
+//           _role = _user?.user.role ?? "Unknown";
+//           _image = user.user.image ?? "Unknown";
+//           _profileController.firstNameController.text = _fullName;
+//           _profileController.roleController.text = _role;
+//           _profileController.imageController.text = _image;
+//         });
+// =======
+      if(user.user.accStatus == "Warn"){
+        bool hasShownWarning = storage.read('hasShownWarning') ?? false;
+        if (!hasShownWarning) {
+          storage.write('hasShownWarning', true);
+          showWarnUser();
+        }
+      }else if(user.user.accStatus == "Ban"){
         showBanUser();
-      } else {
-        setState(() {
-          _user = user;
-          _fullName = [
-            _user?.user.firstName ?? '',
-            _user?.user.middleName ?? '',
-            _user?.user.lastName ?? '',
-          ].where((name) => name.isNotEmpty).join(' ');
-          _role = _user?.user.role ?? "Unknown";
-          _image = user.user.image ?? "Unknown";
-          _profileController.firstNameController.text = _fullName;
-          _profileController.roleController.text = _role;
-          _profileController.imageController.text = _image;
-        });
       }
+
+      setState(() {
+        _user = user;
+        _fullName = [
+          _user?.user.firstName ?? '',
+          _user?.user.middleName ?? '',
+          _user?.user.lastName ?? '',
+        ].where((name) => name.isNotEmpty).join(' ');
+        _role = _user?.user.role ?? "Unknown";
+        _image = user.user.image ?? "Unknown";
+        _profileController.firstNameController.text = _fullName;
+        _profileController.roleController.text = _role;
+        _profileController.imageController.text = _image;
+      });
     } catch (e) {
       debugPrint("Error fetching user data: $e");
       setState(() {

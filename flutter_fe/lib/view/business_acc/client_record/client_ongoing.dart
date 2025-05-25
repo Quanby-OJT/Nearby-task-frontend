@@ -37,11 +37,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
   Timer? _timer;
   String _requestStatus = 'Unknown';
 
-  // Feedback Bottom Sheet State
-  int _rating = 0;
-  final TextEditingController _feedbackController = TextEditingController();
-  final TextEditingController _reportController = TextEditingController();
-  bool _isSatisfied = true;
+
 
   // Dispute Bottom Sheet State
   final TextEditingController _disputeTypeController = TextEditingController();
@@ -59,8 +55,6 @@ class _ClientOngoingState extends State<ClientOngoing> {
   @override
   void dispose() {
     _timer?.cancel();
-    _feedbackController.dispose();
-    _reportController.dispose();
     _disputeTypeController.dispose();
     _disputeDetailsController.dispose();
     super.dispose();
@@ -117,32 +111,21 @@ class _ClientOngoingState extends State<ClientOngoing> {
     }
   }
 
-  // void _startCountdownTimer() {
-  //   if (_taskInformation?.duration != null &&
-  //       _taskInformation?.period != null) {
-  //     int durationInDays = int.parse(_taskInformation!.duration!);
-  //     String period = _taskInformation!.period!.toLowerCase();
+  Future<void> _handleFinishTask() async {
+    if (_requestInformation == null ||
+        _requestInformation!.task_taken_id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Task information not available')),
+      );
+      return;
+    }
 
-  //     if (period.contains('week')) {
-  //       durationInDays *= 7;
-  //     } else if (period.contains('month')) {
-  //       durationInDays *= 30;
-  //     }
-
-  //     DateTime endDate = DateTime.now().add(Duration(days: durationInDays));
-  //     _timeRemaining = endDate.difference(DateTime.now());
-
-  //     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-  //       setState(() {
-  //         _timeRemaining = endDate.difference(DateTime.now());
-  //         if (_timeRemaining!.isNegative) {
-  //           _timeRemaining = Duration.zero;
-  //           timer.cancel();
-  //         }
-  //       });
-  //     });
-  //   }
-  // }
+    bool result = await taskController.acceptRequest(
+      _requestInformation?.task_taken_id ?? 0,
+      'Finish',
+      widget.role ?? '',
+    );
+  }
 
   String _formatDuration(Duration duration) {
     if (duration.isNegative) return 'Time’s up!';
@@ -170,25 +153,6 @@ class _ClientOngoingState extends State<ClientOngoing> {
     }
   }
 
-  Future<void> _handleFinishTask() async {
-    if (_requestInformation == null ||
-        _requestInformation!.task_taken_id == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Task information not available')),
-      );
-      return;
-    }
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => _buildFeedbackBottomSheet(),
-    );
-  }
-
   Future<void> _handleTaskDispute() async {
     if (_requestInformation == null ||
         _requestInformation!.task_taken_id == null) {
@@ -205,199 +169,6 @@ class _ClientOngoingState extends State<ClientOngoing> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (childContext) => _buildDisputeBottomSheet(),
-    );
-  }
-
-  Widget _buildFeedbackBottomSheet() {
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: 16,
-        right: 16,
-        top: 16,
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Rate & Review Tasker',
-              style: GoogleFonts.montserrat(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF03045E),
-              ),
-            ),
-            SizedBox(height: 16),
-            // Rating Stars
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (index) {
-                return IconButton(
-                  icon: Icon(
-                    index < _rating ? Icons.star : Icons.star_border,
-                    color: Colors.amber,
-                    size: 36,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _rating = index + 1;
-                      _isSatisfied = _rating > 2;
-                    });
-                  },
-                );
-              }),
-            ),
-            SizedBox(height: 16),
-            // Feedback Field
-            Text(
-              'Feedback',
-              style: GoogleFonts.montserrat(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF03045E),
-              ),
-            ),
-            SizedBox(height: 8),
-            TextField(
-              controller: _feedbackController,
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: 'Share your experience...',
-                hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Color(0xFF03045E)),
-                ),
-              ),
-              style: GoogleFonts.montserrat(fontSize: 14),
-            ),
-            if (!_isSatisfied) ...[
-              SizedBox(height: 16),
-              Text(
-                'Report Issue',
-                style: GoogleFonts.montserrat(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.red[700],
-                ),
-              ),
-              SizedBox(height: 8),
-              TextField(
-                controller: _reportController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  hintText: 'Describe the issue for reporting...',
-                  hintStyle: GoogleFonts.montserrat(color: Colors.grey[400]),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.red[700]!),
-                  ),
-                ),
-                style: GoogleFonts.montserrat(fontSize: 14),
-              ),
-            ],
-            SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () async {
-                  if (_rating == 0) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Please provide a rating')),
-                    );
-                    return;
-                  }
-                  setState(() {
-                    _isLoading = true;
-                  });
-                  try {
-                    bool result = await taskController.acceptRequest(
-                      _requestInformation?.task_taken_id ?? 0,
-                      'Finish',
-                      widget.role ?? '',
-                    );
-
-                    bool result2 = await taskController.rateTheTasker(
-                        _requestInformation?.task_taken_id ?? 0,
-                        _requestInformation?.tasker_id ?? 0,
-                        _rating,
-                        _feedbackController.text);
-                    if (result && result2) {
-                      if (!mounted) return;
-
-                      setState(() {
-                        _requestStatus = 'Completed';
-                      });
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => FinishTask(
-                            finishID: _requestInformation?.task_taken_id ?? 0,
-                            role: widget.role,
-                          ),
-                        ),
-                      );
-                    } else {
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Failed to finish task')),
-                      );
-                    }
-                  } catch (e, stackTrace) {
-                    debugPrint("Error finishing task: $e.");
-                    debugPrintStack(stackTrace: stackTrace);
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error occurred')),
-                      );
-                    }
-                  } finally {
-                    setState(() {
-                      _isLoading = false;
-                    });
-                  }
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF03045E),
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 2,
-                ),
-                child: Text(
-                  'Submit Feedback & Release Payment',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-          ],
-        ),
-      ),
     );
   }
 
@@ -952,7 +723,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
   Widget _buildActionButton() {
     return Column(
       children: [
-        if(_requestInformation?.task_status != 'Dispute Settled' || _requestInformation?.task_status != 'Completed')...[
+        if(_requestInformation?.task_status != 'Completed')...[
           ElevatedButton(
             onPressed: _handleFinishTask,
             style: ElevatedButton.styleFrom(

@@ -210,8 +210,10 @@ class _JobPostPageState extends State<JobPostPage>
 
       debugPrint(
           'Fetched ${_clientTasksTasker.length} tasks for status view po');
-    } catch (e) {
-      _showErrorSnackBar('Error fetching task status: $e');
+    } catch (e, stackTrace) {
+      debugPrint('Error while rendering tasks for status view: $e');
+      debugPrintStack(stackTrace: stackTrace);
+      _showErrorSnackBar('An error occurred while displaying your tasks. Please Try Again.');
     }
   }
 

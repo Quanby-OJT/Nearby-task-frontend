@@ -119,7 +119,7 @@ class _RecordPageState extends State<RecordPage> {
                                   0.0
                               ? Text(
                                   "₱ 0.00",
-                                  style: TextStyle(
+                                  style: GoogleFonts.poppins(
                                     color: Colors.white,
                                     fontSize: 36,
                                     fontWeight: FontWeight.bold,
@@ -127,7 +127,7 @@ class _RecordPageState extends State<RecordPage> {
                                 )
                               : Text(
                                   '₱${_escrowManagementController.tokenCredits.value.toStringAsFixed(2)}',
-                                  style: TextStyle(
+                                  style: GoogleFonts.poppins(
                                     color: Colors.white,
                                     fontSize: 36,
                                     fontWeight: FontWeight.bold,

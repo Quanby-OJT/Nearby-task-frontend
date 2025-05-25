@@ -113,7 +113,7 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                             ),
                             Text(
                               textAlign: TextAlign.center,
-                              'Find Tasks Near You with NearbyTask!',
+                              'Find Tasks Near You with QTask!',
                               style: GoogleFonts.poppins(
                                 fontSize: 12,
                                 color: Colors.black87,
