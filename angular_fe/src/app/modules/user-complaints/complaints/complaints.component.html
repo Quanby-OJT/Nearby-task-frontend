@@ -73,7 +73,7 @@
           <tr>
             <th class="px-4 py-2 text-start min-w-[140px] lg:min-w-[300px] xl:min-w-[230px]">
               <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('reporterName')">
-                Reporter Name
+                Complainant
                 <span class="w-4 h-4">
                   <ng-container *ngIf="sortDirections['reporterName'] === 'asc'">
                     <span title="Ascending">▲</span>
@@ -87,8 +87,8 @@
                 </span>
               </div>
             </th>
-            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Violator Name</th>
-            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[200px]">Reporter Role</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Violator </th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[200px]"> Complainant Role</th>
             <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[180px]">Violator Role</th>
             <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[230px]">
               <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('createdAt')">
@@ -117,7 +117,7 @@
             <td class="px-4 py-3 text-start">{{ report.reporter.user_role }}</td>
             <td class="px-4 py-3 text-start">{{ report.violator.user_role }}</td>
             <td class="px-4 py-3 text-start">{{ report.created_at }}</td>
-            <td class="px-4 py-3 pl-10 text-start font-normal">
+            <td class="px-4 py-3 pl-2 text-start font-normal">
               <div class="flex items-center gap-2.5 font-['Arial']">
                 <div class="h-2.5 w-2.5 rounded-full" [ngClass]="report.status ? 'bg-green-500' : 'bg-yellow-500'"></div>
                 <span class="text-sm text-black">{{ report.status ? 'Processed' : 'Pending' }}</span>
@@ -221,7 +221,7 @@
           <tr>
             <th class="px-4 py-2 text-start min-w-[140px] lg:min-w-[300px] xl:min-w-[230px]">
               <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('reporterName')">
-                Reporter Name
+                Complainant
                 <span class="w-4 h-4">
                   <ng-container *ngIf="sortDirections['reporterName'] === 'asc'">
                     <span title="Ascending">▲</span>
@@ -235,8 +235,8 @@
                 </span>
               </div>
             </th>
-            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Violator Name</th>
-            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[190px]">Reporter Role</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Violator</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[190px]">Complainant Role</th>
             <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[190px]">Violator Role</th>
             <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[240px]">
               <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('createdAt')">
@@ -266,7 +266,7 @@
             <td class="px-4 py-3 text-start">{{ report.reporter.user_role }}</td>
             <td class="px-4 py-3 text-start">{{ report.violator.user_role }}</td>
             <td class="px-4 py-3 text-start">{{ report.created_at }}</td>
-            <td class="px-4 py-3 pl-10 text-start font-normal">
+            <td class="px-4 py-3 pl-2 text-start font-normal">
               <div class="flex items-center gap-2.5 font-['Arial']">
                 <div class="h-2.5 w-2.5 rounded-full" [ngClass]="report.status ? 'bg-green-500' : 'bg-yellow-500'"></div>
                 <span class="text-sm text-black">{{ report.status ? 'Processed' : 'Pending' }}</span>
