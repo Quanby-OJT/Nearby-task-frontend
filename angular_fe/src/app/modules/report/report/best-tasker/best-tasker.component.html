@@ -28,7 +28,7 @@
       </thead>
       <tbody>
         <!-- Dynamically display taskers -->
-        <tr *ngFor="let tasker of displayTaskers; let i = index" class="hover:bg-card/50 h-[60px]">
+        <tr *ngFor="let tasker of displayTaskers; let i = index" class="hover:bg-card/50 h-[60px]" (click)="openTaskHistoryModal(tasker.taskerId, tasker.userName)">
           <td class="px-4 py-3 text-start">{{ (currentPage - 1) * taskersPerPage + i + 1 }}</td>
           <td class="px-4 py-3 text-start">{{ tasker.userName }}</td>
           <td class="px-4 py-3 text-start">{{ tasker.specialization }}</td>
@@ -46,7 +46,7 @@
       <div class="flex items-center gap-2">
         Show
         <select class="w-[140px] p-2 border rounded-md" (change)="changeTaskersPerPage($event)">
-          <option valie="5" selected>5</option>
+          <option value="5" selected>5</option>
           <option value="10">10</option>
           <option value="20">20</option>
           <option value="30">30</option>

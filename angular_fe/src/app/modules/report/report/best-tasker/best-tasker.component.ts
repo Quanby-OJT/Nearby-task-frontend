@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { ReportService } from '../../../../services/reportANDanalysis.services';
 import { CommonModule } from '@angular/common';
-import { Tasker } from '../../../../../model/reportANDanalysis';
+import { Tasker, TaskHistory } from '../../../../../model/reportANDanalysis';
 import { AngularSvgIconModule } from 'angular-svg-icon';
+import Swal from 'sweetalert2'; // Import SweetAlert2
 
 @Component({
   selector: 'app-best-tasker',
@@ -11,9 +12,9 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
   styleUrl: './best-tasker.component.css'
 })
 export class BestTaskerComponent implements OnInit {
-  taskers: Tasker[] = [];
-  filteredTaskers: Tasker[] = [];
-  displayTaskers: Tasker[] = [];
+  taskers: (Tasker & { taskerId: number })[] = [];
+  filteredTaskers: (Tasker & { taskerId: number })[] = [];
+  displayTaskers: (Tasker & { taskerId: number })[] = [];
   paginationButtons: (number | string)[] = [];
   taskersPerPage: number = 5;
   currentPage: number = 1;
@@ -22,6 +23,9 @@ export class BestTaskerComponent implements OnInit {
   endIndex: number = 0;
   currentSearchText: string = '';
   isLoading: boolean = true;
+  selectedTaskerId: number | null = null;
+  selectedTaskerName: string = '';
+  taskHistory: TaskHistory[] = [];
 
   constructor(private reportService: ReportService) {}
 
@@ -34,7 +38,10 @@ export class BestTaskerComponent implements OnInit {
     this.reportService.getTopTasker().subscribe({
       next: (response) => {
         if (response.success) {
-          this.taskers = response.taskers;
+          this.taskers = response.taskers.map((tasker: Tasker) => ({
+            ...tasker,
+            taskerId: (tasker as any).taskerId || 0
+          })) as (Tasker & { taskerId: number })[];
           this.taskers.sort((a, b) => b.rating - a.rating); 
           this.filteredTaskers = [...this.taskers];
           this.updatePage();
@@ -55,8 +62,7 @@ export class BestTaskerComponent implements OnInit {
 
   applyFilters() {
     let tempTaskers = [...this.taskers];
-
-    // Apply search filter if there's a search term
+    
     if (this.currentSearchText) {
       tempTaskers = tempTaskers.filter(tasker => {
         const userName = (tasker.userName || '').toLowerCase();
@@ -119,5 +125,73 @@ export class BestTaskerComponent implements OnInit {
       this.currentPage = pageNum;
       this.updatePage();
     }
+  }
+
+  openTaskHistoryModal(taskerId: number, taskerName: string) {
+    this.selectedTaskerId = taskerId;
+    this.selectedTaskerName = taskerName;
+    this.fetchTaskHistory(taskerId);
+  }
+
+  fetchTaskHistory(taskerId: number) {
+    this.reportService.getTaskHistory(taskerId).subscribe({
+      next: (response) => {
+        console.log('Task history response:', response);
+        if (response.success) {
+          this.taskHistory = response.taskHistory;
+          console.log('Assigned task history:', this.taskHistory);
+
+          const tableHtml = `
+            <div style="overflow-x: auto; max-height: 400px;">
+              <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+                <thead style="border-bottom: 1px solid #ddd;">
+                  <tr>
+                    <th style="padding: 8px 16px;">Client Name</th>
+                    <th style="padding: 8px 16px;">Task Description</th>
+                    <th style="padding: 8px 16px;">Status</th>
+                    <th style="padding: 8px 16px;">Address</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${this.taskHistory.length > 0
+                    ? this.taskHistory.map(task => `
+                        <tr style="border-bottom: 1px solid #eee;">
+                          <td style="padding: 12px 16px;">${task.clientName}</td>
+                          <td style="padding: 12px 16px;">${task.taskDescription}</td>
+                          <td style="padding: 12px 16px;">${task.status}</td>
+                          <td style="padding: 12px 16px;">${task.clientAddress}</td>
+                        </tr>
+                      `).join('')
+                    : '<tr><td colspan="4" style="padding: 12px 16px; text-align: center;">No task history available.</td></tr>'
+                  }
+                </tbody>
+              </table>
+            </div>
+          `;
+
+          Swal.fire({
+            title: `Task History for ${this.selectedTaskerName}`,
+            html: tableHtml,
+            width: '800px',
+            showCloseButton: true,
+            focusConfirm: false,
+            confirmButtonText: 'Close',
+            customClass: {
+              htmlContainer: 'text-right',
+              actions: 'swal2-actions-right'
+            },
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Error fetching task history:', err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to load task history. Please try again later.',
+          confirmButtonText: 'Close'
+        });
+      }
+    });
   }
 }

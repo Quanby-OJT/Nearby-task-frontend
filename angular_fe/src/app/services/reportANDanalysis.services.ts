@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { SessionLocalStorage } from 'src/services/sessionStorage';
+import { TaskHistory } from '../../model/reportANDanalysis';
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +20,7 @@ export class ReportService {
       'Authorization': `Bearer ${this.sessionStorage.getSessionToken()}`
     });
   }
-
+  
   getSpecialization(trendType: 'requested' | 'applied' = 'applied', month?: string): Observable<{
     success: boolean;
     rankedSpecializations: { specialization: string; total_requested: number; total_applied: number }[];
@@ -73,6 +74,19 @@ export class ReportService {
       success: boolean;
       clients: { userName: string; address: string; taskCount: number; gender: string; rating: number }[];
     }>(`${this.apiUrl}/getTopClient`, {
+      headers: this.getHeader(),
+      withCredentials: true,
+    });
+  }
+
+  getTaskHistory(taskerId: number): Observable<{
+    success: boolean;
+    taskHistory: TaskHistory[];
+  }> {
+    return this.http.get<{
+      success: boolean;
+      taskHistory: TaskHistory[];
+    }>(`${this.apiUrl}/getTaskHistory/${taskerId}`, {
       headers: this.getHeader(),
       withCredentials: true,
     });
