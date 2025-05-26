@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TaskService } from 'src/app/services/task.service';
 import { CommonModule } from '@angular/common';
 import { AngularSvgIconModule } from 'angular-svg-icon';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-task-reported-list',
@@ -40,17 +41,48 @@ export class TaskReportedListComponent implements OnInit {
     this.router.navigate(['tasks-management']);
   }
 
-  disableTask() {
+  async disableTask() {
     if (!this.task?.task_id) return;
   
-    this.taskService.disableTask(this.task.task_id).subscribe({
-      next: () => {
-        console.log('Task disabled successfully');
-        this.task.status = 'Closed';
-        this.cdr.detectChanges(); 
+    const { value: reason } = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'Please provide a reason for closing this task.',
+      input: 'text',
+      inputPlaceholder: 'Enter reason here...',
+      showCancelButton: true,
+      confirmButtonText: 'Confirm',
+      cancelButtonText: 'Cancel',
+      inputValidator: (value) => {
+        if (!value) {
+          return 'You need to provide a reason!';
+        }
+        return null;
       },
-      error: (err) => console.error('Error disabling task:', err)
+      inputAttributes: {
+        style: 'width: auto; max-width: auto;',
+      },
+      willOpen: () => {
+        const confirmButton = Swal.getConfirmButton();
+        const input = Swal.getInput();
+        if (confirmButton && input) {
+          confirmButton.disabled = true;
+          input.oninput = () => {
+            confirmButton.disabled = !input.value.trim();
+          };
+        }
+      }
     });
-    this.router.navigate(['tasks-management']);
+  
+    if (reason) {
+      this.taskService.disableTask(this.task.task_id, reason).subscribe({
+        next: () => {
+          console.log('Task disabled successfully');
+          this.task.status = 'Closed';
+          this.cdr.detectChanges();
+          this.router.navigate(['tasks-management']);
+        },
+        error: (err) => console.error('Error disabling task:', err)
+      });
+    }
   }
 }
