@@ -32,9 +32,9 @@ export class TaskService {
     });
   }
 
-  disableTask(id: string): Observable<any> {
+  disableTask(id: string, reason: string): Observable<any> {
     const loggedInUserId = this.sessionStorage.getUserId();
-    return this.http.patch(`${this.apiUrl}/displayTask/${id}`, { loggedInUserId }, {
+    return this.http.patch(`${this.apiUrl}/displayTask/${id}`, { loggedInUserId, reason }, {
       headers: this.getHeaders(),
       withCredentials: true
     });
