@@ -153,7 +153,7 @@ export class DisputeManagementComponent {
             <img
             src="${pic}"
             alt="Dispute evidence"
-            class="w-24 h-24 object-cover cursor-pointer rounded"
+            class="w-48 h-48 object-cover cursor-pointer rounded"
             onclick="window.open('${pic}', '_blank')"
             />`
         ).join('') :
@@ -222,9 +222,13 @@ export class DisputeManagementComponent {
       // Add confirmation modal
       Swal.fire({
         title: 'Are you sure?',
-          cancelButtonText: 'Review the Dispute',
-          confirmButtonColor: '#3085d6',
-          cancelButtonColor: '#d33',
+        cancelButtonText: 'Review the Dispute',
+        text: `You are about to update the dispute with ID: ${this.disputeDetails.dispute_id}.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Resolve This Dispute',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
         }).then((confirmResult) => {
           if (confirmResult.isConfirmed) {
             this.updateDispute(
@@ -242,7 +246,7 @@ export class DisputeManagementComponent {
 
   updateDispute(dispute_id: number, task_taken_id: number, task_id: number, moderator_action: string, addl_dispute_notes: string,) {
     console.log("Updating a dispute with ID:", dispute_id);
-    this.disputeService.updateADispute(dispute_id, task_taken_id, task_id, "Dispute Settled", moderator_action, addl_dispute_notes)
+    this.disputeService.updateADispute(dispute_id, task_taken_id, task_id, "Completed", moderator_action, addl_dispute_notes)
       .subscribe({
         next: (response) => {
           Swal.fire({
