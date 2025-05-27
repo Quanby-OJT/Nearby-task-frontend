@@ -128,7 +128,19 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
           _isLoading = false;
           _showButton = _existingProfileImageUrl != null &&
               _existingIDImageUrl != null &&
-              _documentValid;
+              (_documentValid || user?.user.accStatus == 'Review');
+        });
+      } else {
+        // Handle API error gracefully
+        debugPrint('Failed to fetch user ID image: ${response['message']}');
+        setState(() {
+          _existingProfileImageUrl = user?.user.image;
+          _existingIDImageUrl = null;
+          _documentValid = false;
+          _isLoading = false;
+          // Still allow task creation if user has profile image and status is Review
+          _showButton = _existingProfileImageUrl != null &&
+              user?.user.accStatus == 'Review';
         });
       }
     } catch (e) {
