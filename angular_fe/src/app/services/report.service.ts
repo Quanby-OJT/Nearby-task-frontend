@@ -27,14 +27,15 @@ export class ReportService {
     });
   }
 
-  updateReportStatus(reportId: number, status: boolean): Observable<any> {
+  updateReportStatus(reportId: number, status: boolean, reason: string, actionType: 'ban' | 'unban'): Observable<any> {
     const userId = this.sessionStorage.getUserId();
     const parsedUserId = userId ? parseInt(userId, 10) : 0;
-    if(!parsedUserId || isNaN(parsedUserId)){
+    if (!parsedUserId || isNaN(parsedUserId)) {
       throw new Error('The Current Logged In User Has No Session!');
     }
-    const moderatorId = {actionBy:parsedUserId }
-    return this.http.patch(`${this.apiUrl}/reports/${reportId}`, { status , reportId, moderatorId }, {
+    const requestBody = { status, reportId, moderatorId: parsedUserId, reason, actionType };
+    console.log('Update Report Status Request Body:', requestBody);
+    return this.http.patch(`${this.apiUrl}/reports/${reportId}`, requestBody, {
       headers: this.getHeader(),
       withCredentials: true
     });

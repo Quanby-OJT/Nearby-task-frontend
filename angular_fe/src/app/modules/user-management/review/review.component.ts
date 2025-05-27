@@ -23,7 +23,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
   styleUrl: './review.component.css',
 })
 export class ReviewComponent {
-  form!: FormGroup;
+  Form!: FormGroup;
   submitted = false;
   imagePreview: File | null = null;
   duplicateEmailError: any = null;
@@ -84,7 +84,7 @@ export class ReviewComponent {
   }
 
   formValidation(): void {
-    this.form = this._formBuilder.group({
+    this.Form = this._formBuilder.group({
       firstName: ['', Validators.required],
       middleName: [''],
       lastName: ['', Validators.required],
@@ -116,7 +116,7 @@ export class ReviewComponent {
         console.log('User data response:', response);
         this.userData = response.user;
         const age = this.calculateAge(response.user.birthdate);
-        this.form.patchValue({
+        this.Form.patchValue({
           firstName: response.user.first_name,
           middleName: response.user.middle_name,
           lastName: response.user.last_name,
@@ -126,7 +126,7 @@ export class ReviewComponent {
           status: response.user.acc_status,
           age: age
         });
-        console.log('Form value after patching:', this.form.value);
+        console.log('Form value after patching:', this.Form.value);
         this.profileImage = response.user.image_link; // Set profileImage from image_link
 
         this.userAccountService.getUserDocuments(userId).subscribe({
@@ -249,13 +249,13 @@ export class ReviewComponent {
   }
 
   get f() {
-    return this.form.controls;
+    return this.Form.controls;
   }
 
   onSubmit() {
     this.submitted = true;
 
-    if (this.form.invalid) {
+    if (this.Form.invalid) {
       Swal.fire({
         icon: 'error',
         title: 'Validation Error',
@@ -263,32 +263,77 @@ export class ReviewComponent {
       });
       return;
     }
-
-    const userId = Number(this.userId);
-    this.updateUserAccount(userId);
+    // Submission is now handled via updateStatusWithReason
   }
 
-  updateUserAccount(userId: number): void {
-    const formData = new FormData();
-    formData.append('first_name', this.form.value.firstName);
-    formData.append('middle_name', this.form.value.middleName);
-    formData.append('last_name', this.form.value.lastName);
-    formData.append('birthday', this.form.value.bday);
-    formData.append('email', this.form.value.email);
-    formData.append('acc_status', this.form.value.status);
-    formData.append('user_role', this.form.value.userRole);
-    formData.append('action_by', localStorage.getItem('user_id') || '0');
+  async updateStatusWithReason() {
+    this.submitted = true;
 
-    if (this.imagePreview) {
-      formData.append('image', this.imagePreview, this.imagePreview.name);
+    if (this.Form.invalid) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Validation Error',
+        text: 'Please select a valid user role and status!',
+      });
+      return;
     }
 
-    this.userAccountService.updateUserAccount(userId, formData).subscribe(
+    const { value: reason } = await Swal.fire({
+      title: 'Update User Status',
+      html: `
+        <label for="reason-input" class="block text-sm font-medium text-gray-700 mb-2">Reason for this action</label>
+        <input id="reason-input" class="swal2-input" placeholder="Enter reason" />
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Confirm',
+      cancelButtonText: 'Cancel',
+      preConfirm: () => {
+        const reasonInput = (document.getElementById('reason-input') as HTMLInputElement).value;
+        if (!reasonInput) {
+          Swal.showValidationMessage('Please provide a reason for this action');
+        }
+        return reasonInput;
+      },
+      willOpen: () => {
+        const confirmButton = Swal.getConfirmButton();
+        const reasonInput = document.getElementById('reason-input') as HTMLInputElement;
+
+        if (confirmButton) {
+          confirmButton.disabled = true;
+        }
+
+        reasonInput.addEventListener('input', () => {
+          if (confirmButton) {
+            confirmButton.disabled = !reasonInput.value.trim();
+          }
+        });
+      }
+    });
+
+    if (reason) {
+      const userId = Number(this.userId);
+      this.updateUserAccount(userId, reason);
+    }
+  }
+
+  updateUserAccount(userId: number, reason: string): void {
+    const userData = {
+      first_name: this.Form.value.firstName,
+      middle_name: this.Form.value.middleName,
+      last_name: this.Form.value.lastName,
+      birthday: this.Form.value.bday,
+      email: this.Form.value.email,
+      acc_status: this.Form.value.status,
+      user_role: this.Form.value.userRole,
+      action_by: localStorage.getItem('user_id') || '0'
+    };
+
+    this.userAccountService.updateUserAccountWithReason(userId, userData, reason).subscribe(
       (response) => {
         Swal.fire({
           icon: 'success',
           title: 'Success',
-          text: 'User updated successfully!',
+          text: 'User status updated successfully!',
         }).then(() => {
           this.router.navigate(['user-management']);
         });
@@ -297,9 +342,9 @@ export class ReviewComponent {
         Swal.fire({
           icon: 'error',
           title: 'Update Failed',
-          text: error.error?.error,
+          text: error.error?.error || 'An error occurred while updating the user status.',
         });
-      },
+      }
     );
   }
 
@@ -332,7 +377,6 @@ export class ReviewComponent {
     const filePath = urlParts[1];
     console.log('Extracted file path:', filePath);
 
-    // Use the apiUrl from UserAccountService to ensure HTTPS
     const url = `${this.userAccountService['apiUrl']}/viewDocument/${encodeURIComponent(filePath)}`;
     const token = this.sessionStorage.getSessionToken();
     if (!token) {
@@ -346,7 +390,6 @@ export class ReviewComponent {
       return;
     }
 
-    // Use HttpClient to fetch the document with Authorization header
     this.http.get(url, {
       headers: new HttpHeaders({
         'Authorization': `Bearer ${token}`
@@ -397,7 +440,6 @@ export class ReviewComponent {
       return;
     }
 
-    // Directly open the image URL in a new tab
     const newWindow = window.open(this.documentUrl, '_blank');
     if (!newWindow) {
       Swal.fire({

@@ -98,6 +98,18 @@ export class UserAccountService {
     });
   }
 
+  updateUserAccountWithReason(userID: number, userData: any, reason: string): Observable<any> {
+    const loggedInUserId = this.sessionStorage.getUserId();
+    return this.http.patch(
+      `${this.apiUrl}/updateUserStatus/${userID}`,
+      { userData, loggedInUserId, reason },
+      {
+        headers: this.getHeaders(),
+        withCredentials: true
+      }
+    );
+  }
+
   getUsers(page: number, pageSize: number): Observable<any> {
     return this.http
       .get<{ users: any[]; total: number }>(`${this.apiUrl}/users?page=${page}&pageSize=${pageSize}`, {
