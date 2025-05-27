@@ -256,7 +256,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 dropdownSearchDecoration: InputDecoration(
                                   labelText: 'Report User *',
                                   labelStyle:
-                                      TextStyle(color: Color(0xFF0272B1)),
+                                      TextStyle(color: Color(0xFFB71A4A)),
                                   filled: true,
                                   fillColor: Color(0xFFF1F4FF),
                                   enabledBorder: OutlineInputBorder(
@@ -267,7 +267,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10),
                                     borderSide: BorderSide(
-                                        color: Color(0xFF0272B1), width: 2),
+                                        color: Color(0xFFB71A4A), width: 2),
                                   ),
                                 ),
                               ),
@@ -290,10 +290,10 @@ class _ChatScreenState extends State<ChatScreen> {
                             child: TextField(
                               controller: reportController.reasonController,
                               maxLines: 5,
-                              cursorColor: Color(0xFF0272B1),
+                              cursorColor: Color(0xFFB71A4A),
                               decoration: InputDecoration(
                                 label: Text('Report Description *'),
-                                labelStyle: TextStyle(color: Color(0xFF0272B1)),
+                                labelStyle: TextStyle(color: Color(0xFFB71A4A)),
                                 alignLabelWithHint: true,
                                 filled: true,
                                 fillColor: Color(0xFFF1F4FF),
@@ -307,7 +307,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
                                   borderSide: BorderSide(
-                                      color: Color(0xFF0272B1), width: 2),
+                                      color: Color(0xFFB71A4A), width: 2),
                                 ),
                                 errorText: reportController.errors['reason'],
                               ),
@@ -322,7 +322,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 Text(
                                   'Upload Proof (Max 5 images)',
                                   style: GoogleFonts.poppins(
-                                    color: Color(0xFF0272B1),
+                                    color: Color(0xFFB71A4A),
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -342,7 +342,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                         color: Colors.white),
                                   ),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Color(0xFF0272B1),
+                                    backgroundColor: Color(0xFFB71A4A),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(10),
                                     ),
@@ -506,7 +506,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             });
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF0272B1),
+                            backgroundColor: Color(0xFFB71A4A),
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10)),
                             padding: EdgeInsets.symmetric(
@@ -570,7 +570,7 @@ class _ChatScreenState extends State<ChatScreen> {
             },
             child: Text(
               "Verify Account",
-              style: GoogleFonts.poppins(color: Color(0xFF0272B1)),
+              style: GoogleFonts.poppins(color: Color(0xFFB71A4A)),
             ),
           ),
           TextButton(
@@ -633,7 +633,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 "Report #${report.reportId ?? 'N/A'}",
                                 style: GoogleFonts.montserrat(
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF0272B1),
+                                  color: Color(0xFFB71A4A),
                                 ),
                               ),
                               subtitle: Column(
@@ -770,7 +770,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                   suffixIcon: Icon(
                     FontAwesomeIcons.magnifyingGlass,
-                    color: Color(0xFF0272B1),
+                    color: Color(0xFFB71A4A),
                     size: 18,
                   ),
                 ),
@@ -780,7 +780,7 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: _isLoading
                 ? Center(
-                    child: CircularProgressIndicator(color: Color(0xFF0272B1)),
+                    child: CircularProgressIndicator(color: Color(0xFFB71A4A)),
                   )
                 : taskAssignments.isEmpty
                     ? RefreshIndicator(
@@ -797,7 +797,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   Icon(
                                     FontAwesomeIcons.commentSlash,
                                     size: 80,
-                                    color: Color(0xFF0272B1),
+                                    color: Color(0xFFB71A4A),
                                   ),
                                   SizedBox(height: 16),
                                   Padding(

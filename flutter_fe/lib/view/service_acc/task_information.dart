@@ -290,10 +290,11 @@ class _TaskInformationState extends State<TaskInformation> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        iconTheme: IconThemeData(color: const Color(0xFFB71A4A)),
         title: Text(
           'Task Information',
           style: GoogleFonts.montserrat(
-            color: const Color(0xFF03045E),
+            color: const Color(0xFFB71A4A),
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -442,7 +443,7 @@ class _TaskInformationState extends State<TaskInformation> {
                           style: GoogleFonts.montserrat(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFF03045E),
+                            color: const Color(0xFFB71A4A),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -468,7 +469,7 @@ class _TaskInformationState extends State<TaskInformation> {
                     _isTaskCardExpanded
                         ? Icons.keyboard_arrow_up
                         : Icons.keyboard_arrow_down,
-                    color: const Color(0xFF03045E),
+                    color: const Color(0xFFB71A4A),
                   ),
                 ],
               ),
@@ -540,14 +541,14 @@ class _TaskInformationState extends State<TaskInformation> {
                     style: GoogleFonts.montserrat(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF03045E),
+                      color: const Color(0xFFB71A4A),
                     ),
                   ),
                   Icon(
                     _isClientCardExpanded
                         ? Icons.keyboard_arrow_up
                         : Icons.keyboard_arrow_down,
-                    color: const Color(0xFF03045E),
+                    color: const Color(0xFFB71A4A),
                   ),
                 ],
               ),
@@ -611,7 +612,7 @@ class _TaskInformationState extends State<TaskInformation> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          FaIcon(icon, size: 18, color: const Color(0xFF03045E)),
+          FaIcon(icon, size: 18, color: const Color(0xFFB71A4A)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -704,7 +705,7 @@ class _TaskInformationState extends State<TaskInformation> {
                   },
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 16),
-          backgroundColor: isDisabled ? Colors.grey : const Color(0xFF03045E),
+          backgroundColor: isDisabled ? Colors.grey : const Color(0xFFB71A4A),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

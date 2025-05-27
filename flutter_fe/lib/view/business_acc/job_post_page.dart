@@ -149,9 +149,22 @@ class _JobPostPageState extends State<JobPostPage>
           _profileImageUrl = user?.user.image;
           _idImageUrl = response['url'];
           _isDocumentValid = response['status'] ?? false;
+          // Allow task posting if documents exist and are either approved or under review
           _showButton = _profileImageUrl != null &&
               _idImageUrl != null &&
-              _isDocumentValid;
+              (_isDocumentValid || user?.user.accStatus == 'Review');
+        });
+      } else {
+        // Handle API error gracefully
+        debugPrint('Failed to fetch user ID image: ${response['message']}');
+        setState(() {
+          _user = user;
+          _profileImageUrl = user?.user.image;
+          _idImageUrl = null;
+          _isDocumentValid = false;
+          // Still allow task posting if user has profile image and status is Review
+          _showButton =
+              _profileImageUrl != null && user?.user.accStatus == 'Review';
         });
       }
     } catch (e) {
@@ -213,7 +226,8 @@ class _JobPostPageState extends State<JobPostPage>
     } catch (e, stackTrace) {
       debugPrint('Error while rendering tasks for status view: $e');
       debugPrintStack(stackTrace: stackTrace);
-      _showErrorSnackBar('An error occurred while displaying your tasks. Please Try Again.');
+      _showErrorSnackBar(
+          'An error occurred while displaying your tasks. Please Try Again.');
     }
   }
 
