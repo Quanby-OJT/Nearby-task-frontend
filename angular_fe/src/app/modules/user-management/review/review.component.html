@@ -1,8 +1,8 @@
 <div class="mb-4 flex justify-between">
   <div class="inline-block">
-    <h3 class="text-foreground font-semibold">Review User</h3>
+    <h3 class="text-foreground font-semibold">Review User Account</h3>
     <div class="text-muted-foreground space-x-1 text-xs font-medium">
-      <a href="" class="hover:text-primary"><strong>Dashboards > User Management > Review User</strong></a>
+      <a href="#" class="hover:text-primary"><strong>Dashboards > User Management > Review Account</strong></a>
       <p>This is used to review the users document credential</p>
     </div>
   </div>
@@ -15,7 +15,7 @@
 <div class="border-muted/20 bg-background flex min-w-full flex-col rounded-xl border p-2">
   <!-- Add User form -->
   <div></div>
-  <form class="my-10 space-y-6" [formGroup]="form" (ngSubmit)="onSubmit()">
+  <form class="my-10 space-y-6" [formGroup]="Form" (ngSubmit)="onSubmit()">
     <div class="space-y-3 text-left">
       <div class="grid grid-cols-3 gap-5 p-5">
         <div class="mx-auto w-full max-w-xs">
@@ -171,7 +171,7 @@
                     [ngClass]="{ 'border-red-500': submitted && f['status'].errors }"
                     required> 
                     <option value="" disabled selected>Select User status</option>
-                    <option value="Pending" class="non-interactive" hiddenclass="non-interactive" hidden>Pending</option>
+                    <option value="Pending" class="non-interactive" hidden>Pending</option>
                     <option value="Active">Verify</option>
                     <option value="Review">Review</option>
                     <option value="Reject">Reject</option>
@@ -208,7 +208,12 @@
                     Compare Id Photo and Selfie
                   </button>
                 </div>
-                <app-button full impact="bold" shape="rounded" size="medium" tone="blue">Update Status</app-button>
+                <button
+                  type="button"
+                  (click)="updateStatusWithReason()"
+                  class="bg-blue-900 block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-800 focus:outline-none hover:scale-105 transition-transform duration-500">
+                  Update Status
+                </button>
               </div>
             </div>
           </div>
