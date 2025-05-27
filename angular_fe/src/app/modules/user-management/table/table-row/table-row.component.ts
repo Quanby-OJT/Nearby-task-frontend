@@ -41,7 +41,6 @@ export class UserTableRowComponent {
   }
 
   loadActionByName(): void {
-
     if (this.user.action_by) {
       this.UserAccountService.getUserById(Number(this.user.action_by)).subscribe({
         next: (response: any) => {
@@ -50,11 +49,11 @@ export class UserTableRowComponent {
         },
         error: (error: any) => {
           console.error('Error fetching action_by user data:', error);
-          this.actionByName = '	No Action Yet';
+          this.actionByName = 'No Action Yet';
         },
       });
     } else {
-      this.actionByName = '	No Action Yet';
+      this.actionByName = 'No Action Yet';
     }
   }
 
