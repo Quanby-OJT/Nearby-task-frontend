@@ -109,9 +109,9 @@
               </span>
             </div>
           </th>
-          <th class="px-4 py-2 text-start min-w-[100px] lg:min-w-[250px] xl:min-w-[140px]">Conversation</th>
-          <th class="px-4 py-2 text-start min-w-[50px] lg:min-w-[150px] xl:min-w-[120px]">Action</th>
-          <th *ngIf="userRole === 'Admin'" class="px-4 py-2 text-start min-w-[100px] lg:min-w-[250px] xl:min-w-[150px]">Handled By</th>
+          <th class="px-4 py-2 text-start min-w-[100px] lg:min-w-[250px] xl:min-w-[150px]">Conversation</th>
+          <th class="px-4 py-2 text-start min-w-[50px] lg:min-w-[150px] xl:min-w-[100px]">Action</th>
+          <th *ngIf="userRole === 'Admin'" class="px-4 py-2 text-start min-w-[100px] lg:min-w-[250px] xl:min-w-[150px]">Moderator</th>
         </tr>
       </thead>
       <tbody *ngIf="displayConversations.length > 0">

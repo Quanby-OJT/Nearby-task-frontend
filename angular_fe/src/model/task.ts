@@ -25,4 +25,6 @@ export interface Task {
       middle_name?: string;
       last_name: string;
   };
+  task_begin_date: string; 
+  task_description: string;
 }

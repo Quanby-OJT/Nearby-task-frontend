@@ -255,12 +255,17 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
       imagesHtml = '<div>No images available</div>';
     }
 
+    // Conditionally include the Moderator section based on userRole
+    const moderatorHtml = this.userRole === 'Admin'
+      ? `
+        <div class="flex mb-4">
+          <div class="font-bold w-32">Moderator:</div>
+          <div>${handledBy}</div>
+        </div>`
+      : '';
+
     const htmlContent = `
       <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
-        <div class="flex mb-4">
-          <div class="font-bold w-32">Report ID:</div>
-          <div>${this.selectedReport.report_id}</div>
-        </div>
         <div class="flex mb-4">
           <div class="font-bold w-32">Reporter:</div>
           <div>${this.selectedReport.reporter.first_name} ${this.selectedReport.reporter.middle_name || ''} ${this.selectedReport.reporter.last_name}</div>
@@ -281,12 +286,9 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
           <div class="font-bold w-32">Created At:</div>
           <div>${this.selectedReport.created_at}</div>
         </div>
-        <div class="flex mb-4">
-          <div class="font-bold w-32">Handled By:</div>
-          <div>${handledBy}</div>
-        </div>
+        ${moderatorHtml}
         <div class="mb-4">
-          <div class="font-bold w-32">Images:</div>
+          <div class="font-bold w-32">Evidence:</div>
           <div class="flex flex-wrap">${imagesHtml}</div>
         </div>
       </div>
@@ -378,7 +380,7 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
   exportCSV() {
     const isAdmin = this.userRole === 'Admin';
     const headers = isAdmin
-      ? ['No', 'Reporter Name', 'Violator Name', 'Reporter Role', 'Violator Role', 'Date', 'Status', 'Handled By']
+      ? ['No', 'Reporter Name', 'Violator Name', 'Reporter Role', 'Violator Role', 'Date', 'Status', 'Moderator']
       : ['No', 'Reporter Name', 'Violator Name', 'Reporter Role', 'Violator Role', 'Date', 'Status'];
     const rows = this.displayReports.map((report, index) => {
       const reporterName = report.reporter
@@ -464,7 +466,7 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
   doc.text(formattedDate, 310, 90); 
 
     const headers = isAdmin
-      ? ['No', 'Reporter Name', 'Violator Name', 'Reporter Role', 'Violator Role', 'Date', 'Status', 'Handled By']
+      ? ['No', 'Reporter Name', 'Violator Name', 'Reporter Role', 'Violator Role', 'Date', 'Status', 'Moderator']
       : ['No', 'Reporter Name', 'Violator Name', 'Reporter Role', 'Violator Role', 'Date', 'Status'];
     const rows = this.displayReports.map((report, index) => {
       const reporterName = report.reporter
