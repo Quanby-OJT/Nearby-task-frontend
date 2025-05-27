@@ -47,7 +47,7 @@ export class TaskService {
     });
   }
 
-  createSpecialization(specialization: { specialization: string; user_id: string }): Observable<any> {
+  createSpecialization(specialization: { specialization: string; user_id: string; reason: string }): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/specializations`, specialization, {
       headers: this.getHeaders(),
       withCredentials: true
