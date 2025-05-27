@@ -153,7 +153,6 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
         ].filter(Boolean).join(' ').toLowerCase();
         const nameB = [
           b.reporter.first_name || '',
-          b.reporter.middle_name || '',
           b.reporter.last_name || ''
         ].filter(Boolean).join(' ').toLowerCase();
         if (this.sortDirections['reporterName'] === 'asc' || this.sortDirections['reporterName'] === 'default') {
@@ -325,13 +324,43 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
     });
   }
 
-  banUser(reportId: number) {
-    if (reportId) {
-      this.reportService.updateReportStatus(reportId, true).subscribe({
+  async banUser(reportId: number) {
+    const { value: reason } = await Swal.fire({
+      title: 'Ban User',
+      html: `
+        <label for="reason-input" class="block text-sm font-medium text-gray-700 mb-2">Reason for banning</label>
+        <input id="reason-input" class="swal2-input" placeholder="Enter reason" />
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Confirm',
+      cancelButtonText: 'Cancel',
+      preConfirm: () => {
+        const reasonInput = (document.getElementById('reason-input') as HTMLInputElement).value;
+        if (!reasonInput) {
+          Swal.showValidationMessage('Please provide a reason for this action');
+        }
+        return reasonInput;
+      },
+      willOpen: () => {
+        const confirmButton = Swal.getConfirmButton();
+        const reasonInput = document.getElementById('reason-input') as HTMLInputElement;
+        if (confirmButton) {
+          confirmButton.disabled = true;
+        }
+        reasonInput.addEventListener('input', () => {
+          if (confirmButton) {
+            confirmButton.disabled = !reasonInput.value.trim();
+          }
+        });
+      }
+    });
+
+    if (reason) {
+      console.log('Ban User Request:', { reportId, status: true, reason, actionType: 'ban' });
+      this.reportService.updateReportStatus(reportId, true, reason, 'ban').subscribe({
         next: (response) => {
           if (response.success) {
             Swal.fire('Banned!', 'User has been banned.', 'success').then(() => {
-              // Refresh the report list after banning
               this.reportService.getReport().subscribe((response: { success: boolean; reports: Report[] }) => {
                 if (response.success) {
                   this.reports = response.reports;
@@ -345,19 +374,50 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
           }
         },
         error: (err) => {
-          Swal.fire('Error!', 'Error banning user.', 'error');
+          console.error('Ban User Error:', err);
+          Swal.fire('Error!', err.message || 'Error banning user.', 'error');
         }
       });
     }
   }
 
-  unbanUser(reportId: number) {
-    if (reportId) {
-      this.reportService.updateReportStatus(reportId, true).subscribe({
+  async unbanUser(reportId: number) {
+    const { value: reason } = await Swal.fire({
+      title: 'Unban User',
+      html: `
+        <label for="reason-input" class="block text-sm font-medium text-gray-700 mb-2">Reason for unbanning</label>
+        <input id="reason-input" class="swal2-input" placeholder="Enter reason" />
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Confirm',
+      cancelButtonText: 'Cancel',
+      preConfirm: () => {
+        const reasonInput = (document.getElementById('reason-input') as HTMLInputElement).value;
+        if (!reasonInput) {
+          Swal.showValidationMessage('Please provide a reason for this action');
+        }
+        return reasonInput;
+      },
+      willOpen: () => {
+        const confirmButton = Swal.getConfirmButton();
+        const reasonInput = document.getElementById('reason-input') as HTMLInputElement;
+        if (confirmButton) {
+          confirmButton.disabled = true;
+        }
+        reasonInput.addEventListener('input', () => {
+          if (confirmButton) {
+            confirmButton.disabled = !reasonInput.value.trim();
+          }
+        });
+      }
+    });
+
+    if (reason) {
+      console.log('Unban User Request:', { reportId, status: true, reason, actionType: 'unban' });
+      this.reportService.updateReportStatus(reportId, true, reason, 'unban').subscribe({
         next: (response) => {
           if (response.success) {
             Swal.fire('Unbanned!', 'User has been unbanned.', 'success').then(() => {
-              // Refresh the report list after unbanning
               this.reportService.getReport().subscribe((response: { success: boolean; reports: Report[] }) => {
                 if (response.success) {
                   this.reports = response.reports;
@@ -371,7 +431,8 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
           }
         },
         error: (err) => {
-          Swal.fire('Error!', 'Error unbanning user.', 'error');
+          console.error('Unban User Error:', err);
+          Swal.fire('Error!', err.message || 'Error unbanning user.', 'error');
         }
       });
     }
