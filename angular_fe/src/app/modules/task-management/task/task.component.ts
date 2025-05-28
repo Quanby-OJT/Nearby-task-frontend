@@ -82,9 +82,7 @@ export class TaskComponent implements OnInit {
             middle_name: task.action_by_user.middle_name || '',
             last_name: task.action_by_user.last_name
           } : undefined,
-          action_reason: task.action_taken_by && task.action_taken_by.length > 0 && task.action_taken_by[0].user_id === task.action_by
-            ? task.action_taken_by[0].action_reason
-            : ''
+          action_reason: task.action_reason || ''
         }));
         this.filteredTasks = this.tasks;
         this.updatePagination();
