@@ -20,6 +20,7 @@ export interface Report {
   reason: string;
   status: boolean;
   created_at: string;
-  actionBy?: ActionBy; // Updated to match backend "actionBy"
+  actionBy?: ActionBy; 
+  action_reason?: string;
   images?: string | null;
 }

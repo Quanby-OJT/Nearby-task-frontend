@@ -25,6 +25,7 @@ export interface Task {
       middle_name?: string;
       last_name: string;
   };
+  action_reason?: string;
   task_begin_date: string; 
   task_description: string;
 }

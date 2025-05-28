@@ -67,14 +67,14 @@ export class UpdateUserComponent {
 
   formValidation(): void {
     this.form = this._formBuilder.group({
-      firstName: ['', Validators.required],
+      firstName: [''],
       middleName: [''],
-      lastName: ['', Validators.required],
-      status: ['', Validators.required],
-      userRole: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
-      bday: ['', Validators.required],
-      age: [{ value: '', disabled: true }, Validators.required]
+      lastName: [''],
+      status: [''],
+      userRole: [''],
+      email: [''],
+      bday: [''],
+      age: [{ value: '', disabled: true }]
     });
   }
 
@@ -87,14 +87,22 @@ export class UpdateUserComponent {
       next: (response: any) => {
         console.log('Raw Backend Response:', response);
         
+        // Debugging: Log the keys available in the response object
+        console.log('Response keys:', Object.keys(response));
+
         if (response.userme) {
           this.userData = response.user;
+          console.log('Identified user data under response.user (userme)');
         } else if (response.client) {
-          this.userData = response.user;
+          this.userData = response.user; // Assuming client response also has user nested
+          console.log('Identified user data under response.user (client)');
         } else if (response.user) {
           this.userData = response.user;
+          console.log('Identified user data under response.user');
         } else {
+          // Fallback if nesting is different
           this.userData = response;
+          console.log('Identified user data at top level of response');
         }
         
         console.log('Processed User Data:', this.userData);
@@ -116,8 +124,8 @@ export class UpdateUserComponent {
             status: this.userData.acc_status || this.userData.status || '',
           });
 
-          this.profileImage = this.userData.image_link || null;
           console.log('Form Value After Patch:', this.form.value);
+          this.profileImage = this.userData.image_link || null;
           console.log('Profile Image:', this.profileImage);
           
           this.cdRef.detectChanges();

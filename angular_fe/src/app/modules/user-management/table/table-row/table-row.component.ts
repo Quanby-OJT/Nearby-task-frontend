@@ -41,11 +41,33 @@ export class UserTableRowComponent {
   }
 
   loadActionByName(): void {
+    console.log('Current user data:', this.user);
     if (this.user.action_by) {
+      console.log('Fetching user with action_by:', this.user.action_by);
       this.UserAccountService.getUserById(Number(this.user.action_by)).subscribe({
         next: (response: any) => {
-          const user = response.user || response;
-          this.actionByName = `${user.first_name || ''} ${user.middle_name || ''} ${user.last_name || ''}`.trim();
+          console.log('Received response:', response);
+          
+          // Get the latest action taken by record
+          const actionTakenBy = response.action_taken_by;
+          if (actionTakenBy && actionTakenBy.length > 0) {
+            // Sort by created_at to get the most recent action
+            const latestAction = actionTakenBy.sort((a: any, b: any) => 
+              new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            )[0];
+            
+            if (latestAction && latestAction.user) {
+              const actionUser = latestAction.user;
+              this.actionByName = `${actionUser.first_name || ''} ${actionUser.middle_name || ''} ${actionUser.last_name || ''}`.trim();
+              console.log('Set actionByName to:', this.actionByName);
+            } else {
+              console.warn('No user data found in action_taken_by');
+              this.actionByName = 'No Action Yet';
+            }
+          } else {
+            console.warn('No action_taken_by records found');
+            this.actionByName = 'No Action Yet';
+          }
         },
         error: (error: any) => {
           console.error('Error fetching action_by user data:', error);
@@ -53,6 +75,7 @@ export class UserTableRowComponent {
         },
       });
     } else {
+      console.log('No action_by found for user');
       this.actionByName = 'No Action Yet';
     }
   }

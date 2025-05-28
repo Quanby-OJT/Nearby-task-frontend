@@ -28,6 +28,7 @@ export interface User {
     conversation: string;
     reported: boolean;
     action_by: string;
+    action_reason: string;
   }
   
   export interface Message {
