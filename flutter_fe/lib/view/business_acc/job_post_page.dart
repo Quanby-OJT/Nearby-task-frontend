@@ -722,7 +722,6 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
-  // Navigate to appropriate task status page
   void _navigateToTaskStatusPage(TaskFetch task) {
     final statusPages = {
       'Completed': TaskFinished(taskInformation: task),
@@ -798,7 +797,6 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
-  // Build task info with user avatar
   Widget _buildTaskInfo(TaskFetch task, {double size = 40.0}) {
     final imageUrl = task.tasker?.user?.image ?? 'Unknown';
     final hasValidImage =
@@ -865,7 +863,6 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
-  // Reusable task info row
   Widget _buildTaskInfoRow({
     required IconData icon,
     required Color? iconColor,
@@ -886,7 +883,6 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
-  // Confirm and delete task
   Future<void> _confirmDeleteTask(int taskId) async {
     final confirm = await showDialog<bool>(
       context: context,
