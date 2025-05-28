@@ -85,13 +85,13 @@ export class ReviewComponent {
 
   formValidation(): void {
     this.Form = this._formBuilder.group({
-      firstName: ['', Validators.required],
+      firstName: [''],
       middleName: [''],
-      lastName: ['', Validators.required],
-      status: ['', Validators.required],
-      userRole: ['', Validators.required],
-      email: ['', Validators.required],
-      bday: ['', Validators.required],
+      lastName: [''],
+      status: [''],
+      userRole: [''],
+      email: [''],
+      bday: [''],
       age: [{ value: '', disabled: true }]
     });
   }
@@ -110,126 +110,156 @@ export class ReviewComponent {
 
   loadUserData(): void {
     const userId = Number(this.userId);
+    console.log('Loading data for user ID:', userId);
 
     this.userAccountService.getUserById(userId).subscribe({
       next: (response: any) => {
-        console.log('User data response:', response);
+        console.log('Raw Backend Response (ReviewComponent):', response);
+        // Debugging: Log the keys available in the response object
+        console.log('Response keys (ReviewComponent):', Object.keys(response));
+
+        // Assuming the user data is nested under 'user' based on previous analysis
         this.userData = response.user;
-        const age = this.calculateAge(response.user.birthdate);
-        this.Form.patchValue({
-          firstName: response.user.first_name,
-          middleName: response.user.middle_name,
-          lastName: response.user.last_name,
-          bday: response.user.birthdate,
-          userRole: response.user.user_role,
-          email: response.user.email,
-          status: response.user.acc_status,
-          age: age
-        });
-        console.log('Form value after patching:', this.Form.value);
-        this.profileImage = response.user.image_link; // Set profileImage from image_link
+        console.log('Processed User Data (ReviewComponent):', this.userData);
 
-        this.userAccountService.getUserDocuments(userId).subscribe({
-          next: (docResponse: any) => {
-            console.log('Raw response from getUserDocuments:', docResponse);
+        if (this.userData) {
+          const age = this.calculateAge(this.userData.birthdate);
+          this.Form.patchValue({
+            firstName: this.userData.first_name || '',
+            middleName: this.userData.middle_name || '',
+            lastName: this.userData.last_name || '',
+            bday: this.userData.birthdate ? new Date(this.userData.birthdate).toISOString().split('T')[0] : '', // Format date for input
+            userRole: this.userData.user_role || '',
+            email: this.userData.email || '',
+            status: this.userData.acc_status || this.userData.status || '',
+            age: age
+          });
 
-            let documents: { url: string, name: string }[] = [];
+          console.log('Form value after patching (ReviewComponent):', this.Form.value);
+          this.profileImage = this.userData.image_link; // Set profileImage from image_link
 
-            if (docResponse.user?.client_documents?.length > 0) {
-              console.log('Processing Client documents:', docResponse.user.client_documents);
-              documents = docResponse.user.client_documents.map((doc: any) => ({
-                url: doc.document_url,
-                name: 'Client_Document'
-              }));
-            }
-            if (docResponse.user?.user_documents?.length > 0) {
-              console.log('Processing User documents:', docResponse.user.user_documents);
-              documents = [...documents, ...docResponse.user.user_documents.map((doc: any) => ({
-                url: doc.user_document_link,
-                name: doc.doc_name || 'User_Document'
-              }))];
-            }
+          this.userAccountService.getUserDocuments(userId).subscribe({
+            next: (docResponse: any) => {
+              console.log('Raw response from getUserDocuments (ReviewComponent):', docResponse);
 
-            if (docResponse.user?.user_id?.length > 0 && docResponse.user.user_id[0]?.id_image) {
-              console.log('Processing ID image:', docResponse.user.user_id[0].id_image);
-              this.idImage = docResponse.user.user_id[0].id_image; // Set idImage directly
-              const idExtension = this.idImage?.split('.').pop()?.toLowerCase() || '';
-              this.isIdImage = ['jpg', 'jpeg', 'png', 'gif'].includes(idExtension);
-              console.log('Is id_image an image?', this.isIdImage);
-              documents.push({
-                url: docResponse.user.user_id[0].id_image,
-                name: 'ID_Image'
-              });
-            } else {
-              this.idImage = null;
-              this.isIdImage = false;
-              console.log('No id_image found for this user.');
-            }
-            // Check for face_image from user_face_identity table (now an array)
-            if (docResponse.user?.user_face_identity?.length > 0 && docResponse.user.user_face_identity[0]?.face_image) {
-              console.log('Processing Selfie Image:', docResponse.user.user_face_identity[0].face_image);
-              this.faceImage = docResponse.user.user_face_identity[0].face_image;
-              // Safely handle null or undefined faceImage
-              const faceExtension = this.faceImage?.split('.').pop()?.toLowerCase() || '';
-              this.isFaceImage = ['jpg', 'jpeg', 'png', 'gif'].includes(faceExtension);
-              console.log('Is face_image an image?', this.isFaceImage);
-            } else {
-              this.faceImage = null;
-              this.isFaceImage = false;
-              console.log('No face_image found for this user.');
-            }
+              let documents: { url: string, name: string }[] = [];
 
-            console.log('Final documents array:', documents);
+              if (docResponse.user?.client_documents?.length > 0) {
+                console.log('Processing Client documents (ReviewComponent):', docResponse.user.client_documents);
+                documents = docResponse.user.client_documents.map((doc: any) => ({
+                  url: doc.document_url,
+                  name: 'Client_Document'
+                }));
+              }
+              if (docResponse.user?.user_documents?.length > 0) {
+                console.log('Processing User documents (ReviewComponent):', docResponse.user.user_documents);
+                documents = [...documents, ...docResponse.user.user_documents.map((doc: any) => ({
+                  url: doc.user_document_link,
+                  name: doc.doc_name || 'User_Document'
+                }))];
+              }
 
-            if (documents.length > 0) {
-              // Prioritize user_document_link (PDF) for display if it exists
-              const userDoc = documents.find(doc => doc.name === 'User_Document' && doc.url.endsWith('.pdf'));
-              if (userDoc) {
-                this.documentUrl = userDoc.url;
-                this.documentName = this.documentUrl.split('/').pop() || userDoc.name;
+              if (docResponse.user?.user_id?.length > 0 && docResponse.user.user_id[0]?.id_image) {
+                console.log('Processing ID image (ReviewComponent):', docResponse.user.user_id[0].id_image);
+                this.idImage = docResponse.user.user_id[0].id_image; // Set idImage directly
+                const idExtension = this.idImage?.split('.').pop()?.toLowerCase() || '';
+                this.isIdImage = ['jpg', 'jpeg', 'png', 'gif'].includes(idExtension);
+                console.log('Is id_image an image? (ReviewComponent):', this.isIdImage);
+                documents.push({
+                  url: docResponse.user.user_id[0].id_image,
+                  name: 'ID_Image'
+                });
               } else {
-                // Fallback to any other document if no PDF user_document_link is found
-                this.documentUrl = documents[0].url;
-                this.documentName = this.documentUrl.split('/').pop() || documents[0].name;
+                this.idImage = null;
+                this.isIdImage = false;
+                console.log('No id_image found for this user (ReviewComponent).');
               }
-              console.log('Document URL set:', this.documentUrl);
-              console.log('Document Name set:', this.documentName);
-
-              // Determine if the file is an image based on its extension
-              const extension = this.documentUrl.split('.').pop()?.toLowerCase();
-              this.isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(extension || '');
-              console.log('Is file an image?', this.isImage);
-
-              // Set the imageUrl for display in the template
-              if (this.isImage) {
-                this.imageUrl = this.documentUrl;
+              // Check for face_image from user_face_identity table (now an array)
+              if (docResponse.user?.user_face_identity?.length > 0 && docResponse.user.user_face_identity[0]?.face_image) {
+                console.log('Processing Selfie Image (ReviewComponent):', docResponse.user.user_face_identity[0].face_image);
+                this.faceImage = docResponse.user.user_face_identity[0].face_image;
+                // Safely handle null or undefined faceImage
+                const faceExtension = this.faceImage?.split('.').pop()?.toLowerCase() || '';
+                this.isFaceImage = ['jpg', 'jpeg', 'png', 'gif'].includes(faceExtension);
+                console.log('Is face_image an image? (ReviewComponent):', this.isFaceImage);
+              } else {
+                this.faceImage = null;
+                this.isFaceImage = false;
+                console.log('No face_image found for this user (ReviewComponent).');
               }
-            } else {
+
+              console.log('Final documents array (ReviewComponent):', documents);
+
+              if (documents.length > 0) {
+                // Prioritize user_document_link (PDF) for display if it exists
+                const userDoc = documents.find(doc => doc.name === 'User_Document' && doc.url.endsWith('.pdf'));
+                if (userDoc) {
+                  this.documentUrl = userDoc.url;
+                  this.documentName = this.documentUrl.split('/').pop() || userDoc.name;
+                } else {
+                  // Fallback to any other document if no PDF user_document_link is found
+                  this.documentUrl = documents[0].url;
+                  this.documentName = this.documentUrl.split('/').pop() || documents[0].name;
+                }
+                console.log('Document URL set (ReviewComponent):', this.documentUrl);
+                console.log('Document Name set (ReviewComponent):', this.documentName);
+
+                // Determine if the file is an image based on its extension
+                const extension = this.documentUrl.split('.').pop()?.toLowerCase();
+                this.isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(extension || '');
+                console.log('Is file an image? (ReviewComponent):', this.isImage);
+
+                // Set the imageUrl for display in the template
+                if (this.isImage) {
+                  this.imageUrl = this.documentUrl;
+                }
+              } else {
+                this.documentUrl = null;
+                this.documentName = null;
+                this.isImage = false;
+                this.faceImage = null; // Ensure faceImage is reset on error
+                this.isFaceImage = false;
+                this.idImage = null;   // Reset idImage on error
+                this.isIdImage = false; // Reset isIdImage on error
+                console.log('No documents found for this user (ReviewComponent).');
+              }
+              this.cdRef.detectChanges(); // Detect changes after documents are loaded
+            },
+            error: (err) => {
+              console.error('Error fetching documents (ReviewComponent):', err);
               this.documentUrl = null;
               this.documentName = null;
               this.isImage = false;
-              console.log('No documents found for this user.');
+              this.faceImage = null; // Ensure faceImage is reset on error
+              this.isFaceImage = false;
+              this.idImage = null;   // Reset idImage on error
+              this.isIdImage = false; // Reset isIdImage on error
+              Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to fetch documents. Please try again.',
+              });
+              this.cdRef.detectChanges(); // Detect changes even on error
             }
-          },
-          error: (err) => {
-            console.error('Error fetching documents:', err);
-            this.documentUrl = null;
-            this.documentName = null;
-            this.isImage = false;
-            this.faceImage = null; // Ensure faceImage is reset on error
-            this.isFaceImage = false;
-            this.idImage = null;   // Reset idImage on error
-            this.isIdImage = false; // Reset isIdImage on error
-            Swal.fire({
-              icon: 'error',
-              title: 'Error',
-              text: 'Failed to fetch documents. Please try again.',
-            });
-          }
-        });
+          });
+        } else {
+          console.warn('No user data found in response (ReviewComponent)');
+          Swal.fire({
+            icon: 'warning',
+            title: 'No Data',
+            text: 'User data not found for this ID.',
+          });
+          this.cdRef.detectChanges(); // Detect changes even if no user data
+        }
       },
       error: (error: any) => {
-        console.error('Error fetching user data:', error);
+        console.error('Error fetching user data (ReviewComponent):', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to load user data: ' + (error.message || 'Unknown error'),
+        });
+        this.cdRef.detectChanges(); // Detect changes even on error
       },
     });
   }
