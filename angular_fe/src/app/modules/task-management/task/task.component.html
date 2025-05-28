@@ -150,6 +150,7 @@
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[230px]">Status</th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[100px]">Action</th>
           <th *ngIf="userRole === 'Admin'" class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[230px]">Moderator</th>
+          <th *ngIf="userRole === 'Admin'" class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[230px]">Action Reason</th>
         </tr>
       </thead>
       <tbody *ngIf="displayedTasks.length > 0">
@@ -177,6 +178,7 @@
             </button>
           </td>
           <td *ngIf="userRole === 'Admin'" class="px-4 py-3 text-start">{{ task.actionByUser ? (task.actionByUser.first_name + ' ' + (task.actionByUser.middle_name || '') + ' ' + task.actionByUser.last_name) : (task.action_by || 'Empty') }}</td>
+          <td *ngIf="userRole === 'Admin'" class="px-4 py-3 text-start">{{ task.action_reason || 'Empty'}}</td>
         </tr>
         <!-- Placeholder rows with consistent styling -->
         <tr *ngFor="let placeholder of placeholderRows">

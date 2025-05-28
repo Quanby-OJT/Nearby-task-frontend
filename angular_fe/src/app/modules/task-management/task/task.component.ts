@@ -81,7 +81,10 @@ export class TaskComponent implements OnInit {
             first_name: task.action_by_user.first_name,
             middle_name: task.action_by_user.middle_name || '',
             last_name: task.action_by_user.last_name
-          } : undefined
+          } : undefined,
+          action_reason: task.action_taken_by && task.action_taken_by.length > 0 && task.action_taken_by[0].user_id === task.action_by
+            ? task.action_taken_by[0].action_reason
+            : ''
         }));
         this.filteredTasks = this.tasks;
         this.updatePagination();
@@ -257,7 +260,7 @@ export class TaskComponent implements OnInit {
   }
 
   exportCSV() {
-    const headers = ['No', 'Client Id', 'Client', 'Task Title', 'Specialization', 'Proposed Price', 'Location', 'Urgent', 'Status'];
+    const headers = ['No', 'Client Id', 'Client', 'Task Title', 'Specialization', 'Proposed Price', 'Location', 'Urgent', 'Status', 'Action Reason'];
     const rows = this.displayedTasks.map((task, index) => {
       const row = [
         index + 1,
@@ -269,6 +272,7 @@ export class TaskComponent implements OnInit {
         `"${task.location || ''}"`,
         task.urgent ? 'Yes' : 'No',
         task.status || 'null',
+        `"${task.action_reason || ''}"`
       ];
       return row;
     });
@@ -331,7 +335,7 @@ export class TaskComponent implements OnInit {
     console.log('Rendering date at position x=400, y=90'); 
     doc.text(formattedDate, 310, 90); 
 
-    const columns = ['No', 'Client Id', 'Client', 'Task Title', 'Specialization', 'Proposed Price', 'Location', 'Urgent', 'Status'];
+    const columns = ['No', 'Client Id', 'Client', 'Task Title', 'Specialization', 'Proposed Price', 'Location', 'Urgent', 'Status', 'Action Reason'];
     const rows = this.displayedTasks.map((task, index) => [
       index + 1,
       task.clients.client_id ?? '',
@@ -342,6 +346,7 @@ export class TaskComponent implements OnInit {
       task.location || '',
       task.urgent ? 'Yes' : 'No',
       task.status || 'null',
+      task.action_reason || ''
     ]);
     autoTable(doc, {
       startY: 125,
