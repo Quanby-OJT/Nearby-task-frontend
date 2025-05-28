@@ -321,33 +321,76 @@ export class MyProfileComponent implements OnInit, AfterViewInit {
 
   getAddresses() {
     if (!this.user?.user_id) {
+      console.warn('User ID is missing. Cannot fetch addresses.');
       toast.error('User ID is missing. Cannot fetch addresses.');
       return;
     }
 
-    this.userAccountService.getAddresses(this.user.user_id).subscribe({
+    const userId = this.user.user_id;
+    console.log(`Attempting to fetch addresses for user ID: ${userId}`);
+
+    this.userAccountService.getAddresses(userId).subscribe({
       next: (response) => {
-        this.addresses = response.addresses || [];
-        // Use the first address if available
-        if (this.addresses.length > 0) {
-          this.address = this.addresses[0];
-          this.profileForm.patchValue({
-            street: this.address.street || '',
-            barangay: this.address.barangay || '',
-            city: this.address.city || '',
-            province: this.address.province || '',
-            postal_code: this.address.postal_code || '',
-            country: this.address.country || '',
-            latitude: this.address.latitude || null,
-            longitude: this.address.longitude || null,
-            default: this.address.default || false
-          });
+        console.log(`Raw response from getAddresses for user ${userId}:`, response);
+        // Access the nested 'address' array within the 'data' property
+        const addressesData = response?.data?.address;
+
+        if (addressesData && Array.isArray(addressesData)) {
+           console.log(`Addresses found for user ${userId}:`, addressesData);
+          this.addresses = addressesData;
+          // Use the first address if available
+          if (this.addresses.length > 0) {
+            this.address = this.addresses[0];
+            console.log(`Using the first address:`, this.address);
+            this.profileForm.patchValue({
+              street: this.address.street || '',
+              barangay: this.address.barangay || '',
+              city: this.address.city || '',
+              province: this.address.province || '',
+              postal_code: this.address.postal_code || '',
+              country: this.address.country || '',
+              latitude: this.address.latitude || null,
+              longitude: this.address.longitude || null,
+              default: this.address.default || false
+            });
+             console.log(`Form patched with address data for user ${userId}. Current form value:`, this.profileForm.value);
+          } else {
+             console.log(`No addresses found for user ${userId}.`);
+             // Clear address fields if no address found
+             this.profileForm.patchValue({
+              street: '',
+              barangay: '',
+              city: '',
+              province: '',
+              postal_code: '',
+              country: '',
+              latitude: null,
+              longitude: null,
+              default: false
+            });
+          }
+        } else {
+           console.warn(`Response from getAddresses for user ${userId} did not contain expected data structure:`, response);
+           // Clear address fields if response is unexpected or addresses array is missing/not array
+             this.profileForm.patchValue({
+              street: '',
+              barangay: '',
+              city: '',
+              province: '',
+              postal_code: '',
+              country: '',
+              latitude: null,
+              longitude: null,
+              default: false
+            });
         }
+
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('Error fetching addresses:', error);
+        console.error(`Error fetching addresses for user ${userId}:`, error);
         toast.error('Failed to load addresses.');
+        this.cdr.detectChanges(); // Ensure view updates even on error
       }
     });
   }
