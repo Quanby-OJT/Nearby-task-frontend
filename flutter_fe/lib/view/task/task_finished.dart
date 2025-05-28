@@ -27,6 +27,7 @@ class _TaskFinishedState extends State<TaskFinished> {
   bool _isLoading = true;
   final storage = GetStorage();
   AuthenticatedUser? tasker;
+  String _role = 'Unknown';
 
   @override
   void initState() {
@@ -49,7 +50,7 @@ class _TaskFinishedState extends State<TaskFinished> {
 
   Future<void> _updateNotif() async {
     try {
-      final int userId = storage.read("user_id");
+      final int userId = storage.read("user_id") ?? 0;
       final response = await taskController.updateNotif(
         widget.taskInformation?.taskTakenId ?? 0,
         userId,
@@ -92,8 +93,16 @@ class _TaskFinishedState extends State<TaskFinished> {
 
   Future<void> _fetchTaskDetails() async {
     try {
+      final int userId = storage.read("user_id") ?? 0;
       final response = await _jobPostService
           .fetchTaskInformation(_requestInformation!.task_id as int);
+
+      AuthenticatedUser? user =
+          await _profileController.getAuthenticatedUser(context, userId);
+
+      setState(() {
+        _role = user?.user.role ?? 'Unknown';
+      });
       setState(() {
         _taskInformation = response?.task;
       });
@@ -101,6 +110,7 @@ class _TaskFinishedState extends State<TaskFinished> {
       debugPrint("Error fetching task details: $e");
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -130,7 +140,7 @@ class _TaskFinishedState extends State<TaskFinished> {
         ),
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator(color: Colors.black))
+          ? const Center(child: CircularProgressIndicator(color: Colors.black))
           : _taskInformation == null
               ? Center(
                   child: Text(
@@ -143,17 +153,17 @@ class _TaskFinishedState extends State<TaskFinished> {
                 )
               : SingleChildScrollView(
                   child: Padding(
-                    padding: EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildStatusSection(),
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
                         _buildTaskCard(),
-                        SizedBox(height: 16),
-                        // Client/Tasker Profile Card
-                        _buildProfileCard(),
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
+                        if (_role == "Tasker") _buildClientProfileCard(),
+                        if (_role == "Client") _buildTaskerProfileCard(),
+                        const SizedBox(height: 16),
                         _buildActionButton(),
                       ],
                     ),
@@ -167,24 +177,24 @@ class _TaskFinishedState extends State<TaskFinished> {
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.task, color: Colors.black, size: 24),
+                  child: const Icon(Icons.task, color: Colors.black, size: 24),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    _taskInformation!.title ?? 'Task',
+                    _taskInformation!.title ?? 'Untitled Task',
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -200,7 +210,7 @@ class _TaskFinishedState extends State<TaskFinished> {
     );
   }
 
-  Widget _buildProfileCard() {
+   Widget _buildClientProfileCard() {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -213,10 +223,10 @@ class _TaskFinishedState extends State<TaskFinished> {
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundColor: Colors.black.withOpacity(0.1),
+                  backgroundColor: Color(0xFF03045E).withOpacity(0.1),
                   child: Icon(
                     Icons.person,
-                    color: Colors.black,
+                    color: Color(0xFF03045E),
                     size: 28,
                   ),
                 ),
@@ -225,14 +235,14 @@ class _TaskFinishedState extends State<TaskFinished> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.taskInformation?.taskDetails!.client?.user?.role ==
-                              "Client"
+                      widget.taskInformation?.taskDetails?.client?.user?.role ==
+                              "Tasker"
                           ? "Tasker Profile"
                           : "Client Profile",
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
+                        color: Color(0xFF03045E),
                       ),
                     ),
                     Text(
@@ -248,16 +258,27 @@ class _TaskFinishedState extends State<TaskFinished> {
             ),
             SizedBox(height: 16),
             _buildProfileInfoRow(
-                'Name', tasker?.user.firstName ?? 'Not available'),
+              'Name',
+              (widget.taskInformation?.taskDetails?.client?.user != null)
+                  ? '${widget.taskInformation!.taskDetails!.client!.user!.firstName ?? ''} ${widget.taskInformation!.taskDetails!.client!.user!.lastName ?? ''}'
+                      .trim()
+                  : 'Not available',
+            ),
             SizedBox(height: 8),
             _buildProfileInfoRow(
-                'Email', tasker?.user.email ?? 'Not available'),
+                'Email',
+                widget.taskInformation?.taskDetails?.client?.user?.email ??
+                    'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow(
-                'Phone', tasker?.user.contact ?? 'Not available'),
+                'Phone',
+                widget.taskInformation?.taskDetails?.client?.user?.contact ??
+                    'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow(
-                'Status', tasker?.user.accStatus ?? 'Not available'),
+                'Status',
+                widget.taskInformation?.taskDetails?.client?.user?.accStatus ??
+                    'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow('Account', 'Verified', isVerified: true),
           ],
@@ -266,8 +287,84 @@ class _TaskFinishedState extends State<TaskFinished> {
     );
   }
 
+  Widget _buildTaskerProfileCard() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: Color(0xFF03045E).withOpacity(0.1),
+                  child: Icon(
+                    Icons.person,
+                    color: Color(0xFF03045E),
+                    size: 28,
+                  ),
+                ),
+                SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.taskInformation?.taskDetails?.client?.user?.role ==
+                              "Client"
+                          ? "Client Profile"
+                          : "Tasker Profile",
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF03045E),
+                      ),
+                    ),
+                    Text(
+                      'Details',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            _buildProfileInfoRow(
+              'Name',
+              (widget.taskInformation?.tasker?.user != null)
+                  ? '${widget.taskInformation!.tasker!.user!.firstName ?? ''} ${widget.taskInformation!.tasker!.user!.lastName ?? ''}'
+                      .trim()
+                  : 'Not available',
+            ),
+            SizedBox(height: 8),
+            _buildProfileInfoRow('Email',
+                widget.taskInformation?.tasker?.user?.email ?? 'Not available'),
+            SizedBox(height: 8),
+            _buildProfileInfoRow(
+                'Phone',
+                widget.taskInformation?.tasker?.user?.contact ??
+                    'Not available'),
+            SizedBox(height: 8),
+            _buildProfileInfoRow(
+                'Status',
+                widget.taskInformation?.tasker?.user?.accStatus ??
+                    'Not available'),
+            SizedBox(height: 8),
+            _buildProfileInfoRow('Account', 'Verified', isVerified: true),
+          ],
+        ),
+      ),
+    );
+  }
+
+
   Widget _buildStatusSection() {
-    final status = _requestInformation!.task_status ?? 'Unknown';
+    final status = _requestInformation?.task_status ?? 'Unknown';
     final isConfirmed = status.toLowerCase() == 'confirmed';
 
     if (_requestInformation?.start_date == null) {
@@ -301,7 +398,7 @@ class _TaskFinishedState extends State<TaskFinished> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Start date unavailable',
+              'Date Not Set',
               style: GoogleFonts.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -378,8 +475,8 @@ class _TaskFinishedState extends State<TaskFinished> {
           Navigator.pop(context);
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: Color(0xFFB71A4A),
-          padding: EdgeInsets.symmetric(vertical: 16),
+          backgroundColor: const Color(0xFFB71A4A),
+          padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -424,7 +521,7 @@ class _TaskFinishedState extends State<TaskFinished> {
               ),
               if (isVerified)
                 Padding(
-                  padding: EdgeInsets.only(left: 8),
+                  padding: const EdgeInsets.only(left: 8),
                   child: Icon(
                     Icons.verified,
                     color: Colors.green[400],
@@ -443,6 +540,8 @@ Color statusColor(String status) {
   switch (status.toLowerCase()) {
     case 'completed':
       return Colors.green;
+    case 'confirmed':
+      return Colors.blue;
     default:
       return Colors.grey;
   }
@@ -452,6 +551,8 @@ IconData statusIcon(String status) {
   switch (status.toLowerCase()) {
     case 'completed':
       return Icons.check_circle;
+    case 'confirmed':
+      return Icons.check;
     default:
       return Icons.info;
   }
@@ -461,6 +562,8 @@ String statusMessage(String status) {
   switch (status.toLowerCase()) {
     case 'completed':
       return 'The task is completed.';
+    case 'confirmed':
+      return 'The task has been confirmed.';
     default:
       return 'Task status is unknown.';
   }
