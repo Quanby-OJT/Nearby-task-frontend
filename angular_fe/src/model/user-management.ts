@@ -19,4 +19,6 @@ export interface Users {
   gender: string | null;
   verified: boolean;
   action_by: string;
+  action_by_name?: string;
+  action_reason?: string;
 }
