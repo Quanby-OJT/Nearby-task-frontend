@@ -2,20 +2,19 @@ import 'package:flutter_fe/model/user_model.dart';
 
 class ClientModel {
   int? id;
-  final String preferences;
-  final String clientAddress;
+  String? preferences;
+  String? clientAddress;
   final double amount;
   final double rating;
   UserModel? user;
 
-  ClientModel({
-    this.id,
-    required this.preferences,
-    required this.clientAddress,
-    this.user,
-    this.amount = 0,
-    this.rating = 0
-  });
+  ClientModel(
+      {this.id,
+      this.preferences,
+      this.clientAddress,
+      this.user,
+      this.amount = 0,
+      this.rating = 0});
 
   @override
   String toString() {

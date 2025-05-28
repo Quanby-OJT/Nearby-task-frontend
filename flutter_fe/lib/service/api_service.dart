@@ -14,7 +14,7 @@ import '../model/client_model.dart';
 import 'package:flutter_fe/config/url_strategy.dart';
 
 class ApiService {
-  static String url = apiUrl ?? "https://192.168.1.10:5000";
+  static String url = apiUrl ?? "https://localhost:5000";
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
   static final Map<String, String> _cookies = {};
@@ -45,7 +45,8 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> resetPassword(String email, String password) async {
+  static Future<Map<String, dynamic>> resetPassword(
+      String email, String password) async {
     try {
       return await _postRequest(
           endpoint: "/reset-password",
@@ -57,7 +58,8 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  static Future<Map<String, dynamic>> _postRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final response = await http.post(Uri.parse("$url$endpoint"),
         headers: {"Content-Type": "application/json"}, body: jsonEncode(body));
 
@@ -80,7 +82,8 @@ class ApiService {
   }
 
   // Update tasker profile with PDF file
-  static Future<Map<String, dynamic>> updateTaskerWithFile(UserModel user, File file) async {
+  static Future<Map<String, dynamic>> updateTaskerWithFile(
+      UserModel user, File file) async {
     try {
       String token = await AuthService.getSessionToken();
 
@@ -210,7 +213,8 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> checkTaskAssignment(int taskId, int taskerId) async {
+  static Future<Map<String, dynamic>> checkTaskAssignment(
+      int taskId, int taskerId) async {
     try {
       String token = await AuthService.getSessionToken();
       final response = await http.get(
@@ -243,7 +247,8 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> assignTask(int taskId, int taskerId) async {
+  static Future<Map<String, dynamic>> assignTask(
+      int taskId, int taskerId) async {
     try {
       // First check if task is already assigned
       final checkResult = await checkTaskAssignment(taskId, taskerId);
@@ -288,7 +293,8 @@ class ApiService {
   }
 
   // this is for tasker with only pdf
-  static Future<Map<String, dynamic>> updateTaskerProfileWithPdf(int userId, File file, Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> updateTaskerProfileWithPdf(
+      int userId, File file, Map<String, dynamic> data) async {
     try {
       final token = await AuthService.getSessionToken();
       final request = http.MultipartRequest(
@@ -357,7 +363,8 @@ class ApiService {
   }
 
   // this is for tasker with files and pdf
-  static Future<Map<String, dynamic>> updateTaskerProfileWithImageTobackend(int userId, File image, Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> updateTaskerProfileWithImageTobackend(
+      int userId, File image, Map<String, dynamic> data) async {
     try {
       final token = await AuthService.getSessionToken();
       final request = http.MultipartRequest(
@@ -426,7 +433,8 @@ class ApiService {
   }
 
   // this is for tasker with files and image
-  static Future<Map<String, dynamic>> updateTaskerProfileWithFiles(int userId, File file, File image, Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> updateTaskerProfileWithFiles(
+      int userId, File file, File image, Map<String, dynamic> data) async {
     try {
       final token = await AuthService.getSessionToken();
       final request = http.MultipartRequest(
@@ -505,7 +513,8 @@ class ApiService {
 
   // This is for the tasker updating user information without images and pdf
 
-  static Future<Map<String, dynamic>> updateTaskerProfileNoImages(int userId, Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> updateTaskerProfileNoImages(
+      int userId, Map<String, dynamic> data) async {
     try {
       debugPrint('Data: $data');
       debugPrint('User Id from the controller: $userId');
@@ -531,7 +540,8 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> updateUserWithProfileImage(UserModel user, File profileImage) async {
+  static Future<Map<String, dynamic>> updateUserWithProfileImage(
+      UserModel user, File profileImage) async {
     try {
       String token = await AuthService.getSessionToken();
 
@@ -605,7 +615,8 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> updateUserWithIDImage(UserModel user, File idImage) async {
+  static Future<Map<String, dynamic>> updateUserWithIDImage(
+      UserModel user, File idImage) async {
     try {
       String token = await AuthService.getSessionToken();
 
@@ -679,7 +690,8 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> updateUserWithBothImages(UserModel user, File profileImage, File idImage) async {
+  static Future<Map<String, dynamic>> updateUserWithBothImages(
+      UserModel user, File profileImage, File idImage) async {
     try {
       String token = await AuthService.getSessionToken();
 
@@ -819,7 +831,8 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> verifyEmail(String token, String email) async {
+  static Future<Map<String, dynamic>> verifyEmail(
+      String token, String email) async {
     try {
       final response = await _client.post(Uri.parse("$apiUrl/verify"),
           headers: _getHeaders(),
