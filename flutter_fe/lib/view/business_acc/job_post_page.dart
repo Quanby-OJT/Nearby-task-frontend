@@ -7,6 +7,7 @@ import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/view/service_acc/tasker_record/tasker_pending.dart';
 import 'package:flutter_fe/view/task/task_cancelled.dart';
 import 'package:flutter_fe/view/task/task_confirmed.dart';
+import 'package:flutter_fe/view/task/task_declined.dart';
 import 'package:flutter_fe/view/task/task_finished.dart';
 import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:flutter_fe/view/task/task_pending.dart';
@@ -83,6 +84,7 @@ class _JobPostPageState extends State<JobPostPage>
     'Disputed',
     'Rejected',
     'Closed',
+    'Declined'
   ];
 
   @override
@@ -730,6 +732,7 @@ class _JobPostPageState extends State<JobPostPage>
       'Cancelled': TaskCancelled(taskInformation: task),
       'Ongoing': TaskOngoing(taskInformation: task, role: _user?.user.role),
       'Review': TaskReview(taskInformation: task),
+      'Declined': TaskDeclined(taskInformation: task),
     };
 
     final page = statusPages[task.taskStatus];
