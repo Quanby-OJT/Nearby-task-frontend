@@ -256,7 +256,8 @@
             </th>
             <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[220px]">Status</th>
             <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[110px]">Action</th>
-            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[150px]">Handled By</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[150px]">Moderator</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[150px]">Action Reason</th>
           </tr>
         </thead>
         <tbody *ngIf="displayReports.length > 0">
@@ -279,6 +280,7 @@
               </button>
             </td>
             <td class="px-4 py-3 text-start">{{ report.actionBy && (report.actionBy.first_name !== 'Unknown' || report.actionBy.middle_name !== 'Unknown' || report.actionBy.last_name !== 'Unknown') ? report.actionBy.first_name + ' ' + (report.actionBy.middle_name || '') + ' ' + report.actionBy.last_name : 'No Action Yet' }}</td>
+            <td class="px-4 py-3 text-start">{{  report.action_reason }}</td>
           </tr>
 
           <tr *ngFor="let placeholder of placeholderRows">
