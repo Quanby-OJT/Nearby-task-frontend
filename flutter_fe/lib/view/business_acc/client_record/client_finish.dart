@@ -110,17 +110,19 @@ class _FinishTaskState extends State<FinishTask> {
       final response2 = await taskController.getClientFeedback(widget.finishID ?? 0);
       debugPrint("Fetched feedback details: $response2");
 
-      if (response.isNotEmpty && response2.isNotEmpty) {
+      if (response.isNotEmpty) {
         setState(() {
           _requestInformation = response.first;
-          rating = response2['client_feedback']['rating'].toDouble();
-          feedback = response2['client_feedback']['feedback'] ?? "";
+          if (response2['client_feedback'] != null) {
+            rating = response2['client_feedback']['rating']?.toDouble() ?? 0.0;
+            feedback = response2['client_feedback']['feedback'] ?? "";
+          }
         });
 
         // Fetch task and tasker/client details
         await Future.wait([
           _fetchTaskDetails(),
-          if (_requestInformation != null)
+          if (_requestInformation != null) // Ensure _requestInformation is not null before accessing its properties
             _fetchTaskerDetails(
               widget.role == "Client"
                   ? _requestInformation!.taskerId ?? 0
@@ -128,7 +130,7 @@ class _FinishTaskState extends State<FinishTask> {
             ),
         ]);
       } else {
-        debugPrint("No task data returned");
+        debugPrint("No task data returned or feedback is empty");
         setState(() {
           _errorMessage = 'No task information available.';
         });
@@ -435,6 +437,7 @@ class _FinishTaskState extends State<FinishTask> {
                         color: Colors.grey[600],
                       ),
                     ),
+                    if(rating > 0)
                     Row(
                       children: List.generate(5, (index) {
                         return Icon(
@@ -450,22 +453,24 @@ class _FinishTaskState extends State<FinishTask> {
                 ),
               ],
             ),
-            SizedBox(height: 8),
-            Text(
-                "Your Feedback",
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF03045E),
-                )
-            ),
-            SizedBox(height: 8),
-            Text(
-                feedback,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  color: Colors.grey[600],)
-            )
+            if(feedback.isNotEmpty)...[
+              SizedBox(height: 8),
+              Text(
+                  "Your Feedback",
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF03045E),
+                  )
+              ),
+              SizedBox(height: 8),
+              Text(
+                  feedback,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Colors.grey[600],)
+              )
+            ],
           ],
         ),
       ),
