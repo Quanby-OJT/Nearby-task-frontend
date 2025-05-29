@@ -4,7 +4,7 @@
     <h3 class="text-foreground font-semibold">Payment Reviews</h3>
     <div class="text-muted-foreground space-x-1 text-xs font-medium">
       <a href="" class="hover:text-primary"><strong>Dashboards > Payment Reviews</strong></a>
-      <p>This is used to view and manage the transactions of the users in the application</p>
+      <p>All escrow deposits, withdrawals and payment releases to tasker will be displayed here.</p>
     </div>
   </div>
 </div>
@@ -107,15 +107,25 @@
               </span>
             </div>
           </th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[100px]">
+            <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('depositDate')">
+              Action
+            </div>
+          </th>
         </tr>
       </thead>
-      
+
       <tbody *ngIf="displayPaymentLogs.length > 0">
         <tr *ngFor="let log of displayPaymentLogs; let i = index" class="hover:bg-card/50 h-[60px]">
           <td class="px-4 py-3 text-start">{{ log.user_name }}</td>
           <td class="px-4 py-3 text-start">{{ log.amount }}</td>
           <td class="px-4 py-3 text-start">{{ log.payment_type }}</td>
           <td class="px-4 py-3 text-start">{{ log.transaction_date }}</td>
+          <td class="px-4 py-3 text-start">
+            <button class="p-2 text-blue-600 hover:text-blue-800" (click)="viewTransactionDetail(log)">
+              <svg-icon src="./assets/icons/heroicons/outline/eye.svg" [svgClass]="'h-5 w-5'"></svg-icon>
+            </button>
+          </td>
         </tr>
 
         <tr *ngFor="let placeholder of placeholderRows">
