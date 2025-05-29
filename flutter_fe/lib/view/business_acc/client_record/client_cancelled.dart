@@ -88,7 +88,7 @@ class _ClientCancelledState extends State<ClientCancelled> {
       final response = await _jobPostService
           .fetchTaskInformation(_requestInformation!.task_id as int);
       setState(() {
-        _taskInformation = response?.task;
+        _taskInformation = response.task;
         _isLoading = false;
       });
     } catch (e) {

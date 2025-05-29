@@ -4,7 +4,6 @@ import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
-import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/business_acc/assignment/task_assignment.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -165,105 +164,6 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
       debugPrint("Error fetching client tasks: $e");
       return [];
     }
-  }
-
-  Future<List<TaskModel>> _filterAvailableTasks(
-      List<TaskModel> tasks, int taskerId) async {
-    debugPrint(
-        "Filtering ${tasks.length} available tasks for tasker $taskerId");
-    final jobPostService = JobPostService();
-    try {
-      final assignmentStatuses = await Future.wait(
-        tasks.map((task) async {
-          try {
-            final userId = await storage.read('user_id');
-            debugPrint("Checking task ${task.id} for tasker $taskerId");
-            return await jobPostService.hasTaskEverBeenAssignedToTasker(
-                task.id, taskerId, userId! as int);
-          } catch (e) {
-            debugPrint("Error checking task ${task.id}: $e");
-            return false;
-          }
-        }),
-      );
-
-      return tasks
-          .asMap()
-          .entries
-          .where((entry) => !assignmentStatuses[entry.key])
-          .map((entry) => entry.value)
-          .toList();
-    } catch (e) {
-      debugPrint("Error in _filterAvailableTasks: $e");
-      return tasks;
-    }
-  }
-
-  Future<TaskModel?> _showTaskSelectionDialog(List<TaskModel> tasks) async {
-    return showDialog<TaskModel>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        title: Center(
-          child: Text(
-            'Select a Task to Assign',
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF03045E),
-            ),
-          ),
-        ),
-        content: SizedBox(
-          width: double.maxFinite,
-          height: tasks.length > 3 ? 300 : null,
-          child: tasks.isEmpty
-              ? const Text("No available tasks to assign.")
-              : ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: tasks.length,
-                  itemBuilder: (context, index) {
-                    final task = tasks[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 4),
-                      child: ListTile(
-                        title: Text(
-                          task.title ?? 'Untitled Task',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        subtitle: Text(
-                          task.description ?? 'No description',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.poppins(fontSize: 12),
-                        ),
-                        trailing: Text(
-                          '\$${task.contactPrice ?? 0}',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
-                          ),
-                        ),
-                        onTap: () => Navigator.of(context).pop(task),
-                      ),
-                    );
-                  },
-                ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.poppins(color: Colors.red),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   Future<void> getAllTaskerReviews() async {

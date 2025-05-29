@@ -29,6 +29,7 @@ class TaskController {
   final jobRemarksController = TextEditingController();
   final contactpriceController = TextEditingController();
   final rejectionController = TextEditingController();
+  final jobStartDateController = TextEditingController();
   final storage = GetStorage();
 
   void clearControllers() {
@@ -44,10 +45,74 @@ class TaskController {
     rejectionController.clear();
   }
 
+  
+
+  Future<Map<String, dynamic>> updateJob(
+    int id,
+    String urgency,
+    String scope,
+    String workType,
+    {List<String>? relatedSpecializationsIds,
+    List<File>? photos,
+    int? specializationId,
+    String? selectedSpecialization,
+    String? addressId,
+    String? title,
+    String? description,
+    String? remarks,
+    String? contactPrice,
+    } ) async {
+    try {
+      int userId = storage.read('user_id');
+      final priceText = contactPriceController.text.trim();
+      final priceInt = int.tryParse(priceText) ?? 0;
+
+      debugPrint(priceInt.toString());
+      if (priceInt > _escrowManagementController.tokenCredits.value) {
+        return {
+          "success": false,
+          "error":
+              "You don't have enough tokens to post your needed task. Please Deposit First Your Desired Amount of Tokens."
+        };
+      } else if (priceInt < 0) {
+        return {"success": false, "error": "Please Input more than 0."};
+      } else {
+        final task = TaskModel(
+            id: id,
+            title: jobTitleController.text.trim(),
+            description: jobDescriptionController.text.trim(),
+            contactPrice: int.parse(contactPriceController.text.trim()),
+            urgency: urgency,
+            remarks: jobRemarksController.text.trim(),
+            workType: workType,
+            addressID: addressId,
+            specializationId: specializationId,
+            relatedSpecializationsIds: relatedSpecializationsIds,
+            scope: scope,
+            taskBeginDate: jobStartDateController.text,
+           );
+
+           debugPrint("This is the task: ${task.toJson()}");
+
+      
+      return await _jobPostService.updateJob(task, task.id,
+            files: photos);
+      }
+    } catch (e, stackTrace) {
+      debugPrint('Error in postJob: $e');
+      debugPrint(stackTrace.toString());
+      return {
+        'success': false,
+        'error':
+            'An Error Occurred while Posting Your Task. Please Try Again. If Issue Persists, contact our support.'
+      };
+    }
+  }
+
   Future<Map<String, dynamic>> postJob(
       String specialization, String urgency, String scope, String workType,
       {List<String>? relatedSpecializationsIds,
-      File? photo,
+      List<File>? photos,
       int? specializationId,
       bool? isVerifiedDocument,
       String? addressId}) async {
@@ -81,13 +146,11 @@ class TaskController {
             scope: scope,
             remarks: jobRemarksController.text.trim(),
             workType: workType,
+            taskBeginDate: jobStartDateController.text,
             status: "Available");
 
-        debugPrint('Task data from postJob: ${task.toJson()}');
-        debugPrint('User ID from postJob: $userId');
-        debugPrint('Photo from postJob: ${photo?.path}');
         return await _jobPostService.postJob(task, userId,
-            files: photo != null ? [photo] : null);
+            files: photos);
       }
     } catch (e, stackTrace) {
       debugPrint('Error in postJob: $e');
@@ -213,12 +276,12 @@ class TaskController {
 
   Future<String> assignTask(
       int? taskId, int? clientId, int? taskerId, String role,
-      {int? daysAvailable, String? availableDate}) async {
+      {int? daysAvailable}) async {
     debugPrint("Assigning task...");
     debugPrint("Role: $role");
     final assignedTask = await _jobPostService.assignTask(
         taskId!, clientId!, taskerId!, role,
-        daysAvailable: daysAvailable, availableDate: availableDate);
+        daysAvailable: daysAvailable);
     return assignedTask.containsKey('message')
         ? assignedTask['message'].toString()
         : assignedTask['error'].toString();
@@ -309,7 +372,7 @@ class TaskController {
 
   // Method to update a task
   Future<Map<String, dynamic>> updateTask(
-      int taskId, Map<String, dynamic> taskData) async {
+      int taskId, Map<String, dynamic> taskData, {File? photo}) async {
     debugPrint("Updating task with ID: $taskId");
     try {
       if (_escrowManagementController.tokenCredits.value -
@@ -321,7 +384,7 @@ class TaskController {
               "You don't have enough tokens to post your needed task. Please Deposit First Your Desired Amount of Tokens."
         };
       } else {
-        return await _jobPostService.updateTask(taskId, taskData);
+        return await _jobPostService.updateTask(taskId, taskData, photo: photo);
       }
     } catch (e, stackTrace) {
       debugPrint("Error updating task: $e");
