@@ -13,6 +13,7 @@ import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import Swal from 'sweetalert2';
 import { AngularSvgIconModule } from 'angular-svg-icon';
+import { ReportCardComponent } from './report-card/report-card.component';
 
 @Component({
   selector: 'app-complaints',
@@ -22,6 +23,7 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
     FormsModule,
     ClientComplaintComponent,
     TaskerComplaintComponent,
+    ReportCardComponent,
     AngularSvgIconModule
   ],
   templateUrl: './complaints.component.html',
@@ -227,9 +229,20 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const handledBy = this.selectedReport.actionBy
-      ? `${this.selectedReport.actionBy.first_name || ''} ${this.selectedReport.actionBy.middle_name || ''} ${this.selectedReport.actionBy.last_name || ''}`.trim()
-      : 'Not Handled Yet';
+    let handledBy = 'Empty'; // Default to Empty
+    if (this.selectedReport.actionBy) {
+      const firstName = this.selectedReport.actionBy.first_name || '';
+      const middleName = this.selectedReport.actionBy.middle_name || '';
+      const lastName = this.selectedReport.actionBy.last_name || '';
+
+      // Check if all name parts are 'Unknown' or if the trimmed name is empty
+      if (
+        (firstName.toLowerCase() !== 'unknown' || middleName.toLowerCase() !== 'unknown' || lastName.toLowerCase() !== 'unknown') &&
+        `${firstName} ${middleName} ${lastName}`.trim() !== ''
+      ) {
+        handledBy = `${firstName} ${middleName} ${lastName}`.trim();
+      }
+    }
 
     let imagesHtml = '';
     if (this.selectedReport.images) {

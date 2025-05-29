@@ -9,18 +9,9 @@
   </div>
 </div>
 
-
 <div *ngIf="!isLoading" class="flex w-full max-w-[1440px] mx-auto flex-col pb-3">
   <div class="flex w-full space-x-3">
-    <div class="flex-1 min-w-[300px] w-[50%] max-h-[400px] p-6 overflow-auto box-border" (mouseenter)="stopAutoSwipe()" (mouseleave)="startAutoSwipe()">
-      <strong class="text-lg font-semibold">Client Complaints</strong>
-      <app-client-complaint (reportSelected)="openModal($event)"></app-client-complaint>
-    </div>
-
-    <div class="flex-1 min-w-[300px] w-[50%] max-h-[400px] p-6 overflow-auto box-border" (mouseenter)="stopAutoSwipe()" (mouseleave)="startAutoSwipe()">
-      <strong class="text-lg font-semibold">Tasker Complaints</strong>
-      <app-tasker-complaint (reportSelected)="openModal($event)"></app-tasker-complaint>
-    </div>
+    <app-report-card (reportSelected)="openModal($event)"></app-report-card>
   </div>
 </div>
 

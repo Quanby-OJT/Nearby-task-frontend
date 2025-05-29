@@ -1,0 +1,56 @@
+.carousel {
+  width: 980px;
+  overflow: hidden;
+  position: relative;
+}
+
+.carousel-track {
+  display: flex;
+  transition: transform 0.8s ease-in-out;
+  gap: 30px; /* Space between cards */
+  width: fit-content;
+}
+
+.card {
+  flex: 0 0 300px;
+  min-width: 300px;
+  max-width: 300px;
+  height: 180px;
+  border-radius: 20px;
+  padding: 20px;
+  background: linear-gradient(to bottom, #a3d5f7, #5F50E7);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  color: white;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+
+.card:hover {
+  opacity: 0.9;
+}
+
+.card b {
+  font-weight: bold;
+}
+
+.hover-message {
+  background: rgba(0, 0, 0, 0.5);
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
+
+.view-link {
+  color: #003366;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.view-link:hover {
+  color: #001f3f;
+}
