@@ -3,6 +3,7 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DisputeManagementService } from 'src/app/services/dispute-management.service';
+import { DataService } from 'src/services/dataStorage';
 
 
 import jsPDF from 'jspdf';
@@ -30,16 +31,22 @@ export class DisputeManagementComponent {
   totalPages: number = 1;
   startIndex: number = 1;
   endIndex: number = 0;
+  userRole: string = '';
   paginationButtons: (number | string)[] = [];
   placeholderRows: any[] = []; // Added for placeholder rows
   disputeDetails: any = null
   selectedAction: string = '';
   additionalNotes: string = '';
   isLoading: boolean = true;
-  constructor(private disputeService: DisputeManagementService) { }
+  constructor(private disputeService: DisputeManagementService, private dataService: DataService) { }
 
   ngOnInit(): void {
     this.isLoading = true;
+    this.dataService.getUserRole().subscribe((userRole) => {
+      console.log('This is from ' + userRole);
+
+      this.userRole = userRole;
+    });
     this.disputeService.getAllDisputes().subscribe(
       (response: any) => {
         console.log('Received dispute data:', response);
@@ -95,37 +102,68 @@ export class DisputeManagementComponent {
 
     const htmlContent = `
       <div class="p-6 bg-white rounded-lg shadow-md text-left">
-        <!-- Warning Note Section -->
-        ${!this.disputeDetails.moderator_action ? `
+      <!-- Warning Note Section -->
+      ${this.userRole == 'Moderator' ?
+        `${!this.disputeDetails.moderator_action ? `
         <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
           <div class="flex">
           <div class="ml-3">
-            <h3 class="text-yellow-800 font-medium">Note to Moderator</h3>
-            <p class="text-yellow-700 text-sm mt-2">
-            PLEASE review all data such as: Task Information, Chat History, and User Reports before you settle this dispute.
-            Additionally, you MUST contact BOTH the client and tasker and LISTEN to their dispute.
-            </p>
+          <h3 class="text-yellow-800 font-medium">Note to Moderator</h3>
+          <p class="text-yellow-700 text-sm mt-2">
+          PLEASE review all data such as: Task Information, Chat History, and User Reports before you settle this dispute.
+          Additionally, you MUST contact BOTH the client and tasker and LISTEN to their sides. If the dispute hasn't been resolved after 14 days, it will be automatically resolved.
+          </p>
           </div>
         </div>
-      </div>
-      ` : ''}
+        </div>
+        ` : `
+        <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
+          <div class="flex">
+          <div class="ml-3">
+          <h3 class="text-green-800 font-medium">Note to Moderator</h3>
+          <p class="text-green-700 text-sm mt-2">
+          This dispute has already been resolved by a moderator. You can view the details below.
+          </p>
+          </div>
+        </div>
+        </div>
+        `}
+      ` : `
+        <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
+          <div class="flex">
+          <div class="ml-3">
+          <p class="text-green-700 text-sm mt-2">
+          Dispute already resolved by: <span class="font-bold text-xl">${this.disputeDetails.user.first_name} ${this.disputeDetails.user.middle_name ?? ''} ${this.disputeDetails.user.last_name}.</span><br>
+          If you think this action is questionable, you can contact the moderator and the tasker/s and client/s for further information.
+          </p>
+          </div>
+        </div>
+        </div>
+      `}
       <!-- Task Information Section -->
       <div class="grid grid-cols-1 gap-4 mb-6">
       <div class="border-b pb-4">
       <h3 class="text-lg font-semibold mb-4">Task Information</h3>
       <div class="space-y-3">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-        <strong class="text-gray-700">Task Title:</strong>
-        <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.task_taken?.post_task?.task_title || 'N/A'}</span>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-        <strong class="text-gray-700">Reason for Dispute:</strong>
-        <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.reason_for_dispute || 'N/A'}</span>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-        <strong class="text-gray-700">Dispute Details:</strong>
-        <span class="text-gray-600 sm:col-span-2 text-sm">${this.disputeDetails.dispute_details || 'N/A'}</span>
-        </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+      <strong class="text-gray-700">Task Title:</strong>
+      <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.task_taken?.post_task?.task_title || 'N/A'}</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+      <strong class="text-gray-700">Description:</strong>
+      <span class="text-gray-600 sm:col-span-2 text-sm">${this.disputeDetails.task_taken?.post_task?.task_description || 'N/A'}</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+      <strong class="text-gray-700">Task Creator:</strong>
+      <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.task_taken?.clients?.user?.first_name || 'N/A'} ${this.disputeDetails.task_taken?.clients?.user?.last_name || 'N/A'}</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+      <strong class="text-gray-700">Tasker:</strong>
+      <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.task_taken?.tasker?.user?.first_name || 'N/A'} ${this.disputeDetails.task_taken?.tasker?.user?.last_name || 'N/A'}</span>
+      </div>
       </div>
       </div>
 
@@ -133,34 +171,48 @@ export class DisputeManagementComponent {
       <div class="border-b pb-4">
       <h3 class="text-lg font-semibold mb-4">Dispute Details</h3>
       <div class="space-y-3">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-        <strong class="text-gray-700">Raised By:</strong>
-        <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.task_taken?.clients?.user?.first_name || 'N/A'} ${this.disputeDetails.task_taken?.clients?.user?.last_name || 'N/A'}</span>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-        <strong class="text-gray-700">Moderator Action:</strong>
-        <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.moderator_action || 'No Moderator Action'}</span>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-        <strong class="text-gray-700">Date Dispute was Raised:</strong>
-        <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.created_at || 'N/A'}</span>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-        <strong class="text-gray-700">Dispute Pictures:</strong>
-        <div class="sm:col-span-2 flex flex-wrap gap-2">
-          ${Array.isArray(this.disputeDetails.image_proof) && this.disputeDetails.image_proof.length > 0 ?
-        this.disputeDetails.image_proof.map((pic: any) => `
-            <img
-            src="${pic}"
-            alt="Dispute evidence"
-            class="w-24 h-24 object-cover cursor-pointer rounded"
-            onclick="window.open('${pic}', '_blank')"
-            />`
-        ).join('') :
-        '<span class="text-gray-600">No pictures available</span>'
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+      <strong class="text-gray-700">Reason for Dispute:</strong>
+      <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.reason_for_dispute || 'N/A'}</span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+      <strong class="text-gray-700">Dispute Details:</strong>
+      <span class="text-gray-600 sm:col-span-2 text-sm">${this.disputeDetails.dispute_details || 'N/A'}</span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+      <strong class="text-gray-700">Raised By:</strong>
+      <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.task_taken?.clients?.user?.first_name || 'N/A'} ${this.disputeDetails.task_taken?.clients?.user?.last_name || 'N/A'}</span>
+      </div>
+      ${this.disputeDetails.moderator_action && this.disputeDetails.addl_dispute_notes ? `
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+      <strong class="text-gray-700">Moderator Action:</strong>
+      <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.moderator_action}</span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+      <strong class="text-gray-700">Moderator Notes:</strong>
+      <span class="text-gray-600 sm:col-span-2 text-sm">${this.disputeDetails.addl_dispute_notes}</span>
+      </div>
+      ` : ''}
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+      <strong class="text-gray-700">Date Dispute was Raised:</strong>
+      <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.created_at || 'N/A'}</span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+      <strong class="text-gray-700">Dispute Pictures:</strong>
+      <div class="sm:col-span-2 flex flex-wrap gap-2">
+      ${Array.isArray(this.disputeDetails.image_proof) && this.disputeDetails.image_proof.length > 0 ?
+      this.disputeDetails.image_proof.map((pic: any) => `
+        <img
+        src="${pic}"
+        alt="Dispute evidence"
+        class="w-48 h-48 object-cover cursor-pointer rounded"
+        onclick="window.open('${pic}', '_blank')"
+        />`
+      ).join('') :
+      '<span class="text-gray-600">No pictures available</span>'
       }
-        </div>
-        </div>
+      </div>
+      </div>
       </div>
       </div>
       </div>
@@ -168,20 +220,20 @@ export class DisputeManagementComponent {
       <!-- Action Form Section -->
       ${!this.disputeDetails.moderator_action ? `
       <div class="space-y-4">
-        <div class="form-group">
-        <label for="moderatorAction" class="block text-gray-700 font-medium mb-2">Moderator Action:</label>
-        <select id="moderatorAction" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" required>
-          <option value="">Select an action</option>
-          <option value="refund_tokens">Refund NearByTask Tokens to Client</option>
-          <option value="release_half">Release Half of the Total Payment to Tasker</option>
-          <option value="release_full">Release Full Payment to Tasker</option>
-          <option value="reject_dispute">Reject the Dispute</option>
-        </select>
-        </div>
-        <div class="form-group">
-        <label for="disputeNotes" class="block text-gray-700 font-medium mb-2">Additional Notes:</label>
-        <textarea id="disputeNotes" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" rows="3" required></textarea>
-        </div>
+      <div class="form-group">
+      <label for="moderatorAction" class="block text-gray-700 font-medium mb-2">Moderator Action:</label>
+      <select id="moderatorAction" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" required>
+        <option value="">Select an action</option>
+        <option value="refund_tokens">Refund NearByTask Tokens to Client</option>
+        <option value="release_half">Release Half of the Total Payment to Tasker</option>
+        <option value="release_full">Release Full Payment to Tasker</option>
+        <option value="reject_dispute">Reject the Dispute</option>
+      </select>
+      </div>
+      <div class="form-group">
+      <label for="disputeNotes" class="block text-gray-700 font-medium mb-2">Additional Notes:</label>
+      <textarea id="disputeNotes" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" rows="3" required></textarea>
+      </div>
       </div>
       ` : ''}
       </div>
@@ -222,9 +274,13 @@ export class DisputeManagementComponent {
       // Add confirmation modal
       Swal.fire({
         title: 'Are you sure?',
-          cancelButtonText: 'Review the Dispute',
-          confirmButtonColor: '#3085d6',
-          cancelButtonColor: '#d33',
+        cancelButtonText: 'Review the Dispute',
+        text: `You are about to update the dispute with ID: ${this.disputeDetails.dispute_id}.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Resolve This Dispute',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
         }).then((confirmResult) => {
           if (confirmResult.isConfirmed) {
             this.updateDispute(
@@ -242,7 +298,7 @@ export class DisputeManagementComponent {
 
   updateDispute(dispute_id: number, task_taken_id: number, task_id: number, moderator_action: string, addl_dispute_notes: string,) {
     console.log("Updating a dispute with ID:", dispute_id);
-    this.disputeService.updateADispute(dispute_id, task_taken_id, task_id, "Dispute Settled", moderator_action, addl_dispute_notes)
+    this.disputeService.updateADispute(dispute_id, task_taken_id, task_id, "Completed", moderator_action, addl_dispute_notes)
       .subscribe({
         next: (response) => {
           Swal.fire({

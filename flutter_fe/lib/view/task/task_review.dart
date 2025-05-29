@@ -41,13 +41,14 @@ class _TaskReviewState extends State<TaskReview> {
   final storage = GetStorage();
   AuthenticatedUser? client;
   Timer? _timer;
-  String? selectedReason = 'Incomplete task details';
+  String? selectedReason = 'Poor quality of work';
   final List<String> rejectionReasons = [
-    'Incomplete task details',
-    'Insufficient time',
-    'Lack of resources',
-    'Task not relevant',
-    'Other'
+    'Task not completed as described',
+  'Poor quality of work',
+  'Parts or materials missing',
+  'Damaged property during task',
+  'Task completed without my knowledge',
+  'Other'
   ];
 
   final List<File> _imageEvidence = [];
@@ -168,7 +169,7 @@ class _TaskReviewState extends State<TaskReview> {
               ? Center(
                   child: Text(
                     'No task information available',
-                    style: GoogleFonts.montserrat(
+                    style: GoogleFonts.poppins(
                       fontSize: 16,
                       color: Colors.grey[600],
                     ),
@@ -186,6 +187,8 @@ class _TaskReviewState extends State<TaskReview> {
                           SizedBox(height: 16),
                           _buildTaskCard(),
                           SizedBox(height: 16),
+                          _buildPendingPayment(),
+                          SizedBox(height: 16),
                           _buildClientProfileCard(),
                           SizedBox(height: 16),
                           _buildTaskerActionButton(),
@@ -193,6 +196,8 @@ class _TaskReviewState extends State<TaskReview> {
                           _buildClientReviewSection(),
                           SizedBox(height: 16),
                           _buildTaskCard(),
+                          SizedBox(height: 16),
+                          _buildPendingPayment(),
                           SizedBox(height: 16),
                           _buildTaskerProfileCard(),
                           SizedBox(height: 16),
@@ -253,28 +258,31 @@ class _TaskReviewState extends State<TaskReview> {
             ),
           ),
         ),
+   
         Row(
           children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () => _handleRejectTask(context),
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: Colors.red[400]!),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+            if (_requestInformation?.rework_count?.toString() == "0")
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => _handleDeclinedTask(context),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Colors.red[400]!),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                ),
-                child: Text(
-                  'Reject',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.red[400],
+                  child: Text(
+                    'Declined',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.red[400],
+                    ),
                   ),
                 ),
               ),
-            ),
+            if (_requestInformation?.rework_count?.toString() == "0")
             const SizedBox(width: 12),
             Expanded(
               child: OutlinedButton(
@@ -297,7 +305,8 @@ class _TaskReviewState extends State<TaskReview> {
               ),
             ),
           ],
-        ),
+        ) 
+        
       ],
     );
   }
@@ -544,7 +553,7 @@ class _TaskReviewState extends State<TaskReview> {
     );
   }
 
-  Future<void> _handleRejectTask(BuildContext context) async {
+  Future<void> _handleDeclinedTask(BuildContext context) async {
     bool? confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -553,7 +562,7 @@ class _TaskReviewState extends State<TaskReview> {
         ),
         title: Center(
           child: Text(
-            'Reject Task',
+            'Declined Task',
             style: GoogleFonts.poppins(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -566,7 +575,7 @@ class _TaskReviewState extends State<TaskReview> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Are you sure you want to reject this task? This action cannot be undone.',
+              'Are you sure you want to decline this task? This will make the tasker rework the task if accepted.',
               style: GoogleFonts.poppins(
                 fontSize: 12,
                 fontWeight: FontWeight.w300,
@@ -575,7 +584,7 @@ class _TaskReviewState extends State<TaskReview> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Reason for rejection:',
+              'Reason for decline:',
               style: GoogleFonts.poppins(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -654,7 +663,7 @@ class _TaskReviewState extends State<TaskReview> {
                       _isLoading = true;
                     });
 
-                    final String value = 'Start';
+                    final String value = 'Declined';
                     bool result = await taskController.acceptRequest(
                       _requestInformation?.task_taken_id ?? 0,
                       value,
@@ -694,7 +703,7 @@ class _TaskReviewState extends State<TaskReview> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Task has been rejected.',
+            'Task has been declined.',
             style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w500,
@@ -878,7 +887,7 @@ class _TaskReviewState extends State<TaskReview> {
           SizedBox(height: 12),
           Text(
             'Pending to Review',
-            style: GoogleFonts.montserrat(
+            style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: Colors.blue[800],
@@ -888,7 +897,7 @@ class _TaskReviewState extends State<TaskReview> {
           Text(
             "Waiting for client review",
             textAlign: TextAlign.center,
-            style: GoogleFonts.montserrat(
+            style: GoogleFonts.poppins(
               fontSize: 14,
               color: Colors.grey[600],
             ),
@@ -917,7 +926,7 @@ class _TaskReviewState extends State<TaskReview> {
           SizedBox(height: 12),
           Text(
             'Make Your Review',
-            style: GoogleFonts.montserrat(
+            style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: Colors.blue[800]),
@@ -927,9 +936,47 @@ class _TaskReviewState extends State<TaskReview> {
             "Make sure to review the task before clicking the button below.",
             textAlign: TextAlign.center,
             style:
-                GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
+                GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPendingPayment() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Color(0xFF03045E).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.task, color: Color(0xFF03045E), size: 24),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Pending Payment',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF03045E),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -957,7 +1004,7 @@ class _TaskReviewState extends State<TaskReview> {
                 Expanded(
                   child: Text(
                     _taskInformation!.title ?? 'Task',
-                    style: GoogleFonts.montserrat(
+                    style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF03045E),
@@ -972,12 +1019,21 @@ class _TaskReviewState extends State<TaskReview> {
               label: 'Status',
               value: _requestInformation?.task_status ?? 'Ongoing',
             ),
+
             _buildTaskInfoRow(
               icon: Icons.calendar_today,
-              label: 'Finished Date',
+              label: 'Start Date',
               value: _requestInformation!.start_date != null
                   ? DateFormat('MMM dd, yyyy HH:mm')
                       .format(_requestInformation!.start_date!.toLocal())
+                  : 'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: Icons.calendar_today,
+              label: 'Finish Date',
+              value: _requestInformation!.end_date != null
+                  ? DateFormat('MMM dd, yyyy HH:mm')
+                      .format(_requestInformation!.end_date!.toLocal())
                   : 'N/A',
             ),
           ],
@@ -1003,7 +1059,7 @@ class _TaskReviewState extends State<TaskReview> {
         ),
         child: Text(
           'Back to Task',
-          style: GoogleFonts.montserrat(
+          style: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w600,
             color: Colors.white,
@@ -1021,7 +1077,7 @@ class _TaskReviewState extends State<TaskReview> {
         SizedBox(width: 8),
         Text(
           '$label: ',
-          style: GoogleFonts.montserrat(
+          style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w500,
             color: Colors.grey[600],
@@ -1030,7 +1086,7 @@ class _TaskReviewState extends State<TaskReview> {
         Expanded(
           child: Text(
             value,
-            style: GoogleFonts.montserrat(
+            style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w500,
               color: Color(0xFF03045E),
@@ -1047,7 +1103,7 @@ class _TaskReviewState extends State<TaskReview> {
       children: [
         Text(
           '$label: ',
-          style: GoogleFonts.montserrat(
+          style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w500,
             color: Colors.grey[600],
@@ -1059,7 +1115,7 @@ class _TaskReviewState extends State<TaskReview> {
               Flexible(
                 child: Text(
                   value,
-                  style: GoogleFonts.montserrat(
+                  style: GoogleFonts.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                     color: Color(0xFF03045E),

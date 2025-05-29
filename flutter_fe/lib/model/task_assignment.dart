@@ -12,6 +12,7 @@ class TaskAssignment {
   final String? taskStatusReason;
   int unreadCount;
   int messageSentById;
+  int rework;
 
   TaskAssignment({
     this.client,
@@ -22,6 +23,7 @@ class TaskAssignment {
     this.taskStatusReason,
     this.unreadCount = 0,
     this.messageSentById = 0,
+    this.rework = 0,
   });
 
   @override
@@ -40,6 +42,7 @@ class TaskAssignment {
       taskStatusReason: json['reason_for_rejection_or_cancellation'],
       unreadCount: json['unread_count'] ?? 0,
       messageSentById: json['last_message_id'] ?? 0,
+      rework: json['rework_count'] ?? 0,
     );
   }
 }

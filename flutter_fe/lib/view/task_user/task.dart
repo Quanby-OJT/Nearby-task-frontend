@@ -12,6 +12,7 @@ import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/task/task_cancelled.dart';
 import 'package:flutter_fe/view/task/task_confirmed.dart';
+import 'package:flutter_fe/view/task/task_declined.dart';
 import 'package:flutter_fe/view/task/task_finished.dart';
 import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:flutter_fe/view/task/task_pending.dart';
@@ -60,6 +61,7 @@ class _TaskPageState extends State<TaskPage>
     'Dispute Settled',
     'Cancelled',
     'Review',
+    'Declined'
   ];
   List<String> specialization = [];
   List<TaskFetch?> clientTasks = [];
@@ -648,6 +650,21 @@ class _TaskPageState extends State<TaskPage>
               context,
               MaterialPageRoute(
                 builder: (context) => TaskPending(
+                  taskInformation: task,
+                ),
+              ),
+            ).then((value) {
+              if (value != null) {
+                _loadMethod();
+              }
+            });
+          }
+
+            if (task.taskStatus == "Declined") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TaskDeclined(
                   taskInformation: task,
                 ),
               ),
