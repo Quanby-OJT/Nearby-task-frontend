@@ -7,6 +7,7 @@ import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/view/service_acc/tasker_record/tasker_pending.dart';
 import 'package:flutter_fe/view/task/task_cancelled.dart';
 import 'package:flutter_fe/view/task/task_confirmed.dart';
+import 'package:flutter_fe/view/task/task_declined.dart';
 import 'package:flutter_fe/view/task/task_finished.dart';
 import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:flutter_fe/view/task/task_pending.dart';
@@ -83,6 +84,7 @@ class _JobPostPageState extends State<JobPostPage>
     'Disputed',
     'Rejected',
     'Closed',
+    'Declined'
   ];
 
   @override
@@ -722,7 +724,6 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
-  // Navigate to appropriate task status page
   void _navigateToTaskStatusPage(TaskFetch task) {
     final statusPages = {
       'Completed': TaskFinished(taskInformation: task),
@@ -731,6 +732,7 @@ class _JobPostPageState extends State<JobPostPage>
       'Cancelled': TaskCancelled(taskInformation: task),
       'Ongoing': TaskOngoing(taskInformation: task, role: _user?.user.role),
       'Review': TaskReview(taskInformation: task),
+      'Declined': TaskDeclined(taskInformation: task),
     };
 
     final page = statusPages[task.taskStatus];
@@ -798,7 +800,6 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
-  // Build task info with user avatar
   Widget _buildTaskInfo(TaskFetch task, {double size = 40.0}) {
     final imageUrl = task.tasker?.user?.image ?? 'Unknown';
     final hasValidImage =
@@ -865,7 +866,6 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
-  // Reusable task info row
   Widget _buildTaskInfoRow({
     required IconData icon,
     required Color? iconColor,
@@ -886,7 +886,6 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
-  // Confirm and delete task
   Future<void> _confirmDeleteTask(int taskId) async {
     final confirm = await showDialog<bool>(
       context: context,

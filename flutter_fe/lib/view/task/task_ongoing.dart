@@ -652,15 +652,18 @@ class _TaskOngoingState extends State<TaskOngoing> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (_requestStatus == 'Ongoing') _buildStatusSection(),
+                        if (_requestStatus == 'Ongoing' || _requestStatus == 'Reworking') _buildStatusSection(),
                         SizedBox(height: 16),
                         _buildTaskCard(),
                         if (widget.taskInformation?.tasker?.user == null)
                           _buildClientProfileCard(),
+                           SizedBox(height: 16),
                         if (widget.taskInformation?.tasker?.user == null)
                           _buildtaskerActionButton(),
+                           SizedBox(height: 16),
                         if (widget.taskInformation?.tasker?.user != null)
                           _buildTaskerProfileCard(),
+                           SizedBox(height: 16),
                         if (widget.taskInformation?.tasker?.user != null)
                           _buildclientActionButton()
                       ],
@@ -801,6 +804,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(5),
+                  
                   color: Color(0xFFB71A4A),
                 ),
                 child: TextButton(

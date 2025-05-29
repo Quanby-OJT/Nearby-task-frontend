@@ -10,6 +10,8 @@ class ClientRequestModel {
   final String? requested_from;
   final int? time_request;
   final DateTime? start_date;
+  final DateTime? end_date;
+  final int? rework_count;
 
   ClientRequestModel({
     this.task_taken_id,
@@ -23,6 +25,8 @@ class ClientRequestModel {
     this.requested_from,
     this.time_request,
     this.start_date,
+    this.end_date,
+    this.rework_count,
   });
 
   Map<String, dynamic> toJson() {
@@ -39,6 +43,8 @@ class ClientRequestModel {
       "requested_from": requested_from,
       "time_request": time_request,
       "start_date": start_date,
+      "end_date": end_date,
+      "rework_count": rework_count,
     };
   }
 
@@ -65,6 +71,10 @@ class ClientRequestModel {
       start_date: json['start_date'] != null
           ? DateTime.tryParse(json['start_date'] as String? ?? '')
           : null,
+      end_date: json['end_date'] != null
+          ? DateTime.tryParse(json['end_date'] as String? ?? '')
+          : null,
+      rework_count: json['rework_count'] as int?,
     );
   }
 }

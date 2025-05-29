@@ -16,7 +16,7 @@ import '../model/client_model.dart';
 import '../model/tasker_model.dart';
 
 class JobPostService {
-  static String url = apiUrl ?? "https://192.168.1.10:5000/connect";
+  static String url = apiUrl ?? "https://localhost:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -57,7 +57,8 @@ class JobPostService {
     }
   }
 
-  Future<List<TaskModel>> fetchJobsBySpecialization(String specialization) async {
+  Future<List<TaskModel>> fetchJobsBySpecialization(
+      String specialization) async {
     try {
       final userId = await getUserId();
       if (userId == null) {
@@ -95,7 +96,8 @@ class JobPostService {
     }
   }
 
-  Future<bool> hasTaskEverBeenAssignedToTasker(int taskId, int taskerId, userId) async {
+  Future<bool> hasTaskEverBeenAssignedToTasker(
+      int taskId, int taskerId, userId) async {
     try {
       debugPrint(
           "Checking if task $taskId has ever been assigned to tasker $taskerId, user ID: $userId");
@@ -161,7 +163,8 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _postRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final response = await http.post(Uri.parse("$url$endpoint"),
         headers: {
           "Authorization": "Bearer $token",
@@ -172,7 +175,8 @@ class JobPostService {
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> _deleteRequest(
+      String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
       final request = http.Request("DELETE", Uri.parse('$url$endpoint'))
@@ -227,7 +231,8 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> _putRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _putRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     debugPrint(body.toString());
     try {
@@ -370,11 +375,12 @@ class JobPostService {
 
   Future<List<TaskFetch>> taskerTaskInformation(int requestID) async {
     try {
-      if(requestID == 0){
+      if (requestID == 0) {
         debugPrint("Invalid requestID: $requestID");
         return [];
       }
-      Map<String, dynamic> response = await _getRequest("/tasker/taskinformation/$requestID");
+      Map<String, dynamic> response =
+          await _getRequest("/tasker/taskinformation/$requestID");
       debugPrint("Request Data Retrieved: ${response.toString()}");
 
       if (response.containsKey('data')) {
@@ -807,7 +813,9 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> assignTask(int taskId, int clientId, int taskerId, String role, {int? daysAvailable, String? availableDate}) async {
+  Future<Map<String, dynamic>> assignTask(
+      int taskId, int clientId, int taskerId, String role,
+      {int? daysAvailable, String? availableDate}) async {
     final userId = await getUserId();
     if (userId == null) {
       return {
@@ -832,7 +840,8 @@ class JobPostService {
     });
   }
 
-  Future<Map<String, dynamic>> updateNotification(int taskTakenId, int userId) async {
+  Future<Map<String, dynamic>> updateNotification(
+      int taskTakenId, int userId) async {
     try {
       debugPrint("Updating notification with ID: $taskTakenId and $userId");
       final response = await http.put(
@@ -875,10 +884,14 @@ class JobPostService {
   Future<Map<String, dynamic>> getDispute(int taskTakenId) async {
     try {
       return await _getRequest('/get-a-dispute/$taskTakenId');
-    }catch(e, stackTrace){
+    } catch (e, stackTrace) {
       debugPrint('Error accepting task: $e');
       debugPrintStack(stackTrace: stackTrace);
-      return {'success': false, 'error': 'An Error Occurred while displaying your task information. Please Try Again'};
+      return {
+        'success': false,
+        'error':
+            'An Error Occurred while displaying your task information. Please Try Again'
+      };
     }
   }
 
@@ -927,7 +940,8 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> rateTheTasker(int taskTakenId, int taskerId, int rating, String feedback) async {
+  Future<Map<String, dynamic>> rateTheTasker(
+      int taskTakenId, int taskerId, int rating, String feedback) async {
     try {
       debugPrint(
           "Rating the tasker with rating: $rating and feedback: $feedback");
@@ -950,11 +964,16 @@ class JobPostService {
     } catch (e) {
       debugPrint('Error getting client feedback: $e');
       debugPrintStack();
-      return {'success': false, 'error': 'An error occured while retrieving your feedback. Please Try Again.'};
+      return {
+        'success': false,
+        'error':
+            'An error occured while retrieving your feedback. Please Try Again.'
+      };
     }
   }
 
-  Future<Map<String, dynamic>> fetchIsApplied(int? taskId, int? clientId, int? taskerId) async {
+  Future<Map<String, dynamic>> fetchIsApplied(
+      int? taskId, int? clientId, int? taskerId) async {
     final userId = await getUserId();
     if (userId == null) {
       return {
@@ -1013,7 +1032,8 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> updateTask(int taskId, Map<String, dynamic> taskData) async {
+  Future<Map<String, dynamic>> updateTask(
+      int taskId, Map<String, dynamic> taskData) async {
     try {
       debugPrint("Updating task with ID: $taskId");
       return await _putRequest(
@@ -1028,7 +1048,8 @@ class JobPostService {
   }
 
   // Method to disable a task
-  Future<Map<String, dynamic>> disableTask(int taskId, [String status = "cancelled"]) async {
+  Future<Map<String, dynamic>> disableTask(int taskId,
+      [String status = "cancelled"]) async {
     try {
       debugPrint("Disabling task with ID: $taskId with status: $status");
       final response = await http.put(
