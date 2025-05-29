@@ -435,7 +435,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                         "About",
                         [
                           Text(
-                            _user?.tasker?.bio ?? "Not Available",
+                            _user?.user.bio ?? "Not Available",
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               color: Colors.grey[600],

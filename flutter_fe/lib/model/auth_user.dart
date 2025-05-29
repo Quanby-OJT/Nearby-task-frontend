@@ -1,20 +1,18 @@
 import '../model/user_model.dart';
-import '../model/client_model.dart';
-import '../model/tasker_model.dart';
 
 class AuthenticatedUser {
   final UserModel user;
-  final ClientModel? client;
-  final TaskerModel? tasker;
+  final bool isClient;
+  final bool isTasker;
 
   AuthenticatedUser({
     required this.user,
-    this.client,
-    this.tasker,
+    this.isClient = false,
+    this.isTasker = false,
   });
 
   @override
   String toString() {
-    return "AuthenticatedUser(user: $user, client: $client, tasker: $tasker)";
+    return "AuthenticatedUser(user: $user, isClient: $isClient, isTasker: $isTasker)";
   }
 }

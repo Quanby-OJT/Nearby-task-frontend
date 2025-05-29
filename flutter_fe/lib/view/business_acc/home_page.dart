@@ -172,13 +172,13 @@ class _ClientHomePageState extends State<ClientHomePage>
         return;
       }
 
-      if(user.user.accStatus == "Warn"){
+      if (user.user.accStatus == "Warn") {
         bool hasShownWarning = storage.read('hasShownWarning') ?? false;
         if (!hasShownWarning) {
           storage.write('hasShownWarning', true);
           showWarnUser();
         }
-      }else if(user.user.accStatus == "Ban"){
+      } else if (user.user.accStatus == "Ban") {
         showBanUser();
       }
 
@@ -208,62 +208,54 @@ class _ClientHomePageState extends State<ClientHomePage>
   void showWarnUser() {
     showDialog(
         context: context,
-        builder: (BuildContext childContext){
+        builder: (BuildContext childContext) {
           return AlertDialog(
-              content: Row(
-                  children: [
-                    Icon(
-                      FontAwesomeIcons.triangleExclamation,
-                      color: Color(0XFFE7A335),
-                      size: 50,
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(
-                        child: Text(
-                          "You have been flagged for suspicious activity in your account. Please Contact Support for more information. Tap anywhere to remove this warning.",
-                          style: GoogleFonts.poppins(
-                            color: Colors.black,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w300,
-                          ),
-                        )
-                    )
-                  ]
-              )
-          );
-        }
-    );
+              content: Row(children: [
+            Icon(
+              FontAwesomeIcons.triangleExclamation,
+              color: Color(0XFFE7A335),
+              size: 50,
+            ),
+            SizedBox(width: 10),
+            Expanded(
+                child: Text(
+              "You have been flagged for suspicious activity in your account. Please Contact Support for more information. Tap anywhere to remove this warning.",
+              style: GoogleFonts.poppins(
+                color: Colors.black,
+                fontSize: 14,
+                fontWeight: FontWeight.w300,
+              ),
+            ))
+          ]));
+        });
   }
 
   void showBanUser() {
     showDialog(
         barrierDismissible: false,
         context: context,
-        builder: (BuildContext childContext){
+        builder: (BuildContext childContext) {
           return AlertDialog(
-              content: Row(
-                  children: [
-                    Icon(
-                      FontAwesomeIcons.triangleExclamation,
-                      color: Color(0XFFEB5A63),
-                      size: 50,
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(
-                        child: Text(
-                          "You have been banned from using this application. Please contact our support if you want to appeal.",
-                          style: GoogleFonts.poppins(
-                            color: Colors.black,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w300,
-                          ),
-                        )
-                    )
-                  ]
-              ),
+              content: Row(children: [
+                Icon(
+                  FontAwesomeIcons.triangleExclamation,
+                  color: Color(0XFFEB5A63),
+                  size: 50,
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                    child: Text(
+                  "You have been banned from using this application. Please contact our support if you want to appeal.",
+                  style: GoogleFonts.poppins(
+                    color: Colors.black,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w300,
+                  ),
+                ))
+              ]),
               actions: [
                 TextButton(
-                    onPressed: () async{
+                    onPressed: () async {
                       await _authController.logout(context, () => mounted);
                     },
                     child: Text(
@@ -273,12 +265,9 @@ class _ClientHomePageState extends State<ClientHomePage>
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
-                    )
-                )
-              ]
-          );
-        }
-    );
+                    ))
+              ]);
+        });
   }
 
   Future<void> _fetchUserIDImage() async {
@@ -326,7 +315,7 @@ class _ClientHomePageState extends State<ClientHomePage>
       setState(() {
         taskers = fetchedTaskers
             .map((tasker) =>
-                AuthenticatedUser(tasker: tasker, user: tasker.user!))
+                AuthenticatedUser(user: tasker.user!, isTasker: true))
             .toList();
       });
       setState(() {
@@ -1090,10 +1079,8 @@ class _ClientHomePageState extends State<ClientHomePage>
                                                     children: [
                                                       ...List.generate(5,
                                                           (index) {
-                                                        double rating = tasker
-                                                                .tasker
-                                                                ?.rating ??
-                                                            4.5;
+                                                        double rating =
+                                                            4.5; // Default rating since we're using unified model
                                                         return Icon(
                                                           index < rating.floor()
                                                               ? Icons.star
@@ -1108,7 +1095,7 @@ class _ClientHomePageState extends State<ClientHomePage>
                                                       }),
                                                       SizedBox(width: 8),
                                                       Text(
-                                                        "${tasker.tasker?.rating ?? 4.5}",
+                                                        "4.5", // Default rating
                                                         style: TextStyle(
                                                           color: Colors.white,
                                                           fontSize: 14,
@@ -1118,8 +1105,7 @@ class _ClientHomePageState extends State<ClientHomePage>
                                                   ),
                                                   SizedBox(height: 4),
                                                   Text(
-                                                    tasker.tasker
-                                                            ?.specialization ??
+                                                    tasker.user.bio ??
                                                         "No specialization",
                                                     style: TextStyle(
                                                       fontSize: 14,
@@ -1142,10 +1128,10 @@ class _ClientHomePageState extends State<ClientHomePage>
                                                   MaterialPageRoute(
                                                     builder: (context) =>
                                                         TaskerProfilePage(
-                                                      tasker: tasker.tasker!,
+                                                      tasker:
+                                                          fetchedTaskers[index],
                                                       isSaved: false,
-                                                      taskerId:
-                                                          tasker.tasker?.id,
+                                                      taskerId: tasker.user.id,
                                                     ),
                                                   ),
                                                 );
