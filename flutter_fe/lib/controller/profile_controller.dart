@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/address.dart';
 import 'package:flutter_fe/model/client_model.dart';
@@ -738,36 +739,48 @@ class ProfileController {
   Future<AuthenticatedUser?> getAuthenticatedUser(
       BuildContext context, int userId) async {
     try {
+      debugPrint(
+          "ProfileController: Calling fetchAuthenticatedUser with userId: $userId");
       var result = await ApiService.fetchAuthenticatedUser(userId);
-      debugPrint("Data fetch from profile controller: $result");
+      debugPrint("ProfileController: API result: $result");
+      debugPrint("ProfileController: Result keys: ${result.keys.join(', ')}");
 
       if (result.containsKey("user")) {
         UserModel user = result["user"] as UserModel;
-        debugPrint("Retrieved Data: $user");
+        debugPrint("ProfileController: Retrieved user: $user");
+
+        // Create a unified user object that works for both roles
+        UserModel unifiedUser = user;
 
         if (result.containsKey("client")) {
-          //Client
-          ClientModel client = result["client"] as ClientModel;
-          debugPrint("User is a client and has client data: $client");
-          return AuthenticatedUser(user: user, client: client);
+          // For clients, use the user data as-is (bio and social_media_links are already in user)
+          debugPrint("ProfileController: Processing client user");
+
+          return AuthenticatedUser(
+            user: unifiedUser,
+            isClient: true,
+            isTasker: false,
+          );
         } else if (result.containsKey("tasker")) {
-          TaskerModel tasker = result["tasker"] as TaskerModel;
-          //Tasker
-          debugPrint("User is a tasker and has tasker data: $tasker $user");
+          // For taskers, we no longer merge data from tasker table
+          // All verification data should come from user_verify table only
+          debugPrint("ProfileController: Processing tasker user");
 
-          return AuthenticatedUser(user: user, tasker: tasker);
+          return AuthenticatedUser(
+            user: unifiedUser,
+            isClient: false,
+            isTasker: true,
+          );
+        } else {
+          debugPrint("ProfileController: No client or tasker data found");
+          return null;
         }
+      } else {
+        debugPrint("ProfileController: No user data in result");
+        return null;
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result["error"] ?? "Unknown error occurred.")),
-      );
-      return null;
     } catch (e) {
-      print(e.toString());
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
+      debugPrint("ProfileController: Error in getAuthenticatedUser: $e");
       return null;
     }
   }

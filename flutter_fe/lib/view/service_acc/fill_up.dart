@@ -77,8 +77,6 @@ class _FillUpTaskerLoginState extends State<FillUpTaskerLogin> {
     symbol: '₱',
   );
 
-
-
   // Check if all conditions are met to mark all steps as complete
   bool get _allConditionsMet {
     return _generalFormKey.currentState?.validate() == true &&
@@ -171,27 +169,27 @@ class _FillUpTaskerLoginState extends State<FillUpTaskerLogin> {
             fetchedSpecializations.map((spec) => spec.specialization).toList();
       });
 
-      if (user?.tasker != null) {
+      if (user != null && user.isTasker) {
         setState(() {
-          _firstname = user!.user.firstName;
+          _firstname = user.user.firstName;
           _lastname = user.user.lastName;
           _middlename = user.user.middleName;
-          _group = user.tasker!.group ?? false;
-          _available = user.tasker!.availability ?? false;
+          _group = false; // Default value
+          _available = true; // Default value
 
           _role = user.user.role;
           _contact = user.user.contact ?? '';
-          _wage = currencyFormat.format(user.tasker!.wage).toString();
-          _paySchedule = user.tasker!.payPeriod;
+          _wage = '₱0.00'; // Default value
+          _paySchedule = 'Hourly'; // Default value
           _image = user.user.image?.toString() ?? '';
           _birthday = user.user.birthdate ?? '';
           _isLoading = false;
           selectedGender = genderOptions.contains(user.user.gender)
               ? user.user.gender
               : 'Other';
-          _bio = user.tasker!.bio;
-          _skills = user.tasker!.skills;
-          String userSpec = user.tasker!.specialization;
+          _bio = user.user.bio ?? '';
+          _skills = ''; // Default value
+          String userSpec = ''; // Default value
           selectedSpecialization =
               specialization.contains(userSpec) ? userSpec : null;
           _specializationId = specialization.indexOf(userSpec) + 1;
@@ -218,19 +216,16 @@ class _FillUpTaskerLoginState extends State<FillUpTaskerLogin> {
           _controller.availabilityController.text =
               _available ? 'true' : 'false';
 
-          _controller.streetAddressController.text =
-              user.tasker?.address?['street_address'] ?? '';
-          _controller.barangayController.text =
-              user.tasker?.address?['barangay'] ?? '';
-          _controller.cityController.text = user.tasker?.address?['city'] ?? '';
-          _controller.provinceController.text =
-              user.tasker?.address?['province'] ?? '';
-          _controller.postalCodeController.text =
-              user.tasker?.address?['postal_code'] ?? '';
-          _controller.countryController.text =
-              user.tasker?.address?['country'] ?? '';
+          // Remove all tasker address references
+          _controller.streetAddressController.text = '';
+          _controller.barangayController.text = '';
+          _controller.cityController.text = '';
+          _controller.provinceController.text = '';
+          _controller.postalCodeController.text = '';
+          _controller.countryController.text = '';
 
-          _fetchDocumentLink(user.tasker!.id);
+          // Remove tasker document link fetch
+          // _fetchDocumentLink(user.tasker!.id);
         });
       }
     } catch (error) {
@@ -350,7 +345,8 @@ class _FillUpTaskerLoginState extends State<FillUpTaskerLogin> {
                       onStepContinue: () {
                         if (currentStep == 0) {
                           if (_generalFormKey.currentState!.validate() &&
-                              (_selectedImage != null || _existingProfileImageUrl != null)) {
+                              (_selectedImage != null ||
+                                  _existingProfileImageUrl != null)) {
                             setState(() {
                               _isGeneralComplete = true;
                               currentStep += 1;
@@ -368,7 +364,8 @@ class _FillUpTaskerLoginState extends State<FillUpTaskerLogin> {
                           }
                         } else if (currentStep == 1) {
                           if (_profileFormKey.currentState!.validate() &&
-                              (_selectedImage != null || _existingProfileImageUrl != null)) {
+                              (_selectedImage != null ||
+                                  _existingProfileImageUrl != null)) {
                             setState(() {
                               _isProfileComplete = true;
                               currentStep += 1;
@@ -428,7 +425,8 @@ class _FillUpTaskerLoginState extends State<FillUpTaskerLogin> {
                           setState(() => currentStep -= 1);
                         }
                       },
-                      controlsBuilder: (BuildContext context, ControlsDetails details) {
+                      controlsBuilder:
+                          (BuildContext context, ControlsDetails details) {
                         final isLastStep = currentStep == getSteps().length - 1;
                         return Row(
                           children: [
@@ -698,8 +696,9 @@ class _FillUpTaskerLoginState extends State<FillUpTaskerLogin> {
                       selectedGender = newValue;
                       _controller.genderController.text = newValue!;
                     }),
-                    validator: (value) =>
-                        value == null ? 'Please select your desired gender' : null,
+                    validator: (value) => value == null
+                        ? 'Please select your desired gender'
+                        : null,
                   ),
                 ),
                 Padding(
