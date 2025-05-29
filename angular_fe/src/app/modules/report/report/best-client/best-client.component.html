@@ -26,17 +26,24 @@
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Overall Task Requested</th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Gender</th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Rating</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Action</th>
         </tr>
       </thead>
       <tbody>
         <!-- Dynamically display clients -->
-        <tr *ngFor="let client of displayClients; let i = index" class="hover:bg-card/50 h-[60px]" (click)="openClientHistory(client)">
+        <tr *ngFor="let client of displayClients; let i = index" class="hover:bg-card/50 h-[60px]">
           <td class="px-4 py-3 text-start">{{ (currentPage - 1) * clientsPerPage + i + 1 }}</td>
           <td class="px-4 py-3 text-start">{{ client.userName }}</td>
           <td class="px-4 py-3 text-start">{{ client.address }}</td>
           <td class="px-4 py-3 text-start">{{ client.taskCount }}</td>
           <td class="px-4 py-3 text-start">{{ client.gender }}</td>
           <td class="px-4 py-3 text-start">{{ client.rating | number:'1.1-1' }}</td>
+          <td class="px-4 py-3 text-start">
+            <button  class="flex items-start text-blue-500 hover:opacity-70" (click)="openClientHistory(client)">
+              <img src="https://img.icons8.com/?size=100&id=cRLuJXPEgWhK&format=png&color=0000FF" alt="View Icon" class="w-5 h-5 mr-2">
+              View
+            </button>
+          </td>
         </tr>
       </tbody>
     </table>
