@@ -10,8 +10,9 @@ import 'package:get_storage/get_storage.dart';
 
 class Address extends StatefulWidget {
   final Function(AddressModel)? onAddressSelected;
+  final String mode;
 
-  const Address({super.key, this.onAddressSelected});
+  const Address({super.key, this.onAddressSelected, required this.mode});
 
   @override
   State<Address> createState() => _AddressState();
@@ -264,6 +265,8 @@ class _AddressState extends State<Address> {
         placemark.country
       ].where((element) => element != null && element.isNotEmpty).join(', ');
 
+      debugPrint('Mode of Data: ${widget.mode}');
+
       setState(() {
         _finalLocationData = {
           'latitude': _markerPosition!.latitude,
@@ -280,18 +283,36 @@ class _AddressState extends State<Address> {
         _isLoadingMap = false;
       });
 
-      await _settingController.setAddress(
-        _markerPosition!.latitude,
-        _markerPosition!.longitude,
-        selectedAddress,
-        _locationService.getRegionDisplayName(_selectedRegion!),
-        _selectedProvince!['name'],
-        _selectedCity!['name'],
-        _selectedBarangay!['name'],
-        _streetAddressController.text,
-        _postalCodeController.text,
-        'Philippines',
-      );
+
+
+      if(widget.mode == 'create'){
+        await _settingController.setAddress(
+          _markerPosition!.latitude,
+          _markerPosition!.longitude,
+          selectedAddress,
+          _locationService.getRegionDisplayName(_selectedRegion!),
+          _selectedProvince!['name'],
+          _selectedCity!['name'],
+          _selectedBarangay!['name'],
+          _streetAddressController.text,
+          _postalCodeController.text,
+          'Philippines',
+        );
+      }else if(widget.mode == 'edit'){
+        await _settingController.updateAddress(
+          _markerPosition!.latitude,
+          _markerPosition!.longitude,
+          selectedAddress,
+          _locationService.getRegionDisplayName(_selectedRegion!),
+          _selectedProvince!['name'],
+          _selectedCity!['name'],
+          _selectedBarangay!['name'],
+          _streetAddressController.text,
+          _postalCodeController.text,
+          'Philippines',
+        );
+      }
+
 
       Navigator.pop(context);
     } catch (e) {
@@ -331,7 +352,7 @@ class _AddressState extends State<Address> {
             value: value,
             decoration: InputDecoration(
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(999),
               ),
               filled: true,
               fillColor: Colors.grey[100],
@@ -346,7 +367,7 @@ class _AddressState extends State<Address> {
             isExpanded: true,
             hint: isLoading
                 ? const Text('Loading...')
-                : const Text('Select an option'),
+                : const Text('Select Location'),
           ),
         ],
       ),
@@ -386,6 +407,14 @@ class _AddressState extends State<Address> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text(
+                    'Select Your Address',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFFB71A4A),
+                    ),
+                  ),
                   _buildDropdown<Map<String, dynamic>>(
                     label: 'Region',
                     value: _selectedRegion,
