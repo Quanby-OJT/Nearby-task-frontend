@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/chat_push_notifications.dart';
-import 'package:flutter_fe/model/client_task_model.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/model/task_model.dart';
@@ -45,14 +44,12 @@ class TaskController {
     rejectionController.clear();
   }
 
-  
-
   Future<Map<String, dynamic>> updateJob(
     int id,
     String urgency,
     String scope,
-    String workType,
-    {List<String>? relatedSpecializationsIds,
+    String workType, {
+    List<String>? relatedSpecializationsIds,
     List<File>? photos,
     int? specializationId,
     String? selectedSpecialization,
@@ -61,7 +58,7 @@ class TaskController {
     String? description,
     String? remarks,
     String? contactPrice,
-    } ) async {
+  }) async {
     try {
       int userId = storage.read('user_id');
       final priceText = contactPriceController.text.trim();
@@ -78,25 +75,23 @@ class TaskController {
         return {"success": false, "error": "Please Input more than 0."};
       } else {
         final task = TaskModel(
-            id: id,
-            title: jobTitleController.text.trim(),
-            description: jobDescriptionController.text.trim(),
-            contactPrice: int.parse(contactPriceController.text.trim()),
-            urgency: urgency,
-            remarks: jobRemarksController.text.trim(),
-            workType: workType,
-            addressID: addressId,
-            specializationId: specializationId,
-            relatedSpecializationsIds: relatedSpecializationsIds,
-            scope: scope,
-            taskBeginDate: jobStartDateController.text,
-           );
+          id: id,
+          title: jobTitleController.text.trim(),
+          description: jobDescriptionController.text.trim(),
+          contactPrice: int.parse(contactPriceController.text.trim()),
+          urgency: urgency,
+          remarks: jobRemarksController.text.trim(),
+          workType: workType,
+          addressID: addressId,
+          specializationId: specializationId,
+          relatedSpecializationsIds: relatedSpecializationsIds,
+          scope: scope,
+          taskBeginDate: jobStartDateController.text,
+        );
 
-           debugPrint("This is the task: ${task.toJson()}");
+        debugPrint("This is the task: ${task.toJson()}");
 
-      
-      return await _jobPostService.updateJob(task, task.id,
-            files: photos);
+        return await _jobPostService.updateJob(task, task.id, files: photos);
       }
     } catch (e, stackTrace) {
       debugPrint('Error in postJob: $e');
@@ -149,8 +144,7 @@ class TaskController {
             taskBeginDate: jobStartDateController.text,
             status: "Available");
 
-        return await _jobPostService.postJob(task, userId,
-            files: photos);
+        return await _jobPostService.postJob(task, userId, files: photos);
       }
     } catch (e, stackTrace) {
       debugPrint('Error in postJob: $e');
@@ -299,6 +293,20 @@ class TaskController {
     return false;
   }
 
+  Future<bool> updateClientTask(int taskId, String status) async {
+    try {
+      final response = await _jobPostService.updateClientTask(taskId, status);
+      debugPrint("Response from updateClientTask: $response");
+      // Check if the response indicates success
+      return response['success'] == true &&
+          response['message'] == 'Task status updated successfully.';
+    } catch (e, stackTrace) {
+      debugPrint("Error updating task status: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return false;
+    }
+  }
+
   Future<String> fetchIsApplied(
       int? taskId, int? clientId, int? taskerId) async {
     final assignedTask =
@@ -372,7 +380,8 @@ class TaskController {
 
   // Method to update a task
   Future<Map<String, dynamic>> updateTask(
-      int taskId, Map<String, dynamic> taskData, {File? photo}) async {
+      int taskId, Map<String, dynamic> taskData,
+      {File? photo}) async {
     debugPrint("Updating task with ID: $taskId");
     try {
       if (_escrowManagementController.tokenCredits.value -

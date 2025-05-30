@@ -62,7 +62,7 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
 
       setState(() {
         _isLoading = false;
-        _filteredTasks = _availableTasks; 
+        _filteredTasks = _availableTasks;
       });
     } catch (e, stackTrace) {
       setState(() {
@@ -203,9 +203,6 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
                       });
                     },
                   ),
-                  
-                 
-                  
                 ],
               ),
               actions: [
@@ -219,11 +216,12 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
                 ElevatedButton(
                   onPressed: () {
                     if (tempDateTime == null) {
-                     CustomScaffold(message: 'Please select both date and time.', color: Colors.red);
+                      CustomScaffold(
+                          message: 'Please select both date and time.',
+                          color: Colors.red);
                     }
                     Navigator.pop(context, {
                       'daysAvailable': tempDays,
-                 
                     });
                   },
                   style: ElevatedButton.styleFrom(
@@ -249,7 +247,6 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
     if (assignmentDetails == null) return;
 
     final daysAvailable = assignmentDetails['daysAvailable'] as int;
-   
 
     debugPrint("Days Available: $daysAvailable");
 
@@ -270,7 +267,9 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
       final clientServices = ClientServices();
       final String? clientId = await clientServices.getUserId();
       if (clientId == null) {
-        CustomScaffold(message: 'Unable to identify client. Please log in again.', color: Colors.red);
+        CustomScaffold(
+            message: 'Unable to identify client. Please log in again.',
+            color: Colors.red);
         return;
       }
 
@@ -280,14 +279,14 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
         widget.tasker.id ?? 0,
         _role ?? 'Client',
         daysAvailable: daysAvailable,
-      
       );
 
       final isSuccess = !result.toLowerCase().contains('already') &&
           !result.toLowerCase().contains('error') &&
           !result.toLowerCase().contains('failed');
 
-      CustomScaffold(message: result, color: isSuccess ? Colors.green : Colors.red);
+      CustomScaffold(
+          message: result, color: isSuccess ? Colors.green : Colors.red);
 
       if (isSuccess) {
         final jobPostService = JobPostService();

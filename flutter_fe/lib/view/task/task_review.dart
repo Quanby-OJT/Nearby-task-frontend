@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
-import 'package:flutter_fe/view/task/task_confirmed.dart';
 import 'package:flutter_fe/view/task/task_finished.dart';
 import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -45,11 +44,11 @@ class _TaskReviewState extends State<TaskReview> {
   String? selectedReason = 'Poor quality of work';
   final List<String> rejectionReasons = [
     'Task not completed as described',
-  'Poor quality of work',
-  'Parts or materials missing',
-  'Damaged property during task',
-  'Task completed without my knowledge',
-  'Other'
+    'Poor quality of work',
+    'Parts or materials missing',
+    'Damaged property during task',
+    'Task completed without my knowledge',
+    'Other'
   ];
 
   final List<File> _imageEvidence = [];
@@ -226,17 +225,26 @@ class _TaskReviewState extends State<TaskReview> {
               bool result = await taskController.acceptRequest(
                   _requestInformation?.task_taken_id ?? 0, value, 'Client');
               if (result) {
-                Navigator.pop(context);
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => TaskFinished(
-                      taskInformation: widget.taskInformation,
+                bool updateResult = await taskController.updateClientTask(
+                    _requestInformation?.task_id ?? 0, value);
+
+                if (updateResult) {
+                  Navigator.pop(context);
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TaskFinished(
+                        taskInformation: widget.taskInformation,
+                      ),
                     ),
-                  ),
-                );
+                  );
+                } else {
+                  CustomScaffold(
+                      message: 'Failed to accept task', color: Colors.red);
+                }
               } else {
-                CustomScaffold(message: 'Failed to accept task', color: Colors.red);
+                CustomScaffold(
+                    message: 'Failed to accept task', color: Colors.red);
               }
             },
             style: ElevatedButton.styleFrom(
@@ -257,7 +265,6 @@ class _TaskReviewState extends State<TaskReview> {
             ),
           ),
         ),
-   
         Row(
           children: [
             if (_requestInformation?.rework_count?.toString() == "0")
@@ -282,7 +289,7 @@ class _TaskReviewState extends State<TaskReview> {
                 ),
               ),
             if (_requestInformation?.rework_count?.toString() == "0")
-            const SizedBox(width: 12),
+              const SizedBox(width: 12),
             Expanded(
               child: OutlinedButton(
                 onPressed: () => _handleTaskDispute(),
@@ -304,8 +311,7 @@ class _TaskReviewState extends State<TaskReview> {
               ),
             ),
           ],
-        ) 
-        
+        )
       ],
     );
   }
@@ -313,7 +319,8 @@ class _TaskReviewState extends State<TaskReview> {
   Future<void> _handleTaskDispute() async {
     if (_requestInformation == null ||
         _requestInformation!.task_taken_id == null) {
-      CustomScaffold(message: 'Task information not available', color: Colors.red);
+      CustomScaffold(
+          message: 'Task information not available', color: Colors.red);
       return;
     }
 
@@ -505,12 +512,15 @@ class _TaskReviewState extends State<TaskReview> {
                         _requestStatus = 'Disputed';
                       });
                     } else {
-                      CustomScaffold(message: 'Failed to raise dispute. Please Try Again.', color: Colors.red);
+                      CustomScaffold(
+                          message: 'Failed to raise dispute. Please Try Again.',
+                          color: Colors.red);
                     }
                   } catch (e, stackTrace) {
                     debugPrint("Error raising dispute: $e.");
                     debugPrintStack(stackTrace: stackTrace);
-                    CustomScaffold(message: 'Error occurred', color: Colors.red);
+                    CustomScaffold(
+                        message: 'Error occurred', color: Colors.red);
                   } finally {
                     setState(() {
                       _isLoading = false;
@@ -662,21 +672,32 @@ class _TaskReviewState extends State<TaskReview> {
                     );
                     if (result) {
                       if (!mounted) return;
-                      Navigator.pop(context, true);
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TaskOngoing(
-                            taskInformation: widget.taskInformation,
+                      bool updateResult = await taskController.updateClientTask(
+                          _requestInformation?.task_id ?? 0, value);
+
+                      debugPrint("Update result: $updateResult");
+                      if (updateResult) {
+                        Navigator.pop(context, true);
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TaskOngoing(
+                              taskInformation: widget.taskInformation,
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      } else {
+                        CustomScaffold(
+                            message: 'Failed to accept task',
+                            color: Colors.red);
+                      }
                     } else {
                       Navigator.pop(context, false);
                       setState(() {
                         _isLoading = false;
                       });
-                      CustomScaffold(message: 'Failed to review task', color: Colors.red);
+                      CustomScaffold(
+                          message: 'Failed to review task', color: Colors.red);
                     }
                   },
                 ),
@@ -688,7 +709,7 @@ class _TaskReviewState extends State<TaskReview> {
     );
 
     if (confirm == true) {
-     CustomScaffold(message: 'Task has been declined.', color: Colors.red);
+      CustomScaffold(message: 'Task has been declined.', color: Colors.red);
     }
   }
 
@@ -905,8 +926,7 @@ class _TaskReviewState extends State<TaskReview> {
           Text(
             "Make sure to review the task before clicking the button below.",
             textAlign: TextAlign.center,
-            style:
-                GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
+            style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
       ),
@@ -989,7 +1009,6 @@ class _TaskReviewState extends State<TaskReview> {
               label: 'Status',
               value: _requestInformation?.task_status ?? 'Ongoing',
             ),
-
             _buildTaskInfoRow(
               icon: Icons.calendar_today,
               label: 'Start Date',

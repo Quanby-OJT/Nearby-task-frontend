@@ -15,7 +15,6 @@ import 'package:flutter_fe/view/business_acc/notif_screen.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
 import 'package:flutter_fe/view/service_acc/notif_screen.dart';
 import 'package:flutter_fe/view/setting/setting.dart';
-import 'package:flutter_fe/view/sign_in/sign_in.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -201,13 +200,13 @@ class _TaskerHomePageState extends State<TaskerHomePage>
 //           _profileController.imageController.text = _image;
 //         });
 // =======
-      if(user.user.accStatus == "Warn"){
+      if (user.user.accStatus == "Warn") {
         bool hasShownWarning = storage.read('hasShownWarning') ?? false;
         if (!hasShownWarning) {
           storage.write('hasShownWarning', true);
           showWarnUser();
         }
-      }else if(user.user.accStatus == "Ban"){
+      } else if (user.user.accStatus == "Ban") {
         showBanUser();
       }
 

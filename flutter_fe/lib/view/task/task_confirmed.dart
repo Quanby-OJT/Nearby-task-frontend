@@ -8,6 +8,7 @@ import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/task/task_cancelled.dart';
 import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -60,7 +61,7 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
         setState(() {
-          if (_requestInformation?.start_date != null &&
+          if (_requestInformation!.task!.taskBeginDate != null &&
               _requestInformation!.task_status?.toLowerCase() == 'confirmed' &&
               !_isStartButtonEnabled()) {
           } else {
@@ -140,7 +141,7 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
       final response = await _jobPostService
           .fetchTaskInformation(_requestInformation!.task_id as int);
       setState(() {
-        _taskInformation = response?.task;
+        _taskInformation = response.task;
         _isLoading = false;
       });
     } catch (e) {
@@ -172,20 +173,29 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
       _isLoading = true;
     });
     try {
+      final value = 'Start';
       final result = await taskController.acceptRequest(
         _requestInformation!.task_taken_id!,
         'Start',
         _role!,
       );
       if (result) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => TaskOngoing(
-              taskInformation: widget.taskInformation,
+        bool updateResult = await taskController.updateClientTask(
+            _requestInformation?.task_id ?? 0, value);
+
+        debugPrint("Update result: $updateResult");
+        if (updateResult) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TaskOngoing(
+                taskInformation: widget.taskInformation,
+              ),
             ),
-          ),
-        );
+          );
+        } else {
+          CustomScaffold(message: 'Failed to accept task', color: Colors.red);
+        }
       } else {
         throw Exception('Failed to start task');
       }
@@ -324,15 +334,26 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
                         rejectionReason: selectedReason,
                       );
                       if (result) {
-                        Navigator.pop(context);
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => TaskCancelled(
-                              taskInformation: widget.taskInformation,
+                        bool updateResult =
+                            await taskController.updateClientTask(
+                                _requestInformation?.task_id ?? 0, value);
+
+                        debugPrint("Update result: $updateResult");
+                        if (updateResult) {
+                          Navigator.pop(context);
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TaskCancelled(
+                                taskInformation: widget.taskInformation,
+                              ),
                             ),
-                          ),
-                        );
+                          );
+                        } else {
+                          CustomScaffold(
+                              message: 'Failed to accept task',
+                              color: Colors.red);
+                        }
                       } else {
                         Navigator.pop(context);
                         setState(() {
@@ -373,9 +394,10 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
   }
 
   bool _isStartButtonEnabled() {
-    if (_requestInformation?.start_date == null) return false;
+    if (_requestInformation?.task?.taskBeginDate == null) return false;
     try {
-      final startDate = _requestInformation!.start_date!;
+      final startDate =
+          DateTime.parse(_requestInformation!.task!.taskBeginDate!);
       final now = DateTime.now();
       return now.isAfter(startDate);
     } catch (e) {
@@ -704,7 +726,8 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.star,
               label: 'Specialization',
-              value: _taskInformation!.specialization ?? 'N/A',
+              value: _taskInformation!.taskerSpecialization?.specialization ??
+                  'N/A',
             ),
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.dollarSign,

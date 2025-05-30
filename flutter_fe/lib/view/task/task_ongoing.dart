@@ -157,7 +157,8 @@ class _TaskOngoingState extends State<TaskOngoing> {
   Future<void> _handleFinishTask() async {
     if (_requestInformation == null ||
         _requestInformation!.task_taken_id == null) {
-      CustomScaffold(message: 'Task information not available', color: Colors.red);
+      CustomScaffold(
+          message: 'Task information not available', color: Colors.red);
       return;
     }
 
@@ -174,7 +175,8 @@ class _TaskOngoingState extends State<TaskOngoing> {
   Future<void> _handleTaskDispute() async {
     if (_requestInformation == null ||
         _requestInformation!.task_taken_id == null) {
-      CustomScaffold(message: 'Task information not available', color: Colors.red);
+      CustomScaffold(
+          message: 'Task information not available', color: Colors.red);
       return;
     }
 
@@ -300,7 +302,8 @@ class _TaskOngoingState extends State<TaskOngoing> {
               child: ElevatedButton(
                 onPressed: () async {
                   if (_rating == 0) {
-                    CustomScaffold(message: 'Please provide a rating', color: Colors.red);
+                    CustomScaffold(
+                        message: 'Please provide a rating', color: Colors.red);
                     return;
                   }
                   setState(() {
@@ -335,13 +338,15 @@ class _TaskOngoingState extends State<TaskOngoing> {
                       );
                     } else {
                       if (!mounted) return;
-                      CustomScaffold(message: 'Failed to finish task', color: Colors.red);
+                      CustomScaffold(
+                          message: 'Failed to finish task', color: Colors.red);
                     }
                   } catch (e, stackTrace) {
                     debugPrint("Error finishing task: $e.");
                     debugPrintStack(stackTrace: stackTrace);
                     if (mounted) {
-                      CustomScaffold(message: 'Error occurred', color: Colors.red);
+                      CustomScaffold(
+                          message: 'Error occurred', color: Colors.red);
                     }
                   } finally {
                     setState(() {
@@ -553,12 +558,15 @@ class _TaskOngoingState extends State<TaskOngoing> {
                         _requestStatus = 'Disputed';
                       });
                     } else {
-                      CustomScaffold(message: 'Failed to raise dispute. Please Try Again.', color: Colors.red);
+                      CustomScaffold(
+                          message: 'Failed to raise dispute. Please Try Again.',
+                          color: Colors.red);
                     }
                   } catch (e, stackTrace) {
                     debugPrint("Error raising dispute: $e.");
                     debugPrintStack(stackTrace: stackTrace);
-                    CustomScaffold(message: 'Error occurred', color: Colors.red);
+                    CustomScaffold(
+                        message: 'Error occurred', color: Colors.red);
                   } finally {
                     setState(() {
                       _isLoading = false;
@@ -636,18 +644,20 @@ class _TaskOngoingState extends State<TaskOngoing> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (_requestStatus == 'Ongoing' || _requestStatus == 'Reworking') _buildStatusSection(),
+                        if (_requestStatus == 'Ongoing' ||
+                            _requestStatus == 'Reworking')
+                          _buildStatusSection(),
                         SizedBox(height: 16),
                         _buildTaskCard(),
                         if (widget.taskInformation?.tasker?.user == null)
                           _buildClientProfileCard(),
-                           SizedBox(height: 16),
+                        SizedBox(height: 16),
                         if (widget.taskInformation?.tasker?.user == null)
                           _buildtaskerActionButton(),
-                           SizedBox(height: 16),
+                        SizedBox(height: 16),
                         if (widget.taskInformation?.tasker?.user != null)
                           _buildTaskerProfileCard(),
-                           SizedBox(height: 16),
+                        SizedBox(height: 16),
                         if (widget.taskInformation?.tasker?.user != null)
                           _buildclientActionButton()
                       ],
@@ -788,7 +798,6 @@ class _TaskOngoingState extends State<TaskOngoing> {
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(5),
-                  
                   color: Color(0xFFB71A4A),
                 ),
                 child: TextButton(
@@ -813,16 +822,26 @@ class _TaskOngoingState extends State<TaskOngoing> {
                       rejectionReason: selectedReason,
                     );
                     if (result) {
-                      if (!mounted) return;
-                      Navigator.pop(context, true);
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TaskReview(
-                            taskInformation: widget.taskInformation,
+                      bool updateResult = await taskController.updateClientTask(
+                          _requestInformation?.task_id ?? 0, value);
+
+                      debugPrint("Update result: $updateResult");
+                      if (updateResult) {
+                        if (!mounted) return;
+                        Navigator.pop(context, true);
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TaskReview(
+                              taskInformation: widget.taskInformation,
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      } else {
+                        CustomScaffold(
+                            message: 'Failed to accept task',
+                            color: Colors.red);
+                      }
                     } else {
                       Navigator.pop(context, false);
                       setState(() {
@@ -839,7 +858,8 @@ class _TaskOngoingState extends State<TaskOngoing> {
     );
 
     if (confirm == true) {
-     CustomScaffold(message: 'Task finished successfully', color: Colors.green);
+      CustomScaffold(
+          message: 'Task finished successfully', color: Colors.green);
     }
   }
 
@@ -962,21 +982,32 @@ class _TaskOngoingState extends State<TaskOngoing> {
                     );
                     if (result) {
                       if (!mounted) return;
-                      Navigator.pop(context, true);
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => UserFeedback(
-                            taskInformation: widget.taskInformation,
+                      bool updateResult = await taskController.updateClientTask(
+                          _requestInformation?.task_id ?? 0, value);
+
+                      debugPrint("Update result: $updateResult");
+                      if (updateResult) {
+                        Navigator.pop(context, true);
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => UserFeedback(
+                              taskInformation: widget.taskInformation,
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      } else {
+                        CustomScaffold(
+                            message: 'Failed to accept task',
+                            color: Colors.red);
+                      }
                     } else {
                       Navigator.pop(context, false);
                       setState(() {
                         _isLoading = false;
                       });
-                      CustomScaffold(message: 'Failed to finish task', color: Colors.red);
+                      CustomScaffold(
+                          message: 'Failed to finish task', color: Colors.red);
                     }
                   },
                 ),
