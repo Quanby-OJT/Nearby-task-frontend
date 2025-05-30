@@ -330,15 +330,28 @@ class _TaskPendingState extends State<TaskPending> {
                                       rejectionReason: newValue,
                                     );
                                     if (result) {
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => TaskRejected(
-                                            taskInformation:
-                                                widget.taskInformation,
+                                      bool updateResult =
+                                          await taskController.updateClientTask(
+                                              _requestInformation?.task_id ?? 0,
+                                              value);
+
+                                      debugPrint(
+                                          "Update result: $updateResult");
+                                      if (updateResult) {
+                                        Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => TaskRejected(
+                                              taskInformation:
+                                                  widget.taskInformation,
+                                            ),
                                           ),
-                                        ),
-                                      );
+                                        );
+                                      } else {
+                                        CustomScaffold(
+                                            message: 'Failed to accept task',
+                                            color: Colors.red);
+                                      }
                                     } else {
                                       Navigator.pop(context, false);
                                       setState(() {
@@ -429,7 +442,8 @@ class _TaskPendingState extends State<TaskPending> {
     );
 
     if (confirm == true) {
-      CustomScaffold(message: 'Task rejection requested', color: Color(0xFFB71A4A));
+      CustomScaffold(
+          message: 'Task rejection requested', color: Color(0xFFB71A4A));
     }
   }
 
@@ -584,7 +598,8 @@ class _TaskPendingState extends State<TaskPending> {
     );
 
     if (confirm == true) {
-     CustomScaffold(message: 'Task cancel requested', color: Color(0xFFB71A4A));
+      CustomScaffold(
+          message: 'Task cancel requested', color: Color(0xFFB71A4A));
     }
   }
 
@@ -1071,16 +1086,26 @@ class _TaskPendingState extends State<TaskPending> {
                     value,
                     _role ?? 'Unknown');
                 if (result) {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => TaskConfirmed(
-                        taskInformation: widget.taskInformation,
+                  bool updateResult = await taskController.updateClientTask(
+                      _requestInformation?.task_id ?? 0, value);
+
+                  debugPrint("Update result: $updateResult");
+                  if (updateResult) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TaskConfirmed(
+                          taskInformation: widget.taskInformation,
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  } else {
+                    CustomScaffold(
+                        message: 'Failed to accept task', color: Colors.red);
+                  }
                 } else {
-                  CustomScaffold(message: 'Failed to accept task', color: Colors.red);
+                  CustomScaffold(
+                      message: 'Failed to accept task', color: Colors.red);
                 }
               },
               style: ElevatedButton.styleFrom(

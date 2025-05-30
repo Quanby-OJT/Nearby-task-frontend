@@ -1,12 +1,8 @@
-import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_fe/model/client_task_model.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/view/business_acc/edit_task_page.dart';
 import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
-import 'package:flutter_fe/view/service_acc/tasker_record/tasker_pending.dart';
 import 'package:flutter_fe/view/task/task_cancelled.dart';
 import 'package:flutter_fe/view/task/task_confirmed.dart';
 import 'package:flutter_fe/view/task/task_declined.dart';
@@ -23,7 +19,6 @@ import 'package:flutter_fe/controller/escrow_management_controller.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/model/auth_user.dart';
-import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/view/business_acc/business_task_detail.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/add_task.dart';
@@ -133,7 +128,8 @@ class _JobPostPageState extends State<JobPostPage>
         _fetchTasksStatus(),
       ]);
     } catch (e) {
-      CustomScaffold(message: 'Failed to initialize data: $e', color: Colors.red);
+      CustomScaffold(
+          message: 'Failed to initialize data: $e', color: Colors.red);
     } finally {
       setState(() => _isLoading = false);
     }
@@ -234,34 +230,37 @@ class _JobPostPageState extends State<JobPostPage>
     }
   }
 
-void _filterTasks() {
-  final query = _searchController.text.trim().toLowerCase();
-  setState(() {
-    // Filter management tasks
-    _filteredTasksManagement = _clientTasks.where((task) {
-      if(_currentFilterManagement == 'All') return true;
-      final matchesSearch = (task.title.toLowerCase().contains(query) ?? false) ||
-          (task.description.toLowerCase().contains(query) ?? false);
-      final matchesStatus =
-          _currentFilterManagement == null || task.status == _currentFilterManagement;
-      return matchesSearch && matchesStatus;
-    }).toList();
+  void _filterTasks() {
+    final query = _searchController.text.trim().toLowerCase();
+    setState(() {
+      // Filter management tasks
+      _filteredTasksManagement = _clientTasks.where((task) {
+        if (_currentFilterManagement == 'All') return true;
+        final matchesSearch =
+            (task.title.toLowerCase().contains(query) ?? false) ||
+                (task.description.toLowerCase().contains(query) ?? false);
+        final matchesStatus = _currentFilterManagement == null ||
+            task.status == _currentFilterManagement;
+        return matchesSearch && matchesStatus;
+      }).toList();
 
-    // Filter status tasks
-    _filteredTasksStatus = _clientTasksTasker.where((task) {
-      if(_currentFilterStatus == 'All') return true;
-      final matchesSearch =
-          (task.post_task?.title.toLowerCase().contains(query) ?? false) ||
-              (task.post_task?.description.toLowerCase().contains(query) ?? false);
-      final matchesStatus =
-          _currentFilterStatus == null || task.taskStatus == _currentFilterStatus;
-      return matchesSearch && matchesStatus;
-    }).toList();
-  });
-}
+      // Filter status tasks
+      _filteredTasksStatus = _clientTasksTasker.where((task) {
+        if (_currentFilterStatus == 'All') return true;
+        final matchesSearch =
+            (task.post_task?.title.toLowerCase().contains(query) ?? false) ||
+                (task.post_task?.description.toLowerCase().contains(query) ??
+                    false);
+        final matchesStatus = _currentFilterStatus == null ||
+            task.taskStatus == _currentFilterStatus;
+        return matchesSearch && matchesStatus;
+      }).toList();
+    });
+  }
 
   void _showErrorSnackBar(String message) {
-    CustomScaffold(message: 'Error fetching tasks: $message', color: Colors.red);
+    CustomScaffold(
+        message: 'Error fetching tasks: $message', color: Colors.red);
   }
 
   Future<void> _navigateToTaskDetail(TaskModel task) async {
@@ -600,42 +599,47 @@ void _filterTasks() {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        color: statusColor,
-                      ),
-                      child: Text(
-                        status,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: statusColor,
+                    ),
+                    child: Text(
+                      status,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
                       ),
                     ),
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Color(0xFFE23670)),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => EditTaskPage(task: task)),
-                            ).then((value) => _fetchTasksManagement());
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Color(0xFFB71A4A)),
-                          onPressed: () => _confirmDeleteTask(task.id),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                  ),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Color(0xFFE23670)),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => EditTaskPage(task: task)),
+                          ).then((value) => _fetchTasksManagement());
+                        },
+                      ),
+                      IconButton(
+                        icon:
+                            const Icon(Icons.delete, color: Color(0xFFB71A4A)),
+                        onPressed: () => task.ableToDelete == true
+                            ? _confirmDeleteTask(task.id)
+                            : _cannotDeleteTask(task),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
               const SizedBox(height: 8),
               Text(
                 task.title ?? 'Untitled Task',
@@ -647,8 +651,6 @@ void _filterTasks() {
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
               ),
-
-              
               const SizedBox(height: 8),
               _buildTaskInfoRow(
                 icon: FontAwesomeIcons.locationPin,
@@ -665,7 +667,7 @@ void _filterTasks() {
               _buildTaskInfoRow(
                 icon: FontAwesomeIcons.screwdriverWrench,
                 iconColor: const Color(0xFFE23670),
-                text: task.taskerSpecialization?.specialization?? 'N/A',
+                text: task.taskerSpecialization?.specialization ?? 'N/A',
               ),
             ],
           ),
@@ -915,6 +917,41 @@ void _filterTasks() {
         _showErrorSnackBar('Error deleting task: $e');
       }
     }
+  }
+
+  Future<void> _cannotDeleteTask(TaskModel task) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Cannot Delete Task',
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFFB71A4A),
+          ),
+        ),
+        content: Text(
+          'This task is currently being worked on by a tasker. Please wait for the task to be completed before deleting it.',
+          style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE23670),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text(
+              'OK',
+              style: GoogleFonts.poppins(fontSize: 14, color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

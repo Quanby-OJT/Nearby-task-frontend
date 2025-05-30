@@ -29,18 +29,21 @@ class EditTaskPage extends StatefulWidget {
   State<EditTaskPage> createState() => _EditTaskPageState();
 }
 
-class _EditTaskPageState extends State<EditTaskPage> with SingleTickerProviderStateMixin {
+class _EditTaskPageState extends State<EditTaskPage>
+    with SingleTickerProviderStateMixin {
   final TaskController controller = TaskController();
   final JobPostService jobPostService = JobPostService();
   final ClientServices clientServices = ClientServices();
   final ProfileController profileController = ProfileController();
-  final EscrowManagementController escrowManagementController = EscrowManagementController();
+  final EscrowManagementController escrowManagementController =
+      EscrowManagementController();
   final GetStorage storage = GetStorage();
   final PageController _pageController = PageController();
   final ImagePicker _picker = ImagePicker();
 
   final TextEditingController jobTitleController = TextEditingController();
-  final TextEditingController jobDescriptionController = TextEditingController();
+  final TextEditingController jobDescriptionController =
+      TextEditingController();
   final TextEditingController jobRemarksController = TextEditingController();
   final TextEditingController contactPriceController = TextEditingController();
   final TextEditingController jobStartDateController = TextEditingController();
@@ -80,59 +83,61 @@ class _EditTaskPageState extends State<EditTaskPage> with SingleTickerProviderSt
   bool _isUploadDialogShown = false;
   bool _documentValid = false;
   int _currentStep = 0;
-  bool _isVerifiedDocument = false;
-
+  final bool _isVerifiedDocument = false;
 
   @override
   void initState() {
     super.initState();
-   
-   
+
     _loadMethod();
   }
 
-
   Future<void> _loadMethod() async {
-   await Future.wait([
-    _fetchTaskDetails(),
-    _fetchUserIDImage(),
-    fetchSpecializations(),
-  
-   ]);
+    await Future.wait([
+      _fetchTaskDetails(),
+      _fetchUserIDImage(),
+      fetchSpecializations(),
+    ]);
     _initializeForm();
   }
-
 
   Future<void> _fetchTaskDetails() async {
     try {
       final response =
-          await jobPostService.fetchTaskInformation(widget.task!.id);
+          await jobPostService.fetchTaskInformation(widget.task.id);
       setState(() {
         _taskInformation = response.task;
       });
     } catch (e) {
-      CustomScaffold(message: 'Failed to load task details: ${e.toString()}', color: Colors.red);
+      CustomScaffold(
+          message: 'Failed to load task details: ${e.toString()}',
+          color: Colors.red);
     }
   }
 
   void _initializeForm() {
     controller.jobTitleController.text = _taskInformation!.title;
     controller.jobDescriptionController.text = _taskInformation!.description;
-    controller.jobLocationController.text = _taskInformation!.address?.formattedAddress ?? '';
-    controller.jobStartDateController.text = _taskInformation!.taskBeginDate ?? '';
-    controller.contactPriceController.text = _taskInformation!.contactPrice.toString();
+    controller.jobLocationController.text =
+        _taskInformation!.address?.formattedAddress ?? '';
+    controller.jobStartDateController.text =
+        _taskInformation!.taskBeginDate ?? '';
+    controller.contactPriceController.text =
+        _taskInformation!.contactPrice.toString();
     controller.jobRemarksController.text = _taskInformation!.remarks ?? '';
 
-    
-   
-
     setState(() {
-      selectedSpecialization = _taskInformation!.taskerSpecialization?.specialization;
-       specializationId = selectedSpecializations[selectedSpecialization!];
-    
-      relatedSpecializationsIds = _taskInformation!.relatedSpecializationsIds ?? [];
+      selectedSpecialization =
+          _taskInformation!.taskerSpecialization?.specialization;
+      specializationId = selectedSpecializations[selectedSpecialization!];
 
-      final idToSpecialization = {for (var entry in selectedSpecializations.entries) entry.value: entry.key};
+      relatedSpecializationsIds =
+          _taskInformation!.relatedSpecializationsIds ?? [];
+
+      final idToSpecialization = {
+        for (var entry in selectedSpecializations.entries)
+          entry.value: entry.key
+      };
       final specializationNames = relatedSpecializationsIds.map((id) {
         final intId = int.tryParse(id) ?? 0;
         return idToSpecialization[intId] ?? 'Unknown';
@@ -142,13 +147,9 @@ class _EditTaskPageState extends State<EditTaskPage> with SingleTickerProviderSt
       selectedUrgency = _taskInformation!.urgency;
       selectedWorkType = _taskInformation!.workType;
       selectedScope = _taskInformation!.scope;
-        _addressID = _taskInformation!.address?.id;
+      _addressID = _taskInformation!.address?.id;
     });
-
   }
-
-
-  
 
   @override
   void dispose() {
@@ -179,7 +180,8 @@ class _EditTaskPageState extends State<EditTaskPage> with SingleTickerProviderSt
   Future<void> _fetchUserIDImage() async {
     try {
       int userId = int.parse(storage.read('user_id').toString());
-      AuthenticatedUser? user = await profileController.getAuthenticatedUser(context, userId);
+      AuthenticatedUser? user =
+          await profileController.getAuthenticatedUser(context, userId);
       final response = await clientServices.fetchUserIDImage(userId);
 
       if (response['success']) {
@@ -315,7 +317,8 @@ class _EditTaskPageState extends State<EditTaskPage> with SingleTickerProviderSt
           return false;
         }
         if (relatedSpecializations.isEmpty) {
-          _errors['related_specializations'] = 'Please select at least one related specialization';
+          _errors['related_specializations'] =
+              'Please select at least one related specialization';
           return false;
         }
         if (selectedWorkType == null) {
@@ -339,7 +342,8 @@ class _EditTaskPageState extends State<EditTaskPage> with SingleTickerProviderSt
           _errors['contact_price'] = 'Please indicate the contract price';
           return false;
         } else if (int.tryParse(price) == null || int.parse(price) <= 0) {
-          _errors['contact_price'] = 'Contract price must be a valid positive number';
+          _errors['contact_price'] =
+              'Contract price must be a valid positive number';
           return false;
         }
         if (selectedUrgency == null) {
@@ -357,7 +361,8 @@ class _EditTaskPageState extends State<EditTaskPage> with SingleTickerProviderSt
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: controller.jobStartDateController.text.isNotEmpty
-          ? DateTime.parse(controller.jobStartDateController.text.split(' ').first)
+          ? DateTime.parse(
+              controller.jobStartDateController.text.split(' ').first)
           : DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime(2100),
@@ -384,7 +389,8 @@ class _EditTaskPageState extends State<EditTaskPage> with SingleTickerProviderSt
       final TimeOfDay? pickedTime = await showTimePicker(
         context: context,
         initialTime: controller.jobStartDateController.text.isNotEmpty
-            ? TimeOfDay.fromDateTime(DateTime.parse(controller.jobStartDateController.text))
+            ? TimeOfDay.fromDateTime(
+                DateTime.parse(controller.jobStartDateController.text))
             : TimeOfDay.now(),
         builder: (context, child) {
           return Theme(
@@ -414,7 +420,8 @@ class _EditTaskPageState extends State<EditTaskPage> with SingleTickerProviderSt
           pickedTime.minute,
         );
         setState(() {
-          controller.jobStartDateController.text = DateFormat('yyyy-MM-dd HH:mm').format(combinedDateTime);
+          controller.jobStartDateController.text =
+              DateFormat('yyyy-MM-dd HH:mm').format(combinedDateTime);
         });
       }
     }
@@ -427,13 +434,12 @@ class _EditTaskPageState extends State<EditTaskPage> with SingleTickerProviderSt
       _isLoading = true;
     });
 
-
     try {
       final result = await controller.updateJob(
         widget.task.id,
         selectedUrgency!,
         selectedScope!,
-        selectedWorkType!, 
+        selectedWorkType!,
         relatedSpecializationsIds: relatedSpecializationsIds,
         photos: _photos,
         specializationId: specializationId,
@@ -453,7 +459,9 @@ class _EditTaskPageState extends State<EditTaskPage> with SingleTickerProviderSt
         setState(() {
           if (result.containsKey('errors') && result['errors'] is List) {
             for (var error in result['errors']) {
-              if (error is Map<String, dynamic> && error.containsKey('path') && error.containsKey('msg')) {
+              if (error is Map<String, dynamic> &&
+                  error.containsKey('path') &&
+                  error.containsKey('msg')) {
                 _errors[error['path']] = error['msg'];
               }
             }
@@ -474,11 +482,10 @@ class _EditTaskPageState extends State<EditTaskPage> with SingleTickerProviderSt
       });
     }
   }
-  
 
-void _updateJobSample() {
-  debugPrint("Update Job Sample");
-}
+  void _updateJobSample() {
+    debugPrint("Update Job Sample");
+  }
 
   Widget _buildTextField({
     required TextEditingController controller,
@@ -610,10 +617,12 @@ void _updateJobSample() {
             });
           },
           hint: effectiveItems.isEmpty
-              ? Text('No options available', style: GoogleFonts.poppins(fontSize: 12))
+              ? Text('No options available',
+                  style: GoogleFonts.poppins(fontSize: 12))
               : null,
           disabledHint: effectiveItems.isEmpty
-              ? Text('No options available', style: GoogleFonts.poppins(fontSize: 12))
+              ? Text('No options available',
+                  style: GoogleFonts.poppins(fontSize: 12))
               : null,
         ),
       ],
@@ -689,14 +698,12 @@ void _updateJobSample() {
                     maxHeight: 1024,
                     imageQuality: 80,
                   );
-                  if (images != null) {
-                    setState(() {
-                      _photos = images
-                          .map((image) => File(image.path))
-                          .take(maxPhotos - _photos.length)
-                          .toList();
-                    });
-                  }
+                  setState(() {
+                    _photos = images
+                        .map((image) => File(image.path))
+                        .take(maxPhotos - _photos.length)
+                        .toList();
+                  });
                 },
                 child: Container(
                   height: 100,
@@ -733,7 +740,8 @@ void _updateJobSample() {
                             child: Image.network(
                               widget.task.imageUrl!,
                               fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => Icon(
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Icon(
                                 Icons.broken_image,
                                 color: Colors.grey,
                                 size: 40,
@@ -745,9 +753,7 @@ void _updateJobSample() {
                           top: 4,
                           right: 4,
                           child: GestureDetector(
-                            onTap: () {
-                             
-                            },
+                            onTap: () {},
                             child: Container(
                               padding: EdgeInsets.all(2),
                               decoration: BoxDecoration(
@@ -810,7 +816,8 @@ void _updateJobSample() {
                       ],
                     );
                   }),
-                  if (_photos.length + (widget.task.imageUrl != null ? 1 : 0) < maxPhotos)
+                  if (_photos.length + (widget.task.imageUrl != null ? 1 : 0) <
+                      maxPhotos)
                     GestureDetector(
                       onTap: () async {
                         final List<XFile> images = await _picker.pickMultiImage(
@@ -818,15 +825,14 @@ void _updateJobSample() {
                           maxHeight: 1024,
                           imageQuality: 80,
                         );
-                        if (images != null) {
-                          setState(() {
-                            _photos.addAll(
-                              images
-                                  .map((image) => File(image.path))
-                                  .take(maxPhotos - _photos.length - (widget.task.imageUrl != null ? 1 : 0)),
-                            );
-                          });
-                        }
+                        setState(() {
+                          _photos.addAll(
+                            images.map((image) => File(image.path)).take(
+                                maxPhotos -
+                                    _photos.length -
+                                    (widget.task.imageUrl != null ? 1 : 0)),
+                          );
+                        });
                       },
                       child: Container(
                         width: 100,
@@ -853,11 +859,31 @@ void _updateJobSample() {
 
   Widget _buildProgressBar() {
     final steps = [
-      {'name': 'Task Basics', 'tooltip': 'Enter title, description, and location', 'isOptional': false},
-      {'name': 'Task Details', 'tooltip': 'Specify specialization, related skills, and work type', 'isOptional': false},
-      {'name': 'Task Timeline', 'tooltip': 'Define scope and start date', 'isOptional': false},
-      {'name': 'Budget & Urgency', 'tooltip': 'Set price and urgency', 'isOptional': false},
-      {'name': 'Additional Info', 'tooltip': 'Add remarks and photos (optional)', 'isOptional': true},
+      {
+        'name': 'Task Basics',
+        'tooltip': 'Enter title, description, and location',
+        'isOptional': false
+      },
+      {
+        'name': 'Task Details',
+        'tooltip': 'Specify specialization, related skills, and work type',
+        'isOptional': false
+      },
+      {
+        'name': 'Task Timeline',
+        'tooltip': 'Define scope and start date',
+        'isOptional': false
+      },
+      {
+        'name': 'Budget & Urgency',
+        'tooltip': 'Set price and urgency',
+        'isOptional': false
+      },
+      {
+        'name': 'Additional Info',
+        'tooltip': 'Add remarks and photos (optional)',
+        'isOptional': true
+      },
     ];
 
     return Container(
@@ -965,7 +991,8 @@ void _updateJobSample() {
     );
     if (selectedAddress != null) {
       setState(() {
-        controller.jobLocationController.text = selectedAddress.formattedAddress != null &&
+        controller.jobLocationController
+            .text = selectedAddress.formattedAddress != null &&
                 selectedAddress.formattedAddress!.isNotEmpty
             ? selectedAddress.formattedAddress!
             : '${selectedAddress.city ?? ''}, ${selectedAddress.province ?? ''}';
@@ -1053,30 +1080,42 @@ void _updateJobSample() {
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                       side: _errors['location'] != null
-                                          ? BorderSide(color: Colors.red, width: 1)
+                                          ? BorderSide(
+                                              color: Colors.red, width: 1)
                                           : BorderSide.none,
                                     ),
                                     child: Padding(
                                       padding: EdgeInsets.all(16),
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
                                           Expanded(
                                             child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  controller.jobLocationController.text.isEmpty
+                                                  controller
+                                                          .jobLocationController
+                                                          .text
+                                                          .isEmpty
                                                       ? 'Select an address'
-                                                      : controller.jobLocationController.text,
+                                                      : controller
+                                                          .jobLocationController
+                                                          .text,
                                                   style: GoogleFonts.poppins(
                                                     fontSize: 12,
-                                                    color: controller.jobLocationController.text.isEmpty
+                                                    color: controller
+                                                            .jobLocationController
+                                                            .text
+                                                            .isEmpty
                                                         ? Colors.grey
                                                         : Colors.black,
                                                   ),
                                                   maxLines: 2,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                               ],
                                             ),
@@ -1104,7 +1143,8 @@ void _updateJobSample() {
                                   ),
                                 SizedBox(height: 16),
                                 _buildTextField(
-                                  controller: controller.jobDescriptionController,
+                                  controller:
+                                      controller.jobDescriptionController,
                                   label: 'Description',
                                   hint: 'Describe your task...',
                                   maxLines: 4,
@@ -1150,7 +1190,8 @@ void _updateJobSample() {
                                   hint: 'Select Specialization',
                                   onChanged: (value) => setState(() {
                                     selectedSpecialization = value;
-                                    specializationId = selectedSpecializations[value!] ?? 0;
+                                    specializationId =
+                                        selectedSpecializations[value!] ?? 0;
                                   }),
                                   errorText: _errors['specialization'],
                                   isRequired: true,
@@ -1163,7 +1204,8 @@ void _updateJobSample() {
                                   onChanged: (value) => setState(() {
                                     relatedSpecializations = value;
                                     relatedSpecializationsIds = value
-                                        .map((e) => selectedSpecializations[e]!.toString())
+                                        .map((e) => selectedSpecializations[e]!
+                                            .toString())
                                         .toList();
                                   }),
                                   errorText: _errors['related_specializations'],
@@ -1174,7 +1216,8 @@ void _updateJobSample() {
                                   value: selectedWorkType,
                                   items: workTypes,
                                   hint: 'Work Type',
-                                  onChanged: (value) => setState(() => selectedWorkType = value),
+                                  onChanged: (value) =>
+                                      setState(() => selectedWorkType = value),
                                   errorText: _errors['work_type'],
                                   isRequired: true,
                                 ),
@@ -1216,7 +1259,8 @@ void _updateJobSample() {
                                   value: selectedScope,
                                   items: scopes,
                                   hint: 'Scope of Work',
-                                  onChanged: (value) => setState(() => selectedScope = value),
+                                  onChanged: (value) =>
+                                      setState(() => selectedScope = value),
                                   errorText: _errors['scope'],
                                   isRequired: true,
                                 ),
@@ -1225,7 +1269,8 @@ void _updateJobSample() {
                                   onTap: _selectDateTime,
                                   child: AbsorbPointer(
                                     child: _buildTextField(
-                                      controller: controller.jobStartDateController,
+                                      controller:
+                                          controller.jobStartDateController,
                                       label: 'Start Date',
                                       hint: 'Select start date and time',
                                       errorText: _errors['start_date'],
@@ -1272,7 +1317,9 @@ void _updateJobSample() {
                                   label: 'Fixed Price',
                                   hint: 'Enter price',
                                   keyboardType: TextInputType.number,
-                                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly
+                                  ],
                                   errorText: _errors['contact_price'],
                                   isRequired: true,
                                 ),
@@ -1281,7 +1328,8 @@ void _updateJobSample() {
                                   value: selectedUrgency,
                                   items: urgency,
                                   hint: 'Urgency',
-                                  onChanged: (value) => setState(() => selectedUrgency = value),
+                                  onChanged: (value) =>
+                                      setState(() => selectedUrgency = value),
                                   errorText: _errors['urgency'],
                                   isRequired: true,
                                 ),
@@ -1367,7 +1415,6 @@ void _updateJobSample() {
                         TextButton(
                           onPressed: () {
                             _updateJob();
-                            
                           },
                           child: Text(
                             'Skip & Preview',

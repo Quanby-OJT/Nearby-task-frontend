@@ -1,4 +1,3 @@
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -232,7 +231,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
     });
 
     switch (step) {
-      case 0: 
+      case 0:
         if (controller.jobTitleController.text.trim().isEmpty) {
           _errors['task_title'] = 'Please indicate your needed task';
           return false;
@@ -246,7 +245,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
           return false;
         }
         break;
-      case 1: 
+      case 1:
         if (selectedSpecialization == null || specializationId == null) {
           _errors['specialization'] = 'Please select a specialization';
           return false;
@@ -261,7 +260,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
           return false;
         }
         break;
-      case 2: 
+      case 2:
         if (selectedScope == null || !scopes.contains(selectedScope)) {
           _errors['scope'] = 'Please select a valid scope of work';
           return false;
@@ -271,7 +270,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
           return false;
         }
         break;
-      case 3: 
+      case 3:
         String price = controller.contactPriceController.text.trim();
         if (price.isEmpty) {
           _errors['contact_price'] = 'Please indicate the contract price';
@@ -286,8 +285,8 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
           return false;
         }
         break;
-      case 4: 
-        return true; 
+      case 4:
+        return true;
     }
     return true;
   }
@@ -296,7 +295,8 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: controller.jobStartDateController.text.isNotEmpty
-          ? DateTime.parse(controller.jobStartDateController.text.split(' ').first)
+          ? DateTime.parse(
+              controller.jobStartDateController.text.split(' ').first)
           : DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime(2100),
@@ -323,7 +323,8 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
       final TimeOfDay? pickedTime = await showTimePicker(
         context: context,
         initialTime: controller.jobStartDateController.text.isNotEmpty
-            ? TimeOfDay.fromDateTime(DateTime.parse(controller.jobStartDateController.text))
+            ? TimeOfDay.fromDateTime(
+                DateTime.parse(controller.jobStartDateController.text))
             : TimeOfDay.now(),
         builder: (context, child) {
           return Theme(
@@ -353,7 +354,8 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
           pickedTime.minute,
         );
         setState(() {
-          controller.jobStartDateController.text = DateFormat('yyyy-MM-dd HH:mm').format(combinedDateTime);
+          controller.jobStartDateController.text =
+              DateFormat('yyyy-MM-dd HH:mm').format(combinedDateTime);
         });
       }
     }
@@ -412,7 +414,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
           selectedScope = "Less than a month";
           relatedSpecializations = [];
           relatedSpecializationsIds = [];
-          _photos = []; 
+          _photos = [];
           specializationId = null;
         });
 
@@ -437,7 +439,8 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
       }
     } catch (error) {
       debugPrint("Error submitting job: $error");
-      CustomScaffold(message: 'An error occurred. Please try again.', color: Colors.red);
+      CustomScaffold(
+          message: 'An error occurred. Please try again.', color: Colors.red);
       Navigator.pop(context);
     } finally {
       setState(() {
@@ -598,7 +601,6 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
   }) {
     return GestureDetector(
       onTap: () async {
-
         final result = await Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const SelectRelatedSpec()),
@@ -612,7 +614,6 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(
-
             color: errorText != null ? Colors.red : Colors.grey[300]!,
           ),
           borderRadius: BorderRadius.circular(8),
@@ -659,14 +660,12 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
                     maxHeight: 1024,
                     imageQuality: 80,
                   );
-                  if (images != null) {
-                    setState(() {
-                      _photos = images
-                          .map((image) => File(image.path))
-                          .take(maxPhotos - _photos.length)
-                          .toList();
-                    });
-                  }
+                  setState(() {
+                    _photos = images
+                        .map((image) => File(image.path))
+                        .take(maxPhotos - _photos.length)
+                        .toList();
+                  });
                 },
                 child: Container(
                   height: 100,
@@ -742,15 +741,13 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
                           maxHeight: 1024,
                           imageQuality: 80,
                         );
-                        if (images != null) {
-                          setState(() {
-                            _photos.addAll(
-                              images
-                                  .map((image) => File(image.path))
-                                  .take(maxPhotos - _photos.length),
-                            );
-                          });
-                        }
+                        setState(() {
+                          _photos.addAll(
+                            images
+                                .map((image) => File(image.path))
+                                .take(maxPhotos - _photos.length),
+                          );
+                        });
                       },
                       child: Container(
                         width: 100,
@@ -804,20 +801,19 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
       },
     ];
 
-    return  Container(
+    return Container(
       padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [ 
-        
+        children: [
           SizedBox(height: 8),
           Text(
             '${_currentStep + 1} / ${steps.length}\n${steps[_currentStep]['name']}',
             style: GoogleFonts.poppins(
               fontSize: 10,
-              color: Color(0xFFB71A4A), 
+              color: Color(0xFFB71A4A),
               fontWeight: FontWeight.w600,
-              height: 1.5, 
+              height: 1.5,
             ),
             textAlign: TextAlign.center,
           ),
@@ -859,8 +855,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
     );
   }
 
-
-Widget _buildSelectSpecialization({
+  Widget _buildSelectSpecialization({
     required String? value,
     required String hint,
     required Function(String?) onChanged,
@@ -902,10 +897,6 @@ Widget _buildSelectSpecialization({
       ),
     );
   }
- 
-    
-
-  
 
   void _showAddress() async {
     final selectedAddress = await Navigator.push<AddressModel>(
@@ -970,7 +961,7 @@ Widget _buildSelectSpecialization({
                       Padding(
                         padding: EdgeInsets.all(16),
                         child: Card(
-                          elevation:2,
+                          elevation: 2,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -987,17 +978,16 @@ Widget _buildSelectSpecialization({
                                   errorText: _errors['task_title'],
                                   isRequired: true,
                                 ),
-                                  SizedBox(height: 16),
+                                SizedBox(height: 16),
                                 Text(
-                                    'Location *',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.black87,
-                                    ),
+                                  'Location *',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
                                   ),
-                                  SizedBox(height: 4),
-                              
+                                ),
+                                SizedBox(height: 4),
                                 GestureDetector(
                                   onTap: _showAddress,
                                   child: Card(
@@ -1111,25 +1101,27 @@ Widget _buildSelectSpecialization({
                                   ),
                                 ),
                                 SizedBox(height: 16),
-                               _buildSelectSpecialization(
+                                _buildSelectSpecialization(
                                   value: selectedSpecialization,
                                   hint: 'Select Specialization',
                                   onChanged: (value) => setState(() {
                                     selectedSpecialization = value;
-                                    specializationId = selectedSpecializations[value!] ?? 0;
+                                    specializationId =
+                                        selectedSpecializations[value!] ?? 0;
                                   }),
                                   errorText: _errors['specialization'],
                                   isRequired: true,
                                 ),
                                 SizedBox(height: 16),
-                               _buildMultiSelectField(
+                                _buildMultiSelectField(
                                   selectedItems: relatedSpecializations,
                                   items: selectedSpecializations.keys.toList(),
                                   hint: 'Select Related Specializations',
                                   onChanged: (value) => setState(() {
                                     relatedSpecializations = value;
                                     relatedSpecializationsIds = value
-                                        .map((e) => selectedSpecializations[e]!.toString())
+                                        .map((e) => selectedSpecializations[e]!
+                                            .toString())
                                         .toList();
                                   }),
                                   errorText: _errors['related_specializations'],
@@ -1343,11 +1335,13 @@ Widget _buildSelectSpecialization({
                               MaterialPageRoute(
                                 builder: (context) => PreviewTask(
                                   controller: controller,
-                                  selectedSpecialization: selectedSpecialization,
+                                  selectedSpecialization:
+                                      selectedSpecialization,
                                   selectedUrgency: selectedUrgency,
                                   selectedWorkType: selectedWorkType,
                                   selectedScope: selectedScope,
-                                  relatedSpecializations: relatedSpecializations,
+                                  relatedSpecializations:
+                                      relatedSpecializations,
                                   photos: _photos,
                                   onSubmit: _submitJob,
                                 ),
@@ -1382,11 +1376,13 @@ Widget _buildSelectSpecialization({
                                 MaterialPageRoute(
                                   builder: (context) => PreviewTask(
                                     controller: controller,
-                                    selectedSpecialization: selectedSpecialization,
+                                    selectedSpecialization:
+                                        selectedSpecialization,
                                     selectedUrgency: selectedUrgency,
                                     selectedWorkType: selectedWorkType,
                                     selectedScope: selectedScope,
-                                    relatedSpecializations: relatedSpecializations,
+                                    relatedSpecializations:
+                                        relatedSpecializations,
                                     photos: _photos,
                                     onSubmit: _submitJob,
                                   ),
