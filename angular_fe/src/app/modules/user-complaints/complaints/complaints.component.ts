@@ -13,6 +13,7 @@ import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import Swal from 'sweetalert2';
 import { AngularSvgIconModule } from 'angular-svg-icon';
+import { ReportCardComponent } from './report-card/report-card.component';
 
 @Component({
   selector: 'app-complaints',
@@ -22,6 +23,7 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
     FormsModule,
     ClientComplaintComponent,
     TaskerComplaintComponent,
+    ReportCardComponent,
     AngularSvgIconModule
   ],
   templateUrl: './complaints.component.html',
@@ -153,7 +155,6 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
         ].filter(Boolean).join(' ').toLowerCase();
         const nameB = [
           b.reporter.first_name || '',
-          b.reporter.middle_name || '',
           b.reporter.last_name || ''
         ].filter(Boolean).join(' ').toLowerCase();
         if (this.sortDirections['reporterName'] === 'asc' || this.sortDirections['reporterName'] === 'default') {
@@ -228,9 +229,20 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const handledBy = this.selectedReport.actionBy
-      ? `${this.selectedReport.actionBy.first_name || ''} ${this.selectedReport.actionBy.middle_name || ''} ${this.selectedReport.actionBy.last_name || ''}`.trim()
-      : 'Not Handled Yet';
+    let handledBy = 'Empty'; // Default to Empty
+    if (this.selectedReport.actionBy) {
+      const firstName = this.selectedReport.actionBy.first_name || '';
+      const middleName = this.selectedReport.actionBy.middle_name || '';
+      const lastName = this.selectedReport.actionBy.last_name || '';
+
+      // Check if all name parts are 'Unknown' or if the trimmed name is empty
+      if (
+        (firstName.toLowerCase() !== 'unknown' || middleName.toLowerCase() !== 'unknown' || lastName.toLowerCase() !== 'unknown') &&
+        `${firstName} ${middleName} ${lastName}`.trim() !== ''
+      ) {
+        handledBy = `${firstName} ${middleName} ${lastName}`.trim();
+      }
+    }
 
     let imagesHtml = '';
     if (this.selectedReport.images) {
@@ -255,12 +267,17 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
       imagesHtml = '<div>No images available</div>';
     }
 
+    // Conditionally include the Moderator section based on userRole
+    const moderatorHtml = this.userRole === 'Admin'
+      ? `
+        <div class="flex mb-4">
+          <div class="font-bold w-32">Moderator:</div>
+          <div>${handledBy}</div>
+        </div>`
+      : '';
+
     const htmlContent = `
       <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
-        <div class="flex mb-4">
-          <div class="font-bold w-32">Report ID:</div>
-          <div>${this.selectedReport.report_id}</div>
-        </div>
         <div class="flex mb-4">
           <div class="font-bold w-32">Reporter:</div>
           <div>${this.selectedReport.reporter.first_name} ${this.selectedReport.reporter.middle_name || ''} ${this.selectedReport.reporter.last_name}</div>
@@ -281,12 +298,9 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
           <div class="font-bold w-32">Created At:</div>
           <div>${this.selectedReport.created_at}</div>
         </div>
-        <div class="flex mb-4">
-          <div class="font-bold w-32">Handled By:</div>
-          <div>${handledBy}</div>
-        </div>
+        ${moderatorHtml}
         <div class="mb-4">
-          <div class="font-bold w-32">Images:</div>
+          <div class="font-bold w-32">Evidence:</div>
           <div class="flex flex-wrap">${imagesHtml}</div>
         </div>
       </div>
@@ -323,13 +337,43 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
     });
   }
 
-  banUser(reportId: number) {
-    if (reportId) {
-      this.reportService.updateReportStatus(reportId, true).subscribe({
+  async banUser(reportId: number) {
+    const { value: reason } = await Swal.fire({
+      title: 'Ban User',
+      html: `
+        <label for="reason-input" class="block text-sm font-medium text-gray-700 mb-2">Reason for banning</label>
+        <input id="reason-input" class="swal2-input" placeholder="Enter reason" />
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Confirm',
+      cancelButtonText: 'Cancel',
+      preConfirm: () => {
+        const reasonInput = (document.getElementById('reason-input') as HTMLInputElement).value;
+        if (!reasonInput) {
+          Swal.showValidationMessage('Please provide a reason for this action');
+        }
+        return reasonInput;
+      },
+      willOpen: () => {
+        const confirmButton = Swal.getConfirmButton();
+        const reasonInput = document.getElementById('reason-input') as HTMLInputElement;
+        if (confirmButton) {
+          confirmButton.disabled = true;
+        }
+        reasonInput.addEventListener('input', () => {
+          if (confirmButton) {
+            confirmButton.disabled = !reasonInput.value.trim();
+          }
+        });
+      }
+    });
+
+    if (reason) {
+      console.log('Ban User Request:', { reportId, status: true, reason, actionType: 'ban' });
+      this.reportService.updateReportStatus(reportId, true, reason, 'ban').subscribe({
         next: (response) => {
           if (response.success) {
             Swal.fire('Banned!', 'User has been banned.', 'success').then(() => {
-              // Refresh the report list after banning
               this.reportService.getReport().subscribe((response: { success: boolean; reports: Report[] }) => {
                 if (response.success) {
                   this.reports = response.reports;
@@ -343,19 +387,50 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
           }
         },
         error: (err) => {
-          Swal.fire('Error!', 'Error banning user.', 'error');
+          console.error('Ban User Error:', err);
+          Swal.fire('Error!', err.message || 'Error banning user.', 'error');
         }
       });
     }
   }
 
-  unbanUser(reportId: number) {
-    if (reportId) {
-      this.reportService.updateReportStatus(reportId, true).subscribe({
+  async unbanUser(reportId: number) {
+    const { value: reason } = await Swal.fire({
+      title: 'Unban User',
+      html: `
+        <label for="reason-input" class="block text-sm font-medium text-gray-700 mb-2">Reason for unbanning</label>
+        <input id="reason-input" class="swal2-input" placeholder="Enter reason" />
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Confirm',
+      cancelButtonText: 'Cancel',
+      preConfirm: () => {
+        const reasonInput = (document.getElementById('reason-input') as HTMLInputElement).value;
+        if (!reasonInput) {
+          Swal.showValidationMessage('Please provide a reason for this action');
+        }
+        return reasonInput;
+      },
+      willOpen: () => {
+        const confirmButton = Swal.getConfirmButton();
+        const reasonInput = document.getElementById('reason-input') as HTMLInputElement;
+        if (confirmButton) {
+          confirmButton.disabled = true;
+        }
+        reasonInput.addEventListener('input', () => {
+          if (confirmButton) {
+            confirmButton.disabled = !reasonInput.value.trim();
+          }
+        });
+      }
+    });
+
+    if (reason) {
+      console.log('Unban User Request:', { reportId, status: true, reason, actionType: 'unban' });
+      this.reportService.updateReportStatus(reportId, true, reason, 'unban').subscribe({
         next: (response) => {
           if (response.success) {
             Swal.fire('Unbanned!', 'User has been unbanned.', 'success').then(() => {
-              // Refresh the report list after unbanning
               this.reportService.getReport().subscribe((response: { success: boolean; reports: Report[] }) => {
                 if (response.success) {
                   this.reports = response.reports;
@@ -369,7 +444,8 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
           }
         },
         error: (err) => {
-          Swal.fire('Error!', 'Error unbanning user.', 'error');
+          console.error('Unban User Error:', err);
+          Swal.fire('Error!', err.message || 'Error unbanning user.', 'error');
         }
       });
     }
@@ -378,7 +454,7 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
   exportCSV() {
     const isAdmin = this.userRole === 'Admin';
     const headers = isAdmin
-      ? ['No', 'Reporter Name', 'Violator Name', 'Reporter Role', 'Violator Role', 'Date', 'Status', 'Handled By']
+      ? ['No', 'Reporter Name', 'Violator Name', 'Reporter Role', 'Violator Role', 'Date', 'Status', 'Moderator']
       : ['No', 'Reporter Name', 'Violator Name', 'Reporter Role', 'Violator Role', 'Date', 'Status'];
     const rows = this.displayReports.map((report, index) => {
       const reporterName = report.reporter
@@ -464,7 +540,7 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
   doc.text(formattedDate, 310, 90); 
 
     const headers = isAdmin
-      ? ['No', 'Reporter Name', 'Violator Name', 'Reporter Role', 'Violator Role', 'Date', 'Status', 'Handled By']
+      ? ['No', 'Reporter Name', 'Violator Name', 'Reporter Role', 'Violator Role', 'Date', 'Status', 'Moderator']
       : ['No', 'Reporter Name', 'Violator Name', 'Reporter Role', 'Violator Role', 'Date', 'Status'];
     const rows = this.displayReports.map((report, index) => {
       const reporterName = report.reporter

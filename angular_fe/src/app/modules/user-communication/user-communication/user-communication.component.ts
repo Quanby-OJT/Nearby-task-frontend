@@ -295,18 +295,40 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
     }
   }
 
-  banUser(id: number, taskTakenId: number): void {
-    Swal.fire({
-      title: 'Are you sure to ban?',
-      text: 'This action cannot be undone!',
-      icon: 'warning',
+  async banUser(id: number, taskTakenId: number): Promise<void> {
+    const { value: reason } = await Swal.fire({
+      title: 'Ban User',
+      html: `
+        <label for="reason-input" class="block text-sm font-medium text-gray-700 mb-2">Reason for banning</label>
+        <input id="reason-input" class="swal2-input" placeholder="Enter reason" />
+      `,
       showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, ban it!',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.userConversationService.banUser(id, taskTakenId).subscribe((response) => {
+      confirmButtonText: 'Confirm',
+      cancelButtonText: 'Cancel',
+      preConfirm: () => {
+        const reasonInput = (document.getElementById('reason-input') as HTMLInputElement).value;
+        if (!reasonInput) {
+          Swal.showValidationMessage('Please provide a reason for this action');
+        }
+        return reasonInput;
+      },
+      willOpen: () => {
+        const confirmButton = Swal.getConfirmButton();
+        const reasonInput = document.getElementById('reason-input') as HTMLInputElement;
+        if (confirmButton) {
+          confirmButton.disabled = true;
+        }
+        reasonInput.addEventListener('input', () => {
+          if (confirmButton) {
+            confirmButton.disabled = !reasonInput.value.trim();
+          }
+        });
+      }
+    });
+
+    if (reason) {
+      this.userConversationService.banUser(id, taskTakenId, reason).subscribe({
+        next: (response) => {
           if (response) {
             Swal.fire('Banned!', 'User has been banned.', 'success').then(() => {
               this.userConversationService.getUserConversation().subscribe((response: { data: Conversation[] }) => {
@@ -318,44 +340,65 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
               });
             });
           }
-        }, (error) => {
-          Swal.fire('Error!', 'Failed to ban the user.', 'error');
-        });
-      }
-    });
+        },
+        error: (error) => {
+          Swal.fire('Error!', error.message || 'Failed to ban the user.', 'error');
+        }
+      });
+    }
   }
 
-  warnUser(id: number, taskTakenId: number): void {
-    Swal.fire({
-      title: 'Are you sure to warn this user?',
-      text: 'This action cannot be undone!',
+  async warnUser(id: number, taskTakenId: number): Promise<void> {
+    const { value: reason } = await Swal.fire({
+      title: 'Warn User',
+      html: `
+        <label for="reason-input" class="block text-sm font-medium text-gray-700 mb-2">Reason for warning</label>
+        <input id="reason-input" class="swal2-input" placeholder="Enter reason" />
+      `,
       showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, warn it!',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.userConversationService.warnUser(id, taskTakenId).subscribe({
-          next: (response) => {
-            if (response) {
-              Swal.fire('Warned!', 'User has been warned.', 'success').then(() => {
-                // Refresh the conversation list after warning
-                this.userConversationService.getUserConversation().subscribe((response: { data: Conversation[] }) => {
-                  if (response && response.data) {
-                    this.conversation = response.data;
-                    this.filteredConversations = [...this.conversation];
-                    this.updatePage();
-                  }
-                });
-              });
-            }
-          },
-          error: (error) => {
-            Swal.fire('Error!', error.message || 'Failed to warn the user.', 'error');
+      confirmButtonText: 'Confirm',
+      cancelButtonText: 'Cancel',
+      preConfirm: () => {
+        const reasonInput = (document.getElementById('reason-input') as HTMLInputElement).value;
+        if (!reasonInput) {
+          Swal.showValidationMessage('Please provide a reason for this action');
+        }
+        return reasonInput;
+      },
+      willOpen: () => {
+        const confirmButton = Swal.getConfirmButton();
+        const reasonInput = document.getElementById('reason-input') as HTMLInputElement;
+        if (confirmButton) {
+          confirmButton.disabled = true;
+        }
+        reasonInput.addEventListener('input', () => {
+          if (confirmButton) {
+            confirmButton.disabled = !reasonInput.value.trim();
           }
         });
       }
     });
+
+    if (reason) {
+      this.userConversationService.warnUser(id, taskTakenId, reason).subscribe({
+        next: (response) => {
+          if (response) {
+            Swal.fire('Warned!', 'User has been warned.', 'success').then(() => {
+              this.userConversationService.getUserConversation().subscribe((response: { data: Conversation[] }) => {
+                if (response && response.data) {
+                  this.conversation = response.data;
+                  this.filteredConversations = [...this.conversation];
+                  this.updatePage();
+                }
+              });
+            });
+          }
+        },
+        error: (error) => {
+          Swal.fire('Error!', error.message || 'Failed to warn the user.', 'error');
+        }
+      });
+    }
   }
 
   viewConversation(taskTakenId: number, viewingUserId: number): void {

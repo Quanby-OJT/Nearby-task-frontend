@@ -38,35 +38,57 @@ export class CreateSpecializationComponent implements OnInit {
     });
   }
 
-  addSpecialization(): void {
+  async addSpecialization(): Promise<void> {
     this.submitted = true;
     if (this.specializationName) {
-      Swal.fire({
-        title: 'Are you sure?',
-        text: `Do you want to add specialization "${this.specializationName}"?`,
-        icon: 'question',
+      // Show SweetAlert2 modal to capture reason
+      const { value: reason } = await Swal.fire({
+        title: 'Add Specialization',
+        html: `
+          <label for="reason-input" class="block text-sm font-medium text-gray-700 mb-2">Reason for adding this specialization</label>
+          <input id="reason-input" class="swal2-input" placeholder="Enter reason" />
+        `,
         showCancelButton: true,
         confirmButtonColor: '#5F50E7',
         cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, add it!',
-        cancelButtonText: 'Cancel'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          const userId = this.sessionStorage.getUserId();
-          this.taskService.createSpecialization({ specialization: this.specializationName, user_id: userId }).subscribe({
-            next: () => {
-              this.specializationName = '';
-              this.submitted = false;
-              this.loadSpecializations();
-              Swal.fire('Added!', 'Specialization has been added.', 'success');
-            },
-            error: (error) => {
-              console.error('Error adding specialization:', error);
-              Swal.fire('Error', 'Failed to add specialization.', 'error');
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
+        preConfirm: () => {
+          const reasonInput = (document.getElementById('reason-input') as HTMLInputElement).value;
+          if (!reasonInput) {
+            Swal.showValidationMessage('Please provide a reason for this action');
+          }
+          return reasonInput;
+        },
+        willOpen: () => {
+          const confirmButton = Swal.getConfirmButton();
+          const reasonInput = document.getElementById('reason-input') as HTMLInputElement;
+          if (confirmButton) {
+            confirmButton.disabled = true;
+          }
+          reasonInput.addEventListener('input', () => {
+            if (confirmButton) {
+              confirmButton.disabled = !reasonInput.value.trim();
             }
           });
         }
       });
+
+      if (reason) {
+        const userId = this.sessionStorage.getUserId();
+        this.taskService.createSpecialization({ specialization: this.specializationName, user_id: userId, reason }).subscribe({
+          next: () => {
+            this.specializationName = '';
+            this.submitted = false;
+            this.loadSpecializations();
+            Swal.fire('Added!', 'Specialization has been added.', 'success');
+          },
+          error: (error) => {
+            console.error('Error adding specialization:', error);
+            Swal.fire('Error', error.error?.error || 'Failed to add specialization.', 'error');
+          }
+        });
+      }
     }
   }
 

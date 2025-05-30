@@ -67,14 +67,14 @@ export class UpdateUserComponent {
 
   formValidation(): void {
     this.form = this._formBuilder.group({
-      firstName: ['', Validators.required],
+      firstName: [''],
       middleName: [''],
-      lastName: ['', Validators.required],
-      status: ['', Validators.required],
-      userRole: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
-      bday: ['', Validators.required],
-      age: [{ value: '', disabled: true }, Validators.required]
+      lastName: [''],
+      status: [''],
+      userRole: [''],
+      email: [''],
+      bday: [''],
+      age: [{ value: '', disabled: true }]
     });
   }
 
@@ -87,14 +87,22 @@ export class UpdateUserComponent {
       next: (response: any) => {
         console.log('Raw Backend Response:', response);
         
+        // Debugging: Log the keys available in the response object
+        console.log('Response keys:', Object.keys(response));
+
         if (response.userme) {
           this.userData = response.user;
+          console.log('Identified user data under response.user (userme)');
         } else if (response.client) {
-          this.userData = response.user;
+          this.userData = response.user; // Assuming client response also has user nested
+          console.log('Identified user data under response.user (client)');
         } else if (response.user) {
           this.userData = response.user;
+          console.log('Identified user data under response.user');
         } else {
+          // Fallback if nesting is different
           this.userData = response;
+          console.log('Identified user data at top level of response');
         }
         
         console.log('Processed User Data:', this.userData);
@@ -116,8 +124,8 @@ export class UpdateUserComponent {
             status: this.userData.acc_status || this.userData.status || '',
           });
 
-          this.profileImage = this.userData.image_link || null;
           console.log('Form Value After Patch:', this.form.value);
+          this.profileImage = this.userData.image_link || null;
           console.log('Profile Image:', this.profileImage);
           
           this.cdRef.detectChanges();
@@ -178,7 +186,7 @@ export class UpdateUserComponent {
     return this.form.controls;
   }
 
-  onSubmit() {
+  async onSubmit() {
     this.submitted = true;
 
     if (this.form.invalid) {
@@ -191,7 +199,70 @@ export class UpdateUserComponent {
     }
 
     const userId = Number(this.userId);
-    this.updateUserAccount(userId);
+
+    // Show SweetAlert2 modal to capture reason
+    const { value: reason } = await Swal.fire({
+      title: 'Update User Status',
+      html: `
+        <label for="reason-input" class="block text-sm font-medium text-gray-700 mb-2">Reason for this action</label>
+        <input id="reason-input" class="swal2-input" placeholder="Enter reason" />
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Confirm',
+      cancelButtonText: 'Cancel',
+      preConfirm: () => {
+        const reasonInput = (document.getElementById('reason-input') as HTMLInputElement).value;
+        if (!reasonInput) {
+          Swal.showValidationMessage('Please provide a reason for this action');
+        }
+        return reasonInput;
+      },
+      willOpen: () => {
+        const confirmButton = Swal.getConfirmButton();
+        const reasonInput = document.getElementById('reason-input') as HTMLInputElement;
+        if (confirmButton) {
+          confirmButton.disabled = true;
+        }
+        reasonInput.addEventListener('input', () => {
+          if (confirmButton) {
+            confirmButton.disabled = !reasonInput.value.trim();
+          }
+        });
+      }
+    });
+
+    if (reason) {
+      // Prepare user data for the update
+      const userData = {
+        first_name: this.form.value.firstName,
+        middle_name: this.form.value.middleName,
+        last_name: this.form.value.lastName,
+        birthday: this.form.value.bday,
+        email: this.form.value.email,
+        acc_status: this.form.value.status,
+        user_role: this.form.value.userRole,
+      };
+
+      // Call the service method with reason
+      this.userAccountService.updateUserAccountWithReason(userId, userData, reason).subscribe(
+        (response) => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'User status updated successfully!',
+          }).then(() => {
+            this.router.navigate(['user-management']);
+          });
+        },
+        (error) => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Update Failed',
+            text: error.error?.error || 'An error occurred while updating the user status.',
+          });
+        }
+      );
+    }
   }
 
   updateUserAccount(userId: number): void {
