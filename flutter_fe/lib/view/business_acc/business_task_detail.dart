@@ -4,6 +4,7 @@ import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/task/task_cancelled.dart';
 import 'package:flutter_fe/view/task/task_confirmed.dart';
 import 'package:flutter_fe/view/task/task_finished.dart';
@@ -55,17 +56,14 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
       final response =
           await _jobPostService.fetchTaskInformation(widget.task!.id);
       setState(() {
-        _taskInformation = response?.task;
+        _taskInformation = response.task;
         _isLoading = false;
       });
     } catch (e) {
-      debugPrint("Error fetching task details: $e");
+      CustomScaffold(message: 'Failed to load task details: ${e.toString()}', color: Colors.red);
       setState(() {
         _isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load task details: ${e.toString()}')),
-      );
     }
   }
 
@@ -73,18 +71,39 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete Task'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Delete Task',
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFFB71A4A),
+          ),
+        ),
         content: Text(
-            'Are you sure you want to delete this task? This action cannot be undone.'),
+          'Are you sure you want to delete this task?',
+          style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.poppins(
+                  fontSize: 14, color: const Color(0xFFB71A4A)),
+            ),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text('Delete'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE23670),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text(
+              'Delete',
+              style: GoogleFonts.poppins(fontSize: 14, color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -99,21 +118,13 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
     try {
       final result = await _taskController.deleteTask(widget.task!.id);
       if (result['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Task deleted successfully')),
-        );
+        CustomScaffold(message: 'Task deleted successfully', color: Colors.green);
         Navigator.pop(context, true);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(
-                  'Failed to delete task: ${result['error'] ?? "Unknown error"}')),
-        );
+        CustomScaffold(message: 'Failed to delete task: ${result['error'] ?? "Unknown error"}', color: Colors.red);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      CustomScaffold(message: 'Error: ${e.toString()}', color: Colors.red);
     } finally {
       setState(() {
         _isDeleting = false;
@@ -172,7 +183,6 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
                       ),
                     );
                     if (result == true) {
-                      // Task was updated, refresh the page
                       Navigator.pop(context, true);
                     }
                   },
@@ -208,7 +218,7 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
                           ),
                           Divider(height: 30),
                           _buildInfoRow("Specialization",
-                              taskToDisplay.specialization ?? "N/A"),
+                              taskToDisplay.taskerSpecialization?.specialization ?? "N/A"),
                           _buildInfoRow("Description",
                               taskToDisplay.description ?? "N/A"),
                           _buildInfoRow("Contract Price", "₱ $priceDisplay"),

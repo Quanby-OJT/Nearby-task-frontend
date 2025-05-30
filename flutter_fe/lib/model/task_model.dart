@@ -1,6 +1,5 @@
 import 'package:flutter_fe/model/client_model.dart';
 import 'package:flutter_fe/model/address.dart';
-import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -22,7 +21,8 @@ class TaskModel {
   final int contactPrice;
   final String? urgency;
   final String? remarks;
-  final String status;
+  final String? status;
+  final String? taskBeginDate;
   final ClientModel? client;
   final TaskerModel? tasker;
   final AddressModel? address;
@@ -35,18 +35,19 @@ class TaskModel {
     required this.id,
     this.clientId,
     required this.title,
-    required this.specialization,
+ this.specialization,
     this.specializationId,
     this.relatedSpecializationsIds,
     this.addressID,
     required this.description,
     required this.urgency,
-    required this.status,
+this.status,
     required this.contactPrice,
     this.remarks,
     required this.workType,
     required this.scope,
     this.isVerifiedDocument,
+    this.taskBeginDate,
     this.client,
     this.tasker,
     this.createdAt,
@@ -87,6 +88,7 @@ class TaskModel {
       addressID: json['address_id']?.toString(),
       scope: json['scope']?.toString() ?? '',
       isVerifiedDocument: json['is_verified'] as bool?,
+      taskBeginDate: json['task_begin_date']?.toString(),
       client: json['client'] != null && json['client']['user'] != null
           ? ClientModel.fromJson({
               'preferences': '',
@@ -134,6 +136,7 @@ class TaskModel {
       "address_id": addressID,
       "scope": scope,
       "is_verified_document": isVerifiedDocument,
+      "task_begin_date": taskBeginDate,
       "client": client?.toJson(),
       "tasker": tasker?.toJson(),
       "address": address?.toJson(),
@@ -146,7 +149,7 @@ class TaskModel {
 
   @override
   String toString() {
-    return 'TaskModel(id: $id, clientId: $clientId, title: $title, description: $description, specialization: $specialization, relatedSpecializationsIds: $relatedSpecializationsIds, specializationId: $specializationId, workType: $workType, scope: $scope, isVerifiedDocument: $isVerifiedDocument, contactPrice: $contactPrice, urgency: $urgency, remarks: $remarks, status: $status, client: $client, tasker: $tasker, address: $address, createdAt: $createdAt, updatedAt: $updatedAt, addressID: $addressID, imageUrl: $imageUrl, taskerSpecialization: $taskerSpecialization)';
+    return 'TaskModel(id: $id, clientId: $clientId, title: $title, description: $description, specialization: $specialization, relatedSpecializationsIds: $relatedSpecializationsIds, specializationId: $specializationId, workType: $workType, scope: $scope, isVerifiedDocument: $isVerifiedDocument, contactPrice: $contactPrice, urgency: $urgency, remarks: $remarks, status: $status, taskBeginDate: $taskBeginDate, client: $client, tasker: $tasker, address: $address, createdAt: $createdAt, updatedAt: $updatedAt, addressID: $addressID, imageUrl: $imageUrl, taskerSpecialization: $taskerSpecialization)';
   }
 }
 

@@ -65,8 +65,8 @@ class _TaskerHomePageState extends State<TaskerHomePage>
   AnimationController? _dislikeAnimationController;
 
   // Add flip animation controllers and state
-  Map<int, AnimationController> _flipControllers = {};
-  Map<int, bool> _isFlipped = {};
+  final Map<int, AnimationController> _flipControllers = {};
+  final Map<int, bool> _isFlipped = {};
 
   @override
   void initState() {
@@ -106,7 +106,9 @@ class _TaskerHomePageState extends State<TaskerHomePage>
     _likeAnimationController?.dispose();
     _dislikeAnimationController?.dispose();
     // Dispose flip controllers
-    _flipControllers.values.forEach((controller) => controller.dispose());
+    for (var controller in _flipControllers.values) {
+      controller.dispose();
+    }
     controller.dispose();
     super.dispose();
   }
@@ -1013,12 +1015,12 @@ class _TaskerHomePageState extends State<TaskerHomePage>
               children: [
                 // Expanded image section
                 Expanded(
-                  child: Container(
+                  child: SizedBox(
                     width: double.infinity,
                     child: Stack(
                       children: [
                         // Main image
-                        Container(
+                        SizedBox(
                           width: double.infinity,
                           height: double.infinity,
                           child: task.imageUrl != null &&

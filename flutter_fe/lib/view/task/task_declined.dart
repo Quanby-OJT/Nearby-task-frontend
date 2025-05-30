@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
+import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/task/task_cancelled.dart';
 import 'package:flutter_fe/view/task/task_confirmed.dart';
 import 'package:flutter_fe/view/task/task_ongoing.dart';
@@ -170,7 +171,7 @@ class _TaskDeclinedState extends State<TaskDeclined> {
       final response = await _jobPostService
           .fetchTaskInformation(_requestInformation?.task_id ?? 0);
       setState(() {
-        _taskInformation = response?.task;
+        _taskInformation = response.task;
       });
     } catch (e) {
       debugPrint("Error fetching task details: $e");
@@ -455,25 +456,7 @@ class _TaskDeclinedState extends State<TaskDeclined> {
     );
 
     if (confirm == true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Task rejection requested',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
-            ),
-          ),
-          backgroundColor: Color(0xFFB71A4A),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5),
-          ),
-          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          duration: Duration(seconds: 3),
-        ),
-      );
+     CustomScaffold(message: 'Task rejection requested', color: Color(0xFFB71A4A));
     }
   }
 
@@ -940,9 +923,7 @@ class _TaskDeclinedState extends State<TaskDeclined> {
                     ),
                   );
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Failed to accept task')),
-                  );
+                  CustomScaffold(message: 'Failed to accept task', color: Colors.red);
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -1169,9 +1150,7 @@ class _TaskDeclinedState extends State<TaskDeclined> {
                       setState(() {
                         _isLoading = false;
                       });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Failed to finish task')),
-                      );
+                      CustomScaffold(message: 'Failed to finish task', color: Colors.red);
                     }
                   },
                 ),
@@ -1183,25 +1162,7 @@ class _TaskDeclinedState extends State<TaskDeclined> {
     );
 
     if (confirm == true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Task Finished',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
-            ),
-          ),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5),
-          ),
-          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          duration: Duration(seconds: 3),
-        ),
-      );
+    CustomScaffold(message: 'Task Finished', color: Colors.green);
     }
   }
 
@@ -1222,9 +1183,7 @@ class _TaskDeclinedState extends State<TaskDeclined> {
    Future<void> _handleTaskDispute() async {
     if (_requestInformation == null ||
         _requestInformation!.task_taken_id == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Task information not available')),
-      );
+      CustomScaffold(message: 'Task information not available', color: Colors.red);
       return;
     }
 
@@ -1416,19 +1375,12 @@ class _TaskDeclinedState extends State<TaskDeclined> {
                         _requestStatus = 'Disputed';
                       });
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                              'Failed to raise dispute. Please Try Again.'),
-                        ),
-                      );
+                      CustomScaffold(message: 'Failed to raise dispute. Please Try Again.', color: Colors.red);
                     }
                   } catch (e, stackTrace) {
                     debugPrint("Error raising dispute: $e.");
                     debugPrintStack(stackTrace: stackTrace);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error occurred')),
-                    );
+                    CustomScaffold(message: 'Error occurred', color: Colors.red);
                   } finally {
                     setState(() {
                       _isLoading = false;

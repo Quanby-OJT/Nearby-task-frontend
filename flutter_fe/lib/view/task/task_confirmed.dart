@@ -509,7 +509,7 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
     final status = _requestInformation!.task_status ?? 'Unknown';
     final isConfirmed = status.toLowerCase() == 'confirmed';
 
-    if (_requestInformation?.start_date == null) {
+    if (_requestInformation?.task?.taskBeginDate == null) {
       return SizedBox(
         width: double.infinity,
         child: Column(
@@ -552,7 +552,9 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
       );
     }
 
-    final startDate = _requestInformation!.start_date!;
+    final startDate = DateTime.parse(_requestInformation!.task!.taskBeginDate!);
+
+    debugPrint("startDate: $startDate");
     final showCountdown = isConfirmed && !_isStartButtonEnabled();
 
     return Container(

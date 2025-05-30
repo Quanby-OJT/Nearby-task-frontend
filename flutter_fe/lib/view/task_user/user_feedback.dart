@@ -19,8 +19,7 @@ import 'package:image_picker/image_picker.dart';
 class UserFeedback extends StatefulWidget {
   final TaskFetch? taskInformation;
   final String? role;
-  const UserFeedback({Key? key, this.taskInformation, this.role})
-      : super(key: key);
+  const UserFeedback({super.key, this.taskInformation, this.role});
 
   @override
   State<UserFeedback> createState() => _UserFeedbackState();
@@ -94,7 +93,7 @@ class _UserFeedbackState extends State<UserFeedback> {
       final response = await _jobPostService
           .fetchTaskInformation(_requestInformation!.task_id as int);
       setState(() {
-        _taskInformation = response?.task;
+        _taskInformation = response.task;
       });
     } catch (e) {
       debugPrint("Error fetching task details: $e");

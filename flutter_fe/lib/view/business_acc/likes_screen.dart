@@ -5,6 +5,7 @@ import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
+import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/verification/verification_page.dart';
 import 'package:get_storage/get_storage.dart';
@@ -147,13 +148,7 @@ class _LikesScreenState extends State<LikesScreen> {
       });
     } catch (e) {
       debugPrint("Error fetching ID image: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Failed to load user image. Please try again."),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
-        ),
-      );
+     CustomScaffold(message: 'Failed to load user image. Please try again.', color: Colors.red);
     }
   }
 
@@ -223,31 +218,14 @@ class _LikesScreenState extends State<LikesScreen> {
           _filteredTasks.removeWhere((item) => item.id == job.id);
           savedTasksCount = _filteredTasks.length;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message']),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
+        CustomScaffold(message: result['message'], color: Colors.green);
+       
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message']),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
-          ),
-        );
+        CustomScaffold(message: result['message'], color: Colors.red);
       }
     } catch (e) {
       debugPrint("Error in _unlikeJob: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to unlike task. Please try again.'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
-        ),
-      );
+      CustomScaffold(message: 'Failed to unlike task. Please try again.', color: Colors.red);
     }
   }
 
@@ -255,13 +233,7 @@ class _LikesScreenState extends State<LikesScreen> {
     try {
       List<TaskModel> clientTasks = await _fetchClientTasks();
       if (clientTasks.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('You have no active tasks to assign.'),
-            backgroundColor: Colors.orange,
-            duration: Duration(seconds: 2),
-          ),
-        );
+        CustomScaffold(message: 'You have no active tasks to assign.', color: Colors.orange);
         return;
       }
 
@@ -274,13 +246,7 @@ class _LikesScreenState extends State<LikesScreen> {
 
       final String? clientId = await _clientServices.getUserId();
       if (clientId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Unable to identify client. Please log in again.'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
-          ),
-        );
+        CustomScaffold(message: 'Unable to identify client. Please log in again.', color: Colors.red);
         return;
       }
 
@@ -292,24 +258,10 @@ class _LikesScreenState extends State<LikesScreen> {
         _role,
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result),
-          backgroundColor: result.toLowerCase().contains('success')
-              ? Colors.green
-              : Colors.red,
-          duration: Duration(seconds: 2),
-        ),
-      );
+      CustomScaffold(message: result, color: result.toLowerCase().contains('success') ? Colors.green : Colors.red);
     } catch (e) {
       debugPrint("Error in _assignTask: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to assign task.'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
-        ),
-      );
+      CustomScaffold(message: 'Failed to assign task.', color: Colors.red);
     }
   }
 

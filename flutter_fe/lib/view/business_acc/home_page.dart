@@ -13,6 +13,7 @@ import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/controller/tasker_controller.dart';
 import 'package:flutter_fe/view/address/set-up_address.dart';
 import 'package:flutter_fe/view/business_acc/notif_screen.dart';
+import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
 import 'package:flutter_fe/view/service_acc/notif_screen.dart';
 import 'package:flutter_fe/view/setting/setting.dart';
@@ -275,13 +276,7 @@ class _ClientHomePageState extends State<ClientHomePage>
       int userId = int.parse(storage.read('user_id').toString());
       if (userId == 0) {
         debugPrint("User ID not found in storage");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Failed to load user image. Please try again."),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
-          ),
-        );
+       CustomScaffold(message: "User ID not found in storage", color: Colors.red);
         return;
       }
 

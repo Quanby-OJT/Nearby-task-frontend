@@ -102,7 +102,7 @@ class _ClientStartState extends State<ClientStart> {
       final response = await _jobPostService
           .fetchTaskInformation(_requestInformation!.task_id as int);
       setState(() {
-        _taskInformation = response?.task;
+        _taskInformation = response.task;
         _isLoading = false;
       });
     } catch (e) {
@@ -224,8 +224,7 @@ class _ClientStartState extends State<ClientStart> {
               primary: Color(0xFF03045E),
               onPrimary: Colors.white,
               surface: Colors.white,
-            ),
-            dialogBackgroundColor: Colors.white,
+            ), dialogTheme: DialogThemeData(backgroundColor: Colors.white),
           ),
           child: child!,
         );

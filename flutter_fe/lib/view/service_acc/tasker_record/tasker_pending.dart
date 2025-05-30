@@ -122,7 +122,7 @@ class _TaskerPendingState extends State<TaskerPending> {
       final response = await _jobPostService
           .fetchTaskInformation(_requestInformation?.task_id ?? 0);
       setState(() {
-        _taskInformation = response?.task;
+        _taskInformation = response.task;
         _isLoading = false;
       });
     } catch (e) {

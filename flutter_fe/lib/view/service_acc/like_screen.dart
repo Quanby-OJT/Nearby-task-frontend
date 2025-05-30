@@ -376,7 +376,7 @@ class _LikeScreenState extends State<LikeScreen> {
                             ),
                           ),
                           child: Text(
-                            task.status,
+                            task.status ?? "",
                             style: GoogleFonts.poppins(
                               color: const Color(0xFF2E7D32),
                               fontSize: 12,

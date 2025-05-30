@@ -150,7 +150,7 @@ class _TaskInformationState extends State<TaskInformation> {
     try {
       final response =
           await _jobPostService.fetchTaskInformation(widget.taskID!);
-      if (response == null || response.task == null) {
+      if (response.task == null) {
         throw Exception('No task information available');
       }
       setState(() {
@@ -451,11 +451,11 @@ class _TaskInformationState extends State<TaskInformation> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: statusColor(_taskInformation!.status),
+                            color: statusColor(_taskInformation!.status ?? ""),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            _taskInformation!.status,
+                            _taskInformation!.status ?? "",
                             style: GoogleFonts.montserrat(
                               color: Colors.white,
                               fontSize: 12,

@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_fe/model/client_task_model.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
+import 'package:flutter_fe/view/business_acc/edit_task_page.dart';
+import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/service_acc/tasker_record/tasker_pending.dart';
 import 'package:flutter_fe/view/task/task_cancelled.dart';
 import 'package:flutter_fe/view/task/task_confirmed.dart';
@@ -55,8 +57,8 @@ class _JobPostPageState extends State<JobPostPage>
   List<TaskFetch> _clientTasksTasker = [];
   List<TaskFetch> _filteredTasksStatus = [];
   List<String> _specializations = [];
-  String? _currentFilterManagement = 'Available';
-  String? _currentFilterStatus = 'Pending';
+  String? _currentFilterManagement;
+  String? _currentFilterStatus;
   AuthenticatedUser? _user;
   String? _profileImageUrl;
   String? _idImageUrl;
@@ -67,6 +69,7 @@ class _JobPostPageState extends State<JobPostPage>
 
   // Task management and status filters
   static const List<String> _taskManagementFilters = [
+    'All',
     'Available',
     'Already Taken',
     'On Hold',
@@ -74,6 +77,7 @@ class _JobPostPageState extends State<JobPostPage>
   ];
 
   static const List<String> _taskStatusFilters = [
+    'All',
     'Pending',
     'Available',
     'Confirmed',
@@ -129,7 +133,7 @@ class _JobPostPageState extends State<JobPostPage>
         _fetchTasksStatus(),
       ]);
     } catch (e) {
-      _showErrorSnackBar('Failed to initialize data: $e');
+      CustomScaffold(message: 'Failed to initialize data: $e', color: Colors.red);
     } finally {
       setState(() => _isLoading = false);
     }
@@ -151,20 +155,17 @@ class _JobPostPageState extends State<JobPostPage>
           _profileImageUrl = user?.user.image;
           _idImageUrl = response['url'];
           _isDocumentValid = response['status'] ?? false;
-          // Allow task posting if documents exist and are either approved or under review
           _showButton = _profileImageUrl != null &&
               _idImageUrl != null &&
               (_isDocumentValid || user?.user.accStatus == 'Review');
         });
       } else {
-        // Handle API error gracefully
         debugPrint('Failed to fetch user ID image: ${response['message']}');
         setState(() {
           _user = user;
           _profileImageUrl = user?.user.image;
           _idImageUrl = null;
           _isDocumentValid = false;
-          // Still allow task posting if user has profile image and status is Review
           _showButton =
               _profileImageUrl != null && user?.user.accStatus == 'Review';
         });
@@ -233,53 +234,36 @@ class _JobPostPageState extends State<JobPostPage>
     }
   }
 
-  // Filter tasks based on search query and selected filters
-  void _filterTasks() {
-    final query = _searchController.text.trim().toLowerCase();
-    setState(() {
-      // Filter management tasks
-      _filteredTasksManagement = _clientTasks.where((task) {
-        if (task == null) return false;
-        final matchesSearch = task.title?.toLowerCase().contains(query) ??
-            false || task.description!.toLowerCase().contains(query) ??
-            false;
-        final matchesStatus = _currentFilterManagement == null ||
-            task.status == _currentFilterManagement;
-        return matchesSearch && matchesStatus;
-      }).toList();
+void _filterTasks() {
+  final query = _searchController.text.trim().toLowerCase();
+  setState(() {
+    // Filter management tasks
+    _filteredTasksManagement = _clientTasks.where((task) {
+      if(_currentFilterManagement == 'All') return true;
+      final matchesSearch = (task.title.toLowerCase().contains(query) ?? false) ||
+          (task.description.toLowerCase().contains(query) ?? false);
+      final matchesStatus =
+          _currentFilterManagement == null || task.status == _currentFilterManagement;
+      return matchesSearch && matchesStatus;
+    }).toList();
 
-      // Filter status tasks
-      _filteredTasksStatus = _clientTasksTasker.where((task) {
-        if (task == null) return false;
-        final matchesSearch =
-            task.post_task!.title?.toLowerCase().contains(query) ??
-                false ||
-                    task.post_task!.description.toLowerCase().contains(query) ??
-                false;
-        final matchesStatus = _currentFilterStatus == null ||
-            task.taskStatus == _currentFilterStatus;
-        return matchesSearch && matchesStatus;
-      }).toList();
-    });
-  }
+    // Filter status tasks
+    _filteredTasksStatus = _clientTasksTasker.where((task) {
+      if(_currentFilterStatus == 'All') return true;
+      final matchesSearch =
+          (task.post_task?.title.toLowerCase().contains(query) ?? false) ||
+              (task.post_task?.description.toLowerCase().contains(query) ?? false);
+      final matchesStatus =
+          _currentFilterStatus == null || task.taskStatus == _currentFilterStatus;
+      return matchesSearch && matchesStatus;
+    }).toList();
+  });
+}
 
-  // Show error snackbar with retry option
   void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: const Color(0xFFB71A4A),
-        duration: const Duration(seconds: 3),
-        action: SnackBarAction(
-          label: 'Retry',
-          onPressed: _initializeData,
-          textColor: Colors.white,
-        ),
-      ),
-    );
+    CustomScaffold(message: 'Error fetching tasks: $message', color: Colors.red);
   }
 
-  // Navigate to task detail and refresh tasks if needed
   Future<void> _navigateToTaskDetail(TaskModel task) async {
     final result = await Navigator.push(
       context,
@@ -290,7 +274,6 @@ class _JobPostPageState extends State<JobPostPage>
     }
   }
 
-  // Show warning dialog for incomplete profile
   void _showWarningDialog() {
     if (_isUploadDialogShown) return;
     setState(() => _isUploadDialogShown = true);
@@ -351,7 +334,6 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
-  // Show filter modal for task management
   void _showFilterModalManagement() {
     _showFilterModal(
       title: 'Filter Tasks',
@@ -366,7 +348,6 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
-  // Show filter modal for task status
   void _showFilterModalStatus() {
     _showFilterModal(
       title: 'Filter Task Status',
@@ -381,7 +362,6 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
-  // Generic filter modal for reusability
   void _showFilterModal({
     required String title,
     required List<String> filters,
@@ -450,7 +430,6 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
-  // Build task management view
   Widget _buildTaskManagementView() {
     return Column(
       children: [
@@ -471,14 +450,13 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
-  // Build task status view
   Widget _buildTaskStatusView() {
     return Column(
       children: [
         _buildSearchBar(hint: 'Search tasks by status...'),
         _buildFilterBar(
           count: _filteredTasksStatus.length,
-          filterLabel: _currentFilterStatus ?? 'Pending',
+          filterLabel: _currentFilterStatus ?? '',
           onFilterPressed: _showFilterModalStatus,
         ),
         Expanded(
@@ -621,37 +599,61 @@ class _JobPostPageState extends State<JobPostPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: statusColor,
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: statusColor,
+                      ),
+                      child: Text(
+                        status,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Color(0xFFE23670)),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => EditTaskPage(task: task)),
+                            ).then((value) => _fetchTasksManagement());
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Color(0xFFB71A4A)),
+                          onPressed: () => _confirmDeleteTask(task.id),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                child: Text(
-                  status,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
               const SizedBox(height: 8),
               Text(
                 task.title ?? 'Untitled Task',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFFE23670),
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
                 ),
                 overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
+
+              
               const SizedBox(height: 8),
               _buildTaskInfoRow(
                 icon: FontAwesomeIcons.locationPin,
                 iconColor: Colors.red[400],
-                text:
-                    '${task.address?.city ?? 'N/A'}, ${task.address?.province ?? 'N/A'}',
+                text: task.address?.formattedAddress ?? 'N/A',
               ),
               const SizedBox(height: 8),
               _buildTaskInfoRow(
@@ -663,29 +665,8 @@ class _JobPostPageState extends State<JobPostPage>
               _buildTaskInfoRow(
                 icon: FontAwesomeIcons.screwdriverWrench,
                 iconColor: const Color(0xFFE23670),
-                text: task.specialization ?? 'N/A',
+                text: task.taskerSpecialization?.specialization?? 'N/A',
               ),
-              if (_tabController.index == 0) ...[
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit, color: Color(0xFFE23670)),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => AddTask()),
-                        ).then((value) => _fetchTasksManagement());
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Color(0xFFB71A4A)),
-                      onPressed: () => _confirmDeleteTask(task.id),
-                    ),
-                  ],
-                ),
-              ],
             ],
           ),
         ),
@@ -693,7 +674,6 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
-  // Build task card for status view
   Widget _buildTaskStatusViewCard(TaskFetch task) {
     return Card(
       elevation: 3,
@@ -748,7 +728,6 @@ class _JobPostPageState extends State<JobPostPage>
     }
   }
 
-  // Build task status color indicator
   Widget _buildTaskStatusColor(TaskFetch task) {
     final statusColors = {
       'Pending': Colors.grey[500],

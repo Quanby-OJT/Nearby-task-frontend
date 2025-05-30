@@ -48,7 +48,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
         await jobPostService.fetchTaskInformation(widget.taskTakenId ?? 0);
 
     setState(() {
-      this.task = task?.task;
+      this.task = task.task;
     });
     await loadConversationHistory();
   }

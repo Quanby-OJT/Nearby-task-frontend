@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/task/task_finished.dart';
 import 'package:flutter_fe/view/task/task_review.dart';
 import 'package:flutter_fe/view/task_user/user_feedback.dart';
@@ -124,7 +125,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
       final response = await _jobPostService
           .fetchTaskInformation(_requestInformation!.task_id as int);
       setState(() {
-        _taskInformation = response?.task;
+        _taskInformation = response.task;
         _isLoading = false;
       });
     } catch (e) {
@@ -156,9 +157,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
   Future<void> _handleFinishTask() async {
     if (_requestInformation == null ||
         _requestInformation!.task_taken_id == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Task information not available')),
-      );
+      CustomScaffold(message: 'Task information not available', color: Colors.red);
       return;
     }
 
@@ -175,9 +174,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
   Future<void> _handleTaskDispute() async {
     if (_requestInformation == null ||
         _requestInformation!.task_taken_id == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Task information not available')),
-      );
+      CustomScaffold(message: 'Task information not available', color: Colors.red);
       return;
     }
 
@@ -303,9 +300,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
               child: ElevatedButton(
                 onPressed: () async {
                   if (_rating == 0) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Please provide a rating')),
-                    );
+                    CustomScaffold(message: 'Please provide a rating', color: Colors.red);
                     return;
                   }
                   setState(() {
@@ -340,17 +335,13 @@ class _TaskOngoingState extends State<TaskOngoing> {
                       );
                     } else {
                       if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Failed to finish task')),
-                      );
+                      CustomScaffold(message: 'Failed to finish task', color: Colors.red);
                     }
                   } catch (e, stackTrace) {
                     debugPrint("Error finishing task: $e.");
                     debugPrintStack(stackTrace: stackTrace);
                     if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error occurred')),
-                      );
+                      CustomScaffold(message: 'Error occurred', color: Colors.red);
                     }
                   } finally {
                     setState(() {
@@ -562,19 +553,12 @@ class _TaskOngoingState extends State<TaskOngoing> {
                         _requestStatus = 'Disputed';
                       });
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                              'Failed to raise dispute. Please Try Again.'),
-                        ),
-                      );
+                      CustomScaffold(message: 'Failed to raise dispute. Please Try Again.', color: Colors.red);
                     }
                   } catch (e, stackTrace) {
                     debugPrint("Error raising dispute: $e.");
                     debugPrintStack(stackTrace: stackTrace);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error occurred')),
-                    );
+                    CustomScaffold(message: 'Error occurred', color: Colors.red);
                   } finally {
                     setState(() {
                       _isLoading = false;
@@ -855,25 +839,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
     );
 
     if (confirm == true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Task Review requested',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
-            ),
-          ),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5),
-          ),
-          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          duration: Duration(seconds: 3),
-        ),
-      );
+     CustomScaffold(message: 'Task finished successfully', color: Colors.green);
     }
   }
 
@@ -1010,9 +976,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
                       setState(() {
                         _isLoading = false;
                       });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Failed to finish task')),
-                      );
+                      CustomScaffold(message: 'Failed to finish task', color: Colors.red);
                     }
                   },
                 ),
@@ -1024,25 +988,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
     );
 
     if (confirm == true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Task Finished',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
-            ),
-          ),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5),
-          ),
-          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          duration: Duration(seconds: 3),
-        ),
-      );
+      CustomScaffold(message: 'Task Finished', color: Colors.green);
     }
   }
 
