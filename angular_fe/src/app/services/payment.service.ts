@@ -27,4 +27,11 @@ export class PaymentService {
       withCredentials: true
     });
   }
+
+  getPaymentDetails(transaction_id: string, payment_type: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/get-payment-logs/${transaction_id}/${payment_type}`, {
+      headers: this.getHeader(),
+      withCredentials: true
+    });
+  }
 }

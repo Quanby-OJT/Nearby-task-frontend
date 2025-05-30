@@ -125,7 +125,7 @@ class _RecordTaskerPageState extends State<RecordTaskerPage> {
                           : _escrowManagementController.tokenCredits.value ==
                                   0.0
                               ? Text(
-                                  "0.00",
+                                  "₱ 0.00",
                                   style: GoogleFonts.poppins(
                                     color: Colors.white,
                                     fontSize: 36,

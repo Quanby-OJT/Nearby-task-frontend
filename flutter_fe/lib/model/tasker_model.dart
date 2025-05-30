@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_fe/model/user_model.dart';
+import 'dart:convert';
 
 class TaskerModel {
   final int id;
@@ -77,14 +78,36 @@ class TaskerModel {
   // Factory method to map JSON to TaskerModel
   factory TaskerModel.fromJson(Map<String, dynamic> json) {
     debugPrint('JSON Data: $json');
+
+    // Helper function to parse social media links
+    Map<String, String>? parseSocialMediaLinks(dynamic socialMediaData) {
+      if (socialMediaData == null) return null;
+
+      try {
+        if (socialMediaData is String) {
+          // If it's a string, try to parse it as JSON
+          if (socialMediaData.isEmpty || socialMediaData == '{}') {
+            return <String, String>{};
+          }
+          final parsed = jsonDecode(socialMediaData);
+          return Map<String, String>.from(parsed);
+        } else if (socialMediaData is Map) {
+          // If it's already a Map, convert it
+          return Map<String, String>.from(socialMediaData);
+        }
+      } catch (e) {
+        debugPrint('Error parsing social media links: $e');
+      }
+
+      return <String, String>{};
+    }
+
     return TaskerModel(
       id: json['tasker_id'] ?? json['user']?['user_id'] ?? 0,
       bio: json['bio'] ?? '',
       skills: json['skills'] ?? '',
       availability: json['availability'] ?? false,
-      socialMediaLinks: json['social_media_links'] != null
-          ? Map<String, String>.from(json['social_media_links'])
-          : null,
+      socialMediaLinks: parseSocialMediaLinks(json['social_media_links']),
       address: json['address'] != null
           ? Map<String, String>.from(json['address'])
           : null,

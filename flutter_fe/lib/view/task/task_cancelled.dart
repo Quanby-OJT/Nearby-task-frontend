@@ -70,7 +70,7 @@ class _TaskCancelledState extends State<TaskCancelled> {
         _requestInformation = response;
       });
       await _fetchTaskDetails();
-      if (widget.taskInformation?.taskDetails.client?.user?.role == "Client") {
+      if (widget.taskInformation?.taskDetails!.client?.user?.role == "Client") {
         await _fetchTaskerDetails(_requestInformation!.tasker_id as int);
       } else {
         await _fetchTaskerDetails(_requestInformation!.client_id as int);
@@ -221,7 +221,7 @@ class _TaskCancelledState extends State<TaskCancelled> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.taskInformation?.taskDetails.client?.user?.role ==
+                      widget.taskInformation?.taskDetails!.client?.user?.role ==
                               "Client"
                           ? "Tasker Profile"
                           : "Client Profile",

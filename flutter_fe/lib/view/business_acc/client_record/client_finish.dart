@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/model/messeges_assignment.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:flutter_fe/controller/task_controller.dart';
 
 class FinishTask extends StatefulWidget {
   final int? finishID;
@@ -24,6 +27,9 @@ class _FinishTaskState extends State<FinishTask> {
   String? _role;
   AuthenticatedUser? tasker;
   String? _errorMessage;
+  double rating = 0.0;
+  String feedback = "";
+  final TaskController taskController = TaskController();
 
   // Status color mapping from previous questions
   final Map<String, Color> statusColors = {
@@ -101,18 +107,24 @@ class _FinishTaskState extends State<FinishTask> {
       }
 
       final response =
-          await _jobPostService.taskerTaskInformation(widget.finishID!);
-      debugPrint("Fetched request details: $response");
+          await _jobPostService.taskerTaskInformation(widget.finishID ?? 0);
+      final response2 =
+          await taskController.getClientFeedback(widget.finishID ?? 0);
+      debugPrint("Fetched feedback details: $response2");
 
       if (response.isNotEmpty) {
         setState(() {
           _requestInformation = response.first;
+          if (response2['client_feedback'] != null) {
+            rating = response2['client_feedback']['rating']?.toDouble() ?? 0.0;
+            feedback = response2['client_feedback']['feedback'] ?? "";
+          }
         });
 
         // Fetch task and tasker/client details
         await Future.wait([
           _fetchTaskDetails(),
-          if (_requestInformation != null)
+          if (_requestInformation != null) // Ensure _requestInformation is not null before accessing its properties
             _fetchTaskerDetails(
               widget.role == "Client"
                   ? _requestInformation!.taskerId ?? 0
@@ -120,15 +132,16 @@ class _FinishTaskState extends State<FinishTask> {
             ),
         ]);
       } else {
-        debugPrint("No task data returned");
+        debugPrint("No task data returned or feedback is empty");
         setState(() {
           _errorMessage = 'No task information available.';
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint("Error fetching request details: $e");
+      debugPrintStack(stackTrace: stackTrace);
       setState(() {
-        _errorMessage = 'Error fetching task details: $e';
+        _errorMessage = 'Error fetching task details. Please Try Again.';
       });
     }
   }
@@ -288,7 +301,9 @@ class _FinishTaskState extends State<FinishTask> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Congratulations on successfully completing this task!',
+            _role == "Tasker"
+                ? 'Congratulations on successfully completing this task!'
+                : 'You tasker has completed the task. You can rate their work by tapping "Rate the Tasker" button. This can help them improve their services.',
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
               fontSize: 14,
@@ -324,7 +339,7 @@ class _FinishTaskState extends State<FinishTask> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    _requestInformation!.taskDetails.title,
+                    _requestInformation!.taskDetails!.title,
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -338,13 +353,13 @@ class _FinishTaskState extends State<FinishTask> {
             _buildTaskInfoRow(
               icon: Icons.location_pin,
               label: 'Location',
-              value: _requestInformation!.taskDetails.address?.city ?? '',
+              value: _requestInformation!.taskDetails!.address?.city ?? '',
             ),
             const SizedBox(height: 12),
             _buildTaskInfoRow(
               icon: Icons.calendar_today,
               label: 'Duration',
-              value: _requestInformation!.taskDetails.address?.province ?? '',
+              value: _requestInformation!.taskDetails!.address?.province ?? '',
             ),
             const SizedBox(height: 12),
             _buildTaskInfoRow(
@@ -358,13 +373,21 @@ class _FinishTaskState extends State<FinishTask> {
             _buildTaskInfoRow(
               icon: Icons.description,
               label: 'Description',
-              value: _requestInformation!.taskDetails.description,
+              value: '',
+            ),
+            const SizedBox(height: 12),
+            Text(
+              _requestInformation?.taskDetails?.description ?? '',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: const Color(0xFF03045E),
+              ),
             ),
             const SizedBox(height: 12),
             _buildTaskInfoRow(
-              icon: Icons.monetization_on,
-              label: 'Price',
-              value: '₱${_requestInformation!.taskDetails.contactPrice}',
+              icon: FontAwesomeIcons.pesoSign,
+              label: '',
+              value: '${_requestInformation!.taskDetails?.contactPrice}',
             ),
           ],
         ),
@@ -407,25 +430,66 @@ class _FinishTaskState extends State<FinishTask> {
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF03045E),
+                        color: Color(0xFF03045E),
                       ),
                     ),
+                    //Changed from user Status to Specialization for relevance.
                     Text(
-                      tasker?.user.accStatus ?? 'Inactive',
+                      tasker?.user.bio ?? 'N/A',
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: Colors.grey[600],
                       ),
                     ),
+                    if(rating > 0)
+                    Row(
+                      children: List.generate(5, (index) {
+                        return Icon(
+                          index < rating
+                              ? FontAwesomeIcons.solidStar
+                              : FontAwesomeIcons.star,
+                          color: Colors.amber,
+                          size: 16,
+                        );
+                      }),
+                    ),
                   ],
                 ),
               ],
             ),
-            // const SizedBox(height: 16),
-            // _buildProfileInfoRow(
-            //   'Name',
-            //   tasker != null ? '' : 'Not available',
-            // ),
+// <<<<<<< verification-bug-fixing
+//             SizedBox(height: 8),
+//             Text("Your Feedback",
+//                 style: GoogleFonts.poppins(
+//                   fontSize: 16,
+//                   fontWeight: FontWeight.w600,
+//                   color: Color(0xFF03045E),
+//                 )),
+//             SizedBox(height: 8),
+//             Text(feedback,
+//                 style: GoogleFonts.poppins(
+//                   fontSize: 12,
+//                   color: Colors.grey[600],
+//                 ))
+// =======
+            if(feedback.isNotEmpty)...[
+              SizedBox(height: 8),
+              Text(
+                  "Your Feedback",
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF03045E),
+                  )
+              ),
+              SizedBox(height: 8),
+              Text(
+                  feedback,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Colors.grey[600],)
+              )
+            ],
           ],
         ),
       ),
@@ -433,28 +497,54 @@ class _FinishTaskState extends State<FinishTask> {
   }
 
   Widget _buildActionButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () => Navigator.pop(context),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFB71A4A),
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 2,
-        ),
-        child: Text(
-          'Back to Tasks',
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
+    return Column(children: [
+      if (feedback.isEmpty) ...[
+        buildButton(
+            () => _handleFinishTask(widget.finishID ?? 0, tasker?.user.id ?? 0),
+            "Rate the Tasker (Optional)",
+            0xFF03045E),
+        const SizedBox(height: 16),
+      ],
+      buildButton(null, "Back to Tasks", 0xFFB71A4A),
+    ]);
+  }
+
+  Future<void> _handleFinishTask(int taskTakenId, int taskerId) async {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => FeedbackBottomSheet(
+        taskTakenID: taskTakenId,
+        taskerId: taskerId,
       ),
     );
+  }
+
+  Widget buildButton(void Function()? onPressed, String text, int color) {
+    return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: onPressed ?? () => Navigator.pop(context),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(color),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 2,
+          ),
+          child: Text(
+            text,
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ));
   }
 
   Widget _buildTaskInfoRow({
@@ -527,6 +617,187 @@ class _FinishTaskState extends State<FinishTask> {
           ),
         ),
       ],
+    );
+  }
+}
+
+//This is in order for the bottomModalSheet to work for the end user.
+class FeedbackBottomSheet extends StatefulWidget {
+  final int taskTakenID;
+  final int taskerId;
+  const FeedbackBottomSheet({
+    super.key,
+    required this.taskTakenID,
+    required this.taskerId,
+  });
+
+  @override
+  State<FeedbackBottomSheet> createState() => _FeedbackBottomSheetState();
+}
+
+class _FeedbackBottomSheetState extends State<FeedbackBottomSheet> {
+  TaskAssignment? taskAssignment;
+  int _rating = 0;
+  bool willReport = false;
+  AuthenticatedUser? tasker;
+  final TaskController taskController = TaskController();
+  final TextEditingController _feedbackController = TextEditingController();
+  final TextEditingController _reportController = TextEditingController();
+  final JobPostService jobPostController = JobPostService();
+
+  @override
+  void dispose() {
+    _feedbackController.dispose();
+    _reportController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+        left: 16,
+        right: 16,
+        top: 16,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Rate & Review Tasker',
+              style: GoogleFonts.montserrat(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF03045E),
+              ),
+            ),
+            SizedBox(height: 16),
+            // Rating Stars
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(5, (index) {
+                return IconButton(
+                  icon: Icon(
+                    index < _rating ? Icons.star : Icons.star_border,
+                    color: Colors.amber,
+                    size: 36,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _rating = index + 1;
+                    });
+                  },
+                );
+              }),
+            ),
+            SizedBox(height: 16),
+            // Feedback Field
+            Text(
+              'Feedback',
+              style: GoogleFonts.montserrat(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF03045E),
+              ),
+            ),
+            SizedBox(height: 8),
+            inputTextField(_feedbackController, "Share your experience..."),
+            SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  if (_rating == 0) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Please provide a rating')),
+                    );
+                    return;
+                  }
+                  try {
+                    bool result = await taskController.rateTheTasker(
+                        widget.taskTakenID,
+                        widget.taskerId,
+                        _rating,
+                        _feedbackController.text);
+                    if (result) {
+                      if (!mounted) return;
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(
+                                'Your feedback has need successfully posted.')),
+                      );
+                    } else {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(
+                                'An error occurred while rating the tasker.')),
+                      );
+                    }
+                  } catch (e, stackTrace) {
+                    debugPrint("Error finishing task: $e.");
+                    debugPrintStack(stackTrace: stackTrace);
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(
+                                'An error occurred while rating the tasker.')),
+                      );
+                    }
+                  } finally {
+                    Navigator.pop(context);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF03045E),
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 2,
+                ),
+                child: Text(
+                  'Submit Feedback',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget inputTextField(TextEditingController controller, String hintText) {
+    return TextField(
+      controller: controller,
+      maxLines: 3,
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: GoogleFonts.montserrat(color: Colors.grey[700]),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Color(0xFF03045E)),
+        ),
+      ),
+      style: GoogleFonts.poppins(fontSize: 14),
     );
   }
 }

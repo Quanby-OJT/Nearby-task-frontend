@@ -12,6 +12,7 @@ import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/task/task_cancelled.dart';
 import 'package:flutter_fe/view/task/task_confirmed.dart';
+import 'package:flutter_fe/view/task/task_declined.dart';
 import 'package:flutter_fe/view/task/task_finished.dart';
 import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:flutter_fe/view/task/task_pending.dart';
@@ -60,6 +61,7 @@ class _TaskPageState extends State<TaskPage>
     'Dispute Settled',
     'Cancelled',
     'Review',
+    'Declined'
   ];
   List<String> specialization = [];
   List<TaskFetch?> clientTasks = [];
@@ -73,9 +75,9 @@ class _TaskPageState extends State<TaskPage>
   final bool _isUploadDialogShown = false;
   bool documentValid = false;
 
-  final List<String> _tabStatuses = ["All", "Ongoing", "More"];
+  final List<String> _tabStatuses = ["Pending", "Ongoing", "More"];
   late TabController _tabController;
-  String? _currentFilter;
+  String? _currentFilter = 'Pending';
 
   @override
   void initState() {
@@ -85,7 +87,7 @@ class _TaskPageState extends State<TaskPage>
       if (!_tabController.indexIsChanging) {
         setState(() {
           if (_tabController.index == 0) {
-            _currentFilter = null;
+            _currentFilter = 'Pending';
           } else if (_tabController.index == 1) {
             _currentFilter = "Ongoing";
           }
@@ -185,8 +187,8 @@ class _TaskPageState extends State<TaskPage>
       filteredTasks = clientTasks.where((task) {
         if (task == null) return false;
         bool matchesSearch =
-            (task.taskDetails.title.toLowerCase().contains(query) ?? false) ||
-                (task.taskDetails.description.toLowerCase().contains(query) ??
+            (task.taskDetails!.title.toLowerCase().contains(query) ?? false) ||
+                (task.taskDetails!.description.toLowerCase().contains(query) ??
                     false);
         bool matchesStatus =
             _currentFilter == null || task.taskStatus == _currentFilter;
@@ -511,7 +513,7 @@ class _TaskPageState extends State<TaskPage>
                         } else {
                           setState(() {
                             if (index == 0) {
-                              _currentFilter = null;
+                              _currentFilter = 'Pending';
                             } else if (index == 1) _currentFilter = "Ongoing";
                             _filterTasks();
                           });
@@ -658,6 +660,21 @@ class _TaskPageState extends State<TaskPage>
             });
           }
 
+            if (task.taskStatus == "Declined") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TaskDeclined(
+                  taskInformation: task,
+                ),
+              ),
+            ).then((value) {
+              if (value != null) {
+                _loadMethod();
+              }
+            });
+          }
+
           if (task.taskStatus == "Confirmed") {
             Navigator.push(
               context,
@@ -747,7 +764,7 @@ class _TaskPageState extends State<TaskPage>
   }
 
   Widget _buildTaskTaskInfo(TaskFetch task, {double size = 40.0}) {
-    final String? imageUrl = task.taskDetails.client?.user?.image;
+    final String? imageUrl = task.taskDetails!.client?.user?.image;
     final bool hasValidImage =
         imageUrl != null && imageUrl.isNotEmpty && imageUrl != "Unknown";
 
@@ -796,10 +813,10 @@ class _TaskPageState extends State<TaskPage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              task.taskDetails.title != null
-                  ? task.taskDetails.title.length > 25
-                      ? '${task.taskDetails.title.substring(0, 25)}...'
-                      : task.taskDetails.title
+              task.taskDetails!.title != null
+                  ? task.taskDetails!.title.length > 25
+                      ? '${task.taskDetails!.title.substring(0, 25)}...'
+                      : task.taskDetails!.title
                   : 'Untitled Task',
               style: GoogleFonts.poppins(
                 fontSize: 16,
@@ -808,7 +825,7 @@ class _TaskPageState extends State<TaskPage>
               ),
             ),
             Text(
-              "${task.taskDetails.client?.user?.firstName ?? 'Unknown'} ${task.taskDetails.client?.user?.lastName ?? 'Unknown'}",
+              "${task.taskDetails!.client?.user?.firstName ?? 'Unknown'} ${task.taskDetails!.client?.user?.lastName ?? 'Unknown'}",
               style:
                   GoogleFonts.poppins(color: Color(0xFFB71A4A), fontSize: 10),
             ),

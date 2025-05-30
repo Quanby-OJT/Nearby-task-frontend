@@ -394,7 +394,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                     LegalTermsAndConditionsScreen()))
                           },
                       child: Text(
-                        "NearByTask Legal Terms and Conditions",
+                        "QTask Legal Terms and Conditions",
                         style: TextStyle(
                             color: Colors.blue,
                             decoration: TextDecoration.underline),

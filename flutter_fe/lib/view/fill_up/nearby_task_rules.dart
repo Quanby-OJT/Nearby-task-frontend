@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/view/service_acc/fill_up.dart';
 
-class NearbyTaskRules extends StatefulWidget {
+class QTaskRules extends StatefulWidget {
   final int userId;
-  const NearbyTaskRules({super.key, required this.userId});
+  const QTaskRules({super.key, required this.userId});
 
   @override
-  State<NearbyTaskRules> createState() => _NearbyTaskRulesState();
+  State<QTaskRules> createState() => _QTaskRulesState();
 }
 
-class _NearbyTaskRulesState extends State<NearbyTaskRules> {
+class _QTaskRulesState extends State<QTaskRules> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

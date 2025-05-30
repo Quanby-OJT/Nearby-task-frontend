@@ -77,7 +77,7 @@ class _SignUpGroupTaskerAccState extends State<SignUpGroupTaskerAcc> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => NearbyTaskRules(userId: userId),
+              builder: (context) => QTaskRules(userId: userId),
             ),
           );
         }

@@ -1,9 +1,14 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:flutter_fe/view/task/task_cancelled.dart';
 import 'package:flutter_fe/view/task/task_confirmed.dart';
+import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:flutter_fe/view/task/task_rejected.dart';
+import 'package:flutter_fe/view/task_user/user_feedback.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
@@ -14,19 +19,25 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
 
-class TaskPending extends StatefulWidget {
+class TaskDeclined extends StatefulWidget {
   final TaskFetch? taskInformation;
-  const TaskPending({super.key, this.taskInformation});
+  const TaskDeclined({super.key, this.taskInformation});
 
   @override
-  State<TaskPending> createState() => _TaskPendingState();
+  State<TaskDeclined> createState() => _TaskDeclinedState();
 }
 
-class _TaskPendingState extends State<TaskPending> {
+class _TaskDeclinedState extends State<TaskDeclined> {
   final JobPostService _jobPostService = JobPostService();
   final TaskController taskController = TaskController();
   final ProfileController _profileController = ProfileController();
+  final TextEditingController _disputeTypeController = TextEditingController();
+  final TextEditingController _disputeDetailsController =
+      TextEditingController();
+  final List<File> _imageEvidence = [];
+  final ImagePicker _picker = ImagePicker();
   TaskModel? _taskInformation;
   ClientRequestModel? _requestInformation;
   bool _isLoading = true;
@@ -42,6 +53,22 @@ class _TaskPendingState extends State<TaskPending> {
     'Task not relevant',
     'Other'
   ];
+  String? selectedFinishReason = 'Task is finished';
+
+    final List<String> finishReasons = [
+    'Task is finished',
+    'All requirements met',
+    'Completed ahead of schedule',
+    'Successfully collaborated with team',
+    'No further action needed',
+    'Task marked complete by supervisor',
+    'Automated process completed it',
+    'Duplicate of another completed task',
+    'Task is no longer necessary',
+    'Other'
+  ];
+
+    String _requestStatus = 'Unknown';
 
   final String _needToConfirm =
       'The task is pending confirmation. Waiting for your confirmation.';
@@ -450,179 +477,6 @@ class _TaskPendingState extends State<TaskPending> {
     }
   }
 
-  Future<void> _handleCancelTask(BuildContext context) async {
-    setState(() {
-      selectedReason = rejectionReasons[0];
-    });
-
-    bool? confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5),
-          ),
-          title: Center(
-            child: Text(
-              'Cancel Task',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Are you sure you want to cancel this task? This action cannot be undone.',
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w300,
-                  color: Colors.grey[800],
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Reason for cancellation:',
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey[800],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[400]!),
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: DropdownButton<String>(
-                  value: selectedReason,
-                  isExpanded: true,
-                  underline: SizedBox(),
-                  items: rejectionReasons.map((String reason) {
-                    return DropdownMenuItem<String>(
-                      value: reason,
-                      child: Text(
-                        reason,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.black,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    if (newValue != null) {
-                      setDialogState(() {
-                        selectedReason = newValue;
-                      });
-                    }
-                  },
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextButton(
-                  child: Text(
-                    'Cancel',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFFB71A4A),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop(false);
-                  },
-                ),
-                const SizedBox(width: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(5),
-                    color: Color(0xFFB71A4A),
-                  ),
-                  child: TextButton(
-                    child: Text(
-                      'Confirm',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
-                      ),
-                    ),
-                    onPressed: () async {
-                      setState(() {
-                        _isLoading = true;
-                      });
-
-                      final String value = 'Cancel';
-                      bool result = await taskController.acceptRequest(
-                        _requestInformation?.task_taken_id ?? 0,
-                        value,
-                        _role ?? 'Unknown',
-                        rejectionReason: selectedReason,
-                      );
-                      if (result) {
-                        Navigator.pop(context);
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => TaskCancelled(
-                              taskInformation: widget.taskInformation,
-                            ),
-                          ),
-                        );
-                      } else {
-                        Navigator.pop(context);
-                        setState(() {
-                          _isLoading = false;
-                        });
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-
-    if (confirm == true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Task cancel requested',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
-            ),
-          ),
-          backgroundColor: Color(0xFFB71A4A),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5),
-          ),
-          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          duration: Duration(seconds: 3),
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -674,15 +528,11 @@ class _TaskPendingState extends State<TaskPending> {
                         SizedBox(height: 16),
                         if (_userRole == "Tasker") _buildClientProfileCard(),
                         if (_userRole == "Client") _buildTaskerProfileCard(),
-                        if (_requestInformation?.task_status == "Pending") ...[
+                        if (_requestInformation?.task_status == "Declined") ...[
                           SizedBox(height: 24),
-                          _buildActionButtons(
-                              _requestInformation?.requested_from ?? 'Unknown'),
+                          _buildActionButtons(),
                         ],
-                        if (_requestInformation?.task_status != "Pending") ...[
-                          SizedBox(height: 16),
-                          _buildActionButton(),
-                        ],
+                       
                       ],
                     ),
                   ),
@@ -1060,37 +910,12 @@ class _TaskPendingState extends State<TaskPending> {
     );
   }
 
-  Widget _buildActionButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () {
-          Navigator.pop(context);
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Color(0xFF03045E),
-          padding: EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 2,
-        ),
-        child: Text(
-          'Back to Tasks',
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
 
-  Widget _buildActionButtons(String requestedFrom) {
+
+  Widget _buildActionButtons() {
     return Column(
       children: [
-        if (requestedFrom != _userRole)
+        if (_role == "Tasker")
           Container(
             width: double.infinity,
             padding: const EdgeInsets.only(bottom: 12),
@@ -1100,7 +925,7 @@ class _TaskPendingState extends State<TaskPending> {
                   _isLoading = true;
                 });
                 debugPrint("Accept request role: $_role");
-                final String value = 'Accept';
+                final String value = 'Reworking';
                 bool result = await taskController.acceptRequest(
                     _requestInformation?.task_taken_id ?? 0,
                     value,
@@ -1109,7 +934,7 @@ class _TaskPendingState extends State<TaskPending> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => TaskConfirmed(
+                      builder: (context) => TaskOngoing(
                         taskInformation: widget.taskInformation,
                       ),
                     ),
@@ -1129,7 +954,7 @@ class _TaskPendingState extends State<TaskPending> {
                 elevation: 2,
               ),
               child: Text(
-                'Accept',
+                'Reworking',
                 style: GoogleFonts.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -1140,10 +965,10 @@ class _TaskPendingState extends State<TaskPending> {
           ),
         Row(
           children: [
-            if (requestedFrom != _userRole) ...[
+            if (_role == "Tasker") ...[
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () => _handleRejectTask(context),
+                  onPressed: () => _handleTaskDispute(),
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: Colors.red[400]!),
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1152,7 +977,7 @@ class _TaskPendingState extends State<TaskPending> {
                     ),
                   ),
                   child: Text(
-                    'Reject',
+                    'Dispute',
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -1183,11 +1008,11 @@ class _TaskPendingState extends State<TaskPending> {
                 ),
               ),
             ],
-            if (requestedFrom == _userRole)
+            if (_role == "Client")
               // Cancel button
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () => _handleCancelTask(context),
+                  onPressed: () => _handleClientFinishTask(context),
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: Colors.red[400]!),
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1211,6 +1036,176 @@ class _TaskPendingState extends State<TaskPending> {
     );
   }
 
+  Future<void> _handleClientFinishTask(BuildContext context) async {
+    bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(5),
+        ),
+        title: Center(
+          child: Text(
+            'Finish Task',
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to cancel and finish this task? This action cannot be undone.',
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w300,
+                color: Colors.grey[800],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Leave a review message:',
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[800],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[400]!),
+                borderRadius: BorderRadius.circular(5),
+              ),
+              child: DropdownButton<String>(
+                value: selectedFinishReason,
+                isExpanded: true,
+                underline: SizedBox(),
+                items: finishReasons.map((String reason) {
+                  return DropdownMenuItem<String>(
+                    value: reason,
+                    child: Text(
+                      reason,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black,
+                      ),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  if (newValue != null) {
+                    setState(() {
+                      selectedFinishReason = newValue;
+                    });
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton(
+                child: Text(
+                  'Cancel',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFFB71A4A),
+                  ),
+                ),
+                onPressed: () => Navigator.pop(context, false),
+              ),
+              const SizedBox(width: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  color: Color(0xFFB71A4A),
+                ),
+                child: TextButton(
+                  child: Text(
+                    'Confirm',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                    ),
+                  ),
+                  onPressed: () async {
+                    setState(() {
+                      _isLoading = true;
+                    });
+
+                    final String value = 'Finish';
+                    bool result = await taskController.acceptRequest(
+                      _requestInformation?.task_taken_id ?? 0,
+                      value,
+                      'Client',
+                      rejectionReason: selectedFinishReason,
+                    );
+                    if (result) {
+                      if (!mounted) return;
+                      Navigator.pop(context, true);
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UserFeedback(
+                            taskInformation: widget.taskInformation,
+                          ),
+                        ),
+                      );
+                    } else {
+                      Navigator.pop(context, false);
+                      setState(() {
+                        _isLoading = false;
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to finish task')),
+                      );
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Task Finished',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+
   void _handleMessage(BuildContext context) {
     Navigator.push(
       context,
@@ -1223,6 +1218,268 @@ class _TaskPendingState extends State<TaskPending> {
       ),
     );
   }
+
+   Future<void> _handleTaskDispute() async {
+    if (_requestInformation == null ||
+        _requestInformation!.task_taken_id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Task information not available')),
+      );
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (childContext) => _buildDisputeBottomSheet(),
+    );
+  }
+
+   Widget _buildDisputeBottomSheet() {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+        left: 16,
+        right: 16,
+        top: 16,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Text(
+                'File a Dispute',
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF03045E),
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Reason for Dispute',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF03045E),
+              ),
+            ),
+            SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              value: _disputeTypeController.text.isEmpty
+                  ? '--Select Reason of Dispute--'
+                  : _disputeTypeController.text,
+              items: <String>[
+                '--Select Reason of Dispute--',
+                'Poor Quality of Work',
+                'Breach of Contract',
+                'Task Still Not Completed',
+                'Tasker Did Not Finish what\'s Required',
+                'Others (Provide Details)'
+              ].map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value, style: GoogleFonts.poppins(fontSize: 14)),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                setState(() {
+                  _disputeTypeController.text = newValue ?? '';
+                });
+              },
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Details of the Dispute',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF03045E),
+              ),
+            ),
+            SizedBox(height: 8),
+            TextField(
+              controller: _disputeDetailsController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                hintText: 'Provide Details About the Dispute',
+                hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Color(0xFF03045E)),
+                ),
+              ),
+              style: GoogleFonts.poppins(fontSize: 14),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Provide some Evidence',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF03045E),
+              ),
+            ),
+            SizedBox(height: 8),
+            GestureDetector(
+              onTap: _pickImage,
+              child: Container(
+                height: 120,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey[300]!),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: _imageEvidence.isNotEmpty
+                    ? SizedBox(
+                        width: 300.0,
+                        child: GridView.builder(
+                          itemCount: _imageEvidence.length,
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                          ),
+                          itemBuilder: (BuildContext context, int index) {
+                            return Center(
+                              child: kIsWeb
+                                  ? Image.network(_imageEvidence[index].path)
+                                  : Image.file(_imageEvidence[index]),
+                            );
+                          },
+                        ),
+                      )
+                    : const Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(FontAwesomeIcons.fileImage,
+                                size: 40, color: Colors.grey),
+                            SizedBox(width: 8),
+                            Text(
+                              'Upload Photos (Screenshots, Actual Work)',
+                              style:
+                                  TextStyle(fontSize: 16, color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      ),
+              ),
+            ),
+            SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  setState(() {
+                    _isLoading = true;
+                    _fetchRequestDetails();
+                  });
+                  Navigator.pop(context);
+                  try {
+                    bool result = await taskController.raiseADispute(
+                      _requestInformation?.task_taken_id ?? 0,
+                      'Disputed',
+                      widget.taskInformation?.taskDetails!.client?.user?.role ??
+                          '',
+                      _disputeTypeController.text,
+                      _disputeDetailsController.text,
+                      _imageEvidence,
+                    );
+
+                    if (result) {
+                      if (!mounted) return;
+                      setState(() {
+                        _requestStatus = 'Disputed';
+                      });
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                              'Failed to raise dispute. Please Try Again.'),
+                        ),
+                      );
+                    }
+                  } catch (e, stackTrace) {
+                    debugPrint("Error raising dispute: $e.");
+                    debugPrintStack(stackTrace: stackTrace);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error occurred')),
+                    );
+                  } finally {
+                    setState(() {
+                      _isLoading = false;
+                      _fetchRequestDetails();
+                    });
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF03045E),
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 2,
+                ),
+                child: Text(
+                  'Open a Dispute',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+   Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickMultiImage(
+      imageQuality: 100,
+      maxWidth: 1000,
+      maxHeight: 1000,
+    );
+
+    List<XFile> xFilePick = pickedFile;
+
+    if (xFilePick.isNotEmpty) {
+      for (int i = 0; i < xFilePick.length; i++) {
+        setState(() {
+          _imageEvidence.add(File(xFilePick[i].path));
+        });
+      }
+    }
+  }
+
+
 
   Widget _buildTaskInfoRow({
     required IconData icon,

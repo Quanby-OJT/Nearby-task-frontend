@@ -8,7 +8,7 @@ import 'dart:convert';
 import 'package:flutter_fe/model/setting.dart';
 
 class SettingService {
-  static String url = apiUrl ?? "https://192.168.43.15:5000";
+  static String url = apiUrl ?? "https://localhost:5000";
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
   Future setLocation(

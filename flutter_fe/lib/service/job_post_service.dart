@@ -16,7 +16,7 @@ import '../model/client_model.dart';
 import '../model/tasker_model.dart';
 
 class JobPostService {
-  static String url = apiUrl ?? "https://192.168.43.15:5000/connect";
+  static String url = apiUrl ?? "https://localhost:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -375,6 +375,10 @@ class JobPostService {
 
   Future<List<TaskFetch>> taskerTaskInformation(int requestID) async {
     try {
+      if (requestID == 0) {
+        debugPrint("Invalid requestID: $requestID");
+        return [];
+      }
       Map<String, dynamic> response =
           await _getRequest("/tasker/taskinformation/$requestID");
       debugPrint("Request Data Retrieved: ${response.toString()}");
@@ -386,14 +390,14 @@ class JobPostService {
         debugPrint("Response does not contain a valid 'data' field");
         return [];
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('Error fetching request: $e');
-      debugPrintStack();
+      debugPrintStack(stackTrace: stackTrace);
       return [];
     }
   }
 
-  Future<TaskAssignment?> fetchTaskInformation(int taskID) async {
+  Future<TaskAssignment> fetchTaskInformation(int taskID) async {
     try {
       Map<String, dynamic> response = await _getRequest("/displayTask/$taskID");
 
@@ -412,11 +416,11 @@ class JobPostService {
       }
 
       debugPrint("No valid task data found in response");
-      return null;
+      return TaskAssignment(taskTakenId: 0, taskStatus: '');
     } catch (e, stackTrace) {
       debugPrint('Error fetching tasks: $e');
       debugPrintStack(stackTrace: stackTrace);
-      return null;
+      return TaskAssignment(taskTakenId: 0, taskStatus: '');
     }
   }
 
@@ -583,9 +587,75 @@ class JobPostService {
     return {};
   }
 
+  Future<Map<String, dynamic>> fetchTasksClient() async {
+    final userId = await getUserId();
+    if (userId == null) {
+      return {
+        'success': false,
+        'message': 'Please log in to view your tasks',
+        'requiresLogin': true
+      };
+    }
+
+    final response = await _getRequest("/fetchTasksClient/$userId");
+
+    debugPrint("Client fetchTasks Response: ${response.toString()}");
+
+    if (response.containsKey("success") && response["success"] == true) {
+      return response;
+    }
+
+    return {};
+  }
+
   Future<List<TaskModel>> fetchCreatedTasksByClient(int clientId) async {
     try {
       final response = await _getRequest("/display-task-for-client/$clientId");
+
+      debugPrint("Created Tasks Response: $response");
+
+      if (response.containsKey("success") &&
+          response["success"] == true &&
+          response.containsKey("tasks")) {
+        final List<dynamic> tasks = response["tasks"] as List<dynamic>;
+        return tasks
+            .map((task) => TaskModel.fromJson(task as Map<String, dynamic>))
+            .toList();
+      } else {
+        debugPrint("Falling back to general task endpoint");
+        final allTasksResponse = await _getRequest("/displayTask");
+
+        if (allTasksResponse.containsKey("tasks") &&
+            allTasksResponse["tasks"] is List) {
+          final List<dynamic> allTasks =
+              allTasksResponse["tasks"] as List<dynamic>;
+
+          final filteredTasks = allTasks.where((task) {
+            return task is Map<String, dynamic> &&
+                task.containsKey("client_id") &&
+                task["client_id"] == clientId;
+          }).toList();
+
+          return filteredTasks
+              .map((task) => TaskModel.fromJson(task as Map<String, dynamic>))
+              .toList();
+        }
+
+        debugPrint(
+            "Error or empty response: ${response['error'] ?? 'No tasks found'}");
+        return [];
+      }
+    } catch (e, st) {
+      debugPrint("Exception in fetchCreatedTasksByClient: $e");
+      debugPrintStack(stackTrace: st);
+      return [];
+    }
+  }
+
+  Future<List<TaskModel>> fetchAssignTasksByClient(int clientId) async {
+    try {
+      final response =
+          await _getRequest("/display-task-for-client-available/$clientId");
 
       debugPrint("Created Tasks Response: $response");
 
@@ -743,7 +813,9 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> assignTask(int taskId, int clientId, int taskerId, String role, {int? daysAvailable, String? availableDate}) async {
+  Future<Map<String, dynamic>> assignTask(
+      int taskId, int clientId, int taskerId, String role,
+      {int? daysAvailable, String? availableDate}) async {
     final userId = await getUserId();
     if (userId == null) {
       return {
@@ -768,7 +840,8 @@ class JobPostService {
     });
   }
 
-  Future<Map<String, dynamic>> updateNotification(int taskTakenId, int userId) async {
+  Future<Map<String, dynamic>> updateNotification(
+      int taskTakenId, int userId) async {
     try {
       debugPrint("Updating notification with ID: $taskTakenId and $userId");
       final response = await http.put(
@@ -811,10 +884,14 @@ class JobPostService {
   Future<Map<String, dynamic>> getDispute(int taskTakenId) async {
     try {
       return await _getRequest('/get-a-dispute/$taskTakenId');
-    }catch(e, stackTrace){
+    } catch (e, stackTrace) {
       debugPrint('Error accepting task: $e');
       debugPrintStack(stackTrace: stackTrace);
-      return {'success': false, 'error': 'An Error Occurred while displaying your task information. Please Try Again'};
+      return {
+        'success': false,
+        'error':
+            'An Error Occurred while displaying your task information. Please Try Again'
+      };
     }
   }
 
@@ -863,7 +940,8 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> rateTheTasker(int taskTakenId, int taskerId, int rating, String feedback) async {
+  Future<Map<String, dynamic>> rateTheTasker(
+      int taskTakenId, int taskerId, int rating, String feedback) async {
     try {
       debugPrint(
           "Rating the tasker with rating: $rating and feedback: $feedback");
@@ -880,7 +958,22 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> fetchIsApplied(int? taskId, int? clientId, int? taskerId) async {
+  Future<Map<String, dynamic>> getClientFeedback(int taskTakenId) async {
+    try {
+      return await _getRequest('/get-client-feedback/$taskTakenId');
+    } catch (e) {
+      debugPrint('Error getting client feedback: $e');
+      debugPrintStack();
+      return {
+        'success': false,
+        'error':
+            'An error occured while retrieving your feedback. Please Try Again.'
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchIsApplied(
+      int? taskId, int? clientId, int? taskerId) async {
     final userId = await getUserId();
     if (userId == null) {
       return {
@@ -939,7 +1032,8 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> updateTask(int taskId, Map<String, dynamic> taskData) async {
+  Future<Map<String, dynamic>> updateTask(
+      int taskId, Map<String, dynamic> taskData) async {
     try {
       debugPrint("Updating task with ID: $taskId");
       return await _putRequest(
@@ -954,7 +1048,8 @@ class JobPostService {
   }
 
   // Method to disable a task
-  Future<Map<String, dynamic>> disableTask(int taskId, [String status = "cancelled"]) async {
+  Future<Map<String, dynamic>> disableTask(int taskId,
+      [String status = "cancelled"]) async {
     try {
       debugPrint("Disabling task with ID: $taskId with status: $status");
       final response = await http.put(

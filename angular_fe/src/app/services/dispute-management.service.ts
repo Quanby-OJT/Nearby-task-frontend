@@ -27,13 +27,6 @@ export class DisputeManagementService {
     })
   }
 
-  getDisputeDetails(id: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/get-dispute/${id}`, {
-      headers: this.getHeader(),
-      withCredentials: true
-    })
-  }
-
   updateADispute(id: number, task_taken_id: number, task_id: number, task_status: string, moderator_action: string, addl_dispute_notes?: string): Observable<any> {
     const moderator_id = this.sessionStorage.getUserId();
     return this.http.put(`${this.apiUrl}/update-dispute/${id}`, {

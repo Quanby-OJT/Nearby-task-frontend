@@ -435,7 +435,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                         "About",
                         [
                           Text(
-                            "Experienced tasker specializing in various home services with a commitment to quality and customer satisfaction.",
+                            _user?.user.bio ?? "Not Available",
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               color: Colors.grey[600],
@@ -513,7 +513,6 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                                 child: ElevatedButton.icon(
                                   onPressed: _isAssigning
                                       ? null
-                                      // : () => _assignTask(widget.tasker),
                                       : () => _assignTask(widget.tasker),
                                   icon: const Icon(Icons.assignment_turned_in,
                                       color: Colors.white),
