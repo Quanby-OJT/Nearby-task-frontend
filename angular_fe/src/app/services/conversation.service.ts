@@ -28,7 +28,7 @@ export class UserConversationService {
     });
   }
 
-  banUser(id: number, taskTakenId: number): Observable<any> {
+  banUser(id: number, taskTakenId: number, reason: string): Observable<any> {
     const userId = this.sessionStorage.getUserId();
     if (!userId) {
       return new Observable((observer) => {
@@ -39,7 +39,7 @@ export class UserConversationService {
 
     return this.http.post<any>(
       `${this.apiUrl}/banUser/${id}`,
-      { loggedInUserId: Number(userId), taskTakenId },
+      { loggedInUserId: Number(userId), taskTakenId, reason },
       {
         headers: this.getHeaders(),
         withCredentials: true,
@@ -47,7 +47,7 @@ export class UserConversationService {
     );
   }
 
-  warnUser(id: number, taskTakenId: number): Observable<any> {
+  warnUser(id: number, taskTakenId: number, reason: string): Observable<any> {
     const userId = this.sessionStorage.getUserId();
     if (!userId) {
       return new Observable((observer) => {
@@ -58,7 +58,7 @@ export class UserConversationService {
 
     return this.http.post<any>(
       `${this.apiUrl}/warnUser/${id}`,
-      { loggedInUserId: Number(userId), taskTakenId },
+      { loggedInUserId: Number(userId), taskTakenId, reason },
       {
         headers: this.getHeaders(),
         withCredentials: true,

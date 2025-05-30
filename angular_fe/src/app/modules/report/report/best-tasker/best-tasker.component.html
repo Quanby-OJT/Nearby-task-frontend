@@ -24,16 +24,22 @@
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Specialization</th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Overall Task Taken</th>
           <th class="px-4 py-2 text-start min-w-[100px] lg:min-w-[150px] xl:min-w-[150px]">Rating</th>
+          <th class="px-4 py-2 text-start min-w-[100px] lg:min-w-[150px] xl:min-w-[150px]">Action</th>
         </tr>
       </thead>
       <tbody>
-        <!-- Dynamically display taskers -->
         <tr *ngFor="let tasker of displayTaskers; let i = index" class="hover:bg-card/50 h-[60px]">
           <td class="px-4 py-3 text-start">{{ (currentPage - 1) * taskersPerPage + i + 1 }}</td>
           <td class="px-4 py-3 text-start">{{ tasker.userName }}</td>
           <td class="px-4 py-3 text-start">{{ tasker.specialization }}</td>
           <td class="px-4 py-3 text-start">{{ tasker.taskCount }}</td>
           <td class="px-4 py-3 text-start">{{ tasker.rating | number:'1.1-1' }}</td>
+          <td class="px-4 py-3 text-start">
+            <button  class="flex items-start text-blue-500 hover:opacity-70" (click)="openTaskHistoryModal(tasker.taskerId, tasker.userName)">
+              <img src="https://img.icons8.com/?size=100&id=cRLuJXPEgWhK&format=png&color=0000FF" alt="View Icon" class="w-5 h-5 mr-2">
+              View
+            </button>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -46,7 +52,7 @@
       <div class="flex items-center gap-2">
         Show
         <select class="w-[140px] p-2 border rounded-md" (change)="changeTaskersPerPage($event)">
-          <option valie="5" selected>5</option>
+          <option value="5" selected>5</option>
           <option value="10">10</option>
           <option value="20">20</option>
           <option value="30">30</option>

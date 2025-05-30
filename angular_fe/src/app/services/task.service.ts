@@ -32,9 +32,9 @@ export class TaskService {
     });
   }
 
-  disableTask(id: string): Observable<any> {
+  disableTask(id: string, reason: string): Observable<any> {
     const loggedInUserId = this.sessionStorage.getUserId();
-    return this.http.patch(`${this.apiUrl}/displayTask/${id}`, { loggedInUserId }, {
+    return this.http.patch(`${this.apiUrl}/displayTask/${id}`, { loggedInUserId, reason }, {
       headers: this.getHeaders(),
       withCredentials: true
     });
@@ -47,7 +47,7 @@ export class TaskService {
     });
   }
 
-  createSpecialization(specialization: { specialization: string; user_id: string }): Observable<any> {
+  createSpecialization(specialization: { specialization: string; user_id: string; reason: string }): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/specializations`, specialization, {
       headers: this.getHeaders(),
       withCredentials: true

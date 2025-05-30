@@ -1,10 +1,10 @@
 <!--Header page navigation-->
 <div class="mb-4 flex justify-between">
   <div class="inline-block">
-    <h3 class="text-foreground font-semibold">User Communication</h3>
+    <h3 class="font-semibold font-poppins text-[#3C28CC] text-xl py-2">User Communication</h3>
     <div class="text-muted-foreground space-x-1 text-xs font-medium">
-      <a href="" class="hover:text-primary"><strong>Dashboards > User Communication</strong></a>
-      <p>This is used for managing the users communication in the application</p>
+      <a href="" class=" text-sm font-poppins hover:text-[#3C28CC] py-2"><strong>Dashboards > User Communication</strong></a>
+      <p class=" py-2 text-sm font-poppins">This is used for managing the users communication in the application</p>
     </div>
   </div>
 </div>
@@ -61,7 +61,7 @@
     <table class="w-full border-collapse border-0 text-left text-sm">
       <thead class="border-b">
         <tr>
-          <th class="px-4 py-2 text-start min-w-[100px] lg:min-w-[250px] xl:min-w-[200px]">
+          <th class="px-4 py-2 text-start min-w-[100px] lg:min-w-[250px] xl:min-w-[140px]">
             <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('viewedUser')">
               Viewed User
               <span class="w-4 h-4">
@@ -93,7 +93,7 @@
                 </span>
             </div>
           </th>
-          <th class="px-4 py-2 text-start min-w-[100px] lg:min-w-[250px] xl:min-w-[200px]">
+          <th class="px-4 py-2 text-start min-w-[100px] lg:min-w-[250px] xl:min-w-[150px]">
             <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('tasker')">
               Tasker Name
               <span class="w-4 h-4">
@@ -111,7 +111,8 @@
           </th>
           <th class="px-4 py-2 text-start min-w-[100px] lg:min-w-[250px] xl:min-w-[150px]">Conversation</th>
           <th class="px-4 py-2 text-start min-w-[50px] lg:min-w-[150px] xl:min-w-[100px]">Action</th>
-          <th *ngIf="userRole === 'Admin'" class="px-4 py-2 text-start min-w-[100px] lg:min-w-[250px] xl:min-w-[150px]">Handled By</th>
+          <th *ngIf="userRole === 'Admin'" class="px-4 py-2 text-start min-w-[100px] lg:min-w-[250px] xl:min-w-[150px]">Moderator</th>
+          <th *ngIf="userRole === 'Admin'" class="px-4 py-2 text-start min-w-[100px] lg:min-w-[250px] xl:min-w-[150px]">Action Reason</th>
         </tr>
       </thead>
       <tbody *ngIf="displayConversations.length > 0">
@@ -139,7 +140,8 @@
               </div>
             </div>
           </td> 
-          <td *ngIf="userRole === 'Admin'" class="px-4 py-3 text-start">{{ convo.action_by || 'No Action Yet' }}</td>        
+          <td *ngIf="userRole === 'Admin'" class="px-4 py-3 text-start">{{ convo.action_by || 'No Action Yet' }}</td>     
+          <td *ngIf="userRole === 'Admin'" class="px-4 py-3 text-start">{{ convo.action_reason || 'Empty' }}</td>           
         </tr>
         
         <!-- Placeholder rows to maintain fixed table size -->
