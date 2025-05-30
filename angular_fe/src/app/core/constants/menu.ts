@@ -44,7 +44,7 @@ export class Menu {
           role: ['Moderator', 'Admin'],
         },
         {
-          icon: 'assets/icons/heroicons/outline/dispute.svg',
+          icon: 'assets/icons/heroicons/outline/gavel-dispute.svg',
           label: 'Dispute Management',
           route: '/dispute-management',
           role: ['Moderator', 'Admin'],
