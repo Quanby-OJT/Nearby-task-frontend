@@ -3,6 +3,7 @@ import 'package:flutter_fe/controller/setting_controller.dart';
 import 'package:flutter_fe/model/address.dart';
 import 'package:flutter_fe/service/profile_service.dart';
 import 'package:flutter_fe/view/address/address.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -77,7 +78,7 @@ class _AddressListState extends State<AddressList> {
         context,
         MaterialPageRoute(
           builder: (context) =>
-              Address(onAddressSelected: widget.onAddressSelected),
+              Address(onAddressSelected: widget.onAddressSelected, mode: 'create'),
         ),
       );
 
@@ -96,7 +97,14 @@ class _AddressListState extends State<AddressList> {
     Navigator.pop(context, address);
   }
 
-  void _setAsDefault(int index) {
+  void _setAsDefault(int index) async{
+    //TODO: Create logic for setting an address as default.
+    await _addressController.setDefaultAddress(_addresses[index].id);
+    //TODO: Implement broadcasting feature of auto-update.
+    setState(() {
+      _addresses[index].defaultAddress = true;
+    });
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Default address updated'),
@@ -110,7 +118,7 @@ class _AddressListState extends State<AddressList> {
       context,
       MaterialPageRoute(
         builder: (context) =>
-            Address(onAddressSelected: widget.onAddressSelected),
+            Address(onAddressSelected: widget.onAddressSelected, mode: "edit"),
       ),
     );
 
@@ -121,9 +129,11 @@ class _AddressListState extends State<AddressList> {
     }
   }
 
-  void _deleteAddress(int index) {
+  void _deleteAddress(int index) async {
     // Check if it's the default address
     bool wasDefault = _addresses[index].defaultAddress ?? false;
+    //TODO: Implement backend API for address deletion.
+    await _addressController.deleteAddress(_addresses[index].id);
 
     setState(() {
       _addresses.removeAt(index);
@@ -276,20 +286,27 @@ class _AddressListState extends State<AddressList> {
                                             TextButton(
                                               onPressed: () =>
                                                   _setAsDefault(index),
-                                              child: Text('Set as Default'),
+                                              child: Text(
+                                                'Set as Default',
+                                                style: GoogleFonts.poppins(
+                                                  color: const Color(0xFFB71A4A),
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                )
+                                              ),
                                             ),
                                         ],
                                       ),
-                                    Container(
+                                    SizedBox(
                                       child: Row(
                                         children: [
                                           IconButton(
-                                            icon: const Icon(Icons.edit),
+                                            icon: const Icon(FontAwesomeIcons.pencil),
                                             onPressed: () =>
                                                 _editAddress(index),
                                           ),
                                           IconButton(
-                                            icon: const Icon(Icons.delete,
+                                            icon: const Icon(FontAwesomeIcons.trash,
                                                 color: Colors.red),
                                             onPressed: () =>
                                                 _deleteAddress(index),
@@ -302,7 +319,7 @@ class _AddressListState extends State<AddressList> {
                                 SizedBox(height: 8),
                                 Text(
                                   displayAddress,
-                                  style: TextStyle(
+                                  style: GoogleFonts.poppins(
                                       fontSize: 14, color: Colors.grey[800]),
                                 ),
                                 if (address.latitude != null &&
@@ -311,7 +328,7 @@ class _AddressListState extends State<AddressList> {
                                     padding: const EdgeInsets.only(top: 4),
                                     child: Text(
                                       'Lat: ${address.latitude}, Lng: ${address.longitude}',
-                                      style: TextStyle(
+                                      style: GoogleFonts.poppins(
                                           fontSize: 12,
                                           color: Colors.grey[600]),
                                     ),
