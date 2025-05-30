@@ -46,10 +46,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _userController.firstNameController.text = fullName;
         _userController.emailController.text = _user?.user.email ?? '';
         _userController.birthdateController.text = _user?.user.birthdate ?? '';
-        _userController.specializationController.text =
-            _user?.tasker?.specialization ?? '';
-        // _userController.taskerAddressController.text = _user?.tasker?.taskerAddress ?? '';
-        _userController.skillsController.text = _user?.tasker?.skills ?? '';
+        _userController.specializationController.text = _user?.user.bio ?? '';
+        _userController.skillsController.text = '';
       });
     } catch (e) {
       print("Error fetching user data: $e");

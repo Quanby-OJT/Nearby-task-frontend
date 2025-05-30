@@ -315,7 +315,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
                     bool result = await taskController.acceptRequest(
                       _requestInformation?.task_taken_id ?? 0,
                       'Finish',
-                      widget.taskInformation?.taskDetails.client?.user?.role ??
+                      widget.taskInformation?.taskDetails!.client?.user?.role ??
                           '',
                     );
 
@@ -549,7 +549,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
                     bool result = await taskController.raiseADispute(
                       _requestInformation?.task_taken_id ?? 0,
                       'Disputed',
-                      widget.taskInformation?.taskDetails.client?.user?.role ??
+                      widget.taskInformation?.taskDetails!.client?.user?.role ??
                           '',
                       _disputeTypeController.text,
                       _disputeDetailsController.text,
@@ -652,19 +652,20 @@ class _TaskOngoingState extends State<TaskOngoing> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (_requestStatus == 'Ongoing') _buildStatusSection(),
+                        if (_requestStatus == 'Ongoing' || _requestStatus == 'Reworking') _buildStatusSection(),
                         SizedBox(height: 16),
                         _buildTaskCard(),
-                        SizedBox(height: 16),
                         if (widget.taskInformation?.tasker?.user == null)
                           _buildClientProfileCard(),
+                           SizedBox(height: 16),
                         if (widget.taskInformation?.tasker?.user == null)
                           _buildtaskerActionButton(),
+                           SizedBox(height: 16),
                         if (widget.taskInformation?.tasker?.user != null)
                           _buildTaskerProfileCard(),
+                           SizedBox(height: 16),
                         if (widget.taskInformation?.tasker?.user != null)
-                          SizedBox(height: 16),
-                        _buildclientActionButton()
+                          _buildclientActionButton()
                       ],
                     ),
                   ),
@@ -803,6 +804,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(5),
+                  
                   color: Color(0xFFB71A4A),
                 ),
                 child: TextButton(
@@ -1225,25 +1227,25 @@ class _TaskOngoingState extends State<TaskOngoing> {
             SizedBox(height: 16),
             _buildProfileInfoRow(
               'Name',
-              (widget.taskInformation?.taskDetails.client?.user != null)
-                  ? '${widget.taskInformation!.taskDetails.client!.user!.firstName ?? ''} ${widget.taskInformation!.taskDetails.client!.user!.lastName ?? ''}'
+              (widget.taskInformation?.taskDetails!.client?.user != null)
+                  ? '${widget.taskInformation!.taskDetails!.client!.user!.firstName ?? ''} ${widget.taskInformation!.taskDetails!.client!.user!.lastName ?? ''}'
                       .trim()
                   : 'Not available',
             ),
             SizedBox(height: 8),
             _buildProfileInfoRow(
                 'Email',
-                widget.taskInformation?.taskDetails.client?.user?.email ??
+                widget.taskInformation?.taskDetails!.client?.user?.email ??
                     'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow(
                 'Phone',
-                widget.taskInformation?.taskDetails.client?.user?.contact ??
+                widget.taskInformation?.taskDetails!.client?.user?.contact ??
                     'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow(
                 'Status',
-                widget.taskInformation?.taskDetails.client?.user?.accStatus ??
+                widget.taskInformation?.taskDetails!.client?.user?.accStatus ??
                     'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow('Account', 'Verified', isVerified: true),
@@ -1297,11 +1299,12 @@ class _TaskOngoingState extends State<TaskOngoing> {
   Widget _buildclientActionButton() {
     return Column(
       children: [
+        SizedBox(height: 16),
         ElevatedButton(
           onPressed: () => _handleClientFinishTask(context),
           style: ElevatedButton.styleFrom(
             minimumSize: Size(double.infinity, 50),
-            backgroundColor: Color(0xFF3E9B52),
+            backgroundColor: Color(0xFFB71A4A),
             padding: EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -1321,23 +1324,22 @@ class _TaskOngoingState extends State<TaskOngoing> {
         ),
         SizedBox(height: 16),
         if (_requestInformation?.task_status != 'Disputed')
-          ElevatedButton(
-            onPressed: _handleTaskDispute,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFA73140),
-              padding: EdgeInsets.symmetric(vertical: 16),
+          OutlinedButton(
+            onPressed: () => _handleTaskDispute(),
+            style: OutlinedButton.styleFrom(
+              minimumSize: Size(double.infinity, 50),
+              side: BorderSide(color: Colors.blue[600]!),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              elevation: 2,
-              minimumSize: Size(double.infinity, 50),
             ),
             child: Text(
-              'File a Dispute',
+              'Dispute',
               style: GoogleFonts.poppins(
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Colors.white,
+                color: Colors.blue[600],
               ),
             ),
           ),

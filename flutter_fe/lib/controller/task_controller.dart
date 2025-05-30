@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/chat_push_notifications.dart';
+import 'package:flutter_fe/model/client_task_model.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/model/task_model.dart';
@@ -22,13 +23,10 @@ class TaskController {
   final jobSpecializationController = TextEditingController();
   final jobDescriptionController = TextEditingController();
   final jobLocationController = TextEditingController();
-  // final jobDurationController = TextEditingController();
-  // final jobTimeController = TextEditingController();
   final jobUrgencyController = TextEditingController();
   final contactPriceController = TextEditingController();
   final jobScopeController = TextEditingController();
   final jobRemarksController = TextEditingController();
-  // final jobTaskBeginDateController = TextEditingController();
   final contactpriceController = TextEditingController();
   final rejectionController = TextEditingController();
   final storage = GetStorage();
@@ -39,12 +37,9 @@ class TaskController {
     jobSpecializationController.clear();
     jobDescriptionController.clear();
     jobLocationController.clear();
-    // jobDurationController.clear();
-    // jobTimeController.clear();
     jobUrgencyController.clear();
     contactPriceController.clear();
     jobRemarksController.clear();
-    // jobTaskBeginDateController.clear();
     contactpriceController.clear();
     rejectionController.clear();
   }
@@ -146,11 +141,12 @@ class TaskController {
         ),
       );
       return [];
-    } catch (e) {
-      debugPrint("Error fetching created tasks: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching tasks: $e')),
-      );
+    } catch (e, stackTrace) {
+      debugPrint("Error rendering created tasks: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content:
+              Text('Error while rendering your tasks. Please Try Again.')));
       return [];
     }
   }
@@ -175,9 +171,29 @@ class TaskController {
     return [];
   }
 
+  Future<List<TaskFetch?>> getTaskClient(BuildContext context) async {
+    final clientTask = await _jobPostService.fetchTasksClient();
+    debugPrint("Task getTasks: ${clientTask.toString()}");
+
+    if (clientTask.containsKey('data')) {
+      List<dynamic> tasksList = clientTask['data'];
+      List<TaskFetch> tasks =
+          tasksList.map((task) => TaskFetch.fromJson(task)).toList();
+      return tasks;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(clientTask['error'] ??
+            "Something Went Wrong while Retrieving Your Tasks."),
+      ),
+    );
+    return [];
+  }
+
   Future<List<TaskModel>> getCreatedTasksByClient(int clientId) async {
     try {
-      return await _jobPostService.fetchCreatedTasksByClient(clientId);
+      return await _jobPostService.fetchAssignTasksByClient(clientId);
     } catch (e, stackTrace) {
       debugPrint("Error fetching created tasks: $e");
       debugPrintStack(stackTrace: stackTrace);
@@ -272,6 +288,22 @@ class TaskController {
       debugPrint("Error in task controller rateTheTasker: $e");
       debugPrintStack(stackTrace: stackTrace);
       return false;
+    }
+  }
+
+  Future<Map<String, dynamic>> getClientFeedback(int taskTakenId) async {
+    try {
+      Map<String, dynamic> feedbackResult =
+          await _jobPostService.getClientFeedback(taskTakenId);
+      debugPrint("Feedback response: $feedbackResult");
+      return feedbackResult;
+    } catch (e, stackTrace) {
+      debugPrint("Error in task controller getClientFeedback: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {
+        "error":
+            "An Error occured while retrieving your feedback. Please Try Again."
+      };
     }
   }
 

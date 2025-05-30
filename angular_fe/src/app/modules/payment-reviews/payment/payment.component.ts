@@ -6,7 +6,8 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import { AngularSvgIconModule } from 'angular-svg-icon';
-import { PaymentLog } from 'src/model/payment-review'; 
+import { DepositDetails, PaymentLog, WithdrawalDetails } from 'src/model/payment-review';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-payment',
@@ -130,13 +131,13 @@ export class PaymentComponent implements OnInit {
       this.sortColumn = column;
     }
     if (column === 'userName') {
-      this.sortDirections[column] = this.sortDirections[column] === 'default' ? 'asc' : 
+      this.sortDirections[column] = this.sortDirections[column] === 'default' ? 'asc' :
                                    this.sortDirections[column] === 'asc' ? 'desc' : 'default';
     } else if (column === 'amount') {
-      this.sortDirections[column] = this.sortDirections[column] === 'default' ? 'highToLow' : 
+      this.sortDirections[column] = this.sortDirections[column] === 'default' ? 'highToLow' :
                                    this.sortDirections[column] === 'highToLow' ? 'lowToHigh' : 'default';
     } else if (column === 'depositDate') {
-      this.sortDirections[column] = this.sortDirections[column] === 'default' ? 'asc' : 
+      this.sortDirections[column] = this.sortDirections[column] === 'default' ? 'asc' :
                                    this.sortDirections[column] === 'asc' ? 'desc' : 'default';
     }
     this.applyFilters();
@@ -149,11 +150,11 @@ export class PaymentComponent implements OnInit {
     this.displayPaymentLogs = this.filteredPaymentLogs.slice(start, end);
     this.startIndex = start + 1;
     this.endIndex = Math.min(end, this.filteredPaymentLogs.length);
-    
+
     // Calculate the number of empty rows based on logsPerPage
     const placeholderCount = this.logsPerPage - this.displayPaymentLogs.length;
     this.placeholderRows = Array(placeholderCount).fill({});
-    
+
     this.makePaginationButtons();
   }
 
@@ -215,14 +216,134 @@ export class PaymentComponent implements OnInit {
     saveAs(blob, 'PaymentReviews.csv');
   }
 
+  viewTransactionDetail(log: PaymentLog) {
+    Swal.fire({
+      title: 'Loading...',
+      text: 'Fetching transaction details',
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      willOpen: () => Swal.showLoading(),
+    });
+
+    this.paymentService.getPaymentDetails(log.payment_id, log.payment_type).subscribe({
+      next: (response: any) => {
+        Swal.close();
+
+        let html = '';
+        const details = response.payment_details;
+        //console.log('Payment details:', details);
+
+        if (log.payment_type === 'Client Deposit') {
+          const attr = details.attributes;
+          let status = ''
+          let badgeColor = '';
+          let amount = attr.amount / 100;
+            const formattedAMount = amount.toFixed(2); // Format amount to 2 decimal places with cents
+
+            switch (attr.status) {
+              case 'succeeded':
+                status = "Deposited";
+                badgeColor = 'bg-green-100 text-green-800';
+                break;
+              case 'pending':
+                status = "Pending";
+                badgeColor = 'bg-yellow-100 text-yellow-800';
+                break;
+              case 'failed':
+                status = "Failed";
+                badgeColor = 'bg-red-100 text-red-800';
+                break;
+              case 'canceled':
+                status = "Cancelled";
+                badgeColor = 'bg-red-100 text-red-800';
+                break;
+              case 'awaiting_payment_method':
+                status = "Invalid Deposit";
+                badgeColor = 'bg-red-100 text-red-800';
+                break;
+              default:
+                status = "Unknown Status";
+            }
+
+            html = `
+            <div class="text-start">
+            <strong>Amount:</strong> ₱${formattedAMount}<br>
+            <strong>Currency:</strong> ${attr.currency}<br>
+            <strong>Status:</strong> <span class="badge uppercase ${badgeColor} py-1 px-2 rounded-full text-xs font-medium text-">${status}</span><br>
+            <strong>Description:</strong> ${attr.description || 'N/A'}<br>
+            <strong>Created At:</strong> ${new Date(log.created_at).toLocaleString()}<br>
+            <strong>Payment Methods Allowed:</strong> ${attr.payment_method_allowed?.join(', ') || 'N/A'}<br>
+            </div>
+            `;
+        } else if (log.payment_type === 'QTask Withdrawal') {
+          let status = ''
+          let badgeColor = 'bg-gray-100 text-gray-800';
+
+          switch(details.status) {
+            case 'succeeded':
+              status = "Successully Withdrawn";
+              badgeColor = 'bg-green-100 text-green-800';
+              break;
+            case 'pending':
+              status = "Pending";
+              badgeColor = 'bg-yellow-100 text-yellow-800';
+              break;
+            case 'failed':
+              status = "Failed to Withdraw";
+              badgeColor = 'bg-red-100 text-red-800';
+              break;
+            case 'canceled':
+              status = "Cancelled";
+              badgeColor = 'bg-red-100 text-red-800';
+              break;
+            case 'awaiting_payment_method':
+              status = "Invalid Transaction";
+              badgeColor = 'bg-red-100 text-red-800';
+              break;
+            default:
+              status = "Unknown Status";
+          }
+          html = `
+          <div class="text-start">
+            <strong>Reference ID:</strong> ${details.reference_id}<br>
+            <strong>Status:</strong> <span class="badge uppercase ${badgeColor} py-1 px-2 rounded-full text-xs font-medium text-">${status}</span><br>
+            <strong>Created At:</strong> ${new Date(details.created_at).toLocaleString()}<br>
+            <strong>Name:</strong> ${details.name}<br>
+            <strong>Notes:</strong> ${details.private_notes || 'N/A'}<br>
+          </div>
+          `;
+        } else {
+          html = 'Unknown payment type.';
+        }
+
+        Swal.fire({
+          title: 'Transaction Details',
+          html,
+          icon: 'info',
+          confirmButtonText: 'Close',
+          cancelButtonText: 'Flag Transaction as Suspicious',
+        });
+      },
+      error: (err) => {
+        console.error('Error fetching payment details:', err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to load payment details. Please try again.',
+        });
+      }
+    });
+  }
+
+
   exportPDF() {
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'px',
       format: 'a4',
     });
-  
-  
+
+
     try {
       doc.addImage('./assets/icons/heroicons/outline/NearbTask.png', 'PNG', 140, 35, 28, 25);
     } catch (e) {
@@ -234,23 +355,23 @@ export class PaymentComponent implements OnInit {
     } catch (e) {
       console.error('Failed to load Quanby.png:', e);
     }
-  
+
   // Nearby Task Part
     const title = 'Nearby Task';
     doc.setFontSize(20);
     doc.setTextColor('#170A66');
     doc.text(title, 170, 52);
-    
+
   // Line Part
     doc.setDrawColor(0, 0, 0);
     doc.setLineWidth(0.2);
     doc.line(30, 70, 415, 70);
-  
+
   // Payment Review Part
     doc.setFontSize(12);
     doc.setTextColor('#000000');
     doc.text('Payment Reviews', 30, 90);
-  
+
   // Date and Time Part
     const currentDate = new Date();
     const formattedDate = currentDate.toLocaleString('en-US', {
@@ -262,15 +383,15 @@ export class PaymentComponent implements OnInit {
       second: '2-digit',
       hour12: true
     }).replace(/,/, ', ');
-    console.log('Formatted Date:', formattedDate); 
-  
+    console.log('Formatted Date:', formattedDate);
+
   // Date and Time Position and Size
     doc.setFontSize(12);
     doc.setTextColor('#000000');
-    console.log('Rendering date at position x=400, y=90'); 
-    doc.text(formattedDate, 310, 90); 
-  
-    const columns = ['No', 'User Name', 'Amount', 'Payment Type', 'Created At', 'Transaction Date']; 
+    console.log('Rendering date at position x=400, y=90');
+    doc.text(formattedDate, 310, 90);
+
+    const columns = ['No', 'User Name', 'Amount', 'Payment Type', 'Created At', 'Transaction Date'];
     const rows = this.displayPaymentLogs.map((log, index) => [
       (this.currentPage - 1) * this.logsPerPage + index + 1,
       log.user_name || '',
@@ -287,7 +408,7 @@ export class PaymentComponent implements OnInit {
       styles: { fontSize: 8, cellPadding: 5, textColor: 'black' },
       headStyles: { fillColor: [60, 33, 146], textColor: 'white' },
     });
-  
+
     doc.save('PaymentReviews.pdf');
   }
 }

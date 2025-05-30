@@ -28,7 +28,6 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
   bool _isConfirmed = false;
   final String role = GetStorage().read("role");
   String _selectedPaymentMethod = '';
-  bool _isMethodSelected = false;
   final _formKey = GlobalKey<FormState>();
   int taskerId = 0;
 
@@ -38,6 +37,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
     _handleDeepLink(widget.uri);
   }
 
+  //For PayMongo Deposit
   Future<void> _handleDeepLink(Uri? uri) async {
     final amount = uri?.queryParameters['amount'];
     final transactionId = uri?.queryParameters['transaction_id'];
@@ -87,12 +87,10 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
   void _selectPaymentMethod(String method) {
     setState(() {
       _selectedPaymentMethod = method;
-      _isMethodSelected = true;
     });
   }
 
-  Future<void> _processPayment(
-      BuildContext parentContext, String paymentMethod) async {
+  Future<void> _processPayment(BuildContext parentContext, String paymentMethod) async {
     if (_selectedPaymentMethod.isEmpty || !mounted) {
       _showStatusModal(
           context,
@@ -104,8 +102,11 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
       return;
     }
     Map<String, dynamic> result;
-    _showStatusModal(context, "Please wait while we process your payment...",
-        CircularProgressIndicator());
+    _showStatusModal(context, "Please wait while we process your payment...", CircularProgressIndicator());
+
+    setState(() {
+      isLoading = true;
+    });
 
     try {
       final storage = GetStorage();
@@ -128,8 +129,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
         } else {
           _showStatusModal(
               context,
-              result['error'] ??
-                  "An error occurred while processing your request. Please try again.",
+              result['error'] ?? "An error occurred while processing your request. Please try again.",
               Icon(
                 Icons.error,
                 color: Colors.red,
@@ -150,19 +150,21 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                 size: 70,
               ));
 
-          if (role == "Tasker") {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => ServiceAccMain()),
-              (route) => false,
-            );
-          } else if (role == "Client") {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => BusinessAccMain()),
-              (route) => false,
-            );
-          }
+          Future.delayed(Duration(seconds: 5), () {
+            if (role == "Tasker") {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => ServiceAccMain()),
+                    (route) => false,
+              );
+            } else if (role == "Client") {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => BusinessAccMain()),
+                    (route) => false,
+              );
+            }
+          });
         } else {
           _showStatusModal(
               context,
@@ -186,38 +188,46 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
           ));
       debugPrint("Payment processing error: $e");
       debugPrintStack(stackTrace: stackTrace);
+    }finally{
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
-  void _showStatusModal(
-      BuildContext parentContext, String message, Widget indicator) {
+  void _showStatusModal(BuildContext parentContext, String message, Widget indicator) {
     if (!mounted) return;
 
     showDialog(
-        context: parentContext,
-        builder: (BuildContext childContext) {
-          Future.delayed(Duration(seconds: 10), () {
-            Navigator.of(parentContext).pop();
-          });
-
-          return AlertDialog(
-              content: SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.1,
-                  child: Row(children: [
-                    indicator,
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        message,
-                        style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0XFF3C28CC),
-                        ),
-                      ),
-                    )
-                  ])));
+      context: parentContext,
+      builder: (BuildContext childContext) {
+        Future.delayed(Duration(seconds: 10), () {
+          Navigator.of(parentContext).pop();
         });
+
+        return AlertDialog(
+          content: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.1,
+            child: Row(
+              children: [
+                indicator,
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    message,
+                    style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0XFF3C28CC),
+                    ),
+                  ),
+                )
+              ]
+            )
+          )
+        );
+      }
+    );
   }
 
   @override
@@ -432,30 +442,29 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                       ],
                     ),
                     ElevatedButton(
-                      onPressed: _isConfirmed
-                          ? () async {
-                              if (_selectedPaymentMethod.isEmpty) {
-                                _showStatusModal(
-                                    context,
-                                    "Please Select Your Desired Payment Method",
-                                    Icon(
-                                      FontAwesomeIcons.circleExclamation,
-                                      color: Color(0XFFE23670),
-                                      size: 50,
-                                    ));
-                                return;
-                              }
-                              if (_formKey.currentState!.validate()) {
-                                _showConfirmationDialog(
-                                    context, Color(0XFFE23670));
-                              }
+                      onPressed: (_isConfirmed && !isLoading)
+                          ? () async { // Button is enabled only if _isConfirmed is true and isLoading is false
+                            if (_selectedPaymentMethod.isEmpty) {
+                              _showStatusModal(
+                                  context,
+                                  "Please Select Your Desired Payment Method",
+                                  Icon(
+                                    FontAwesomeIcons.circleExclamation,
+                                    color: Color(0XFFE23670),
+                                    size: 50,
+                                  ));
+                              return;
                             }
-                          : null,
+                            if (_formKey.currentState!.validate()) {
+                              _showConfirmationDialog(context, Color(0XFFE23670));
+                            }
+                          }
+                          : null, // Button is disabled if _isConfirmed is false or isLoading is true
                       style: ButtonStyle(
                         backgroundColor: WidgetStateProperty.resolveWith<Color>(
                             (Set<WidgetState> states) {
                           if (states.contains(WidgetState.disabled)) {
-                            return const Color(0xFFD3D3D3);
+                            return const Color(0xFFD3D3D3); // Disabled color
                           }
                           return const Color(0xFF3C28CC);
                         }),

@@ -4,7 +4,7 @@
     <h3 class="text-foreground font-semibold">Dispute Management</h3>
     <div class="text-muted-foreground space-x-1 text-xs font-medium">
       <a href="" class="hover:text-primary"><strong>Dashboards > Dispute Management</strong></a>
-      <p>Manage your disputes efficiently and with fairness for users.</p> 
+      <p>Manage your disputes efficiently and with fairness for users.</p>
     </div>
   </div>
 </div>
@@ -50,7 +50,7 @@
       </div>
     </div>
 
-    <!-- Table to display feedbacks -->
+    <!-- Table to display all disputes-->
     <div class="overflow-x-auto w-full">
       <!-- No Data Message -->
       <div *ngIf="!displayDisputes?.length" class="text-center py-8">
@@ -67,7 +67,7 @@
         <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[100px] xl:min-w-[250px]">Task Title</th>
         <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[200px] xl:min-w-[250px]">Raised By</th>
         <th class="px-4 py-2 text-center min-w-[140px] lg:min-w-[200px] xl:min-w-[250px]">Reason for Dispute</th>
-        <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Dispute Details</th>
+        <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Moderator Action</th>
         <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[150px] xl:min-w-[150px]">Date Dispute Raised</th>
         <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[150px] xl:min-w-[150px]">Action</th>
         </tr>
@@ -77,7 +77,7 @@
         <td class="px-4 py-3 text-left">{{ dispute.task_taken.post_task.task_title }}</td>
         <td class="px-4 py-3 text-left">{{ dispute.task_taken.clients.user.first_name }} {{ dispute.task_taken.clients.user.middle_name }} {{ dispute.task_taken.clients.user.last_name }} ({{dispute.task_taken.clients.user.user_role}})</td>
         <td class="px-4 py-3 text-center">{{ dispute.reason_for_dispute }}</td>
-        <td class="px-4 py-3 text-start">{{ dispute.dispute_details }}</td>
+        <td class="px-4 py-3 text-center">{{ dispute.moderator_action != null ? dispute.moderator_action : "Unresolved" }}</td>
         <td class="px-4 py-3 text-center">{{ dispute.created_at }}</td>
         <td class="px-4 py-3 text-center">
           <div class="flex justify-center space-x-2">

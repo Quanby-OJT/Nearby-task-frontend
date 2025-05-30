@@ -47,9 +47,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _userController.firstNameController.text = fullName;
         _userController.emailController.text = _user?.user.email ?? '';
         _userController.birthdateController.text = _user?.user.birthdate ?? '';
-        _userController.prefsController.text = _user?.client?.preferences ?? '';
-        _userController.clientAddressController.text =
-            _user?.client?.clientAddress ?? '';
+        _userController.prefsController.text = _user?.user.bio ?? '';
+        _userController.clientAddressController.text = '';
       });
     } catch (e) {
       print("Error fetching user data: $e");
@@ -368,7 +367,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 padding: EdgeInsets.symmetric(horizontal: 40),
                                 child: ElevatedButton.icon(
                                   onPressed: () {
-                                    _authController.logout(context, () => mounted);
+                                    _authController.logout(
+                                        context, () => mounted);
                                   },
                                   style: ElevatedButton.styleFrom(
                                       backgroundColor: Color(0xFF0272B1),
