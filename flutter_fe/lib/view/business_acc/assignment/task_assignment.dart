@@ -7,6 +7,7 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
+import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -61,7 +62,7 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
 
       setState(() {
         _isLoading = false;
-        _filteredTasks = _availableTasks; // Initialize filtered tasks
+        _filteredTasks = _availableTasks; 
       });
     } catch (e, stackTrace) {
       setState(() {
@@ -202,74 +203,9 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
                       });
                     },
                   ),
-                  Text(
-                    'Select start date for task availability:',
-                    style: GoogleFonts.poppins(),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      final selectedDate = await showDatePicker(
-                        context: context,
-                        initialDate: tempDateTime ?? DateTime.now(),
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(const Duration(days: 365)),
-                      );
-                      if (selectedDate != null) {
-                        setDialogState(() {
-                          tempDateTime = DateTime(
-                            selectedDate.year,
-                            selectedDate.month,
-                            selectedDate.day,
-                            tempDateTime?.hour ?? 0,
-                            tempDateTime?.minute ?? 0,
-                          );
-                        });
-                      }
-                    },
-                    child: Text(
-                      tempDateTime == null
-                          ? 'Select Date'
-                          : '${tempDateTime?.toIso8601String().split('T')[0]}',
-                      style:
-                          GoogleFonts.poppins(color: const Color(0xFFB71A4A)),
-                    ),
-                  ),
-                  Text(
-                    'Select start time for task:',
-                    style: GoogleFonts.poppins(),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      final selectedTime = await showTimePicker(
-                        context: context,
-                        initialTime: tempDateTime != null
-                            ? TimeOfDay(
-                                hour: tempDateTime!.hour,
-                                minute: tempDateTime!.minute,
-                              )
-                            : TimeOfDay.now(),
-                      );
-                      if (selectedTime != null) {
-                        setDialogState(() {
-                          tempDateTime = DateTime(
-                            tempDateTime?.year ?? DateTime.now().year,
-                            tempDateTime?.month ?? DateTime.now().month,
-                            tempDateTime?.day ?? DateTime.now().day,
-                            selectedTime.hour,
-                            selectedTime.minute,
-                          );
-                        });
-                      }
-                    },
-                    child: Text(
-                      tempDateTime == null
-                          ? 'Select Time'
-                          : TimeOfDay.fromDateTime(tempDateTime!)
-                              .format(context),
-                      style:
-                          GoogleFonts.poppins(color: const Color(0xFFB71A4A)),
-                    ),
-                  ),
+                  
+                 
+                  
                 ],
               ),
               actions: [
@@ -283,17 +219,11 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
                 ElevatedButton(
                   onPressed: () {
                     if (tempDateTime == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Please select both date and time.'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                      return;
+                     CustomScaffold(message: 'Please select both date and time.', color: Colors.red);
                     }
                     Navigator.pop(context, {
                       'daysAvailable': tempDays,
-                      'availableDate': tempDateTime,
+                 
                     });
                   },
                   style: ElevatedButton.styleFrom(
@@ -319,10 +249,9 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
     if (assignmentDetails == null) return;
 
     final daysAvailable = assignmentDetails['daysAvailable'] as int;
-    final availableDate = assignmentDetails['availableDate'] as DateTime;
+   
 
     debugPrint("Days Available: $daysAvailable");
-    debugPrint("Available Date: ${availableDate.toIso8601String()}");
 
     setState(() {
       _isAssigning = true;
@@ -341,12 +270,7 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
       final clientServices = ClientServices();
       final String? clientId = await clientServices.getUserId();
       if (clientId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Unable to identify client. Please log in again.'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        CustomScaffold(message: 'Unable to identify client. Please log in again.', color: Colors.red);
         return;
       }
 
@@ -356,20 +280,14 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
         widget.tasker.id ?? 0,
         _role ?? 'Client',
         daysAvailable: daysAvailable,
-        availableDate: availableDate.toIso8601String(),
+      
       );
 
       final isSuccess = !result.toLowerCase().contains('already') &&
           !result.toLowerCase().contains('error') &&
           !result.toLowerCase().contains('failed');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result),
-          backgroundColor: isSuccess ? Colors.green : Colors.red,
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      CustomScaffold(message: result, color: isSuccess ? Colors.green : Colors.red);
 
       if (isSuccess) {
         final jobPostService = JobPostService();
@@ -383,12 +301,7 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
       }
     } catch (e) {
       debugPrint("Error in _assignTask: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to assign task: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      CustomScaffold(message: 'Failed to assign task: $e', color: Colors.red);
     } finally {
       loadingOverlay?.remove();
       if (mounted) setState(() => _isAssigning = false);

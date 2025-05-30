@@ -104,7 +104,7 @@ class _TaskFinishedState extends State<TaskFinished> {
         _role = user?.user.role ?? 'Unknown';
       });
       setState(() {
-        _taskInformation = response?.task;
+        _taskInformation = response.task;
       });
     } catch (e) {
       debugPrint("Error fetching task details: $e");

@@ -1,3 +1,5 @@
+import 'package:flutter_fe/model/task_model.dart';
+
 class ClientRequestModel {
   final int? task_taken_id;
   final int? tasker_id;
@@ -12,6 +14,7 @@ class ClientRequestModel {
   final DateTime? start_date;
   final DateTime? end_date;
   final int? rework_count;
+  final TaskModel? task;
 
   ClientRequestModel({
     this.task_taken_id,
@@ -27,6 +30,7 @@ class ClientRequestModel {
     this.start_date,
     this.end_date,
     this.rework_count,
+    this.task,
   });
 
   Map<String, dynamic> toJson() {
@@ -45,6 +49,7 @@ class ClientRequestModel {
       "start_date": start_date,
       "end_date": end_date,
       "rework_count": rework_count,
+      "post_task": task,
     };
   }
 
@@ -75,6 +80,9 @@ class ClientRequestModel {
           ? DateTime.tryParse(json['end_date'] as String? ?? '')
           : null,
       rework_count: json['rework_count'] as int?,
+      task: json['post_task'] != null
+          ? TaskModel.fromJson(json['post_task'] as Map<String, dynamic>)
+          : null,
     );
   }
 }

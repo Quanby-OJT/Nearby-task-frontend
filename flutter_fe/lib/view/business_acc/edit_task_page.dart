@@ -1,136 +1,975 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_fe/controller/escrow_management_controller.dart';
+import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
+import 'package:flutter_fe/model/address.dart';
+import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_model.dart';
+import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/view/address/address_list.dart';
+import 'package:flutter_fe/view/business_acc/task_creation/preview_task.dart';
+import 'package:flutter_fe/view/business_acc/task_creation/select_related_spec.dart';
+import 'package:flutter_fe/view/business_acc/task_creation/select_spec.dart';
+import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
+import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 class EditTaskPage extends StatefulWidget {
   final TaskModel task;
-
-  const EditTaskPage({
-    super.key,
-    required this.task,
-  });
+  const EditTaskPage({super.key, required this.task});
 
   @override
   State<EditTaskPage> createState() => _EditTaskPageState();
 }
 
-class _EditTaskPageState extends State<EditTaskPage> {
-  final _formKey = GlobalKey<FormState>();
-  final _taskController = TaskController();
-  final _jobPostService = JobPostService();
-  bool _isLoading = false;
+class _EditTaskPageState extends State<EditTaskPage> with SingleTickerProviderStateMixin {
+  final TaskController controller = TaskController();
+  final JobPostService jobPostService = JobPostService();
+  final ClientServices clientServices = ClientServices();
+  final ProfileController profileController = ProfileController();
+  final EscrowManagementController escrowManagementController = EscrowManagementController();
+  final GetStorage storage = GetStorage();
+  final PageController _pageController = PageController();
+  final ImagePicker _picker = ImagePicker();
 
-  late TextEditingController _titleController;
-  late TextEditingController _descriptionController;
-  late TextEditingController _locationController;
-  late TextEditingController _durationController;
-  late TextEditingController _priceController;
-  late TextEditingController _remarksController;
-  late TextEditingController _startDateController;
+  final TextEditingController jobTitleController = TextEditingController();
+  final TextEditingController jobDescriptionController = TextEditingController();
+  final TextEditingController jobRemarksController = TextEditingController();
+  final TextEditingController contactPriceController = TextEditingController();
+  final TextEditingController jobStartDateController = TextEditingController();
 
-  String? _selectedSpecialization;
-  String? _selectedUrgency;
-  String? _selectedPeriod;
-  String? _selectedWorkType;
+  TaskModel? _taskInformation;
+  bool _isLoading = true;
 
-  // Add lists for dropdowns
-  final List<String> _urgencyOptions = ['Urgent', 'Non-Urgent'];
-  final List<String> _workTypeOptions = ['Solo', 'Group'];
-  final List<String> _periodOptions = ['Day/s', 'Week/s', 'Month/s', 'Year/s'];
-  List<String> _specializationOptions = [];
+  String? _message;
+  String? selectedTimePeriod;
+  String? selectedUrgency;
+  String? selectedSpecialization;
+  String? selectedWorkType;
+  String? selectedScope;
+  List<String> relatedSpecializations = [];
+  List<String> relatedSpecializationsIds = [];
+  List<File> _photos = [];
+  List<String> items = ['Day/s', 'Week/s', 'Month/s', 'Year/s'];
+  List<String> urgency = ['Non-Urgent', 'Urgent'];
+  List<String> workTypes = ['Solo', 'Group'];
+  List<String> scopes = [
+    'Less than a month',
+    '1 to 3 months',
+    '3 to 6 months',
+    '6 months to 1 year',
+    'More than 1 year'
+  ];
+  List<MapEntry<int, String>> specializations = [MapEntry(0, 'All')];
+  List<SpecializationModel> fetchedSpecializations = [];
+  Map<String, int> selectedSpecializations = {};
+
+  int? specializationId;
+  final Map<String, String> _errors = {};
+  String? _existingProfileImageUrl;
+  String? _existingIDImageUrl;
+  String? _addressID;
+  bool _showButton = false;
+  bool _isUploadDialogShown = false;
+  bool _documentValid = false;
+  int _currentStep = 0;
+  bool _isVerifiedDocument = false;
+
 
   @override
   void initState() {
     super.initState();
-    _initializeControllers();
-    _fetchSpecializations();
+   
+   
+    _loadMethod();
   }
 
-  Future<void> _fetchSpecializations() async {
+
+  Future<void> _loadMethod() async {
+   await Future.wait([
+    _fetchTaskDetails(),
+    _fetchUserIDImage(),
+    fetchSpecializations(),
+  
+   ]);
+    _initializeForm();
+  }
+
+
+  Future<void> _fetchTaskDetails() async {
     try {
-      List<SpecializationModel> fetchedSpecializations =
-          await _jobPostService.getSpecializations();
+      final response =
+          await jobPostService.fetchTaskInformation(widget.task!.id);
       setState(() {
-        _specializationOptions =
-            fetchedSpecializations.map((spec) => spec.specialization).toList();
+        _taskInformation = response.task;
       });
-    } catch (error) {
-      debugPrint('Error fetching specializations: $error');
+    } catch (e) {
+      CustomScaffold(message: 'Failed to load task details: ${e.toString()}', color: Colors.red);
     }
   }
 
-  void _initializeControllers() {
-    _titleController = TextEditingController(text: widget.task.title);
-    _descriptionController =
-        TextEditingController(text: widget.task.description);
-    _priceController =
-        TextEditingController(text: widget.task.contactPrice.toString());
-    _remarksController = TextEditingController(text: widget.task.remarks);
+  void _initializeForm() {
+    controller.jobTitleController.text = _taskInformation!.title;
+    controller.jobDescriptionController.text = _taskInformation!.description;
+    controller.jobLocationController.text = _taskInformation!.address?.formattedAddress ?? '';
+    controller.jobStartDateController.text = _taskInformation!.taskBeginDate ?? '';
+    controller.contactPriceController.text = _taskInformation!.contactPrice.toString();
+    controller.jobRemarksController.text = _taskInformation!.remarks ?? '';
 
-    _selectedSpecialization = widget.task.specialization;
-    _selectedUrgency = widget.task.urgency;
-    _selectedWorkType = widget.task.workType;
+    
+   
+
+    setState(() {
+      selectedSpecialization = _taskInformation!.taskerSpecialization?.specialization;
+       specializationId = selectedSpecializations[selectedSpecialization!];
+    
+      relatedSpecializationsIds = _taskInformation!.relatedSpecializationsIds ?? [];
+
+      final idToSpecialization = {for (var entry in selectedSpecializations.entries) entry.value: entry.key};
+      final specializationNames = relatedSpecializationsIds.map((id) {
+        final intId = int.tryParse(id) ?? 0;
+        return idToSpecialization[intId] ?? 'Unknown';
+      }).toList();
+
+      relatedSpecializations = specializationNames;
+      selectedUrgency = _taskInformation!.urgency;
+      selectedWorkType = _taskInformation!.workType;
+      selectedScope = _taskInformation!.scope;
+        _addressID = _taskInformation!.address?.id;
+    });
+
   }
+
+
+  
 
   @override
   void dispose() {
-    _titleController.dispose();
-    _descriptionController.dispose();
-    _locationController.dispose();
-    _durationController.dispose();
-    _priceController.dispose();
-    _remarksController.dispose();
-    _startDateController.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
-  Future<void> _updateTask() async {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> fetchSpecializations() async {
+    try {
+      fetchedSpecializations = await jobPostService.getSpecializations();
+      setState(() {
+        specializations = [
+          MapEntry(0, 'All'),
+          ...fetchedSpecializations
+              .where((spec) => spec.id != null)
+              .map((spec) => MapEntry(spec.id!, spec.specialization)),
+        ];
+        selectedSpecializations = {
+          for (var category in specializations) category.value: category.key
+        };
+      });
+    } catch (error, stackTrace) {
+      debugPrint('Error fetching specializations: $error');
+      debugPrintStack(stackTrace: stackTrace);
+    }
+  }
 
+  Future<void> _fetchUserIDImage() async {
+    try {
+      int userId = int.parse(storage.read('user_id').toString());
+      AuthenticatedUser? user = await profileController.getAuthenticatedUser(context, userId);
+      final response = await clientServices.fetchUserIDImage(userId);
+
+      if (response['success']) {
+        setState(() {
+          _existingProfileImageUrl = user?.user.image;
+          _existingIDImageUrl = response['url'];
+          _documentValid = response['status'];
+          _isLoading = false;
+          _showButton = _existingProfileImageUrl != null &&
+              _existingIDImageUrl != null &&
+              (_documentValid || user?.user.accStatus == 'Review');
+        });
+      } else {
+        debugPrint('Failed to fetch user ID image: ${response['message']}');
+        setState(() {
+          _existingProfileImageUrl = user?.user.image;
+          _existingIDImageUrl = null;
+          _documentValid = false;
+          _isLoading = false;
+          _showButton = _existingProfileImageUrl != null &&
+              user?.user.accStatus == 'Review';
+        });
+      }
+    } catch (e) {
+      debugPrint("Error fetching ID image: $e");
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _showWarningDialog() {
+    if (_isUploadDialogShown) return;
     setState(() {
+      _isUploadDialogShown = true;
+    });
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Complete Your Profile',
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF0272B1),
+          ),
+        ),
+        content: Text(
+          'Please upload your profile and ID images to edit tasks.',
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            color: Colors.grey[600],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              setState(() {
+                _isUploadDialogShown = false;
+              });
+            },
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: Colors.red[400],
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FillUpClient()),
+              );
+              if (result == true) {
+                setState(() {
+                  _isLoading = true;
+                });
+                await _fetchUserIDImage();
+              }
+              setState(() {
+                _isUploadDialogShown = false;
+              });
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF0272B1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              'Verify Now',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  bool _validateStep(int step) {
+    setState(() {
+      _errors.clear();
+    });
+
+    switch (step) {
+      case 0:
+        if (controller.jobTitleController.text.trim().isEmpty) {
+          _errors['task_title'] = 'Please indicate your needed task';
+          return false;
+        }
+        if (controller.jobDescriptionController.text.trim().isEmpty) {
+          _errors['task_description'] = 'Please elaborate your task';
+          return false;
+        }
+        if (controller.jobLocationController.text.trim().isEmpty) {
+          _errors['location'] = 'Please indicate the task location';
+          return false;
+        }
+        break;
+      case 1:
+        if (selectedSpecialization == null || specializationId == null) {
+          _errors['specialization'] = 'Please select a specialization';
+          return false;
+        }
+        if (relatedSpecializations.isEmpty) {
+          _errors['related_specializations'] = 'Please select at least one related specialization';
+          return false;
+        }
+        if (selectedWorkType == null) {
+          _errors['work_type'] = 'Please select a work type';
+          return false;
+        }
+        break;
+      case 2:
+        if (selectedScope == null || !scopes.contains(selectedScope)) {
+          _errors['scope'] = 'Please select a valid scope of work';
+          return false;
+        }
+        if (controller.jobStartDateController.text.isEmpty) {
+          _errors['start_date'] = 'Please select the start date';
+          return false;
+        }
+        break;
+      case 3:
+        String price = controller.contactPriceController.text.trim();
+        if (price.isEmpty) {
+          _errors['contact_price'] = 'Please indicate the contract price';
+          return false;
+        } else if (int.tryParse(price) == null || int.parse(price) <= 0) {
+          _errors['contact_price'] = 'Contract price must be a valid positive number';
+          return false;
+        }
+        if (selectedUrgency == null) {
+          _errors['urgency'] = 'Please indicate if the task is urgent';
+          return false;
+        }
+        break;
+      case 4:
+        return true;
+    }
+    return true;
+  }
+
+  Future<void> _selectDateTime() async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: controller.jobStartDateController.text.isNotEmpty
+          ? DateTime.parse(controller.jobStartDateController.text.split(' ').first)
+          : DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Color(0xFFB71A4A),
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: Color(0xFFB71A4A),
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (pickedDate != null) {
+      final TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: controller.jobStartDateController.text.isNotEmpty
+            ? TimeOfDay.fromDateTime(DateTime.parse(controller.jobStartDateController.text))
+            : TimeOfDay.now(),
+        builder: (context, child) {
+          return Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: ColorScheme.light(
+                primary: Color(0xFFB71A4A),
+                onPrimary: Colors.white,
+                onSurface: Colors.black,
+              ),
+              textButtonTheme: TextButtonThemeData(
+                style: TextButton.styleFrom(
+                  foregroundColor: Color(0xFFB71A4A),
+                ),
+              ),
+            ),
+            child: child!,
+          );
+        },
+      );
+
+      if (pickedTime != null) {
+        final DateTime combinedDateTime = DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+        setState(() {
+          controller.jobStartDateController.text = DateFormat('yyyy-MM-dd HH:mm').format(combinedDateTime);
+        });
+      }
+    }
+  }
+
+  Future<void> _updateJob() async {
+    setState(() {
+      _message = "";
+      _errors.clear();
       _isLoading = true;
     });
 
-    try {
-      final taskData = {
-        "task_title": _titleController.text.trim(),
-        "task_description": _descriptionController.text.trim(),
-        "location": _locationController.text.trim(),
-        "duration": int.tryParse(_durationController.text.trim()) ?? 0,
-        "proposed_price": int.tryParse(_priceController.text.trim()) ?? 0,
-        "remarks": _remarksController.text.trim(),
-        "task_begin_date": _startDateController.text.trim(),
-        "specialization": _selectedSpecialization,
-        "urgent": _selectedUrgency == "Urgent" ? true : false,
-        "period": _selectedPeriod,
-        "work_type": _selectedWorkType,
-      };
 
-      final result = await _taskController.updateTask(widget.task.id, taskData);
+    try {
+      final result = await controller.updateJob(
+        widget.task.id,
+        selectedUrgency!,
+        selectedScope!,
+        selectedWorkType!, 
+        relatedSpecializationsIds: relatedSpecializationsIds,
+        photos: _photos,
+        specializationId: specializationId,
+        selectedSpecialization: selectedSpecialization,
+        addressId: _addressID,
+      );
 
       if (result['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Task updated successfully')),
-        );
-        Navigator.pop(
-            context, true); // Return true to indicate task was updated
+        if (mounted) {
+          Navigator.pop(context, true);
+        }
+        setState(() {
+          _message = result['message'] ?? "Successfully Updated Task.";
+        });
+        CustomScaffold(message: _message!, color: Colors.green);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(
-                  'Failed to update task: ${result['error'] ?? "Unknown error"}')),
-        );
+        setState(() {
+          if (result.containsKey('errors') && result['errors'] is List) {
+            for (var error in result['errors']) {
+              if (error is Map<String, dynamic> && error.containsKey('path') && error.containsKey('msg')) {
+                _errors[error['path']] = error['msg'];
+              }
+            }
+          }
+          _message = result['error'] ?? 'Failed to update task';
+        });
+        CustomScaffold(message: _message!, color: Colors.red);
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+    } catch (error) {
+      debugPrint("Error updating job: $error");
+      setState(() {
+        _message = 'An error occurred. Please try again.';
+      });
+      CustomScaffold(message: _message!, color: Colors.red);
     } finally {
       setState(() {
         _isLoading = false;
+      });
+    }
+  }
+  
+
+void _updateJobSample() {
+  debugPrint("Update Job Sample");
+}
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    int maxLines = 1,
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
+    String? errorText,
+    bool isRequired = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          isRequired ? '$label *' : label,
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          maxLines: maxLines,
+          keyboardType: keyboardType,
+          inputFormatters: inputFormatters,
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[200]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Color(0xFFB71A4A), width: 2),
+            ),
+            errorText: errorText,
+            errorStyle: GoogleFonts.poppins(color: Colors.red[400]),
+            suffixIcon: controller.text.isNotEmpty && errorText == null
+                ? Icon(Icons.check_circle, color: Colors.green, size: 20)
+                : null,
+          ),
+          style: GoogleFonts.poppins(fontSize: 12),
+          onChanged: (_) => setState(() {}),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDropdownField({
+    String? value,
+    required List<String> items,
+    required String hint,
+    required Function(String?) onChanged,
+    String? errorText,
+    bool isRequired = false,
+  }) {
+    final effectiveItems = items ?? [];
+    final effectiveValue = value != null && effectiveItems.contains(value)
+        ? value
+        : effectiveItems.isNotEmpty
+            ? effectiveItems[0]
+            : null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          isRequired ? '$hint *' : hint,
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: effectiveValue,
+          decoration: InputDecoration(
+            hintText: effectiveItems.isEmpty ? 'No options available' : hint,
+            hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[200]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Color(0xFFB71A4A), width: 2),
+            ),
+            errorText: errorText,
+            errorStyle: GoogleFonts.poppins(color: Colors.red[400]),
+            suffixIcon: effectiveValue != null && errorText == null
+                ? Icon(Icons.check_circle, color: Colors.green, size: 20)
+                : null,
+          ),
+          items: effectiveItems.map((item) {
+            return DropdownMenuItem<String>(
+              value: item,
+              child: Text(
+                item,
+                style: GoogleFonts.poppins(fontSize: 12),
+              ),
+            );
+          }).toList(),
+          onChanged: (newValue) {
+            setState(() {
+              if (newValue != null) {
+                onChanged(newValue);
+                if (hint == 'Select Specialization *') {
+                  selectedSpecialization = newValue;
+                  specializationId = selectedSpecializations[newValue] ?? 0;
+                }
+              }
+            });
+          },
+          hint: effectiveItems.isEmpty
+              ? Text('No options available', style: GoogleFonts.poppins(fontSize: 12))
+              : null,
+          disabledHint: effectiveItems.isEmpty
+              ? Text('No options available', style: GoogleFonts.poppins(fontSize: 12))
+              : null,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMultiSelectField({
+    required List<String> selectedItems,
+    required List<String> items,
+    required String hint,
+    required Function(List<String>) onChanged,
+    String? errorText,
+    required bool isRequired,
+  }) {
+    return GestureDetector(
+      onTap: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const SelectRelatedSpec()),
+        );
+        if (result != null && result is List<String>) {
+          onChanged(result);
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(
+            color: errorText != null ? Colors.red : Colors.grey[300]!,
+          ),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                selectedItems.isEmpty ? hint : selectedItems.join(', '),
+                style: GoogleFonts.poppins(
+                  color: selectedItems.isEmpty ? Colors.grey : Colors.black,
+                  fontSize: 14,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const Icon(Icons.arrow_drop_down, color: Colors.grey),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhotoField() {
+    const int maxPhotos = 5;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Upload Photos (Optional, up to $maxPhotos)',
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        SizedBox(height: 8),
+        _photos.isEmpty && widget.task.imageUrl == null
+            ? GestureDetector(
+                onTap: () async {
+                  final List<XFile> images = await _picker.pickMultiImage(
+                    maxWidth: 1024,
+                    maxHeight: 1024,
+                    imageQuality: 80,
+                  );
+                  if (images != null) {
+                    setState(() {
+                      _photos = images
+                          .map((image) => File(image.path))
+                          .take(maxPhotos - _photos.length)
+                          .toList();
+                    });
+                  }
+                },
+                child: Container(
+                  height: 100,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Tap to upload photos',
+                      style: GoogleFonts.poppins(color: Colors.grey[600]),
+                    ),
+                  ),
+                ),
+              )
+            : Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (widget.task.imageUrl != null)
+                    Stack(
+                      children: [
+                        Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey[300]!),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(
+                              widget.task.imageUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => Icon(
+                                Icons.broken_image,
+                                color: Colors.grey,
+                                size: 40,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: GestureDetector(
+                            onTap: () {
+                             
+                            },
+                            child: Container(
+                              padding: EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.red,
+                              ),
+                              child: Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ..._photos.asMap().entries.map((entry) {
+                    int index = entry.key;
+                    File photo = entry.value;
+                    return Stack(
+                      children: [
+                        Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey[300]!),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.file(
+                              photo,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _photos.removeAt(index);
+                              });
+                            },
+                            child: Container(
+                              padding: EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.red,
+                              ),
+                              child: Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }),
+                  if (_photos.length + (widget.task.imageUrl != null ? 1 : 0) < maxPhotos)
+                    GestureDetector(
+                      onTap: () async {
+                        final List<XFile> images = await _picker.pickMultiImage(
+                          maxWidth: 1024,
+                          maxHeight: 1024,
+                          imageQuality: 80,
+                        );
+                        if (images != null) {
+                          setState(() {
+                            _photos.addAll(
+                              images
+                                  .map((image) => File(image.path))
+                                  .take(maxPhotos - _photos.length - (widget.task.imageUrl != null ? 1 : 0)),
+                            );
+                          });
+                        }
+                      },
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.add,
+                            color: Colors.grey[600],
+                            size: 40,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+      ],
+    );
+  }
+
+  Widget _buildProgressBar() {
+    final steps = [
+      {'name': 'Task Basics', 'tooltip': 'Enter title, description, and location', 'isOptional': false},
+      {'name': 'Task Details', 'tooltip': 'Specify specialization, related skills, and work type', 'isOptional': false},
+      {'name': 'Task Timeline', 'tooltip': 'Define scope and start date', 'isOptional': false},
+      {'name': 'Budget & Urgency', 'tooltip': 'Set price and urgency', 'isOptional': false},
+      {'name': 'Additional Info', 'tooltip': 'Add remarks and photos (optional)', 'isOptional': true},
+    ];
+
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            '${_currentStep + 1} / ${steps.length}\n${steps[_currentStep]['name']}',
+            style: GoogleFonts.poppins(
+              fontSize: 10,
+              color: Color(0xFFB71A4A),
+              fontWeight: FontWeight.w600,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          if (steps[_currentStep]['isOptional'] as bool)
+            Text(
+              '(Optional)',
+              style: GoogleFonts.poppins(
+                fontSize: 8,
+                color: Colors.grey,
+              ),
+              textAlign: TextAlign.center,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTitleInstruction() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Task Basics',
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        Text(
+          'Update the core details of your task',
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            color: Colors.grey[600],
+          ),
+        ),
+        SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildSelectSpecialization({
+    required String? value,
+    required String hint,
+    required Function(String?) onChanged,
+    String? errorText,
+    required bool isRequired,
+  }) {
+    return GestureDetector(
+      onTap: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const SelectSpec()),
+        );
+        if (result != null && result is String) {
+          onChanged(result);
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(
+            color: errorText != null ? Colors.red : Colors.grey[300]!,
+          ),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              value ?? hint,
+              style: GoogleFonts.poppins(
+                color: value != null ? Colors.black : Colors.grey,
+                fontSize: 12,
+              ),
+            ),
+            const Icon(Icons.arrow_drop_down, color: Colors.grey),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAddress() async {
+    final selectedAddress = await Navigator.push<AddressModel>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AddressList(),
+      ),
+    );
+    if (selectedAddress != null) {
+      setState(() {
+        controller.jobLocationController.text = selectedAddress.formattedAddress != null &&
+                selectedAddress.formattedAddress!.isNotEmpty
+            ? selectedAddress.formattedAddress!
+            : '${selectedAddress.city ?? ''}, ${selectedAddress.province ?? ''}';
+        _addressID = selectedAddress.id ?? '';
       });
     }
   }
@@ -138,6 +977,7 @@ class _EditTaskPageState extends State<EditTaskPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         centerTitle: true,
         title: Text(
@@ -151,257 +991,430 @@ class _EditTaskPageState extends State<EditTaskPage> {
         backgroundColor: Colors.grey[100],
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios,
             color: Color(0xFFB71A4A),
             size: 20,
           ),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: EdgeInsets.all(16),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextFormField(
-                      controller: _titleController,
-                      decoration: InputDecoration(
-                        labelText: 'Task Title',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a title';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: _selectedSpecialization,
-                      decoration: InputDecoration(
-                        labelText: 'Specialization',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: _specializationOptions.map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                      onChanged: (newValue) {
-                        setState(() {
-                          _selectedSpecialization = newValue;
-                        });
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please select a specialization';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 16),
-                    TextFormField(
-                      controller: _descriptionController,
-                      decoration: InputDecoration(
-                        labelText: 'Description',
-                        border: OutlineInputBorder(),
-                      ),
-                      maxLines: 3,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a description';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 16),
-                    TextFormField(
-                      controller: _locationController,
-                      decoration: InputDecoration(
-                        labelText: 'Location',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a location';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 16),
-                    TextFormField(
-                      controller: _durationController,
-                      decoration: InputDecoration(
-                        labelText: 'Duration (in days)',
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter duration';
-                        }
-                        if (int.tryParse(value) == null) {
-                          return 'Please enter a valid number';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 16),
-                    TextFormField(
-                      controller: _priceController,
-                      decoration: InputDecoration(
-                        labelText: 'Contract Price',
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a price';
-                        }
-                        if (int.tryParse(value) == null) {
-                          return 'Please enter a valid number';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 16),
-                    TextFormField(
-                      controller: _startDateController,
-                      decoration: InputDecoration(
-                        labelText: 'Start Date (YYYY-MM-DD)',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a start date';
-                        }
-                        try {
-                          DateTime.parse(value);
-                          return null;
-                        } catch (e) {
-                          return 'Please enter a valid date (YYYY-MM-DD)';
-                        }
-                      },
-                    ),
-                    SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: _selectedUrgency,
-                      decoration: InputDecoration(
-                        labelText: 'Urgency',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: _urgencyOptions.map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                      onChanged: (newValue) {
-                        setState(() {
-                          _selectedUrgency = newValue;
-                        });
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please select urgency';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: _selectedPeriod,
-                      decoration: InputDecoration(
-                        labelText: 'Period',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: _periodOptions.map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                      onChanged: (newValue) {
-                        setState(() {
-                          _selectedPeriod = newValue;
-                        });
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please select a period';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: _selectedWorkType,
-                      decoration: InputDecoration(
-                        labelText: 'Work Type',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: _workTypeOptions.map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                      onChanged: (newValue) {
-                        setState(() {
-                          _selectedWorkType = newValue;
-                        });
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please select a work type';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 16),
-                    TextFormField(
-                      controller: _remarksController,
-                      decoration: InputDecoration(
-                        labelText: 'Remarks',
-                        border: OutlineInputBorder(),
-                      ),
-                      maxLines: 2,
-                    ),
-                    SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: _isLoading ? null : _updateTask,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFFE23670),
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        minimumSize: Size(double.infinity, 50),
-                      ),
-                      child: _isLoading
-                          ? SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : Text(
-                              'Update Task',
-                              style:
-                                  TextStyle(fontSize: 16, color: Colors.white),
+          : Column(
+              children: [
+                _buildProgressBar(),
+                Expanded(
+                  child: PageView(
+                    controller: _pageController,
+                    physics: NeverScrollableScrollPhysics(),
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentStep = index;
+                      });
+                    },
+                    children: [
+                      // Step 1: Task Basics
+                      Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildTitleInstruction(),
+                                _buildTextField(
+                                  controller: controller.jobTitleController,
+                                  label: 'Title',
+                                  hint: 'Enter task title',
+                                  errorText: _errors['task_title'],
+                                  isRequired: true,
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  'Location *',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                GestureDetector(
+                                  onTap: _showAddress,
+                                  child: Card(
+                                    elevation: 0,
+                                    color: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      side: _errors['location'] != null
+                                          ? BorderSide(color: Colors.red, width: 1)
+                                          : BorderSide.none,
+                                    ),
+                                    child: Padding(
+                                      padding: EdgeInsets.all(16),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  controller.jobLocationController.text.isEmpty
+                                                      ? 'Select an address'
+                                                      : controller.jobLocationController.text,
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 12,
+                                                    color: controller.jobLocationController.text.isEmpty
+                                                        ? Colors.grey
+                                                        : Colors.black,
+                                                  ),
+                                                  maxLines: 2,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Icon(
+                                            Icons.arrow_forward_ios,
+                                            color: Colors.grey,
+                                            size: 16,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                if (_errors['location'] != null)
+                                  Padding(
+                                    padding: EdgeInsets.only(top: 8, left: 16),
+                                    child: Text(
+                                      _errors['location']!,
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.red,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                SizedBox(height: 16),
+                                _buildTextField(
+                                  controller: controller.jobDescriptionController,
+                                  label: 'Description',
+                                  hint: 'Describe your task...',
+                                  maxLines: 4,
+                                  errorText: _errors['task_description'],
+                                  isRequired: true,
+                                ),
+                              ],
                             ),
-                    ),
-                  ],
+                          ),
+                        ),
+                      ),
+                      // Step 2: Task Details
+                      Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Details',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                Text(
+                                  'Specify the skills and work type needed',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                SizedBox(height: 16),
+                                _buildSelectSpecialization(
+                                  value: selectedSpecialization,
+                                  hint: 'Select Specialization',
+                                  onChanged: (value) => setState(() {
+                                    selectedSpecialization = value;
+                                    specializationId = selectedSpecializations[value!] ?? 0;
+                                  }),
+                                  errorText: _errors['specialization'],
+                                  isRequired: true,
+                                ),
+                                SizedBox(height: 16),
+                                _buildMultiSelectField(
+                                  selectedItems: relatedSpecializations,
+                                  items: selectedSpecializations.keys.toList(),
+                                  hint: 'Select Related Specializations',
+                                  onChanged: (value) => setState(() {
+                                    relatedSpecializations = value;
+                                    relatedSpecializationsIds = value
+                                        .map((e) => selectedSpecializations[e]!.toString())
+                                        .toList();
+                                  }),
+                                  errorText: _errors['related_specializations'],
+                                  isRequired: true,
+                                ),
+                                SizedBox(height: 16),
+                                _buildDropdownField(
+                                  value: selectedWorkType,
+                                  items: workTypes,
+                                  hint: 'Work Type',
+                                  onChanged: (value) => setState(() => selectedWorkType = value),
+                                  errorText: _errors['work_type'],
+                                  isRequired: true,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Step 3: Task Timeline
+                      Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Timeline',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                Text(
+                                  'Define the duration and start date',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                SizedBox(height: 16),
+                                _buildDropdownField(
+                                  value: selectedScope,
+                                  items: scopes,
+                                  hint: 'Scope of Work',
+                                  onChanged: (value) => setState(() => selectedScope = value),
+                                  errorText: _errors['scope'],
+                                  isRequired: true,
+                                ),
+                                SizedBox(height: 16),
+                                GestureDetector(
+                                  onTap: _selectDateTime,
+                                  child: AbsorbPointer(
+                                    child: _buildTextField(
+                                      controller: controller.jobStartDateController,
+                                      label: 'Start Date',
+                                      hint: 'Select start date and time',
+                                      errorText: _errors['start_date'],
+                                      isRequired: true,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Step 4: Budget & Urgency
+                      Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Budget & Urgency',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                Text(
+                                  'Set the price and urgency level',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                SizedBox(height: 16),
+                                _buildTextField(
+                                  controller: controller.contactPriceController,
+                                  label: 'Fixed Price',
+                                  hint: 'Enter price',
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                  errorText: _errors['contact_price'],
+                                  isRequired: true,
+                                ),
+                                SizedBox(height: 16),
+                                _buildDropdownField(
+                                  value: selectedUrgency,
+                                  items: urgency,
+                                  hint: 'Urgency',
+                                  onChanged: (value) => setState(() => selectedUrgency = value),
+                                  errorText: _errors['urgency'],
+                                  isRequired: true,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Step 5: Additional Info
+                      Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Additional Info',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                Text(
+                                  'Update optional remarks and photos',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                SizedBox(height: 16),
+                                _buildTextField(
+                                  controller: controller.jobRemarksController,
+                                  label: 'Remarks',
+                                  hint: 'Additional notes...',
+                                  maxLines: 3,
+                                ),
+                                SizedBox(height: 16),
+                                _buildPhotoField(),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+                Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (_currentStep > 0)
+                        ElevatedButton(
+                          onPressed: () {
+                            _pageController.previousPage(
+                              duration: Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey[300],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            'Back',
+                            style: GoogleFonts.poppins(
+                              color: Colors.black,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      Spacer(),
+                      if (_currentStep == 4)
+                        TextButton(
+                          onPressed: () {
+                            _updateJob();
+                            
+                          },
+                          child: Text(
+                            'Skip & Preview',
+                            style: GoogleFonts.poppins(
+                              color: Colors.grey[600],
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ElevatedButton(
+                        onPressed: () {
+                          if (!_showButton) {
+                            _showWarningDialog();
+                            return;
+                          }
+                          if (_currentStep < 4) {
+                            if (_validateStep(_currentStep)) {
+                              _pageController.nextPage(
+                                duration: Duration(milliseconds: 300),
+                                curve: Curves.easeInOut,
+                              );
+                            }
+                          } else {
+                            if (_validateStep(_currentStep)) {
+                              _updateJob();
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFFB71A4A),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          disabledBackgroundColor: Colors.grey[400],
+                        ),
+                        child: Text(
+                          _currentStep == 4 ? 'Preview' : 'Save & Continue',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              ],
             ),
     );
   }

@@ -58,21 +58,15 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
       debugPrint("Response: $response");
 
       // Check if task is assigned
-      if (response != null) {
-        final TaskModel taskModel = response as TaskModel;
-        final isAssigned =
-            await _jobPostService.isTaskAssigned(taskModel.id, widget.taskId);
-        setState(() {
-          _taskInformation = taskModel;
-          _isAssigned = isAssigned;
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
+      final TaskModel taskModel = response as TaskModel;
+      final isAssigned =
+          await _jobPostService.isTaskAssigned(taskModel.id, widget.taskId);
+      setState(() {
+        _taskInformation = taskModel;
+        _isAssigned = isAssigned;
+        _isLoading = false;
+      });
+        } catch (e) {
       debugPrint("Error fetching task details: $e");
       setState(() {
         _isLoading = false;
@@ -174,7 +168,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Text(
-                                        task.status.toUpperCase(),
+                                        task.status?.toUpperCase() ?? "",
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,

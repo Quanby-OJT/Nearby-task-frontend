@@ -114,38 +114,15 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
               }
             }
 
-            // Set bio if available in user model first, then check tasker model
+            // Set bio if available in user model
             if (authUser.user.bio != null && authUser.user.bio!.isNotEmpty) {
               _bioController.text = authUser.user.bio!;
-            } else if (authUser.tasker != null &&
-                authUser.tasker!.bio.isNotEmpty) {
-              _bioController.text = authUser.tasker!.bio;
             }
 
-            // Set social media links if available in user model first, then check tasker model
+            // Set social media links if available in user model
             if (authUser.user.socialMediaLinks != null &&
                 authUser.user.socialMediaLinks!.isNotEmpty) {
               final socialLinks = authUser.user.socialMediaLinks!;
-
-              if (socialLinks.containsKey('facebook')) {
-                _facebookController.text = socialLinks['facebook']!;
-              }
-
-              if (socialLinks.containsKey('instagram')) {
-                _instagramController.text = socialLinks['instagram']!;
-              }
-
-              if (socialLinks.containsKey('linkedin')) {
-                _linkedinController.text = socialLinks['linkedin']!;
-              }
-
-              if (socialLinks.containsKey('twitter')) {
-                _twitterController.text = socialLinks['twitter']!;
-              }
-            } else if (authUser.tasker != null &&
-                authUser.tasker!.socialMediaLinks != null &&
-                authUser.tasker!.socialMediaLinks!.isNotEmpty) {
-              final socialLinks = authUser.tasker!.socialMediaLinks!;
 
               if (socialLinks.containsKey('facebook')) {
                 _facebookController.text = socialLinks['facebook']!;

@@ -67,8 +67,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         specialization =
             _specializations.map((spec) => spec.specialization).toList();
-        _userController.specializationController.text =
-            _user?.tasker?.specialization ?? '';
+        _userController.specializationController.text = _user?.user.bio ?? '';
       });
     } catch (error) {
       print('Error fetching specializations: $error');
@@ -84,67 +83,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _user = user;
         _isLoading = false;
-        taskerId = _user?.tasker?.id ?? 0;
+        taskerId = _user?.user.id ?? 0;
         _userController.emailController.text = _user?.user.email ?? '';
         _userController.birthdateController.text = _user?.user.birthdate ?? '';
-        _userController.prefsController.text = _user?.client?.preferences ?? '';
-        _userController.clientAddressController.text =
-            _user?.client?.clientAddress ?? '';
-        _userController.bioController.text = _user?.tasker?.bio ?? '';
-        _userController.specializationController.text =
-            _user?.tasker?.specialization ?? '';
-        _userController.skillsController.text = _user?.tasker?.skills ?? '';
-        _userController.availabilityController.text =
-            _user?.tasker?.availability == true
-                ? "I am available"
-                : "I am not available";
+        _userController.prefsController.text = '';
+        _userController.clientAddressController.text = '';
+        _userController.bioController.text = _user?.user.bio ?? '';
+        _userController.specializationController.text = '';
+        _userController.skillsController.text = '';
+        _userController.availabilityController.text = "I am available";
 
-        _userController.payPeriodController.text =
-            _user?.tasker?.payPeriod ?? '';
+        _userController.payPeriodController.text = '';
         _userController.genderController.text = _user?.user.gender ?? '';
         _userController.contactNumberController.text =
             _user?.user.contact.toString() ?? '';
         _userController.fbLinkController.text =
-            _user?.tasker?.socialMediaLinks?['fb'] ?? '';
+            _user?.user.socialMediaLinks?['fb'] ?? '';
         _userController.instaLinkController.text =
-            _user?.tasker?.socialMediaLinks?['ig'] ?? '';
+            _user?.user.socialMediaLinks?['ig'] ?? '';
         _userController.telegramLinkController.text =
-            _user?.tasker?.socialMediaLinks?['tg'] ?? '';
-        if (_user?.tasker?.taskerDocuments != null) {
-          debugPrint("Tasker Documents: ${_user!.tasker!.taskerDocuments}");
-          tesdaDocuments = [
-            _user!.tasker!.taskerDocuments!
-          ]; // Store as String (URL)
-        }
+            _user?.user.socialMediaLinks?['tg'] ?? '';
+        tesdaDocuments = [];
 
-        if (_user?.tasker?.wage != null) {
-          final currencyFormat =
-              NumberFormat.currency(locale: 'en_PH', symbol: '₱');
-          _userController.wageController.text =
-              currencyFormat.format(_user!.tasker!.wage);
-        } else {
-          _userController.wageController.text = '';
-        }
+        _userController.wageController.text = '';
+
         _userController.genderController.text = _user?.user.gender ?? '';
         _userController.fbLinkController.text =
-            _user?.tasker?.socialMediaLinks?["fb"] ?? '';
+            _user?.user.socialMediaLinks?["fb"] ?? '';
         _userController.instaLinkController.text =
-            _user?.tasker?.socialMediaLinks?["ig"] ?? '';
+            _user?.user.socialMediaLinks?["ig"] ?? '';
         _userController.telegramLinkController.text =
-            _user?.tasker?.socialMediaLinks?["tg"] ?? '';
+            _user?.user.socialMediaLinks?["tg"] ?? '';
 
-        _userController.streetAddressController.text =
-            _user?.tasker?.address?['street_address'] ?? '';
-        _userController.barangayController.text =
-            _user?.tasker?.address?['barangay'] ?? '';
-        _userController.cityController.text =
-            _user?.tasker?.address?['city'] ?? '';
-        _userController.provinceController.text =
-            _user?.tasker?.address?['province'] ?? '';
-        _userController.postalCodeController.text =
-            _user?.tasker?.address?['postal_code'] ?? '';
-        _userController.countryController.text =
-            _user?.tasker?.address?['country'] ?? '';
+        _userController.streetAddressController.text = '';
+        _userController.barangayController.text = '';
+        _userController.cityController.text = '';
+        _userController.provinceController.text = '';
+        _userController.postalCodeController.text = '';
+        _userController.countryController.text = '';
       });
     } catch (e) {
       print("Error fetching user data: $e");
