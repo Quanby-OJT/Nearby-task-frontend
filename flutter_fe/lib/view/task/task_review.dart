@@ -228,7 +228,6 @@ class _TaskReviewState extends State<TaskReview> {
                 bool updateResult = await taskController.updateClientTask(
                     _requestInformation?.task_id ?? 0, value);
 
-                debugPrint("Update result: $updateResult");
                 if (updateResult) {
                   Navigator.pop(context);
                   Navigator.pushReplacement(
