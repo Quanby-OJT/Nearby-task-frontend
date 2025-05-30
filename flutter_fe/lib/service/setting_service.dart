@@ -11,6 +11,82 @@ class SettingService {
   static String url = apiUrl ?? "https://localhost:5000";
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
+
+  Future<Map<String, dynamic>> _deleteRequest(String endpoint) async {
+    final token = await AuthService.getSessionToken();
+    debugPrint("Deleting address on URL: $url$endpoint");
+    final response = await http.delete(
+      Uri.parse("$url$endpoint"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Content-Type": "application/json"
+      },
+    );
+    return _handleResponse(response);
+  }
+
+  Future<Map<String, dynamic>> _putRequest({required String endpoint, required Map<String, dynamic> body}) async {
+    final token = await AuthService.getSessionToken();
+    debugPrint(body.toString());
+    try {
+      final response = await http.put(
+        Uri.parse('$url$endpoint'),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+        body: jsonEncode(body),
+      );
+      return _handleResponse(response);
+    } catch (e, stackTrace) {
+      debugPrint(e.toString());
+      debugPrint(stackTrace.toString());
+      return {"error": "Request failed. Please Try Again."};
+    }
+  }
+
+  Future<Map<String, dynamic>> _getRequest(String endpoint) async {
+    debugPrint("Current Session: ${await storage.read('session')}");
+    final token = await AuthService.getSessionToken();
+    try {
+      final response = await http.get(
+        Uri.parse('$url$endpoint'),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+      );
+      print("API Response for $endpoint: ${response.body}");
+      return _handleResponse(response);
+    } catch (e, stackTrace) {
+      debugPrint(e.toString());
+      debugPrint(stackTrace.toString());
+      return {"error": "Request failed: $e"};
+    }
+  }
+
+  Map<String, dynamic> _handleResponse(http.Response response) {
+    debugPrint(response.body.toString());
+    final responseBody = jsonDecode(response.body);
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      debugPrint(responseBody.toString());
+      // Ensure the response includes a success flag
+      Map<String, dynamic> result = {...responseBody};
+      // If the response doesn't have a 'success' key, add it
+      if (!result.containsKey('success')) {
+        result['success'] = true;
+      }
+      return result;
+    } else {
+      // Return error with success flag set to false
+      return {
+        "success": false,
+        "error": responseBody["error"] ?? "Unknown error",
+        "message": responseBody["message"] ?? "Failed to process request"
+      };
+    }
+  }
+
   Future setLocation(
     int userId,
     double latitude,
@@ -20,22 +96,16 @@ class SettingService {
   ) async {
     debugPrint('Setting location: $latitude, $longitude, $city, $province');
     final token = await AuthService.getSessionToken();
-    final response = await _client.put(
-      Uri.parse('$url/set-location/$userId'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: json.encode({
+    final response = await _putRequest(
+      endpoint: '/set-location/$userId',
+      body: {
         'latitude': latitude,
         'longitude': longitude,
         'city': city,
         'province': province
-      }),
+      }
     );
-    debugPrint('Response Status Code: ${response.statusCode}');
-    debugPrint('Response Body: ${response.body}');
-    if (response.statusCode == 200) {
+    if (response.containsKey('message')) {
       debugPrint('Location set successfully');
       return "true";
     } else {
@@ -47,24 +117,13 @@ class SettingService {
   Future<SettingModel> getLocation(int userId) async {
     debugPrint('Getting location for user ID: $userId');
     final token = await AuthService.getSessionToken();
-    final response = await _client.get(
-      Uri.parse('$url/get-location/$userId'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
+    final response = await _getRequest('/get-location/$userId');
 
-    debugPrint('Response Status Code: ${response.statusCode}');
-    debugPrint('Response Body: ${response.body}');
-
-    if (response.statusCode == 200) {
+    if (response.containsKey('message')) {
       debugPrint('Location retrieved successfully');
-      final responseData = json.decode(response.body);
 
-      if (responseData is Map<String, dynamic> &&
-          responseData.containsKey('data')) {
-        final data = responseData['data'];
+      if (response.containsKey('data')) {
+        final data = response['data'];
 
         if (data is List && data.isNotEmpty) {
           return SettingModel.fromJson(data[0]);
@@ -73,9 +132,8 @@ class SettingService {
         }
       }
 
-      if (responseData is Map<String, dynamic> &&
-          responseData.containsKey('message')) {
-        final String message = responseData['message'] ?? '';
+      if (response.containsKey('message')) {
+        final String message = response['message'] ?? '';
         if (message.contains('[{')) {
           final dataStartIndex = message.indexOf('[{');
           final dataJson = message.substring(dataStartIndex);
@@ -94,12 +152,12 @@ class SettingService {
       debugPrint(
           'No valid location data found, returning default SettingModel');
       return SettingModel();
-    } else if (response.statusCode == 404) {
+    } else if (response.containsKey('error')) {
       debugPrint('Location not found for user ID: $userId');
       return SettingModel();
     } else {
-      debugPrint('Failed to retrieve location: ${response.statusCode}');
-      throw Exception('Failed to retrieve location: ${response.statusCode}');
+      debugPrint('Failed to retrieve location: ${response['error']}');
+      return SettingModel();
     }
   }
 
@@ -158,36 +216,54 @@ class SettingService {
   }
 
   Future<List<AddressModel>> getAddresses(int userId) async {
-    debugPrint('Getting addresses for user ID: $userId');
-    final token = await AuthService.getSessionToken();
-    final response = await _client.get(
-      Uri.parse('$url/get-addresses/$userId'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
+    // debugPrint('Getting addresses for user ID: $userId');
+    // final token = await AuthService.getSessionToken();
+    // final response = await _client.get(
+    //   Uri.parse('$url/get-addresses/$userId'),
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'Authorization': 'Bearer $token',
+    //   },
+    // );
+    //
+    // debugPrint('Response Status Code of addresses: ${response.statusCode}');
+    // debugPrint('Response Body: ${response.body}');
+    //
+    // if (response.statusCode == 200) {
+    //   final responseData = json.decode(response.body);
+    //   if (responseData is Map<String, dynamic> &&
+    //       responseData['data'] != null) {
+    //     final addressData = responseData['data']['address'] as List<dynamic>?;
+    //     if (addressData != null && addressData.isNotEmpty) {
+    //       return addressData
+    //           .map((addressJson) =>
+    //               AddressModel.fromJson(addressJson as Map<String, dynamic>))
+    //           .toList();
+    //     }
+    //   }
+    //   debugPrint('No addresses found in response');
+    //   return [];
+    // } else {
+    //   debugPrint('Failed to retrieve addresses: ${response.statusCode}');
+    //   throw Exception('Failed to retrieve addresses: ${response.statusCode}');
+    // }
 
-    debugPrint('Response Status Code of addresses: ${response.statusCode}');
-    debugPrint('Response Body: ${response.body}');
+    final response = await _getRequest('/get-addresses/$userId');
 
-    if (response.statusCode == 200) {
-      final responseData = json.decode(response.body);
-      if (responseData is Map<String, dynamic> &&
-          responseData['data'] != null) {
-        final addressData = responseData['data']['address'] as List<dynamic>?;
-        if (addressData != null && addressData.isNotEmpty) {
-          return addressData
-              .map((addressJson) =>
-                  AddressModel.fromJson(addressJson as Map<String, dynamic>))
-              .toList();
-        }
+    if (response.containsKey('data') && response['data'] != null) {
+      final addressData = response['data']['address'] as List<dynamic>?;
+      if (addressData != null && addressData.isNotEmpty) {
+        return addressData
+            .map((addressJson) =>
+                AddressModel.fromJson(addressJson as Map<String, dynamic>))
+            .toList();
+      }else{
+        debugPrint('No addresses found in response');
+        return [];
       }
+    } else {
       debugPrint('No addresses found in response');
       return [];
-    } else {
-      debugPrint('Failed to retrieve addresses: ${response.statusCode}');
-      throw Exception('Failed to retrieve addresses: ${response.statusCode}');
     }
   }
 
@@ -208,36 +284,110 @@ class SettingService {
         'formattedAddress=$formattedAddress, region=$region, province=$province, '
         'city=$city, barangay=$barangay, street=$street, postalCode=$postalCode, country=$country');
 
+    //This is a far more efficient code where it will only call putRequest at once.
+    final response = await _putRequest(endpoint: '/set-address/$userId', body: {
+      'latitude': latitude,
+      'longitude': longitude,
+      'formatted_Address': formattedAddress,
+      'region': region,
+      'province': province,
+      'city': city,
+      'barangay': barangay,
+      'street': street,
+      'postal_code': postalCode,
+      'country': country,
+    });
+
+    if(response.containsKey('message')){
+      debugPrint('Address set successfully');
+      return "true";
+    }else{
+      debugPrint('Failed to set address');
+      return "false";
+    }
+  }
+
+  Future<bool> setDefaultAddress(int userId, String addressId) async {
+    final response = await _putRequest(endpoint: '/set-default-address/$userId', body: {
+      'address_id': addressId,
+    });
+
+    if (response.containsKey('message')) {
+      debugPrint('Default address set successfully');
+      return true;
+    } else {
+      debugPrint('Failed to set default address');
+      return false;
+    }
+  }
+
+  Future updateAddress(
+    int userId,
+    double latitude,
+    double longitude,
+    String formattedAddress,
+    String region,
+    String province,
+    String city,
+    String barangay,
+    String street,
+    String postalCode,
+    String country,
+  ) async {
+    debugPrint('Setting address: latitude=$latitude, longitude=$longitude, '
+        'formattedAddress=$formattedAddress, region=$region, province=$province, '
+        'city=$city, barangay=$barangay, street=$street, postalCode=$postalCode, country=$country');
+
     final token = await AuthService.getSessionToken();
-    final response = await _client.put(
-      Uri.parse('$url/set-address/$userId'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: json.encode({
-        'latitude': latitude,
-        'longitude': longitude,
-        'formatted_Address': formattedAddress,
-        'region': region,
-        'province': province,
-        'city': city,
-        'barangay': barangay,
-        'street': street,
-        'postal_code': postalCode,
-        'country': country,
-      }),
-    );
+    // final response = await _client.put(
+    //   Uri.parse('$url/set-address/$userId'),
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'Authorization': 'Bearer $token',
+    //   },
+    //   body: json.encode({
+    //     'latitude': latitude,
+    //     'longitude': longitude,
+    //     'formatted_Address': formattedAddress,
+    //     'region': region,
+    //     'province': province,
+    //     'city': city,
+    //     'barangay': barangay,
+    //     'street': street,
+    //     'postal_code': postalCode,
+    //     'country': country,
+    //   }),
+    // );
 
-    debugPrint('Response Status Code: ${response.statusCode}');
-    debugPrint('Response Body: ${response.body}');
+    final response = await _putRequest(endpoint: '/update-address/$userId', body: {
+      'latitude': latitude,
+      'longitude': longitude,
+      'formatted_Address': formattedAddress,
+      'region': region,
+      'province': province,
+      'city': city,
+      'barangay': barangay,
+      'street': street,
+      'postal_code': postalCode,
+      'country': country,
+    });
 
-    if (response.statusCode == 200) {
+    if (response.containsKey('message')) {
       debugPrint('Address set successfully');
       return "true";
     } else {
-      debugPrint('Failed to set address: ${response.body}');
-      throw Exception('Failed to set address: ${response.statusCode}');
+      return "false";
+    }
+  }
+
+  Future deleteAddress(String addressID) async {
+    final response = await _deleteRequest('/delete-address/$addressID');
+
+    if (response.containsKey('message')) {
+      debugPrint('Address deleted successfully');
+      return "true";
+    } else {
+      debugPrint('Failed to delete address');
     }
   }
 }
