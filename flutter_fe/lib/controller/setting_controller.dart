@@ -82,6 +82,7 @@ class SettingController {
     String street,
     String postalCode,
     String country,
+    String remarks,
   ) async {
     final userId = storage.read('user_id');
 
@@ -102,6 +103,51 @@ class SettingController {
       street,
       postalCode,
       country,
+      remarks,
     );
+  }
+
+  Future updateAddress(
+    String addressId,
+    double latitude,
+    double longitude,
+    String formattedAddress,
+    String region,
+    String province,
+    String city,
+    String barangay,
+    String street,
+    String postalCode,
+    String country,
+    String remarks,
+  ) async {
+    try {
+      return settingService.updateAddress(
+        addressId,
+        latitude,
+        longitude,
+        formattedAddress,
+        region,
+        province,
+        city,
+        barangay,
+        street,
+        postalCode,
+        country,
+        remarks,
+      );
+    } catch (e) {
+      debugPrint('Error updating address: $e');
+      throw Exception('Failed to update address. Please try again.');
+    }
+  }
+
+  Future<dynamic> deleteAddress(String addressId) async {
+    try {
+      return settingService.deleteAddress(addressId);
+    } catch (e) {
+      debugPrint('Error deleting address: $e');
+      throw Exception('Failed to delete address. Please try again.');
+    }
   }
 }

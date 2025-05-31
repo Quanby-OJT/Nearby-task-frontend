@@ -822,26 +822,15 @@ class _TaskOngoingState extends State<TaskOngoing> {
                       rejectionReason: selectedReason,
                     );
                     if (result) {
-                      bool updateResult = await taskController.updateClientTask(
-                          _requestInformation?.task_id ?? 0, value);
-
-                      debugPrint("Update result: $updateResult");
-                      if (updateResult) {
-                        if (!mounted) return;
-                        Navigator.pop(context, true);
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => TaskReview(
-                              taskInformation: widget.taskInformation,
-                            ),
+                      Navigator.pop(context, true);
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TaskReview(
+                            taskInformation: widget.taskInformation,
                           ),
-                        );
-                      } else {
-                        CustomScaffold(
-                            message: 'Failed to accept task',
-                            color: Colors.red);
-                      }
+                        ),
+                      );
                     } else {
                       Navigator.pop(context, false);
                       setState(() {
@@ -981,26 +970,15 @@ class _TaskOngoingState extends State<TaskOngoing> {
                       rejectionReason: selectedReason,
                     );
                     if (result) {
-                      if (!mounted) return;
-                      bool updateResult = await taskController.updateClientTask(
-                          _requestInformation?.task_id ?? 0, value);
-
-                      debugPrint("Update result: $updateResult");
-                      if (updateResult) {
-                        Navigator.pop(context, true);
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => UserFeedback(
-                              taskInformation: widget.taskInformation,
-                            ),
+                      Navigator.pop(context, true);
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UserFeedback(
+                            taskInformation: widget.taskInformation,
                           ),
-                        );
-                      } else {
-                        CustomScaffold(
-                            message: 'Failed to accept task',
-                            color: Colors.red);
-                      }
+                        ),
+                      );
                     } else {
                       Navigator.pop(context, false);
                       setState(() {

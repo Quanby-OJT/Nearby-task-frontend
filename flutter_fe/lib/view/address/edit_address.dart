@@ -10,16 +10,15 @@ import 'package:get_storage/get_storage.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 
-class Address extends StatefulWidget {
-  final Function(AddressModel)? onAddressSelected;
-
-  const Address({super.key, this.onAddressSelected});
+class EditAddress extends StatefulWidget {
+  final AddressModel address;
+  const EditAddress({super.key, required this.address});
 
   @override
-  State<Address> createState() => _AddressState();
+  State<EditAddress> createState() => _EditAddressState();
 }
 
-class _AddressState extends State<Address> {
+class _EditAddressState extends State<EditAddress> {
   final _locationService = PhilippineLocationService();
   final SettingController _settingController = SettingController();
 
@@ -53,67 +52,21 @@ class _AddressState extends State<Address> {
       TextEditingController();
   final TextEditingController _postalCodeController = TextEditingController();
   final TextEditingController _remarksController = TextEditingController();
-
   // Storage
   final storage = GetStorage();
 
   @override
   void initState() {
     super.initState();
+    // Pre-populate fields from the provided AddressModel
+    _streetAddressController.text = widget.address.streetAddress;
+    _postalCodeController.text = widget.address.postalCode;
+    selectedAddress = widget.address.formattedAddress ?? '';
+    _markerPosition = widget.address.getLatLng();
+    _mapInitialized = _markerPosition != null;
+    _finalLocationData = widget.address.toJson();
+    _remarksController.text = widget.address.remarks ?? '';
     _loadRegions();
-  }
-
-  Future<void> _autoSelectAddress(Placemark placemark) async {
-    try {
-      // Match region
-      final regionName = placemark.administrativeArea ?? '';
-      if (_regions.isNotEmpty) {
-        _selectedRegion = _regions.firstWhere(
-          (region) =>
-              _locationService.getRegionDisplayName(region).toLowerCase() ==
-              regionName.toLowerCase(),
-          orElse: () => _regions.first,
-        );
-        await _loadProvinces(_selectedRegion!['code']);
-
-        // Match province
-        if (_provinces.isNotEmpty && placemark.subAdministrativeArea != null) {
-          _selectedProvince = _provinces.firstWhere(
-            (province) =>
-                province['name'].toLowerCase() ==
-                placemark.subAdministrativeArea!.toLowerCase(),
-            orElse: () => _provinces.first,
-          );
-          await _loadCities(_selectedProvince!['code']);
-
-          // Match city
-          if (_cities.isNotEmpty && placemark.locality != null) {
-            _selectedCity = _cities.firstWhere(
-              (city) =>
-                  city['name'].toLowerCase() ==
-                  placemark.locality!.toLowerCase(),
-              orElse: () => _cities.first,
-            );
-            await _loadBarangays(_selectedCity!['code']);
-
-            // Match barangay
-            if (_barangays.isNotEmpty && placemark.subLocality != null) {
-              _selectedBarangay = _barangays.firstWhere(
-                (barangay) =>
-                    barangay['name'].toLowerCase() ==
-                    placemark.subLocality!.toLowerCase(),
-                orElse: () => _barangays.first,
-              );
-              _streetAddressController.text = placemark.street ?? '';
-              _postalCodeController.text = placemark.postalCode ?? '';
-              await _updateCoordinates();
-            }
-          }
-        }
-      }
-    } catch (e) {
-      print('Error auto-selecting address: ${e.toString()}');
-    }
   }
 
   Future<void> _loadRegions() async {
@@ -123,6 +76,15 @@ class _AddressState extends State<Address> {
       setState(() {
         _regions = regions;
         _isLoadingRegions = false;
+        if (widget.address.regionName != null) {
+          _selectedRegion = _regions.firstWhere(
+            (region) =>
+                _locationService.getRegionDisplayName(region) ==
+                widget.address.regionName,
+            orElse: () => _regions.first,
+          );
+          _loadProvinces(_selectedRegion!['code']);
+        }
       });
     } catch (e) {
       setState(() => _isLoadingRegions = false);
@@ -148,11 +110,12 @@ class _AddressState extends State<Address> {
       setState(() {
         _provinces = provinces;
         _isLoadingProvinces = false;
+        _selectedProvince = _provinces.firstWhere(
+          (province) => province['name'] == widget.address.province,
+          orElse: () => _provinces.first,
+        );
+        _loadCities(_selectedProvince!['code']);
       });
-      if (_provinces.isNotEmpty && _selectedProvince == null) {
-        _selectedProvince = _provinces.first;
-        await _loadCities(_selectedProvince!['code']);
-      }
     } catch (e) {
       setState(() => _isLoadingProvinces = false);
       _showError('Failed to load provinces: ${e.toString()}');
@@ -175,11 +138,12 @@ class _AddressState extends State<Address> {
       setState(() {
         _cities = cities;
         _isLoadingCities = false;
+        _selectedCity = _cities.firstWhere(
+          (city) => city['name'] == widget.address.city,
+          orElse: () => _cities.first,
+        );
+        _loadBarangays(_selectedCity!['code']);
       });
-      if (_cities.isNotEmpty && _selectedCity == null) {
-        _selectedCity = _cities.first;
-        await _loadBarangays(_selectedCity!['code']);
-      }
     } catch (e) {
       setState(() => _isLoadingCities = false);
       _showError('Failed to load cities: ${e.toString()}');
@@ -200,11 +164,14 @@ class _AddressState extends State<Address> {
       setState(() {
         _barangays = barangays;
         _isLoadingBarangays = false;
+        if (widget.address.barangay != null) {
+          _selectedBarangay = _barangays.firstWhere(
+            (barangay) => barangay['name'] == widget.address.barangay,
+            orElse: () => _barangays.first,
+          );
+          _updateCoordinates();
+        }
       });
-      if (_barangays.isNotEmpty && _selectedBarangay == null) {
-        _selectedBarangay = _barangays.first;
-        await _updateCoordinates();
-      }
     } catch (e) {
       setState(() => _isLoadingBarangays = false);
       _showError('Failed to load barangays: ${e.toString()}');
@@ -224,24 +191,33 @@ class _AddressState extends State<Address> {
       double latitude = 14.5995; // Default to Manila
       double longitude = 120.9842;
 
-      final address = '${_selectedBarangay!['name']}, '
-          '${_selectedCity!['name']}, '
-          '${_selectedProvince!['name']}, '
-          '${_locationService.getRegionDisplayName(_selectedRegion!)}, Philippines';
+      // Use existing coordinates if available and still valid
+      if (widget.address.latitude != null &&
+          widget.address.longitude != null &&
+          _isAddressUnchanged()) {
+        latitude = widget.address.latitude!;
+        longitude = widget.address.longitude!;
+      } else {
+        // Geocode the address
+        final address = '${_selectedBarangay!['name']}, '
+            '${_selectedCity!['name']}, '
+            '${_selectedProvince!['name']}, '
+            '${_locationService.getRegionDisplayName(_selectedRegion!)}, Philippines';
 
-      print('Geocoding address: $address');
-      try {
-        final locations = await locationFromAddress(address);
-        if (locations.isNotEmpty) {
-          final location = locations.first;
-          latitude = location.latitude;
-          longitude = location.longitude;
-          print('Found coordinates: $latitude, $longitude');
-        } else {
-          print('No coordinates found for address');
+        print('Geocoding address: $address');
+        try {
+          final locations = await locationFromAddress(address);
+          if (locations.isNotEmpty) {
+            final location = locations.first;
+            latitude = location.latitude;
+            longitude = location.longitude;
+            print('Found coordinates: $latitude, $longitude');
+          } else {
+            print('No coordinates found for address');
+          }
+        } catch (e) {
+          print('Error geocoding address: ${e.toString()}');
         }
-      } catch (e) {
-        print('Error geocoding address: ${e.toString()}');
       }
 
       final newPosition = LatLng(latitude, longitude);
@@ -251,6 +227,7 @@ class _AddressState extends State<Address> {
         _mapInitialized = true;
       });
 
+      // Update map camera position
       if (_mapController != null) {
         _mapController!.animateCamera(
           CameraUpdate.newCameraPosition(
@@ -267,13 +244,63 @@ class _AddressState extends State<Address> {
     }
   }
 
+  bool _isAddressUnchanged() {
+    return widget.address.barangay == _selectedBarangay?['name'] &&
+        widget.address.city == _selectedCity?['name'] &&
+        widget.address.province == _selectedProvince?['name'] &&
+        widget.address.regionName ==
+            _locationService.getRegionDisplayName(_selectedRegion!);
+  }
+
+  Future<void> _getCurrentLocation() async {
+    setState(() => _isLoadingMap = true);
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          setState(() => _isLoadingMap = false);
+          _showError('Location permissions are denied');
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        setState(() => _isLoadingMap = false);
+        _showError('Location permissions are permanently denied');
+        return;
+      }
+
+      Position position = await Geolocator.getCurrentPosition();
+      setState(() {
+        _markerPosition = LatLng(position.latitude, position.longitude);
+        _isLoadingMap = false;
+        _mapInitialized = true;
+      });
+
+      if (_mapController != null) {
+        _mapController!.animateCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: _markerPosition!,
+              zoom: 15,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _isLoadingMap = false);
+      _showError('Failed to get current location: ${e.toString()}');
+    }
+  }
+
   void _updateMarkerPosition(LatLng position) {
     setState(() {
       _markerPosition = position;
     });
   }
 
-  Future<void> _saveLocation() async {
+  Future<void> _updateLocation() async {
     if (_markerPosition == null) {
       _showError('Please select a location on the map');
       return;
@@ -305,6 +332,7 @@ class _AddressState extends State<Address> {
 
       setState(() {
         _finalLocationData = {
+          'id': widget.address.id,
           'latitude': _markerPosition!.latitude,
           'longitude': _markerPosition!.longitude,
           'formattedAddress': formattedAddress,
@@ -315,14 +343,15 @@ class _AddressState extends State<Address> {
           'street_address': _streetAddressController.text,
           'postal_code': _postalCodeController.text,
           'country': 'Philippines',
+          'default': widget.address.defaultAddress,
           'remarks': _remarksController.text,
-          'created_at': DateTime.now().toIso8601String(),
           'updated_at': DateTime.now().toIso8601String(),
         };
         _isLoadingMap = false;
       });
 
-      await _settingController.setAddress(
+      await _settingController.updateAddress(
+        widget.address.id as String,
         _markerPosition!.latitude,
         _markerPosition!.longitude,
         selectedAddress,
@@ -337,9 +366,6 @@ class _AddressState extends State<Address> {
       );
 
       final addressModel = AddressModel.fromMapData(_finalLocationData!);
-      if (widget.onAddressSelected != null) {
-        widget.onAddressSelected!(addressModel);
-      }
       Navigator.pop(context, addressModel);
     } catch (e) {
       setState(() => _isLoadingMap = false);
@@ -406,7 +432,7 @@ class _AddressState extends State<Address> {
       appBar: AppBar(
         centerTitle: true,
         title: Text(
-          'Add Address',
+          'Edit Address',
           style: GoogleFonts.poppins(
             color: const Color(0xFFB71A4A),
             fontSize: 20,
@@ -522,21 +548,22 @@ class _AddressState extends State<Address> {
                           ),
                           keyboardType: TextInputType.number,
                         ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _remarksController,
+                          decoration: InputDecoration(
+                            labelText: 'Remarks',
+                            hintText: 'Enter remarks',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey[100],
+                          ),
+                          onChanged: (value) => setState(() {}),
+                        ),
                       ],
                     ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _remarksController,
-                    decoration: InputDecoration(
-                      labelText: 'Remarks',
-                      hintText: 'Enter remarks',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[100],
-                    ),
-                  ),
                   const SizedBox(height: 16),
                   if (_selectedRegion != null &&
                       _selectedProvince != null &&
@@ -579,13 +606,15 @@ class _AddressState extends State<Address> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
-                                  'Pin Your Exact Location',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
+                                const Center(
+                                  child: Text(
+                                    'Pin Your Exact Location',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
                                   ),
-                                ),
+                                )
                               ],
                             ),
                           ),
@@ -656,7 +685,7 @@ class _AddressState extends State<Address> {
                       Expanded(
                         child: ElevatedButton(
                           onPressed:
-                              _markerPosition == null ? null : _saveLocation,
+                              _markerPosition == null ? null : _updateLocation,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFB71A4A),
                             shape: RoundedRectangleBorder(
@@ -665,7 +694,7 @@ class _AddressState extends State<Address> {
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
                           child: Text(
-                            'Save Location',
+                            'Save Changes',
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,

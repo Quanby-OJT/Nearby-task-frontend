@@ -11,7 +11,7 @@ class PreviewTask extends StatefulWidget {
   final String? selectedScope;
   final List<String> relatedSpecializations;
   final List<File> photos;
-  final Function() onSubmit; 
+  final Function() onSubmit;
 
   const PreviewTask({
     super.key,
@@ -38,8 +38,8 @@ class _PreviewTaskState extends State<PreviewTask> {
           title,
           style: GoogleFonts.poppins(
             fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFFB71A4A),
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
           ),
         ),
         const SizedBox(height: 8),
@@ -88,21 +88,42 @@ class _PreviewTaskState extends State<PreviewTask> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildPreviewSection('Task Basics', [
-              {'label': 'Title', 'value': widget.controller.jobTitleController.text},
-              {'label': 'Location', 'value': widget.controller.jobLocationController.text},
-              {'label': 'Description', 'value': widget.controller.jobDescriptionController.text},
+              {
+                'label': 'Title',
+                'value': widget.controller.jobTitleController.text
+              },
+              {
+                'label': 'Location',
+                'value': widget.controller.jobLocationController.text
+              },
+              {
+                'label': 'Description',
+                'value': widget.controller.jobDescriptionController.text
+              },
             ]),
             _buildPreviewSection('Task Details', [
-              {'label': 'Specialization', 'value': widget.selectedSpecialization},
-              {'label': 'Related Specializations', 'value': widget.relatedSpecializations.join(', ')},
+              {
+                'label': 'Specialization',
+                'value': widget.selectedSpecialization
+              },
+              {
+                'label': 'Related Specializations',
+                'value': widget.relatedSpecializations.join(', ')
+              },
               {'label': 'Work Type', 'value': widget.selectedWorkType},
             ]),
             _buildPreviewSection('Task Timeline', [
               {'label': 'Scope', 'value': widget.selectedScope},
-              {'label': 'Start Date', 'value': widget.controller.jobStartDateController.text},
+              {
+                'label': 'Start Date',
+                'value': widget.controller.jobStartDateController.text
+              },
             ]),
             _buildPreviewSection('Budget & Urgency', [
-              {'label': 'Price', 'value': widget.controller.contactPriceController.text},
+              {
+                'label': 'Price',
+                'value': widget.controller.contactPriceController.text
+              },
               {'label': 'Urgency', 'value': widget.selectedUrgency},
             ]),
             _buildPreviewSection('Additional Info', [

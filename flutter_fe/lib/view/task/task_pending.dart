@@ -4,6 +4,7 @@ import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/task/task_cancelled.dart';
 import 'package:flutter_fe/view/task/task_confirmed.dart';
+import 'package:flutter_fe/view/task/task_expired.dart';
 import 'package:flutter_fe/view/task/task_rejected.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -330,28 +331,15 @@ class _TaskPendingState extends State<TaskPending> {
                                       rejectionReason: newValue,
                                     );
                                     if (result) {
-                                      bool updateResult =
-                                          await taskController.updateClientTask(
-                                              _requestInformation?.task_id ?? 0,
-                                              value);
-
-                                      debugPrint(
-                                          "Update result: $updateResult");
-                                      if (updateResult) {
-                                        Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => TaskRejected(
-                                              taskInformation:
-                                                  widget.taskInformation,
-                                            ),
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => TaskRejected(
+                                            taskInformation:
+                                                widget.taskInformation,
                                           ),
-                                        );
-                                      } else {
-                                        CustomScaffold(
-                                            message: 'Failed to accept task',
-                                            color: Colors.red);
-                                      }
+                                        ),
+                                      );
                                     } else {
                                       Navigator.pop(context, false);
                                       setState(() {
@@ -670,6 +658,28 @@ class _TaskPendingState extends State<TaskPending> {
     );
   }
 
+  _setExpire() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final String value = 'Expired';
+    bool result = await taskController.acceptRequest(
+        _requestInformation?.task_taken_id ?? 0, value, _role ?? 'Unknown');
+    if (result) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TaskExpired(
+            taskInformation: widget.taskInformation,
+          ),
+        ),
+      );
+    } else {
+      CustomScaffold(message: 'Failed to accept task', color: Colors.red);
+    }
+  }
+
   Widget _buildStatusSection() {
     // Handle null cases
     if (_requestInformation?.created_at == null ||
@@ -813,6 +823,7 @@ class _TaskPendingState extends State<TaskPending> {
                           letterSpacing: 1.2,
                         ),
                       ),
+                      if (difference.isNegative) _setExpire(),
                     ],
                   ),
                 ),
@@ -1086,23 +1097,14 @@ class _TaskPendingState extends State<TaskPending> {
                     value,
                     _role ?? 'Unknown');
                 if (result) {
-                  bool updateResult = await taskController.updateClientTask(
-                      _requestInformation?.task_id ?? 0, value);
-
-                  debugPrint("Update result: $updateResult");
-                  if (updateResult) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => TaskConfirmed(
-                          taskInformation: widget.taskInformation,
-                        ),
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TaskConfirmed(
+                        taskInformation: widget.taskInformation,
                       ),
-                    );
-                  } else {
-                    CustomScaffold(
-                        message: 'Failed to accept task', color: Colors.red);
-                  }
+                    ),
+                  );
                 } else {
                   CustomScaffold(
                       message: 'Failed to accept task', color: Colors.red);
