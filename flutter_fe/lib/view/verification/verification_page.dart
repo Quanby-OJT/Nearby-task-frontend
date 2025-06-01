@@ -36,6 +36,7 @@ class _VerificationPageState extends State<VerificationPage> {
 
   // User information
   Map<String, dynamic> _userInfo = {};
+  String? _userRole;
 
   // Files
   File? _idImage;
@@ -71,9 +72,15 @@ class _VerificationPageState extends State<VerificationPage> {
   Future<void> _checkVerificationStatus() async {
     try {
       final userId = storage.read('user_id');
+      debugPrint('VerificationPage: Retrieved user_id from storage: $userId');
+      debugPrint('VerificationPage: user_id type: ${userId.runtimeType}');
+
       if (userId != null) {
-        final result = await ApiService.getTaskerVerificationStatus(
-            int.parse(userId.toString()));
+        final parsedUserId = int.parse(userId.toString());
+        debugPrint('VerificationPage: Parsed user_id: $parsedUserId');
+
+        final result =
+            await ApiService.getTaskerVerificationStatus(parsedUserId);
 
         debugPrint('Verification status check result: ${jsonEncode(result)}');
 
@@ -178,11 +185,33 @@ class _VerificationPageState extends State<VerificationPage> {
     try {
       // If we already have user info from verification data, skip this step
       if (_isGeneralInfoCompleted && _userInfo.isNotEmpty) {
+        debugPrint(
+            'VerificationPage: Skipping user data load - already have verification data');
         return;
       }
 
-      int userId = int.parse(storage.read('user_id').toString());
-      await _controller.getAuthenticatedUser(context, userId);
+      final userIdFromStorage = storage.read('user_id');
+      debugPrint(
+          'VerificationPage: _loadUserData - user_id from storage: $userIdFromStorage');
+      debugPrint(
+          'VerificationPage: _loadUserData - user_id type: ${userIdFromStorage.runtimeType}');
+
+      int userId = int.parse(userIdFromStorage.toString());
+      debugPrint('VerificationPage: _loadUserData - parsed user_id: $userId');
+
+      final user = await _controller.getAuthenticatedUser(context, userId);
+      debugPrint('VerificationPage: _loadUserData - received user: $user');
+
+      // Store user role for verification submission
+      if (user != null) {
+        setState(() {
+          _userRole = user.user.role;
+        });
+        debugPrint(
+            'VerificationPage: _loadUserData - set user role: $_userRole');
+      } else {
+        debugPrint('VerificationPage: _loadUserData - user is null!');
+      }
     } catch (error) {
       debugPrint('Error loading user data: $error');
       if (mounted) {
@@ -286,55 +315,39 @@ class _VerificationPageState extends State<VerificationPage> {
       // Get the current user ID
       final userId = int.parse(storage.read('user_id').toString());
 
-      // Prepare the verification data using the VerificationModel
-      final verificationData = VerificationModel(
-        userId: userId,
-        firstName: _userInfo['firstName'],
-        middleName: _userInfo['middleName'],
-        lastName: _userInfo['lastName'],
-        email: _userInfo['email'],
-        phone: _userInfo['phone'],
-        gender: _userInfo['gender'],
-        birthdate: _userInfo['birthdate'],
-        specialization: _userInfo['specialization'] ?? '',
-        specializationId: _userInfo['specializationId'],
-        payPeriod: _userInfo['payPeriod'] ?? 'Hourly',
-        wage: _userInfo['wage'] ?? 0.0,
-        socialMediaJson: _userInfo['socialMediaJson'],
-        idType: _idType,
-        status: _verificationStatus ?? 'pending',
-        verificationDate: DateTime.now().toIso8601String(),
-        bio: _userInfo['bio'],
-      );
+      // Prepare the complete verification data including all user information
+      final verificationData = {
+        // User basic information
+        "firstName": _userInfo['firstName'] ?? '',
+        "middleName": _userInfo['middleName'] ?? '',
+        "lastName": _userInfo['lastName'] ?? '',
+        "email": _userInfo['email'] ?? '',
+        "phone": _userInfo['phone'] ?? '',
+        "gender": _userInfo['gender'] ?? '',
+        "birthdate": _userInfo['birthdate'] ?? '',
+        "userRole": _userRole ?? 'tasker',
+
+        // Verification-specific data for user_verify table
+        "bio": _userInfo['bio'] ?? '',
+        "socialMediaJson": _userInfo['socialMediaJson'] ?? '{}',
+
+        // Update mode flag
+        "status": _verificationStatus,
+      };
 
       // Log the verification data for debugging
       debugPrint('VerificationPage: Submitting verification');
       debugPrint(
-          'VerificationPage: Verification data: ${verificationData.toJson()}');
-      debugPrint('VerificationPage: Is update mode: $_isUpdateMode');
+          'VerificationPage: Complete verification data: $verificationData');
 
-      // Submit verification using the appropriate method
-      Map<String, dynamic> result;
-
-      if (_isUpdateMode) {
-        // Update existing verification
-        result = await ApiService.submitTaskerVerificationWithNewTable(
-          userId,
-          verificationData.toJson(),
-          _idImage,
-          _selfieImage,
-          _documentFile,
-        );
-      } else {
-        // Submit new verification
-        result = await ApiService.submitTaskerVerificationWithNewTable(
-          userId,
-          verificationData.toJson(),
-          _idImage,
-          _selfieImage,
-          _documentFile,
-        );
-      }
+      // Submit verification using the unified method
+      final result = await ApiService.submitUserVerification(
+        userId,
+        verificationData,
+        _idImage,
+        _selfieImage,
+        _documentFile,
+      );
 
       // Hide loading indicator
       setState(() {

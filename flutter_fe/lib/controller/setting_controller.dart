@@ -8,8 +8,7 @@ class SettingController {
   final SettingService settingService = SettingService();
   GetStorage storage = GetStorage();
 
-  Future setLocation(
-      double latitude, double longitude, String city, String province) async {
+  Future setLocation(double latitude, double longitude, String city, String province) async {
     debugPrint('Setting location: $latitude, $longitude');
     final taskerId = storage.read('user_id');
 
@@ -46,8 +45,7 @@ class SettingController {
     return settingService.updateSpecialization(taskerId, specialization);
   }
 
-  Future<void> updateDistance(
-      double distance, RangeValues ageRange, bool showFurtherAway) async {
+  Future<void> updateDistance(double distance, RangeValues ageRange, bool showFurtherAway) async {
     final taskerId = storage.read('user_id');
 
     debugPrint('Updating distance: $distance, age range: $ageRange');
@@ -150,4 +148,14 @@ class SettingController {
       throw Exception('Failed to delete address. Please try again.');
     }
   }
+  
+  Future<bool> setDefaultAddress(String addressId) async {
+    final userId = storage.read('user_id');
+    if (userId == null) {
+      debugPrint('Error: user_id is null in storage');
+      throw Exception('User ID not found. Please login again.');
+    }
+    return settingService.setDefaultAddress(userId, addressId);
+  }
+
 }

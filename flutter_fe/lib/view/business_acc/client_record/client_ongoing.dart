@@ -192,9 +192,19 @@ class _ClientOngoingState extends State<ClientOngoing> {
                 ),
               ),
             ),
+            Center(
+              child: Text(
+                '* Required Fields',
+                style: GoogleFonts.montserrat(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFFD43D4D),
+                ),
+              ),
+            ),
             SizedBox(height: 16),
             Text(
-              'Reason for Dispute',
+              'Reason for Dispute *',
               style: GoogleFonts.montserrat(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -238,7 +248,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
             ),
             SizedBox(height: 16),
             Text(
-              'Details of the Dispute',
+              'Details of the Dispute *',
               style: GoogleFonts.montserrat(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,

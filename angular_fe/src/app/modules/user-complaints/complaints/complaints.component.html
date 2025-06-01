@@ -1,26 +1,17 @@
 <!-- Header showing the title -->
 <div class="mb-4 flex justify-between">
   <div class="inline-block">
-    <h3 class="text-foreground font-semibold">User Complaints</h3>
+    <h3 class="font-semibold font-poppins text-[#3C28CC] text-xl py-2">User Complaints</h3>
     <div class="text-muted-foreground space-x-1 text-xs font-medium">
-      <a href="" class="hover:text-primary"><strong>Dashboards > Dispute Management</strong></a>
-      <p>This is used for manage the complains made by the users in the application</p> 
+      <a href="" class=" text-sm font-poppins hover:text-[#3C28CC] py-2"><strong>Dashboards > Dispute Management</strong></a>
+      <p class=" py-2 text-sm font-poppins">This is used for manage the complains made by the users in the application</p> 
     </div>
   </div>
 </div>
 
-
 <div *ngIf="!isLoading" class="flex w-full max-w-[1440px] mx-auto flex-col pb-3">
   <div class="flex w-full space-x-3">
-    <div class="flex-1 min-w-[300px] w-[50%] max-h-[400px] p-6 overflow-auto box-border" (mouseenter)="stopAutoSwipe()" (mouseleave)="startAutoSwipe()">
-      <strong class="text-lg font-semibold">Client Complaints</strong>
-      <app-client-complaint (reportSelected)="openModal($event)"></app-client-complaint>
-    </div>
-
-    <div class="flex-1 min-w-[300px] w-[50%] max-h-[400px] p-6 overflow-auto box-border" (mouseenter)="stopAutoSwipe()" (mouseleave)="startAutoSwipe()">
-      <strong class="text-lg font-semibold">Tasker Complaints</strong>
-      <app-tasker-complaint (reportSelected)="openModal($event)"></app-tasker-complaint>
-    </div>
+    <app-report-card (reportSelected)="openModal($event)"></app-report-card>
   </div>
 </div>
 
@@ -73,7 +64,7 @@
           <tr>
             <th class="px-4 py-2 text-start min-w-[140px] lg:min-w-[300px] xl:min-w-[230px]">
               <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('reporterName')">
-                Reporter Name
+                Complainant
                 <span class="w-4 h-4">
                   <ng-container *ngIf="sortDirections['reporterName'] === 'asc'">
                     <span title="Ascending">▲</span>
@@ -87,8 +78,8 @@
                 </span>
               </div>
             </th>
-            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Violator Name</th>
-            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[200px]">Reporter Role</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Violator </th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[200px]"> Complainant Role</th>
             <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[180px]">Violator Role</th>
             <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[230px]">
               <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('createdAt')">
@@ -117,7 +108,7 @@
             <td class="px-4 py-3 text-start">{{ report.reporter.user_role }}</td>
             <td class="px-4 py-3 text-start">{{ report.violator.user_role }}</td>
             <td class="px-4 py-3 text-start">{{ report.created_at }}</td>
-            <td class="px-4 py-3 pl-10 text-start font-normal">
+            <td class="px-4 py-3 pl-2 text-start font-normal">
               <div class="flex items-center gap-2.5 font-['Arial']">
                 <div class="h-2.5 w-2.5 rounded-full" [ngClass]="report.status ? 'bg-green-500' : 'bg-yellow-500'"></div>
                 <span class="text-sm text-black">{{ report.status ? 'Processed' : 'Pending' }}</span>
@@ -221,7 +212,7 @@
           <tr>
             <th class="px-4 py-2 text-start min-w-[140px] lg:min-w-[300px] xl:min-w-[230px]">
               <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('reporterName')">
-                Reporter Name
+                Complainant
                 <span class="w-4 h-4">
                   <ng-container *ngIf="sortDirections['reporterName'] === 'asc'">
                     <span title="Ascending">▲</span>
@@ -235,8 +226,8 @@
                 </span>
               </div>
             </th>
-            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Violator Name</th>
-            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[190px]">Reporter Role</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Violator</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[190px]">Complainant Role</th>
             <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[190px]">Violator Role</th>
             <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[240px]">
               <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('createdAt')">
@@ -256,7 +247,8 @@
             </th>
             <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[220px]">Status</th>
             <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[110px]">Action</th>
-            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[150px]">Handled By</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[150px]">Moderator</th>
+            <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[150px]">Action Reason</th>
           </tr>
         </thead>
         <tbody *ngIf="displayReports.length > 0">
@@ -266,7 +258,7 @@
             <td class="px-4 py-3 text-start">{{ report.reporter.user_role }}</td>
             <td class="px-4 py-3 text-start">{{ report.violator.user_role }}</td>
             <td class="px-4 py-3 text-start">{{ report.created_at }}</td>
-            <td class="px-4 py-3 pl-10 text-start font-normal">
+            <td class="px-4 py-3 pl-2 text-start font-normal">
               <div class="flex items-center gap-2.5 font-['Arial']">
                 <div class="h-2.5 w-2.5 rounded-full" [ngClass]="report.status ? 'bg-green-500' : 'bg-yellow-500'"></div>
                 <span class="text-sm text-black">{{ report.status ? 'Processed' : 'Pending' }}</span>
@@ -279,6 +271,7 @@
               </button>
             </td>
             <td class="px-4 py-3 text-start">{{ report.actionBy && (report.actionBy.first_name !== 'Unknown' || report.actionBy.middle_name !== 'Unknown' || report.actionBy.last_name !== 'Unknown') ? report.actionBy.first_name + ' ' + (report.actionBy.middle_name || '') + ' ' + report.actionBy.last_name : 'No Action Yet' }}</td>
+            <td class="px-4 py-3 text-start">{{  report.action_reason }}</td>
           </tr>
 
           <tr *ngFor="let placeholder of placeholderRows">

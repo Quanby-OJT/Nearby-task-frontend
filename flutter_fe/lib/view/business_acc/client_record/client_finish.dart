@@ -106,21 +106,25 @@ class _FinishTaskState extends State<FinishTask> {
         return;
       }
 
-      final response = await _jobPostService.taskerTaskInformation(widget.finishID ?? 0);
-      final response2 = await taskController.getClientFeedback(widget.finishID ?? 0);
+      final response =
+          await _jobPostService.taskerTaskInformation(widget.finishID ?? 0);
+      final response2 =
+          await taskController.getClientFeedback(widget.finishID ?? 0);
       debugPrint("Fetched feedback details: $response2");
 
-      if (response.isNotEmpty && response2.isNotEmpty) {
+      if (response.isNotEmpty) {
         setState(() {
           _requestInformation = response.first;
-          rating = response2['client_feedback']['rating'].toDouble();
-          feedback = response2['client_feedback']['feedback'] ?? "";
+          if (response2['client_feedback'] != null) {
+            rating = response2['client_feedback']['rating']?.toDouble() ?? 0.0;
+            feedback = response2['client_feedback']['feedback'] ?? "";
+          }
         });
 
         // Fetch task and tasker/client details
         await Future.wait([
           _fetchTaskDetails(),
-          if (_requestInformation != null)
+          if (_requestInformation != null) // Ensure _requestInformation is not null before accessing its properties
             _fetchTaskerDetails(
               widget.role == "Client"
                   ? _requestInformation!.taskerId ?? 0
@@ -128,7 +132,7 @@ class _FinishTaskState extends State<FinishTask> {
             ),
         ]);
       } else {
-        debugPrint("No task data returned");
+        debugPrint("No task data returned or feedback is empty");
         setState(() {
           _errorMessage = 'No task information available.';
         });
@@ -297,7 +301,9 @@ class _FinishTaskState extends State<FinishTask> {
           ),
           const SizedBox(height: 8),
           Text(
-            _role == "Tasker" ? 'Congratulations on successfully completing this task!' : 'You tasker has completed the task. You can rate their work by tapping "Rate the Tasker" button. This can help them improve their services.',
+            _role == "Tasker"
+                ? 'Congratulations on successfully completing this task!'
+                : 'You tasker has completed the task. You can rate their work by tapping "Rate the Tasker" button. This can help them improve their services.',
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
               fontSize: 14,
@@ -429,12 +435,13 @@ class _FinishTaskState extends State<FinishTask> {
                     ),
                     //Changed from user Status to Specialization for relevance.
                     Text(
-                      tasker?.tasker?.specialization ?? 'N/A',
+                      tasker?.user.bio ?? 'N/A',
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: Colors.grey[600],
                       ),
                     ),
+                    if(rating > 0)
                     Row(
                       children: List.generate(5, (index) {
                         return Icon(
@@ -450,22 +457,39 @@ class _FinishTaskState extends State<FinishTask> {
                 ),
               ],
             ),
-            SizedBox(height: 8),
-            Text(
-                "Your Feedback",
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF03045E),
-                )
-            ),
-            SizedBox(height: 8),
-            Text(
-                feedback,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  color: Colors.grey[600],)
-            )
+// <<<<<<< verification-bug-fixing
+//             SizedBox(height: 8),
+//             Text("Your Feedback",
+//                 style: GoogleFonts.poppins(
+//                   fontSize: 16,
+//                   fontWeight: FontWeight.w600,
+//                   color: Color(0xFF03045E),
+//                 )),
+//             SizedBox(height: 8),
+//             Text(feedback,
+//                 style: GoogleFonts.poppins(
+//                   fontSize: 12,
+//                   color: Colors.grey[600],
+//                 ))
+// =======
+            if(feedback.isNotEmpty)...[
+              SizedBox(height: 8),
+              Text(
+                  "Your Feedback",
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF03045E),
+                  )
+              ),
+              SizedBox(height: 8),
+              Text(
+                  feedback,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Colors.grey[600],)
+              )
+            ],
           ],
         ),
       ),
@@ -473,15 +497,16 @@ class _FinishTaskState extends State<FinishTask> {
   }
 
   Widget _buildActionButton() {
-    return Column(
-      children: [
-        if(feedback.isEmpty) ...[
-          buildButton(() => _handleFinishTask(widget.finishID ?? 0, tasker?.tasker?.id ?? 0), "Rate the Tasker (Optional)", 0xFF03045E),
-          const SizedBox(height: 16),
-        ],
-        buildButton(null, "Back to Tasks", 0xFFB71A4A),
-      ]
-    );
+    return Column(children: [
+      if (feedback.isEmpty) ...[
+        buildButton(
+            () => _handleFinishTask(widget.finishID ?? 0, tasker?.user.id ?? 0),
+            "Rate the Tasker (Optional)",
+            0xFF03045E),
+        const SizedBox(height: 16),
+      ],
+      buildButton(null, "Back to Tasks", 0xFFB71A4A),
+    ]);
   }
 
   Future<void> _handleFinishTask(int taskTakenId, int taskerId) async {
@@ -498,29 +523,28 @@ class _FinishTaskState extends State<FinishTask> {
     );
   }
 
-  Widget buildButton(void Function()? onPressed, String text, int color){
+  Widget buildButton(void Function()? onPressed, String text, int color) {
     return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: onPressed ?? () => Navigator.pop(context),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Color(color),
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: onPressed ?? () => Navigator.pop(context),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(color),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 2,
           ),
-          elevation: 2,
-        ),
-        child: Text(
-          text,
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+          child: Text(
+            text,
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
-        ),
-      )
-    );
+        ));
   }
 
   Widget _buildTaskInfoRow({
@@ -555,7 +579,8 @@ class _FinishTaskState extends State<FinishTask> {
     );
   }
 
-  Widget _buildProfileInfoRow(String label, String value, {bool isVerified = false}) {
+  Widget _buildProfileInfoRow(String label, String value,
+      {bool isVerified = false}) {
     return Row(
       children: [
         Text(
@@ -701,12 +726,16 @@ class _FeedbackBottomSheetState extends State<FeedbackBottomSheet> {
                       if (!mounted) return;
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Your feedback has need successfully posted.')),
+                        SnackBar(
+                            content: Text(
+                                'Your feedback has need successfully posted.')),
                       );
                     } else {
                       if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('An error occurred while rating the tasker.')),
+                        SnackBar(
+                            content: Text(
+                                'An error occurred while rating the tasker.')),
                       );
                     }
                   } catch (e, stackTrace) {
@@ -714,7 +743,9 @@ class _FeedbackBottomSheetState extends State<FeedbackBottomSheet> {
                     debugPrintStack(stackTrace: stackTrace);
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('An error occurred while rating the tasker.')),
+                        SnackBar(
+                            content: Text(
+                                'An error occurred while rating the tasker.')),
                       );
                     }
                   } finally {

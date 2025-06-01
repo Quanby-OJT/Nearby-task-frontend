@@ -1,10 +1,10 @@
 <!-- Header showing the title -->
 <div class="mb-4 flex justify-between">
   <div class="inline-block">
-    <h3 class="text-foreground font-semibold">Task Management</h3>
+    <h3 class="font-semibold font-poppins text-[#3C28CC] text-xl py-2">Task Management</h3>
     <div class="text-muted-foreground space-x-1 text-xs font-medium">
-      <a href="" class="hover:text-primary"><strong>Dashboards > Task Management > Task Details</strong></a>
-      <p>This is used to close a task that violates our application</p>
+      <a href="" class=" text-sm font-poppins hover:text-[#3C28CC] py-2"><strong>Dashboards > Task Management > Task Details</strong></a>
+      <p class=" py-2 text-sm font-poppins">This is used to close a task that violates our application</p>
     </div>
   </div>
 </div>
@@ -74,7 +74,7 @@
 
           <!-- Disable Task Button (Below Status) -->
           <div class="mt-6">
-            <button class="w-full px-4 py-2.5 rounded-md bg-blue-900 text-white text-sm active:bg-blue-950 shadow-md hover:bg-blue-800" (click)="disableTask()">
+            <button class="w-full px-4 py-2.5 rounded-md bg-blue-900 text-white text-sm active:bg-blue-950 shadow-md hover:bg-blue-800" (click)="disableTask($event)">
               Close This Task
             </button>
           </div>

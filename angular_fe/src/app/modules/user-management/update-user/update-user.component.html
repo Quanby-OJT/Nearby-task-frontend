@@ -1,9 +1,9 @@
 <div class="mb-4 flex justify-between">
   <div class="inline-block">
-    <h3 class="text-foreground font-semibold">Update User</h3>
+    <h3 class="font-semibold font-poppins text-[#3C28CC] text-xl py-2">Update User</h3>
     <div class="text-muted-foreground space-x-1 text-xs font-medium">
-      <a href="" class="hover:text-primary"><strong>Dashboards > User Management > Update User</strong></a>
-      <p>This is used to set the users status to ban, warn, review</p>
+      <a href="" class=" text-sm font-poppins hover:text-[#3C28CC] py-2"><strong>Dashboards > User Management > Update User</strong></a>
+      <p class=" py-2 text-sm font-poppins">This is used to set the users status to ban, warn, review</p>
     </div>
   </div>
   <div>
@@ -216,9 +216,7 @@
                   id="status"
                   class="peer block w-full rounded border px-3 py-2"
                   formControlName="status"
-                  [ngClass]="{ 'border-red-500': submitted && f['status'].errors }"
-                  [disabled]="true"
-                  readonly>
+                  [ngClass]="{ 'border-red-500': submitted && f['status'].errors }">
                   <option value="" disabled selected>Select User Status</option>
                   <option value="Active">Verify</option>
                   <option value="Pending" class="non-interactive" hidden>Pending</option>

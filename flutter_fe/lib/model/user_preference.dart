@@ -55,6 +55,7 @@ class UserPreferenceModel {
       address: json['address'] != null
           ? AddressModel.fromJson(json['address'])
           : AddressModel(
+              id: '',
               streetAddress: '',
               city: '',
               province: '',

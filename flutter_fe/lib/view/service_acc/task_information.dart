@@ -589,7 +589,8 @@ class _TaskInformationState extends State<TaskInformation> {
                   _buildInfoRow(
                     icon: FontAwesomeIcons.solidStar,
                     label: 'Rating',
-                    value: _client?.client?.rating.toString() ?? 'N/A',
+                    value:
+                        '4.5', // Default rating since UserModel doesn't have rating
                   ),
                 ],
               ),

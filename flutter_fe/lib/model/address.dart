@@ -1,7 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class AddressModel {
-  final String? id;
+  final String id;
   final double? latitude;
   final double? longitude;
   final String streetAddress;
@@ -10,7 +11,7 @@ class AddressModel {
   final String province;
   final String postalCode;
   final String country;
-  final bool? defaultAddress;
+  bool? defaultAddress;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final String? formattedAddress;
@@ -18,7 +19,7 @@ class AddressModel {
   final String? remarks;
 
   AddressModel({
-    this.id,
+    required this.id,
     this.latitude,
     this.longitude,
     required this.streetAddress,

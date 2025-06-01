@@ -114,6 +114,11 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  Future<void> readMessages(int taskTakenId) async {
+    // Use the instance member directly
+    await conversationController.readMessage(taskTakenId);
+  }
+
   Future<void> _fetchTaskAssignments() async {
     try {
       setState(() {
@@ -947,7 +952,10 @@ class _ChatScreenState extends State<ChatScreen> {
                   taskTitle: taskTaken.task?.title ?? '',
                 ),
               ),
-            ).then((_) => _fetchTaskAssignments());
+            ).then((_) {
+              _fetchTaskAssignments();
+              conversationController.readMessage(taskTaken.taskTakenId);
+            });
           },
           onLongPress: () => showMessageOptions(context, taskTaken.taskTakenId),
           child: Padding(

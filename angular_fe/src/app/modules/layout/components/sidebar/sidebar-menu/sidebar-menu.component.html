@@ -8,13 +8,15 @@
     <!-- List items -->
     <li *ngFor="let item of menu.items">
       <!-- Menu List -->
-      <div (click)="toggleMenu(item)" class="text-white group relative">
+      <div class="text-white group relative">
+        <!-- <div (click)="toggleMenu(item)" class="text-white group relative"> -->
         <!-- Icon -->
-        <div [ngClass]="item.active && !menuService.showSideBar ? 'text-primary' : 'text-white group-hover:text-black'"
-          class="pointer-events-none absolute m-2">
-          <svg-icon src="{{ item.icon }}" [svgClass]="'h-5 w-5'"> </svg-icon>
-        </div>
 
+      <div [ngClass]="item.active && !menuService.showSideBar ? 'text-[#F9F9F9]' : 'text-white group-hover:text-black'"
+          class="pointer-events-none absolute m-2">
+          <svg-icon src="{{ item.icon }}" [svgClass]="'h-5 w-5'" [svgStyle]="{'fill': 'currentColor'}"> </svg-icon>
+      </div>
+   
         <!-- Condition -->
         <ng-container
           [ngTemplateOutlet]="item.children ? childMenu : parentMenu"

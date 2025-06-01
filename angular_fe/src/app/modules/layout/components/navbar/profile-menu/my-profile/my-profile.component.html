@@ -1,12 +1,13 @@
-  <div class="mb-4 flex justify-between">
-    <div class="inline-block">
-      <h3 class="text-foreground font-semibold">Profile</h3>
-      <div class="text-muted-foreground space-x-1 text-xs font-medium">
-        <a href="" class="hover:text-primary"><b>Dashboards > Profile</b></a>
-        <p>The profile is used to view the information, update user information, and change user password</p>
-      </div>
+  <!-- Header showing the title -->
+<div class="mb-4 flex justify-between">
+  <div class="inline-block">
+    <h3 class="font-semibold font-poppins text-[#3C28CC] text-xl py-2">Profile</h3>
+    <div class="text-muted-foreground space-x-1 text-xs font-medium">
+      <a href="" class="text-sm font-poppins hover:text-[#3C28CC] py-2"><b>Dashboards > Profile</b></a>
+      <p class="py-2 text-sm font-poppins">The profile is used to view the information, update user information, and change user password</p>
     </div>
   </div>
+</div>
 
 <!-- Loading Spinner -->
 <div *ngIf="isLoading" class="fixed inset-0 z-50 flex flex-col justify-center items-center lg:w-308 lg:h-170 xl:w-420 xl:h-200 ">

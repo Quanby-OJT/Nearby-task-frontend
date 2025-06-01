@@ -12,8 +12,9 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 class Address extends StatefulWidget {
   final Function(AddressModel)? onAddressSelected;
+  final String mode;
 
-  const Address({super.key, this.onAddressSelected});
+  const Address({super.key, this.onAddressSelected, required this.mode});
 
   @override
   State<Address> createState() => _AddressState();
@@ -378,7 +379,7 @@ class _AddressState extends State<Address> {
             value: value,
             decoration: InputDecoration(
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(999),
               ),
               filled: true,
               fillColor: Colors.grey[100],
@@ -393,7 +394,7 @@ class _AddressState extends State<Address> {
             isExpanded: true,
             hint: isLoading
                 ? const Text('Loading...')
-                : const Text('Select an option'),
+                : const Text('Select Location'),
           ),
         ],
       ),
@@ -433,6 +434,14 @@ class _AddressState extends State<Address> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text(
+                    'Select Your Address',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFFB71A4A),
+                    ),
+                  ),
                   _buildDropdown<Map<String, dynamic>>(
                     label: 'Region',
                     value: _selectedRegion,

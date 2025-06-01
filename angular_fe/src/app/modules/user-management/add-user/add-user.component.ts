@@ -223,7 +223,7 @@ export class AddUserComponent {
     return this.form.controls;
   }
 
-  onSubmit() {
+  async onSubmit() {
     this.submitted = true;
 
     if (this.form.invalid) {
@@ -233,6 +233,43 @@ export class AddUserComponent {
         text: 'Please check the form for errors!',
       });
       return;
+    }
+
+    // Show SweetAlert2 modal to capture reason
+    const { value: reason } = await Swal.fire({
+      title: 'Add User',
+      html: `
+        <label for="reason-input" class="block text-sm font-medium text-gray-700 mb-2">Reason for adding this user</label>
+        <input id="reason-input" class="swal2-input" placeholder="Enter reason" />
+      `,
+      showCancelButton: true,
+      confirmButtonColor: '#5F50E7',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Confirm',
+      cancelButtonText: 'Cancel',
+      preConfirm: () => {
+        const reasonInput = (document.getElementById('reason-input') as HTMLInputElement).value;
+        if (!reasonInput) {
+          Swal.showValidationMessage('Please provide a reason for this action');
+        }
+        return reasonInput;
+      },
+      willOpen: () => {
+        const confirmButton = Swal.getConfirmButton();
+        const reasonInput = document.getElementById('reason-input') as HTMLInputElement;
+        if (confirmButton) {
+          confirmButton.disabled = true;
+        }
+        reasonInput.addEventListener('input', () => {
+          if (confirmButton) {
+            confirmButton.disabled = !reasonInput.value.trim();
+          }
+        });
+      }
+    });
+
+    if (!reason) {
+      return; // Exit if user cancels or doesn't provide a reason
     }
 
     console.log('Form Submitted Successfully!');
@@ -251,6 +288,7 @@ export class AddUserComponent {
     formData.append('gender', this.form.value.gender);
     formData.append('password', this.form.value.password);
     formData.append('added_by', localStorage.getItem('user_id') || '0');
+    formData.append('action_reason', reason);
 
     if (this.selectedFile) {
       formData.append('image', this.selectedFile); // Use the selected file

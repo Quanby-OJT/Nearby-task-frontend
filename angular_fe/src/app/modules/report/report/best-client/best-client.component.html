@@ -1,3 +1,4 @@
+<!-- File: best-client.component.html -->
 <!-- Main container with search, filter, table, and pagination -->
 <div class="border-muted-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
   <!-- Search and Filter Section -->
@@ -25,6 +26,7 @@
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Overall Task Requested</th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Gender</th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Rating</th>
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Action</th>
         </tr>
       </thead>
       <tbody>
@@ -36,6 +38,12 @@
           <td class="px-4 py-3 text-start">{{ client.taskCount }}</td>
           <td class="px-4 py-3 text-start">{{ client.gender }}</td>
           <td class="px-4 py-3 text-start">{{ client.rating | number:'1.1-1' }}</td>
+          <td class="px-4 py-3 text-start">
+            <button  class="flex items-start text-blue-500 hover:opacity-70" (click)="openClientHistory(client)">
+              <img src="https://img.icons8.com/?size=100&id=cRLuJXPEgWhK&format=png&color=0000FF" alt="View Icon" class="w-5 h-5 mr-2">
+              View
+            </button>
+          </td>
         </tr>
       </tbody>
     </table>

@@ -1,10 +1,10 @@
 <!-- Header showing the title -->
 <div class="mb-4 flex justify-between">
   <div class="inline-block">
-    <h3 class="text-foreground font-semibold">Task Management</h3>
+    <h3 class="font-semibold font-poppins text-[#3C28CC] text-xl py-2">Task Management</h3>
     <div class="text-muted-foreground space-x-1 text-xs font-medium">
-      <a href="" class="hover:text-primary"><strong>Dashboards > Task Management</strong></a>
-      <p>This is used for managing the tasks of the users in the application</p>
+      <a href="" class=" text-sm font-poppins hover:text-[#3C28CC] py-2"><strong>Dashboards > Task Management</strong></a>
+      <p class=" py-2 text-sm font-poppins">This is used for managing the tasks of the users in the application</p>
     </div>
   </div>
 </div>
@@ -66,7 +66,7 @@
     <table class="w-full border-collapse border-0 text-left text-sm">
       <thead class="border-b">
         <tr>
-          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[300px] xl:min-w-[190px]">
             <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('client')">
               Client
               <span class="w-4 h-4">
@@ -82,7 +82,7 @@
               </span>
             </div>
           </th>
-          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[200px]">
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[220px]">
             <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('taskTitle')">
               Task Title
               <span class="w-4 h-4">
@@ -98,7 +98,7 @@
               </span>
             </div>
           </th>
-          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[260px]">
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[190px]">
             <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('specialization')">
               Specialization
               <span class="w-4 h-4">
@@ -114,7 +114,7 @@
               </span>
             </div>
           </th>
-          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[220px]">
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[190px]">
             <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('proposedPrice')">
               Proposed Price
               <span class="w-4 h-4">
@@ -130,7 +130,7 @@
               </span>
             </div>
           </th>
-          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[200px]">
+          <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[140px]">
             <div class="flex items-center gap-1 cursor-pointer" (click)="toggleSort('location')">
               Location
               <span class="w-4 h-4">
@@ -149,7 +149,8 @@
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[150px]">Urgent</th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[230px]">Status</th>
           <th class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[100px]">Action</th>
-          <th *ngIf="userRole === 'Admin'" class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[230px]">Action By</th>
+          <th *ngIf="userRole === 'Admin'" class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[230px]">Moderator</th>
+          <th *ngIf="userRole === 'Admin'" class="px-4 py-2 text-start min-w-[150px] lg:min-w-[200px] xl:min-w-[230px]">Action Reason</th>
         </tr>
       </thead>
       <tbody *ngIf="displayedTasks.length > 0">
@@ -171,12 +172,16 @@
               <span class="text-sm text-black">{{ task.status || 'Empty' }}</span>
             </div>
           </td>
-          <td class="px-4 py-3 text-start">
-            <button class="p-0 border-none bg-transparent cursor-pointer hover:scale-150 transition-transform duration-500">
-              <img src="https://img.icons8.com/?size=100&id=54137&format=png&color=FA5252" (click)="disableTask(task.task_id)" class="h-5 w-5">
+     
+          <td class="flex items-start justify-start pt-3 pb-0 w-20">
+            <button (click)="disableTask(task.task_id)" class="flex items-start text-red-500 hover:opacity-70">
+              <img src="https://img.icons8.com/?size=100&id=54137&format=png&color=FA5252" alt="View Icon" class="w-5 h-5 mr-2">
+              Close
             </button>
           </td>
+
           <td *ngIf="userRole === 'Admin'" class="px-4 py-3 text-start">{{ task.actionByUser ? (task.actionByUser.first_name + ' ' + (task.actionByUser.middle_name || '') + ' ' + task.actionByUser.last_name) : (task.action_by || 'Empty') }}</td>
+          <td *ngIf="userRole === 'Admin'" class="px-4 py-3 text-start">{{ task.action_reason || 'Empty'}}</td>
         </tr>
         <!-- Placeholder rows with consistent styling -->
         <tr *ngFor="let placeholder of placeholderRows">
