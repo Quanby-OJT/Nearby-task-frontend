@@ -59,8 +59,10 @@ class _AddressListState extends State<AddressList> {
       final result = await Navigator.push<AddressModel>(
         context,
         MaterialPageRoute(
-          builder: (context) =>
-              Address(onAddressSelected: widget.onAddressSelected),
+          builder: (context) => Address(
+            onAddressSelected: widget.onAddressSelected,
+            mode: 'add',
+          ),
         ),
       );
 
