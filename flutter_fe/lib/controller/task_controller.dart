@@ -60,7 +60,6 @@ class TaskController {
       final priceText = contactPriceController.text.trim();
       final priceInt = int.tryParse(priceText) ?? 0;
 
-      debugPrint(priceInt.toString());
       if (priceInt > _escrowManagementController.tokenCredits.value) {
         return {
           "success": false,
