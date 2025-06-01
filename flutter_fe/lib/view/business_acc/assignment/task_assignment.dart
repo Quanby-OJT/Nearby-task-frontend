@@ -215,11 +215,6 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    if (tempDateTime == null) {
-                      CustomScaffold(
-                          message: 'Please select both date and time.',
-                          color: Colors.red);
-                    }
                     Navigator.pop(context, {
                       'daysAvailable': tempDays,
                     });

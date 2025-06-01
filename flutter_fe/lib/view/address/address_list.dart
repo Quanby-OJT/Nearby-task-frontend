@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/setting_controller.dart';
 import 'package:flutter_fe/model/address.dart';
-import 'package:flutter_fe/service/profile_service.dart';
 import 'package:flutter_fe/view/address/address.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter_fe/view/address/edit_address.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -23,28 +22,11 @@ class _AddressListState extends State<AddressList> {
 
   List<AddressModel> _addresses = [];
   bool _isLoading = true;
-  String? _userName;
-  String? _userPhone;
 
   @override
   void initState() {
     super.initState();
     _loadAddresses();
-    _loadUserInfo();
-  }
-
-  Future<void> _loadUserInfo() async {
-    try {
-      final userId = await ProfileService.getUserId();
-      if (userId != null) {
-        setState(() {
-          _userName = 'Ronnie Estillero';
-          _userPhone = '(+63) 950 646 0086';
-        });
-      }
-    } catch (e) {
-      print('Error loading user info: $e');
-    }
   }
 
   Future<void> _loadAddresses() async {
@@ -78,7 +60,7 @@ class _AddressListState extends State<AddressList> {
         context,
         MaterialPageRoute(
           builder: (context) =>
-              Address(onAddressSelected: widget.onAddressSelected, mode: 'create'),
+              Address(onAddressSelected: widget.onAddressSelected),
         ),
       );
 
@@ -97,14 +79,7 @@ class _AddressListState extends State<AddressList> {
     Navigator.pop(context, address);
   }
 
-  void _setAsDefault(int index) async{
-    //TODO: Create logic for setting an address as default.
-    await _addressController.setDefaultAddress(_addresses[index].id);
-    //TODO: Implement broadcasting feature of auto-update.
-    setState(() {
-      _addresses[index].defaultAddress = true;
-    });
-
+  void _setAsDefault(int index) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Default address updated'),
@@ -117,8 +92,7 @@ class _AddressListState extends State<AddressList> {
     final result = await Navigator.push<AddressModel>(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            Address(onAddressSelected: widget.onAddressSelected, mode: "edit"),
+        builder: (context) => EditAddress(address: _addresses[index]),
       ),
     );
 
@@ -129,33 +103,19 @@ class _AddressListState extends State<AddressList> {
     }
   }
 
-  void _deleteAddress(int index) async {
+  Future<void> _deleteAddress(AddressModel address) async {
     // Check if it's the default address
-    bool wasDefault = _addresses[index].defaultAddress ?? false;
-    //TODO: Implement backend API for address deletion.
-    await _addressController.deleteAddress(_addresses[index].id);
+    bool wasDefault = address.defaultAddress ?? false;
 
-    setState(() {
-      _addresses.removeAt(index);
+    final result =
+        await _addressController.deleteAddress(address.id.toString());
 
-      // If we deleted the default address and there are other addresses, make the first one default
-      if (wasDefault && _addresses.isNotEmpty) {
-        _addresses[0] = AddressModel(
-          id: _addresses[0].id,
-          streetAddress: _addresses[0].streetAddress,
-          barangay: _addresses[0].barangay,
-          city: _addresses[0].city,
-          province: _addresses[0].province,
-          postalCode: _addresses[0].postalCode,
-          country: _addresses[0].country,
-          latitude: _addresses[0].latitude,
-          longitude: _addresses[0].longitude,
-          defaultAddress: true,
-          formattedAddress: _addresses[0].formattedAddress,
-          regionName: _addresses[0].regionName,
-        );
-      }
-    });
+    if (result) {
+      setState(() {
+        _addresses.remove(address);
+        _loadAddresses();
+      });
+    }
 
     // In a real app, you would delete this from your backend
     ScaffoldMessenger.of(context).showSnackBar(
@@ -260,66 +220,10 @@ class _AddressListState extends State<AddressList> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    if (address.defaultAddress == true)
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: Color(0xFFB71A4A),
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                        ),
-                                        child: Text(
-                                          'Default',
-                                          style: const TextStyle(
-                                              color: Colors.white),
-                                        ),
-                                      ),
-                                    if (address.defaultAddress == false)
-                                      Row(
-                                        children: [
-                                          if (address.defaultAddress != true)
-                                            TextButton(
-                                              onPressed: () =>
-                                                  _setAsDefault(index),
-                                              child: Text(
-                                                'Set as Default',
-                                                style: GoogleFonts.poppins(
-                                                  color: const Color(0xFFB71A4A),
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold,
-                                                )
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                    SizedBox(
-                                      child: Row(
-                                        children: [
-                                          IconButton(
-                                            icon: const Icon(FontAwesomeIcons.pencil),
-                                            onPressed: () =>
-                                                _editAddress(index),
-                                          ),
-                                          IconButton(
-                                            icon: const Icon(FontAwesomeIcons.trash,
-                                                color: Colors.red),
-                                            onPressed: () =>
-                                                _deleteAddress(index),
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                  ],
-                                ),
                                 SizedBox(height: 8),
                                 Text(
                                   displayAddress,
-                                  style: GoogleFonts.poppins(
+                                  style: TextStyle(
                                       fontSize: 14, color: Colors.grey[800]),
                                 ),
                                 if (address.latitude != null &&
@@ -328,11 +232,59 @@ class _AddressListState extends State<AddressList> {
                                     padding: const EdgeInsets.only(top: 4),
                                     child: Text(
                                       'Lat: ${address.latitude}, Lng: ${address.longitude}',
-                                      style: GoogleFonts.poppins(
+                                      style: TextStyle(
                                           fontSize: 12,
                                           color: Colors.grey[600]),
                                     ),
                                   ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    // if (address.defaultAddress == true)
+                                    //   Container(
+                                    //     padding: const EdgeInsets.symmetric(
+                                    //         horizontal: 8, vertical: 4),
+                                    //     decoration: BoxDecoration(
+                                    //       color: Color(0xFFB71A4A),
+                                    //       borderRadius:
+                                    //           BorderRadius.circular(12),
+                                    //     ),
+                                    //     child: Text(
+                                    //       'Default',
+                                    //       style: const TextStyle(
+                                    //           color: Colors.white),
+                                    //     ),
+                                    //   ),
+                                    // if (address.defaultAddress == false)
+                                    //   Row(
+                                    //     children: [
+                                    //       if (address.defaultAddress != true)
+                                    //         TextButton(
+                                    //           onPressed: () =>
+                                    //               _setAsDefault(index),
+                                    //           child: Text('Set as Default'),
+                                    //         ),
+                                    //     ],
+                                    //   ),
+                                    Container(
+                                      child: Row(
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(Icons.edit),
+                                            onPressed: () =>
+                                                _editAddress(index),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(Icons.delete,
+                                                color: Colors.red),
+                                            onPressed: () =>
+                                                _deleteAddress(address),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  ],
+                                ),
                               ],
                             ),
                           ),

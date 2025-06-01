@@ -8,7 +8,6 @@ import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
-import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/task/task_cancelled.dart';
 import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -180,22 +179,14 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
         _role!,
       );
       if (result) {
-        bool updateResult = await taskController.updateClientTask(
-            _requestInformation?.task_id ?? 0, value);
-
-        debugPrint("Update result: $updateResult");
-        if (updateResult) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TaskOngoing(
-                taskInformation: widget.taskInformation,
-              ),
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TaskOngoing(
+              taskInformation: widget.taskInformation,
             ),
-          );
-        } else {
-          CustomScaffold(message: 'Failed to accept task', color: Colors.red);
-        }
+          ),
+        );
       } else {
         throw Exception('Failed to start task');
       }
@@ -334,26 +325,15 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
                         rejectionReason: selectedReason,
                       );
                       if (result) {
-                        bool updateResult =
-                            await taskController.updateClientTask(
-                                _requestInformation?.task_id ?? 0, value);
-
-                        debugPrint("Update result: $updateResult");
-                        if (updateResult) {
-                          Navigator.pop(context);
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => TaskCancelled(
-                                taskInformation: widget.taskInformation,
-                              ),
+                        Navigator.pop(context);
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TaskCancelled(
+                              taskInformation: widget.taskInformation,
                             ),
-                          );
-                        } else {
-                          CustomScaffold(
-                              message: 'Failed to accept task',
-                              color: Colors.red);
-                        }
+                          ),
+                        );
                       } else {
                         Navigator.pop(context);
                         setState(() {

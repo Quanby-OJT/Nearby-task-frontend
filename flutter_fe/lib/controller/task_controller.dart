@@ -54,52 +54,59 @@ class TaskController {
     int? specializationId,
     String? selectedSpecialization,
     String? addressId,
-    String? title,
-    String? description,
-    String? remarks,
-    String? contactPrice,
   }) async {
     try {
       int userId = storage.read('user_id');
       final priceText = contactPriceController.text.trim();
       final priceInt = int.tryParse(priceText) ?? 0;
 
-      debugPrint(priceInt.toString());
       if (priceInt > _escrowManagementController.tokenCredits.value) {
         return {
           "success": false,
           "error":
-              "You don't have enough tokens to post your needed task. Please Deposit First Your Desired Amount of Tokens."
+              "You don't have enough tokens to update your task. Please Deposit First Your Desired Amount of Tokens."
         };
       } else if (priceInt < 0) {
         return {"success": false, "error": "Please Input more than 0."};
       } else {
         final task = TaskModel(
-          id: id,
-          title: jobTitleController.text.trim(),
-          description: jobDescriptionController.text.trim(),
-          contactPrice: int.parse(contactPriceController.text.trim()),
-          urgency: urgency,
-          remarks: jobRemarksController.text.trim(),
-          workType: workType,
-          addressID: addressId,
-          specializationId: specializationId,
-          relatedSpecializationsIds: relatedSpecializationsIds,
-          scope: scope,
-          taskBeginDate: jobStartDateController.text,
-        );
+            id: id,
+            title: jobTitleController.text.trim(),
+            description: jobDescriptionController.text.trim(),
+            contactPrice: int.parse(contactPriceController.text.trim()),
+            urgency: urgency,
+            remarks: jobRemarksController.text.trim(),
+            workType: workType,
+            addressID: addressId,
+            specializationId: specializationId,
+            relatedSpecializationsIds: relatedSpecializationsIds,
+            scope: scope,
+            taskBeginDate: jobStartDateController.text,
+            status: "Available");
 
-        debugPrint("This is the task: ${task.toJson()}");
+        debugPrint("This is the task to update: ${task.toJson()}");
 
-        return await _jobPostService.updateJob(task, task.id, files: photos);
+        final result =
+            await _jobPostService.updateJob(task, task.id, files: photos);
+        if (result['success'] == true) {
+          return {
+            'success': true,
+            'message': result['message'] ?? 'Task updated successfully'
+          };
+        } else {
+          return {
+            'success': false,
+            'error': result['error'] ?? 'Failed to update task'
+          };
+        }
       }
     } catch (e, stackTrace) {
-      debugPrint('Error in postJob: $e');
+      debugPrint('Error in updateJob: $e');
       debugPrint(stackTrace.toString());
       return {
         'success': false,
         'error':
-            'An Error Occurred while Posting Your Task. Please Try Again. If Issue Persists, contact our support.'
+            'An Error Occurred while Updating Your Task. Please Try Again. If Issue Persists, contact our support.'
       };
     }
   }
@@ -291,20 +298,6 @@ class TaskController {
       return assignedTask['message'] = true;
     }
     return false;
-  }
-
-  Future<bool> updateClientTask(int taskId, String status) async {
-    try {
-      final response = await _jobPostService.updateClientTask(taskId, status);
-      debugPrint("Response from updateClientTask: $response");
-      // Check if the response indicates success
-      return response['success'] == true &&
-          response['message'] == 'Task status updated successfully.';
-    } catch (e, stackTrace) {
-      debugPrint("Error updating task status: $e");
-      debugPrintStack(stackTrace: stackTrace);
-      return false;
-    }
   }
 
   Future<String> fetchIsApplied(

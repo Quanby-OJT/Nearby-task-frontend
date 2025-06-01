@@ -8,7 +8,7 @@ import 'dart:convert';
 import 'package:flutter_fe/model/setting.dart';
 
 class SettingService {
-  static String url = apiUrl ?? "https://localhost:5000";
+  static String url = apiUrl ?? "http://localhost:5000";
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
 
@@ -279,6 +279,7 @@ class SettingService {
     String street,
     String postalCode,
     String country,
+    String remarks,
   ) async {
     debugPrint('Setting address: latitude=$latitude, longitude=$longitude, '
         'formattedAddress=$formattedAddress, region=$region, province=$province, '
@@ -339,25 +340,27 @@ class SettingService {
         'city=$city, barangay=$barangay, street=$street, postalCode=$postalCode, country=$country');
 
     final token = await AuthService.getSessionToken();
-    // final response = await _client.put(
-    //   Uri.parse('$url/set-address/$userId'),
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'Authorization': 'Bearer $token',
-    //   },
-    //   body: json.encode({
-    //     'latitude': latitude,
-    //     'longitude': longitude,
-    //     'formatted_Address': formattedAddress,
-    //     'region': region,
-    //     'province': province,
-    //     'city': city,
-    //     'barangay': barangay,
-    //     'street': street,
-    //     'postal_code': postalCode,
-    //     'country': country,
-    //   }),
-    // );
+
+    final response = await _client.put(
+      Uri.parse('$url/set-address/$userId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: json.encode({
+        'latitude': latitude,
+        'longitude': longitude,
+        'formatted_Address': formattedAddress,
+        'region': region,
+        'province': province,
+        'city': city,
+        'barangay': barangay,
+        'street': street,
+        'postal_code': postalCode,
+        'country': country,
+        'remarks': remarks,
+      }),
+    );
 
     final response = await _putRequest(endpoint: '/update-address/$userId', body: {
       'latitude': latitude,
@@ -388,6 +391,87 @@ class SettingService {
       return "true";
     } else {
       debugPrint('Failed to delete address');
+    }
+  }
+
+  Future updateAddress(
+    String addressId,
+    double latitude,
+    double longitude,
+    String formattedAddress,
+    String region,
+    String province,
+    String city,
+    String barangay,
+    String street,
+    String postalCode,
+    String country,
+    String remarks,
+  ) async {
+    debugPrint('Setting address: latitude=$latitude, longitude=$longitude, '
+        'formattedAddress=$formattedAddress, region=$region, province=$province, '
+        'city=$city, barangay=$barangay, street=$street, postalCode=$postalCode, country=$country');
+
+    final token = await AuthService.getSessionToken();
+    final response = await _client.put(
+      Uri.parse('$url/update-address/$addressId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: json.encode({
+        'latitude': latitude,
+        'longitude': longitude,
+        'formatted_Address': formattedAddress,
+        'region': region,
+        'province': province,
+        'city': city,
+        'barangay': barangay,
+        'street': street,
+        'postal_code': postalCode,
+        'country': country,
+        'remarks': remarks,
+      }),
+    );
+
+    debugPrint('Response Status Code: ${response.statusCode}');
+    debugPrint('Response Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      debugPrint('Address set successfully');
+      return "true";
+    } else {
+      debugPrint('Failed to set address: ${response.body}');
+      throw Exception('Failed to set address: ${response.statusCode}');
+    }
+  }
+
+  Future<bool> deleteAddress(String addressId) async {
+    try {
+      debugPrint('Deleting address with ID: $addressId');
+      final token = await AuthService.getSessionToken();
+      final response = await _client.delete(
+        Uri.parse('$url/delete-address/$addressId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      debugPrint('Response Status Code: ${response.statusCode}');
+      debugPrint('Response Body: ${response.body}');
+
+      if (response.body.contains('status')) {
+        debugPrint('Address deleted successfully');
+        final responseData = json.decode(response.body);
+        return responseData['status'];
+      } else {
+        debugPrint('Failed to delete address: ${response.body}');
+        throw Exception('Failed to delete address: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error deleting address: $e');
+      throw Exception('Failed to delete address: $e');
     }
   }
 }

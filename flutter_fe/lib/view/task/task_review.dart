@@ -225,23 +225,14 @@ class _TaskReviewState extends State<TaskReview> {
               bool result = await taskController.acceptRequest(
                   _requestInformation?.task_taken_id ?? 0, value, 'Client');
               if (result) {
-                bool updateResult = await taskController.updateClientTask(
-                    _requestInformation?.task_id ?? 0, value);
-
-                if (updateResult) {
-                  Navigator.pop(context);
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => TaskFinished(
-                        taskInformation: widget.taskInformation,
-                      ),
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TaskFinished(
+                      taskInformation: widget.taskInformation,
                     ),
-                  );
-                } else {
-                  CustomScaffold(
-                      message: 'Failed to accept task', color: Colors.red);
-                }
+                  ),
+                );
               } else {
                 CustomScaffold(
                     message: 'Failed to accept task', color: Colors.red);
@@ -672,25 +663,15 @@ class _TaskReviewState extends State<TaskReview> {
                     );
                     if (result) {
                       if (!mounted) return;
-                      bool updateResult = await taskController.updateClientTask(
-                          _requestInformation?.task_id ?? 0, value);
-
-                      debugPrint("Update result: $updateResult");
-                      if (updateResult) {
-                        Navigator.pop(context, true);
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => TaskOngoing(
-                              taskInformation: widget.taskInformation,
-                            ),
+                      Navigator.pop(context, true);
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TaskOngoing(
+                            taskInformation: widget.taskInformation,
                           ),
-                        );
-                      } else {
-                        CustomScaffold(
-                            message: 'Failed to accept task',
-                            color: Colors.red);
-                      }
+                        ),
+                      );
                     } else {
                       Navigator.pop(context, false);
                       setState(() {
@@ -1012,16 +993,16 @@ class _TaskReviewState extends State<TaskReview> {
             _buildTaskInfoRow(
               icon: Icons.calendar_today,
               label: 'Start Date',
-              value: _requestInformation!.start_date != null
-                  ? DateFormat('MMM dd, yyyy HH:mm')
-                      .format(_requestInformation!.start_date!.toLocal())
+              value: _requestInformation?.task?.taskBeginDate != null
+                  ? DateFormat('MMM dd, yyyy HH:mm a').format(DateTime.parse(
+                      _requestInformation?.task?.taskBeginDate ?? ''))
                   : 'N/A',
             ),
             _buildTaskInfoRow(
               icon: Icons.calendar_today,
               label: 'Finish Date',
               value: _requestInformation!.end_date != null
-                  ? DateFormat('MMM dd, yyyy HH:mm')
+                  ? DateFormat('MMM dd, yyyy HH:mm a')
                       .format(_requestInformation!.end_date!.toLocal())
                   : 'N/A',
             ),

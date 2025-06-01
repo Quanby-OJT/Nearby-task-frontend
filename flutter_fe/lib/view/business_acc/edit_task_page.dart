@@ -11,7 +11,6 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/address/address_list.dart';
-import 'package:flutter_fe/view/business_acc/task_creation/preview_task.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/select_related_spec.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/select_spec.dart';
 import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
