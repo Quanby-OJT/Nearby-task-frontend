@@ -168,7 +168,7 @@ class AddressModel {
   // Create a new instance from map data
   factory AddressModel.fromMapData(Map<String, dynamic> mapData) {
     return AddressModel(
-      id: mapData['id']?.toString(),
+      id: mapData['id']?.toString() ?? '',
       streetAddress: mapData['street_address']?.toString() ?? '',
       barangay: mapData['barangay']?.toString(),
       city: mapData['city']?.toString() ?? 'Unknown City',
