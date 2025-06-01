@@ -27,15 +27,15 @@
 
       <!-- Navbar Profile Image -->
       <div class="items-center justify-end sm:order-4 md:flex md:flex-1 lg:w-0">
-                 <!-- Centered Date and Time -->
+      <!-- Centered Date and Time -->
       <div class="flex-1 flex justify-center items-center">
-        <div class="text-sm text-muted-foreground">
+        <div class="text-sm text-[#3C28CC]">
           {{ currentDateTime }}
         </div>
       </div>
-        <div class="ml-3 text-sm">
-          <p class="text-foreground font-medium text-right">{{ user.first_name + ' ' + (user.middle_name || '') + ' ' + user.last_name }}</p>
-          <p class="text-muted-foreground">{{ user.email }}</p>
+        <div class="ml-3 text-sm text-[#3C28CC]">
+          <p class="font-medium text-right">{{ user.first_name + ' ' + (user.middle_name || '') + ' ' + user.last_name }}</p>
+          <p class="">{{ user.email }}</p>
         </div>
         <app-profile-menu></app-profile-menu>
       </div>
