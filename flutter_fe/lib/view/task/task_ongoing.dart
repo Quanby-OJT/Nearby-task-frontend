@@ -307,19 +307,19 @@ class _TaskOngoingState extends State<TaskOngoing> {
                     _isLoading = true;
                   });
                   try {
-                    bool result = await taskController.acceptRequest(
+                    final result = await taskController.updateRequest(
                       _requestInformation?.task_taken_id ?? 0,
                       'Finish',
                       widget.taskInformation?.taskDetails!.client?.user?.role ??
                           '',
                     );
 
-                    bool result2 = await taskController.rateTheTasker(
-                        _requestInformation?.task_taken_id ?? 0,
-                        _requestInformation?.tasker_id ?? 0,
-                        _rating,
-                        _feedbackController.text);
-                    if (result && result2) {
+                    // bool result2 = await taskController.rateTheTasker(
+                    //     _requestInformation?.task_taken_id ?? 0,
+                    //     _requestInformation?.tasker_id ?? 0,
+                    //     _rating,
+                    //     _feedbackController.text);
+                    if (result.containsKey('success') && result['success']) {
                       if (!mounted) return;
 
                       setState(() {
@@ -806,13 +806,13 @@ class _TaskOngoingState extends State<TaskOngoing> {
                     });
 
                     final String value = 'Review';
-                    bool result = await taskController.acceptRequest(
+                    final result = await taskController.updateRequest(
                       _requestInformation?.task_taken_id ?? 0,
                       value,
                       'Tasker',
                       rejectionReason: selectedReason,
                     );
-                    if (result) {
+                    if (result.containsKey('success') && result['success']) {
                       if (!mounted) return;
                       Navigator.pop(context, true);
                       Navigator.pushReplacement(
@@ -954,13 +954,13 @@ class _TaskOngoingState extends State<TaskOngoing> {
                     });
 
                     final String value = 'Finish';
-                    bool result = await taskController.acceptRequest(
+                   final result = await taskController.updateRequest(
                       _requestInformation?.task_taken_id ?? 0,
                       value,
                       'Client',
                       rejectionReason: selectedReason,
                     );
-                    if (result) {
+                    if (result.containsKey('success') && result['success']) {
                       if (!mounted) return;
                       Navigator.pop(context, true);
                       Navigator.pushReplacement(

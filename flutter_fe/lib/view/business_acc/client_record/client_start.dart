@@ -4,6 +4,7 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/client_request.dart';
+import 'package:flutter_fe/model/messeges_assignment.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/business_acc/client_record/client_ongoing.dart';
@@ -11,6 +12,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+
+String cancellationReason = '';
 
 class ClientStart extends StatefulWidget {
   final int? requestID;
@@ -35,7 +38,6 @@ class _ClientStartState extends State<ClientStart> {
   bool _isLoading = true;
   bool _hasError = false;
   String _errorMessage = '';
-
   @override
   void initState() {
     super.initState();
@@ -128,12 +130,12 @@ class _ClientStartState extends State<ClientStart> {
       _isLoading = true;
     });
     try {
-      final result = await taskController.acceptRequest(
+      final result = await taskController.updateRequest(
         _requestInformation!.task_taken_id!,
         'Start',
         _role!,
       );
-      if (result) {
+      if (result.containsKey('message') && result['message']) {
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -145,9 +147,11 @@ class _ClientStartState extends State<ClientStart> {
       } else {
         throw Exception('Failed to start task');
       }
-    } catch (e) {
+    } catch (e, stacktrace) {
+      debugPrint("Error starting task: $e");
+      debugPrintStack(stackTrace: stacktrace);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error starting task: $e')),
+        SnackBar(content: Text('Error starting task. Please Try Again')),
       );
     } finally {
       setState(() {
@@ -157,57 +161,118 @@ class _ClientStartState extends State<ClientStart> {
   }
 
   Future<void> _handleCancelTask() async {
-    final bool? confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Cancel Task',
-            style: GoogleFonts.montserrat(fontWeight: FontWeight.w600)),
-        content: Text(
-          'Are you sure you want to cancel this task? This action cannot be undone.',
-          style: GoogleFonts.montserrat(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child:
-                Text('No', style: GoogleFonts.montserrat(color: Colors.grey)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child:
-                Text('Yes', style: GoogleFonts.montserrat(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
+    // final bool? confirm = await showDialog<bool>(
+    //   context: context,
+    //   builder: (context) => AlertDialog(
+    //     title: Text(
+    //       'Cancel Task',
+    //       style: GoogleFonts.poppins(
+    //         fontWeight: FontWeight.w600
+    //       )
+    //     ),
+    //     content: SizedBox(
+    //       width: double.maxFinite, // Use double.maxFinite for AlertDialog content
+    //       height: MediaQuery.of(context).size.height * 0.3,
+    //       child: StatefulBuilder( // Use StatefulBuilder for AlertDialog content that needs to update
+    //         builder: (BuildContext context, StateSetter setStateDialog) {
+    //           return Column(
+    //             children: [
+    //               Text(
+    //                 'Why would you want to cancel this task?',
+    //                 style: GoogleFonts.poppins(),
+    //               ),
+    //               const SizedBox(height: 16),
+    //               Expanded(
+    //                 child: ListView(
+    //                   shrinkWrap: true,
+    //                   children: [
+    //                     DropdownButtonFormField<String>(
+    //                       decoration: InputDecoration(
+    //                         labelText: 'Reason for Cancellation',
+    //                         border: OutlineInputBorder(
+    //                           borderRadius: BorderRadius.circular(8),
+    //                         ),
+    //                       ),
+    //                       value: _selectedCancellationReason,
+    //                       hint: const Text('Select a reason'),
+    //                       items: _cancellationReasons.map((String reason) {
+    //                         return DropdownMenuItem<String>(
+    //                           value: reason,
+    //                           child: Text(reason),
+    //                         );
+    //                       }).toList(),
+    //                       onChanged: (String? newValue) {
+    //                         // Use setStateDialog to update AlertDialog's content
+    //                         setStateDialog(() => _selectedCancellationReason = newValue);
+    //                         // Also update the main widget's state if needed
+    //                         setState(() => _selectedCancellationReason = newValue);
+    //                       },
+    //                     ),
+    //                   ],
+    //                 ),
+    //               )
+    //             ],
+    //           );
+    //         },
+    //       )
+    //     ),
+    //     actions: [
+    //       TextButton(
+    //         onPressed: () => Navigator.pop(context, false),
+    //         child:
+    //             Text('No', style: GoogleFonts.montserrat(color: Colors.grey)),
+    //       ),
+    //       TextButton(
+    //         onPressed: () => Navigator.pop(context, true),
+    //         child:
+    //             Text('Yes', style: GoogleFonts.montserrat(color: Colors.red)),
+    //       ),
+    //     ],
+    //   ),
+    // );
 
-    if (confirm == true && _requestInformation != null && _role != null) {
+    cancellationReason = await showModalBottomSheet(
+      context: context,
+      builder: (context) => CancellationBottomSheet()
+    );
+    debugPrint('Selected cancellation reason: $cancellationReason');
+
+    if (_requestInformation != null && _role != null && cancellationReason != '') {
       setState(() {
         _isLoading = true;
       });
       try {
-        final result = await taskController.acceptRequest(
+        final result = await taskController.updateRequest(
           _requestInformation!.task_taken_id!,
           'Cancel',
           _role!,
+          rejectionReason: cancellationReason,
         );
-        if (result) {
+        if (result.containsKey('message')) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Task cancelled successfully')),
+            const SnackBar(content: Text('You had cancelled your task. The tasker will be informed.')),
           );
           await _fetchRequestDetails();
         } else {
-          throw Exception('Cancellation failed');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(result['error'])),
+          );
         }
-      } catch (e) {
+      } catch (e, stackTrace) {
+        debugPrint("Error cancelling task: $e");
+        debugPrintStack(stackTrace: stackTrace);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error cancelling task: $e')),
+          SnackBar(content: Text('Error cancelling task. Please try again.')),
         );
       } finally {
         setState(() {
           _isLoading = false;
         });
       }
+    }else{
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Something went wrong while cancelling your task. Please Try again.')),
+      );
     }
   }
 
@@ -313,12 +378,12 @@ class _ClientStartState extends State<ClientStart> {
         _isLoading = true;
       });
       try {
-        final result = await taskController.acceptRequest(
+        final result = await taskController.updateRequest(
           _requestInformation!.task_taken_id!,
           'Finish',
           _role!,
         );
-        if (result) {
+        if (result.containsKey('message')) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Task marked as finished')),
           );
@@ -892,5 +957,179 @@ class _ClientStartState extends State<ClientStart> {
       default:
         return 'Task status is unknown.';
     }
+  }
+}
+
+class CancellationBottomSheet extends StatefulWidget {
+  const CancellationBottomSheet({super.key});
+
+  @override
+  State<CancellationBottomSheet> createState() => _CancellationBottomSheetState();
+}
+
+class _CancellationBottomSheetState extends State<CancellationBottomSheet> {
+  final _formKey = GlobalKey<FormState>();
+  String? _selectedReason;
+  bool isConfirmed = false;
+  final TaskController taskController = TaskController();
+
+  final List<String> _cancellationReasons = [
+    'I had conflicts with my other schedule.',
+    'We cannot find a middle ground on this task.',
+    'Tasker cannot be reached.',
+    'There\'s a problem with the task itself.',
+    'Others'
+  ];
+
+  @override
+  Widget build(BuildContext bottomSheetContext){
+    return SizedBox(
+      width: MediaQuery.of(context).size.width,
+      height: MediaQuery.of(context).size.height,
+      child: Form(
+        key: _formKey,
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Cancel Task",
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFFE23670),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                "You are going to cancel your task. The amount that will be refunded will be deducted to your account upon cancellation.",
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: const Color(0xFF4A4A68),
+                ),
+                textAlign: TextAlign.left,
+              ),
+              const SizedBox(height: 20),
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  labelText: 'Reason for Cancellation',
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFF0272B1), width: 2),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(999),
+                    borderSide: BorderSide(color: Colors.red[400]!, width: 1),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(999),
+                    borderSide: BorderSide(color: Colors.red[600]!, width: 2),
+                  ),
+                  disabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(999),
+                    borderSide: BorderSide(color: Colors.grey[400]!, width: 2),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                ),
+                value: _selectedReason,
+                hint: const Text('Select a reason'),
+                items: _cancellationReasons.map((String reason) {
+                  return DropdownMenuItem<String>(
+                    value: reason,
+                    child: Text(reason),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedReason = newValue;
+                  });
+                },
+                validator: (value) => value == null && _selectedReason == "Others" ? 'Please input your other reason why you cancelled your task..' : null,
+              ),
+              const SizedBox(height: 30),
+              TextFormField(
+                controller: taskController.rejectionOthersController,
+                enabled: _selectedReason == "Others",
+                decoration: InputDecoration(
+                  labelText: 'Others (please specify)',
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFF0272B1), width: 2),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.red[400]!, width: 1),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.red[600]!, width: 2),
+                  ),
+                  disabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey[400]!, width: 2),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                ),
+                maxLines: 4,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Checkbox(
+                    value: isConfirmed,
+                    checkColor: Colors.white,
+                    activeColor: Color(0XFFE23670),
+                    onChanged: (bool? value) {
+                      // Handle checkbox state change
+                      setState(() {
+                        isConfirmed = value ?? false;
+                      });
+                    },
+                  ),
+                  Expanded(
+                    child: Text(
+                      "I understand that 30% will be deducted from the task payment upon cancellation.",
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: const Color(0xFF4A4A68),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: isConfirmed
+                    ? () {
+                      debugPrint("Selected reason: $_selectedReason");
+                      if(_selectedReason == "Others"){
+                        _selectedReason = taskController.rejectionOthersController.text;
+                      }
+                      Navigator.pop(context, _selectedReason);
+                    } : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+                child: Text('Confirm Cancellation', style: GoogleFonts.poppins(color: Colors.white)),
+              ),
+
+            ]
+          )
+        )
+      )
+    );
   }
 }

@@ -120,9 +120,9 @@ class _TaskerStartState extends State<TaskerStart> {
               });
 
               final String value = 'Cancel';
-              bool result = await taskController.acceptRequest(
+              final result = await taskController.updateRequest(
                   _requestInformation?.task_taken_id ?? 0, value, 'Tasker');
-              if (result) {
+              if (result.containsKey('success') && result['success']) {
                 Navigator.pop(context);
                 setState(() {
                   _isLoading = true;
