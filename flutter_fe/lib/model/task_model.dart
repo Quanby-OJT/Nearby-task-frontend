@@ -1,5 +1,6 @@
 import 'package:flutter_fe/model/client_model.dart';
 import 'package:flutter_fe/model/address.dart';
+import 'package:flutter_fe/model/images_model.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -31,6 +32,8 @@ class TaskModel {
   final String? imageUrl;
   final TaskerSpecialization? taskerSpecialization;
   final bool? ableToDelete;
+  final List<int>? imageIds;
+  final List<ImagesModel>? imageUrls;
 
   TaskModel({
     required this.id,
@@ -57,6 +60,8 @@ class TaskModel {
     this.imageUrl,
     this.taskerSpecialization,
     this.ableToDelete,
+    this.imageIds,
+    this.imageUrls,
   });
 
   factory TaskModel.fromJson(Map<String, dynamic> json) {
@@ -119,6 +124,14 @@ class TaskModel {
           ? TaskerSpecialization.fromJson(json['tasker_specialization'])
           : null,
       ableToDelete: json['able_to_delete'] as bool?,
+      imageIds: json['image_ids'] != null
+          ? List<int>.from(json['image_ids'].map((x) => x))
+          : null,
+      imageUrls: json['images'] != null
+          ? (json['images'] as List)
+              .map((item) => ImagesModel.fromJson(item))
+              .toList()
+          : null,
     );
   }
 
@@ -148,6 +161,7 @@ class TaskModel {
       "image_url": imageUrl,
       "tasker_specialization": taskerSpecialization?.toJson(),
       "able_to_delete": ableToDelete,
+      "image_ids": imageIds,
     };
   }
 

@@ -276,7 +276,8 @@ class _ClientHomePageState extends State<ClientHomePage>
       int userId = int.parse(storage.read('user_id').toString());
       if (userId == 0) {
         debugPrint("User ID not found in storage");
-       CustomScaffold(message: "User ID not found in storage", color: Colors.red);
+        CustomScaffold(
+            message: "User ID not found in storage", color: Colors.red);
         return;
       }
 
@@ -310,7 +311,7 @@ class _ClientHomePageState extends State<ClientHomePage>
       setState(() {
         taskers = fetchedTaskers
             .map((tasker) =>
-                AuthenticatedUser(user: tasker.user!, isTasker: true))
+                AuthenticatedUser(tasker: tasker, user: tasker.user!))
             .toList();
       });
       setState(() {
@@ -1074,8 +1075,10 @@ class _ClientHomePageState extends State<ClientHomePage>
                                                     children: [
                                                       ...List.generate(5,
                                                           (index) {
-                                                        double rating =
-                                                            4.5; // Default rating since we're using unified model
+                                                        double rating = tasker
+                                                                .tasker
+                                                                ?.rating ??
+                                                            4.5;
                                                         return Icon(
                                                           index < rating.floor()
                                                               ? Icons.star
@@ -1090,7 +1093,7 @@ class _ClientHomePageState extends State<ClientHomePage>
                                                       }),
                                                       SizedBox(width: 8),
                                                       Text(
-                                                        "4.5", // Default rating
+                                                        "${tasker.tasker?.rating ?? 4.5}",
                                                         style: TextStyle(
                                                           color: Colors.white,
                                                           fontSize: 14,
@@ -1100,7 +1103,8 @@ class _ClientHomePageState extends State<ClientHomePage>
                                                   ),
                                                   SizedBox(height: 4),
                                                   Text(
-                                                    tasker.user.bio ??
+                                                    tasker.tasker
+                                                            ?.specialization ??
                                                         "No specialization",
                                                     style: TextStyle(
                                                       fontSize: 14,
@@ -1123,10 +1127,10 @@ class _ClientHomePageState extends State<ClientHomePage>
                                                   MaterialPageRoute(
                                                     builder: (context) =>
                                                         TaskerProfilePage(
-                                                      tasker:
-                                                          fetchedTaskers[index],
+                                                      tasker: tasker.tasker!,
                                                       isSaved: false,
-                                                      taskerId: tasker.user.id,
+                                                      taskerId:
+                                                          tasker.tasker?.id,
                                                     ),
                                                   ),
                                                 );

@@ -31,6 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
   cached_network_image: ^3.3.1
+  dots_indicator: ^4.0.1
   animated_bottom_navigation_bar: ^1.1.1
   geolocator: ^10.0.0
   geocoding: ^2.0.2

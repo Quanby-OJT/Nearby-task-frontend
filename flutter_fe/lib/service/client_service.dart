@@ -11,7 +11,7 @@ import '../config/url_strategy.dart';
 import 'api_service.dart';
 
 class ClientServices {
-  static String url = apiUrl ?? "http://localhost:5000/connect";
+  static String url = apiUrl ?? "http://192.168.1.5:5000/connect";
   final dio = Dio();
   static final storage = GetStorage();
   static final token = storage.read('session');
