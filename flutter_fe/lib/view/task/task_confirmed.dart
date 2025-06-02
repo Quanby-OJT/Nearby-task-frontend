@@ -173,12 +173,12 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
     });
     try {
       final value = 'Start';
-      final result = await taskController.acceptRequest(
+      final result = await taskController.updateRequest(
         _requestInformation!.task_taken_id!,
         'Start',
         _role!,
       );
-      if (result) {
+      if (result.containsKey('success') && result['success']) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -318,13 +318,13 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
                       });
 
                       final String value = 'Cancel';
-                      bool result = await taskController.acceptRequest(
+                      final result = await taskController.updateRequest(
                         _requestInformation?.task_taken_id ?? 0,
                         value,
                         _role ?? 'Unknown',
                         rejectionReason: selectedReason,
                       );
-                      if (result) {
+                      if (result.containsKey('success') && result['success']) {
                         Navigator.pop(context);
                         Navigator.pushReplacement(
                           context,

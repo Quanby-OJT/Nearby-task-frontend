@@ -158,11 +158,11 @@ class _TaskerPendingState extends State<TaskerPending> {
               });
 
               final String value = 'Reject';
-              bool result = await taskController.acceptRequest(
+              final result = await taskController.updateRequest(
                   _requestInformation?.task_taken_id ?? 0,
                   value,
                   _role ?? 'Unknown');
-              if (result) {
+              if (result.containsKey('success') && result['success']) {
                 Navigator.pop(context);
                 setState(() {
                   _isLoading = true;
@@ -216,11 +216,11 @@ class _TaskerPendingState extends State<TaskerPending> {
               });
 
               final String value = 'Cancel';
-              bool result = await taskController.acceptRequest(
+              final result = await taskController.updateRequest(
                   _requestInformation?.task_taken_id ?? 0,
                   value,
                   _role ?? 'Unknown');
-              if (result) {
+              if (result.containsKey('success') && result['success']) {
                 Navigator.pop(context);
                 setState(() {
                   _isLoading = true;
@@ -274,14 +274,14 @@ class _TaskerPendingState extends State<TaskerPending> {
               });
               debugPrint("Accept request role: $_role");
               final String value = 'Accept';
-              bool result = await taskController.acceptRequest(
+              final result = await taskController.updateRequest(
                   _requestInformation?.task_taken_id ?? 0,
                   value,
                   _role ?? 'Unknown');
               setState(() {
                 _isLoading = false;
               });
-              if (result) {
+              if (result.containsKey('success') && result['success']) {
                 Navigator.pop(context, true);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Task accepted successfully')),

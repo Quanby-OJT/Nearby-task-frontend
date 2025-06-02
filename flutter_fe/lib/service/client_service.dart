@@ -40,7 +40,7 @@ class ClientServices {
         if (errorMsg.toString().contains("No active taskers found")) {
           return null;
         }
-        throw Exception(errorMsg);
+        return ClientModel();
       }
 
       final client = response["client"] as Map<String, dynamic>?;
@@ -421,7 +421,7 @@ class ClientServices {
   Future<Map<String, dynamic>> fetchUserIDImage(int userId) async {
     try {
       final response = await http.get(
-        Uri.parse("${ApiService.url}/getUserDocuments/$userId?type=id"),
+          Uri.parse("${ApiService.url}/getUserDocuments/$userId?type=id"),
         headers: {
           "Authorization": "Bearer ${await AuthService.getSessionToken()}",
           "Content-Type": "application/json"

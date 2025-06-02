@@ -27,7 +27,7 @@ class TaskController {
   final jobScopeController = TextEditingController();
   final jobRemarksController = TextEditingController();
   final contactpriceController = TextEditingController();
-  final rejectionController = TextEditingController();
+  final rejectionOthersController = TextEditingController();
   final jobStartDateController = TextEditingController();
   final storage = GetStorage();
 
@@ -41,7 +41,7 @@ class TaskController {
     contactPriceController.clear();
     jobRemarksController.clear();
     contactpriceController.clear();
-    rejectionController.clear();
+    rejectionOthersController.clear();
   }
 
   Future<Map<String, dynamic>> updateJob(
@@ -288,16 +288,12 @@ class TaskController {
         : assignedTask['error'].toString();
   }
 
-  Future<bool> acceptRequest(int taskTakenId, String value, String role,
+  Future<Map<String, dynamic>> updateRequest(int taskTakenId, String value, String role,
       {String? rejectionReason}) async {
     debugPrint("Assigning task...");
-    final assignedTask = await _jobPostService.acceptRequest(
+    return await _jobPostService.updateRequest(
         taskTakenId, value, role,
         rejectionReason: rejectionReason);
-    if (assignedTask.containsKey('message')) {
-      return assignedTask['message'] = true;
-    }
-    return false;
   }
 
   Future<String> fetchIsApplied(
