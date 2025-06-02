@@ -323,14 +323,14 @@ class _TaskPendingState extends State<TaskPending> {
                                     });
 
                                     final String value = 'Reject';
-                                    bool result =
-                                        await taskController.acceptRequest(
+                                    final result =
+                                        await taskController.updateRequest(
                                       _requestInformation?.task_taken_id ?? 0,
                                       value,
                                       _role ?? 'Unknown',
                                       rejectionReason: newValue,
                                     );
-                                    if (result) {
+                                    if (result.containsKey('success') && result['success']) {
                                       Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
@@ -398,13 +398,13 @@ class _TaskPendingState extends State<TaskPending> {
                     });
 
                     final String value = 'Reject';
-                    bool result = await taskController.acceptRequest(
+                    final result = await taskController.updateRequest(
                       _requestInformation?.task_taken_id ?? 0,
                       value,
                       _role ?? 'Unknown',
                       rejectionReason: selectedReason,
                     );
-                    if (result) {
+                    if (result.containsKey('success') && result['success']) {
                       Navigator.pop(context);
                       Navigator.pushReplacement(
                         context,
@@ -553,13 +553,13 @@ class _TaskPendingState extends State<TaskPending> {
                       });
 
                       final String value = 'Cancel';
-                      bool result = await taskController.acceptRequest(
+                      final result = await taskController.updateRequest(
                         _requestInformation?.task_taken_id ?? 0,
                         value,
                         _role ?? 'Unknown',
                         rejectionReason: selectedReason,
                       );
-                      if (result) {
+                      if (result.containsKey('success') && result['success']) {
                         Navigator.pop(context);
                         Navigator.pushReplacement(
                           context,
@@ -664,9 +664,9 @@ class _TaskPendingState extends State<TaskPending> {
     });
 
     final String value = 'Expired';
-    bool result = await taskController.acceptRequest(
+    final result = await taskController.updateRequest(
         _requestInformation?.task_taken_id ?? 0, value, _role ?? 'Unknown');
-    if (result) {
+    if (result.containsKey('success') && result['success']) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -1092,11 +1092,11 @@ class _TaskPendingState extends State<TaskPending> {
                 });
                 debugPrint("Accept request role: $_role");
                 final String value = 'Accept';
-                bool result = await taskController.acceptRequest(
+                final result = await taskController.updateRequest(
                     _requestInformation?.task_taken_id ?? 0,
                     value,
                     _role ?? 'Unknown');
-                if (result) {
+                if (result.containsKey('success') && result['success']) {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(

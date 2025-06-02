@@ -137,12 +137,12 @@ class _TaskerOngoingState extends State<TaskerOngoing> {
 
     try {
       final String value = 'Review';
-      bool result = await taskController.acceptRequest(
+      final result = await taskController.updateRequest(
         _requestInformation!.task_taken_id!,
         value,
         widget.role!,
       );
-      if (result) {
+      if (result.containsKey('success') && result['success']) {
         _fetchRequestDetails();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

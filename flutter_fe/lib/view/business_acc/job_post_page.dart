@@ -310,6 +310,7 @@ class _JobPostPageState extends State<JobPostPage>
                 context,
                 MaterialPageRoute(
                     builder: (context) => const VerificationPage()),
+
               );
               if (result == true) {
                 await _fetchUserIDImage();

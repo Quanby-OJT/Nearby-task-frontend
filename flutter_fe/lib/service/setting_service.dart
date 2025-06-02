@@ -149,8 +149,7 @@ class SettingService {
         }
       }
 
-      debugPrint(
-          'No valid location data found, returning default SettingModel');
+      debugPrint('No valid location data found, returning default SettingModel');
       return SettingModel();
     } else if (response.containsKey('error')) {
       debugPrint('Location not found for user ID: $userId');

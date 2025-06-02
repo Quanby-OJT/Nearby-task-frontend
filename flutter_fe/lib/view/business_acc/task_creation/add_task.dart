@@ -15,6 +15,7 @@ import 'package:flutter_fe/view/business_acc/task_creation/select_related_spec.d
 import 'package:flutter_fe/view/business_acc/task_creation/select_spec.dart';
 import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
+import 'package:flutter_fe/view/verification/verification_page.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -119,7 +120,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
       AuthenticatedUser? user =
           await _profileController.getAuthenticatedUser(context, userId);
       final response = await _clientServices.fetchUserIDImage(userId);
-
+      debugPrint('add task verification: $response');
       if (response['success']) {
         setState(() {
           _existingProfileImageUrl = user?.user.image;
@@ -192,7 +193,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
               Navigator.pop(context);
               final result = await Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const FillUpClient()),
+                MaterialPageRoute(builder: (context) => const VerificationPage()),
               );
               if (result == true) {
                 setState(() {
