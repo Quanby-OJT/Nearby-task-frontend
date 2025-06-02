@@ -16,7 +16,7 @@ import '../model/client_model.dart';
 import '../model/tasker_model.dart';
 
 class JobPostService {
-  static String url = apiUrl ?? "https://localhost:5000/connect";
+  static String url = apiUrl ?? "http://localhost:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -250,77 +250,79 @@ class JobPostService {
     }
   }
 
-  
-Future<Map<String, dynamic>> updateJob(TaskModel task, int taskId,
+  Future<Map<String, dynamic>> updateJob(TaskModel task, int taskId,
       {List<File>? files}) async {
     try {
-      debugPrint("Posting job with data: ${task.toJson()}");
+      debugPrint("Updating job with data: ${task.toJson()}");
       debugPrint("Files: ${files?.length}");
 
-      var request = http.MultipartRequest('PUT', Uri.parse('$url/updateTask/$taskId'));
+      var request =
+          http.MultipartRequest('PUT', Uri.parse('$url/updateTask/$taskId'));
       request.headers['Authorization'] = 'Bearer $token';
 
-     var taskData = task.toJson();
-    taskData['proposed_price'] = task.contactPrice;
-    taskData['urgency'] = task.urgency == 'Urgent' ? true : false;
-    taskData['related_specializations'] = jsonEncode(task.relatedSpecializationsIds ?? []);
+      var taskData = task.toJson();
+      taskData['proposed_price'] = task.contactPrice;
+      taskData['urgent'] = task.urgency == 'Urgent';
+      taskData['related_specializations'] =
+          jsonEncode(task.relatedSpecializationsIds ?? []);
+      taskData['specialization_id'] = task.specializationId;
+      taskData['task_begin_date'] = task.taskBeginDate;
+      taskData['status'] = task.status;
 
-    // Remove null or unwanted fields
-    taskData.removeWhere((key, value) => value == null || key == 'id' || key == 'client_id');
+      // Remove null or unwanted fields
+      taskData.removeWhere(
+          (key, value) => value == null || key == 'id' || key == 'client_id');
 
-    // Add fields to request
-    taskData.forEach((key, value) {
-      request.fields[key] = value.toString();
-    });
+      // Add fields to request
+      taskData.forEach((key, value) {
+        request.fields[key] = value.toString();
+      });
 
-    // Handle multiple file uploads
-    if (files != null && files.isNotEmpty) {
-      for (var file in files) {
-        if (await file.exists()) {
-          request.files.add(
-            await http.MultipartFile.fromPath(
-              'photos[]', // Use array-like naming for multiple files
-              file.path,
-              contentType: MediaType('image', file.path.split('.').last),
-            ),
-          );
+      // Handle multiple file uploads
+      if (files != null && files.isNotEmpty) {
+        for (var i = 0; i < files.length; i++) {
+          var file = files[i];
+          if (await file.exists()) {
+            request.files.add(
+              await http.MultipartFile.fromPath(
+                'photos', // Use consistent field name
+                file.path,
+                contentType: MediaType('image', file.path.split('.').last),
+              ),
+            );
+          }
         }
       }
-    }
 
-      if (files != null && files.isNotEmpty && await files.first.exists()) {
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'photo',
-            files.first.path,
-            contentType: MediaType('image', files.first.path.split('.').last),
-          ),
-        );
+      debugPrint("Updating job with fields: ${request.fields}");
+      debugPrint("Files to upload: ${request.files.length}");
+
+      var response = await request.send();
+      var responseData = await http.Response.fromStream(response);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        var result = jsonDecode(responseData.body) as Map<String, dynamic>;
+        return {
+          'success': true,
+          'message': result['message'] ?? 'Task updated successfully',
+          'task': result['task'],
+        };
+      } else {
+        var error = jsonDecode(responseData.body);
+        return {
+          'success': false,
+          'error': error['error'] ?? 'Failed to update task',
+        };
       }
-
-     debugPrint("Updating job with fields: ${request.fields}");
-    debugPrint("Files to upload: ${request.files.length}");
-
-    var response = await request.send();
-    var responseData = await http.Response.fromStream(response);
-    var result = jsonDecode(responseData.body) as Map<String, dynamic>;
-
-    return {
-      'success': result['success'] ?? false,
-      'message': result['message'] ?? 'Task updated successfully',
-      'error': result['error'],
-      'task': result['task'],
-    };
-  } catch (e, stackTrace) {
-    debugPrint('Error in updateJob: $e');
-    debugPrint(stackTrace.toString());
-    return {
-      'success': false,
-      'error': 'Failed to update task: $e',
-    };
+    } catch (e, stackTrace) {
+      debugPrint('Error in updateJob: $e');
+      debugPrint(stackTrace.toString());
+      return {
+        'success': false,
+        'error': 'Failed to update task: $e',
+      };
+    }
   }
-  }
- 
 
   Future<Map<String, dynamic>> postJob(TaskModel task, int userId,
       {List<File>? files}) async {
@@ -906,7 +908,6 @@ Future<Map<String, dynamic>> updateJob(TaskModel task, int taskId,
       "role": role,
       "task_status": "Pending",
       "days_available": daysAvailable,
-      "available_date": availableDate
     });
   }
 
@@ -1102,23 +1103,20 @@ Future<Map<String, dynamic>> updateJob(TaskModel task, int taskId,
   }
 
   Future<Map<String, dynamic>> updateTask(
-      int taskId, Map<String, dynamic> taskData, {File? photo}) async {
+      int taskId, Map<String, dynamic> taskData,
+      {File? photo}) async {
     try {
-     
       return await _multipartRequest(
-        endpoint: '/updateTask/$taskId',
-        body: taskData,
-         fileField: 'photo',
-        files: photo != null ? [photo] : []);
-      
+          endpoint: '/updateTask/$taskId',
+          body: taskData,
+          fileField: 'photo',
+          files: photo != null ? [photo] : []);
     } catch (e) {
       debugPrint('Error updating task: $e');
       debugPrintStack();
       return {'success': false, 'error': 'Error: $e'};
     }
   }
-
-  
 
   // Method to disable a task
   Future<Map<String, dynamic>> disableTask(int taskId,

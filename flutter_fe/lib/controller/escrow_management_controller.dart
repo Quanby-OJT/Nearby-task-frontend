@@ -62,78 +62,105 @@ class EscrowManagementController {
     }
   }
 
-  Future<Map<String, dynamic>> depositAmountToEscrow(String paymentMethod) async {
+  Future<Map<String, dynamic>> depositAmountToEscrow(
+      String paymentMethod) async {
     try {
       debugPrint("TaskRequestController: Depositing amount to escrow");
-      debugPrint("TaskRequestController: Contract Price: ${amountController.text}");
+      debugPrint(
+          "TaskRequestController: Contract Price: ${amountController.text}");
 
       // Make the API call
       var response = await _requestService.depositEscrowPayment(
-          double.parse(amountController.text.replaceAll("₱", "").replaceAll(",", "")),
-          paymentMethod,
+        double.parse(
+            amountController.text.replaceAll("₱", "").replaceAll(",", "")),
+        paymentMethod,
       );
 
       // Check for success
       if (response['success'] == true) {
         await fetchTokenBalance();
-        return {
-          "success": true,
-          "payment_url": response['payment_url'] ?? ''
-        };
+        return {"success": true, "payment_url": response['payment_url'] ?? ''};
       }
       // Check for known error
       else if (response.containsKey('error')) {
-        return {"success": false, "error": response['error'] ?? 'Unknown error occurred'};
+        return {
+          "success": false,
+          "error": response['error'] ?? 'Unknown error occurred'
+        };
       }
       // Fallback for unexpected response structure
       else {
-        return {"success": false, "error": 'Unexpected response from server. Please try again.'};
+        return {
+          "success": false,
+          "error": 'Unexpected response from server. Please try again.'
+        };
       }
     } catch (e, st) {
       debugPrint(e.toString());
       debugPrintStack(stackTrace: st);
-      return {"success": false, "error": 'Error depositing amount to escrow. Please try again.'};
+      return {
+        "success": false,
+        "error": 'Error depositing amount to escrow. Please try again.'
+      };
     }
   }
 
-  Future<String> validatePayment(bool success, int userId, String transactionId, double amount) async{
-    final response = await _requestService.confirmPayment(userId, amount, success, transactionId);
+  Future<String> validatePayment(
+      bool success, int userId, String transactionId, double amount) async {
+    final response = await _requestService.confirmPayment(
+        userId, amount, success, transactionId);
 
-    if(response.containsKey('success')){
-      if(response.containsKey('message')){
-        return response['message'] ?? "Your Payment has been successfully processed.";
-      }
-      else if(response.containsKey('error')){
-        return response['error'] ?? "An Error Occurred while processing your payment.";
-      }else{
+    if (response.containsKey('success')) {
+      if (response.containsKey('message')) {
+        return response['message'] ??
+            "Your Payment has been successfully processed.";
+      } else if (response.containsKey('error')) {
+        return response['error'] ??
+            "An Error Occurred while processing your payment.";
+      } else {
         return "An Error Occurred while processing your payment.";
       }
-    }else{
+    } else {
       return "An Error Occurred while processing your payment.";
     }
   }
 
-  Future<Map<String, dynamic>> releaseEscrowPayment(int taskerId, String paymentMethod) async {
+  Future<Map<String, dynamic>> releaseEscrowPayment(
+      int taskerId, String paymentMethod) async {
     try {
       debugPrint(
           "TaskRequestController: Releasing escrow payment for task taken with ID $taskerId");
-      var response = await _requestService.releaseEscrowPayment(taskerId, double.parse(amountController.text), paymentMethod, acctNumberController.text);
+      var response = await _requestService.releaseEscrowPayment(
+          taskerId,
+          double.parse(amountController.text),
+          paymentMethod,
+          acctNumberController.text);
       if (response.containsKey("message")) {
         return {"success": true, "payment_url": response["payment_url"]};
       } else if (response.containsKey("error")) {
-        return {"success": false, "error": response["error"] ?? "An Error Occured while releasing escrow payment."};
+        return {
+          "success": false,
+          "error": response["error"] ??
+              "An Error Occured while releasing escrow payment."
+        };
       } else {
-        return {"success": false, "error": "An Error Occured while releasing escrow payment."};
+        return {
+          "success": false,
+          "error": "An Error Occured while releasing escrow payment."
+        };
       }
     } catch (e, stackTrace) {
       debugPrint("Error in TaskRequestController.releaseEscrowPayment: $e");
       debugPrintStack(stackTrace: stackTrace);
-      return {"success": false, "error": "An Error Occured while releasing escrow payment."};
+      return {
+        "success": false,
+        "error": "An Error Occured while releasing escrow payment."
+      };
     }
   }
 
   void connectWebSocket() async {
-    _channel = IOWebSocketChannel.connect('ws://localhost:5000');
+    _channel = IOWebSocketChannel.connect('ws://192.168.43.15:5000');
     _channel!.stream.listen((message) {
       debugPrint('Received message: $message');
 

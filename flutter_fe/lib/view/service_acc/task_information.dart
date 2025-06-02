@@ -492,7 +492,9 @@ class _TaskInformationState extends State<TaskInformation> {
                   _buildInfoRow(
                     icon: FontAwesomeIcons.screwdriverWrench,
                     label: 'Specialization',
-                    value: _taskInformation!.specialization ?? 'N/A',
+                    value: _taskInformation!
+                            .taskerSpecialization?.specialization ??
+                        'N/A',
                   ),
                   _buildInfoRow(
                     icon: FontAwesomeIcons.pesoSign,

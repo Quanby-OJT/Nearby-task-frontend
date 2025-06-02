@@ -4,6 +4,7 @@ import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/task/task_cancelled.dart';
 import 'package:flutter_fe/view/task/task_confirmed.dart';
+import 'package:flutter_fe/view/task/task_expired.dart';
 import 'package:flutter_fe/view/task/task_rejected.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -429,7 +430,8 @@ class _TaskPendingState extends State<TaskPending> {
     );
 
     if (confirm == true) {
-      CustomScaffold(message: 'Task rejection requested', color: Color(0xFFB71A4A));
+      CustomScaffold(
+          message: 'Task rejection requested', color: Color(0xFFB71A4A));
     }
   }
 
@@ -584,7 +586,8 @@ class _TaskPendingState extends State<TaskPending> {
     );
 
     if (confirm == true) {
-     CustomScaffold(message: 'Task cancel requested', color: Color(0xFFB71A4A));
+      CustomScaffold(
+          message: 'Task cancel requested', color: Color(0xFFB71A4A));
     }
   }
 
@@ -653,6 +656,28 @@ class _TaskPendingState extends State<TaskPending> {
                   ),
                 ),
     );
+  }
+
+  _setExpire() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final String value = 'Expired';
+    final result = await taskController.updateRequest(
+        _requestInformation?.task_taken_id ?? 0, value, _role ?? 'Unknown');
+    if (result.containsKey('success') && result['success']) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TaskExpired(
+            taskInformation: widget.taskInformation,
+          ),
+        ),
+      );
+    } else {
+      CustomScaffold(message: 'Failed to accept task', color: Colors.red);
+    }
   }
 
   Widget _buildStatusSection() {
@@ -798,6 +823,7 @@ class _TaskPendingState extends State<TaskPending> {
                           letterSpacing: 1.2,
                         ),
                       ),
+                      if (difference.isNegative) _setExpire(),
                     ],
                   ),
                 ),
@@ -1080,7 +1106,8 @@ class _TaskPendingState extends State<TaskPending> {
                     ),
                   );
                 } else {
-                  CustomScaffold(message: 'Failed to accept task', color: Colors.red);
+                  CustomScaffold(
+                      message: 'Failed to accept task', color: Colors.red);
                 }
               },
               style: ElevatedButton.styleFrom(

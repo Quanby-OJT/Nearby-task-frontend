@@ -5,12 +5,6 @@ import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
-import 'package:flutter_fe/view/task/task_cancelled.dart';
-import 'package:flutter_fe/view/task/task_confirmed.dart';
-import 'package:flutter_fe/view/task/task_finished.dart';
-import 'package:flutter_fe/view/task/task_ongoing.dart';
-import 'package:flutter_fe/view/task/task_pending.dart';
-import 'package:flutter_fe/view/task/task_review.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -60,7 +54,9 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
         _isLoading = false;
       });
     } catch (e) {
-      CustomScaffold(message: 'Failed to load task details: ${e.toString()}', color: Colors.red);
+      CustomScaffold(
+          message: 'Failed to load task details: ${e.toString()}',
+          color: Colors.red);
       setState(() {
         _isLoading = false;
       });
@@ -118,10 +114,14 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
     try {
       final result = await _taskController.deleteTask(widget.task!.id);
       if (result['success'] == true) {
-        CustomScaffold(message: 'Task deleted successfully', color: Colors.green);
+        CustomScaffold(
+            message: 'Task deleted successfully', color: Colors.green);
         Navigator.pop(context, true);
       } else {
-        CustomScaffold(message: 'Failed to delete task: ${result['error'] ?? "Unknown error"}', color: Colors.red);
+        CustomScaffold(
+            message:
+                'Failed to delete task: ${result['error'] ?? "Unknown error"}',
+            color: Colors.red);
       }
     } catch (e) {
       CustomScaffold(message: 'Error: ${e.toString()}', color: Colors.red);
@@ -217,8 +217,11 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
                             ),
                           ),
                           Divider(height: 30),
-                          _buildInfoRow("Specialization",
-                              taskToDisplay.taskerSpecialization?.specialization ?? "N/A"),
+                          _buildInfoRow(
+                              "Specialization",
+                              taskToDisplay
+                                      .taskerSpecialization?.specialization ??
+                                  "N/A"),
                           _buildInfoRow("Description",
                               taskToDisplay.description ?? "N/A"),
                           _buildInfoRow("Contract Price", "₱ $priceDisplay"),

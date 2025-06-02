@@ -56,7 +56,7 @@ class _ChatScreenState extends State<ChatScreen> {
     loadAll();
     conversationController.searchConversation.addListener(filterMessages);
 
-    socket = IO.io('http://192.168.43.15:5000', <String, dynamic>{
+    socket = IO.io('http://192.168.1.12:5000', <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
     });

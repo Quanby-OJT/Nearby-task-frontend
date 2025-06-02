@@ -16,6 +16,7 @@ class AddressModel {
   final DateTime? updatedAt;
   final String? formattedAddress;
   final String? regionName;
+  final String? remarks;
 
   AddressModel({
     required this.id,
@@ -32,6 +33,7 @@ class AddressModel {
     this.updatedAt,
     this.formattedAddress,
     this.regionName,
+    this.remarks,
   });
 
   // Operator overloading to allow map-like access
@@ -68,6 +70,8 @@ class AddressModel {
       case 'region':
       case 'region_name':
         return regionName;
+      case 'remarks':
+        return remarks;
       default:
         return null;
     }
@@ -92,6 +96,7 @@ class AddressModel {
         updatedAt,
         formattedAddress,
         regionName,
+        remarks,
       ];
 
   factory AddressModel.fromJson(Map<String, dynamic> json) {
@@ -123,6 +128,7 @@ class AddressModel {
           '',
       regionName:
           json['region']?.toString() ?? json['region_name']?.toString() ?? '',
+      remarks: json['remarks']?.toString() ?? '',
     );
   }
 
@@ -142,12 +148,13 @@ class AddressModel {
       'updated_at': updatedAt?.toIso8601String(),
       'formatted_address': formattedAddress,
       'region_name': regionName,
+      'remarks': remarks,
     };
   }
 
   @override
   String toString() {
-    return 'AddressModel(streetAddress: $streetAddress, barangay: $barangay, city: $city, province: $province, postalCode: $postalCode, country: $country, latitude: $latitude, longitude: $longitude, default: $defaultAddress, createdAt: $createdAt, updatedAt: $updatedAt, formattedAddress: $formattedAddress, regionName: $regionName)';
+    return 'AddressModel(streetAddress: $streetAddress, barangay: $barangay, city: $city, province: $province, postalCode: $postalCode, country: $country, latitude: $latitude, longitude: $longitude, default: $defaultAddress, createdAt: $createdAt, updatedAt: $updatedAt, formattedAddress: $formattedAddress, regionName: $regionName, remarks: $remarks)';
   }
 
   // Helper method to get LatLng for Google Maps
@@ -161,7 +168,7 @@ class AddressModel {
   // Create a new instance from map data
   factory AddressModel.fromMapData(Map<String, dynamic> mapData) {
     return AddressModel(
-      id: mapData['id'] ?? 0,
+      id: mapData['id']?.toString() ?? '',
       streetAddress: mapData['street_address']?.toString() ?? '',
       barangay: mapData['barangay']?.toString(),
       city: mapData['city']?.toString() ?? 'Unknown City',
@@ -176,6 +183,7 @@ class AddressModel {
           : null,
       formattedAddress: mapData['formattedAddress']?.toString() ?? '',
       regionName: mapData['region']?.toString() ?? '',
+      remarks: mapData['remarks']?.toString() ?? '',
     );
   }
 }

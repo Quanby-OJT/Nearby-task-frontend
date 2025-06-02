@@ -8,7 +8,7 @@ import 'dart:convert';
 import 'package:flutter_fe/model/setting.dart';
 
 class SettingService {
-  static String url = apiUrl ?? "https://localhost:5000";
+  static String url = apiUrl ?? "http://localhost:5000";
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
 
@@ -25,7 +25,8 @@ class SettingService {
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> _putRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _putRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     debugPrint(body.toString());
     try {
@@ -97,14 +98,13 @@ class SettingService {
     debugPrint('Setting location: $latitude, $longitude, $city, $province');
     final token = await AuthService.getSessionToken();
     final response = await _putRequest(
-      endpoint: '/set-location/$userId',
-      body: {
-        'latitude': latitude,
-        'longitude': longitude,
-        'city': city,
-        'province': province
-      }
-    );
+        endpoint: '/set-location/$userId',
+        body: {
+          'latitude': latitude,
+          'longitude': longitude,
+          'city': city,
+          'province': province
+        });
     if (response.containsKey('message')) {
       debugPrint('Location set successfully');
       return "true";
@@ -257,7 +257,7 @@ class SettingService {
             .map((addressJson) =>
                 AddressModel.fromJson(addressJson as Map<String, dynamic>))
             .toList();
-      }else{
+      } else {
         debugPrint('No addresses found in response');
         return [];
       }
@@ -279,6 +279,7 @@ class SettingService {
     String street,
     String postalCode,
     String country,
+    String remarks,
   ) async {
     debugPrint('Setting address: latitude=$latitude, longitude=$longitude, '
         'formattedAddress=$formattedAddress, region=$region, province=$province, '
@@ -298,17 +299,18 @@ class SettingService {
       'country': country,
     });
 
-    if(response.containsKey('message')){
+    if (response.containsKey('message')) {
       debugPrint('Address set successfully');
       return "true";
-    }else{
+    } else {
       debugPrint('Failed to set address');
       return "false";
     }
   }
 
   Future<bool> setDefaultAddress(int userId, String addressId) async {
-    final response = await _putRequest(endpoint: '/set-default-address/$userId', body: {
+    final response =
+        await _putRequest(endpoint: '/set-default-address/$userId', body: {
       'address_id': addressId,
     });
 
@@ -322,7 +324,7 @@ class SettingService {
   }
 
   Future updateAddress(
-    int userId,
+    String addressId,
     double latitude,
     double longitude,
     String formattedAddress,
@@ -333,61 +335,72 @@ class SettingService {
     String street,
     String postalCode,
     String country,
+    String remarks,
   ) async {
     debugPrint('Setting address: latitude=$latitude, longitude=$longitude, '
         'formattedAddress=$formattedAddress, region=$region, province=$province, '
         'city=$city, barangay=$barangay, street=$street, postalCode=$postalCode, country=$country');
 
     final token = await AuthService.getSessionToken();
-    // final response = await _client.put(
-    //   Uri.parse('$url/set-address/$userId'),
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'Authorization': 'Bearer $token',
-    //   },
-    //   body: json.encode({
-    //     'latitude': latitude,
-    //     'longitude': longitude,
-    //     'formatted_Address': formattedAddress,
-    //     'region': region,
-    //     'province': province,
-    //     'city': city,
-    //     'barangay': barangay,
-    //     'street': street,
-    //     'postal_code': postalCode,
-    //     'country': country,
-    //   }),
-    // );
+    final response = await _client.put(
+      Uri.parse('$url/update-address/$addressId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: json.encode({
+        'latitude': latitude,
+        'longitude': longitude,
+        'formatted_Address': formattedAddress,
+        'region': region,
+        'province': province,
+        'city': city,
+        'barangay': barangay,
+        'street': street,
+        'postal_code': postalCode,
+        'country': country,
+        'remarks': remarks,
+      }),
+    );
 
-    final response = await _putRequest(endpoint: '/update-address/$userId', body: {
-      'latitude': latitude,
-      'longitude': longitude,
-      'formatted_Address': formattedAddress,
-      'region': region,
-      'province': province,
-      'city': city,
-      'barangay': barangay,
-      'street': street,
-      'postal_code': postalCode,
-      'country': country,
-    });
+    debugPrint('Response Status Code: ${response.statusCode}');
+    debugPrint('Response Body: ${response.body}');
 
-    if (response.containsKey('message')) {
+    if (response.statusCode == 200) {
       debugPrint('Address set successfully');
       return "true";
     } else {
-      return "false";
+      debugPrint('Failed to set address: ${response.body}');
+      throw Exception('Failed to set address: ${response.statusCode}');
     }
   }
 
-  Future deleteAddress(String addressID) async {
-    final response = await _deleteRequest('/delete-address/$addressID');
+  Future<bool> deleteAddress(String addressId) async {
+    try {
+      debugPrint('Deleting address with ID: $addressId');
+      final token = await AuthService.getSessionToken();
+      final response = await _client.delete(
+        Uri.parse('$url/delete-address/$addressId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
 
-    if (response.containsKey('message')) {
-      debugPrint('Address deleted successfully');
-      return "true";
-    } else {
-      debugPrint('Failed to delete address');
+      debugPrint('Response Status Code: ${response.statusCode}');
+      debugPrint('Response Body: ${response.body}');
+
+      if (response.body.contains('status')) {
+        debugPrint('Address deleted successfully');
+        final responseData = json.decode(response.body);
+        return responseData['status'];
+      } else {
+        debugPrint('Failed to delete address: ${response.body}');
+        throw Exception('Failed to delete address: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error deleting address: $e');
+      throw Exception('Failed to delete address: $e');
     }
   }
 }
