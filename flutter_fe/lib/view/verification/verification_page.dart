@@ -82,13 +82,13 @@ class _VerificationPageState extends State<VerificationPage> {
         final result =
             await ApiService.getTaskerVerificationStatus(parsedUserId);
 
-        debugPrint('Verification status check result: ${jsonEncode(result)}');
+        debugPrint('Verification status check result: ${jsonEncode(result['verification'])}');
 
         if (result['success'] == true && result['exists'] == true) {
           // User has existing verification data
           if (result['verification'] != null) {
-            final verificationData =
-                VerificationModel.fromJson(result['verification']);
+            final verificationData = VerificationModel.fromJson(result['verification']);
+            debugPrint('VerificationPage: Existing verification data: ${verificationData.status}');
 
             setState(() {
               _existingVerification = verificationData;
@@ -126,7 +126,7 @@ class _VerificationPageState extends State<VerificationPage> {
             });
 
             // Show appropriate message based on verification status
-            if (_verificationStatus == 'approved' ||
+            if (_verificationStatus == 'Active' ||
                 _verificationStatus == 'Review') {
               Future.delayed(Duration.zero, () {
                 if (mounted) {
