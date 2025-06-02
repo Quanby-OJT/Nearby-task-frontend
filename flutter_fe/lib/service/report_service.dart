@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:get_storage/get_storage.dart';
 
 class ReportService {
-  static String url = apiUrl ?? "http://192.168.43.1:5000/connect";
+  static String url = apiUrl ?? "http://192.168.1.5:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 

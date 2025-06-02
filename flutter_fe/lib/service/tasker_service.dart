@@ -16,7 +16,7 @@ import '../model/tasker_model.dart';
 
 class TaskerService {
   static final storage = GetStorage();
-  static final String url = apiUrl ?? "http://192.168.43.1:5000/connect";
+  static final String url = apiUrl ?? "http://192.168.1.5:5000/connect";
 
   static Map<String, dynamic> _handleResponse(http.Response response) {
     debugPrint(response.body);
