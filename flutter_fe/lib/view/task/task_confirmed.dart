@@ -60,7 +60,7 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
         setState(() {
-          if (_requestInformation?.start_date != null &&
+          if (_requestInformation!.task!.taskBeginDate != null &&
               _requestInformation!.task_status?.toLowerCase() == 'confirmed' &&
               !_isStartButtonEnabled()) {
           } else {
@@ -140,7 +140,7 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
       final response = await _jobPostService
           .fetchTaskInformation(_requestInformation!.task_id as int);
       setState(() {
-        _taskInformation = response?.task;
+        _taskInformation = response.task;
         _isLoading = false;
       });
     } catch (e) {
@@ -172,6 +172,7 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
       _isLoading = true;
     });
     try {
+      final value = 'Start';
       final result = await taskController.acceptRequest(
         _requestInformation!.task_taken_id!,
         'Start',
@@ -373,9 +374,10 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
   }
 
   bool _isStartButtonEnabled() {
-    if (_requestInformation?.start_date == null) return false;
+    if (_requestInformation?.task?.taskBeginDate == null) return false;
     try {
-      final startDate = _requestInformation!.start_date!;
+      final startDate =
+          DateTime.parse(_requestInformation!.task!.taskBeginDate!);
       final now = DateTime.now();
       return now.isAfter(startDate);
     } catch (e) {
@@ -704,7 +706,8 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.star,
               label: 'Specialization',
-              value: _taskInformation!.specialization ?? 'N/A',
+              value: _taskInformation!.taskerSpecialization?.specialization ??
+                  'N/A',
             ),
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.dollarSign,

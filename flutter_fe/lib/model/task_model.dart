@@ -30,18 +30,19 @@ class TaskModel {
   final DateTime? updatedAt;
   final String? imageUrl;
   final TaskerSpecialization? taskerSpecialization;
+  final bool? ableToDelete;
 
   TaskModel({
     required this.id,
     this.clientId,
     required this.title,
- this.specialization,
+    this.specialization,
     this.specializationId,
     this.relatedSpecializationsIds,
     this.addressID,
     required this.description,
     required this.urgency,
-this.status,
+    this.status,
     required this.contactPrice,
     this.remarks,
     required this.workType,
@@ -55,6 +56,7 @@ this.status,
     this.address,
     this.imageUrl,
     this.taskerSpecialization,
+    this.ableToDelete,
   });
 
   factory TaskModel.fromJson(Map<String, dynamic> json) {
@@ -116,6 +118,7 @@ this.status,
       taskerSpecialization: json['tasker_specialization'] != null
           ? TaskerSpecialization.fromJson(json['tasker_specialization'])
           : null,
+      ableToDelete: json['able_to_delete'] as bool?,
     );
   }
 
@@ -144,12 +147,13 @@ this.status,
       "updated_at": updatedAt?.toIso8601String(),
       "image_url": imageUrl,
       "tasker_specialization": taskerSpecialization?.toJson(),
+      "able_to_delete": ableToDelete,
     };
   }
 
   @override
   String toString() {
-    return 'TaskModel(id: $id, clientId: $clientId, title: $title, description: $description, specialization: $specialization, relatedSpecializationsIds: $relatedSpecializationsIds, specializationId: $specializationId, workType: $workType, scope: $scope, isVerifiedDocument: $isVerifiedDocument, contactPrice: $contactPrice, urgency: $urgency, remarks: $remarks, status: $status, taskBeginDate: $taskBeginDate, client: $client, tasker: $tasker, address: $address, createdAt: $createdAt, updatedAt: $updatedAt, addressID: $addressID, imageUrl: $imageUrl, taskerSpecialization: $taskerSpecialization)';
+    return 'TaskModel(id: $id, clientId: $clientId, title: $title, description: $description, specialization: $specialization, relatedSpecializationsIds: $relatedSpecializationsIds, specializationId: $specializationId, workType: $workType, scope: $scope, isVerifiedDocument: $isVerifiedDocument, contactPrice: $contactPrice, urgency: $urgency, remarks: $remarks, status: $status, taskBeginDate: $taskBeginDate, client: $client, tasker: $tasker, address: $address, createdAt: $createdAt, updatedAt: $updatedAt, addressID: $addressID, imageUrl: $imageUrl, taskerSpecialization: $taskerSpecialization, ableToDelete: $ableToDelete)';
   }
 }
 

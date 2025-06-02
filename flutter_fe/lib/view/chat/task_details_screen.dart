@@ -258,8 +258,11 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
             textAlign: TextAlign.justify,
           ),
 
-          _buildInfoRowIcon(FontAwesomeIcons.screwdriverWrench,
-              Color(0XFF3C3C54), taskAssignment?.task?.specialization ?? "N/A"),
+          _buildInfoRowIcon(
+              FontAwesomeIcons.screwdriverWrench,
+              Color(0XFF3C3C54),
+              taskAssignment?.task?.taskerSpecialization?.specialization ??
+                  "N/A"),
           _buildInfoRowIcon(FontAwesomeIcons.coins, Color(0XFFB58326),
               "₱ ${NumberFormat("#,##0.00", "en_PH").format(taskAssignment?.task?.contactPrice.roundToDouble() ?? 0.00)}"),
           Divider(height: 30),

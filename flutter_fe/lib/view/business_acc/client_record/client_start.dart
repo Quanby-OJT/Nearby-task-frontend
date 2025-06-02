@@ -224,7 +224,8 @@ class _ClientStartState extends State<ClientStart> {
               primary: Color(0xFF03045E),
               onPrimary: Colors.white,
               surface: Colors.white,
-            ), dialogTheme: DialogThemeData(backgroundColor: Colors.white),
+            ),
+            dialogTheme: DialogThemeData(backgroundColor: Colors.white),
           ),
           child: child!,
         );
@@ -521,7 +522,7 @@ class _ClientStartState extends State<ClientStart> {
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.star,
               label: 'Specialization',
-              value: _taskInformation!.specialization ?? 'N/A',
+              value: _taskInformation!.tasker?.specialization ?? 'N/A',
             ),
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.dollarSign,

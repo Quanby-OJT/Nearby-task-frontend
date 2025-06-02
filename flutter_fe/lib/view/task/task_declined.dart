@@ -5,8 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
-import 'package:flutter_fe/view/task/task_cancelled.dart';
-import 'package:flutter_fe/view/task/task_confirmed.dart';
 import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:flutter_fe/view/task/task_rejected.dart';
 import 'package:flutter_fe/view/task_user/user_feedback.dart';
@@ -56,7 +54,7 @@ class _TaskDeclinedState extends State<TaskDeclined> {
   ];
   String? selectedFinishReason = 'Task is finished';
 
-    final List<String> finishReasons = [
+  final List<String> finishReasons = [
     'Task is finished',
     'All requirements met',
     'Completed ahead of schedule',
@@ -69,7 +67,7 @@ class _TaskDeclinedState extends State<TaskDeclined> {
     'Other'
   ];
 
-    String _requestStatus = 'Unknown';
+  String _requestStatus = 'Unknown';
 
   final String _needToConfirm =
       'The task is pending confirmation. Waiting for your confirmation.';
@@ -456,7 +454,8 @@ class _TaskDeclinedState extends State<TaskDeclined> {
     );
 
     if (confirm == true) {
-     CustomScaffold(message: 'Task rejection requested', color: Color(0xFFB71A4A));
+      CustomScaffold(
+          message: 'Task rejection requested', color: Color(0xFFB71A4A));
     }
   }
 
@@ -515,7 +514,6 @@ class _TaskDeclinedState extends State<TaskDeclined> {
                           SizedBox(height: 24),
                           _buildActionButtons(),
                         ],
-                       
                       ],
                     ),
                   ),
@@ -893,8 +891,6 @@ class _TaskDeclinedState extends State<TaskDeclined> {
     );
   }
 
-
-
   Widget _buildActionButtons() {
     return Column(
       children: [
@@ -923,7 +919,8 @@ class _TaskDeclinedState extends State<TaskDeclined> {
                     ),
                   );
                 } else {
-                  CustomScaffold(message: 'Failed to accept task', color: Colors.red);
+                  CustomScaffold(
+                      message: 'Failed to accept task', color: Colors.red);
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -1150,7 +1147,8 @@ class _TaskDeclinedState extends State<TaskDeclined> {
                       setState(() {
                         _isLoading = false;
                       });
-                      CustomScaffold(message: 'Failed to finish task', color: Colors.red);
+                      CustomScaffold(
+                          message: 'Failed to finish task', color: Colors.red);
                     }
                   },
                 ),
@@ -1162,10 +1160,9 @@ class _TaskDeclinedState extends State<TaskDeclined> {
     );
 
     if (confirm == true) {
-    CustomScaffold(message: 'Task Finished', color: Colors.green);
+      CustomScaffold(message: 'Task Finished', color: Colors.green);
     }
   }
-
 
   void _handleMessage(BuildContext context) {
     Navigator.push(
@@ -1180,10 +1177,11 @@ class _TaskDeclinedState extends State<TaskDeclined> {
     );
   }
 
-   Future<void> _handleTaskDispute() async {
+  Future<void> _handleTaskDispute() async {
     if (_requestInformation == null ||
         _requestInformation!.task_taken_id == null) {
-      CustomScaffold(message: 'Task information not available', color: Colors.red);
+      CustomScaffold(
+          message: 'Task information not available', color: Colors.red);
       return;
     }
 
@@ -1197,7 +1195,7 @@ class _TaskDeclinedState extends State<TaskDeclined> {
     );
   }
 
-   Widget _buildDisputeBottomSheet() {
+  Widget _buildDisputeBottomSheet() {
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -1375,12 +1373,15 @@ class _TaskDeclinedState extends State<TaskDeclined> {
                         _requestStatus = 'Disputed';
                       });
                     } else {
-                      CustomScaffold(message: 'Failed to raise dispute. Please Try Again.', color: Colors.red);
+                      CustomScaffold(
+                          message: 'Failed to raise dispute. Please Try Again.',
+                          color: Colors.red);
                     }
                   } catch (e, stackTrace) {
                     debugPrint("Error raising dispute: $e.");
                     debugPrintStack(stackTrace: stackTrace);
-                    CustomScaffold(message: 'Error occurred', color: Colors.red);
+                    CustomScaffold(
+                        message: 'Error occurred', color: Colors.red);
                   } finally {
                     setState(() {
                       _isLoading = false;
@@ -1413,7 +1414,7 @@ class _TaskDeclinedState extends State<TaskDeclined> {
     );
   }
 
-   Future<void> _pickImage() async {
+  Future<void> _pickImage() async {
     final pickedFile = await _picker.pickMultiImage(
       imageQuality: 100,
       maxWidth: 1000,
@@ -1430,8 +1431,6 @@ class _TaskDeclinedState extends State<TaskDeclined> {
       }
     }
   }
-
-
 
   Widget _buildTaskInfoRow({
     required IconData icon,

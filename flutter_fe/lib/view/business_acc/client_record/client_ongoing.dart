@@ -10,7 +10,6 @@ import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
-import 'package:flutter_fe/view/business_acc/client_record/client_finish.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:async';
@@ -36,8 +35,6 @@ class _ClientOngoingState extends State<ClientOngoing> {
   Duration? _timeRemaining;
   Timer? _timer;
   String _requestStatus = 'Unknown';
-
-
 
   // Dispute Bottom Sheet State
   final TextEditingController _disputeTypeController = TextEditingController();
@@ -733,7 +730,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
   Widget _buildActionButton() {
     return Column(
       children: [
-        if(_requestInformation?.task_status != 'Completed')...[
+        if (_requestInformation?.task_status != 'Completed') ...[
           ElevatedButton(
             onPressed: _handleFinishTask,
             style: ElevatedButton.styleFrom(
