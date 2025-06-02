@@ -6,6 +6,7 @@ import { Users } from 'src/model/user-management';
 import { toast } from 'ngx-sonner';
 import Swal from 'sweetalert2';
 import { AngularSvgIconModule } from 'angular-svg-icon';
+import { LoadingService } from 'src/app/services/loading.service';
 import {
   ReactiveFormsModule,
   FormGroup,
@@ -60,13 +61,15 @@ export class MyProfileComponent implements OnInit, AfterViewInit {
     private router: Router,
     private userAccountService: UserAccountService,
     private fb: FormBuilder,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private loadingService: LoadingService
   ) {
     const now = new Date();
     this.today = now.toISOString().split('T')[0];
   }
 
   ngOnInit() {
+    this.loadingService.show();
     this.isLoading = true;
     this.authService.userInformation().subscribe(
       (response: any) => {
@@ -76,12 +79,14 @@ export class MyProfileComponent implements OnInit, AfterViewInit {
         this.imageUrl = this.user?.image_link || null;
         this.getAddresses();
         this.isLoading = false;
+        this.loadingService.hide();
         this.cdr.detectChanges(); 
       },
       (error: any) => {
         console.error('Error fetching user for profile:', error);
         toast.error('Failed to load profile information.');
         this.isLoading = false;
+        this.loadingService.hide();
         this.cdr.detectChanges(); 
       }
     );
