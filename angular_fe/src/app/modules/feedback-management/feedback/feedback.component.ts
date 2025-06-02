@@ -7,6 +7,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import { AngularSvgIconModule } from 'angular-svg-icon';
+import { LoadingService } from 'src/app/services/loading.service';
 
 @Component({
   selector: 'app-feedback',
@@ -35,9 +36,14 @@ export class FeedbackComponent implements OnInit {
   };
   sortColumn: 'taskerName' | 'createdAt' | 'rating' = 'createdAt';
 
-  constructor(private feedbackService: FeedbackService) {}
+  constructor(
+    private feedbackService: FeedbackService,
+    private loadingService: LoadingService
+  ) {}
 
   ngOnInit(): void {
+    this.isLoading = true;
+    this.loadingService.show();
     this.feedbackService.getFeedback().subscribe(
       (response: { feedbacks: Feedback[] }) => {
         console.log('Received feedback data:', response);
@@ -46,6 +52,7 @@ export class FeedbackComponent implements OnInit {
         this.applyFilters(); // Apply default sorting on load
         this.updatePage();
         this.isLoading = false;
+        this.loadingService.hide();
       },
       (error) => {
         console.error('Error fetching feedbacks', error);
@@ -54,6 +61,7 @@ export class FeedbackComponent implements OnInit {
         this.displayFeedbacks = [];
         this.updatePage();
         this.isLoading = false;
+        this.loadingService.hide();
       }
     );
   }

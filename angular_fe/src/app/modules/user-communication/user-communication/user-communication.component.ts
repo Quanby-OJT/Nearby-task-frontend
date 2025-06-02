@@ -10,6 +10,7 @@ import { saveAs } from 'file-saver';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { SessionLocalStorage } from 'src/services/sessionStorage';
 import { AuthService } from 'src/app/services/auth.service';
+import { LoadingService } from 'src/app/services/loading.service';
 
 @Component({
   selector: 'app-user-communication',
@@ -45,10 +46,12 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
   constructor(
     private userConversationService: UserConversationService,
     private sessionStorage: SessionLocalStorage,
-    private authService: AuthService
+    private authService: AuthService,
+    private loadingService: LoadingService
   ) {}
 
   ngOnInit(): void {
+    this.loadingService.show();
     this.isLoading = true;
     this.conversationSubscription = this.userConversationService.getUserConversation().subscribe(
       (response: { data: Conversation[] }) => {
@@ -61,20 +64,24 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
           console.error('Invalid response format:', response);
         }
         this.isLoading = false;
+        this.loadingService.hide();
       },
       (error) => {
         console.error("Error getting logs:", error);
         this.isLoading = false;
+        this.loadingService.hide();
       }
     );
     this.authService.userInformation().subscribe(
       (response: any) => {
         this.userRole = response.user.user_role;
         this.isLoading = false;
+        this.loadingService.hide();
       },
       (error: any) => {
         console.error('Error fetching user role:', error);
         this.isLoading = false;
+        this.loadingService.hide();
       }
     );
   }

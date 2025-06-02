@@ -8,6 +8,7 @@ import { UserChartCardComponent } from '../../components/nft/user-chart-card/use
 import { UserAccountService } from 'src/app/services/userAccount';
 import { CommonModule } from '@angular/common';
 import { AngularSvgIconModule } from 'angular-svg-icon';
+import { LoadingService } from 'src/app/services/loading.service';
 
 @Component({
   standalone: true,
@@ -31,7 +32,10 @@ export class NftComponent implements OnInit {
   taskerCount: number = 0;
   isLoading: boolean = true; 
 
-  constructor(private userAccountService: UserAccountService) {
+  constructor(
+    private userAccountService: UserAccountService,
+    private loadingService: LoadingService
+  ){
     this.nft = [
       {
         id: 34356771,
@@ -62,6 +66,7 @@ export class NftComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadingService.show();
     this.isLoading = true; 
     this.userAccountService.getAllUsers().subscribe(
       data => {
@@ -71,10 +76,12 @@ export class NftComponent implements OnInit {
         this.clientCount = users.filter((user: { user_role: string }) => user.user_role === 'Client').length;
         this.taskerCount = users.filter((user: { user_role: string }) => user.user_role === 'Tasker').length;
         this.isLoading = false; 
+        this.loadingService.hide();
       },
       error => {
         console.error('Error fetching users:', error);
         this.isLoading = false; 
+        this.loadingService.hide();
       }
     );
   }

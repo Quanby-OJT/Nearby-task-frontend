@@ -27,14 +27,6 @@
   </div>
 </div>
 
-<!-- Loading Spinner -->
-<div *ngIf="isLoading" class="fixed inset-0 z-50 flex flex-col justify-center items-center lg:w-308 lg:h-170 xl:w-420 xl:h-200 ">
-  <div class="animate-slow-spin text-xs text-[#3C28CC] flex flex-col justify-center items-center">
-    <svg-icon src="./assets/icons/heroicons/outline/logo.svg" [svgClass]="'h-20 w-20'"></svg-icon>
-    <strong>Nearby Task</strong>
-  </div>
-</div>
-
 <!-- Main container with search, filter, table, and pagination -->
 <div *ngIf="!isLoading" class="border-muted-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
   <!-- Search and Filter Section -->

@@ -10,6 +10,7 @@ import { saveAs } from 'file-saver';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { AuthService } from 'src/app/services/auth.service';
 import { Task } from 'src/model/task'; 
+import { LoadingService } from 'src/app/services/loading.service';
 
 @Component({
   selector: 'app-task',
@@ -45,7 +46,8 @@ export class TaskComponent implements OnInit {
   constructor(
     private route: Router,
     private taskService: TaskService,
-    private authService: AuthService
+    private authService: AuthService,
+    private loadingService: LoadingService
   ) {
     this.route.events
       .pipe(filter(event => event instanceof NavigationEnd))
@@ -57,16 +59,19 @@ export class TaskComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadingService.show();
     this.isLoading = true;
     this.fetchTasks();
     this.authService.userInformation().subscribe(
       (response: any) => {
         this.userRole = response.user.user_role;
         this.isLoading = false;
+        this.loadingService.hide();
       },
       (error: any) => {
         console.error('Error fetching user role:', error);
         this.isLoading = false;
+        this.loadingService.hide();
       }
     );
   }
