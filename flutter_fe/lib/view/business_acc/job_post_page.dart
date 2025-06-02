@@ -10,6 +10,7 @@ import 'package:flutter_fe/view/task/task_finished.dart';
 import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:flutter_fe/view/task/task_pending.dart';
 import 'package:flutter_fe/view/task/task_review.dart';
+import 'package:flutter_fe/view/verification/verification_page.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get_storage/get_storage.dart';
@@ -151,9 +152,7 @@ class _JobPostPageState extends State<JobPostPage>
           _profileImageUrl = user?.user.image;
           _idImageUrl = response['url'];
           _isDocumentValid = response['status'] ?? false;
-          _showButton = _profileImageUrl != null &&
-              _idImageUrl != null &&
-              (_isDocumentValid || user?.user.accStatus == 'Review');
+          _showButton = true;
         });
       } else {
         debugPrint('Failed to fetch user ID image: ${response['message']}');
@@ -162,8 +161,6 @@ class _JobPostPageState extends State<JobPostPage>
           _profileImageUrl = user?.user.image;
           _idImageUrl = null;
           _isDocumentValid = false;
-          _showButton =
-              _profileImageUrl != null && user?.user.accStatus == 'Review';
         });
       }
     } catch (e) {
@@ -311,7 +308,8 @@ class _JobPostPageState extends State<JobPostPage>
               Navigator.pop(context);
               final result = await Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const FillUpClient()),
+                MaterialPageRoute(
+                    builder: (context) => const VerificationPage()),
               );
               if (result == true) {
                 await _fetchUserIDImage();

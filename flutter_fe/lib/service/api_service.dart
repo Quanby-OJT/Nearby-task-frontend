@@ -10,11 +10,10 @@ import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../model/tasker_model.dart';
-import '../model/client_model.dart';
 import 'package:flutter_fe/config/url_strategy.dart';
 
 class ApiService {
-  static String url = apiUrl ?? "http://localhost:5000";
+  static String url = apiUrl ?? "http://192.168.43.1:5000";
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
   static final Map<String, String> _cookies = {};

@@ -54,59 +54,69 @@ class TaskController {
     int? specializationId,
     String? selectedSpecialization,
     String? addressId,
+    List<int>? imagesToDelete,
+    List<int>? existingImageIds,
   }) async {
     try {
-      int userId = storage.read('user_id');
+      final int userId = storage.read('user_id');
       final priceText = contactPriceController.text.trim();
       final priceInt = int.tryParse(priceText) ?? 0;
 
+      if (priceInt <= 0) {
+        return {
+          'success': false,
+          'error': 'Please input a valid price greater than 0.',
+        };
+      }
+
       if (priceInt > _escrowManagementController.tokenCredits.value) {
         return {
-          "success": false,
-          "error":
-              "You don't have enough tokens to update your task. Please Deposit First Your Desired Amount of Tokens."
+          'success': false,
+          'error':
+              'Insufficient tokens to update the task. Please deposit more tokens.',
         };
-      } else if (priceInt < 0) {
-        return {"success": false, "error": "Please Input more than 0."};
-      } else {
-        final task = TaskModel(
-            id: id,
-            title: jobTitleController.text.trim(),
-            description: jobDescriptionController.text.trim(),
-            contactPrice: int.parse(contactPriceController.text.trim()),
-            urgency: urgency,
-            remarks: jobRemarksController.text.trim(),
-            workType: workType,
-            addressID: addressId,
-            specializationId: specializationId,
-            relatedSpecializationsIds: relatedSpecializationsIds,
-            scope: scope,
-            taskBeginDate: jobStartDateController.text,
-            status: "Available");
-
-        debugPrint("This is the task to update: ${task.toJson()}");
-
-        final result =
-            await _jobPostService.updateJob(task, task.id, files: photos);
-        if (result['success'] == true) {
-          return {
-            'success': true,
-            'message': result['message'] ?? 'Task updated successfully'
-          };
-        } else {
-          return {
-            'success': false,
-            'error': result['error'] ?? 'Failed to update task'
-          };
-        }
       }
+
+      final task = TaskModel(
+        id: id,
+        clientId: userId,
+        title: jobTitleController.text.trim(),
+        description: jobDescriptionController.text.trim(),
+        contactPrice: priceInt,
+        urgency: urgency,
+        remarks: jobRemarksController.text.trim().isNotEmpty
+            ? jobRemarksController.text.trim()
+            : null,
+        workType: workType,
+        addressID: addressId,
+        specializationId: specializationId,
+        specialization: selectedSpecialization,
+        relatedSpecializationsIds: relatedSpecializationsIds,
+        scope: scope,
+        taskBeginDate: jobStartDateController.text.isNotEmpty
+            ? jobStartDateController.text
+            : null,
+        imageIds: existingImageIds,
+        status: "Available",
+        isVerifiedDocument: false,
+      );
+
+      debugPrint("Task to update: ${task.toJson()}");
+
+      final result = await _jobPostService.updateJob(
+        task,
+        taskId: id,
+        files: photos,
+        imagesToDelete: imagesToDelete,
+      );
+
+      return result;
     } catch (e, stackTrace) {
       debugPrint('Error in updateJob: $e');
       debugPrint(stackTrace.toString());
       return {
         'success': false,
-        'error':
-            'An Error Occurred while Updating Your Task. Please Try Again. If Issue Persists, contact our support.'
+        'error': 'Failed to update task. Please try again or contact support.',
       };
     }
   }
@@ -372,13 +382,14 @@ class TaskController {
   }
 
   // Method to update a task
-  Future<Map<String, dynamic>> updateTask(
-      int taskId, Map<String, dynamic> taskData,
-      {File? photo}) async {
+  Future<Map<String, dynamic>> updateTask(int taskId, TaskModel taskData,
+      {List<File>? photos,
+      List<int>? imagesToDelete,
+      List<int>? existingImageIds}) async {
     debugPrint("Updating task with ID: $taskId");
     try {
       if (_escrowManagementController.tokenCredits.value -
-              taskData['proposed_price'] <
+              taskData.contactPrice <
           _escrowManagementController.tokenCredits.value) {
         return {
           "success": false,
@@ -386,7 +397,8 @@ class TaskController {
               "You don't have enough tokens to post your needed task. Please Deposit First Your Desired Amount of Tokens."
         };
       } else {
-        return await _jobPostService.updateTask(taskId, taskData, photo: photo);
+        return await _jobPostService.updateTask(taskId, taskData,
+            photos: photos, imagesToDelete: imagesToDelete);
       }
     } catch (e, stackTrace) {
       debugPrint("Error updating task: $e");

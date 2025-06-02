@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/client_request.dart';
+import 'package:flutter_fe/model/images_model.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
@@ -16,7 +17,7 @@ import '../model/client_model.dart';
 import '../model/tasker_model.dart';
 
 class JobPostService {
-  static String url = apiUrl ?? "http://localhost:5000/connect";
+  static String url = apiUrl ?? "http://192.168.43.1:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -163,7 +164,8 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _postRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final response = await http.post(Uri.parse("$url$endpoint"),
         headers: {
           "Authorization": "Bearer $token",
@@ -201,7 +203,7 @@ class JobPostService {
       var request = http.MultipartRequest('PUT', Uri.parse('$url$endpoint'))
         ..headers.addAll({"Authorization": "Bearer $token"});
       body.forEach((key, value) {
-        request.fields[key] = value;
+        request.fields[key] = value?.toString() ?? '';
       });
 
       if (files != null && files.isNotEmpty) {
@@ -230,7 +232,8 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> _putRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _putRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     debugPrint(body.toString());
     try {
@@ -250,68 +253,95 @@ class JobPostService {
     }
   }
 
-  Future<Map<String, dynamic>> updateJob(TaskModel task, int taskId,
-      {List<File>? files}) async {
+  Future<Map<String, dynamic>> updateJob(
+    TaskModel task, {
+    required int taskId,
+    List<File>? files,
+    List<int>? imagesToDelete,
+  }) async {
     try {
-      debugPrint("Updating job with data: ${task.toJson()}");
-      debugPrint("Files: ${files?.length}");
+      debugPrint("Updating task ID: $taskId with data: ${task.toJson()}");
+      debugPrint("Files to upload: ${files?.length ?? 0}");
+      debugPrint("Images to delete: $imagesToDelete");
 
-      var request =
-          http.MultipartRequest('PUT', Uri.parse('$url/updateTask/$taskId'));
+      var request = http.MultipartRequest(
+        'PUT',
+        Uri.parse('$url/updateTask/$taskId'),
+      );
       request.headers['Authorization'] = 'Bearer $token';
 
-      var taskData = task.toJson();
-      taskData['proposed_price'] = task.contactPrice;
-      taskData['urgent'] = task.urgency == 'Urgent';
-      taskData['related_specializations'] =
-          jsonEncode(task.relatedSpecializationsIds ?? []);
-      taskData['specialization_id'] = task.specializationId;
-      taskData['task_begin_date'] = task.taskBeginDate;
-      taskData['status'] = task.status;
+      // Prepare task data
+      final taskData = {
+        'client_id': task.clientId?.toString(),
+        'task_title': task.title,
+        'task_description': task.description,
+        'proposed_price': task.contactPrice?.toString() ?? '0',
+        'urgent': (task.urgency == 'Urgent').toString(),
+        'remarks': task.remarks,
+        'work_type': task.workType,
+        'address': task.addressID?.toString(),
+        'specialization_id': task.specializationId?.toString() ?? '0',
+        'related_specializations':
+            jsonEncode(task.relatedSpecializationsIds ?? []),
+        'scope': task.scope,
+        'task_begin_date': task.taskBeginDate,
+        'status': task.status,
+        'is_verified': task.isVerifiedDocument?.toString() ?? 'false',
+        'image_ids': jsonEncode(task.imageIds ?? []),
+      };
 
-      // Remove null or unwanted fields
+      // Remove empty or null fields
       taskData.removeWhere(
-          (key, value) => value == null || key == 'id' || key == 'client_id');
+          (key, value) => value == null || value == 'null' || value.isEmpty);
 
       // Add fields to request
       taskData.forEach((key, value) {
-        request.fields[key] = value.toString();
+        request.fields[key] = value?.toString() ?? '';
       });
 
-      // Handle multiple file uploads
+      // Add images to delete
+      if (imagesToDelete != null && imagesToDelete.isNotEmpty) {
+        request.fields['images_to_delete'] = jsonEncode(imagesToDelete);
+      }
+
+      // Add image files
       if (files != null && files.isNotEmpty) {
-        for (var i = 0; i < files.length; i++) {
-          var file = files[i];
+        for (var file in files) {
           if (await file.exists()) {
             request.files.add(
               await http.MultipartFile.fromPath(
-                'photos', // Use consistent field name
+                'photos[]', // Match backend field name
                 file.path,
                 contentType: MediaType('image', file.path.split('.').last),
               ),
             );
+          } else {
+            debugPrint("File does not exist: ${file.path}");
           }
         }
       }
 
-      debugPrint("Updating job with fields: ${request.fields}");
-      debugPrint("Files to upload: ${request.files.length}");
+      debugPrint("Request fields: ${request.fields}");
+      debugPrint("Request files: ${request.files.length}");
 
-      var response = await request.send();
-      var responseData = await http.Response.fromStream(response);
+      final response = await request.send();
+      final responseData = await http.Response.fromStream(response);
+      final result = jsonDecode(responseData.body) as Map<String, dynamic>;
+
+      debugPrint("Response status: ${response.statusCode}");
+      debugPrint("Response body: ${responseData.body}");
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        var result = jsonDecode(responseData.body) as Map<String, dynamic>;
         return {
           'success': true,
           'message': result['message'] ?? 'Task updated successfully',
           'task': result['task'],
         };
       } else {
-        var error = jsonDecode(responseData.body);
         return {
           'success': false,
-          'error': error['error'] ?? 'Failed to update task',
+          'error': result['error'] ?? 'Failed to update task',
+          'errors': result['errors'],
         };
       }
     } catch (e, stackTrace) {
@@ -359,14 +389,19 @@ class JobPostService {
 
       request.fields['user_id'] = userId.toString();
 
-      if (files != null && files.isNotEmpty && await files.first.exists()) {
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'photo',
-            files.first.path,
-            contentType: MediaType('image', files.first.path.split('.').last),
-          ),
-        );
+      // This will handle multiple file uploads
+      if (files != null && files.isNotEmpty) {
+        for (var file in files) {
+          if (await file.exists()) {
+            request.files.add(
+              await http.MultipartFile.fromPath(
+                'photos[]',
+                file.path,
+                contentType: MediaType('image', file.path.split('.').last),
+              ),
+            );
+          }
+        }
       }
 
       debugPrint("Posting job with fields: ${request.fields}");
@@ -418,6 +453,31 @@ class JobPostService {
       }
     } catch (e, stackTrace) {
       debugPrint("JobPostService: Error fetching specializations: $e");
+      debugPrint("JobPostService: Stack trace: $stackTrace");
+      return [];
+    }
+  }
+
+  Future<List<ImagesModel>> fetchTaskImages(int taskId) async {
+    try {
+      debugPrint(
+          "JobPostService: Fetching images from API for taskId: $taskId");
+      final response = await _getRequest("/get-images/$taskId");
+
+      debugPrint("JobPostService: Images response: ${response.toString()}");
+
+      if (response is Map<String, dynamic> && response.containsKey("images")) {
+        final List<dynamic> imagesList = response["images"] as List;
+        final List<ImagesModel> images = imagesList
+            .map((item) => ImagesModel.fromJson(item as Map<String, dynamic>))
+            .toList();
+        debugPrint("JobPostService: Found ${images.length} images");
+        return images;
+      }
+
+      return [];
+    } catch (e, stackTrace) {
+      debugPrint("JobPostService: Error fetching images: $e");
       debugPrint("JobPostService: Stack trace: $stackTrace");
       return [];
     }
@@ -1103,19 +1163,82 @@ class JobPostService {
     }
   }
 
+  // Future<Map<String, dynamic>> updateTask(
+  //     int taskId, Map<String, dynamic> taskData,
+  //     {List<File>? photos,
+  //     List<int>? imagesToDelete,
+  //     List<int>? existingImageIds}) async {
+  //   try {
+  //     return await _multipartRequest(
+  //         endpoint: '/updateTask/$taskId',
+  //         body: taskData,
+  //         fileField: 'photo',
+  //         files: photos);
+  //   } catch (e) {
+  //     debugPrint('Error updating task: $e');
+  //     debugPrintStack();
+  //     return {'success': false, 'error': 'Error: $e'};
+  //   }
+  // }
+
   Future<Map<String, dynamic>> updateTask(
-      int taskId, Map<String, dynamic> taskData,
-      {File? photo}) async {
+    int taskId,
+    TaskModel task, {
+    List<File>? photos,
+    List<int>? imagesToDelete,
+  }) async {
     try {
-      return await _multipartRequest(
-          endpoint: '/updateTask/$taskId',
-          body: taskData,
-          fileField: 'photo',
-          files: photo != null ? [photo] : []);
-    } catch (e) {
+      var request =
+          http.MultipartRequest('PUT', Uri.parse('$updateTask/$taskId'));
+      request.headers['Authorization'] = 'Bearer $token';
+
+      var taskData = task.toJson();
+      taskData.forEach((key, value) {
+        if (value != null) {
+          if (key == 'related_specializations' || key == 'image_ids') {
+            request.fields[key] = jsonEncode(value);
+          } else {
+            request.fields[key] = value.toString();
+          }
+        }
+      });
+
+      if (photos != null && photos.isNotEmpty) {
+        for (var file in photos) {
+          if (await file.exists()) {
+            request.files.add(
+              await http.MultipartFile.fromPath(
+                'photos[]',
+                file.path,
+                contentType: MediaType('image', file.path.split('.').last),
+              ),
+            );
+          }
+        }
+      }
+
+      if (imagesToDelete != null && imagesToDelete.isNotEmpty) {
+        request.fields['images_to_delete'] = jsonEncode(imagesToDelete);
+      }
+
+      debugPrint("Updating task with fields: ${request.fields}");
+      var response = await request.send();
+      var responseData = await http.Response.fromStream(response);
+      var result = jsonDecode(responseData.body) as Map<String, dynamic>;
+
+      return {
+        'success': result['success'] ?? false,
+        'message': result['message'] ?? 'Task updated successfully',
+        'error': result['error'],
+        'task': result['task'],
+      };
+    } catch (e, stackTrace) {
       debugPrint('Error updating task: $e');
-      debugPrintStack();
-      return {'success': false, 'error': 'Error: $e'};
+      debugPrintStack(stackTrace: stackTrace);
+      return {
+        'success': false,
+        'error': 'Failed to update task: $e',
+      };
     }
   }
 
