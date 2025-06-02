@@ -31,7 +31,7 @@ export class LogComponent implements OnInit, OnDestroy {
   currentStatusFilter: string = ''; 
   placeholderRows: any[] = [];
   sortDirection: 'asc' | 'desc' | 'default' = 'default'; 
-  isDataLoaded: boolean = false;
+  isLoading: boolean = false;
   private logsSubscription!: Subscription;
 
   constructor(
@@ -46,12 +46,12 @@ export class LogComponent implements OnInit, OnDestroy {
         this.logs = logs;
         this.filteredLogs = [...logs];
         this.updatePage();
-        this.isDataLoaded = true;
+        this.isLoading = true;
         this.loadingService.hide();
       },
       error: (error) => {
         console.error("Error getting logs:", error);
-        this.isDataLoaded = true;
+        this.isLoading = true;
         this.loadingService.hide();
       }
     });
