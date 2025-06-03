@@ -180,26 +180,6 @@ class _TaskerHomePageState extends State<TaskerHomePage>
       //Checker if User has been already been warned.
       if (!mounted) return;
 
-// <<<<<<< update-saved-task-ui
-//       if (user.user.accStatus == "Warn") {
-//         showWarnUser();
-//       } else if (user.user.accStatus == "Ban") {
-//         showBanUser();
-//       } else {
-//         setState(() {
-//           _user = user;
-//           _fullName = [
-//             _user?.user.firstName ?? '',
-//             _user?.user.middleName ?? '',
-//             _user?.user.lastName ?? '',
-//           ].where((name) => name.isNotEmpty).join(' ');
-//           _role = _user?.user.role ?? "Unknown";
-//           _image = user.user.image ?? "Unknown";
-//           _profileController.firstNameController.text = _fullName;
-//           _profileController.roleController.text = _role;
-//           _profileController.imageController.text = _image;
-//         });
-// =======
       if (user.user.accStatus == "Warn") {
         bool hasShownWarning = storage.read('hasShownWarning') ?? false;
         if (!hasShownWarning) {
@@ -897,11 +877,18 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                     _dislikeAnimationController?.forward();
                     _cardCounter();
                   } else if (swipeDirection == CardSwiperDirection.right) {
-                    if (_existingProfileImageUrl == null ||
-                        _existingIDImageUrl == null ||
-                        _existingProfileImageUrl!.isEmpty ||
-                        _existingIDImageUrl!.isEmpty ||
-                        !_documentValid) {
+                    // Check if user account is already under review or approved
+                    bool isVerificationInProgress = _user?.user.accStatus == "Review" || 
+                                                    _user?.user.accStatus == "approved" ||
+                                                    _user?.user.accStatus == "Approved";
+                    
+                    // Only show warning if verification is not in progress and documents are missing
+                    if (!isVerificationInProgress && 
+                        (_existingProfileImageUrl == null ||
+                         _existingIDImageUrl == null ||
+                         _existingProfileImageUrl!.isEmpty ||
+                         _existingIDImageUrl!.isEmpty ||
+                         !_documentValid)) {
                       _showWarningDialog();
                       return false;
                     }
