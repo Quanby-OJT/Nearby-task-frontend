@@ -310,7 +310,6 @@ class _JobPostPageState extends State<JobPostPage>
                 context,
                 MaterialPageRoute(
                     builder: (context) => const VerificationPage()),
-
               );
               if (result == true) {
                 await _fetchUserIDImage();
@@ -620,13 +619,9 @@ class _JobPostPageState extends State<JobPostPage>
                     children: [
                       IconButton(
                         icon: const Icon(Icons.edit, color: Color(0xFFE23670)),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => EditTaskPage(task: task)),
-                          ).then((value) => _fetchTasksManagement());
-                        },
+                        onPressed: () => task.ableToDelete == true
+                            ? _navigateToEditTask(task)
+                            : _cannotEditTask(task),
                       ),
                       IconButton(
                         icon:
@@ -951,6 +946,48 @@ class _JobPostPageState extends State<JobPostPage>
         ],
       ),
     );
+  }
+
+  Future<void> _cannotEditTask(TaskModel task) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Cannot Edit Task',
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFFB71A4A),
+          ),
+        ),
+        content: Text(
+          'This task is currently being worked on by a tasker. Please wait for the task to be completed before editing it.',
+          style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE23670),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text(
+              'OK',
+              style: GoogleFonts.poppins(fontSize: 14, color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _navigateToEditTask(TaskModel task) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => EditTaskPage(task: task)),
+    ).then((value) => _fetchTasksManagement());
   }
 
   @override
