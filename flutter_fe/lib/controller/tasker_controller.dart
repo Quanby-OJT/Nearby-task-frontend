@@ -130,7 +130,7 @@ class TaskerController {
         int score = 0;
         double distance = double.infinity;
         double rating =
-            tasker.rating ?? 0.0; // Use tasker.rating, default to 0.0
+            tasker.rating; // Use tasker.rating, default to 0.0
 
         // Check specialization match (highest priority)
         bool matchesSpecialization = includesAllSpecializations ||
