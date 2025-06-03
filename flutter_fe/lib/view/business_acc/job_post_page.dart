@@ -658,9 +658,9 @@ class _JobPostPageState extends State<JobPostPage>
               ),
               const SizedBox(height: 8),
               _buildTaskInfoRow(
-                icon: FontAwesomeIcons.coins,
+                icon: FontAwesomeIcons.pesoSign,
                 iconColor: Colors.green[400],
-                text: '${task.contactPrice ?? 0} Credits',
+                text: '${task.contactPrice ?? 0}',
               ),
               const SizedBox(height: 8),
               _buildTaskInfoRow(

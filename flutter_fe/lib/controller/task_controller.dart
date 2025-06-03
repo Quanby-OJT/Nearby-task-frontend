@@ -62,20 +62,24 @@ class TaskController {
       final priceText = contactPriceController.text.trim();
       final priceInt = int.tryParse(priceText) ?? 0;
 
-      if (priceInt <= 0) {
-        return {
-          'success': false,
-          'error': 'Please input a valid price greater than 0.',
-        };
-      }
-
-      if (priceInt > _escrowManagementController.tokenCredits.value) {
-        return {
-          'success': false,
-          'error':
-              'Insufficient tokens to update the task. Please deposit more tokens.',
-        };
-      }
+      // if (priceInt <= 0) {
+      //   return {
+      //     'success': false,
+      //     'error': 'Please input a valid price greater than 0.',
+      //   };
+      // }
+      //
+      // if (priceInt > _escrowManagementController.tokenCredits.value) {
+      //   return {
+      //     'success': false,
+      //     'error':
+      //         'Insufficient tokens to update the task. Please deposit more tokens.',
+      //   };
+      // }
+      debugPrint("Updating job with ID: $id");
+      debugPrint("Photos to upload: ${photos?.length ?? 0}");
+      debugPrint("Updated Price: $priceInt");
+      debugPrint("Existing image IDs: $existingImageIds");
 
       final task = TaskModel(
         id: id,
