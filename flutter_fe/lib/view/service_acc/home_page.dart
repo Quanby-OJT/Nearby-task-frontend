@@ -940,11 +940,18 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                     _dislikeAnimationController?.forward();
                     _cardCounter();
                   } else if (swipeDirection == CardSwiperDirection.right) {
-                    if (_existingProfileImageUrl == null ||
-                        _existingIDImageUrl == null ||
-                        _existingProfileImageUrl!.isEmpty ||
-                        _existingIDImageUrl!.isEmpty ||
-                        !_documentValid) {
+                    // Check if user account is already under review or approved
+                    bool isVerificationInProgress = _user?.user.accStatus == "Review" || 
+                                                    _user?.user.accStatus == "approved" ||
+                                                    _user?.user.accStatus == "Approved";
+                    
+                    // Only show warning if verification is not in progress and documents are missing
+                    if (!isVerificationInProgress && 
+                        (_existingProfileImageUrl == null ||
+                         _existingIDImageUrl == null ||
+                         _existingProfileImageUrl!.isEmpty ||
+                         _existingIDImageUrl!.isEmpty ||
+                         !_documentValid)) {
                       _showWarningDialog();
                       return false;
                     }
