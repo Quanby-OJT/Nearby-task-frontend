@@ -1,8 +1,9 @@
 import 'dart:io';
-import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:camera/camera.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/service/api_service.dart';
 import 'package:flutter_fe/model/verification_model.dart';
@@ -16,18 +17,42 @@ class IdVerificationPage extends StatefulWidget {
   State<IdVerificationPage> createState() => _IdVerificationPageState();
 }
 
-class _IdVerificationPageState extends State<IdVerificationPage> {
+class _IdVerificationPageState extends State<IdVerificationPage>
+    with WidgetsBindingObserver {
   final _formKey = GlobalKey<FormState>();
   final storage = GetStorage();
 
+  // Camera and capture
+  CameraController? _cameraController;
+  List<CameraDescription>? _cameras;
+  bool _isCameraInitialized = false;
+  bool _isCapturing = false;
+  bool _isProcessing = false;
+
+  // Image quality detection
+  bool _isImageClear = false;
+  bool _isIdDetected = false;
+
+  // ID verification data
   File? _idImage;
-  String? _idImageName;
   String? _selectedIdType;
+  String? _detectedIdType;
+  List<String> _extractedText = [];
   bool _isLoading = false;
   bool _isVerified = false;
   String? _idImageUrl;
   String? _verificationStatus;
   VerificationModel? _verificationData;
+
+  // ML Kit Text Recognition
+  final TextRecognizer _textRecognizer = TextRecognizer(
+    script: TextRecognitionScript.latin,
+  );
+
+  // Auto-capture settings
+  bool _autoCapturingEnabled = false;
+  int _qualityCheckCounter = 0;
+  final int _requiredQualityChecks = 3; // Consecutive quality checks needed
 
   final List<String> _idTypes = [
     'Driver\'s License',
@@ -42,8 +67,66 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _isLoading = true;
-    _checkVerificationStatus();
+    _checkVerificationStatus().then((_) {
+      _initializeCamera();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _cameraController?.dispose();
+    _textRecognizer.close();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (_cameraController == null || !_cameraController!.value.isInitialized) {
+      return;
+    }
+
+    if (state == AppLifecycleState.inactive) {
+      _cameraController?.dispose();
+    } else if (state == AppLifecycleState.resumed) {
+      _initializeCamera();
+    }
+  }
+
+  Future<void> _initializeCamera() async {
+    try {
+      _cameras = await availableCameras();
+      if (_cameras != null && _cameras!.isNotEmpty) {
+        _cameraController = CameraController(
+          _cameras![0],
+          ResolutionPreset.high,
+          enableAudio: false,
+        );
+
+        await _cameraController!.initialize();
+        
+        if (mounted) {
+          setState(() {
+            _isCameraInitialized = true;
+          });
+          
+          // Start continuous quality monitoring
+          _startQualityMonitoring();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error initializing camera: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Camera initialization failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _checkVerificationStatus() async {
@@ -53,26 +136,16 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
         final result = await ApiService.getTaskerVerificationStatus(
             int.parse(userId.toString()));
 
-        debugPrint('Verification API response: ${jsonEncode(result)}');
-
         if (result['success'] == true && result['exists'] == true) {
-          // Check if verification data exists
           if (result['verification'] != null) {
-            debugPrint(
-                'Raw verification data: ${jsonEncode(result['verification'])}');
             final verificationData =
                 VerificationModel.fromJson(result['verification']);
 
-            // Check for idImageUrl directly in verification data
             String? idImageUrl = verificationData.idImageUrl;
-            debugPrint('ID image URL from verification model: $idImageUrl');
-
-            // If not found in the verification model, check if it's in the idImage field
             if ((idImageUrl == null || idImageUrl.isEmpty) &&
                 result['idImage'] != null &&
                 result['idImage']['id_image'] != null) {
               idImageUrl = result['idImage']['id_image'];
-              debugPrint('ID image URL from idImage field: $idImageUrl');
             }
 
             setState(() {
@@ -82,10 +155,6 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
               _verificationStatus = verificationData.status;
               _isVerified = verificationData.status == 'approved';
             });
-
-            debugPrint('Final ID Image URL: $_idImageUrl');
-            debugPrint('ID Type: $_selectedIdType');
-            debugPrint('Verification Status: $_verificationStatus');
           }
         }
       }
@@ -100,501 +169,431 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
     }
   }
 
-  Future<void> _captureIdImage() async {
-    try {
-      setState(() => _isLoading = true);
-
-      final ImagePicker picker = ImagePicker();
-      final XFile? photo = await picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 80,
-      );
-
-      if (photo != null) {
-        setState(() {
-          _idImage = File(photo.path);
-          _idImageName = photo.name;
-        });
-
-        // Show success message
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('ID photo captured successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
+  void _startQualityMonitoring() {
+    if (!_isCameraInitialized) return;
+    
+    // Monitor image quality every 500ms
+    Stream.periodic(const Duration(milliseconds: 500)).listen((_) async {
+      if (_cameraController != null && 
+          _cameraController!.value.isInitialized && 
+          !_isCapturing && 
+          !_isProcessing) {
+        await _checkImageQuality();
       }
+    });
+  }
+
+  Future<void> _checkImageQuality() async {
+    try {
+      if (_cameraController == null || !_cameraController!.value.isInitialized) {
+        return;
+      }
+
+      // Take a temporary image for quality analysis
+      final XFile tempImage = await _cameraController!.takePicture();
+      final File tempFile = File(tempImage.path);
+      
+      // Process with ML Kit for text detection
+      final inputImage = InputImage.fromFile(tempFile);
+      final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
+      
+      // Check if ID-related text is detected
+      bool hasIdText = _containsIdText(recognizedText.text);
+      
+      setState(() {
+        _isImageClear = hasIdText;
+        _isIdDetected = hasIdText;
+      });
+
+      // Auto-capture logic
+      if (_autoCapturingEnabled && _isImageClear && _isIdDetected) {
+        _qualityCheckCounter++;
+        if (_qualityCheckCounter >= _requiredQualityChecks) {
+          await _captureIdAutomatically(tempFile);
+        }
+      } else {
+        _qualityCheckCounter = 0;
+      }
+
+      // Clean up temp file
+      try {
+        await tempFile.delete();
+      } catch (e) {
+        debugPrint('Failed to delete temp file: $e');
+      }
+
     } catch (e) {
-      debugPrint('Error capturing ID image: $e');
+      debugPrint('Error checking image quality: $e');
+    }
+  }
+
+  bool _containsIdText(String text) {
+    final String lowercaseText = text.toLowerCase();
+    
+    // Common ID document keywords
+    final List<String> idKeywords = [
+      'republic', 'philippines', 'driver', 'license', 'national', 'id',
+      'passport', 'identification', 'card', 'government', 'issued',
+      'department', 'lto', 'dfa', 'psa', 'sss', 'philhealth',
+      'voter', 'valid', 'until', 'expires', 'date', 'birth',
+      'address', 'signature', 'thumb', 'mark'
+    ];
+    
+    int keywordCount = 0;
+    for (String keyword in idKeywords) {
+      if (lowercaseText.contains(keyword)) {
+        keywordCount++;
+      }
+    }
+    
+    // Consider it an ID if at least 2 keywords are found
+    return keywordCount >= 2;
+  }
+
+  Future<void> _captureIdAutomatically(File imageFile) async {
+    if (_isCapturing) return;
+    
+    try {
+      setState(() {
+        _isCapturing = true;
+        _isProcessing = true;
+      });
+
+      // Provide haptic feedback
+      HapticFeedback.heavyImpact();
+
+      // Process the captured image
+      await _processImageWithMLKit(imageFile);
+
+      setState(() {
+        _idImage = imageFile;
+      });
+
+      // Show success message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error capturing ID: ${e.toString()}'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('✅ ID automatically captured!'),
+                if (_detectedIdType != null)
+                  Text('🤖 AI Detected: $_detectedIdType',
+                       style: const TextStyle(fontSize: 12)),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+
+      // Reset auto-capture
+      _autoCapturingEnabled = false;
+      _qualityCheckCounter = 0;
+
+    } catch (e) {
+      debugPrint('Error in auto-capture: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Auto-capture failed: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
       }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  void _verifyId() {
-    if (_formKey.currentState!.validate()) {
-      if (_idImage != null) {
-        // Use the captured image with empty string for ID type
-        widget.onIdVerified(_idImage!, _selectedIdType ?? '');
-      } else if (_idImageUrl != null) {
-        // If we have an existing image URL but no new image captured,
-        // create a dummy file to continue the flow
-        final dummyFile = File('dummy_path');
-        widget.onIdVerified(dummyFile, _selectedIdType ?? '');
-      } else {
-        // No image at all
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please capture a photo of your ID'),
-            backgroundColor: Colors.red,
-          ),
-        );
+      if (mounted) {
+        setState(() {
+          _isCapturing = false;
+          _isProcessing = false;
+        });
       }
     }
   }
 
-  bool get _canProceed {
-    // Only check if we have an image, ID type is no longer required
-    final hasImage = _idImage != null || _idImageUrl != null;
-    final canProceed = hasImage;
+  Future<void> _captureIdManually() async {
+    if (_cameraController == null || !_cameraController!.value.isInitialized) {
+      return;
+    }
 
-    debugPrint('Can proceed check:');
-    debugPrint(
-        '  - Has Image: $hasImage (new: ${_idImage != null}, existing: ${_idImageUrl != null})');
-    debugPrint('  - Can Proceed: $canProceed');
+    try {
+      setState(() {
+        _isCapturing = true;
+        _isProcessing = true;
+      });
 
-    return canProceed;
+      final XFile image = await _cameraController!.takePicture();
+      final File imageFile = File(image.path);
+
+      // Process the image
+      await _processImageWithMLKit(imageFile);
+
+      setState(() {
+        _idImage = imageFile;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('✅ ID captured successfully!'),
+                if (_detectedIdType != null)
+                  Text('🤖 AI Detected: $_detectedIdType',
+                       style: const TextStyle(fontSize: 12)),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+
+    } catch (e) {
+      debugPrint('Error capturing ID manually: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Capture failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCapturing = false;
+          _isProcessing = false;
+        });
+      }
+    }
   }
 
-  bool get _hasImage {
-    return _idImage != null || _idImageUrl != null;
+  Future<void> _processImageWithMLKit(File imageFile) async {
+    try {
+      final inputImage = InputImage.fromFile(imageFile);
+      final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
+
+      List<String> textLines = [];
+      for (TextBlock block in recognizedText.blocks) {
+        for (TextLine line in block.lines) {
+          textLines.add(line.text);
+        }
+      }
+
+      setState(() {
+        _extractedText = textLines;
+        _detectedIdType = _detectIdType(recognizedText.text);
+        if (_detectedIdType != null && _selectedIdType == null) {
+          _selectedIdType = _detectedIdType;
+        }
+      });
+
+    } catch (e) {
+      debugPrint('Error processing image with ML Kit: $e');
+    }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    // Check if we can proceed whenever the widget builds
-    final canProceed = _canProceed;
+  String? _detectIdType(String text) {
+    final String lowercaseText = text.toLowerCase();
+
+    if (lowercaseText.contains('driver') && lowercaseText.contains('license')) {
+      return 'Driver\'s License';
+    } else if (lowercaseText.contains('national') && lowercaseText.contains('id')) {
+      return 'National ID';
+    } else if (lowercaseText.contains('passport')) {
+      return 'Passport';
+    } else if (lowercaseText.contains('sss')) {
+      return 'SSS ID';
+    } else if (lowercaseText.contains('philhealth')) {
+      return 'PhilHealth ID';
+    } else if (lowercaseText.contains('voter')) {
+      return 'Voter\'s ID';
+    } else if (lowercaseText.contains('government') || 
+               lowercaseText.contains('republic') ||
+               lowercaseText.contains('philippines')) {
+      return 'Other Government ID';
+    }
+    return null;
+  }
+
+  void _submitId() {
+    if (_formKey.currentState!.validate() && _idImage != null) {
+      widget.onIdVerified(_idImage!, _selectedIdType!);
+    }
+  }
+
+  Widget _buildCameraView() {
+    if (!_isCameraInitialized) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
 
     return Stack(
       children: [
-        SafeArea(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        // Camera preview
+        Positioned.fill(
+          child: CameraPreview(_cameraController!),
+        ),
+        
+        // Custom overlay for ID guidance
+        Positioned.fill(
+          child: CustomPaint(
+            painter: IdOverlayPainter(
+              isImageClear: _isImageClear,
+              isIdDetected: _isIdDetected,
+            ),
+          ),
+        ),
+        
+        // Quality indicators
+        Positioned(
+          top: 20,
+          left: 20,
+          right: 20,
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.7),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    // Header
-                    Center(
-                      child: Column(
+                    Icon(
+                      _isImageClear ? Icons.check_circle : Icons.warning,
+                      color: _isImageClear ? Colors.green : Colors.orange,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _isImageClear ? 'Image Clear' : 'Image Blurry',
+                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(
+                      _isIdDetected ? Icons.credit_card : Icons.search,
+                      color: _isIdDetected ? Colors.green : Colors.orange,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _isIdDetected ? 'ID Detected' : 'Position ID in frame',
+                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                    ),
+                  ],
+                ),
+                if (_autoCapturingEnabled && _qualityCheckCounter > 0)
+                  Container(
+                    margin: const EdgeInsets.only(top: 8),
+                    child: LinearProgressIndicator(
+                      value: _qualityCheckCounter / _requiredQualityChecks,
+                      backgroundColor: Colors.grey,
+                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        
+        // Bottom controls
+        Positioned(
+          bottom: 40,
+          left: 20,
+          right: 20,
+          child: Column(
+            children: [
+              // Auto-capture toggle
+              Container(
+                margin: const EdgeInsets.only(bottom: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.7),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'ID Verification',
-                            style: GoogleFonts.poppins(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFFB71A4A),
-                            ),
+                            'Auto Capture',
+                            style: const TextStyle(color: Colors.white, fontSize: 12),
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Please upload a valid government-issued ID',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
+                          const SizedBox(width: 8),
+                          Switch(
+                            value: _autoCapturingEnabled,
+                            onChanged: (value) {
+                              setState(() {
+                                _autoCapturingEnabled = value;
+                                _qualityCheckCounter = 0;
+                              });
+                            },
+                            activeColor: Colors.green,
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
-
-                    // Verification Status Banner (if verified)
-                    if (_verificationStatus != null)
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: _verificationStatus == 'approved'
-                              ? Colors.green[50]
-                              : _verificationStatus == 'rejected'
-                                  ? Colors.red[50]
-                                  : Colors.amber[50],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: _verificationStatus == 'approved'
-                                ? Colors.green[300]!
-                                : _verificationStatus == 'rejected'
-                                    ? Colors.red[300]!
-                                    : Colors.amber[300]!,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              _verificationStatus == 'approved'
-                                  ? Icons.check_circle
-                                  : _verificationStatus == 'rejected'
-                                      ? Icons.cancel
-                                      : Icons.pending,
-                              color: _verificationStatus == 'approved'
-                                  ? Colors.green
-                                  : _verificationStatus == 'rejected'
-                                      ? Colors.red
-                                      : Colors.amber,
-                              size: 24,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _verificationStatus == 'approved'
-                                        ? 'Verification Approved'
-                                        : _verificationStatus == 'rejected'
-                                            ? 'Verification Rejected'
-                                            : 'Verification Pending',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: _verificationStatus == 'approved'
-                                          ? Colors.green[700]
-                                          : _verificationStatus == 'rejected'
-                                              ? Colors.red[700]
-                                              : Colors.amber[700],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    _verificationStatus == 'approved'
-                                        ? 'Your ID has been verified successfully.'
-                                        : _verificationStatus == 'rejected'
-                                            ? _verificationData
-                                                    ?.rejectionReason ??
-                                                'Your verification was rejected. Please submit a new ID.'
-                                            : 'Your verification is being reviewed.',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      color: Colors.grey[800],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    if (_verificationStatus != null) const SizedBox(height: 24),
-
-                    // Instructions (only show if not verified)
-                    if (_verificationStatus != 'approved')
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Color(0xFFB71A4A).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                              color: Color(0xFFB71A4A).withOpacity(0.5)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Instructions:',
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFFB71A4A),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            _buildInstructionItem(
-                                '1', 'Take a clear, well-lit photo of your ID'),
-                            _buildInstructionItem('2',
-                                'Make sure all information is clearly visible'),
-                            _buildInstructionItem('3',
-                                'All four corners of the ID must be in the frame'),
-                          ],
-                        ),
-                      ),
-                    if (_verificationStatus != 'approved')
-                      const SizedBox(height: 24),
-
-                    // ID Photo Container
-                    Text(
-                      'ID Photo',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    GestureDetector(
-                      onTap: _isVerified ? null : _captureIdImage,
-                      child: Container(
-                        width: double.infinity,
-                        height: 220,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: _idImage != null || _idImageUrl != null
-                                ? Colors.green
-                                : const Color(0xFFB71A4A).withOpacity(0.5),
-                            width:
-                                _idImage != null || _idImageUrl != null ? 2 : 1,
-                          ),
-                        ),
-                        child: _idImageUrl != null
-                            // Display the ID image from URL for verified users
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(11),
-                                child: Image.network(
-                                  _idImageUrl!,
-                                  fit: BoxFit.cover,
-                                  loadingBuilder:
-                                      (context, child, loadingProgress) {
-                                    if (loadingProgress == null) {
-                                      debugPrint(
-                                          'ID image loaded successfully');
-                                      return child;
-                                    }
-                                    return Center(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          CircularProgressIndicator(
-                                            value: loadingProgress
-                                                        .expectedTotalBytes !=
-                                                    null
-                                                ? loadingProgress
-                                                        .cumulativeBytesLoaded /
-                                                    loadingProgress
-                                                        .expectedTotalBytes!
-                                                : null,
-                                            color: const Color(0xFFB71A4A),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            'Loading image...',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 14,
-                                              color: Colors.grey[700],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                  errorBuilder: (context, error, stackTrace) {
-                                    debugPrint(
-                                        'Error loading ID image: $error');
-                                    debugPrint('ID image URL: $_idImageUrl');
-                                    return Center(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.error_outline,
-                                            size: 48,
-                                            color: Colors.red[400],
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            'Failed to load image',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 14,
-                                              color: Colors.red[700],
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            'Tap to retry',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 12,
-                                              color: Colors.grey[600],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                ),
-                              )
-                            : _idImage != null
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(11),
-                                    child: Image.file(_idImage!,
-                                        fit: BoxFit.cover),
-                                  )
-                                : Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.add_a_photo,
-                                        size: 64,
-                                        color: Colors.grey[400],
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        'Tap to capture ID photo',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 16,
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Use your camera to take a photo',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 12,
-                                          color: Colors.grey[500],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                      ),
-                    ),
-                    if (_idImageName != null && _idImageUrl == null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Text(
-                          'Photo captured successfully',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: Colors.green,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    if (_idImageUrl != null && _idImage == null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Text(
-                          'Existing ID photo found',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: Colors.green,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    const SizedBox(height: 32),
-
-                    // Two buttons side by side: Capture and Next
-                    Row(
-                      children: [
-                        // Capture Button
-                        Expanded(
-                          child: SizedBox(
-                            height: 50,
-                            child: ElevatedButton.icon(
-                              onPressed: _isVerified ? null : _captureIdImage,
-                              icon: const Icon(Icons.camera_alt,
-                                  color: Colors.white),
-                              label: Text(
-                                _idImage == null
-                                    ? "Capture ID"
-                                    : "Retake Photo",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.grey[800],
-                                foregroundColor: Colors.white,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                disabledBackgroundColor: Colors.grey[400],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Next Button - Only enabled when there's an image AND ID type selected
-                        Expanded(
-                          child: SizedBox(
-                            height: 50,
-                            child: ElevatedButton.icon(
-                              onPressed: canProceed ? _verifyId : null,
-                              icon: const Icon(Icons.arrow_forward,
-                                  color: Colors.white),
-                              label: Text(
-                                "Next",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFB71A4A),
-                                foregroundColor: Colors.white,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                disabledBackgroundColor: Colors.blue[100],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    // Debug information (only in debug mode)
-                    if (false) // Set to true during debugging
-                      Padding(
-                        padding: const EdgeInsets.only(top: 16.0),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Debug Info:'),
-                              Text('ID Type: $_selectedIdType'),
-                              Text('Has Image: $_hasImage'),
-                              Text('Can Proceed: $canProceed'),
-                            ],
-                          ),
-                        ),
-                      ),
                   ],
                 ),
               ),
-            ),
+              
+              // Manual capture button
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 3),
+                    ),
+                    child: IconButton(
+                      onPressed: _isCapturing ? null : _captureIdManually,
+                      icon: Icon(
+                        Icons.camera,
+                        size: 32,
+                        color: _isCapturing ? Colors.grey : Colors.white,
+                      ),
+                      padding: const EdgeInsets.all(16),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-        if (_isLoading)
-          Container(
-            color: Colors.black54,
-            child: const Center(
-              child: CircularProgressIndicator(
-                color: Color(0xFFB71A4A),
+        
+        // Processing overlay
+        if (_isProcessing)
+          Positioned.fill(
+            child: Container(
+              color: Colors.black.withOpacity(0.7),
+              child: const Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(color: Colors.white),
+                    SizedBox(height: 16),
+                    Text(
+                      'Processing ID...',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -602,71 +601,341 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
     );
   }
 
-  Widget _buildInstructionItem(String number, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 24,
-            height: 24,
-            decoration: BoxDecoration(
-              color: Color(0xFFB71A4A),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                number,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('ID Verification'),
+        backgroundColor: const Color(0xFFB71A4A),
+        foregroundColor: Colors.white,
+      ),
+      body: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Instructions
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue[200]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.info, color: Colors.blue[600], size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Smart ID Capture',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.blue[800],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      '• Position your ID within the frame\n'
+                      '• Ensure good lighting and clear text\n'
+                      '• Enable auto-capture for hands-free operation\n'
+                      '• System will automatically detect blur and quality',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              text,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: Colors.grey[800],
+              
+              const SizedBox(height: 20),
+              
+              // Camera view or captured image
+              Container(
+                height: 300,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                clipBehavior: Clip.hardEdge,
+                child: _idImage != null
+                    ? Image.file(_idImage!, fit: BoxFit.cover)
+                    : _buildCameraView(),
               ),
-            ),
+              
+              const SizedBox(height: 20),
+              
+              // ID Type Selection
+              Text(
+                'ID Type',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: _selectedIdType,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  hintText: 'Select ID type',
+                  prefixIcon: Icon(
+                    Icons.credit_card,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                items: _idTypes.map((type) {
+                  return DropdownMenuItem(
+                    value: type,
+                    child: Text(type),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedIdType = value;
+                  });
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please select an ID type';
+                  }
+                  return null;
+                },
+              ),
+              
+              const SizedBox(height: 20),
+              
+              // Extracted text preview (if available)
+              if (_extractedText.isNotEmpty) ...[
+                Text(
+                  'Extracted Information',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (_detectedIdType != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Text(
+                            '🤖 AI Detected: $_detectedIdType',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Colors.green[700],
+                            ),
+                          ),
+                        ),
+                      Text(
+                        _extractedText.join('\n'),
+                        style: const TextStyle(fontSize: 12),
+                        maxLines: 6,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+              
+              // Retake button
+              if (_idImage != null)
+                Center(
+                  child: TextButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _idImage = null;
+                        _extractedText.clear();
+                        _detectedIdType = null;
+                      });
+                    },
+                    icon: const Icon(Icons.camera_alt),
+                    label: const Text('Retake Photo'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFFB71A4A),
+                    ),
+                  ),
+                ),
+              
+              const SizedBox(height: 30),
+              
+              // Continue button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: (_idImage != null && _selectedIdType != null)
+                      ? _submitId
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFB71A4A),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    'Continue to Selfie Verification',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
+}
 
-  InputDecoration _inputDecoration({
-    required String hintText,
-    IconData? prefixIcon,
-  }) {
-    return InputDecoration(
-      filled: true,
-      fillColor: Colors.grey[100],
-      hintText: hintText,
-      hintStyle: TextStyle(color: Colors.grey[500]),
-      prefixIcon:
-          prefixIcon != null ? Icon(prefixIcon, color: Colors.grey[600]) : null,
-      enabledBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Colors.grey[300]!),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Color(0xFFB71A4A), width: 2),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: Colors.red[400]!, width: 1),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: Colors.red[600]!, width: 2),
-      ),
+// Custom painter for ID overlay guidance
+class IdOverlayPainter extends CustomPainter {
+  final bool isImageClear;
+  final bool isIdDetected;
+
+  IdOverlayPainter({
+    required this.isImageClear,
+    required this.isIdDetected,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3;
+
+    // Define the ID card frame (centered, landscape orientation)
+    final double frameWidth = size.width * 0.8;
+    final double frameHeight = frameWidth * 0.63; // Standard ID card ratio
+    final Rect frame = Rect.fromCenter(
+      center: Offset(size.width / 2, size.height / 2),
+      width: frameWidth,
+      height: frameHeight,
     );
+
+    // Frame color based on detection status
+    Color frameColor;
+    if (isImageClear && isIdDetected) {
+      frameColor = Colors.green;
+    } else if (isImageClear || isIdDetected) {
+      frameColor = Colors.orange;
+    } else {
+      frameColor = Colors.red;
+    }
+
+    paint.color = frameColor;
+
+    // Draw rounded rectangle frame
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(frame, const Radius.circular(12)),
+      paint,
+    );
+
+    // Draw corner guides
+    final double cornerLength = 20;
+    final Paint cornerPaint = Paint()
+      ..color = frameColor
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.round;
+
+    // Top-left corner
+    canvas.drawLine(
+      Offset(frame.left, frame.top + cornerLength),
+      Offset(frame.left, frame.top),
+      cornerPaint,
+    );
+    canvas.drawLine(
+      Offset(frame.left, frame.top),
+      Offset(frame.left + cornerLength, frame.top),
+      cornerPaint,
+    );
+
+    // Top-right corner
+    canvas.drawLine(
+      Offset(frame.right - cornerLength, frame.top),
+      Offset(frame.right, frame.top),
+      cornerPaint,
+    );
+    canvas.drawLine(
+      Offset(frame.right, frame.top),
+      Offset(frame.right, frame.top + cornerLength),
+      cornerPaint,
+    );
+
+    // Bottom-left corner
+    canvas.drawLine(
+      Offset(frame.left, frame.bottom - cornerLength),
+      Offset(frame.left, frame.bottom),
+      cornerPaint,
+    );
+    canvas.drawLine(
+      Offset(frame.left, frame.bottom),
+      Offset(frame.left + cornerLength, frame.bottom),
+      cornerPaint,
+    );
+
+    // Bottom-right corner
+    canvas.drawLine(
+      Offset(frame.right - cornerLength, frame.bottom),
+      Offset(frame.right, frame.bottom),
+      cornerPaint,
+    );
+    canvas.drawLine(
+      Offset(frame.right, frame.bottom),
+      Offset(frame.right, frame.bottom - cornerLength),
+      cornerPaint,
+    );
+
+    // Darken areas outside the frame
+    final Path outerPath = Path()
+      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
+    final Path innerPath = Path()
+      ..addRRect(RRect.fromRectAndRadius(frame, const Radius.circular(12)));
+    
+    final Path overlayPath = Path.combine(
+      PathOperation.difference,
+      outerPath,
+      innerPath,
+    );
+
+    final Paint overlayPaint = Paint()
+      ..color = Colors.black.withOpacity(0.5);
+    
+    canvas.drawPath(overlayPath, overlayPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant IdOverlayPainter oldDelegate) {
+    return isImageClear != oldDelegate.isImageClear ||
+           isIdDetected != oldDelegate.isIdDetected;
   }
 }
