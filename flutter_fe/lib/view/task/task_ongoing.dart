@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
+import 'package:flutter_fe/view/task/task_disputed.dart';
 import 'package:flutter_fe/view/task/task_finished.dart';
 import 'package:flutter_fe/view/task/task_review.dart';
 import 'package:flutter_fe/view/task_user/user_feedback.dart';
@@ -41,10 +42,10 @@ class _TaskOngoingState extends State<TaskOngoing> {
   Timer? _timer;
   String _requestStatus = 'Unknown';
 
-  int _rating = 0;
+  final int _rating = 0;
   final TextEditingController _feedbackController = TextEditingController();
   final TextEditingController _reportController = TextEditingController();
-  bool _isSatisfied = true;
+  final bool _isSatisfied = true;
 
   final TextEditingController _disputeTypeController = TextEditingController();
   final TextEditingController _disputeDetailsController =
@@ -330,7 +331,6 @@ class _TaskOngoingState extends State<TaskOngoing> {
                 onPressed: () async {
                   setState(() {
                     _isLoading = true;
-                    _fetchRequestDetails();
                   });
                   Navigator.pop(context);
                   try {
@@ -346,9 +346,15 @@ class _TaskOngoingState extends State<TaskOngoing> {
 
                     if (result) {
                       if (!mounted) return;
-                      setState(() {
-                        _requestStatus = 'Disputed';
-                      });
+
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TaskDisputed(
+                            taskInformation: widget.taskInformation!,
+                          ),
+                        ),
+                      );
                     } else {
                       CustomScaffold(
                           message: 'Failed to raise dispute. Please Try Again.',
@@ -362,7 +368,6 @@ class _TaskOngoingState extends State<TaskOngoing> {
                   } finally {
                     setState(() {
                       _isLoading = false;
-                      _fetchRequestDetails();
                     });
                   }
                 },

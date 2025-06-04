@@ -27,7 +27,7 @@ class ImagesModel {
     if (value == null) return null;
     if (value is int) return value;
     if (value is String) {
-      return int.tryParse(value) ?? null;
+      return int.tryParse(value);
     }
     return null;
   }

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_fe/model/client_model.dart';
 import 'package:flutter_fe/model/address.dart';
 import 'package:flutter_fe/model/images_model.dart';
@@ -38,35 +37,34 @@ class TaskModel {
   final List<ImagesModel>? imageUrls;
   final UserModel? user;
 
-  TaskModel({
-    required this.id,
-    this.clientId,
-    required this.title,
-    this.specialization,
-    this.specializationId,
-    this.relatedSpecializationsIds,
-    this.addressID,
-    required this.description,
-    required this.urgency,
-    this.status,
-    required this.contactPrice,
-    this.remarks,
-    required this.workType,
-    required this.scope,
-    this.isVerifiedDocument,
-    this.taskBeginDate,
-    this.client,
-    this.tasker,
-    this.createdAt,
-    this.updatedAt,
-    this.address,
-    this.imageUrl,
-    this.taskerSpecialization,
-    this.ableToDelete,
-    this.imageIds,
-    this.imageUrls,
-    this.user
-  });
+  TaskModel(
+      {required this.id,
+      this.clientId,
+      required this.title,
+      this.specialization,
+      this.specializationId,
+      this.relatedSpecializationsIds,
+      this.addressID,
+      required this.description,
+      required this.urgency,
+      this.status,
+      required this.contactPrice,
+      this.remarks,
+      required this.workType,
+      required this.scope,
+      this.isVerifiedDocument,
+      this.taskBeginDate,
+      this.client,
+      this.tasker,
+      this.createdAt,
+      this.updatedAt,
+      this.address,
+      this.imageUrl,
+      this.taskerSpecialization,
+      this.ableToDelete,
+      this.imageIds,
+      this.imageUrls,
+      this.user});
 
   factory TaskModel.fromJson(Map<String, dynamic> json) {
     String urgencyValue;
@@ -139,7 +137,9 @@ class TaskModel {
               .toList()
           : null,
       //For Moderator Only
-      user: json['action_by'] != null ? UserModel.fromJson(json['action_by']) : null,
+      user: json['action_by'] != null
+          ? UserModel.fromJson(json['action_by'])
+          : null,
     );
   }
 
