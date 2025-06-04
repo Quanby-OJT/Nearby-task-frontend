@@ -158,7 +158,9 @@
               <div class="h-2.5 w-2.5 rounded-full" [ngClass]="{
                 'bg-green-500': task.status === 'Available',
                 'bg-red-400': task.status === 'Closed',
-                'bg-yellow-400': task.status === 'Already Taken',
+                'bg-blue-400': task.status === 'Already Taken',
+                'bg-yellow-400': task.status === 'On Hold',
+                'bg-red-800': task.status === 'Reported',
                 'bg-gray-400': !task.status
               }"></div>
               <span class="text-sm text-black">{{ task.status || 'Empty' }}</span>
