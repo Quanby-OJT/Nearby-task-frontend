@@ -292,8 +292,8 @@ class TaskController {
   Future<String> assignTask(
       int? taskId, int? clientId, int? taskerId, String role,
       {int? daysAvailable}) async {
-    debugPrint("Assigning task...");
-    debugPrint("Role: $role");
+    daysAvailable ??= 1;
+
     final assignedTask = await _jobPostService.assignTask(
         taskId!, clientId!, taskerId!, role,
         daysAvailable: daysAvailable);
@@ -302,11 +302,12 @@ class TaskController {
         : assignedTask['error'].toString();
   }
 
-  Future<Map<String, dynamic>> updateRequest(int taskTakenId, String value, String role,
+  Future<Map<String, dynamic>> updateRequest(
+      int taskTakenId, String value, String role,
       {String? rejectionReason}) async {
     debugPrint("Assigning task...");
-    return await _jobPostService.updateRequest(
-        taskTakenId, value, role,
+    debugPrint("This is rejection reason: $rejectionReason");
+    return await _jobPostService.updateRequest(taskTakenId, value, role,
         rejectionReason: rejectionReason);
   }
 

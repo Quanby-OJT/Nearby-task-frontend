@@ -169,196 +169,68 @@ class _TaskPendingState extends State<TaskPending> {
             ),
           ),
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Are you sure you want to reject this task? This action cannot be undone.',
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w300,
-                color: Colors.grey[800],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Reason for rejection:',
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey[800],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[400]!),
-                borderRadius: BorderRadius.circular(5),
-              ),
-              child: DropdownButton<String>(
-                value: selectedReason,
-                isExpanded: true,
-                underline: SizedBox(),
-                items: rejectionReasons.map((String reason) {
-                  return DropdownMenuItem<String>(
-                    value: reason,
-                    child: Text(
-                      reason,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.black,
-                      ),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
-                    Navigator.of(context).pop();
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        title: Center(
-                          child: Text(
-                            'Reject Task',
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
+        content: StatefulBuilder(
+          builder: (BuildContext context, StateSetter setDialogState) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Are you sure you want to reject this task? This action cannot be undone.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w300,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Reason for rejection:',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey[400]!),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: DropdownButton<String>(
+                    value: selectedReason,
+                    isExpanded: true,
+                    underline: SizedBox(),
+                    items: rejectionReasons.map((String reason) {
+                      return DropdownMenuItem<String>(
+                        value: reason,
+                        child: Text(
+                          reason,
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.black,
                           ),
                         ),
-                        content: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Are you sure you want to reject this task? This action cannot be undone.',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w300,
-                                color: Colors.grey[800],
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Reason for rejection:',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.grey[800],
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Container(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 12),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey[400]!),
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                              child: DropdownButton<String>(
-                                value: newValue,
-                                isExpanded: true,
-                                underline: SizedBox(),
-                                items: rejectionReasons.map((String reason) {
-                                  return DropdownMenuItem<String>(
-                                    value: reason,
-                                    child: Text(
-                                      reason,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w400,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                                onChanged: (String? newValue) {},
-                              ),
-                            ),
-                          ],
-                        ),
-                        actions: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              TextButton(
-                                child: Text(
-                                  'Cancel',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: Color(0xFFB71A4A),
-                                  ),
-                                ),
-                                onPressed: () => Navigator.pop(context, false),
-                              ),
-                              const SizedBox(width: 10),
-                              Container(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 10),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(5),
-                                  color: Color(0xFFB71A4A),
-                                ),
-                                child: TextButton(
-                                  child: Text(
-                                    'Confirm',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  onPressed: () async {
-                                    setState(() {
-                                      _isLoading = true;
-                                    });
-
-                                    final String value = 'Reject';
-                                    final result =
-                                        await taskController.updateRequest(
-                                      _requestInformation?.task_taken_id ?? 0,
-                                      value,
-                                      _role ?? 'Unknown',
-                                      rejectionReason: newValue,
-                                    );
-                                    if (result.containsKey('success') && result['success']) {
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => TaskRejected(
-                                            taskInformation:
-                                                widget.taskInformation,
-                                          ),
-                                        ),
-                                      );
-                                    } else {
-                                      Navigator.pop(context, false);
-                                      setState(() {
-                                        _isLoading = false;
-                                      });
-                                    }
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                },
-              ),
-            ),
-          ],
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      if (newValue != null) {
+                        setDialogState(() {
+                          selectedReason = newValue;
+                        });
+                        setState(() {
+                          selectedReason = newValue;
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
         ),
         actions: [
           Row(
@@ -405,7 +277,6 @@ class _TaskPendingState extends State<TaskPending> {
                       rejectionReason: selectedReason,
                     );
                     if (result.containsKey('success') && result['success']) {
-                      Navigator.pop(context);
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
@@ -888,9 +759,9 @@ class _TaskPendingState extends State<TaskPending> {
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.calendar,
               label: 'Start Date',
-              value: _requestInformation!.start_date != null
-                  ? DateFormat('MMM dd, yyyy HH:mm a')
-                      .format(_requestInformation!.start_date!)
+              value: _requestInformation?.task?.taskBeginDate != null
+                  ? DateFormat('MMM dd, yyyy HH:mm a').format(DateTime.parse(
+                      _requestInformation?.task?.taskBeginDate ?? ''))
                   : 'N/A',
             ),
           ],

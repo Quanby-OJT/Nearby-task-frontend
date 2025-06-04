@@ -1028,7 +1028,7 @@ class _TaskReviewState extends State<TaskReview> {
               value: _requestInformation?.task_status ?? 'Ongoing',
             ),
             _buildTaskInfoRow(
-              icon: Icons.calendar_today,
+              icon: FontAwesomeIcons.calendar,
               label: 'Start Date',
               value: _requestInformation?.task?.taskBeginDate != null
                   ? DateFormat('MMM dd, yyyy HH:mm a').format(DateTime.parse(
