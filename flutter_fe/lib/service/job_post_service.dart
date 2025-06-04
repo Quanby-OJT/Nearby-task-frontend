@@ -842,7 +842,7 @@ class JobPostService {
         return [];
       }
     } catch (e, st) {
-      debugPrint("Exception in fetchCreatedTasksByClient: $e");
+      debugPrint("Exception in fetchCreatedTasksByClient sample : $e");
       debugPrintStack(stackTrace: st);
       return [];
     }

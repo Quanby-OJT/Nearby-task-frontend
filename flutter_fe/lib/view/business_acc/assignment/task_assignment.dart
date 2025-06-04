@@ -12,9 +12,8 @@ import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class TaskAssignmentScreen extends StatefulWidget {
-  const TaskAssignmentScreen({super.key, required this.tasker});
-
   final TaskerModel tasker;
+  const TaskAssignmentScreen({super.key, required this.tasker});
 
   @override
   State<TaskAssignmentScreen> createState() => _TaskAssignmentScreenState();
@@ -33,7 +32,6 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
   bool _isAssigning = false;
   List<TaskModel>? _availableTasks;
   List<TaskModel>? _filteredTasks;
-  List<TaskModel>? _preloadedTasks;
 
   @override
   void initState() {
@@ -74,19 +72,6 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
     }
   }
 
-  Future<void> _preloadClientTasks() async {
-    try {
-      final tasks = await _fetchClientTasks();
-      if (mounted) {
-        setState(() {
-          _preloadedTasks = tasks;
-        });
-      }
-    } catch (e) {
-      debugPrint("Error preloading tasks: $e");
-    }
-  }
-
   Future<List<TaskModel>> _fetchClientTasks() async {
     try {
       final cachedTasks = TaskCache.getTasks();
@@ -94,6 +79,8 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
         debugPrint("Using cached tasks");
         return cachedTasks;
       }
+
+      debugPrint("Fetching client tasks from the database");
 
       final clientServices = ClientServices();
       final String? clientId = await clientServices.getUserId();
