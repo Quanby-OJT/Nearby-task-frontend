@@ -6,27 +6,34 @@ import { BestTaskerComponent } from "./best-tasker/best-tasker.component";
 import { BestClientComponent } from "./best-client/best-client.component";
 import { DepositorComponent } from './depositor/depositor.component';
 import { AngularSvgIconModule } from 'angular-svg-icon';
+import { LoadingService } from 'src/app/services/loading.service';
 
 @Component({
   selector: 'app-report',
-  imports: [CommonModule,
+  standalone: true,
+  imports: [
+    CommonModule,
     JobComponent,
     SpecializationComponent, 
     BestTaskerComponent, 
     BestClientComponent,
     DepositorComponent,
-    AngularSvgIconModule],
+    AngularSvgIconModule
+  ],
   templateUrl: './report.component.html',
   styleUrl: './report.component.css'
 })
 export class ReportComponent implements OnInit {
-  isLoading: boolean = true;
   currentTab: string = "MostFamousSpecialization";
+  isLoading: boolean = false;
+
+  constructor(private loadingService: LoadingService) {}
 
   ngOnInit(): void {
+    this.loadingService.show();
     // Simulate initial data load
     setTimeout(() => {
-      this.isLoading = false;
+      this.loadingService.hide();
     }, 1500);
   }
 

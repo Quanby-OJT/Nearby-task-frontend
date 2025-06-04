@@ -665,7 +665,7 @@ class _LikeScreenState extends State<LikeScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              // TODO: Implement job application functionality
+
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                     content: Text('Application feature coming soon!')),

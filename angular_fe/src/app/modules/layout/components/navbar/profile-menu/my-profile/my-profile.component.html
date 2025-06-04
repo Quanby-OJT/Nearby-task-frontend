@@ -9,14 +9,6 @@
   </div>
 </div>
 
-<!-- Loading Spinner -->
-<div *ngIf="isLoading" class="fixed inset-0 z-50 flex flex-col justify-center items-center lg:w-308 lg:h-170 xl:w-420 xl:h-200 ">
-  <div class="animate-slow-spin text-xs text-[#3C28CC] flex flex-col justify-center items-center">
-    <svg-icon src="./assets/icons/heroicons/outline/logo.svg" [svgClass]="'h-20 w-20'"></svg-icon>
-    <strong>Nearby Task</strong>
-  </div>
-</div>
-
   <div class="container mx-auto p-4">
   <div *ngIf="!isLoading && user && profileForm" class="bg-card text-card-foreground mx-auto max-w-full rounded-lg p-6 shadow-md">
   <!-- Profile Image Section (Top of the page) -->
@@ -192,26 +184,6 @@
               type="text"
               id="country"
               formControlName="country"
-              class="bg-input border-border text-foreground mt-1 block w-full rounded-md border p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            />
-          </div>
-          <div>
-            <label for="latitude" class="text-muted-foreground block text-sm font-medium">Latitude</label>
-            <input
-              type="number"
-              id="latitude"
-              formControlName="latitude"
-              step="0.000001"
-              class="bg-input border-border text-foreground mt-1 block w-full rounded-md border p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            />
-          </div>
-          <div>
-            <label for="longitude" class="text-muted-foreground block text-sm font-medium">Longitude</label>
-            <input
-              type="number"
-              id="longitude"
-              formControlName="longitude"
-              step="0.000001"
               class="bg-input border-border text-foreground mt-1 block w-full rounded-md border p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             />
           </div>

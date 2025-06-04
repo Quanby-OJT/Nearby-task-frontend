@@ -2,7 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { UserLogService } from 'src/app/services/log.service';
-import { Log } from 'src/model/log'; // Import the Log model
+import { LoadingService } from 'src/app/services/loading.service';
+import { Log } from 'src/model/log'; 
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
@@ -26,55 +27,39 @@ export class LogComponent implements OnInit, OnDestroy {
   startIndex: number = 1;
   endIndex: number = 0;
   currentSearchText: string = '';
-  currentRoleFilter: string = ''; // Renamed from currentStatusFilter for clarity
-  currentStatusFilter: string = ''; // Added for status (Online/Offline)
+  currentRoleFilter: string = ''; 
+  currentStatusFilter: string = ''; 
   placeholderRows: any[] = [];
-  sortDirection: 'asc' | 'desc' | 'default' = 'default'; // Default to newest first
-  isLoading: boolean = false; // Changed to false initially
-  public isDataLoaded: boolean = false; // New flag to track if data is loaded
-  private loadingTimeout: any; // Timeout for spinner delay
+  sortDirection: 'asc' | 'desc' | 'default' = 'default'; 
+  isLoading: boolean = false;
   private logsSubscription!: Subscription;
 
-  constructor(private userlogService: UserLogService) {}
+  constructor(
+    private userlogService: UserLogService,
+    private loadingService: LoadingService
+  ) {}
 
   ngOnInit(): void {
-    // If data is already loaded, skip fetching and spinner
-    if (this.isDataLoaded) {
-      this.updatePage();
-      return;
-    }
-
-    // Set a timeout to show spinner only if loading takes > 500ms
-    this.loadingTimeout = setTimeout(() => {
-      if (!this.isDataLoaded) {
-        this.isLoading = true;
-      }
-    }, 500);
-
-    this.logsSubscription = this.userlogService.getUserLogs().subscribe(
-      (logs: Log[]) => {
-        clearTimeout(this.loadingTimeout);
+    this.loadingService.show();
+    this.logsSubscription = this.userlogService.getUserLogs().subscribe({
+      next: (logs: Log[]) => {
         this.logs = logs;
         this.filteredLogs = [...logs];
         this.updatePage();
-        this.isDataLoaded = true; // Mark data as loaded
-        this.isLoading = false;
+        this.isLoading = true;
+        this.loadingService.hide();
       },
-      (error) => {
-        clearTimeout(this.loadingTimeout);
+      error: (error) => {
         console.error("Error getting logs:", error);
-        this.isDataLoaded = true; // Still mark as loaded to prevent spinner on retry
-        this.isLoading = false;
+        this.isLoading = true;
+        this.loadingService.hide();
       }
-    );
+    });
   }
 
   ngOnDestroy(): void {
     if (this.logsSubscription) {
       this.logsSubscription.unsubscribe();
-    }
-    if (this.loadingTimeout) {
-      clearTimeout(this.loadingTimeout);
     }
   }
 

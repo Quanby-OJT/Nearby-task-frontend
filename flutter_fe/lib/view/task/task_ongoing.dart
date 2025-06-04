@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
+import 'package:flutter_fe/view/task/task_disputed.dart';
 import 'package:flutter_fe/view/task/task_finished.dart';
 import 'package:flutter_fe/view/task/task_review.dart';
 import 'package:flutter_fe/view/task_user/user_feedback.dart';
@@ -41,10 +42,10 @@ class _TaskOngoingState extends State<TaskOngoing> {
   Timer? _timer;
   String _requestStatus = 'Unknown';
 
-  int _rating = 0;
+  final int _rating = 0;
   final TextEditingController _feedbackController = TextEditingController();
   final TextEditingController _reportController = TextEditingController();
-  bool _isSatisfied = true;
+  final bool _isSatisfied = true;
 
   final TextEditingController _disputeTypeController = TextEditingController();
   final TextEditingController _disputeDetailsController =
@@ -154,24 +155,6 @@ class _TaskOngoingState extends State<TaskOngoing> {
     }
   }
 
-  Future<void> _handleFinishTask() async {
-    if (_requestInformation == null ||
-        _requestInformation!.task_taken_id == null) {
-      CustomScaffold(
-          message: 'Task information not available', color: Colors.red);
-      return;
-    }
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => _buildFeedbackBottomSheet(),
-    );
-  }
-
   Future<void> _handleTaskDispute() async {
     if (_requestInformation == null ||
         _requestInformation!.task_taken_id == null) {
@@ -187,196 +170,6 @@ class _TaskOngoingState extends State<TaskOngoing> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (childContext) => _buildDisputeBottomSheet(),
-    );
-  }
-
-  Widget _buildFeedbackBottomSheet() {
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: 16,
-        right: 16,
-        top: 16,
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Rate & Review Tasker',
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF03045E),
-              ),
-            ),
-            SizedBox(height: 16),
-            // Rating Stars
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (index) {
-                return IconButton(
-                  icon: Icon(
-                    index < _rating ? Icons.star : Icons.star_border,
-                    color: Colors.amber,
-                    size: 36,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _rating = index + 1;
-                      _isSatisfied = _rating > 2;
-                    });
-                  },
-                );
-              }),
-            ),
-            SizedBox(height: 16),
-            // Feedback Field
-            Text(
-              'Feedback',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF03045E),
-              ),
-            ),
-            SizedBox(height: 8),
-            TextField(
-              controller: _feedbackController,
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: 'Share your experience...',
-                hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Color(0xFF03045E)),
-                ),
-              ),
-              style: GoogleFonts.poppins(fontSize: 14),
-            ),
-            if (!_isSatisfied) ...[
-              SizedBox(height: 16),
-              Text(
-                'Report Issue',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.red[700],
-                ),
-              ),
-              SizedBox(height: 8),
-              TextField(
-                controller: _reportController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  hintText: 'Describe the issue for reporting...',
-                  hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey[300]!),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.red[700]!),
-                  ),
-                ),
-                style: GoogleFonts.poppins(fontSize: 14),
-              ),
-            ],
-            SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () async {
-                  if (_rating == 0) {
-                    CustomScaffold(
-                        message: 'Please provide a rating', color: Colors.red);
-                    return;
-                  }
-                  setState(() {
-                    _isLoading = true;
-                  });
-                  try {
-                    final result = await taskController.updateRequest(
-                      _requestInformation?.task_taken_id ?? 0,
-                      'Finish',
-                      widget.taskInformation?.taskDetails!.client?.user?.role ??
-                          '',
-                    );
-
-                    // bool result2 = await taskController.rateTheTasker(
-                    //     _requestInformation?.task_taken_id ?? 0,
-                    //     _requestInformation?.tasker_id ?? 0,
-                    //     _rating,
-                    //     _feedbackController.text);
-                    if (result.containsKey('success') && result['success']) {
-                      if (!mounted) return;
-
-                      setState(() {
-                        _requestStatus = 'Completed';
-                      });
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TaskFinished(
-                            taskInformation: widget.taskInformation,
-                          ),
-                        ),
-                      );
-                    } else {
-                      if (!mounted) return;
-                      CustomScaffold(
-                          message: 'Failed to finish task', color: Colors.red);
-                    }
-                  } catch (e, stackTrace) {
-                    debugPrint("Error finishing task: $e.");
-                    debugPrintStack(stackTrace: stackTrace);
-                    if (mounted) {
-                      CustomScaffold(
-                          message: 'Error occurred', color: Colors.red);
-                    }
-                  } finally {
-                    setState(() {
-                      _isLoading = false;
-                    });
-                  }
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF03045E),
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 2,
-                ),
-                child: Text(
-                  'Submit Feedback & Release Payment',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-          ],
-        ),
-      ),
     );
   }
 
@@ -538,7 +331,6 @@ class _TaskOngoingState extends State<TaskOngoing> {
                 onPressed: () async {
                   setState(() {
                     _isLoading = true;
-                    _fetchRequestDetails();
                   });
                   Navigator.pop(context);
                   try {
@@ -554,9 +346,15 @@ class _TaskOngoingState extends State<TaskOngoing> {
 
                     if (result) {
                       if (!mounted) return;
-                      setState(() {
-                        _requestStatus = 'Disputed';
-                      });
+
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TaskDisputed(
+                            taskInformation: widget.taskInformation!,
+                          ),
+                        ),
+                      );
                     } else {
                       CustomScaffold(
                           message: 'Failed to raise dispute. Please Try Again.',
@@ -570,7 +368,6 @@ class _TaskOngoingState extends State<TaskOngoing> {
                   } finally {
                     setState(() {
                       _isLoading = false;
-                      _fetchRequestDetails();
                     });
                   }
                 },
@@ -721,61 +518,68 @@ class _TaskOngoingState extends State<TaskOngoing> {
             ),
           ),
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Are you sure you want to finish this task?',
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w300,
-                color: Colors.grey[800],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Leave a review message:',
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey[800],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[400]!),
-                borderRadius: BorderRadius.circular(5),
-              ),
-              child: DropdownButton<String>(
-                value: selectedReason,
-                isExpanded: true,
-                underline: SizedBox(),
-                items: finishReasons.map((String reason) {
-                  return DropdownMenuItem<String>(
-                    value: reason,
-                    child: Text(
-                      reason,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.black,
-                      ),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
-                    setState(() {
-                      selectedReason = newValue;
-                    });
-                  }
-                },
-              ),
-            ),
-          ],
+        content: StatefulBuilder(
+          builder: (BuildContext context, StateSetter setDialogState) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Are you sure you want to finish this task? This action cannot be undone.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w300,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Leave a message:',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey[400]!),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: DropdownButton<String>(
+                    value: selectedReason,
+                    isExpanded: true,
+                    underline: SizedBox(),
+                    items: finishReasons.map((String reason) {
+                      return DropdownMenuItem<String>(
+                        value: reason,
+                        child: Text(
+                          reason,
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.black,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      if (newValue != null) {
+                        setDialogState(() {
+                          selectedReason = newValue;
+                        });
+                        setState(() {
+                          selectedReason = newValue;
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
         ),
         actions: [
           Row(
@@ -822,8 +626,6 @@ class _TaskOngoingState extends State<TaskOngoing> {
                       rejectionReason: selectedReason,
                     );
                     if (result.containsKey('success') && result['success']) {
-                      if (!mounted) return;
-                      Navigator.pop(context, true);
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
@@ -849,7 +651,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
 
     if (confirm == true) {
       CustomScaffold(
-          message: 'Task finished successfully', color: Colors.green);
+          message: 'Task finished successfully', color: Color(0xFFB71A4A));
     }
   }
 
@@ -870,61 +672,68 @@ class _TaskOngoingState extends State<TaskOngoing> {
             ),
           ),
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Are you sure you want to finish this task?',
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w300,
-                color: Colors.grey[800],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Leave a review message:',
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey[800],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[400]!),
-                borderRadius: BorderRadius.circular(5),
-              ),
-              child: DropdownButton<String>(
-                value: selectedReason,
-                isExpanded: true,
-                underline: SizedBox(),
-                items: finishReasons.map((String reason) {
-                  return DropdownMenuItem<String>(
-                    value: reason,
-                    child: Text(
-                      reason,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.black,
-                      ),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
-                    setState(() {
-                      selectedReason = newValue;
-                    });
-                  }
-                },
-              ),
-            ),
-          ],
+        content: StatefulBuilder(
+          builder: (BuildContext context, StateSetter setDialogState) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Are you sure you want to finish this task? This action cannot be undone.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w300,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Reason for finishing:',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey[400]!),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: DropdownButton<String>(
+                    value: selectedReason,
+                    isExpanded: true,
+                    underline: SizedBox(),
+                    items: finishReasons.map((String reason) {
+                      return DropdownMenuItem<String>(
+                        value: reason,
+                        child: Text(
+                          reason,
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.black,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      if (newValue != null) {
+                        setDialogState(() {
+                          selectedReason = newValue;
+                        });
+                        setState(() {
+                          selectedReason = newValue;
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
         ),
         actions: [
           Row(
@@ -964,15 +773,13 @@ class _TaskOngoingState extends State<TaskOngoing> {
                     });
 
                     final String value = 'Finish';
-                   final result = await taskController.updateRequest(
+                    final result = await taskController.updateRequest(
                       _requestInformation?.task_taken_id ?? 0,
                       value,
                       'Client',
                       rejectionReason: selectedReason,
                     );
                     if (result.containsKey('success') && result['success']) {
-                      if (!mounted) return;
-                      Navigator.pop(context, true);
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
@@ -986,8 +793,6 @@ class _TaskOngoingState extends State<TaskOngoing> {
                       setState(() {
                         _isLoading = false;
                       });
-                      CustomScaffold(
-                          message: 'Failed to finish task', color: Colors.red);
                     }
                   },
                 ),
@@ -999,7 +804,8 @@ class _TaskOngoingState extends State<TaskOngoing> {
     );
 
     if (confirm == true) {
-      CustomScaffold(message: 'Task Finished', color: Colors.green);
+      CustomScaffold(
+          message: 'Task finished successfully', color: Color(0xFFB71A4A));
     }
   }
 

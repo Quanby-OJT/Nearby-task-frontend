@@ -9,7 +9,6 @@
           [ngTemplateOutlet]="sub.children ? childMenu : parentMenu"
           [ngTemplateOutletContext]="{ sub: sub }">
         </ng-container>
-
         <!-- Parent Menu -->
         <ng-template #parentMenu let-sub="sub">
           <a

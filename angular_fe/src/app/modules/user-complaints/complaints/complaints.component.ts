@@ -14,6 +14,7 @@ import { saveAs } from 'file-saver';
 import Swal from 'sweetalert2';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { ReportCardComponent } from './report-card/report-card.component';
+import { LoadingService } from 'src/app/services/loading.service';
 
 @Component({
   selector: 'app-complaints',
@@ -60,10 +61,12 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
   constructor(
     private reportService: ReportService,
     private sessionStorage: SessionLocalStorage,
-    private authService: AuthService
+    private authService: AuthService,
+    private loadingService: LoadingService
   ) {}
 
   ngOnInit(): void {
+    this.loadingService.show();
     this.isLoading = true;
     this.reportsSubscription = this.reportService.getReport().subscribe(
       (response: { success: boolean; reports: Report[] }) => {
@@ -72,11 +75,13 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
           this.filteredReports = [...this.reports];
           this.updatePage();
           this.isLoading = false;
+          this.loadingService.hide();
         }
       },
       (errors) => {
         console.error("Failed in getting reports: ", errors);
         this.isLoading = false;
+        this.loadingService.hide();
       }
     );
 

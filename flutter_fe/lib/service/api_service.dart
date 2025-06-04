@@ -13,7 +13,7 @@ import '../model/tasker_model.dart';
 import 'package:flutter_fe/config/url_strategy.dart';
 
 class ApiService {
-  static String url = apiUrl ?? "http://192.168.43.15:5000";
+  static String url = apiUrl ?? "http://localhost:5000";
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
   static final Map<String, String> _cookies = {};
@@ -1089,7 +1089,7 @@ class ApiService {
     try {
       final String token = await AuthService.getSessionToken();
       debugPrint(
-          "API Service: Retrieved session token: ${token?.isNotEmpty == true ? 'Token exists (${token.length} chars)' : 'Token is empty or null'}");
+          "API Service: Retrieved session token: ${token.isNotEmpty == true ? 'Token exists (${token.length} chars)' : 'Token is empty or null'}");
 
       // Check if token is empty and handle accordingly
       if (token.isEmpty) {

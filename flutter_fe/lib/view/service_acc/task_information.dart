@@ -677,7 +677,6 @@ class _TaskInformationState extends State<TaskInformation> {
                       _isLoading = true;
                     });
                     try {
-                      debugPrint("Role is sample: ${widget.role}");
                       final result = await taskController.assignTask(
                         widget.taskID ?? 0,
                         _taskInformation!.clientId,

@@ -28,6 +28,26 @@ export class UserConversationService {
     });
   }
 
+  appealUser(id: number, taskTakenId: number, reason: string): Observable<any> {
+    const userId = this.sessionStorage.getUserId();
+    if (!userId) {
+      return new Observable((observer) => {
+        observer.error('Logged-in user ID not found');
+        observer.complete();
+      });
+    }
+
+    return this.http.post<any>(
+      `${this.apiUrl}/appealUser/${id}`,
+      { loggedInUserId: Number(userId), taskTakenId, reason },
+      {
+        headers: this.getHeaders(),
+        withCredentials: true,
+      }
+    );
+  }
+
+
   banUser(id: number, taskTakenId: number, reason: string): Observable<any> {
     const userId = this.sessionStorage.getUserId();
     if (!userId) {

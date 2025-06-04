@@ -17,6 +17,7 @@ import 'package:flutter_fe/view/task/task_disputed.dart';
 import 'package:flutter_fe/view/task/task_finished.dart';
 import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:flutter_fe/view/task/task_pending.dart';
+import 'package:flutter_fe/view/task/task_rejected.dart';
 import 'package:flutter_fe/view/task/task_review.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -423,7 +424,8 @@ class _TaskPageState extends State<TaskPage>
                   onPrimary: Colors.white,
                   surface: Colors.white,
                   onSurface: Colors.black,
-                ), dialogTheme: DialogThemeData(backgroundColor: Colors.white),
+                ),
+                dialogTheme: DialogThemeData(backgroundColor: Colors.white),
               ),
               child: child!,
             );
@@ -623,6 +625,31 @@ class _TaskPageState extends State<TaskPage>
     );
   }
 
+  void _navigateToTaskStatusPage(TaskFetch task) {
+    final statusPages = {
+      'Completed': TaskFinished(taskInformation: task),
+      'Pending': TaskPending(taskInformation: task),
+      'Confirmed': TaskConfirmed(taskInformation: task),
+      'Cancelled': TaskCancelled(taskInformation: task),
+      'Ongoing': TaskOngoing(taskInformation: task, role: user?.user.role),
+      'Review': TaskReview(taskInformation: task),
+      'Declined': TaskDeclined(taskInformation: task),
+      'Rejected': TaskRejected(taskInformation: task),
+    };
+
+    final page = statusPages[task.taskStatus];
+    if (page != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => page),
+      ).then((value) {
+        if (value != null) {
+          _loadMethod();
+        }
+      });
+    }
+  }
+
   Widget _buildTaskCard(TaskFetch task) {
     String priceDisplay = "${task.taskDetails} Credits";
 
@@ -634,121 +661,7 @@ class _TaskPageState extends State<TaskPage>
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
-          if (task.taskStatus == "Completed") {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TaskFinished(
-                  taskInformation: task,
-                ),
-              ),
-            );
-          }
-
-          if (task.taskStatus == "Pending") {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TaskPending(
-                  taskInformation: task,
-                ),
-              ),
-            ).then((value) {
-              if (value != null) {
-                _loadMethod();
-              }
-            });
-          }
-
-            if (task.taskStatus == "Declined") {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TaskDeclined(
-                  taskInformation: task,
-                ),
-              ),
-            ).then((value) {
-              if (value != null) {
-                _loadMethod();
-              }
-            });
-          }
-
-          if (task.taskStatus == "Confirmed") {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TaskConfirmed(
-                  taskInformation: task,
-                ),
-              ),
-            ).then((value) {
-              if (value != null) {
-                _loadMethod();
-              }
-            });
-          }
-
-          if (task.taskStatus == "Cancelled") {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TaskCancelled(
-                  taskInformation: task,
-                ),
-              ),
-            ).then((value) {
-              if (value != null) {
-                _loadMethod();
-              }
-            });
-          }
-
-          if (task.taskStatus == "Ongoing") {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TaskOngoing(
-                  taskInformation: task,
-                  role: user?.user.role,
-                ),
-              ),
-            ).then((value) {
-              if (value != null) {
-                _loadMethod();
-              }
-            });
-          }
-          if (task.taskStatus == "Disputed") {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TaskDisputed(
-                  taskInformation: task,
-                  role: user?.user.role ?? '',
-                ),
-              ),
-            ).then((value) {
-              if (value != null) {
-                _loadMethod();
-              }
-            });
-          }
-          if (task.taskStatus == "Review") {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TaskReview(
-                  taskInformation: task,
-                ),
-              ),
-            ).then((value) {
-              if (value != null) {
-                _loadMethod();
-              }
-            });
-          }
+          _navigateToTaskStatusPage(task);
         },
         child: Padding(
           padding: EdgeInsets.all(16),

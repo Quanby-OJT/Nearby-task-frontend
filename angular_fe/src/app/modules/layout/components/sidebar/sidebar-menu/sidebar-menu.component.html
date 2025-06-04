@@ -11,7 +11,6 @@
       <div class="text-white group relative">
         <!-- <div (click)="toggleMenu(item)" class="text-white group relative"> -->
         <!-- Icon -->
-
       <div [ngClass]="item.active && !menuService.showSideBar ? 'text-[#F9F9F9]' : 'text-white group-hover:text-black'"
           class="pointer-events-none absolute m-2">
           <svg-icon src="{{ item.icon }}" [svgClass]="'h-5 w-5'" [svgStyle]="{'fill': 'currentColor'}"> </svg-icon>
@@ -22,7 +21,7 @@
           [ngTemplateOutlet]="item.children ? childMenu : parentMenu"
           [ngTemplateOutletContext]="{ item: item }">
         </ng-container>
-
+     
         <!-- Workaround:: Enable routerLink -->
         <ng-template #parentMenu let-item="item">
           <div routerLink="{{ item.route }}" routerLinkActive="border" class="flex h-9 cursor-pointer items-center justify-start rounded-sm hover:bg-white"  #menuActive="routerLinkActive">

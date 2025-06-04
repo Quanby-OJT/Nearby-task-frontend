@@ -4,8 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DisputeManagementService } from 'src/app/services/dispute-management.service';
 import { DataService } from 'src/services/dataStorage';
-
-
+import { LoadingService } from 'src/app/services/loading.service';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
@@ -38,9 +37,14 @@ export class DisputeManagementComponent {
   selectedAction: string = '';
   additionalNotes: string = '';
   isLoading: boolean = true;
-  constructor(private disputeService: DisputeManagementService, private dataService: DataService) { }
+  constructor(
+    private disputeService: DisputeManagementService, 
+    private dataService: DataService,
+    private loadingService: LoadingService
+  ) { }
 
   ngOnInit(): void {
+    this.loadingService.show();
     this.isLoading = true;
     this.dataService.getUserRole().subscribe((userRole) => {
       this.userRole = userRole;
@@ -53,6 +57,7 @@ export class DisputeManagementComponent {
         this.filteredDisputes = [...this.disputes];
         this.updatePage();
         this.isLoading = false;
+        this.loadingService.hide();
       },
       (error) => {
         console.error('Error fetching disputes', error);
@@ -61,6 +66,7 @@ export class DisputeManagementComponent {
         this.displayDisputes = [];
         this.updatePage();
         this.isLoading = false;
+        this.loadingService.hide();
       }
     );
   }
