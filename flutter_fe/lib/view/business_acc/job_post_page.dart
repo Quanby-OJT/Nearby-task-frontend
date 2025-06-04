@@ -10,6 +10,7 @@ import 'package:flutter_fe/view/task/task_finished.dart';
 import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:flutter_fe/view/task/task_pending.dart';
 import 'package:flutter_fe/view/task/task_review.dart';
+import 'package:flutter_fe/view/verification/verification_page.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get_storage/get_storage.dart';
@@ -151,9 +152,7 @@ class _JobPostPageState extends State<JobPostPage>
           _profileImageUrl = user?.user.image;
           _idImageUrl = response['url'];
           _isDocumentValid = response['status'] ?? false;
-          _showButton = _profileImageUrl != null &&
-              _idImageUrl != null &&
-              (_isDocumentValid || user?.user.accStatus == 'Review');
+          _showButton = true;
         });
       } else {
         debugPrint('Failed to fetch user ID image: ${response['message']}');
@@ -162,8 +161,6 @@ class _JobPostPageState extends State<JobPostPage>
           _profileImageUrl = user?.user.image;
           _idImageUrl = null;
           _isDocumentValid = false;
-          _showButton =
-              _profileImageUrl != null && user?.user.accStatus == 'Review';
         });
       }
     } catch (e) {
@@ -311,7 +308,8 @@ class _JobPostPageState extends State<JobPostPage>
               Navigator.pop(context);
               final result = await Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const FillUpClient()),
+                MaterialPageRoute(
+                    builder: (context) => const VerificationPage()),
               );
               if (result == true) {
                 await _fetchUserIDImage();
@@ -621,13 +619,9 @@ class _JobPostPageState extends State<JobPostPage>
                     children: [
                       IconButton(
                         icon: const Icon(Icons.edit, color: Color(0xFFE23670)),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => EditTaskPage(task: task)),
-                          ).then((value) => _fetchTasksManagement());
-                        },
+                        onPressed: () => task.ableToDelete == true
+                            ? _navigateToEditTask(task)
+                            : _cannotEditTask(task),
                       ),
                       IconButton(
                         icon:
@@ -659,9 +653,9 @@ class _JobPostPageState extends State<JobPostPage>
               ),
               const SizedBox(height: 8),
               _buildTaskInfoRow(
-                icon: FontAwesomeIcons.coins,
+                icon: FontAwesomeIcons.pesoSign,
                 iconColor: Colors.green[400],
-                text: '${task.contactPrice ?? 0} Credits',
+                text: '${task.contactPrice ?? 0}',
               ),
               const SizedBox(height: 8),
               _buildTaskInfoRow(
@@ -952,6 +946,48 @@ class _JobPostPageState extends State<JobPostPage>
         ],
       ),
     );
+  }
+
+  Future<void> _cannotEditTask(TaskModel task) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Cannot Edit Task',
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFFB71A4A),
+          ),
+        ),
+        content: Text(
+          'This task is currently being worked on by a tasker. Please wait for the task to be completed before editing it.',
+          style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE23670),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text(
+              'OK',
+              style: GoogleFonts.poppins(fontSize: 14, color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _navigateToEditTask(TaskModel task) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => EditTaskPage(task: task)),
+    ).then((value) => _fetchTasksManagement());
   }
 
   @override

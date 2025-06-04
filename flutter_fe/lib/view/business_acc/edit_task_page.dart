@@ -6,6 +6,7 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/address.dart';
 import 'package:flutter_fe/model/auth_user.dart';
+import 'package:flutter_fe/model/images_model.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
@@ -39,6 +40,7 @@ class _EditTaskPageState extends State<EditTaskPage>
   final GetStorage storage = GetStorage();
   final PageController _pageController = PageController();
   final ImagePicker _picker = ImagePicker();
+  final ScrollController _scrollController = ScrollController();
 
   final TextEditingController jobTitleController = TextEditingController();
   final TextEditingController jobDescriptionController =
@@ -70,6 +72,9 @@ class _EditTaskPageState extends State<EditTaskPage>
     'More than 1 year'
   ];
   List<MapEntry<int, String>> specializations = [MapEntry(0, 'All')];
+  List<ImagesModel> taskImages = [];
+  List<int> imagesToDelete = [];
+  List<int> existingImageIds = [];
   List<SpecializationModel> fetchedSpecializations = [];
   Map<String, int> selectedSpecializations = {};
 
@@ -83,11 +88,11 @@ class _EditTaskPageState extends State<EditTaskPage>
   bool _documentValid = false;
   int _currentStep = 0;
   final bool _isVerifiedDocument = false;
+  Map<String, bool> saveImages = {};
 
   @override
   void initState() {
     super.initState();
-
     _loadMethod();
   }
 
@@ -96,6 +101,7 @@ class _EditTaskPageState extends State<EditTaskPage>
       _fetchTaskDetails(),
       _fetchUserIDImage(),
       fetchSpecializations(),
+      _fetchTaskImages(),
     ]);
     _initializeForm();
   }
@@ -111,6 +117,21 @@ class _EditTaskPageState extends State<EditTaskPage>
       CustomScaffold(
           message: 'Failed to load task details: ${e.toString()}',
           color: Colors.red);
+    }
+  }
+
+  Future<void> _fetchTaskImages() async {
+    try {
+      taskImages = await jobPostService.fetchTaskImages(widget.task.id);
+      debugPrint("Fetched task images: ${taskImages.length}");
+      setState(() {
+        existingImageIds = taskImages
+            .where((img) => img.id != null)
+            .map((img) => img.id!)
+            .toList();
+      });
+    } catch (e) {
+      debugPrint("Error fetching task images: $e");
     }
   }
 
@@ -153,6 +174,7 @@ class _EditTaskPageState extends State<EditTaskPage>
   @override
   void dispose() {
     _pageController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -189,9 +211,7 @@ class _EditTaskPageState extends State<EditTaskPage>
           _existingIDImageUrl = response['url'];
           _documentValid = response['status'];
           _isLoading = false;
-          _showButton = _existingProfileImageUrl != null &&
-              _existingIDImageUrl != null &&
-              (_documentValid || user?.user.accStatus == 'Review');
+          _showButton = true;
         });
       } else {
         debugPrint('Failed to fetch user ID image: ${response['message']}');
@@ -200,8 +220,6 @@ class _EditTaskPageState extends State<EditTaskPage>
           _existingIDImageUrl = null;
           _documentValid = false;
           _isLoading = false;
-          _showButton = _existingProfileImageUrl != null &&
-              user?.user.accStatus == 'Review';
         });
       }
     } catch (e) {
@@ -444,6 +462,8 @@ class _EditTaskPageState extends State<EditTaskPage>
         specializationId: specializationId,
         selectedSpecialization: selectedSpecialization,
         addressId: _addressID,
+        imagesToDelete: imagesToDelete,
+        existingImageIds: existingImageIds,
       );
 
       if (result['success'] == true) {
@@ -451,11 +471,12 @@ class _EditTaskPageState extends State<EditTaskPage>
           Navigator.pop(context, true);
         }
         setState(() {
-          _message = result['message'] ?? "Successfully Updated Task.";
+          _message = result['message'] ?? "Task updated successfully.";
         });
         CustomScaffold(message: _message!, color: Colors.green);
       } else {
         setState(() {
+          _message = result['error'] ?? 'Failed to update task';
           if (result.containsKey('errors') && result['errors'] is List) {
             for (var error in result['errors']) {
               if (error is Map<String, dynamic> &&
@@ -465,14 +486,14 @@ class _EditTaskPageState extends State<EditTaskPage>
               }
             }
           }
-          _message = result['error'] ?? 'Failed to update task';
         });
         CustomScaffold(message: _message!, color: Colors.red);
       }
-    } catch (error) {
+    } catch (error, stackTrace) {
       debugPrint("Error updating job: $error");
+      debugPrint(stackTrace.toString());
       setState(() {
-        _message = 'An error occurred. Please try again.';
+        _message = 'An unexpected error occurred. Please try again.';
       });
       CustomScaffold(message: _message!, color: Colors.red);
     } finally {
@@ -480,10 +501,6 @@ class _EditTaskPageState extends State<EditTaskPage>
         _isLoading = false;
       });
     }
-  }
-
-  void _updateJobSample() {
-    debugPrint("Update Job Sample");
   }
 
   Widget _buildTextField({
@@ -535,9 +552,13 @@ class _EditTaskPageState extends State<EditTaskPage>
             suffixIcon: controller.text.isNotEmpty && errorText == null
                 ? Icon(Icons.check_circle, color: Colors.green, size: 20)
                 : null,
+            contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           ),
           style: GoogleFonts.poppins(fontSize: 12),
           onChanged: (_) => setState(() {}),
+          onTap: () {
+            Future.delayed(Duration(milliseconds: 200), () {});
+          },
         ),
       ],
     );
@@ -594,6 +615,7 @@ class _EditTaskPageState extends State<EditTaskPage>
             suffixIcon: effectiveValue != null && errorText == null
                 ? Icon(Icons.check_circle, color: Colors.green, size: 20)
                 : null,
+            contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           ),
           items: effectiveItems.map((item) {
             return DropdownMenuItem<String>(
@@ -647,7 +669,7 @@ class _EditTaskPageState extends State<EditTaskPage>
         }
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(
@@ -663,7 +685,7 @@ class _EditTaskPageState extends State<EditTaskPage>
                 selectedItems.isEmpty ? hint : selectedItems.join(', '),
                 style: GoogleFonts.poppins(
                   color: selectedItems.isEmpty ? Colors.grey : Colors.black,
-                  fontSize: 14,
+                  fontSize: 12,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -677,6 +699,9 @@ class _EditTaskPageState extends State<EditTaskPage>
 
   Widget _buildPhotoField() {
     const int maxPhotos = 5;
+    int totalPhotos =
+        taskImages.length + _photos.length - imagesToDelete.length;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -689,7 +714,7 @@ class _EditTaskPageState extends State<EditTaskPage>
           ),
         ),
         SizedBox(height: 8),
-        _photos.isEmpty && widget.task.imageUrl == null
+        totalPhotos == 0
             ? GestureDetector(
                 onTap: () async {
                   final List<XFile> images = await _picker.pickMultiImage(
@@ -700,7 +725,7 @@ class _EditTaskPageState extends State<EditTaskPage>
                   setState(() {
                     _photos = images
                         .map((image) => File(image.path))
-                        .take(maxPhotos - _photos.length)
+                        .take(maxPhotos)
                         .toList();
                   });
                 },
@@ -724,8 +749,13 @@ class _EditTaskPageState extends State<EditTaskPage>
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  if (widget.task.imageUrl != null)
-                    Stack(
+                  // Display existing images
+                  ...taskImages.asMap().entries.where((entry) {
+                    return !imagesToDelete.contains(entry.value.id);
+                  }).map((entry) {
+                    int index = entry.key;
+                    ImagesModel image = entry.value;
+                    return Stack(
                       children: [
                         Container(
                           width: 100,
@@ -737,7 +767,7 @@ class _EditTaskPageState extends State<EditTaskPage>
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12),
                             child: Image.network(
-                              widget.task.imageUrl!,
+                              image.image_url,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) =>
                                   Icon(
@@ -752,7 +782,11 @@ class _EditTaskPageState extends State<EditTaskPage>
                           top: 4,
                           right: 4,
                           child: GestureDetector(
-                            onTap: () {},
+                            onTap: () {
+                              setState(() {
+                                imagesToDelete.add(image.id!);
+                              });
+                            },
                             child: Container(
                               padding: EdgeInsets.all(2),
                               decoration: BoxDecoration(
@@ -768,7 +802,9 @@ class _EditTaskPageState extends State<EditTaskPage>
                           ),
                         ),
                       ],
-                    ),
+                    );
+                  }),
+                  // Display new images
                   ..._photos.asMap().entries.map((entry) {
                     int index = entry.key;
                     File photo = entry.value;
@@ -815,8 +851,8 @@ class _EditTaskPageState extends State<EditTaskPage>
                       ],
                     );
                   }),
-                  if (_photos.length + (widget.task.imageUrl != null ? 1 : 0) <
-                      maxPhotos)
+                  // Add new image button
+                  if (totalPhotos < maxPhotos)
                     GestureDetector(
                       onTap: () async {
                         final List<XFile> images = await _picker.pickMultiImage(
@@ -826,10 +862,9 @@ class _EditTaskPageState extends State<EditTaskPage>
                         );
                         setState(() {
                           _photos.addAll(
-                            images.map((image) => File(image.path)).take(
-                                maxPhotos -
-                                    _photos.length -
-                                    (widget.task.imageUrl != null ? 1 : 0)),
+                            images
+                                .map((image) => File(image.path))
+                                .take(maxPhotos - totalPhotos),
                           );
                         });
                       },
@@ -914,12 +949,12 @@ class _EditTaskPageState extends State<EditTaskPage>
     );
   }
 
-  Widget _buildTitleInstruction() {
+  Widget _buildTitleInstruction(String title, String subtitle) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Task Basics',
+          title,
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -927,7 +962,7 @@ class _EditTaskPageState extends State<EditTaskPage>
           ),
         ),
         Text(
-          'Update the core details of your task',
+          subtitle,
           style: GoogleFonts.poppins(
             fontSize: 12,
             color: Colors.grey[600],
@@ -956,7 +991,7 @@ class _EditTaskPageState extends State<EditTaskPage>
         }
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(
@@ -967,11 +1002,14 @@ class _EditTaskPageState extends State<EditTaskPage>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              value ?? hint,
-              style: GoogleFonts.poppins(
-                color: value != null ? Colors.black : Colors.grey,
-                fontSize: 12,
+            Expanded(
+              child: Text(
+                value ?? hint,
+                style: GoogleFonts.poppins(
+                  color: value != null ? Colors.black : Colors.grey,
+                  fontSize: 12,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             const Icon(Icons.arrow_drop_down, color: Colors.grey),
@@ -1004,12 +1042,13 @@ class _EditTaskPageState extends State<EditTaskPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         centerTitle: true,
         title: Text(
           'Edit Task',
           style: GoogleFonts.poppins(
-            color: const Color(0xFFB71A4A),
+            color: Color(0xFFB71A4A),
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -1025,443 +1064,440 @@ class _EditTaskPageState extends State<EditTaskPage>
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                _buildProgressBar(),
-                Expanded(
-                  child: PageView(
-                    controller: _pageController,
-                    physics: NeverScrollableScrollPhysics(),
-                    onPageChanged: (index) {
-                      setState(() {
-                        _currentStep = index;
-                      });
-                    },
-                    children: [
-                      // Step 1: Task Basics
-                      Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Card(
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildTitleInstruction(),
-                                _buildTextField(
-                                  controller: controller.jobTitleController,
-                                  label: 'Title',
-                                  hint: 'Enter task title',
-                                  errorText: _errors['task_title'],
-                                  isRequired: true,
+      body: SafeArea(
+        child: _isLoading
+            ? Center(child: CircularProgressIndicator())
+            : Column(
+                children: [
+                  _buildProgressBar(),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      controller: _scrollController,
+                      padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+                      ),
+                      child: SizedBox(
+                        height: MediaQuery.of(context).size.height -
+                            MediaQuery.of(context).padding.top -
+                            kToolbarHeight -
+                            100,
+                        child: PageView(
+                          controller: _pageController,
+                          physics: NeverScrollableScrollPhysics(),
+                          onPageChanged: (index) {
+                            setState(() {
+                              _currentStep = index;
+                            });
+                          },
+                          children: [
+                            // Step 1: Task Basics
+                            Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Card(
+                                elevation: 2,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                SizedBox(height: 16),
-                                Text(
-                                  'Location *',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                SizedBox(height: 4),
-                                GestureDetector(
-                                  onTap: _showAddress,
-                                  child: Card(
-                                    elevation: 0,
-                                    color: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      side: _errors['location'] != null
-                                          ? BorderSide(
-                                              color: Colors.red, width: 1)
-                                          : BorderSide.none,
-                                    ),
-                                    child: Padding(
-                                      padding: EdgeInsets.all(16),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
+                                child: Padding(
+                                  padding: EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      _buildTitleInstruction(
+                                        'Task Basics',
+                                        'Update the core details of your task',
+                                      ),
+                                      _buildTextField(
+                                        controller:
+                                            controller.jobTitleController,
+                                        label: 'Title',
+                                        hint: 'Enter task title',
+                                        errorText: _errors['task_title'],
+                                        isRequired: true,
+                                      ),
+                                      SizedBox(height: 16),
+                                      Text(
+                                        'Location *',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      SizedBox(height: 4),
+                                      GestureDetector(
+                                        onTap: _showAddress,
+                                        child: Card(
+                                          elevation: 0,
+                                          color: Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            side: _errors['location'] != null
+                                                ? BorderSide(
+                                                    color: Colors.red, width: 1)
+                                                : BorderSide.none,
+                                          ),
+                                          child: Padding(
+                                            padding: EdgeInsets.all(16),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
                                               children: [
-                                                Text(
-                                                  controller
-                                                          .jobLocationController
-                                                          .text
-                                                          .isEmpty
-                                                      ? 'Select an address'
-                                                      : controller
-                                                          .jobLocationController
-                                                          .text,
-                                                  style: GoogleFonts.poppins(
-                                                    fontSize: 12,
-                                                    color: controller
+                                                Expanded(
+                                                  child: Text(
+                                                    controller
                                                             .jobLocationController
                                                             .text
                                                             .isEmpty
-                                                        ? Colors.grey
-                                                        : Colors.black,
+                                                        ? 'Select an address'
+                                                        : controller
+                                                            .jobLocationController
+                                                            .text,
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize: 12,
+                                                      color: controller
+                                                              .jobLocationController
+                                                              .text
+                                                              .isEmpty
+                                                          ? Colors.grey
+                                                          : Colors.black,
+                                                    ),
+                                                    maxLines: 2,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
                                                   ),
-                                                  maxLines: 2,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
+                                                ),
+                                                Icon(
+                                                  Icons.arrow_forward_ios,
+                                                  color: Colors.grey,
+                                                  size: 16,
                                                 ),
                                               ],
                                             ),
                                           ),
-                                          Icon(
-                                            Icons.arrow_forward_ios,
-                                            color: Colors.grey,
-                                            size: 16,
+                                        ),
+                                      ),
+                                      if (_errors['location'] != null)
+                                        Padding(
+                                          padding:
+                                              EdgeInsets.only(top: 8, left: 16),
+                                          child: Text(
+                                            _errors['location']!,
+                                            style: GoogleFonts.poppins(
+                                              color: Colors.red,
+                                              fontSize: 12,
+                                            ),
                                           ),
+                                        ),
+                                      SizedBox(height: 16),
+                                      _buildTextField(
+                                        controller:
+                                            controller.jobDescriptionController,
+                                        label: 'Description',
+                                        hint: 'Describe your task...',
+                                        maxLines: 4,
+                                        errorText: _errors['task_description'],
+                                        isRequired: true,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // Step 2: Task Details
+                            Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Card(
+                                elevation: 2,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      _buildTitleInstruction(
+                                        'Details',
+                                        'Specify the skills and work type needed',
+                                      ),
+                                      _buildSelectSpecialization(
+                                        value: selectedSpecialization,
+                                        hint: 'Select Specialization',
+                                        onChanged: (value) => setState(() {
+                                          selectedSpecialization = value;
+                                          specializationId =
+                                              selectedSpecializations[value!] ??
+                                                  0;
+                                        }),
+                                        errorText: _errors['specialization'],
+                                        isRequired: true,
+                                      ),
+                                      SizedBox(height: 16),
+                                      _buildMultiSelectField(
+                                        selectedItems: relatedSpecializations,
+                                        items: selectedSpecializations.keys
+                                            .toList(),
+                                        hint: 'Select Related Specializations',
+                                        onChanged: (value) => setState(() {
+                                          relatedSpecializations = value;
+                                          relatedSpecializationsIds = value
+                                              .map((e) =>
+                                                  selectedSpecializations[e]!
+                                                      .toString())
+                                              .toList();
+                                        }),
+                                        errorText:
+                                            _errors['related_specializations'],
+                                        isRequired: true,
+                                      ),
+                                      SizedBox(height: 16),
+                                      _buildDropdownField(
+                                        value: selectedWorkType,
+                                        items: workTypes,
+                                        hint: 'Work Type',
+                                        onChanged: (value) => setState(
+                                            () => selectedWorkType = value),
+                                        errorText: _errors['work_type'],
+                                        isRequired: true,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // Step 3: Task Timeline
+                            Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Card(
+                                elevation: 2,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      _buildTitleInstruction(
+                                        'Timeline',
+                                        'Define the duration and start date',
+                                      ),
+                                      _buildDropdownField(
+                                        value: selectedScope,
+                                        items: scopes,
+                                        hint: 'Scope of Work',
+                                        onChanged: (value) => setState(
+                                            () => selectedScope = value),
+                                        errorText: _errors['scope'],
+                                        isRequired: true,
+                                      ),
+                                      SizedBox(height: 16),
+                                      GestureDetector(
+                                        onTap: _selectDateTime,
+                                        child: AbsorbPointer(
+                                          child: _buildTextField(
+                                            controller: controller
+                                                .jobStartDateController,
+                                            label: 'Start Date',
+                                            hint: 'Select start date and time',
+                                            errorText: _errors['start_date'],
+                                            isRequired: true,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // Step 4: Budget & Urgency
+                            Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Card(
+                                elevation: 2,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      _buildTitleInstruction(
+                                        'Budget & Urgency',
+                                        'Set the price and urgency level',
+                                      ),
+                                      _buildTextField(
+                                        controller:
+                                            controller.contactPriceController,
+                                        label: 'Fixed Price',
+                                        hint: 'Enter price',
+                                        keyboardType: TextInputType.number,
+                                        inputFormatters: [
+                                          FilteringTextInputFormatter.digitsOnly
                                         ],
+                                        errorText: _errors['contact_price'],
+                                        isRequired: true,
                                       ),
-                                    ),
-                                  ),
-                                ),
-                                if (_errors['location'] != null)
-                                  Padding(
-                                    padding: EdgeInsets.only(top: 8, left: 16),
-                                    child: Text(
-                                      _errors['location']!,
-                                      style: GoogleFonts.poppins(
-                                        color: Colors.red,
-                                        fontSize: 12,
+                                      SizedBox(height: 16),
+                                      _buildDropdownField(
+                                        value: selectedUrgency,
+                                        items: urgency,
+                                        hint: 'Urgency',
+                                        onChanged: (value) => setState(
+                                            () => selectedUrgency = value),
+                                        errorText: _errors['urgency'],
+                                        isRequired: true,
                                       ),
-                                    ),
+                                    ],
                                   ),
-                                SizedBox(height: 16),
-                                _buildTextField(
-                                  controller:
-                                      controller.jobDescriptionController,
-                                  label: 'Description',
-                                  hint: 'Describe your task...',
-                                  maxLines: 4,
-                                  errorText: _errors['task_description'],
-                                  isRequired: true,
                                 ),
-                              ],
+                              ),
                             ),
-                          ),
+                            // Step 5: Additional Info
+                            Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Card(
+                                elevation: 2,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      _buildTitleInstruction(
+                                        'Additional Info',
+                                        'Update optional remarks and photos',
+                                      ),
+                                      _buildTextField(
+                                        controller:
+                                            controller.jobRemarksController,
+                                        label: 'Remarks',
+                                        hint: 'Additional notes...',
+                                        maxLines: 3,
+                                      ),
+                                      SizedBox(height: 16),
+                                      _buildPhotoField(),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      // Step 2: Task Details
-                      Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Card(
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Details',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                Text(
-                                  'Specify the skills and work type needed',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                                SizedBox(height: 16),
-                                _buildSelectSpecialization(
-                                  value: selectedSpecialization,
-                                  hint: 'Select Specialization',
-                                  onChanged: (value) => setState(() {
-                                    selectedSpecialization = value;
-                                    specializationId =
-                                        selectedSpecializations[value!] ?? 0;
-                                  }),
-                                  errorText: _errors['specialization'],
-                                  isRequired: true,
-                                ),
-                                SizedBox(height: 16),
-                                _buildMultiSelectField(
-                                  selectedItems: relatedSpecializations,
-                                  items: selectedSpecializations.keys.toList(),
-                                  hint: 'Select Related Specializations',
-                                  onChanged: (value) => setState(() {
-                                    relatedSpecializations = value;
-                                    relatedSpecializationsIds = value
-                                        .map((e) => selectedSpecializations[e]!
-                                            .toString())
-                                        .toList();
-                                  }),
-                                  errorText: _errors['related_specializations'],
-                                  isRequired: true,
-                                ),
-                                SizedBox(height: 16),
-                                _buildDropdownField(
-                                  value: selectedWorkType,
-                                  items: workTypes,
-                                  hint: 'Work Type',
-                                  onChanged: (value) =>
-                                      setState(() => selectedWorkType = value),
-                                  errorText: _errors['work_type'],
-                                  isRequired: true,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      // Step 3: Task Timeline
-                      Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Card(
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Timeline',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                Text(
-                                  'Define the duration and start date',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                                SizedBox(height: 16),
-                                _buildDropdownField(
-                                  value: selectedScope,
-                                  items: scopes,
-                                  hint: 'Scope of Work',
-                                  onChanged: (value) =>
-                                      setState(() => selectedScope = value),
-                                  errorText: _errors['scope'],
-                                  isRequired: true,
-                                ),
-                                SizedBox(height: 16),
-                                GestureDetector(
-                                  onTap: _selectDateTime,
-                                  child: AbsorbPointer(
-                                    child: _buildTextField(
-                                      controller:
-                                          controller.jobStartDateController,
-                                      label: 'Start Date',
-                                      hint: 'Select start date and time',
-                                      errorText: _errors['start_date'],
-                                      isRequired: true,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      // Step 4: Budget & Urgency
-                      Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Card(
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Budget & Urgency',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                Text(
-                                  'Set the price and urgency level',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                                SizedBox(height: 16),
-                                _buildTextField(
-                                  controller: controller.contactPriceController,
-                                  label: 'Fixed Price',
-                                  hint: 'Enter price',
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly
-                                  ],
-                                  errorText: _errors['contact_price'],
-                                  isRequired: true,
-                                ),
-                                SizedBox(height: 16),
-                                _buildDropdownField(
-                                  value: selectedUrgency,
-                                  items: urgency,
-                                  hint: 'Urgency',
-                                  onChanged: (value) =>
-                                      setState(() => selectedUrgency = value),
-                                  errorText: _errors['urgency'],
-                                  isRequired: true,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      // Step 5: Additional Info
-                      Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Card(
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Additional Info',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                Text(
-                                  'Update optional remarks and photos',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                                SizedBox(height: 16),
-                                _buildTextField(
-                                  controller: controller.jobRemarksController,
-                                  label: 'Remarks',
-                                  hint: 'Additional notes...',
-                                  maxLines: 3,
-                                ),
-                                SizedBox(height: 16),
-                                _buildPhotoField(),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      if (_currentStep > 0)
-                        ElevatedButton(
-                          onPressed: () {
-                            _pageController.previousPage(
-                              duration: Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey[300],
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                  Container(
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 4,
+                          offset: Offset(0, -2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (_currentStep > 0)
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                _pageController.previousPage(
+                                  duration: Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.grey[300],
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              child: Text(
+                                'Back',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.black,
+                                  fontSize: 14,
+                                ),
+                              ),
                             ),
                           ),
-                          child: Text(
-                            'Back',
-                            style: GoogleFonts.poppins(
-                              color: Colors.black,
-                              fontSize: 14,
+                        if (_currentStep > 0) SizedBox(width: 8),
+                        if (_currentStep == 4)
+                          Expanded(
+                            child: TextButton(
+                              onPressed: () {
+                                _updateJob();
+                              },
+                              child: Text(
+                                'Skip & Preview',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.grey[600],
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                        if (_currentStep == 4) SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if (!_showButton) {
+                                _showWarningDialog();
+                                return;
+                              }
+                              if (_currentStep < 4) {
+                                if (_validateStep(_currentStep)) {
+                                  _pageController.nextPage(
+                                    duration: Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut,
+                                  );
+                                }
+                              } else {
+                                if (_validateStep(_currentStep)) {
+                                  _updateJob();
+                                }
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xFFB71A4A),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: EdgeInsets.symmetric(vertical: 12),
+                              disabledBackgroundColor: Colors.grey[400],
+                            ),
+                            child: Text(
+                              _currentStep == 4 ? 'Preview' : 'Save & Continue',
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 14,
+                              ),
                             ),
                           ),
                         ),
-                      Spacer(),
-                      if (_currentStep == 4)
-                        TextButton(
-                          onPressed: () {
-                            _updateJob();
-                          },
-                          child: Text(
-                            'Skip & Preview',
-                            style: GoogleFonts.poppins(
-                              color: Colors.grey[600],
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ElevatedButton(
-                        onPressed: () {
-                          if (!_showButton) {
-                            _showWarningDialog();
-                            return;
-                          }
-                          if (_currentStep < 4) {
-                            if (_validateStep(_currentStep)) {
-                              _pageController.nextPage(
-                                duration: Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                              );
-                            }
-                          } else {
-                            if (_validateStep(_currentStep)) {
-                              _updateJob();
-                            }
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFFB71A4A),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          disabledBackgroundColor: Colors.grey[400],
-                        ),
-                        child: Text(
-                          _currentStep == 4 ? 'Preview' : 'Save & Continue',
-                          style: GoogleFonts.poppins(
-                            color: Colors.white,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                )
-              ],
-            ),
+                ],
+              ),
+      ),
     );
   }
 }

@@ -11,7 +11,7 @@ import '../config/url_strategy.dart';
 import 'api_service.dart';
 
 class ClientServices {
-  static String url = apiUrl ?? "http://localhost:5000/connect";
+  static String url = apiUrl ?? "http://192.168.43.15:5000/connect";
   final dio = Dio();
   static final storage = GetStorage();
   static final token = storage.read('session');
@@ -40,7 +40,7 @@ class ClientServices {
         if (errorMsg.toString().contains("No active taskers found")) {
           return null;
         }
-        throw Exception(errorMsg);
+        return ClientModel();
       }
 
       final client = response["client"] as Map<String, dynamic>?;

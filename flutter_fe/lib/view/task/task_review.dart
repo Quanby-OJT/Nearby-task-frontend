@@ -222,9 +222,10 @@ class _TaskReviewState extends State<TaskReview> {
                 _isLoading = true;
               });
               final String value = 'Finish';
-              bool result = await taskController.acceptRequest(
+              final result = await taskController.updateRequest(
                   _requestInformation?.task_taken_id ?? 0, value, 'Client');
-              if (result) {
+              if (result.containsKey('success') && result['success']) {
+                Navigator.pop(context);
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
@@ -655,13 +656,13 @@ class _TaskReviewState extends State<TaskReview> {
                     });
 
                     final String value = 'Declined';
-                    bool result = await taskController.acceptRequest(
+                    final result = await taskController.updateRequest(
                       _requestInformation?.task_taken_id ?? 0,
                       value,
                       'Client',
                       rejectionReason: selectedReason,
                     );
-                    if (result) {
+                    if (result.containsKey('success') && result['success']) {
                       if (!mounted) return;
                       Navigator.pop(context, true);
                       Navigator.pushReplacement(

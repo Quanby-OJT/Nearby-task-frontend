@@ -367,20 +367,21 @@ class _ClientReviewState extends State<ClientReview> {
             _isLoading = true;
           });
           try {
-            bool result = await taskController.acceptRequest(
+            final result = await taskController.updateRequest(
               _requestInformation?.task_taken_id ?? 0,
               'Finish',
               widget.role ?? '',
             );
 
-            bool result2 = await taskController.rateTheTasker(
-              _requestInformation?.task_taken_id ?? 0,
-              _requestInformation?.tasker_id ?? 0,
-              rating,
-              feedback,
-            );
+            //This is moved when the task is completed.
+            // bool result2 = await taskController.rateTheTasker(
+            //   _requestInformation?.task_taken_id ?? 0,
+            //   _requestInformation?.tasker_id ?? 0,
+            //   rating,
+            //   feedback,
+            // );
 
-            final bool success = result && result2;
+            final bool success = result['success'];
 
             if (!mounted) {
               Navigator.pop(bottomSheetContext, success);

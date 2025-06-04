@@ -5,6 +5,7 @@ import 'package:flutter_fe/controller/job_post_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/setting_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
+import 'package:flutter_fe/model/images_model.dart';
 import 'package:flutter_fe/model/setting.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_model.dart';
@@ -21,6 +22,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:flutter_fe/view/verification/verification_page.dart';
+import 'package:dots_indicator/dots_indicator.dart';
 
 class TaskerHomePage extends StatefulWidget {
   const TaskerHomePage({super.key});
@@ -39,6 +41,9 @@ class _TaskerHomePageState extends State<TaskerHomePage>
   final JobPostService jobPostService = JobPostService();
   final JobPostController jobPostController = JobPostController();
   final SettingController _settingController = SettingController();
+
+  final Map<int, CardSwiperController> _imageSwiperControllers = {};
+  final Map<int, int> _imageSwiperIndex = {};
 
   AuthenticatedUser? _user;
   String _fullName = "Loading...";
@@ -66,6 +71,9 @@ class _TaskerHomePageState extends State<TaskerHomePage>
   // Add flip animation controllers and state
   final Map<int, AnimationController> _flipControllers = {};
   final Map<int, bool> _isFlipped = {};
+  List<ImagesModel> taskImages = [];
+  List<int> imagesToDelete = [];
+  List<int> existingImageIds = [];
 
   @override
   void initState() {
@@ -180,26 +188,6 @@ class _TaskerHomePageState extends State<TaskerHomePage>
       //Checker if User has been already been warned.
       if (!mounted) return;
 
-// <<<<<<< update-saved-task-ui
-//       if (user.user.accStatus == "Warn") {
-//         showWarnUser();
-//       } else if (user.user.accStatus == "Ban") {
-//         showBanUser();
-//       } else {
-//         setState(() {
-//           _user = user;
-//           _fullName = [
-//             _user?.user.firstName ?? '',
-//             _user?.user.middleName ?? '',
-//             _user?.user.lastName ?? '',
-//           ].where((name) => name.isNotEmpty).join(' ');
-//           _role = _user?.user.role ?? "Unknown";
-//           _image = user.user.image ?? "Unknown";
-//           _profileController.firstNameController.text = _fullName;
-//           _profileController.roleController.text = _role;
-//           _profileController.imageController.text = _image;
-//         });
-// =======
       if (user.user.accStatus == "Warn") {
         bool hasShownWarning = storage.read('hasShownWarning') ?? false;
         if (!hasShownWarning) {
@@ -317,6 +305,10 @@ class _TaskerHomePageState extends State<TaskerHomePage>
           await _profileController.getAuthenticatedUser(context, userId);
       final response = await _clientServices.fetchUserIDImage(userId);
 
+      debugPrint("Response This is for checking: ${response['status']}");
+      debugPrint("User This is for checking: ${user?.user.image}");
+      debugPrint("User ID This is for checking: ${response['url']}");
+
       if (response['success']) {
         setState(() {
           _user = user;
@@ -355,26 +347,66 @@ class _TaskerHomePageState extends State<TaskerHomePage>
     setState(() {
       _isLoading = true;
     });
+
     try {
+      // Fetch all tasks
       List<TaskModel> fetchedTasks = await jobPostController.fetchAllJobs();
+
+      for (int i = 0; i < fetchedTasks.length; i++) {
+        try {
+          final images =
+              await jobPostService.fetchTaskImages(fetchedTasks[i].id);
+          fetchedTasks[i] = TaskModel(
+            id: fetchedTasks[i].id,
+            title: fetchedTasks[i].title,
+            description: fetchedTasks[i].description,
+            contactPrice: fetchedTasks[i].contactPrice,
+            taskerSpecialization: fetchedTasks[i].taskerSpecialization,
+            imageUrls: images,
+            urgency: fetchedTasks[i].urgency,
+            workType: fetchedTasks[i].workType,
+            scope: fetchedTasks[i].scope,
+          );
+        } catch (e) {
+          debugPrint(
+              "Error fetching images for task ${fetchedTasks[i].id}: $e");
+          fetchedTasks[i] = TaskModel(
+            id: fetchedTasks[i].id,
+            title: fetchedTasks[i].title,
+            description: fetchedTasks[i].description,
+            contactPrice: fetchedTasks[i].contactPrice,
+            taskerSpecialization: fetchedTasks[i].taskerSpecialization,
+            imageUrls: [],
+            urgency: fetchedTasks[i].urgency,
+            workType: fetchedTasks[i].workType,
+            scope: fetchedTasks[i].scope,
+          );
+        }
+      }
 
       setState(() {
         tasks = fetchedTasks;
         cardNumber = tasks.length;
-      });
-      setState(() {
+        // Initialize flip controllers and reset image swiper indices
+        for (int i = 0; i < tasks.length; i++) {
+          _initializeFlipController(i);
+          _initializeImageSwiperController(i);
+          _imageSwiperIndex[i] = 0; // Reset index for each task
+        }
         _isLoading = false;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Failed to load jobs. Please try again."),
-          backgroundColor: Colors.red,
-        ),
-      );
       setState(() {
         _isLoading = false;
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Failed to load jobs or images. Please try again."),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      debugPrint("Error fetching tasks: $e");
     }
   }
 
@@ -897,11 +929,18 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                     _dislikeAnimationController?.forward();
                     _cardCounter();
                   } else if (swipeDirection == CardSwiperDirection.right) {
-                    if (_existingProfileImageUrl == null ||
-                        _existingIDImageUrl == null ||
-                        _existingProfileImageUrl!.isEmpty ||
-                        _existingIDImageUrl!.isEmpty ||
-                        !_documentValid) {
+                    // Check if user account is already under review or approved
+                    bool isVerificationInProgress = _user?.user.accStatus == "Review" || 
+                                                    _user?.user.accStatus == "approved" ||
+                                                    _user?.user.accStatus == "Approved";
+                    
+                    // Only show warning if verification is not in progress and documents are missing
+                    if (!isVerificationInProgress && 
+                        (_existingProfileImageUrl == null ||
+                         _existingIDImageUrl == null ||
+                         _existingProfileImageUrl!.isEmpty ||
+                         _existingIDImageUrl!.isEmpty ||
+                         !_documentValid)) {
                       _showWarningDialog();
                       return false;
                     }
@@ -914,6 +953,12 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                     (context, index, percentThresholdX, percentThresholdY) {
                   final task = tasks[index];
                   _initializeFlipController(index);
+
+                  // Initialize image swiper controller if not exists
+                  if (!_imageSwiperControllers.containsKey(index)) {
+                    _imageSwiperControllers[index] = CardSwiperController();
+                    _imageSwiperIndex[index] = 0;
+                  }
 
                   return Center(
                     child: SizedBox(
@@ -997,11 +1042,34 @@ class _TaskerHomePageState extends State<TaskerHomePage>
     }
   }
 
+  void _initializeImageSwiperController(int index) {
+    if (!_imageSwiperControllers.containsKey(index)) {
+      _imageSwiperControllers[index] = CardSwiperController();
+      _imageSwiperIndex[index] = 0;
+    }
+  }
+
   Widget _buildFrontCard(TaskModel task, int index) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final cardHeight = screenHeight * 0.75; // Responsive height
+    final imageHeight = cardHeight * 0.6; // 60% for images
+
+    // Reset image swiper index to 0 when card is built to prevent RangeError
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_imageSwiperIndex[index] != null &&
+          task.imageUrls != null &&
+          _imageSwiperIndex[index]! >= task.imageUrls!.length) {
+        setState(() {
+          _imageSwiperIndex[index] = 0;
+        });
+      }
+    });
+
     return Center(
       child: SizedBox(
-        width: double.infinity,
-        height: 600,
+        width: screenWidth * 0.95, // Responsive width
+        height: cardHeight,
         child: Card(
           elevation: 12,
           shape: RoundedRectangleBorder(
@@ -1012,132 +1080,114 @@ class _TaskerHomePageState extends State<TaskerHomePage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Expanded image section
-                Expanded(
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: Stack(
-                      children: [
-                        // Main image
-                        SizedBox(
-                          width: double.infinity,
-                          height: double.infinity,
-                          child: task.imageUrl != null &&
-                                  task.imageUrl!.isNotEmpty
-                              ? Image.network(
-                                  task.imageUrl!,
+                // Image swiper section
+                SizedBox(
+                  height: imageHeight,
+                  child: Stack(
+                    children: [
+                      task.imageUrls != null && task.imageUrls!.isNotEmpty
+                          ? CardSwiper(
+                              controller: _imageSwiperControllers[index]!,
+                              cardsCount: task.imageUrls!.length,
+                              numberOfCardsDisplayed: 1,
+                              allowedSwipeDirection: AllowedSwipeDirection.only(
+                                  left: true, right: true),
+                              onSwipe: (prevIndex, currIndex, direction) {
+                                setState(() {
+                                  _imageSwiperIndex[index] = currIndex ?? 0;
+                                });
+                                return true;
+                              },
+                              cardBuilder: (context, imageIndex, _, __) {
+                                if (imageIndex >= task.imageUrls!.length) {
+                                  return _buildNoImagePlaceholder(imageHeight);
+                                }
+                                final image = task.imageUrls![imageIndex];
+                                return Image.network(
+                                  image.image_url.isNotEmpty
+                                      ? image.image_url
+                                      : 'https://via.placeholder.com/150',
                                   fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Container(
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                          colors: [
-                                            Color(0xFF0272B1).withOpacity(0.8),
-                                            Color(0xFFB71A4A).withOpacity(0.8),
-                                          ],
-                                        ),
-                                      ),
-                                      child: Center(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.work_outline_outlined,
-                                              size: 60,
-                                              color: Colors.white,
-                                            ),
-                                            SizedBox(height: 12),
-                                            Text(
-                                              'No Image Available',
-                                              style: GoogleFonts.poppins(
-                                                color: Colors.white,
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                  width: double.infinity,
+                                  height: imageHeight,
+                                  loadingBuilder: (context, child, progress) {
+                                    if (progress == null) return child;
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        value: progress.expectedTotalBytes !=
+                                                null
+                                            ? progress.cumulativeBytesLoaded /
+                                                progress.expectedTotalBytes!
+                                            : null,
                                       ),
                                     );
                                   },
-                                )
-                              : Container(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [
-                                        Color(0xFF0272B1).withOpacity(0.8),
-                                        Color(0xFFB71A4A).withOpacity(0.8),
-                                      ],
-                                    ),
-                                  ),
-                                  child: Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.image_not_supported_outlined,
-                                          size: 60,
-                                          color: Colors.white,
-                                        ),
-                                        SizedBox(height: 12),
-                                        Text(
-                                          'No Image Available',
-                                          style: GoogleFonts.poppins(
-                                            color: Colors.white,
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return _buildNoImagePlaceholder(
+                                        imageHeight);
+                                  },
+                                );
+                              },
+                            )
+                          : _buildNoImagePlaceholder(imageHeight),
+                      // Flip indicator
+                      Positioned(
+                        top: 16,
+                        right: 16,
+                        child: Container(
+                          padding: EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.9),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 8,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            Icons.flip_to_back,
+                            color: Color(0xFF0272B1),
+                            size: 20,
+                          ),
                         ),
-
-                        // Flip indicator in top-right corner
+                      ),
+                      // Dots indicator
+                      if (task.imageUrls != null && task.imageUrls!.length > 1)
                         Positioned(
-                          top: 16,
-                          right: 16,
-                          child: Container(
-                            padding: EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.9),
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 8,
-                                  offset: Offset(0, 2),
+                          bottom: 16,
+                          left: 0,
+                          right: 0,
+                          child: Center(
+                            child: DotsIndicator(
+                              dotsCount: task.imageUrls!.length,
+                              position: (_imageSwiperIndex[index] ?? 0)
+                                  .clamp(0, task.imageUrls!.length - 1)
+                                  .toDouble(),
+                              decorator: DotsDecorator(
+                                activeColor: Color(0xFFB71A4A),
+                                color: Colors.white.withOpacity(0.5),
+                                size: const Size.square(8.0),
+                                activeSize: const Size(12.0, 8.0),
+                                activeShape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(5),
                                 ),
-                              ],
-                            ),
-                            child: Icon(
-                              Icons.flip_to_back,
-                              color: Color(0xFF0272B1),
-                              size: 20,
+                              ),
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                    ],
                   ),
                 ),
-
                 // Content section
-
                 Container(
                   padding: EdgeInsets.all(20),
                   color: Colors.white,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Category badge
                       Container(
                         padding:
                             EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -1159,10 +1209,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                           ),
                         ),
                       ),
-
                       SizedBox(height: 12),
-
-                      // Title
                       Text(
                         task.title ?? 'No Title',
                         style: GoogleFonts.poppins(
@@ -1174,10 +1221,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-
                       SizedBox(height: 12),
-
-                      // Bottom section with price and actions
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -1257,6 +1301,44 @@ class _TaskerHomePageState extends State<TaskerHomePage>
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  // Helper method for no-image placeholder
+  Widget _buildNoImagePlaceholder(double imageHeight) {
+    return Container(
+      height: imageHeight,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF0272B1).withOpacity(0.8),
+            Color(0xFFB71A4A).withOpacity(0.8),
+          ],
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.camera_alt_outlined,
+              size: 60,
+              color: Colors.white,
+            ),
+            SizedBox(height: 12),
+            Text(
+              'No Images Uploaded',
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );

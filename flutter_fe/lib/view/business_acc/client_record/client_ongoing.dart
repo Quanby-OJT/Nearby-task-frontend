@@ -117,7 +117,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
       return;
     }
 
-    bool result = await taskController.acceptRequest(
+    final result = await taskController.updateRequest(
       _requestInformation?.task_taken_id ?? 0,
       'Finish',
       widget.role ?? '',
