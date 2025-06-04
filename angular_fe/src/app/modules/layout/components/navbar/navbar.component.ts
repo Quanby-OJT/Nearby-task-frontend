@@ -45,15 +45,16 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   private updateDateTime(): void {
     const now = new Date();
-    this.currentDateTime = now.toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric',
+    const month = now.toLocaleString('en-US', { month: 'long' });
+    const day = now.getDate().toString().padStart(2, '0');
+    const year = now.getFullYear();
+    const time = now.toLocaleString('en-US', {
       hour: 'numeric',
       minute: 'numeric',
       second: 'numeric',
       hour12: true
     });
+    this.currentDateTime = `${month}-${day}-${year}, ${time}`;
   }
 
   private updateUserInfo(): void {

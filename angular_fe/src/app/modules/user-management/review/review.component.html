@@ -188,14 +188,16 @@
             <div class="">
               <div class="mb-5">
                 <!-- Show Document Button if Document Exists -->
-                <button *ngIf="documentUrl"
-                  type="button" 
-                  (click)="previewDocument()"
-                  class="bg-[#EC5987] block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-[#EC5987] focus:outline-none focus:ring-4 focus:ring-[#EC5987] dark:bg-[#EC5987] dark:hover:bg-[#EC5987] dark:focus:ring-[#EC5987] hover:scale-105 transition-transform duration-500">
-                  Preview Documents
-                </button>
+                <ng-container *ngIf="userDocuments.length > 0">
+                  <button *ngFor="let doc of userDocuments; let i = index"
+                    type="button"
+                   (click)="previewDocument(doc.url)"
+                    class="bg-[#EC5987] block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-[#EC5987] focus:outline-none focus:ring-4 focus:ring-[#EC5987] dark:bg-[#EC5987] dark:hover:bg-[#EC5987] dark:focus:ring-[#EC5987] hover:scale-105 transition-transform duration-500 mb-2">
+                     Preview Document {{ i + 1 }} ({{ doc.type ? doc.type : 'No Type' }})
+                  </button>
+                </ng-container>
                 <!-- Show No Document if No Document Exists -->
-                <button *ngIf="!documentUrl"
+                <button *ngIf="userDocuments.length === 0"
                   type="button"
                   disabled
                   class="bg-gray-400 block w-full rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white cursor-not-allowed">

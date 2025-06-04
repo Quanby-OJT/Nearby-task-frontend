@@ -15,7 +15,7 @@ import autoTable from 'jspdf-autotable';
 import { CommonModule, NgIf } from '@angular/common';
 import { saveAs } from 'file-saver';
 import { AuthService } from 'src/app/services/auth.service';
-
+import { LoadingService } from 'src/app/services/loading.service';
 
 @Component({
   selector: 'app-users',
@@ -49,7 +49,8 @@ export class UsersComponent implements OnInit {
     public filterService: UserTableFilterService,
     private router: Router,
     private useraccount: UserAccountService,
-    private authService: AuthService
+    private authService: AuthService,
+    private loadingService: LoadingService
   ) {
     effect(() => {
       const currentPage = this.filterService.currentPageField();
@@ -70,6 +71,7 @@ export class UsersComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadingService.show();
     this.isLoading = true;
     this.fetchUsers();
     this.setUserSize();
@@ -77,10 +79,12 @@ export class UsersComponent implements OnInit {
       (response: any) => {
         this.userRole = response.user.user_role;
         this.isLoading = false;
+        this.loadingService.hide();
       },
       (error: any) => {
         console.error('Error fetching user role:', error);
         this.isLoading = false;
+        this.loadingService.hide();
       }
     );
   }
@@ -191,11 +195,13 @@ export class UsersComponent implements OnInit {
         const pageSize = this.filterService.pageSizeField();
         this.filterService.setCurrentUsers(this.filteredUsers.slice(0, pageSize));
         this.isLoading = false;
+        this.loadingService.hide();
       },
       (error: any) => {
         console.error('Error fetching users:', error);
         this.handleRequestError(error);
         this.isLoading = false;
+        this.loadingService.hide();
       },
     );
   }

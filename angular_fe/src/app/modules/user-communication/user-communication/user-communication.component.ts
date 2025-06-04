@@ -10,6 +10,7 @@ import { saveAs } from 'file-saver';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { SessionLocalStorage } from 'src/services/sessionStorage';
 import { AuthService } from 'src/app/services/auth.service';
+import { LoadingService } from 'src/app/services/loading.service';
 
 @Component({
   selector: 'app-user-communication',
@@ -45,10 +46,12 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
   constructor(
     private userConversationService: UserConversationService,
     private sessionStorage: SessionLocalStorage,
-    private authService: AuthService
+    private authService: AuthService,
+    private loadingService: LoadingService
   ) {}
 
   ngOnInit(): void {
+    this.loadingService.show();
     this.isLoading = true;
     this.conversationSubscription = this.userConversationService.getUserConversation().subscribe(
       (response: { data: Conversation[] }) => {
@@ -61,20 +64,24 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
           console.error('Invalid response format:', response);
         }
         this.isLoading = false;
+        this.loadingService.hide();
       },
       (error) => {
         console.error("Error getting logs:", error);
         this.isLoading = false;
+        this.loadingService.hide();
       }
     );
     this.authService.userInformation().subscribe(
       (response: any) => {
         this.userRole = response.user.user_role;
         this.isLoading = false;
+        this.loadingService.hide();
       },
       (error: any) => {
         console.error('Error fetching user role:', error);
         this.isLoading = false;
+        this.loadingService.hide();
       }
     );
   }
@@ -292,6 +299,59 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
     if (pageNum >= 1 && pageNum <= this.totalPages) {
       this.currentPage = pageNum;
       this.updatePage();
+    }
+  }
+
+  async appealUser(id: number, taskTakenId: number): Promise<void> {
+    const { value: reason } = await Swal.fire({
+      title: 'Appeal User',
+      html: `
+        <label for="reason-input" class="block text-sm font-medium text-gray-700 mb-2">Reason for banning</label>
+        <input id="reason-input" class="swal2-input" placeholder="Enter reason" />
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Confirm',
+      cancelButtonText: 'Cancel',
+      preConfirm: () => {
+        const reasonInput = (document.getElementById('reason-input') as HTMLInputElement).value;
+        if (!reasonInput) {
+          Swal.showValidationMessage('Please provide a reason for this action');
+        }
+        return reasonInput;
+      },
+      willOpen: () => {
+        const confirmButton = Swal.getConfirmButton();
+        const reasonInput = document.getElementById('reason-input') as HTMLInputElement;
+        if (confirmButton) {
+          confirmButton.disabled = true;
+        }
+        reasonInput.addEventListener('input', () => {
+          if (confirmButton) {
+            confirmButton.disabled = !reasonInput.value.trim();
+          }
+        });
+      }
+    });
+
+    if (reason) {
+      this.userConversationService.appealUser(id, taskTakenId, reason).subscribe({
+        next: (response) => {
+          if (response) {
+            Swal.fire('Banned!', 'User has been banned.', 'success').then(() => {
+              this.userConversationService.getUserConversation().subscribe((response: { data: Conversation[] }) => {
+                if (response && response.data) {
+                  this.conversation = response.data;
+                  this.filteredConversations = [...this.conversation];
+                  this.updatePage();
+                }
+              });
+            });
+          }
+        },
+        error: (error) => {
+          Swal.fire('Error!', error.message || 'Failed to ban the user.', 'error');
+        }
+      });
     }
   }
 

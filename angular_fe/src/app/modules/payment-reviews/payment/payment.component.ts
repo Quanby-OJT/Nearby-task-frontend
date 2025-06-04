@@ -8,6 +8,7 @@ import { saveAs } from 'file-saver';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { DepositDetails, PaymentLog, WithdrawalDetails } from 'src/model/payment-review';
 import Swal from 'sweetalert2';
+import { LoadingService } from 'src/app/services/loading.service';
 
 @Component({
   selector: 'app-payment',
@@ -37,9 +38,13 @@ export class PaymentComponent implements OnInit {
   };
   sortColumn: 'userName' | 'amount' | 'depositDate' = 'depositDate';
 
-  constructor(private paymentService: PaymentService) {}
+  constructor(
+    private paymentService: PaymentService,
+    private loadingService: LoadingService
+  ) {}
 
   ngOnInit(): void {
+    this.loadingService.show();
     this.isLoading = true;
     this.paymentService.getPaymentLogs().subscribe(
       (data: PaymentLog[]) => {
@@ -48,10 +53,12 @@ export class PaymentComponent implements OnInit {
         this.filteredPaymentLogs = [...data];
         this.updatePage();
         this.isLoading = false;
+        this.loadingService.hide();
       },
       (error) => {
         console.error('Error fetching payment logs', error);
         this.isLoading = false;
+        this.loadingService.hide();
       }
     );
   }

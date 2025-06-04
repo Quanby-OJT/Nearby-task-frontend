@@ -3,8 +3,8 @@
   <div class="inline-block">
     <h3 class="font-semibold font-poppins text-[#3C28CC] text-xl py-2">Payment Reviews</h3>
     <div class="text-muted-foreground space-x-1 text-xs font-medium">
-      <a href="" class="hover:text-primary"><strong>Dashboards > Payment Reviews</strong></a>
-      <p>All escrow deposits, withdrawals and payment releases to tasker will be displayed here.</p>
+      <a href="" class=" text-sm font-poppins hover:text-[#3C28CC] py-2"><strong>Dashboards > Payment Reviews</strong></a>
+      <p class=" py-2 text-sm font-poppins">All escrow deposits, withdrawals and payment releases to tasker will be displayed here</p>
     </div>
   </div>
 </div>
@@ -20,14 +20,6 @@
       <svg-icon src="./assets/icons/heroicons/outline/pdfDL.svg" [svgClass]="'h-5 w-5'"></svg-icon>
       <span>Export PDF</span>
     </button>
-  </div>
-</div>
-
-<!-- Loading Spinner -->
-<div *ngIf="isLoading" class="fixed inset-0 z-50 flex flex-col justify-center items-center lg:w-308 lg:h-170 xl:w-420 xl:h-200 ">
-  <div class="animate-slow-spin text-xs text-[#3C28CC] flex flex-col justify-center items-center">
-    <svg-icon src="./assets/icons/heroicons/outline/logo.svg" [svgClass]="'h-20 w-20'"></svg-icon>
-    <strong>Nearby Task</strong>
   </div>
 </div>
 
@@ -123,7 +115,7 @@
           <td class="px-4 py-3 text-start">{{ log.transaction_date }}</td>
           <td class="px-4 py-3 text-start">
             <button class="p-2 text-blue-600 hover:text-blue-800" (click)="viewTransactionDetail(log)">
-              <svg-icon src="./assets/icons/heroicons/outline/eye.svg" [svgClass]="'h-5 w-5'"></svg-icon>
+              <img src="https://img.icons8.com/?size=100&id=uUW5OerKlsBF&format=png&color=228BE6" class="h-5 w-5">
             </button>
           </td>
         </tr>
