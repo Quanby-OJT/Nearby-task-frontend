@@ -722,9 +722,9 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.calendar,
               label: 'Start Date',
-              value: _requestInformation!.start_date != null
-                  ? DateFormat('MMM dd, yyyy HH:mm a')
-                      .format(_requestInformation!.start_date!.toUtc())
+              value: _requestInformation?.task?.taskBeginDate != null
+                  ? DateFormat('MMM dd, yyyy HH:mm a').format(DateTime.parse(
+                      _requestInformation?.task?.taskBeginDate ?? ''))
                   : 'N/A',
             ),
           ],

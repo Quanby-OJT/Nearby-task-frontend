@@ -9,6 +9,7 @@ import 'package:flutter_fe/view/task/task_declined.dart';
 import 'package:flutter_fe/view/task/task_finished.dart';
 import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:flutter_fe/view/task/task_pending.dart';
+import 'package:flutter_fe/view/task/task_rejected.dart';
 import 'package:flutter_fe/view/task/task_review.dart';
 import 'package:flutter_fe/view/verification/verification_page.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -709,6 +710,7 @@ class _JobPostPageState extends State<JobPostPage>
       'Ongoing': TaskOngoing(taskInformation: task, role: _user?.user.role),
       'Review': TaskReview(taskInformation: task),
       'Declined': TaskDeclined(taskInformation: task),
+      'Rejected': TaskRejected(taskInformation: task),
     };
 
     final page = statusPages[task.taskStatus];

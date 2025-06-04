@@ -26,12 +26,20 @@ class _TaskRejectedState extends State<TaskRejected> {
   bool _isLoading = true;
   final storage = GetStorage();
   AuthenticatedUser? tasker;
+  String _userRole = 'Unknown';
 
   @override
   void initState() {
     super.initState();
-    _fetchRequestDetails();
-    _updateNotif();
+    _allLoading();
+  }
+
+  void _allLoading() {
+    Future.wait([
+      _fetchRequestDetails(),
+      _updateNotif(),
+      _fetchTaskerDetails(),
+    ]);
   }
 
   Future<void> _updateNotif() async {
@@ -47,18 +55,18 @@ class _TaskRejectedState extends State<TaskRejected> {
     }
   }
 
-  Future<void> _fetchTaskerDetails(int userId) async {
+  Future<void> _fetchTaskerDetails() async {
     try {
+      final int userId = storage.read("user_id") ?? 0;
       AuthenticatedUser? user =
           await _profileController.getAuthenticatedUser(context, userId);
+
       setState(() {
         tasker = user;
+        _userRole = user?.user.role ?? 'Unknown';
       });
     } catch (e) {
       debugPrint("Error fetching tasker details: $e");
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
@@ -70,11 +78,6 @@ class _TaskRejectedState extends State<TaskRejected> {
         _requestInformation = response;
       });
       await _fetchTaskDetails();
-      if (widget.taskInformation?.taskDetails!.client?.user?.role == "Client") {
-        await _fetchTaskerDetails(_requestInformation!.tasker_id as int);
-      } else {
-        await _fetchTaskerDetails(_requestInformation!.client_id as int);
-      }
     } catch (e) {
       debugPrint("Error fetching task details: $e");
       setState(() {
@@ -148,13 +151,166 @@ class _TaskRejectedState extends State<TaskRejected> {
                         SizedBox(height: 16),
                         _buildTaskCard(),
                         SizedBox(height: 16),
-                        _buildProfileCard(),
+                        if (_userRole == "Tasker") _buildClientProfileCard(),
+                        if (_userRole == "Client") _buildTaskerProfileCard(),
                         SizedBox(height: 16),
                         _buildActionButton(),
                       ],
                     ),
                   ),
                 ),
+    );
+  }
+
+  Widget _buildClientProfileCard() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: Color(0xFF03045E).withOpacity(0.1),
+                  child: Icon(
+                    Icons.person,
+                    color: Color(0xFF03045E),
+                    size: 28,
+                  ),
+                ),
+                SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.taskInformation?.taskDetails?.client?.user?.role ==
+                              "Tasker"
+                          ? "Tasker Profile"
+                          : "Client Profile",
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF03045E),
+                      ),
+                    ),
+                    Text(
+                      'Details',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            _buildProfileInfoRow(
+              'Name',
+              (widget.taskInformation?.taskDetails?.client?.user != null)
+                  ? '${widget.taskInformation!.taskDetails!.client!.user!.firstName ?? ''} ${widget.taskInformation!.taskDetails!.client!.user!.lastName ?? ''}'
+                      .trim()
+                  : 'Not available',
+            ),
+            SizedBox(height: 8),
+            _buildProfileInfoRow(
+                'Email',
+                widget.taskInformation?.taskDetails?.client?.user?.email ??
+                    'Not available'),
+            SizedBox(height: 8),
+            _buildProfileInfoRow(
+                'Phone',
+                widget.taskInformation?.taskDetails?.client?.user?.contact ??
+                    'Not available'),
+            SizedBox(height: 8),
+            _buildProfileInfoRow(
+                'Status',
+                widget.taskInformation?.taskDetails?.client?.user?.accStatus ??
+                    'Not available'),
+            SizedBox(height: 8),
+            _buildProfileInfoRow('Account', 'Verified', isVerified: true),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTaskerProfileCard() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: Color(0xFF03045E).withOpacity(0.1),
+                  child: Icon(
+                    Icons.person,
+                    color: Color(0xFF03045E),
+                    size: 28,
+                  ),
+                ),
+                SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.taskInformation?.taskDetails?.client?.user?.role ==
+                              "Client"
+                          ? "Client Profile"
+                          : "Tasker Profile",
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF03045E),
+                      ),
+                    ),
+                    Text(
+                      'Details',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            _buildProfileInfoRow(
+              'Name',
+              (widget.taskInformation?.tasker?.user != null)
+                  ? '${widget.taskInformation!.tasker!.user!.firstName ?? ''} ${widget.taskInformation!.tasker!.user!.lastName ?? ''}'
+                      .trim()
+                  : 'Not available',
+            ),
+            SizedBox(height: 8),
+            _buildProfileInfoRow('Email',
+                widget.taskInformation?.tasker?.user?.email ?? 'Not available'),
+            SizedBox(height: 8),
+            _buildProfileInfoRow(
+                'Phone',
+                widget.taskInformation?.tasker?.user?.contact ??
+                    'Not available'),
+            SizedBox(height: 8),
+            _buildProfileInfoRow(
+                'Status',
+                widget.taskInformation?.tasker?.user?.accStatus ??
+                    'Not available'),
+            SizedBox(height: 8),
+            _buildProfileInfoRow('Account', 'Verified', isVerified: true),
+          ],
+        ),
+      ),
     );
   }
 
@@ -190,72 +346,6 @@ class _TaskRejectedState extends State<TaskRejected> {
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProfileCard() {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: Color(0xFF03045E).withOpacity(0.1),
-                  child: Icon(
-                    Icons.person,
-                    color: Color(0xFF03045E),
-                    size: 28,
-                  ),
-                ),
-                SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.taskInformation?.taskDetails!.client?.user?.role ==
-                              "Client"
-                          ? "Tasker Profile"
-                          : "Client Profile",
-                      style: GoogleFonts.montserrat(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF03045E),
-                      ),
-                    ),
-                    Text(
-                      'Details',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            SizedBox(height: 16),
-            _buildProfileInfoRow(
-                'Name', tasker?.user.firstName ?? 'Not available'),
-            SizedBox(height: 8),
-            _buildProfileInfoRow(
-                'Email', tasker?.user.email ?? 'Not available'),
-            SizedBox(height: 8),
-            _buildProfileInfoRow(
-                'Phone', tasker?.user.contact ?? 'Not available'),
-            SizedBox(height: 8),
-            _buildProfileInfoRow(
-                'Status', tasker?.user.accStatus ?? 'Not available'),
-            SizedBox(height: 8),
-            _buildProfileInfoRow('Account', 'Verified', isVerified: true),
           ],
         ),
       ),
