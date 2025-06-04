@@ -17,7 +17,7 @@ import '../model/client_model.dart';
 import '../model/tasker_model.dart';
 
 class JobPostService {
-  static String url = apiUrl ?? "http://192.168.1.5:5000/connect";
+  static String url = apiUrl ?? "http://192.168.43.15:5000/connect";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -997,7 +997,8 @@ class JobPostService {
       {String? rejectionReason}) async {
     try {
       int clientId = await storage.read('user_id');
-      debugPrint("Accepting task with ID: $taskTakenId with the task status of: $value");
+      debugPrint(
+          "Accepting task with ID: $taskTakenId with the task status of: $value");
       return await _putRequest(endpoint: '/update-request/$taskTakenId', body: {
         "value": value,
         "role": role,
