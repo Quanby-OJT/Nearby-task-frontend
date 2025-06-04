@@ -148,7 +148,6 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
 
     return Scaffold(
       appBar: AppBar(
-        centerTitle: true,
         title: Text(
           'Task Details',
           style: GoogleFonts.poppins(
@@ -317,7 +316,7 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              taskFetch.taskDetails!.title != null
+              taskFetch.taskDetails?.title != null
                   ? taskFetch.taskDetails!.title.length > 25
                       ? '${taskFetch.taskDetails!.title.substring(0, 25)}...'
                       : taskFetch.taskDetails!.title

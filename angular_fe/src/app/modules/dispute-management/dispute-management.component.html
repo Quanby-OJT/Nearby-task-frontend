@@ -61,23 +61,27 @@
         <th class="px-4 py-2 text-center min-w-[140px] lg:min-w-[200px] xl:min-w-[250px]">Reason for Dispute</th>
         <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[300px] xl:min-w-[250px]">Moderator Action</th>
         <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[150px] xl:min-w-[150px]">Date Dispute Raised</th>
+        <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[150px] xl:min-w-[150px]">Resolved By</th>
+        <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[150px] xl:min-w-[250px]">Notes</th>
         <th class="px-4 py-2 text-center min-w-[150px] lg:min-w-[150px] xl:min-w-[150px]">Action</th>
         </tr>
       </thead>
       <tbody *ngIf="displayDisputes.length > 0">
         <tr *ngFor="let dispute of displayDisputes" class="hover:bg-card/50 h-[60px]">
         <td class="px-4 py-3 text-left">{{ dispute.task_taken.post_task.task_title }}</td>
-        <td class="px-4 py-3 text-left">{{ dispute.task_taken.clients.user.first_name }} {{ dispute.task_taken.clients.user.middle_name }} {{ dispute.task_taken.clients.user.last_name }} ({{dispute.task_taken.clients.user.user_role}})</td>
+        <td class="px-4 py-3 text-left">{{ dispute.raised_by.first_name }} {{ dispute.raised_by.middle_name }} {{ dispute.raised_by.last_name }} ({{dispute.raised_by.user_role}})</td>
         <td class="px-4 py-3 text-center">{{ dispute.reason_for_dispute }}</td>
         <td class="px-4 py-3 text-center">{{ dispute.moderator_action != null ? dispute.moderator_action : "Unresolved" }}</td>
         <td class="px-4 py-3 text-center">{{ dispute.created_at }}</td>
+        <td class="px-4 py-3 text-center">{{ dispute.resolved_by != null ? dispute.resolved_by.first_name + dispute.resolved_by.middle_name + dispute.resolved_by.last_name : "Not yet resolved" }}</td>
+        <td class="px-4 py-3 text-center">{{ dispute.addl_dispute_notes || "No notes" }}</td>
         <td class="px-4 py-3 text-center">
           <div class="flex justify-center space-x-2">
           <button class="p-2 text-blue-600 hover:text-blue-800" (click)="viewDispute(dispute.dispute_id)">
-            <img src="https://img.icons8.com/?size=100&id=cRLuJXPEgWhK&format=png&color=0000FF" class="h-5 w-5">
+        <img src="https://img.icons8.com/?size=100&id=cRLuJXPEgWhK&format=png&color=0000FF" class="h-5 w-5">
           </button>
           <button class="p-2 text-gray-600 hover:text-gray-800" (click)="archiveDispute(dispute.dispute_id)">
-            <svg-icon src="./assets/icons/heroicons/outline/archive-outlined-box.svg" [svgClass]="'h-5 w-5'"></svg-icon>
+        <svg-icon src="./assets/icons/heroicons/outline/archive-outlined-box.svg" [svgClass]="'h-5 w-5'"></svg-icon>
           </button>
           </div>
         </td>
@@ -90,11 +94,12 @@
         <td class="px-4 py-3 text-center"></td>
         <td class="px-4 py-3 text-center"></td>
         <td class="px-4 py-3 text-center"></td>
+        <td class="px-4 py-3 text-center"></td>
         </tr>
       </tbody>
       <tbody *ngIf="displayDisputes.length === 0">
         <tr [ngStyle]="{'height': logsPerPage * 60 + 'px'}">
-          <td colspan="5" class="text-center align-middle">No Data Found</td>
+          <td colspan="8" class="text-center align-middle">No Data Found</td>
         </tr>
       </tbody>
       </table>

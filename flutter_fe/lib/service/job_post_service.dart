@@ -1053,7 +1053,7 @@ class JobPostService {
       String disputeReason,
       String disputeDetails) async {
     try {
-      int clientId = await storage.read('user_id');
+      int userId = await storage.read('user_id');
 
       if (imageEvidence.length > 10) {
         return {
@@ -1068,7 +1068,7 @@ class JobPostService {
             body: {
               "value": value,
               "role": role,
-              "client_id": clientId.toString(),
+              "user_id": userId,
               "reason_for_dispute": disputeReason,
               "dispute_details": disputeDetails
             },
@@ -1079,7 +1079,7 @@ class JobPostService {
       return await _putRequest(endpoint: '/update-request/$taskTakenId', body: {
         "value": value,
         "role": role,
-        "client_id": clientId,
+        "user_id": userId,
         "reason_for_dispute": disputeReason,
         "dispute_details": disputeDetails
       });

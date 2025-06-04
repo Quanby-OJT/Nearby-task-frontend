@@ -13,6 +13,7 @@ import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/task/task_cancelled.dart';
 import 'package:flutter_fe/view/task/task_confirmed.dart';
 import 'package:flutter_fe/view/task/task_declined.dart';
+import 'package:flutter_fe/view/task/task_disputed.dart';
 import 'package:flutter_fe/view/task/task_finished.dart';
 import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:flutter_fe/view/task/task_pending.dart';
@@ -59,10 +60,8 @@ class _TaskPageState extends State<TaskPage>
     'Confirmed',
     'Rejected',
     'Declined',
-    'Dispute Settled',
     'Cancelled',
     'Review',
-    'Declined'
   ];
   List<String> specialization = [];
   List<TaskFetch?> clientTasks = [];
@@ -158,9 +157,11 @@ class _TaskPageState extends State<TaskPage>
   Future<void> fetchCreatedTasks() async {
     try {
       final tasks = await controller.getTask(context);
+      debugPrint("All Tasks applied by tasker: $tasks");
       setState(() {
         clientTasks = tasks;
         filteredTasks = List.from(clientTasks);
+        debugPrint("Filtered Tasks: $filteredTasks");
       });
 
       debugPrint("Tasker Tasks: ${clientTasks.toString()}");

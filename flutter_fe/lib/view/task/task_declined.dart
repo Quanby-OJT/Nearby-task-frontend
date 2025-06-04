@@ -1235,10 +1235,10 @@ class _TaskDeclinedState extends State<TaskDeclined> {
                   : _disputeTypeController.text,
               items: <String>[
                 '--Select Reason of Dispute--',
-                'Poor Quality of Work',
-                'Breach of Contract',
-                'Task Still Not Completed',
-                'Tasker Did Not Finish what\'s Required',
+                'Client is Abusive',
+                'Breach of Terms and Conditions',
+                'Task is Scam',
+                'Task given by Client is very complicated',
                 'Others (Provide Details)'
               ].map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
@@ -1361,8 +1361,7 @@ class _TaskDeclinedState extends State<TaskDeclined> {
                     bool result = await taskController.raiseADispute(
                       _requestInformation?.task_taken_id ?? 0,
                       'Disputed',
-                      widget.taskInformation?.taskDetails!.client?.user?.role ??
-                          '',
+                      widget.taskInformation?.taskDetails!.tasker?.user?.role ?? '',
                       _disputeTypeController.text,
                       _disputeDetailsController.text,
                       _imageEvidence,

@@ -47,10 +47,9 @@ export class DisputeManagementComponent {
     this.loadingService.show();
     this.isLoading = true;
     this.dataService.getUserRole().subscribe((userRole) => {
-      console.log('This is from ' + userRole);
-
       this.userRole = userRole;
     });
+    (window as any).previewImage = this.previewImage.bind(this);
     this.disputeService.getAllDisputes().subscribe(
       (response: any) => {
         console.log('Received dispute data:', response);
@@ -99,6 +98,25 @@ export class DisputeManagementComponent {
     this.updatePage();
   }
 
+  previewImage(url: string): void {
+    Swal.fire({
+      imageUrl: url,
+      imageAlt: 'Dispute evidence',
+      width: 800,
+      imageWidth: 'auto',
+      imageHeight: 'auto',
+      showConfirmButton: false,
+      showCloseButton: true
+    }).then((goBackToMainModal) => {
+      if (goBackToMainModal.dismiss === Swal.DismissReason.close || goBackToMainModal.dismiss === Swal.DismissReason.backdrop) {
+        // Reopen the dispute details modal if needed
+        if (this.disputeDetails) {
+          this.viewDispute(this.disputeDetails.dispute_id);
+        }
+      }
+    });
+  }
+
   viewDispute(dispute_id: number) {
     this.disputeDetails = this.filteredDisputes.find(dispute => dispute.dispute_id === dispute_id);
     if (!this.disputeDetails) {
@@ -109,43 +127,53 @@ export class DisputeManagementComponent {
     const htmlContent = `
       <div class="p-6 bg-white rounded-lg shadow-md text-left">
       <!-- Warning Note Section -->
-      ${this.userRole == 'Moderator' ?
+      ${this.userRole === 'Moderator' ?
         `${!this.disputeDetails.moderator_action ? `
-        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-          <div class="flex">
-          <div class="ml-3">
-          <h3 class="text-yellow-800 font-medium">Note to Moderator</h3>
-          <p class="text-yellow-700 text-sm mt-2">
-          PLEASE review all data such as: Task Information, Chat History, and User Reports before you settle this dispute.
-          Additionally, you MUST contact BOTH the client and tasker and LISTEN to their sides. If the dispute hasn't been resolved after 14 days, it will be automatically resolved.
-          </p>
-          </div>
+      <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+        <div class="flex">
+        <div class="ml-3">
+        <h3 class="text-yellow-800 font-medium">Note to Moderator</h3>
+        <p class="text-yellow-700 text-sm mt-2">
+        PLEASE review all data such as: Task Information, Chat History, and User Reports before you settle this dispute.
+        Additionally, you MUST contact BOTH the client and tasker and LISTEN to their sides. If the dispute hasn't been resolved after 14 days, it will be automatically resolved.
+        </p>
         </div>
-        </div>
-        ` : `
-        <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
-          <div class="flex">
-          <div class="ml-3">
-          <h3 class="text-green-800 font-medium">Note to Moderator</h3>
-          <p class="text-green-700 text-sm mt-2">
-          This dispute has already been resolved by a moderator. You can view the details below.
-          </p>
-          </div>
-        </div>
-        </div>
-        `}
+      </div>
+      </div>
       ` : `
-        <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
-          <div class="flex">
-          <div class="ml-3">
+      <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
+        <div class="flex">
+        <div class="ml-3">
+        <h3 class="text-green-800 font-medium">Note to Moderator</h3>
+        <p class="text-green-700 text-sm mt-2">
+        This dispute has already been resolved by a moderator. You can view the details below.
+        </p>
+        </div>
+      </div>
+      </div>
+      `}` :
+        this.disputeDetails.moderator_action ? `
+      <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
+        <div class="flex">
+        <div class="ml-3">
           <p class="text-green-700 text-sm mt-2">
-          Dispute already resolved by: <span class="font-bold text-xl">${this.disputeDetails.user.first_name} ${this.disputeDetails.user.middle_name ?? ''} ${this.disputeDetails.user.last_name}.</span><br>
-          If you think this action is questionable, you can contact the moderator and the tasker/s and client/s for further information.
+          Dispute has been resolved. You can accept the resolution or overturn it.
           </p>
-          </div>
         </div>
         </div>
+      </div>
+      ` : `
+      <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+        <div class="flex">
+        <div class="ml-3">
+          <p class="text-yellow-700 text-sm mt-2">
+          This dispute is currently under review by our moderators.
+          </p>
+        </div>
+        </div>
+      </div>
       `}
+
       <!-- Task Information Section -->
       <div class="grid grid-cols-1 gap-4 mb-6">
       <div class="border-b pb-4">
@@ -187,16 +215,20 @@ export class DisputeManagementComponent {
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
       <strong class="text-gray-700">Raised By:</strong>
-      <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.task_taken?.clients?.user?.first_name || 'N/A'} ${this.disputeDetails.task_taken?.clients?.user?.last_name || 'N/A'}</span>
+      <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.raised_by.first_name || 'N/A'} ${this.disputeDetails.raised_by.last_name || 'N/A'}</span>
       </div>
-      ${this.disputeDetails.moderator_action && this.disputeDetails.addl_dispute_notes ? `
+      ${this.disputeDetails.moderator_action && this.disputeDetails.addl_dispute_notes && this.userRole === 'Admin' ? `
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-      <strong class="text-gray-700">Moderator Action:</strong>
+      <strong class="text-gray-700">Resolution:</strong>
       <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.moderator_action}</span>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-      <strong class="text-gray-700">Moderator Notes:</strong>
+      <strong class="text-gray-700">Resolution Details:</strong>
       <span class="text-gray-600 sm:col-span-2 text-sm">${this.disputeDetails.addl_dispute_notes}</span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+      <strong class="text-gray-700">Resolved By:</strong>
+      <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.resolved_by.first_name} ${this.disputeDetails.resolved_by.middle_name} ${this.disputeDetails.resolved_by.last_name}</span>
       </div>
       ` : ''}
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -206,16 +238,14 @@ export class DisputeManagementComponent {
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
       <strong class="text-gray-700">Dispute Pictures:</strong>
       <div class="sm:col-span-2 flex flex-wrap gap-2">
-      ${Array.isArray(this.disputeDetails.image_proof) && this.disputeDetails.image_proof.length > 0 ?
-      this.disputeDetails.image_proof.map((pic: any) => `
-        <img
-        src="${pic}"
-        alt="Dispute evidence"
-        class="w-48 h-48 object-cover cursor-pointer rounded"
-        onclick="window.open('${pic}', '_blank')"
-        />`
-      ).join('') :
-      '<span class="text-gray-600">No pictures available</span>'
+    ${Array.isArray(this.disputeDetails.image_proof) && this.disputeDetails.image_proof.length > 0 ? this.disputeDetails.image_proof.map((pic: any) => `
+    <img
+    src="${pic}"
+    alt="Dispute evidence"
+    class="w-48 h-48 object-cover cursor-pointer rounded"
+    onclick="previewImage('${pic}')"/>`
+        ).join('') :
+        '<span class="text-gray-600">User does not provide pictures.</span>'
       }
       </div>
       </div>
@@ -223,21 +253,21 @@ export class DisputeManagementComponent {
       </div>
       </div>
 
-      <!-- Action Form Section -->
-      ${!this.disputeDetails.moderator_action ? `
+      <!-- Action Form Section - Only visible to Moderators who haven't taken action -->
+      ${this.userRole === 'Moderator' && !this.disputeDetails.moderator_action ? `
       <div class="space-y-4">
       <div class="form-group">
-      <label for="moderatorAction" class="block text-gray-700 font-medium mb-2">Moderator Action:</label>
+      <label for="moderatorAction" class="block text-gray-700 font-medium mb-2">What is Your Resolution?</label>
       <select id="moderatorAction" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" required>
-        <option value="">Select an action</option>
-        <option value="refund_tokens">Refund NearByTask Tokens to Client</option>
-        <option value="release_half">Release Half of the Total Payment to Tasker</option>
-        <option value="release_full">Release Full Payment to Tasker</option>
-        <option value="reject_dispute">Reject the Dispute</option>
+      <option value="">Select an action</option>
+      <option value="refund_tokens">Refund NearByTask Tokens to Client</option>
+      <option value="release_half">Release Half of the Total Payment to Tasker</option>
+      <option value="release_full">Release Full Payment to Tasker</option>
+      <option value="reject_dispute">Reject the Dispute</option>
       </select>
       </div>
       <div class="form-group">
-      <label for="disputeNotes" class="block text-gray-700 font-medium mb-2">Additional Notes:</label>
+      <label for="disputeNotes" class="block text-gray-700 font-medium mb-2">Resolution Details:</label>
       <textarea id="disputeNotes" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" rows="3" required></textarea>
       </div>
       </div>
@@ -256,37 +286,37 @@ export class DisputeManagementComponent {
       cancelButtonText: 'Close',
       cancelButtonColor: '#d33',
       customClass: {
-      htmlContainer: 'text-left'
+        htmlContainer: 'text-left'
       },
       preConfirm: () => {
-      if (!this.disputeDetails.moderator_action) {
-        const action = document.getElementById('moderatorAction') as HTMLSelectElement;
-        const notes = document.getElementById('disputeNotes') as HTMLTextAreaElement;
+        if (!this.disputeDetails.moderator_action) {
+          const action = document.getElementById('moderatorAction') as HTMLSelectElement;
+          const notes = document.getElementById('disputeNotes') as HTMLTextAreaElement;
 
-        if (!action.value || !notes.value) {
-        Swal.showValidationMessage('Please fill in all fields');
-        return false;
+          if (!action.value || !notes.value) {
+            Swal.showValidationMessage('Please fill in all fields');
+            return false;
+          }
+
+          return {
+            action: action.value,
+            notes: notes.value
+          };
         }
-
-        return {
-        action: action.value,
-        notes: notes.value
-        };
-      }
-      return false;
+        return false;
       }
     }).then((result) => {
       if (result.isConfirmed && result.value) {
-      // Add confirmation modal
-      Swal.fire({
-        title: 'Are you sure?',
-        cancelButtonText: 'Review the Dispute',
-        text: `You are about to update the dispute with ID: ${this.disputeDetails.dispute_id}.`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Resolve This Dispute',
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
+        // Add confirmation modal
+        Swal.fire({
+          title: 'Are you sure?',
+          cancelButtonText: 'Review the Dispute',
+          text: `You are about to update the dispute with ID: ${this.disputeDetails.dispute_id}.`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Resolve This Dispute',
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
         }).then((confirmResult) => {
           if (confirmResult.isConfirmed) {
             this.updateDispute(
@@ -296,6 +326,9 @@ export class DisputeManagementComponent {
               result.value.action,
               result.value.notes
             );
+          } else if (confirmResult.dismiss === Swal.DismissReason.cancel) {
+            // Reopen the previous modal
+            this.viewDispute(this.disputeDetails.dispute_id);
           }
         });
       }
