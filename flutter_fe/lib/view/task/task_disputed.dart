@@ -14,9 +14,9 @@ import '../../../model/disputes.dart';
 
 class TaskDisputed extends StatefulWidget {
   // final int? finishID;
-  // final String? role;
+  final String role;
   final TaskFetch taskInformation;
-  const TaskDisputed({super.key, required this.taskInformation});
+  const TaskDisputed({super.key, required this.taskInformation, required this.role});
 
   @override
   State<TaskDisputed> createState() => _TaskDisputedState();
@@ -37,65 +37,7 @@ class _TaskDisputedState extends State<TaskDisputed> {
   void initState() {
     super.initState();
     _fetchTaskDetails();
-    // _fetchRequestDetails();
-    // _fetchUserData();
-    //
-    // debugPrint("Task ID from the widget: ${widget.finishID}");
   }
-
-  // Future<void> _fetchUserData() async {
-  //   try {
-  //     int userId = storage.read("user_id");
-  //     AuthenticatedUser? user =
-  //         await _profileController.getAuthenticatedUser(context, userId);
-  //     debugPrint(user.toString());
-  //     setState(() {
-  //       _role = user?.user.role;
-  //     });
-  //   } catch (e) {
-  //     print("Error fetching user data: $e");
-  //     setState(() => _isLoading = false);
-  //   }
-  // }
-  //
-  // Future<void> _fetchTaskerDetails(int userId) async {
-  //   try {
-  //     AuthenticatedUser? user =
-  //         await _profileController.getAuthenticatedUser(context, userId);
-  //     debugPrint(user.toString());
-  //     setState(() {
-  //       tasker = user;
-  //     });
-  //   } catch (e) {
-  //     debugPrint("Error fetching tasker details: $e");
-  //     setState(() {
-  //       _isLoading = false;
-  //     });
-  //   }
-  // }
-  //
-  // Future<void> _fetchRequestDetails() async {
-  //   try {
-  //     final response =
-  //         await _jobPostService.fetchRequestInformation(widget.finishID ?? 0);
-  //     debugPrint("Fetched request details: $response");
-  //     setState(() {
-  //       _requestInformation = response;
-  //     });
-  //     await _fetchTaskDetails();
-  //     if (widget.role == "Client") {
-  //       await _fetchTaskerDetails(_requestInformation!.tasker_id as int);
-  //     } else {
-  //       await _fetchTaskerDetails(_requestInformation!.client_id as int);
-  //     }
-  //   } catch (e) {
-  //     debugPrint("Error fetching task details: $e");
-  //     setState(() {
-  //       _isLoading = false;
-  //     });
-  //   }
-  // }
-  //
   Future<void> _fetchTaskDetails() async {
     try {
       final response = await taskRequestController.getDispute(widget.taskInformation.taskTakenId);
@@ -269,7 +211,7 @@ class _TaskDisputedState extends State<TaskDisputed> {
   Widget buildTextSection(String info){
     return Text(
       info,
-      style: GoogleFonts.montserrat(
+      style: GoogleFonts.poppins(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         color: Color(0xFF03045E),
@@ -325,14 +267,13 @@ class _TaskDisputedState extends State<TaskDisputed> {
               ],
             ),
             SizedBox(height: 16),
-            _buildProfileInfoRow(
-                'Name', "${widget.taskInformation.tasker?.user?.firstName} ${widget.taskInformation.tasker?.user?.middleName ?? ""} ${widget.taskInformation.tasker?.user?.lastName}"),
+            role == "Client" ? _buildProfileInfoRow('Name', "${widget.taskInformation.post_task?.client?.user?.firstName} ${widget.taskInformation.post_task?.client?.user?.middleName ?? ""} ${widget.taskInformation.post_task?.client?.user?.lastName}") : _buildProfileInfoRow('Name', "${widget.taskInformation.tasker?.user?.firstName} ${widget.taskInformation.tasker?.user?.middleName ?? ""} ${widget.taskInformation.tasker?.user?.lastName}"),
             SizedBox(height: 8),
-            _buildProfileInfoRow(
-                'Specialization', widget.taskInformation.tasker?.specialization ?? 'Not available'),
-            SizedBox(height: 8),
-            _buildProfileInfoRow(
-                'Related Specialization', widget.taskInformation.tasker?.skills ?? 'Not available'),
+            if(role == "Client")...[
+              _buildProfileInfoRow('Specialization', widget.taskInformation.tasker?.specialization ?? 'Not available'),
+              SizedBox(height: 8),
+              _buildProfileInfoRow('Related Specialization', widget.taskInformation.tasker?.skills ?? 'Not available'),
+            ],
             SizedBox(height: 8),
             _buildProfileInfoRow('Account', 'Verified', isVerified: true),
           ],

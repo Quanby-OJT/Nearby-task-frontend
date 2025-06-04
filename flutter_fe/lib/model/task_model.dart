@@ -138,8 +138,9 @@ class TaskModel {
               .map((item) => ImagesModel.fromJson(item))
               .toList()
           : null,
-      //For Moderator Only
-      user: json['action_by'] != null ? UserModel.fromJson(json['action_by']) : null,
+      user: json['action_by'] != null && json['action_by'] is Map<String, dynamic>
+          ? UserModel.fromJson(json['action_by'])
+          : null,
     );
   }
 

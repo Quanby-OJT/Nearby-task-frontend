@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/controller/task_request_controller.dart';
+import 'package:flutter_fe/model/disputes.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
@@ -22,7 +24,9 @@ class _TaskFinishedState extends State<TaskFinished> {
   final JobPostService _jobPostService = JobPostService();
   final TaskController taskController = TaskController();
   final ProfileController _profileController = ProfileController();
+  final TaskRequestController taskRequestController = TaskRequestController();
   TaskModel? _taskInformation;
+  Disputes? disputes;
   ClientRequestModel? _requestInformation;
   bool _isLoading = true;
   final storage = GetStorage();
@@ -33,6 +37,7 @@ class _TaskFinishedState extends State<TaskFinished> {
   void initState() {
     super.initState();
     _loadMethod();
+    _role = GetStorage().read("role") ?? 'Unknown';
   }
 
   Future<void> _loadMethod() async {
@@ -41,25 +46,26 @@ class _TaskFinishedState extends State<TaskFinished> {
     });
     await Future(() async {
       await _fetchRequestDetails();
-      await _updateNotif();
+      await _fetchTaskDispute();
+      // await _updateNotif();
     });
     setState(() {
       _isLoading = false;
     });
   }
 
-  Future<void> _updateNotif() async {
-    try {
-      final int userId = storage.read("user_id") ?? 0;
-      final response = await taskController.updateNotif(
-        widget.taskInformation?.taskTakenId ?? 0,
-        userId,
-      );
-      if (!response) debugPrint("Failed to update notification");
-    } catch (e) {
-      debugPrint("Error updating notification: $e");
-    }
-  }
+  // Future<void> _updateNotif() async {
+  //   try {
+  //     final int userId = storage.read("user_id") ?? 0;
+  //     final response = await taskController.updateNotif(
+  //       widget.taskInformation?.taskTakenId ?? 0,
+  //       userId,
+  //     );
+  //     if (!response) debugPrint("Failed to update notification");
+  //   } catch (e) {
+  //     debugPrint("Error updating notification: $e");
+  //   }
+  // }
 
   Future<void> _fetchTaskerDetails(int userId) async {
     try {
@@ -75,12 +81,10 @@ class _TaskFinishedState extends State<TaskFinished> {
 
   Future<void> _fetchRequestDetails() async {
     try {
-      final response = await _jobPostService
-          .fetchRequestInformation(widget.taskInformation?.taskTakenId ?? 0);
+      final response = await _jobPostService.fetchRequestInformation(widget.taskInformation?.taskTakenId ?? 0);
       setState(() {
         _requestInformation = response;
       });
-      await _fetchTaskDetails();
       if (widget.taskInformation?.taskDetails!.client?.user?.role == "Tasker") {
         await _fetchTaskerDetails(_requestInformation!.tasker_id as int);
       } else {
@@ -91,23 +95,19 @@ class _TaskFinishedState extends State<TaskFinished> {
     }
   }
 
-  Future<void> _fetchTaskDetails() async {
+  Future<void> _fetchTaskDispute() async {
     try {
-      final int userId = storage.read("user_id") ?? 0;
-      final response = await _jobPostService
-          .fetchTaskInformation(_requestInformation!.task_id as int);
-
-      AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
-
+      final disputeData = await taskRequestController.getDispute(widget.taskInformation?.taskTakenId ?? 0);
       setState(() {
-        _role = user?.user.role ?? 'Unknown';
-      });
-      setState(() {
-        _taskInformation = response.task;
+        disputes = disputeData;
+        _taskInformation = widget.taskInformation?.taskDetails;
+        _isLoading = false;
       });
     } catch (e) {
       debugPrint("Error fetching task details: $e");
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -161,6 +161,10 @@ class _TaskFinishedState extends State<TaskFinished> {
                         const SizedBox(height: 16),
                         _buildTaskCard(),
                         const SizedBox(height: 16),
+                        if(disputes != null)...[
+                          completedWithDispute(),
+                          const SizedBox(height: 16)
+                        ],
                         if (_role == "Tasker") _buildClientProfileCard(),
                         if (_role == "Client") _buildTaskerProfileCard(),
                         const SizedBox(height: 16),
@@ -209,6 +213,65 @@ class _TaskFinishedState extends State<TaskFinished> {
       ),
     );
   }
+  
+  Widget completedWithDispute(){
+    return SizedBox(
+      width: double.infinity, // Occupy entire screen width
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start, // Align text to start
+            children: [
+              Text(
+                "This is a Disputed Task",
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0XFFD43D4D),
+                ),
+              ),
+              const SizedBox(height: 8),
+              _buildProfileInfoRow("Raised By", disputes?.raisedBy != null ? "${disputes?.raisedBy?.firstName} ${disputes?.raisedBy?.middleName} ${disputes?.raisedBy?.lastName} (${disputes?.raisedBy?.role})" : "N/A"),
+              buildDisputeInfo("Dispute Reason", disputes?.disputeReason ?? "N/A"),
+              buildDisputeInfo("Dispute Details", disputes?.disputeDetails ?? "N/A"),
+              buildDisputeInfo("Resolution", disputes?.moderatorAction ?? "N/A"),
+              buildDisputeInfo("Resolution Details", disputes?.moderatorNotes ?? "N/A"),
+            ],
+          )
+        )
+      ),
+    );
+  }
+  
+  Widget buildDisputeInfo(String title, String description){
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(height: 10),
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey[600],
+          )
+        ),
+        const SizedBox(height: 4),
+        Text(
+          description,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF170A66),
+          ),
+          textAlign: TextAlign.justify,
+        )
+      ]
+    );
+  }
 
    Widget _buildClientProfileCard() {
     return Card(
@@ -235,8 +298,7 @@ class _TaskFinishedState extends State<TaskFinished> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.taskInformation?.taskDetails?.client?.user?.role ==
-                              "Tasker"
+                      widget.taskInformation?.taskDetails?.client?.user?.role == "Tasker"
                           ? "Tasker Profile"
                           : "Client Profile",
                       style: GoogleFonts.poppins(
@@ -264,16 +326,6 @@ class _TaskFinishedState extends State<TaskFinished> {
                       .trim()
                   : 'Not available',
             ),
-            SizedBox(height: 8),
-            _buildProfileInfoRow(
-                'Email',
-                widget.taskInformation?.taskDetails?.client?.user?.email ??
-                    'Not available'),
-            SizedBox(height: 8),
-            _buildProfileInfoRow(
-                'Phone',
-                widget.taskInformation?.taskDetails?.client?.user?.contact ??
-                    'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow(
                 'Status',

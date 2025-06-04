@@ -316,7 +316,7 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              taskFetch.taskDetails!.title != null
+              taskFetch.taskDetails?.title != null
                   ? taskFetch.taskDetails!.title.length > 25
                       ? '${taskFetch.taskDetails!.title.substring(0, 25)}...'
                       : taskFetch.taskDetails!.title

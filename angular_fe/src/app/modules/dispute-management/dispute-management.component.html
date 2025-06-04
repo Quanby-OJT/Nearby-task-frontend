@@ -77,11 +77,11 @@
       <tbody *ngIf="displayDisputes.length > 0">
         <tr *ngFor="let dispute of displayDisputes" class="hover:bg-card/50 h-[60px]">
         <td class="px-4 py-3 text-left">{{ dispute.task_taken.post_task.task_title }}</td>
-        <td class="px-4 py-3 text-left">{{ dispute.task_taken.clients.user.first_name }} {{ dispute.task_taken.clients.user.middle_name }} {{ dispute.task_taken.clients.user.last_name }} ({{dispute.task_taken.clients.user.user_role}})</td>
+        <td class="px-4 py-3 text-left">{{ dispute.raised_by.first_name }} {{ dispute.raised_by.middle_name }} {{ dispute.raised_by.last_name }} ({{dispute.raised_by.user_role}})</td>
         <td class="px-4 py-3 text-center">{{ dispute.reason_for_dispute }}</td>
         <td class="px-4 py-3 text-center">{{ dispute.moderator_action != null ? dispute.moderator_action : "Unresolved" }}</td>
         <td class="px-4 py-3 text-center">{{ dispute.created_at }}</td>
-        <td class="px-4 py-3 text-center">{{ dispute.user != null ? dispute.user?.first_name + dispute.user?.middle_name + dispute.user?.last_name : "Not yet resolved" }}</td>
+        <td class="px-4 py-3 text-center">{{ dispute.resolved_by != null ? dispute.resolved_by.first_name + dispute.resolved_by.middle_name + dispute.resolved_by.last_name : "Not yet resolved" }}</td>
         <td class="px-4 py-3 text-center">{{ dispute.addl_dispute_notes || "No notes" }}</td>
         <td class="px-4 py-3 text-center">
           <div class="flex justify-center space-x-2">

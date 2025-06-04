@@ -716,7 +716,7 @@ class _JobPostPageState extends State<JobPostPage>
       'Ongoing': TaskOngoing(taskInformation: task, role: _user?.user.role),
       'Review': TaskReview(taskInformation: task),
       'Declined': TaskDeclined(taskInformation: task),
-      'Disputed': TaskDisputed(taskInformation: task),
+      'Disputed': TaskDisputed(taskInformation: task, role: _user?.user.role ?? ''),
     };
 
     final page = statusPages[task.taskStatus];

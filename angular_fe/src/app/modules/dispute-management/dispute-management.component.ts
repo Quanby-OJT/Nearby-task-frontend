@@ -209,7 +209,7 @@ export class DisputeManagementComponent {
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
       <strong class="text-gray-700">Raised By:</strong>
-      <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.task_taken?.clients?.user?.first_name || 'N/A'} ${this.disputeDetails.task_taken?.clients?.user?.last_name || 'N/A'}</span>
+      <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.raised_by.first_name || 'N/A'} ${this.disputeDetails.raised_by.last_name || 'N/A'}</span>
       </div>
       ${this.disputeDetails.moderator_action && this.disputeDetails.addl_dispute_notes && this.userRole === 'Admin' ? `
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -222,7 +222,7 @@ export class DisputeManagementComponent {
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
       <strong class="text-gray-700">Resolved By:</strong>
-      <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.user.first_name} ${this.disputeDetails.user.middle_name} ${this.disputeDetails.user.last_name}</span>
+      <span class="text-gray-600 sm:col-span-2">${this.disputeDetails.resolved_by.first_name} ${this.disputeDetails.resolved_by.middle_name} ${this.disputeDetails.resolved_by.last_name}</span>
       </div>
       ` : ''}
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
