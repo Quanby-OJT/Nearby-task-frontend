@@ -148,7 +148,6 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
 
     return Scaffold(
       appBar: AppBar(
-        centerTitle: true,
         title: Text(
           'Task Details',
           style: GoogleFonts.poppins(
