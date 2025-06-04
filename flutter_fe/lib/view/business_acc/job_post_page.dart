@@ -146,6 +146,11 @@ class _JobPostPageState extends State<JobPostPage>
       final user =
           await _profileController.getAuthenticatedUser(context, parsedUserId);
       final response = await _clientServices.fetchUserIDImage(parsedUserId);
+      
+      // Check if user has Review or Active status
+      final userAccStatus = user?.user.accStatus;
+      final isStatusAllowed = userAccStatus == 'Review' || userAccStatus == 'Active';
+      
       if (response['success'] == true) {
         setState(() {
           _user = user;
@@ -161,6 +166,8 @@ class _JobPostPageState extends State<JobPostPage>
           _profileImageUrl = user?.user.image;
           _idImageUrl = null;
           _isDocumentValid = false;
+          // Allow task posting if user status is Review or Active
+          _showButton = isStatusAllowed;
         });
       }
     } catch (e) {
