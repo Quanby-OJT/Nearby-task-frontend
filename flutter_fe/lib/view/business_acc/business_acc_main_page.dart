@@ -6,7 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_fe/view/business_acc/home_page.dart';
 import 'package:flutter_fe/view/business_acc/job_post_page.dart';
 import 'package:flutter_fe/view/business_acc/likes_screen.dart';
-import 'package:flutter_fe/view/business_acc/record.dart';
+import 'package:flutter_fe/view/business_acc/payment_history.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class BusinessAccMain extends StatefulWidget {
@@ -59,7 +59,7 @@ class _BusinessAccMainState extends State<BusinessAccMain>
     final List<IconData> icons = [
       FontAwesomeIcons.house,
       FontAwesomeIcons.clipboardList,
-      FontAwesomeIcons.listCheck,
+      FontAwesomeIcons.moneyBillWave,
       FontAwesomeIcons.solidMessage,
       FontAwesomeIcons.solidHeart,
     ];
