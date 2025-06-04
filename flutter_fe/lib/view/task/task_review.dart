@@ -193,7 +193,7 @@ class _TaskReviewState extends State<TaskReview> {
                           SizedBox(height: 16),
                           _buildTaskerActionButton(),
                         ] else ...[
-                          _buildClientReviewSection(),
+                          _requestStatus == "Review" ? _buildClientReviewSection() : _buildDisputeSection(),
                           SizedBox(height: 16),
                           _buildTaskCard(),
                           SizedBox(height: 16),
@@ -491,7 +491,7 @@ class _TaskReviewState extends State<TaskReview> {
                     bool result = await taskController.raiseADispute(
                       _requestInformation?.task_taken_id ?? 0,
                       'Disputed',
-                      widget.taskInformation?.taskDetails!.client?.user?.role ??
+                      widget.taskInformation?.taskDetails?.client?.user?.role ??
                           '',
                       _disputeTypeController.text,
                       _disputeDetailsController.text,
@@ -915,6 +915,42 @@ class _TaskReviewState extends State<TaskReview> {
     );
   }
 
+  Widget _buildDisputeSection() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.yellow[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.green[100]!),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            FontAwesomeIcons.gavel,
+            color: Colors.yellow[600],
+            size: 48,
+          ),
+          SizedBox(height: 12),
+          Text(
+            'Dispute Raised to this Task!',
+            style: GoogleFonts.montserrat(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Colors.yellow[800]),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Please Wait for Our Team to review your dispute and file Appropriate Action.',
+            textAlign: TextAlign.center,
+            style:
+            GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPendingPayment() {
     return Card(
       elevation: 4,
@@ -992,7 +1028,7 @@ class _TaskReviewState extends State<TaskReview> {
               value: _requestInformation?.task_status ?? 'Ongoing',
             ),
             _buildTaskInfoRow(
-              icon: Icons.calendar_today,
+              icon: FontAwesomeIcons.calendar,
               label: 'Start Date',
               value: _requestInformation?.task?.taskBeginDate != null
                   ? DateFormat('MMM dd, yyyy HH:mm a').format(DateTime.parse(
