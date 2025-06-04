@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/escrow_management_controller.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
@@ -275,10 +274,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: Text(
           'Edit Profile',
           style: GoogleFonts.poppins(
-            color: Color(0xFFE23670),
-            fontSize: 20,
-            fontWeight: FontWeight.bold
-          ),
+              color: Color(0xFFE23670),
+              fontSize: 20,
+              fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -290,52 +288,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 key: updateTasker,
                 child: Column(children: [
                   Center(
-                    child: Column(
-                      children: [
-                        GestureDetector(
-                          onTap: pickProfilePicture,
-                          child: CircleAvatar(
-                            radius: 50,
-                            backgroundColor: Colors.grey[200],
-                            backgroundImage: profileImage != null
-                                ? FileImage(profileImage!)
-                                : _user?.user.imageName != null
-                                    ? NetworkImage(_user!.user.imageName!)
-                                    : null,
-                            child: profileImage == null &&
-                                    _user?.user.imageName == null
-                                ? Icon(Icons.camera_alt,
-                                    color: Colors.grey[800], size: 30)
+                      child: Column(children: [
+                    GestureDetector(
+                      onTap: pickProfilePicture,
+                      child: CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.grey[200],
+                        backgroundImage: profileImage != null
+                            ? FileImage(profileImage!)
+                            : _user?.user.imageName != null
+                                ? NetworkImage(_user!.user.imageName!)
                                 : null,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          "${_user?.user.firstName} ${_user?.user.middleName} ${_user?.user.lastName}",
+                        child: profileImage == null &&
+                                _user?.user.imageName == null
+                            ? Icon(Icons.camera_alt,
+                                color: Colors.grey[800], size: 30)
+                            : null,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      "${_user?.user.firstName} ${_user?.user.middleName} ${_user?.user.lastName}",
+                      style: GoogleFonts.poppins(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (_user?.user.role == "Tasker") ...[
+                      const SizedBox(height: 16),
+                      Text("${_user?.tasker?.specialization}",
                           style: GoogleFonts.poppins(
-                            fontSize: 20,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        if(_user?.user.role == "Tasker")...[
-                          const SizedBox(height: 16),
-                          Text(
-                            "${_user?.tasker?.specialization}",
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF4A4A68),
-                            )
-                          ),
-                          const SizedBox(height: 16),
-                        ]
-                      ]
-                    )
-                  ),
+                            color: const Color(0xFF4A4A68),
+                          )),
+                      const SizedBox(height: 16),
+                    ]
+                  ])),
                   const SizedBox(height: 32),
                   _buildSection(
                       title: 'Personal Information',
-                      description: 'This is where you can edit your personal information',
+                      description:
+                          'This is where you can edit your personal information',
                       children: [
                         _buildTextField(
                           controller: _userController.emailController,
@@ -351,87 +345,89 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(height: 16),
                         _buildTextField(
-                          controller: _userController.bioController,
-                          label: 'Bio',
-                          icon: null,
-                          hintText: "Make it as spicy and professional as possible.",
-                          maxLines: 5
-                        ),
+                            controller: _userController.bioController,
+                            label: 'Bio',
+                            icon: null,
+                            hintText:
+                                "Make it as spicy and professional as possible.",
+                            maxLines: 5),
                         const SizedBox(height: 16),
                         _buildDropdownField(
-                          controller: _userController.specializationController,
-                          label: 'Specialization',
-                          items: specialization
-                        )
-                      ]
-                  ),
+                            controller:
+                                _userController.specializationController,
+                            label: 'Specialization',
+                            items: specialization)
+                      ]),
                   const SizedBox(height: 8),
                   _buildSection(
-                    title: 'Your Social Media Profiles',
-                    description: 'Add your social media profiles to boost your credibility.',
-                    children: [
-                      // Facebook
-                      _buildTextField(
-                        controller: _userController.fbLinkController,
-                        label: 'Facebook Profile URL',
-                        icon: Icons.facebook,
-                        keyboardType: TextInputType.url,
-                        hintText: 'https://facebook.com/yourusername',
-                        validator: (value) {
-                          if (value != null && value.isNotEmpty) {
-                            if (!value.contains('facebook.com')) {
-                              return 'Please enter a valid Facebook URL';
+                      title: 'Your Social Media Profiles',
+                      description:
+                          'Add your social media profiles to boost your credibility.',
+                      children: [
+                        // Facebook
+                        _buildTextField(
+                          controller: _userController.fbLinkController,
+                          label: 'Facebook Profile URL',
+                          icon: Icons.facebook,
+                          keyboardType: TextInputType.url,
+                          hintText: 'https://facebook.com/yourusername',
+                          validator: (value) {
+                            if (value != null && value.isNotEmpty) {
+                              if (!value.contains('facebook.com')) {
+                                return 'Please enter a valid Facebook URL';
+                              }
                             }
-                          }
-                          return null; // Optional field
-                        },
-                      ),
-                      const SizedBox(height: 16),
+                            return null; // Optional field
+                          },
+                        ),
+                        const SizedBox(height: 16),
 
-                      // Instagram
-                      _buildTextField(
-                        controller: _userController.instaLinkController,
-                        label: 'Instagram Profile URL',
-                        icon: Icons.camera_alt,
-                        keyboardType: TextInputType.url,
-                        hintText: 'https://instagram.com/yourusername',
-                        validator: (value) {
-                          if (value != null && value.isNotEmpty) {
-                            if (!value.contains('instagram.com')) {
-                              return 'Please enter a valid Instagram URL';
+                        // Instagram
+                        _buildTextField(
+                          controller: _userController.instaLinkController,
+                          label: 'Instagram Profile URL',
+                          icon: Icons.camera_alt,
+                          keyboardType: TextInputType.url,
+                          hintText: 'https://instagram.com/yourusername',
+                          validator: (value) {
+                            if (value != null && value.isNotEmpty) {
+                              if (!value.contains('instagram.com')) {
+                                return 'Please enter a valid Instagram URL';
+                              }
                             }
-                          }
-                          return null; // Optional field
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      // Twitter
-                      _buildTextField(
-                        controller: _userController.telegramLinkController,
-                        label: 'Twitter Profile URL',
-                        icon: Icons.chat,
-                        keyboardType: TextInputType.url,
-                        hintText: 'https://twitter.com/yourusername',
-                        validator: (value) {
-                          if (value != null && value.isNotEmpty) {
-                            if (!value.contains('twitter.com') &&
-                                !value.contains('x.com')) {
-                              return 'Please enter a valid Twitter/X URL';
+                            return null; // Optional field
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        // Twitter
+                        _buildTextField(
+                          controller: _userController.telegramLinkController,
+                          label: 'Twitter Profile URL',
+                          icon: Icons.chat,
+                          keyboardType: TextInputType.url,
+                          hintText: 'https://twitter.com/yourusername',
+                          validator: (value) {
+                            if (value != null && value.isNotEmpty) {
+                              if (!value.contains('twitter.com') &&
+                                  !value.contains('x.com')) {
+                                return 'Please enter a valid Twitter/X URL';
+                              }
                             }
-                          }
-                          return null; // Optional field
-                        },
-                      ),
-                      const SizedBox(height: 24),
-                    ]
-                  )
+                            return null; // Optional field
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                      ])
                 ]))),
       ),
     );
   }
 
   // Helper method for sectioned layout
-  Widget _buildSection({required String title, required String description, required List<Widget> children}) {
+  Widget _buildSection(
+      {required String title,
+      required String description,
+      required List<Widget> children}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -489,7 +485,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.grey[100],
-            prefixIcon: icon != null ? Icon(icon, color: Colors.grey[600]) : null,
+            prefixIcon:
+                icon != null ? Icon(icon, color: Colors.grey[600]) : null,
             enabledBorder: OutlineInputBorder(
               borderSide: BorderSide(color: Colors.grey[300]!),
               borderRadius: BorderRadius.circular(8),
@@ -526,39 +523,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required TextEditingController controller,
     required String label,
     required List<String> items,
-  }){
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
+  }) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(label,
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w500,
             color: Colors.grey[700],
-          )
-        ),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          value: controller.text.isNotEmpty ? controller.text : null,
-          onChanged: willEdit
-              ? (value) {
-                  setState(() {
-                    controller.text = value!;
-                  });
-                }
-              : null,
-          items: items.map<DropdownMenuItem<String>>((String item) {
-            return DropdownMenuItem<String>(
-              value: item,
-              child: Text(
-                item,
-                style: GoogleFonts.poppins(fontSize: 14),
-              ),
-            );
-          }).toList(),
-        )
-      ]
-    );
+          )),
+      const SizedBox(height: 8),
+      DropdownButtonFormField<String>(
+        value: controller.text.isNotEmpty ? controller.text : null,
+        onChanged: willEdit
+            ? (value) {
+                setState(() {
+                  controller.text = value!;
+                });
+              }
+            : null,
+        items: items.map<DropdownMenuItem<String>>((String item) {
+          return DropdownMenuItem<String>(
+            value: item,
+            child: Text(
+              item,
+              style: GoogleFonts.poppins(fontSize: 14),
+            ),
+          );
+        }).toList(),
+      )
+    ]);
   }
 }
