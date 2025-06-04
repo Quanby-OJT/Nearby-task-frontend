@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
+import 'package:flutter_fe/view/verification/face_detection_page.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/model/verification_model.dart';
@@ -82,13 +83,16 @@ class _VerificationPageState extends State<VerificationPage> {
         final result =
             await ApiService.getTaskerVerificationStatus(parsedUserId);
 
-        debugPrint('Verification status check result: ${jsonEncode(result['verification'])}');
+        debugPrint(
+            'Verification status check result: ${jsonEncode(result['verification'])}');
 
         if (result['success'] == true && result['exists'] == true) {
           // User has existing verification data
           if (result['verification'] != null) {
-            final verificationData = VerificationModel.fromJson(result['verification']);
-            debugPrint('VerificationPage: Existing verification data: ${verificationData.status}');
+            final verificationData =
+                VerificationModel.fromJson(result['verification']);
+            debugPrint(
+                'VerificationPage: Existing verification data: ${verificationData.status}');
 
             setState(() {
               _existingVerification = verificationData;
@@ -498,10 +502,10 @@ class _VerificationPageState extends State<VerificationPage> {
                 IdVerificationPage(
                   onIdVerified: _onIdVerified,
                 ),
-
                 // Page 3: Selfie Verification
-                SelfieVerificationPage(
-                  onSelfieVerified: _onSelfieVerified,
+                FaceDetectionPage(
+                  onDetectionComplete: (file, isValid) =>
+                      _onSelfieVerified(file!),
                 ),
 
                 // Page 4: Document Upload (Optional)
