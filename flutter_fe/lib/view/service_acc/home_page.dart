@@ -159,21 +159,6 @@ class _TaskerHomePageState extends State<TaskerHomePage>
     }
   }
 
-  Future<void> _fetchTaskImages(TaskModel task) async {
-    try {
-      taskImages = await jobPostService.fetchTaskImages(task.id);
-      debugPrint("Fetched task images: ${taskImages.length}");
-      setState(() {
-        existingImageIds = taskImages
-            .where((img) => img.id != null)
-            .map((img) => img.id!)
-            .toList();
-      });
-    } catch (e) {
-      debugPrint("Error fetching task images: $e");
-    }
-  }
-
   Future<void> _fetchUserData() async {
     try {
       final dynamic userId = storage.read("user_id");
@@ -319,6 +304,10 @@ class _TaskerHomePageState extends State<TaskerHomePage>
       AuthenticatedUser? user =
           await _profileController.getAuthenticatedUser(context, userId);
       final response = await _clientServices.fetchUserIDImage(userId);
+
+      debugPrint("Response This is for checking: ${response['status']}");
+      debugPrint("User This is for checking: ${user?.user.image}");
+      debugPrint("User ID This is for checking: ${response['url']}");
 
       if (response['success']) {
         setState(() {
