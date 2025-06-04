@@ -23,7 +23,7 @@ import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/view/business_acc/business_task_detail.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/add_task.dart';
-import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
+import 'package:flutter_fe/view/task/task_disputed.dart';
 import 'package:intl/intl.dart';
 
 class JobPostPage extends StatefulWidget {
@@ -716,6 +716,7 @@ class _JobPostPageState extends State<JobPostPage>
       'Ongoing': TaskOngoing(taskInformation: task, role: _user?.user.role),
       'Review': TaskReview(taskInformation: task),
       'Declined': TaskDeclined(taskInformation: task),
+      'Disputed': TaskDisputed(taskInformation: task),
     };
 
     final page = statusPages[task.taskStatus];
