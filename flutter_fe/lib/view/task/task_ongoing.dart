@@ -337,7 +337,7 @@ class _TaskOngoingState extends State<TaskOngoing> {
                     bool result = await taskController.raiseADispute(
                       _requestInformation?.task_taken_id ?? 0,
                       'Disputed',
-                      widget.taskInformation?.taskDetails!.client?.user?.role ??
+                      widget.taskInformation?.taskDetails?.client?.user?.role ??
                           '',
                       _disputeTypeController.text,
                       _disputeDetailsController.text,

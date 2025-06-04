@@ -1,7 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_fe/model/client_model.dart';
 import 'package:flutter_fe/model/address.dart';
 import 'package:flutter_fe/model/images_model.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
+import 'package:flutter_fe/model/user_model.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'task_model.g.dart';
@@ -34,6 +36,7 @@ class TaskModel {
   final bool? ableToDelete;
   final List<int>? imageIds;
   final List<ImagesModel>? imageUrls;
+  final UserModel? user;
 
   TaskModel({
     required this.id,
@@ -62,6 +65,7 @@ class TaskModel {
     this.ableToDelete,
     this.imageIds,
     this.imageUrls,
+    this.user
   });
 
   factory TaskModel.fromJson(Map<String, dynamic> json) {
@@ -74,6 +78,8 @@ class TaskModel {
     } else {
       urgencyValue = "Non-Urgent";
     }
+    // debugPrint("Raw Task JSON: $json");
+    // debugPrint("Moderator Information: ${json["action_by"]}");
 
     return TaskModel(
       id: json['task_id'] as int? ?? 0,
@@ -132,6 +138,8 @@ class TaskModel {
               .map((item) => ImagesModel.fromJson(item))
               .toList()
           : null,
+      //For Moderator Only
+      user: json['action_by'] != null ? UserModel.fromJson(json['action_by']) : null,
     );
   }
 

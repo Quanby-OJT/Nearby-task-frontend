@@ -24,7 +24,7 @@ import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/view/business_acc/business_task_detail.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/add_task.dart';
-import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
+import 'package:flutter_fe/view/task/task_disputed.dart';
 import 'package:intl/intl.dart';
 
 class JobPostPage extends StatefulWidget {
@@ -147,6 +147,11 @@ class _JobPostPageState extends State<JobPostPage>
       final user =
           await _profileController.getAuthenticatedUser(context, parsedUserId);
       final response = await _clientServices.fetchUserIDImage(parsedUserId);
+      
+      // Check if user has Review or Active status
+      final userAccStatus = user?.user.accStatus;
+      final isStatusAllowed = userAccStatus == 'Review' || userAccStatus == 'Active';
+      
       if (response['success'] == true) {
         setState(() {
           _user = user;
@@ -162,6 +167,8 @@ class _JobPostPageState extends State<JobPostPage>
           _profileImageUrl = user?.user.image;
           _idImageUrl = null;
           _isDocumentValid = false;
+          // Allow task posting if user status is Review or Active
+          _showButton = isStatusAllowed;
         });
       }
     } catch (e) {
@@ -711,6 +718,8 @@ class _JobPostPageState extends State<JobPostPage>
       'Review': TaskReview(taskInformation: task),
       'Declined': TaskDeclined(taskInformation: task),
       'Rejected': TaskRejected(taskInformation: task),
+      'Disputed': TaskDisputed(taskInformation: task),
+
     };
 
     final page = statusPages[task.taskStatus];
