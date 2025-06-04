@@ -193,7 +193,9 @@ class _TaskReviewState extends State<TaskReview> {
                           SizedBox(height: 16),
                           _buildTaskerActionButton(),
                         ] else ...[
-                          _requestStatus == "Review" ? _buildClientReviewSection() : _buildDisputeSection(),
+                          _requestStatus == "Review"
+                              ? _buildClientReviewSection()
+                              : _buildDisputeSection(),
                           SizedBox(height: 16),
                           _buildTaskCard(),
                           SizedBox(height: 16),
@@ -225,15 +227,18 @@ class _TaskReviewState extends State<TaskReview> {
               final result = await taskController.updateRequest(
                   _requestInformation?.task_taken_id ?? 0, value, 'Client');
               if (result.containsKey('success') && result['success']) {
-                Navigator.pop(context);
                 Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => TaskFinished(
-                      taskInformation: widget.taskInformation,
-                    ),
-                  ),
-                );
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TaskFinished(
+                        taskInformation: widget.taskInformation,
+                      ),
+                    )).then((value) {
+                  setState(() {
+                    _isLoading = false;
+                    _fetchRequestDetails();
+                  });
+                });
               } else {
                 CustomScaffold(
                     message: 'Failed to accept task', color: Colors.red);
@@ -944,7 +949,7 @@ class _TaskReviewState extends State<TaskReview> {
             'Please Wait for Our Team to review your dispute and file Appropriate Action.',
             textAlign: TextAlign.center,
             style:
-            GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
+                GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
       ),
