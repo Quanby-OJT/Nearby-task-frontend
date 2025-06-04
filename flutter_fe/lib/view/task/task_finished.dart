@@ -98,9 +98,10 @@ class _TaskFinishedState extends State<TaskFinished> {
   Future<void> _fetchTaskDispute() async {
     try {
       final disputeData = await taskRequestController.getDispute(widget.taskInformation?.taskTakenId ?? 0);
+      final taskInformation = widget.taskInformation?.post_task;
       setState(() {
         disputes = disputeData;
-        _taskInformation = widget.taskInformation?.taskDetails;
+        _taskInformation = taskInformation;
         _isLoading = false;
       });
     } catch (e) {

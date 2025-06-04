@@ -89,23 +89,31 @@ class TaskRequestController {
 
   Future<Disputes?> getDispute(int taskTakenId) async {
     try {
-      if(taskTakenId == 0){
+      if (taskTakenId == 0) {
         return Disputes(
           disputeReason: "",
           disputeDetails: "",
           moderatorAction: "",
-          moderatorNotes: ""
+          moderatorNotes: "",
         );
       }
+
       final disputes = await jobPostService.getDispute(taskTakenId);
-      if(disputes.containsKey('message')){
+
+      if (disputes == null || disputes.containsKey('message') || disputes.containsKey('error')) {
         return null;
-      }else if(disputes.containsKey('error')){
-        return null;
-      }else{
-        return Disputes.fromJson(disputes);
       }
-    }catch(e, stackTrace){
+
+      // Safely ensure the required fields exist and are not null
+      if (disputes['disputeReason'] == null ||
+          disputes['disputeDetails'] == null ||
+          disputes['moderatorAction'] == null ||
+          disputes['moderatorNotes'] == null) {
+        return null;
+      }
+
+      return Disputes.fromJson(disputes);
+    } catch (e, stackTrace) {
       debugPrint("Error in TaskRequestController.getDispute: $e");
       debugPrintStack(stackTrace: stackTrace);
       return null;
