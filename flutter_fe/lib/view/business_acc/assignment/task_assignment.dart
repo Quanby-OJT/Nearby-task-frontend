@@ -104,6 +104,8 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
       List<TaskModel> clientTasks = await _fetchClientTasks();
       _availableTasks =
           await _filterAvailableTasks(clientTasks, widget.tasker.id);
+
+      debugPrint("Available tasks: ${_availableTasks?.length}");
     } catch (e) {
       setState(() {
         _errorMessage = "Failed to load tasks: $e";
@@ -167,16 +169,29 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: Text(
-                'Assign Task: ${task.title ?? 'Task ${task.id}'}',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5),
+              ),
+              title: Center(
+                child: Text(
+                  'Assign Task: ${task.title ?? 'Task ${task.id}'}',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     'Set request expiration (days):',
-                    style: GoogleFonts.poppins(),
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w300,
+                      color: Colors.grey[800],
+                    ),
                   ),
                   Slider(
                     value: tempDays.toDouble(),
@@ -193,26 +208,47 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
                 ],
               ),
               actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    'Cancel',
-                    style: GoogleFonts.poppins(),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context, {
-                      'daysAvailable': tempDays,
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFB71A4A),
-                  ),
-                  child: Text(
-                    'Confirm',
-                    style: GoogleFonts.poppins(color: Colors.white),
-                  ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      child: Text(
+                        'Cancel',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFFB71A4A),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    const SizedBox(width: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(5),
+                        color: Color(0xFFB71A4A),
+                      ),
+                      child: TextButton(
+                        child: Text(
+                          'Confirm',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context, {
+                            'daysAvailable': tempDays,
+                          });
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ],
             );
@@ -370,19 +406,33 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
                                 margin: const EdgeInsets.only(bottom: 12),
                                 child: ListTile(
                                   title: Text(
-                                    task.title ?? 'Task ${task.id}',
+                                    task.title != null &&
+                                            task.title!.length > 20
+                                        ? '${task.title?.substring(0, 20)}...'
+                                        : task.title ?? 'Task ${task.id}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                     style: GoogleFonts.poppins(
-                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
                                     ),
                                   ),
                                   subtitle: Text(
                                     task.description ?? 'No description',
-                                    style: GoogleFonts.poppins(),
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w300,
+                                      color: Colors.grey[800],
+                                    ),
                                   ),
                                   trailing: ElevatedButton(
                                     onPressed: () => _assignTask(task),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: const Color(0xFFB71A4A),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(5),
+                                      ),
                                     ),
                                     child: Text(
                                       'Assign',

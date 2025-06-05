@@ -776,6 +776,8 @@ class JobPostService {
         debugPrint("Falling back to general task endpoint");
         final allTasksResponse = await _getRequest("/displayTask");
 
+        debugPrint("All Tasks Response: ${allTasksResponse.toString()}");
+
         if (allTasksResponse.containsKey("tasks") &&
             allTasksResponse["tasks"] is List) {
           final List<dynamic> allTasks =

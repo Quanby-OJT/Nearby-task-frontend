@@ -7,6 +7,7 @@ class TaskFetch {
   final int id;
   final String taskStatus;
   final DateTime? createdAt;
+  final DateTime? updatedAt;
   final int? clientId;
   final int? taskerId;
   final TaskModel? taskDetails;
@@ -22,6 +23,7 @@ class TaskFetch {
     required this.id,
     required this.taskStatus,
     this.createdAt,
+    this.updatedAt,
     this.clientId,
     this.taskerId,
     this.taskDetails,
@@ -39,6 +41,7 @@ class TaskFetch {
       'task_id': id,
       'task_status': taskStatus,
       'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
       'client_id': clientId,
       'tasker_id': taskerId,
       'task': taskDetails?.toJson(),
@@ -58,6 +61,9 @@ class TaskFetch {
       taskStatus: json['task_status'] as String,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
+          : null,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'] as String)
           : null,
       clientId: json['client_id'] as int?,
       taskerId: json['tasker_id'] as int?,
@@ -87,7 +93,7 @@ class TaskFetch {
   @override
   String toString() {
     return 'TaskFetch(taskTakenId: $taskTakenId, id: $id, taskStatus: $taskStatus, '
-        'createdAt: $createdAt, clientId: $clientId, taskerId: $taskerId, '
+        'createdAt: $createdAt, updatedAt: $updatedAt, clientId: $clientId, taskerId: $taskerId, '
         'taskDetails: $taskDetails, address: $address, timeRequest: $timeRequest, '
         'startDate: $startDate, endDate: $endDate, tasker: $tasker, post_task: $post_task)';
   }

@@ -10,6 +10,8 @@ import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
 
 class TaskFinished extends StatefulWidget {
   final TaskFetch? taskInformation;
@@ -54,19 +56,6 @@ class _TaskFinishedState extends State<TaskFinished> {
     });
   }
 
-  // Future<void> _updateNotif() async {
-  //   try {
-  //     final int userId = storage.read("user_id") ?? 0;
-  //     final response = await taskController.updateNotif(
-  //       widget.taskInformation?.taskTakenId ?? 0,
-  //       userId,
-  //     );
-  //     if (!response) debugPrint("Failed to update notification");
-  //   } catch (e) {
-  //     debugPrint("Error updating notification: $e");
-  //   }
-  // }
-
   Future<void> _fetchTaskerDetails(int userId) async {
     try {
       AuthenticatedUser? user =
@@ -81,7 +70,8 @@ class _TaskFinishedState extends State<TaskFinished> {
 
   Future<void> _fetchRequestDetails() async {
     try {
-      final response = await _jobPostService.fetchRequestInformation(widget.taskInformation?.taskTakenId ?? 0);
+      final response = await _jobPostService
+          .fetchRequestInformation(widget.taskInformation?.taskTakenId ?? 0);
       setState(() {
         _requestInformation = response;
       });
@@ -97,7 +87,8 @@ class _TaskFinishedState extends State<TaskFinished> {
 
   Future<void> _fetchTaskDispute() async {
     try {
-      final disputeData = await taskRequestController.getDispute(widget.taskInformation?.taskTakenId ?? 0);
+      final disputeData = await taskRequestController
+          .getDispute(widget.taskInformation?.taskTakenId ?? 0);
       final taskInformation = widget.taskInformation?.post_task;
       setState(() {
         disputes = disputeData;
@@ -111,7 +102,6 @@ class _TaskFinishedState extends State<TaskFinished> {
       });
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -153,34 +143,39 @@ class _TaskFinishedState extends State<TaskFinished> {
                   ),
                 )
               : SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildStatusSection(),
-                        const SizedBox(height: 16),
-                        _buildTaskCard(),
-                        const SizedBox(height: 16),
-                        if(disputes != null)...[
-                          completedWithDispute(),
-                          const SizedBox(height: 16)
-                        ],
-                        if (_role == "Tasker") _buildClientProfileCard(),
-                        if (_role == "Client") _buildTaskerProfileCard(),
-                        const SizedBox(height: 16),
-                        _buildActionButton(),
-                      ],
-                    ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildStatusSection(),
+                            const SizedBox(height: 16),
+                            _buildTaskCard(constraints),
+                            const SizedBox(height: 16),
+                            if (disputes != null) ...[
+                              completedWithDispute(),
+                              const SizedBox(height: 16)
+                            ],
+                            if (_role == "Tasker") _buildClientProfileCard(),
+                            if (_role == "Client") _buildTaskerProfileCard(),
+                            const SizedBox(height: 16),
+                            _buildActionButton(),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
     );
   }
 
-  Widget _buildTaskCard() {
+  Widget _buildTaskCard(BoxConstraints constraints) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Theme.of(context).colorScheme.surfaceContainer,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -191,90 +186,181 @@ class _TaskFinishedState extends State<TaskFinished> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.1),
+                    color:
+                        Theme.of(context).colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.task, color: Colors.black, size: 24),
+                  child: Icon(Icons.task,
+                      color: Theme.of(context).colorScheme.primary, size: 24),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    _taskInformation!.title ?? 'Untitled Task',
+                    _taskInformation!.title ?? 'Task',
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 16),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.locationDot,
+              label: 'Description',
+              value: _taskInformation!.description ?? 'N/A',
+            ),
+            const SizedBox(height: 16),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.briefcase,
+              label: 'Work Type',
+              value: _taskInformation!.workType ?? 'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.star,
+              label: 'Specialization',
+              value: _taskInformation!.taskerSpecialization?.specialization ??
+                  'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.dollarSign,
+              label: 'Contract Price',
+              value: _taskInformation!.contactPrice.toString() ?? 'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.info,
+              label: 'Status',
+              value: _requestInformation!.task_status ?? 'Confirmed',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.calendar,
+              label: 'Start Date',
+              value: _requestInformation?.task?.taskBeginDate != null
+                  ? DateFormat('MMM dd, yyyy HH:mm a').format(DateTime.parse(
+                      _requestInformation?.task?.taskBeginDate ?? ''))
+                  : 'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: Icons.calendar_today,
+              label: 'Finish Date',
+              value: _requestInformation!.end_date != null
+                  ? DateFormat('MMM dd, yyyy HH:mm a')
+                      .format(_requestInformation!.end_date!.toLocal())
+                  : 'N/A',
             ),
           ],
         ),
       ),
     );
   }
-  
-  Widget completedWithDispute(){
+
+  Widget _buildTaskInfoRow(
+      {required IconData? icon, required String label, required String value}) {
+    return Row(
+      children: [
+        if (icon != null) ...[
+          Icon(icon, color: Colors.grey[600], size: 20),
+          SizedBox(width: 8)
+        ],
+        Text(
+          '$label: ',
+          style: GoogleFonts.montserrat(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey[600],
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: GoogleFonts.montserrat(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF03045E),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget buildTextSection(String info) {
+    return Text(
+      info,
+      style: GoogleFonts.poppins(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: Color(0xFF03045E),
+      ),
+      textAlign: TextAlign.justify,
+    );
+  }
+
+  Widget completedWithDispute() {
     return SizedBox(
       width: double.infinity, // Occupy entire screen width
       child: Card(
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start, // Align text to start
-            children: [
-              Text(
-                "This is a Disputed Task",
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0XFFD43D4D),
-                ),
-              ),
-              const SizedBox(height: 8),
-              _buildProfileInfoRow("Raised By", disputes?.raisedBy != null ? "${disputes?.raisedBy?.firstName} ${disputes?.raisedBy?.middleName} ${disputes?.raisedBy?.lastName} (${disputes?.raisedBy?.role})" : "N/A"),
-              buildDisputeInfo("Dispute Reason", disputes?.disputeReason ?? "N/A"),
-              buildDisputeInfo("Dispute Details", disputes?.disputeDetails ?? "N/A"),
-              buildDisputeInfo("Resolution", disputes?.moderatorAction ?? "N/A"),
-              buildDisputeInfo("Resolution Details", disputes?.moderatorNotes ?? "N/A"),
-            ],
-          )
-        )
-      ),
+          elevation: 4,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment:
+                    CrossAxisAlignment.start, // Align text to start
+                children: [
+                  Text(
+                    "This is a Disputed Task",
+                    style: GoogleFonts.poppins(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0XFFD43D4D),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildProfileInfoRow(
+                      "Raised By",
+                      disputes?.raisedBy != null
+                          ? "${disputes?.raisedBy?.firstName} ${disputes?.raisedBy?.middleName} ${disputes?.raisedBy?.lastName} (${disputes?.raisedBy?.role})"
+                          : "N/A"),
+                  buildDisputeInfo(
+                      "Dispute Reason", disputes?.disputeReason ?? "N/A"),
+                  buildDisputeInfo(
+                      "Dispute Details", disputes?.disputeDetails ?? "N/A"),
+                  buildDisputeInfo(
+                      "Resolution", disputes?.moderatorAction ?? "N/A"),
+                  buildDisputeInfo(
+                      "Resolution Details", disputes?.moderatorNotes ?? "N/A"),
+                ],
+              ))),
     );
   }
-  
-  Widget buildDisputeInfo(String title, String description){
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(height: 10),
-        Text(
-          title,
+
+  Widget buildDisputeInfo(String title, String description) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      SizedBox(height: 10),
+      Text(title,
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w500,
             color: Colors.grey[600],
-          )
+          )),
+      const SizedBox(height: 4),
+      Text(
+        description,
+        style: GoogleFonts.poppins(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: Color(0xFF170A66),
         ),
-        const SizedBox(height: 4),
-        Text(
-          description,
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF170A66),
-          ),
-          textAlign: TextAlign.justify,
-        )
-      ]
-    );
+        textAlign: TextAlign.justify,
+      )
+    ]);
   }
 
-   Widget _buildClientProfileCard() {
+  Widget _buildClientProfileCard() {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -299,7 +385,8 @@ class _TaskFinishedState extends State<TaskFinished> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.taskInformation?.taskDetails?.client?.user?.role == "Tasker"
+                      widget.taskInformation?.taskDetails?.client?.user?.role ==
+                              "Tasker"
                           ? "Tasker Profile"
                           : "Client Profile",
                       style: GoogleFonts.poppins(
@@ -395,14 +482,6 @@ class _TaskFinishedState extends State<TaskFinished> {
                   : 'Not available',
             ),
             SizedBox(height: 8),
-            _buildProfileInfoRow('Email',
-                widget.taskInformation?.tasker?.user?.email ?? 'Not available'),
-            SizedBox(height: 8),
-            _buildProfileInfoRow(
-                'Phone',
-                widget.taskInformation?.tasker?.user?.contact ??
-                    'Not available'),
-            SizedBox(height: 8),
             _buildProfileInfoRow(
                 'Status',
                 widget.taskInformation?.tasker?.user?.accStatus ??
@@ -415,12 +494,11 @@ class _TaskFinishedState extends State<TaskFinished> {
     );
   }
 
-
   Widget _buildStatusSection() {
     final status = _requestInformation?.task_status ?? 'Unknown';
     final isConfirmed = status.toLowerCase() == 'confirmed';
 
-    if (_requestInformation?.start_date == null) {
+    if (_requestInformation?.end_date == null) {
       return SizedBox(
         width: double.infinity,
         child: Column(

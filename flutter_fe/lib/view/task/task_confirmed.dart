@@ -378,8 +378,9 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
     try {
       final startDate =
           DateTime.parse(_requestInformation!.task!.taskBeginDate!);
-      final now = DateTime.now();
-      return now.isAfter(startDate);
+      final now = DateTime.now().toLocal();
+      final difference = startDate.difference(now) - Duration(hours: 8);
+      return difference.isNegative;
     } catch (e) {
       return false;
     }
@@ -556,7 +557,6 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
 
     final startDate = DateTime.parse(_requestInformation!.task!.taskBeginDate!);
 
-    debugPrint("startDate: $startDate");
     final showCountdown = isConfirmed && !_isStartButtonEnabled();
 
     return Container(
@@ -617,7 +617,8 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
               stream: Stream.periodic(const Duration(seconds: 1)),
               builder: (context, snapshot) {
                 final now = DateTime.now().toLocal();
-                final difference = startDate.difference(now);
+                final difference =
+                    startDate.difference(now) - Duration(hours: 8);
 
                 return AnimatedOpacity(
                   opacity: difference.isNegative ? 1.0 : 0.9,
@@ -642,12 +643,11 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
                               ? 'Task can start now'
                               : _formatDuration(difference),
                           style: GoogleFonts.poppins(
-                            fontSize: 20,
+                            fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: difference.isNegative
                                 ? Theme.of(context).colorScheme.primary
                                 : Colors.blue[900],
-                            letterSpacing: 1.2,
                           ),
                         ),
                       ],
@@ -696,6 +696,12 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 16),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.locationDot,
+              label: 'Description',
+              value: _taskInformation!.description ?? 'N/A',
             ),
             const SizedBox(height: 16),
             _buildTaskInfoRow(
@@ -856,16 +862,6 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
                       .trim()
                   : 'Not available',
             ),
-            SizedBox(height: 8),
-            _buildProfileInfoRow(
-                'Email',
-                widget.taskInformation?.taskDetails!.client?.user?.email ??
-                    'Not available'),
-            SizedBox(height: 8),
-            _buildProfileInfoRow(
-                'Phone',
-                widget.taskInformation?.taskDetails!.client?.user?.contact ??
-                    'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow(
                 'Status',

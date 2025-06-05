@@ -98,6 +98,7 @@ class _LikesScreenState extends State<LikesScreen> {
       }
 
       final likedTasks = await _clientServices.fetchUserLikedTasks();
+      debugPrint("Liked Tasks: $likedTasks");
       setState(() {
         _likedTasks = likedTasks;
         _filteredTasks = List.from(_likedTasks);
