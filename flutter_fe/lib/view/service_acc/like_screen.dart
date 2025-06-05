@@ -110,53 +110,6 @@ class _LikeScreenState extends State<LikeScreen> {
     }
   }
 
-  void _openFilterModal() {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Container(
-              padding: EdgeInsets.all(20),
-              height: 250,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Text(
-                      "Filter by Price",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  // Function to build a filter chip
-  Widget _buildFilterChip(int label, Function setModalState) {
-    bool isSelected = selectedFilters.contains(label);
-
-    return FilterChip(
-      label: Text('\$$label'),
-      selected: isSelected,
-      onSelected: (bool selected) {
-        setModalState(() {
-          if (selected) {
-            selectedFilters.add(label);
-          } else {
-            selectedFilters.remove(label);
-          }
-        });
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -182,14 +135,6 @@ class _LikeScreenState extends State<LikeScreen> {
               controller: _searchController,
               decoration: InputDecoration(
                 prefixIcon: Icon(Icons.search, color: Colors.grey),
-                suffixIcon: IconButton(
-                    onPressed: () {
-                      _openFilterModal();
-                    },
-                    icon: Icon(
-                      Icons.filter_list,
-                      color: Colors.grey,
-                    )),
                 filled: true,
                 fillColor: Color(0xFFB71A4A).withOpacity(0.1),
                 hintText: 'Search jobs...',

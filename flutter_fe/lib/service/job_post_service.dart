@@ -776,6 +776,8 @@ class JobPostService {
         debugPrint("Falling back to general task endpoint");
         final allTasksResponse = await _getRequest("/displayTask");
 
+        debugPrint("All Tasks Response: ${allTasksResponse.toString()}");
+
         if (allTasksResponse.containsKey("tasks") &&
             allTasksResponse["tasks"] is List) {
           final List<dynamic> allTasks =
@@ -842,7 +844,7 @@ class JobPostService {
         return [];
       }
     } catch (e, st) {
-      debugPrint("Exception in fetchCreatedTasksByClient: $e");
+      debugPrint("Exception in fetchCreatedTasksByClient sample : $e");
       debugPrintStack(stackTrace: st);
       return [];
     }

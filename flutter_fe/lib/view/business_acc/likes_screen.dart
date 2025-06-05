@@ -98,6 +98,7 @@ class _LikesScreenState extends State<LikesScreen> {
       }
 
       final likedTasks = await _clientServices.fetchUserLikedTasks();
+      debugPrint("Liked Tasks: $likedTasks");
       setState(() {
         _likedTasks = likedTasks;
         _filteredTasks = List.from(_likedTasks);
@@ -148,7 +149,9 @@ class _LikesScreenState extends State<LikesScreen> {
       });
     } catch (e) {
       debugPrint("Error fetching ID image: $e");
-     CustomScaffold(message: 'Failed to load user image. Please try again.', color: Colors.red);
+      CustomScaffold(
+          message: 'Failed to load user image. Please try again.',
+          color: Colors.red);
     }
   }
 
@@ -219,61 +222,14 @@ class _LikesScreenState extends State<LikesScreen> {
           savedTasksCount = _filteredTasks.length;
         });
         CustomScaffold(message: result['message'], color: Colors.green);
-       
       } else {
         CustomScaffold(message: result['message'], color: Colors.red);
       }
     } catch (e) {
       debugPrint("Error in _unlikeJob: $e");
-      CustomScaffold(message: 'Failed to unlike task. Please try again.', color: Colors.red);
-    }
-  }
-
-  Future<void> _assignTask(UserModel tasker) async {
-    try {
-      List<TaskModel> clientTasks = await _fetchClientTasks();
-      if (clientTasks.isEmpty) {
-        CustomScaffold(message: 'You have no active tasks to assign.', color: Colors.orange);
-        return;
-      }
-
-      final TaskModel? selectedTask = await showDialog<TaskModel>(
-        context: context,
-        builder: (context) => _TaskSelectionDialog(tasks: clientTasks),
-      );
-
-      if (selectedTask == null) return;
-
-      final String? clientId = await _clientServices.getUserId();
-      if (clientId == null) {
-        CustomScaffold(message: 'Unable to identify client. Please log in again.', color: Colors.red);
-        return;
-      }
-
-      final taskController = TaskController();
-      final result = await taskController.assignTask(
-        selectedTask.id,
-        int.parse(clientId),
-        tasker.id ?? 0,
-        _role,
-      );
-
-      CustomScaffold(message: result, color: result.toLowerCase().contains('success') ? Colors.green : Colors.red);
-    } catch (e) {
-      debugPrint("Error in _assignTask: $e");
-      CustomScaffold(message: 'Failed to assign task.', color: Colors.red);
-    }
-  }
-
-  Future<List<TaskModel>> _fetchClientTasks() async {
-    try {
-      final taskController = TaskController();
-      final String? clientId = await _clientServices.getUserId();
-      if (clientId == null) return [];
-      return await taskController.getCreatedTasksByClient(int.parse(clientId));
-    } catch (e) {
-      debugPrint("Error fetching client tasks: $e");
-      return [];
+      CustomScaffold(
+          message: 'Failed to unlike task. Please try again.',
+          color: Colors.red);
     }
   }
 
@@ -642,98 +598,6 @@ class _LikesScreenState extends State<LikesScreen> {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _TaskSelectionDialog extends StatelessWidget {
-  final List<TaskModel> tasks;
-
-  const _TaskSelectionDialog({required this.tasks});
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Text(
-        'Select a Task to Assign',
-        style: GoogleFonts.poppins(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF0272B1),
-        ),
-        textAlign: TextAlign.center,
-      ),
-      content: Container(
-        width: double.maxFinite,
-        constraints: BoxConstraints(maxHeight: 300),
-        child: tasks.isEmpty
-            ? Center(
-                child: Text(
-                  'No tasks available',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              )
-            : ListView.builder(
-                shrinkWrap: true,
-                itemCount: tasks.length,
-                itemBuilder: (context, index) {
-                  final task = tasks[index];
-                  return Card(
-                    elevation: 1,
-                    margin: EdgeInsets.symmetric(vertical: 4),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
-                    child: ListTile(
-                      contentPadding: EdgeInsets.all(12),
-                      title: Text(
-                        task.title ?? 'Untitled Task',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF0272B1),
-                        ),
-                      ),
-                      subtitle: Text(
-                        task.description ?? 'No description',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                      trailing: task.contactPrice != null
-                          ? Text(
-                              '\$${task.contactPrice}',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.green[700],
-                              ),
-                            )
-                          : null,
-                      onTap: () => Navigator.of(context).pop(task),
-                    ),
-                  );
-                },
-              ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(
-            'Cancel',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: Colors.red[400],
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

@@ -640,13 +640,11 @@ class _TaskPageState extends State<TaskPage>
 
     final page = statusPages[task.taskStatus];
     if (page != null) {
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => page),
-      ).then((value) {
-        if (value != null) {
-          _loadMethod();
-        }
+      ).then((_) {
+        _loadMethod();
       });
     }
   }
@@ -764,6 +762,8 @@ class _TaskPageState extends State<TaskPage>
   }
 
   Widget _buildTaskRecieved(TaskFetch task) {
+    debugPrint('task.createdAt: ${task.createdAt}');
+    debugPrint('task.updatedAt: ${task.updatedAt}');
     DateTime createdDateTime = DateTime.parse(task.createdAt.toString());
 
     String formattedDate = DateFormat('MMM d, yyyy').format(createdDateTime);

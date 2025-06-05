@@ -176,35 +176,42 @@ class _TaskReviewState extends State<TaskReview> {
                   ),
                 )
               : SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // // Tasker Card
-                        if (widget.taskInformation?.tasker?.user == null) ...[
-                          _buildTaskerReviewSection(),
-                          SizedBox(height: 16),
-                          _buildTaskCard(),
-                          SizedBox(height: 16),
-                          _buildPendingPayment(),
-                          SizedBox(height: 16),
-                          _buildClientProfileCard(),
-                          SizedBox(height: 16),
-                          _buildTaskerActionButton(),
-                        ] else ...[
-                          _requestStatus == "Review" ? _buildClientReviewSection() : _buildDisputeSection(),
-                          SizedBox(height: 16),
-                          _buildTaskCard(),
-                          SizedBox(height: 16),
-                          _buildPendingPayment(),
-                          SizedBox(height: 16),
-                          _buildTaskerProfileCard(),
-                          SizedBox(height: 16),
-                          _buildClientActionButton(),
-                        ],
-                      ],
-                    ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // // Tasker Card
+                            if (widget.taskInformation?.tasker?.user ==
+                                null) ...[
+                              _buildTaskerReviewSection(),
+                              SizedBox(height: 16),
+                              _buildTaskCard(constraints),
+                              SizedBox(height: 16),
+                              _buildPendingPayment(),
+                              SizedBox(height: 16),
+                              _buildClientProfileCard(),
+                              SizedBox(height: 16),
+                              _buildTaskerActionButton(),
+                            ] else ...[
+                              _requestStatus == "Review"
+                                  ? _buildClientReviewSection()
+                                  : _buildDisputeSection(),
+                              SizedBox(height: 16),
+                              _buildTaskCard(constraints),
+                              SizedBox(height: 16),
+                              _buildPendingPayment(),
+                              SizedBox(height: 16),
+                              _buildTaskerProfileCard(),
+                              SizedBox(height: 16),
+                              _buildClientActionButton(),
+                            ],
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
     );
@@ -225,15 +232,18 @@ class _TaskReviewState extends State<TaskReview> {
               final result = await taskController.updateRequest(
                   _requestInformation?.task_taken_id ?? 0, value, 'Client');
               if (result.containsKey('success') && result['success']) {
-                Navigator.pop(context);
                 Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => TaskFinished(
-                      taskInformation: widget.taskInformation,
-                    ),
-                  ),
-                );
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TaskFinished(
+                        taskInformation: widget.taskInformation,
+                      ),
+                    )).then((value) {
+                  setState(() {
+                    _isLoading = false;
+                    _fetchRequestDetails();
+                  });
+                });
               } else {
                 CustomScaffold(
                     message: 'Failed to accept task', color: Colors.red);
@@ -944,7 +954,7 @@ class _TaskReviewState extends State<TaskReview> {
             'Please Wait for Our Team to review your dispute and file Appropriate Action.',
             textAlign: TextAlign.center,
             style:
-            GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
+                GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
       ),
@@ -989,43 +999,68 @@ class _TaskReviewState extends State<TaskReview> {
     );
   }
 
-  Widget _buildTaskCard() {
+  Widget _buildTaskCard(BoxConstraints constraints) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Theme.of(context).colorScheme.surfaceContainer,
       child: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Color(0xFF03045E).withOpacity(0.1),
+                    color:
+                        Theme.of(context).colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.task, color: Color(0xFF03045E), size: 24),
+                  child: Icon(Icons.task,
+                      color: Theme.of(context).colorScheme.primary, size: 24),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     _taskInformation!.title ?? 'Task',
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF03045E),
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 16),
             _buildTaskInfoRow(
-              icon: Icons.info,
+              icon: FontAwesomeIcons.locationDot,
+              label: 'Description',
+              value: _taskInformation!.description ?? 'N/A',
+            ),
+            const SizedBox(height: 16),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.briefcase,
+              label: 'Work Type',
+              value: _taskInformation!.workType ?? 'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.star,
+              label: 'Specialization',
+              value: _taskInformation!.taskerSpecialization?.specialization ??
+                  'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.dollarSign,
+              label: 'Contract Price',
+              value: _taskInformation!.contactPrice.toString() ?? 'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.info,
               label: 'Status',
-              value: _requestInformation?.task_status ?? 'Ongoing',
+              value: _requestInformation!.task_status ?? 'Confirmed',
             ),
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.calendar,

@@ -344,42 +344,40 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                         ],
                       ),
                     ),
-                    SliverToBoxAdapter(
-                      child: _buildSectionCard(
-                        "Contact Information",
-                        [
-                          _buildInfoRow(
-                              Icons.email, "Email", widget.tasker.user!.email),
-                          _buildInfoRow(
-                              Icons.phone, "Phone", "+63 XXX XXX XXXX"),
-                        ],
-                      ),
-                    ),
+                    // SliverToBoxAdapter(
+                    //   child: _buildSectionCard(
+                    //     "Contact Information",
+                    //     [
+                    //       _buildInfoRow(
+                    //           Icons.email, "Email", widget.tasker.user!.email),
+                    //       _buildInfoRow(
+                    //           Icons.phone, "Phone", "+63 XXX XXX XXXX"),
+                    //     ],
+                    //   ),
+                    // ),
                     SliverToBoxAdapter(
                       child: _buildSectionCard(
                         "Basic Information",
                         [
-                          _buildInfoRow(
-                              Icons.badge, "ID", "#${widget.tasker.id}"),
                           _buildInfoRow(Icons.work, "Specialization",
                               widget.tasker.specialization),
                         ],
                       ),
                     ),
-                    SliverToBoxAdapter(
-                      child: _buildSectionCard(
-                        "Skills & Expertise",
-                        [
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: skills.map((skill) {
-                              return _buildSkillChip(skill);
-                            }).toList(),
-                          ),
-                        ],
-                      ),
-                    ),
+                    // SliverToBoxAdapter(
+                    //   child: _buildSectionCard(
+                    //     "Skills & Expertise",
+                    //     [
+                    //       Wrap(
+                    //         spacing: 8,
+                    //         runSpacing: 8,
+                    //         children: skills.map((skill) {
+                    //           return _buildSkillChip(skill);
+                    //         }).toList(),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.all(16),
