@@ -6,7 +6,7 @@ import 'package:flutter_fe/view/task_user/task.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_fe/view/service_acc/home_page.dart';
 import 'package:flutter_fe/view/service_acc/like_screen.dart';
-import 'package:flutter_fe/view/service_acc/record.dart';
+import 'package:flutter_fe/view/service_acc/transaction_history.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ServiceAccMain extends StatefulWidget {
@@ -119,7 +119,7 @@ class _ServiceAccMainState extends State<ServiceAccMain>
             children: [
               TaskerHomePage(),
               TaskPage(),
-              RecordTaskerPage(),
+              TransactionHistoryPage(),
               ChatScreen(),
               LikeScreen(),
             ],
