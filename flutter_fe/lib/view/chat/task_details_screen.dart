@@ -78,7 +78,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
       setState(() {
         taskAssignment = response;
         selectedTaskStatus = taskStatus();
-        skills = taskAssignment?.tasker?.skills.split(',') ?? [];
+        skills = taskAssignment?.tasker?.skills?.split(',') ?? [];
         _isLoading = false;
 
         // Check if address exists and format it
