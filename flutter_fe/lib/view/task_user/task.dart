@@ -166,8 +166,9 @@ class _TaskPageState extends State<TaskPage>
 
       debugPrint("Tasker Tasks: ${clientTasks.toString()}");
       _filterTasks();
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint("Error fetching created tasks: $e");
+      debugPrintStack(stackTrace: stackTrace);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Failed to load tasks. Please try again."),
