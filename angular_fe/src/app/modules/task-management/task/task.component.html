@@ -162,6 +162,7 @@
                 'bg-blue-400': task.status === 'Already Taken',
                 'bg-yellow-400': task.status === 'On Hold',
                 'bg-red-800': task.status === 'Reported',
+                'bg-orange-400': task.status === 'In Progress',
                 'bg-gray-400': !task.status
               }"></div>
               <span class="text-sm text-black">{{ task.status || 'Empty' }}</span>
