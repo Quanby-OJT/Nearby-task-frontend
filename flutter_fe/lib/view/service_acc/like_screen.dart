@@ -8,6 +8,7 @@ import 'package:flutter_fe/view/service_acc/task_information.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class LikeScreen extends StatefulWidget {
   const LikeScreen({super.key});
@@ -130,24 +131,53 @@ class _LikeScreenState extends State<LikeScreen> {
       body: Column(
         children: [
           Padding(
-            padding: EdgeInsets.all(16.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                prefixIcon: Icon(Icons.search, color: Colors.grey),
-                filled: true,
-                fillColor: Color(0xFFB71A4A).withOpacity(0.1),
-                hintText: 'Search jobs...',
-                hintStyle: GoogleFonts.montserrat(color: Colors.grey),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.transparent, width: 0),
-                  borderRadius: BorderRadius.circular(10),
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: _searchController,
+                cursorColor: const Color(0xFFB71A4A),
+                decoration: InputDecoration(
+                  hintText: 'Search jobs...',
+                  hintStyle: GoogleFonts.montserrat(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withOpacity(0.5),
+                  ),
+                  border: InputBorder.none,
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(
+                            FontAwesomeIcons.xmark,
+                            color: const Color(0xFFB71A4A),
+                            size: 18,
+                          ),
+                          onPressed: () => _searchController.clear(),
+                        )
+                      : Icon(
+                          FontAwesomeIcons.magnifyingGlass,
+                          color: const Color(0xFFB71A4A),
+                          size: 18,
+                        ),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(
-                      color: Color(0xFFB71A4A), width: 2), // Fixed color
-                ),
+                style: GoogleFonts.montserrat(fontSize: 14),
+                onChanged: (value) {
+                  // Trigger rebuild to show/hide clear button
+                  (context as Element).markNeedsBuild();
+                },
               ),
             ),
           ),
@@ -264,6 +294,7 @@ class _LikeScreenState extends State<LikeScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[300]!, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.08),
@@ -288,186 +319,139 @@ class _LikeScreenState extends State<LikeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with status badge
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              // Header with combined status and urgency badge and delete icon
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Combined Status and Urgency Badge
+                    Row(
                       children: [
-                        Text(
-                          task.title,
-                          style: GoogleFonts.poppins(
-                            color: const Color(0xFF1A1A1A),
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 8),
+                        // Status Badge
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF4CAF50).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
+                            color: Color(0xFFB71A4A),
+                            borderRadius: BorderRadius.circular(5),
+                            border:
+                                Border.all(color: Color(0xFFB71A4A), width: 1),
+                          ),
+                          child: Text(
+                            task.status ?? 'Available',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        // Urgency Badge
+                        Container(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: task.urgency == 'Urgent'
+                                ? Colors.orange
+                                : Colors.grey[600],
+                            borderRadius: BorderRadius.circular(5),
                             border: Border.all(
-                              color: const Color(0xFF4CAF50).withOpacity(0.3),
+                              color: task.urgency == 'Urgent'
+                                  ? Colors.orange
+                                  : Colors.grey[600]!,
                               width: 1,
                             ),
                           ),
                           child: Text(
-                            task.status ?? "",
+                            task.urgency ?? 'Non-Urgent',
                             style: GoogleFonts.poppins(
-                              color: const Color(0xFF2E7D32),
                               fontSize: 12,
-                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFB71A4A).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.delete_outline,
-                        color: Color(0xFFB71A4A),
-                        size: 24,
+                    // Delete Icon
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFB71A4A).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      onPressed: () {
-                        _unlikeJob(task);
-                      },
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.delete,
+                          color: Color(0xFFB71A4A),
+                          size: 24,
+                        ),
+                        onPressed: () => _unlikeJob(task),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Description preview
-              if (task.description.isNotEmpty)
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.grey[200]!,
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    task.description,
-                    style: GoogleFonts.poppins(
-                      color: Colors.grey[700],
-                      fontSize: 14,
-                      height: 1.4,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  ],
                 ),
-
-              const SizedBox(height: 16),
-
-              // Price and action section
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Budget',
+              ),
+              // Title and Specialization
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      task.title ?? 'No Title',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w600,
+                        height: 1.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (task.specialization != null &&
+                        task.specialization!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          task.specialization!,
                           style: GoogleFonts.poppins(
+                            fontSize: 14,
                             color: Colors.grey[600],
-                            fontSize: 12,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice.roundToDouble())}',
-                          style: GoogleFonts.poppins(
-                            color: const Color(0xFFB71A4A),
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                      ),
+                  ],
+                ),
+              ),
 
-                  // View details button
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFB71A4A), Color(0xFF8B1538)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFB71A4A).withOpacity(0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  TaskInformation(taskID: task.id, role: _role),
-                            ),
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(12),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 12,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'View Details',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              const Icon(
-                                Icons.arrow_forward_ios,
-                                color: Colors.white,
-                                size: 14,
-                              ),
-                            ],
-                          ),
-                        ),
+              // Price and Task Begin Date
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice.roundToDouble())}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
                       ),
                     ),
-                  ),
-                ],
+                    if (task.taskBeginDate != null)
+                      Text(
+                        'Start: ${DateFormat('MMM dd, yyyy').format(DateTime.parse(task.taskBeginDate!))}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -541,13 +525,27 @@ class _LikeScreenState extends State<LikeScreen> {
         // Remove from local list
         setState(() {
           _filteredJobs.removeWhere((item) => item.id == job.id);
+          _loadLikedJobs();
         });
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result['message']),
+              content: Text(
+                result['message'],
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
               backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5),
+              ),
+              margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              duration: Duration(seconds: 3),
             ),
           );
         }
@@ -555,8 +553,21 @@ class _LikeScreenState extends State<LikeScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result['message']),
+              content: Text(
+                result['message'],
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
               backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5),
+              ),
+              margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              duration: Duration(seconds: 3),
             ),
           );
         }
@@ -566,60 +577,25 @@ class _LikeScreenState extends State<LikeScreen> {
       debugPrintStack(stackTrace: st);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to unlike job. Please try again.'),
+          SnackBar(
+            content: Text(
+              "Error in _unlikeJob: $e",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
             backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
           ),
         );
       }
     }
-  }
-
-  void _viewJobDetails(TaskModel job) {
-    // Navigate to a detail page for this job
-    // TODO: Replace this with navigation to your detail page
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(job.title ?? 'Job Details'),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: Text('Description: ${job.description}'),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: Text('Salary: \$${job.contactPrice}'),
-              ),
-              // Add more job details as needed
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('Application feature coming soon!')),
-              );
-            },
-            child: const Text('Apply'),
-          ),
-        ],
-      ),
-    );
   }
 }

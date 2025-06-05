@@ -291,13 +291,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
       int userId = int.parse(storage.read('user_id').toString());
       if (userId == 0) {
         debugPrint("User ID not found in storage");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Failed to load user image. Please try again."),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 2),
-          ),
-        );
+
         return;
       }
 
@@ -334,12 +328,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
         ];
       });
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Failed to load categories. Please try again."),
-          backgroundColor: Colors.red,
-        ),
-      );
+      debugPrint("Error fetching specialization: $error");
     }
   }
 
@@ -351,6 +340,8 @@ class _TaskerHomePageState extends State<TaskerHomePage>
     try {
       // Fetch all tasks
       List<TaskModel> fetchedTasks = await jobPostController.fetchAllJobs();
+
+      debugPrint("Fetched Tasks: ${fetchedTasks.length}");
 
       for (int i = 0; i < fetchedTasks.length; i++) {
         try {
@@ -366,6 +357,9 @@ class _TaskerHomePageState extends State<TaskerHomePage>
             urgency: fetchedTasks[i].urgency,
             workType: fetchedTasks[i].workType,
             scope: fetchedTasks[i].scope,
+            client: fetchedTasks[i].client,
+            address: fetchedTasks[i].address,
+            taskBeginDate: fetchedTasks[i].taskBeginDate,
           );
         } catch (e) {
           debugPrint(
@@ -399,13 +393,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
       setState(() {
         _isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Failed to load jobs or images. Please try again."),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
-        ),
-      );
+
       debugPrint("Error fetching tasks: $e");
     }
   }
@@ -418,12 +406,6 @@ class _TaskerHomePageState extends State<TaskerHomePage>
           _showLikeAnimation = true;
         });
         _likeAnimationController?.forward();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message']),
-            backgroundColor: Colors.green,
-          ),
-        );
       } else {
         throw Exception("Failed to like job");
       }
@@ -432,12 +414,6 @@ class _TaskerHomePageState extends State<TaskerHomePage>
         _showDislikeAnimation = true;
       });
       _dislikeAnimationController?.forward();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Failed to save like. Please try again."),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 
@@ -793,17 +769,17 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _role,
-                    style: GoogleFonts.poppins(
-                        color: Color(0xFFB71A4A), fontSize: 10),
-                  ),
-                  Text(
                     _fullName,
                     style: GoogleFonts.poppins(
                       color: Colors.black,
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
+                  ),
+                  Text(
+                    _role,
+                    style: GoogleFonts.poppins(
+                        color: Color(0xFFB71A4A), fontSize: 10),
                   ),
                 ],
               ),
@@ -1053,8 +1029,8 @@ class _TaskerHomePageState extends State<TaskerHomePage>
   Widget _buildFrontCard(TaskModel task, int index) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    final cardHeight = screenHeight * 0.75; // Responsive height
-    final imageHeight = cardHeight * 0.6; // 60% for images
+    final cardHeight = screenHeight * 0.75;
+    final imageHeight = cardHeight * 0.6;
 
     // Reset image swiper index to 0 when card is built to prevent RangeError
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1069,7 +1045,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
 
     return Center(
       child: SizedBox(
-        width: screenWidth * 0.95, // Responsive width
+        width: screenWidth * 0.95,
         height: cardHeight,
         child: Card(
           elevation: 12,
@@ -1084,6 +1060,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                 // Image swiper section
                 SizedBox(
                   height: imageHeight,
+                  width: double.infinity,
                   child: Stack(
                     children: [
                       task.imageUrls != null && task.imageUrls!.isNotEmpty
@@ -1193,19 +1170,18 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                         padding:
                             EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: Color(0xFF0272B1).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
+                          color: Color(0xFFB71A4A),
+                          borderRadius: BorderRadius.circular(5),
                           border: Border.all(
-                            color: Color(0xFF0272B1).withOpacity(0.3),
+                            color: Color(0xFFB71A4A),
                             width: 1,
                           ),
                         ),
                         child: Text(
-                          task.taskerSpecialization?.specialization ??
-                              'General',
+                          task.taskerSpecialization?.specialization ?? 'All',
                           style: GoogleFonts.poppins(
                             fontSize: 12,
-                            color: Color(0xFF0272B1),
+                            color: Colors.white,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -1214,9 +1190,8 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                       Text(
                         task.title ?? 'No Title',
                         style: GoogleFonts.poppins(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1A1A1A),
+                          fontSize: 16,
+                          color: Colors.black,
                           height: 1.2,
                         ),
                         maxLines: 2,
@@ -1226,24 +1201,12 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.green.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: Colors.green.withOpacity(0.3),
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice.roundToDouble() ?? 0)}',
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green[700],
-                              ),
+                          Text(
+                            '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice.roundToDouble() ?? 0)}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
                             ),
                           ),
                           Row(
@@ -1379,18 +1342,18 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                       padding:
                           EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Color(0xFF0272B1).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
+                        color: Color(0xFFB71A4A),
+                        borderRadius: BorderRadius.circular(5),
                         border: Border.all(
-                          color: Color(0xFF0272B1).withOpacity(0.3),
+                          color: Color(0xFFB71A4A),
                           width: 1,
                         ),
                       ),
                       child: Text(
                         task.taskerSpecialization?.specialization ?? 'General',
                         style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: Color(0xFF0272B1),
+                          fontSize: 12,
+                          color: Colors.white,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -1411,18 +1374,18 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                 ),
 
                 SizedBox(height: 24),
-
-                // Title
-                Text(
-                  task.title ?? 'No Title',
-                  style: GoogleFonts.poppins(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1A1A1A),
-                    height: 1.2,
+                Center(
+                  child: Text(
+                    task.title ?? 'No Title',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      height: 1.2,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
 
                 SizedBox(height: 20),
@@ -1430,7 +1393,6 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                 // Description section
                 Expanded(
                   child: Container(
-                    padding: EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
@@ -1446,100 +1408,154 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                         ),
                       ],
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+                    child: SingleChildScrollView(
+                      child: Container(
+                        padding: EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              Icons.description_outlined,
-                              color: Color(0xFF0272B1),
-                              size: 20,
+                            Row(
+                              children: [
+                                Text(
+                                  'Name',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
                             ),
-                            SizedBox(width: 8),
-                            Text(
-                              'Description',
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF0272B1),
+                            SizedBox(height: 8),
+                            Column(children: [
+                              SingleChildScrollView(
+                                child: Text(
+                                  '${task.client?.user?.firstName} ${task.client?.user?.lastName}' ??
+                                      'No client name available for this task.',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
                               ),
+                            ]),
+                            SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Text(
+                                  'Location',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
                             ),
+                            SizedBox(height: 8),
+                            Column(children: [
+                              SingleChildScrollView(
+                                child: Text(
+                                  '${task.address?.formattedAddress}' ??
+                                      'No location available for this task.',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ),
+                            ]),
+                            SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Text(
+                                  'Start Date',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 8),
+                            Column(children: [
+                              SingleChildScrollView(
+                                child: Text(
+                                  '${DateFormat('MMM dd, yyyy HH:mm a').format(DateTime.parse(task.taskBeginDate ?? ''))}' ??
+                                      'No start date available for this task.',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ),
+                            ]),
+                            SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Text(
+                                  'Description',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 8),
+                            Column(children: [
+                              SingleChildScrollView(
+                                child: Text(
+                                  task.description ??
+                                      'No description available for this task.',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ),
+                            ]),
+                            SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Text(
+                                  'Price',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 8),
+                            Column(children: [
+                              SingleChildScrollView(
+                                child: Text(
+                                  '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice.roundToDouble() ?? 0)}' ??
+                                      'No price available for this task.',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ),
+                            ]),
                           ],
                         ),
-                        SizedBox(height: 16),
-                        Expanded(
-                          child: SingleChildScrollView(
-                            child: Text(
-                              task.description ??
-                                  'No description available for this task.',
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                color: Colors.grey[700],
-                                height: 1.6,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
-
-                SizedBox(height: 20),
-
+                SizedBox(height: 10),
                 // Bottom section with price and actions
                 Container(
-                  padding: EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Colors.grey[200]!,
-                      width: 1,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: Offset(0, 4),
-                      ),
-                    ],
-                  ),
+                  padding: EdgeInsets.all(10),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Budget',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.green.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice.roundToDouble() ?? 0)}',
-                              style: GoogleFonts.poppins(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green[700],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
                       Row(
                         children: [
                           Container(
