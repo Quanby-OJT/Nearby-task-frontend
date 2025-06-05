@@ -22,7 +22,7 @@ import 'package:flutter_fe/view/task/task_review.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../model/client_model.dart';
 
 class TaskPage extends StatefulWidget {
@@ -466,36 +466,52 @@ class _TaskPageState extends State<TaskPage>
               ? const Center(child: Text("No tasks available"))
               : Column(
                   children: [
-                    // Search
                     Padding(
                       padding:
                           EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      child: TextField(
-                        controller: _searchController,
-                        cursorColor: const Color(0xFFB71A4A),
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.white,
-                          hintText: 'Search tasks...',
-                          hintStyle:
-                              GoogleFonts.poppins(color: Colors.grey[400]),
-                          prefixIcon:
-                              Icon(Icons.search, color: Colors.grey[400]),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey[200]!),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                                color: const Color(0xFFB71A4A), width: 2),
-                          ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 4,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
                         ),
-                        style: GoogleFonts.poppins(fontSize: 14),
+                        child: TextField(
+                          controller: _searchController,
+                          cursorColor: const Color(0xFFB71A4A),
+                          decoration: InputDecoration(
+                            hintText: 'Search tasks...',
+                            hintStyle:
+                                GoogleFonts.poppins(color: Colors.grey[500]),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 14),
+                            suffixIcon: _searchController.text.isNotEmpty
+                                ? IconButton(
+                                    icon: Icon(
+                                      FontAwesomeIcons.xmark,
+                                      color: const Color(0xFFB71A4A),
+                                      size: 18,
+                                    ),
+                                    onPressed: () => _searchController.clear(),
+                                  )
+                                : Icon(
+                                    FontAwesomeIcons.magnifyingGlass,
+                                    color: const Color(0xFFB71A4A),
+                                    size: 18,
+                                  ),
+                          ),
+                          style: GoogleFonts.poppins(fontSize: 14),
+                          onChanged: (value) {
+                            // Trigger rebuild to show/hide clear button
+                            (context as Element).markNeedsBuild();
+                          },
+                        ),
                       ),
                     ),
                     TabBar(

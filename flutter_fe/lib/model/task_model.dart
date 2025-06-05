@@ -101,11 +101,11 @@ class TaskModel {
       scope: json['scope']?.toString() ?? '',
       isVerifiedDocument: json['is_verified'] as bool?,
       taskBeginDate: json['task_begin_date']?.toString(),
-      client: json['client'] != null && json['client']['user'] != null
+      client: json['clients'] != null && json['clients']['user'] != null
           ? ClientModel.fromJson({
               'preferences': '',
               'client_address': '',
-              'user': json['client']['user'],
+              'user': json['clients']['user'],
             })
           : null,
       tasker: json['tasker'] != null && json['tasker']['user'] != null
