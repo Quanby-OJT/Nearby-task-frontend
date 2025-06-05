@@ -147,11 +147,12 @@ class _JobPostPageState extends State<JobPostPage>
       final user =
           await _profileController.getAuthenticatedUser(context, parsedUserId);
       final response = await _clientServices.fetchUserIDImage(parsedUserId);
-      
+
       // Check if user has Review or Active status
       final userAccStatus = user?.user.accStatus;
-      final isStatusAllowed = userAccStatus == 'Review' || userAccStatus == 'Active';
-      
+      final isStatusAllowed =
+          userAccStatus == 'Review' || userAccStatus == 'Active';
+
       if (response['success'] == true) {
         setState(() {
           _user = user;
@@ -461,7 +462,8 @@ class _JobPostPageState extends State<JobPostPage>
         _buildSearchBar(hint: 'Search tasks by status...'),
         _buildFilterBar(
           count: _filteredTasksStatus.length,
-          filterLabel: _currentFilterStatus ?? '',
+          filterLabel:
+              _currentFilterStatus == 'All' ? '' : _currentFilterStatus,
           onFilterPressed: _showFilterModalStatus,
         ),
         Expanded(
@@ -507,7 +509,6 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
-  // Reusable filter bar widget
   Widget _buildFilterBar({
     required int count,
     String? filterLabel,
@@ -719,7 +720,6 @@ class _JobPostPageState extends State<JobPostPage>
       'Declined': TaskDeclined(taskInformation: task),
       'Rejected': TaskRejected(taskInformation: task),
       'Disputed': TaskDisputed(taskInformation: task),
-
     };
 
     final page = statusPages[task.taskStatus];
@@ -727,10 +727,8 @@ class _JobPostPageState extends State<JobPostPage>
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => page),
-      ).then((value) {
-        if (value != null) {
-          _initializeData();
-        }
+      ).then((_) {
+        _initializeData();
       });
     }
   }
@@ -769,9 +767,9 @@ class _JobPostPageState extends State<JobPostPage>
 
   // Build task received timestamp
   Widget _buildTaskReceived(TaskFetch task) {
-    final createdDateTime = DateTime.parse(task.createdAt.toString());
-    final formattedDate = DateFormat('MMM d, yyyy').format(createdDateTime);
-    final difference = DateTime.now().toUtc().difference(createdDateTime);
+    final updatedDateTime = DateTime.parse(task.updatedAt.toString());
+    final formattedDate = DateFormat('MMM d, yyyy').format(updatedDateTime);
+    final difference = DateTime.now().toUtc().difference(updatedDateTime);
     final timeAgo = difference.inMinutes < 60
         ? '${difference.inMinutes} ${difference.inMinutes == 1 ? 'min' : 'mins'} ago'
         : '${difference.inHours} ${difference.inHours == 1 ? 'hour' : 'hours'} ago';
@@ -832,7 +830,9 @@ class _JobPostPageState extends State<JobPostPage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              task.post_task?.title ?? 'Untitled Task',
+              (task.post_task?.title?.length ?? 0) > 20
+                  ? '${task.post_task?.title?.substring(0, 20)}...'
+                  : task.post_task?.title ?? 'Untitled Task',
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
