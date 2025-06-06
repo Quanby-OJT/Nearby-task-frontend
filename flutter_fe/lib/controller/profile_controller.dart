@@ -1166,15 +1166,13 @@ class ProfileController {
       );
 
       TaskerModel tasker = TaskerModel(
-          id: userId,
+          taskerId: userId,
           bio: bioController.text.trim(),
           specialization: specializationIdController.text.trim(),
           skills: skillsController.text.trim(),
           availability: availabilityController.text.trim() == 'true',
-          wage: double.tryParse(wageController.text.trim()) ?? 0.0,
+          wagePerHour: double.tryParse(wageController.text.trim()) ?? 0.0,
           payPeriod: payPeriodController.text.trim(),
-          group: taskerGroupController.text.trim() == 'true',
-          birthDate: DateTime.parse(birthdateController.text),
           user: user,
           rating: 0);
 
@@ -1330,7 +1328,7 @@ class ProfileController {
 
     if (role == 'Client') {
       ClientModel client = ClientModel(
-        id: 0,
+        clientId: 0,
         preferences: prefsController.text,
         clientAddress: clientAddressController.text,
       );
@@ -1369,19 +1367,15 @@ class ProfileController {
       };
 
       TaskerModel tasker = TaskerModel(
-          id: taskerId,
+          taskerId: taskerId,
           bio: bioController.text,
-          group: false,
           specialization: specializationController.text,
           skills: skillsController.text,
-          address: address,
-          taskerDocuments: documentFile.toString(),
           availability:
               availabilityController.text == "I am available" ? true : false,
           socialMediaLinks: socials,
-          wage: double.parse(cleanedWage),
+          wagePerHour: double.parse(cleanedWage),
           payPeriod: payPeriodController.text,
-          birthDate: DateTime.parse(birthdateController.text),
           user: null,
           rating: 0);
 

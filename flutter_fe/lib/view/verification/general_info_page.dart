@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
+import 'package:flutter_fe/model/specialization.dart';
+import 'package:flutter_fe/service/job_post_service.dart';
 import 'dart:convert';
 
 class GeneralInfoPage extends StatefulWidget {
@@ -20,6 +22,7 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
   final _formKey = GlobalKey<FormState>();
   final GetStorage storage = GetStorage();
   final ProfileController _profileController = ProfileController();
+  final JobPostService _jobPostService = JobPostService();
 
   // Text controllers
   final TextEditingController _firstNameController = TextEditingController();
@@ -29,6 +32,8 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _birthdateController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
+  final TextEditingController _skillsController = TextEditingController();
+  final TextEditingController _wageController = TextEditingController();
 
   // Social media controllers
   final TextEditingController _facebookController = TextEditingController();
@@ -40,6 +45,22 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
   String? _gender;
   DateTime? _birthdate;
   bool _isLoading = false;
+  String? _userRole;
+
+  // Specialization data
+  List<SpecializationModel> _specializations = [];
+  SpecializationModel? _selectedSpecialization;
+  bool _isLoadingSpecializations = false;
+
+  // Pay period data
+  String _selectedPayPeriod = 'Hourly';
+  final List<String> _payPeriods = [
+    'Hourly',
+    'Daily',
+    'Weekly',
+    'Monthly',
+    'Per Project'
+  ];
 
   @override
   void initState() {
@@ -48,6 +69,7 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
 
     Future.microtask(() {
       _loadUserData();
+      _loadSpecializations();
     });
   }
 
@@ -60,6 +82,8 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
     _phoneController.dispose();
     _birthdateController.dispose();
     _bioController.dispose();
+    _skillsController.dispose();
+    _wageController.dispose();
     _facebookController.dispose();
     _instagramController.dispose();
     _linkedinController.dispose();
@@ -79,6 +103,9 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
         if (authUser != null && mounted) {
           // Populate form fields with user data
           setState(() {
+            // Store user role for conditional UI
+            _userRole = authUser.user.role;
+
             _firstNameController.text = authUser.user.firstName;
             _lastNameController.text = authUser.user.lastName;
 
@@ -117,6 +144,34 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
             // Set bio if available in user model
             if (authUser.user.bio != null && authUser.user.bio!.isNotEmpty) {
               _bioController.text = authUser.user.bio!;
+            }
+
+            // Set tasker-specific data if available
+            if (authUser.tasker != null) {
+              if (authUser.tasker!.skills != null &&
+                  authUser.tasker!.skills!.isNotEmpty) {
+                _skillsController.text = authUser.tasker!.skills!;
+              }
+
+              if (authUser.tasker!.wagePerHour != null) {
+                _wageController.text = authUser.tasker!.wagePerHour.toString();
+              }
+
+              if (authUser.tasker!.payPeriod != null &&
+                  authUser.tasker!.payPeriod!.isNotEmpty) {
+                _selectedPayPeriod = authUser.tasker!.payPeriod!;
+              }
+
+              // Set selected specialization if available
+              if (authUser.tasker!.specializationId != null) {
+                // Find matching specialization from loaded list
+                for (var spec in _specializations) {
+                  if (spec.id == authUser.tasker!.specializationId) {
+                    _selectedSpecialization = spec;
+                    break;
+                  }
+                }
+              }
             }
 
             // Set social media links if available in user model
@@ -183,6 +238,34 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
     }
   }
 
+  Future<void> _loadSpecializations() async {
+    try {
+      setState(() {
+        _isLoadingSpecializations = true;
+      });
+
+      debugPrint('GeneralInfoPage: Loading specializations...');
+      final specializations = await _jobPostService.getSpecializations();
+
+      if (mounted) {
+        setState(() {
+          _specializations = specializations;
+          _isLoadingSpecializations = false;
+        });
+
+        debugPrint(
+            'GeneralInfoPage: Loaded ${specializations.length} specializations');
+      }
+    } catch (e) {
+      debugPrint('GeneralInfoPage: Error loading specializations: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingSpecializations = false;
+        });
+      }
+    }
+  }
+
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -214,6 +297,40 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
 
   void _submitInfo() {
     if (_formKey.currentState!.validate()) {
+      // Additional validation for tasker-specific fields
+      if (_userRole?.toLowerCase() == 'tasker') {
+        if (_selectedSpecialization == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please select a specialization'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+
+        if (_wageController.text.trim().isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please enter your hourly wage'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+
+        double? wage = double.tryParse(_wageController.text.trim());
+        if (wage == null || wage <= 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please enter a valid wage amount'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+      }
+
       // Create social media links object
       Map<String, String> socialMediaLinks = {
         'facebook': _facebookController.text.trim(),
@@ -239,12 +356,27 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
         'birthdate': _birthdate != null
             ? DateFormat('yyyy-MM-dd').format(_birthdate!)
             : null,
-        'payPeriod': 'Hourly', // Default value
-        'wage': 0.0, // Default value
         'socialMediaJson': socialMediaJson,
         'bio': _bioController.text.trim(),
         'socialMediaLinks': socialMediaLinks,
       };
+
+      // Add tasker-specific fields if user is a tasker
+      if (_userRole?.toLowerCase() == 'tasker') {
+        userInfo.addAll({
+          'specializationId': _selectedSpecialization?.id,
+          'skills': _skillsController.text.trim(),
+          'payPeriod': _selectedPayPeriod,
+          'wage': double.parse(_wageController.text.trim()),
+          'availability': true, // Default to available
+        });
+      } else {
+        // For client users, add default values
+        userInfo.addAll({
+          'payPeriod': 'Hourly',
+          'wage': 0.0,
+        });
+      }
 
       // Save to storage for future reference
       storage.write('bio', _bioController.text.trim());
@@ -434,10 +566,204 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
                       ),
                     ),
 
-                    // After the specialization section, add the pay period and wage section
-                    const SizedBox(height: 24),
+                    // Tasker-specific fields (only show for taskers)
+                    if (_userRole?.toLowerCase() == 'tasker') ...[
+                      const SizedBox(height: 24),
 
-                    // After the Compensation Details section, add Social Media Links section
+                      // Professional Details Section for Taskers
+                      Text(
+                        'Professional Details',
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[800],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Specialization Dropdown
+                      Text(
+                        'Specialization *',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: _isLoadingSpecializations
+                            ? Container(
+                                height: 56,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 16),
+                                child: const Row(
+                                  children: [
+                                    Icon(Icons.work, color: Colors.grey),
+                                    SizedBox(width: 12),
+                                    Text('Loading specializations...'),
+                                    Spacer(),
+                                    SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : DropdownButtonFormField<SpecializationModel>(
+                                value: _selectedSpecialization,
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  fillColor: Colors.grey[100],
+                                  prefixIcon:
+                                      Icon(Icons.work, color: Colors.grey[600]),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Colors.grey[300]!),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: const BorderSide(
+                                        color: Color(0xFF0272B1), width: 2),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 16),
+                                  hintText: 'Select your specialization',
+                                ),
+                                items: _specializations.map((specialization) {
+                                  return DropdownMenuItem<SpecializationModel>(
+                                    value: specialization,
+                                    child: Text(
+                                      specialization.specialization,
+                                      style: GoogleFonts.poppins(fontSize: 14),
+                                    ),
+                                  );
+                                }).toList(),
+                                onChanged: (SpecializationModel? newValue) {
+                                  setState(() {
+                                    _selectedSpecialization = newValue;
+                                  });
+                                },
+                                validator: (value) {
+                                  if (value == null) {
+                                    return 'Please select a specialization';
+                                  }
+                                  return null;
+                                },
+                              ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Skills Text Field
+                      _buildTextField(
+                        controller: _skillsController,
+                        label: 'Skills & Expertise',
+                        icon: Icons.star,
+                        maxLines: 3,
+                        keyboardType: TextInputType.multiline,
+                        hintText:
+                            'List your specific skills, certifications, and areas of expertise',
+                        validator: (value) {
+                          if (_userRole?.toLowerCase() == 'tasker' &&
+                              (value == null || value.isEmpty)) {
+                            return 'Please describe your skills and expertise';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Pay Period Dropdown
+                      Text(
+                        'Pay Period *',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        value: _selectedPayPeriod,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.grey[100],
+                          prefixIcon:
+                              Icon(Icons.schedule, color: Colors.grey[600]),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(
+                                color: Color(0xFF0272B1), width: 2),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 16),
+                        ),
+                        items: _payPeriods.map((period) {
+                          return DropdownMenuItem<String>(
+                            value: period,
+                            child: Text(
+                              period,
+                              style: GoogleFonts.poppins(fontSize: 14),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedPayPeriod = newValue ?? 'Hourly';
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Wage/Rate Text Field
+                      _buildTextField(
+                        controller: _wageController,
+                        label:
+                            'Rate (PHP per ${_selectedPayPeriod.toLowerCase().replaceAll('ly', '')})',
+                        icon: Icons.attach_money,
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        hintText: 'Enter your rate in PHP',
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d+\.?\d{0,2}')),
+                        ],
+                        validator: (value) {
+                          if (_userRole?.toLowerCase() == 'tasker') {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your rate';
+                            }
+                            double? wage = double.tryParse(value);
+                            if (wage == null || wage <= 0) {
+                              return 'Please enter a valid amount';
+                            }
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'This rate will be visible to clients when they view your profile',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+
                     const SizedBox(height: 24),
 
                     // Social Media Links Section
