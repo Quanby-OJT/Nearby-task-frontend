@@ -373,18 +373,6 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
           });
           return;
         }
-        
-        // Case 2: Moderator trying to act on another Moderator's action
-        if (this.userRole === 'Moderator' && priorActionRole === 'Moderator') {
-          Swal.fire({
-            title: 'Error',
-            text: 'You don\'t have authority to take action here since this action is already made by a moderator',
-            icon: 'error',
-            confirmButtonText: 'OK',
-            confirmButtonColor: '#3C28CC'
-          });
-          return;
-        }
       }
 
       // If authorized, proceed with showing the ban reason modal
@@ -467,18 +455,6 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
           Swal.fire({
             title: 'Error',
             text: 'You don\'t have authority to take action here since this action is made by an admin',
-            icon: 'error',
-            confirmButtonText: 'OK',
-            confirmButtonColor: '#3C28CC'
-          });
-          return;
-        }
-        
-        // Case 2: Moderator trying to act on another Moderator's action
-        if (this.userRole === 'Moderator' && priorActionRole === 'Moderator') {
-          Swal.fire({
-            title: 'Error',
-            text: 'You don\'t have authority to take action here since this action is already made by a moderator',
             icon: 'error',
             confirmButtonText: 'OK',
             confirmButtonColor: '#3C28CC'
