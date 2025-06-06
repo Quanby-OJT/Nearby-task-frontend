@@ -1,7 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_fe/model/client_model.dart';
 import 'package:flutter_fe/model/address.dart';
 import 'package:flutter_fe/model/images_model.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
+import 'package:flutter_fe/model/user_model.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'task_model.g.dart';
@@ -34,35 +36,36 @@ class TaskModel {
   final bool? ableToDelete;
   final List<int>? imageIds;
   final List<ImagesModel>? imageUrls;
+  final UserModel? user;
 
-  TaskModel({
-    required this.id,
-    this.clientId,
-    required this.title,
-    this.specialization,
-    this.specializationId,
-    this.relatedSpecializationsIds,
-    this.addressID,
-    required this.description,
-    required this.urgency,
-    this.status,
-    required this.contactPrice,
-    this.remarks,
-    required this.workType,
-    required this.scope,
-    this.isVerifiedDocument,
-    this.taskBeginDate,
-    this.client,
-    this.tasker,
-    this.createdAt,
-    this.updatedAt,
-    this.address,
-    this.imageUrl,
-    this.taskerSpecialization,
-    this.ableToDelete,
-    this.imageIds,
-    this.imageUrls,
-  });
+  TaskModel(
+      {required this.id,
+      this.clientId,
+      required this.title,
+      this.specialization,
+      this.specializationId,
+      this.relatedSpecializationsIds,
+      this.addressID,
+      required this.description,
+      required this.urgency,
+      this.status,
+      required this.contactPrice,
+      this.remarks,
+      required this.workType,
+      required this.scope,
+      this.isVerifiedDocument,
+      this.taskBeginDate,
+      this.client,
+      this.tasker,
+      this.createdAt,
+      this.updatedAt,
+      this.address,
+      this.imageUrl,
+      this.taskerSpecialization,
+      this.ableToDelete,
+      this.imageIds,
+      this.imageUrls,
+      this.user});
 
   factory TaskModel.fromJson(Map<String, dynamic> json) {
     String urgencyValue;
@@ -74,6 +77,8 @@ class TaskModel {
     } else {
       urgencyValue = "Non-Urgent";
     }
+    debugPrint("Raw Task JSON: $json");
+    debugPrint("Moderator Information: ${json["action_by"]}");
 
     return TaskModel(
       id: json['task_id'] as int? ?? 0,
@@ -96,11 +101,11 @@ class TaskModel {
       scope: json['scope']?.toString() ?? '',
       isVerifiedDocument: json['is_verified'] as bool?,
       taskBeginDate: json['task_begin_date']?.toString(),
-      client: json['client'] != null && json['client']['user'] != null
+      client: json['clients'] != null && json['clients']['user'] != null
           ? ClientModel.fromJson({
               'preferences': '',
               'client_address': '',
-              'user': json['client']['user'],
+              'user': json['clients']['user'],
             })
           : null,
       tasker: json['tasker'] != null && json['tasker']['user'] != null
@@ -131,6 +136,10 @@ class TaskModel {
           ? (json['images'] as List)
               .map((item) => ImagesModel.fromJson(item))
               .toList()
+          : null,
+      //For Moderator Only
+      user: json['action_by'] != null
+          ? UserModel.fromJson(json['action_by'])
           : null,
     );
   }

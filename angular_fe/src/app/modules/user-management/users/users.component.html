@@ -4,7 +4,7 @@
       <h3 class="font-semibold font-poppins text-[#3C28CC] text-xl py-2">User Management</h3>
       <div class="text-muted-foreground space-x-1 text-xs font-medium">
         <a href="" class=" text-sm font-poppins hover:text-[#3C28CC] py-2"><b>Dashboards > User Management</b></a>
-        <p class=" py-2 text-sm font-poppins">The user management is used for managing the users in the applications.</p>
+        <p class=" py-2 text-sm font-poppins">The user management is used for managing the users in the applications</p>
       </div>
     </div>
   </div>
@@ -25,14 +25,6 @@
       </button>
     </div>
   </div>
-
-<!-- Loading Spinner -->
-<div *ngIf="isLoading" class="fixed inset-0 z-50 flex flex-col justify-center items-center lg:w-308 lg:h-170 xl:w-420 xl:h-200 ">
-  <div class="animate-slow-spin text-xs text-[#3C28CC] flex flex-col justify-center items-center">
-    <svg-icon src="./assets/icons/heroicons/outline/logo.svg" [svgClass]="'h-20 w-20'"></svg-icon>
-    <strong>Nearby Task</strong>
-  </div>
-</div>
 
   <div *ngIf="!isLoading" class="border-muted/20 bg-background flex min-w-full flex-col rounded-xl border p-2">
     <app-table-action></app-table-action>

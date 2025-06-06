@@ -768,17 +768,17 @@ class _ClientHomePageState extends State<ClientHomePage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _role,
-                    style: GoogleFonts.poppins(
-                        color: const Color(0xFFB71A4A), fontSize: 10),
-                  ),
-                  Text(
                     _fullName,
                     style: GoogleFonts.poppins(
                       color: Colors.black,
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
+                  ),
+                  Text(
+                    _role,
+                    style: GoogleFonts.poppins(
+                        color: const Color(0xFFB71A4A), fontSize: 10),
                   ),
                 ],
               ),

@@ -9,6 +9,7 @@ import 'package:flutter_fe/view/task/task_declined.dart';
 import 'package:flutter_fe/view/task/task_finished.dart';
 import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:flutter_fe/view/task/task_pending.dart';
+import 'package:flutter_fe/view/task/task_rejected.dart';
 import 'package:flutter_fe/view/task/task_review.dart';
 import 'package:flutter_fe/view/verification/verification_page.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -23,7 +24,7 @@ import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/view/business_acc/business_task_detail.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/add_task.dart';
-import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
+import 'package:flutter_fe/view/task/task_disputed.dart';
 import 'package:intl/intl.dart';
 
 class JobPostPage extends StatefulWidget {
@@ -146,11 +147,12 @@ class _JobPostPageState extends State<JobPostPage>
       final user =
           await _profileController.getAuthenticatedUser(context, parsedUserId);
       final response = await _clientServices.fetchUserIDImage(parsedUserId);
-      
+
       // Check if user has Review or Active status
       final userAccStatus = user?.user.accStatus;
-      final isStatusAllowed = userAccStatus == 'Review' || userAccStatus == 'Active';
-      
+      final isStatusAllowed =
+          userAccStatus == 'Review' || userAccStatus == 'Active';
+
       if (response['success'] == true) {
         setState(() {
           _user = user;
@@ -317,7 +319,6 @@ class _JobPostPageState extends State<JobPostPage>
                 context,
                 MaterialPageRoute(
                     builder: (context) => const VerificationPage()),
-
               );
               if (result == true) {
                 await _fetchUserIDImage();
@@ -461,7 +462,8 @@ class _JobPostPageState extends State<JobPostPage>
         _buildSearchBar(hint: 'Search tasks by status...'),
         _buildFilterBar(
           count: _filteredTasksStatus.length,
-          filterLabel: _currentFilterStatus ?? '',
+          filterLabel:
+              _currentFilterStatus == 'All' ? '' : _currentFilterStatus,
           onFilterPressed: _showFilterModalStatus,
         ),
         Expanded(
@@ -507,7 +509,6 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
-  // Reusable filter bar widget
   Widget _buildFilterBar({
     required int count,
     String? filterLabel,
@@ -627,13 +628,9 @@ class _JobPostPageState extends State<JobPostPage>
                     children: [
                       IconButton(
                         icon: const Icon(Icons.edit, color: Color(0xFFE23670)),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => EditTaskPage(task: task)),
-                          ).then((value) => _fetchTasksManagement());
-                        },
+                        onPressed: () => task.ableToDelete == true
+                            ? _navigateToEditTask(task)
+                            : _cannotEditTask(task),
                       ),
                       IconButton(
                         icon:
@@ -665,9 +662,9 @@ class _JobPostPageState extends State<JobPostPage>
               ),
               const SizedBox(height: 8),
               _buildTaskInfoRow(
-                icon: FontAwesomeIcons.coins,
+                icon: FontAwesomeIcons.pesoSign,
                 iconColor: Colors.green[400],
-                text: '${task.contactPrice ?? 0} Credits',
+                text: '${task.contactPrice ?? 0}',
               ),
               const SizedBox(height: 8),
               _buildTaskInfoRow(
@@ -721,6 +718,8 @@ class _JobPostPageState extends State<JobPostPage>
       'Ongoing': TaskOngoing(taskInformation: task, role: _user?.user.role),
       'Review': TaskReview(taskInformation: task),
       'Declined': TaskDeclined(taskInformation: task),
+      'Rejected': TaskRejected(taskInformation: task),
+      'Disputed': TaskDisputed(taskInformation: task),
     };
 
     final page = statusPages[task.taskStatus];
@@ -728,10 +727,8 @@ class _JobPostPageState extends State<JobPostPage>
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => page),
-      ).then((value) {
-        if (value != null) {
-          _initializeData();
-        }
+      ).then((_) {
+        _initializeData();
       });
     }
   }
@@ -770,9 +767,9 @@ class _JobPostPageState extends State<JobPostPage>
 
   // Build task received timestamp
   Widget _buildTaskReceived(TaskFetch task) {
-    final createdDateTime = DateTime.parse(task.createdAt.toString());
-    final formattedDate = DateFormat('MMM d, yyyy').format(createdDateTime);
-    final difference = DateTime.now().toUtc().difference(createdDateTime);
+    final updatedDateTime = DateTime.parse(task.updatedAt.toString());
+    final formattedDate = DateFormat('MMM d, yyyy').format(updatedDateTime);
+    final difference = DateTime.now().toUtc().difference(updatedDateTime);
     final timeAgo = difference.inMinutes < 60
         ? '${difference.inMinutes} ${difference.inMinutes == 1 ? 'min' : 'mins'} ago'
         : '${difference.inHours} ${difference.inHours == 1 ? 'hour' : 'hours'} ago';
@@ -833,7 +830,9 @@ class _JobPostPageState extends State<JobPostPage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              task.post_task?.title ?? 'Untitled Task',
+              (task.post_task?.title?.length ?? 0) > 20
+                  ? '${task.post_task?.title?.substring(0, 20)}...'
+                  : task.post_task?.title ?? 'Untitled Task',
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -958,6 +957,48 @@ class _JobPostPageState extends State<JobPostPage>
         ],
       ),
     );
+  }
+
+  Future<void> _cannotEditTask(TaskModel task) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Cannot Edit Task',
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFFB71A4A),
+          ),
+        ),
+        content: Text(
+          'This task is currently being worked on by a tasker. Please wait for the task to be completed before editing it.',
+          style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE23670),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text(
+              'OK',
+              style: GoogleFonts.poppins(fontSize: 14, color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _navigateToEditTask(TaskModel task) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => EditTaskPage(task: task)),
+    ).then((value) => _fetchTasksManagement());
   }
 
   @override

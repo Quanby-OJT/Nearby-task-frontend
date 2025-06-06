@@ -179,7 +179,23 @@ class _TaskInformationState extends State<TaskInformation> {
         _isApplying = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User ID not found')),
+        SnackBar(
+          content: Text(
+            "Error in _fetchIfTaskIsAssignedID: User ID not found",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
       );
       return;
     }
@@ -198,7 +214,23 @@ class _TaskInformationState extends State<TaskInformation> {
         _isApplying = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error checking application status: $e')),
+        SnackBar(
+          content: Text(
+            "Error in _fetchTaskDetails: $e",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
       );
     }
   }
@@ -677,32 +709,31 @@ class _TaskInformationState extends State<TaskInformation> {
                       _isLoading = true;
                     });
                     try {
-                      // Get the current user's information to find their tasker_id
-                      final userId = storage.read('user_id');
-                      if (userId == null) {
-                        throw Exception('User ID not found');
-                      }
+//                       // Get the current user's information to find their tasker_id
+//                       final userId = storage.read('user_id');
+//                       if (userId == null) {
+//                         throw Exception('User ID not found');
+//                       }
 
-                      final user = await _profileController
-                          .getAuthenticatedUser(context, userId);
-                      if (user == null || !user.isTasker) {
-                        throw Exception(
-                            'User is not a tasker or user data not found');
-                      }
+//                       final user = await _profileController
+//                           .getAuthenticatedUser(context, userId);
+//                       if (user == null || !user.isTasker) {
+//                         throw Exception(
+//                             'User is not a tasker or user data not found');
+//                       }
 
-                      // Use the tasker's ID instead of user ID
-                      int? taskerId;
-                      if (user.tasker != null) {
-                        taskerId = user.tasker!.id;
-                      } else {
-                        // If tasker model is null, use the user_id as fallback
-                        // This might happen if the tasker record doesn't exist yet
-                        taskerId = userId;
-                      }
+//                       // Use the tasker's ID instead of user ID
+//                       int? taskerId;
+//                       if (user.tasker != null) {
+//                         taskerId = user.tasker!.id;
+//                       } else {
+//                         // If tasker model is null, use the user_id as fallback
+//                         // This might happen if the tasker record doesn't exist yet
+//                         taskerId = userId;
+//                       }
 
-                      debugPrint("Role is sample: ${widget.role}");
-                      debugPrint("Using tasker_id: $taskerId");
-
+//                       debugPrint("Role is sample: ${widget.role}");
+//                       debugPrint("Using tasker_id: $taskerId");
                       final result = await taskController.assignTask(
                         widget.taskID ?? 0,
                         _taskInformation!.clientId,
@@ -716,14 +747,46 @@ class _TaskInformationState extends State<TaskInformation> {
                         });
                         await _fetchTaskDetails();
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Successfully applied for task'),
+                          SnackBar(
+                            content: Text(
+                              result,
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
+                            ),
+                            backgroundColor: Colors.green,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            margin: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 10),
+                            duration: Duration(seconds: 3),
                           ),
                         );
                       }
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error applying for task: $e')),
+                        SnackBar(
+                          content: Text(
+                            "Error in _fetchTaskDetails: $e",
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          margin: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
+                          duration: Duration(seconds: 3),
+                        ),
                       );
                     } finally {
                       setState(() {

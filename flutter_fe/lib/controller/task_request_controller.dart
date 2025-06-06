@@ -87,27 +87,36 @@ class TaskRequestController {
     }
   }
 
-  Future<Disputes> getDispute(int taskTakenId) async {
+  Future<Disputes?> getDispute(int taskTakenId) async {
     try {
-      if(taskTakenId == 0){
+      if (taskTakenId == 0) {
         return Disputes(
           disputeReason: "",
           disputeDetails: "",
           moderatorAction: "",
-          moderatorNotes: ""
+          moderatorNotes: "",
         );
       }
+
       final disputes = await jobPostService.getDispute(taskTakenId);
+
+      if (disputes == null || disputes.containsKey('message') || disputes.containsKey('error')) {
+        return null;
+      }
+
+      // Safely ensure the required fields exist and are not null
+      if (disputes['disputeReason'] == null ||
+          disputes['disputeDetails'] == null ||
+          disputes['moderatorAction'] == null ||
+          disputes['moderatorNotes'] == null) {
+        return null;
+      }
+
       return Disputes.fromJson(disputes);
-    }catch(e, stackTrace){
+    } catch (e, stackTrace) {
       debugPrint("Error in TaskRequestController.getDispute: $e");
       debugPrintStack(stackTrace: stackTrace);
-      return Disputes(
-        disputeReason: "",
-        disputeDetails: "",
-        moderatorAction: "",
-        moderatorNotes: ""
-      );
+      return null;
     }
   }
 }

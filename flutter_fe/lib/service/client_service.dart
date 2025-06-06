@@ -11,7 +11,7 @@ import '../config/url_strategy.dart';
 import 'api_service.dart';
 
 class ClientServices {
-  static String url = apiUrl ?? "http://192.168.1.5:5000/connect";
+  static String url = apiUrl ?? "http://localhost:5000";
   final dio = Dio();
   static final storage = GetStorage();
   static final token = storage.read('session');
@@ -421,7 +421,7 @@ class ClientServices {
   Future<Map<String, dynamic>> fetchUserIDImage(int userId) async {
     try {
       final response = await http.get(
-          Uri.parse("${ApiService.url}/getUserDocuments/$userId?type=id"),
+        Uri.parse("${ApiService.url}/getUserDocuments/$userId?type=id"),
         headers: {
           "Authorization": "Bearer ${await AuthService.getSessionToken()}",
           "Content-Type": "application/json"

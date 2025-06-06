@@ -169,196 +169,68 @@ class _TaskPendingState extends State<TaskPending> {
             ),
           ),
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Are you sure you want to reject this task? This action cannot be undone.',
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w300,
-                color: Colors.grey[800],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Reason for rejection:',
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey[800],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[400]!),
-                borderRadius: BorderRadius.circular(5),
-              ),
-              child: DropdownButton<String>(
-                value: selectedReason,
-                isExpanded: true,
-                underline: SizedBox(),
-                items: rejectionReasons.map((String reason) {
-                  return DropdownMenuItem<String>(
-                    value: reason,
-                    child: Text(
-                      reason,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.black,
-                      ),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  if (newValue != null) {
-                    Navigator.of(context).pop();
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        title: Center(
-                          child: Text(
-                            'Reject Task',
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
+        content: StatefulBuilder(
+          builder: (BuildContext context, StateSetter setDialogState) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Are you sure you want to reject this task? This action cannot be undone.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w300,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Reason for rejection:',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey[400]!),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: DropdownButton<String>(
+                    value: selectedReason,
+                    isExpanded: true,
+                    underline: SizedBox(),
+                    items: rejectionReasons.map((String reason) {
+                      return DropdownMenuItem<String>(
+                        value: reason,
+                        child: Text(
+                          reason,
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.black,
                           ),
                         ),
-                        content: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Are you sure you want to reject this task? This action cannot be undone.',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w300,
-                                color: Colors.grey[800],
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Reason for rejection:',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.grey[800],
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Container(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 12),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey[400]!),
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                              child: DropdownButton<String>(
-                                value: newValue,
-                                isExpanded: true,
-                                underline: SizedBox(),
-                                items: rejectionReasons.map((String reason) {
-                                  return DropdownMenuItem<String>(
-                                    value: reason,
-                                    child: Text(
-                                      reason,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w400,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                                onChanged: (String? newValue) {},
-                              ),
-                            ),
-                          ],
-                        ),
-                        actions: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              TextButton(
-                                child: Text(
-                                  'Cancel',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: Color(0xFFB71A4A),
-                                  ),
-                                ),
-                                onPressed: () => Navigator.pop(context, false),
-                              ),
-                              const SizedBox(width: 10),
-                              Container(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 10),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(5),
-                                  color: Color(0xFFB71A4A),
-                                ),
-                                child: TextButton(
-                                  child: Text(
-                                    'Confirm',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  onPressed: () async {
-                                    setState(() {
-                                      _isLoading = true;
-                                    });
-
-                                    final String value = 'Reject';
-                                    final result =
-                                        await taskController.updateRequest(
-                                      _requestInformation?.task_taken_id ?? 0,
-                                      value,
-                                      _role ?? 'Unknown',
-                                      rejectionReason: newValue,
-                                    );
-                                    if (result.containsKey('success') && result['success']) {
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => TaskRejected(
-                                            taskInformation:
-                                                widget.taskInformation,
-                                          ),
-                                        ),
-                                      );
-                                    } else {
-                                      Navigator.pop(context, false);
-                                      setState(() {
-                                        _isLoading = false;
-                                      });
-                                    }
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                },
-              ),
-            ),
-          ],
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      if (newValue != null) {
+                        setDialogState(() {
+                          selectedReason = newValue;
+                        });
+                        setState(() {
+                          selectedReason = newValue;
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
         ),
         actions: [
           Row(
@@ -405,7 +277,6 @@ class _TaskPendingState extends State<TaskPending> {
                       rejectionReason: selectedReason,
                     );
                     if (result.containsKey('success') && result['success']) {
-                      Navigator.pop(context);
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
@@ -631,28 +502,37 @@ class _TaskPendingState extends State<TaskPending> {
                   ),
                 )
               : SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildStatusSection(),
-                        SizedBox(height: 16),
-                        _buildTaskCard(),
-                        SizedBox(height: 16),
-                        if (_userRole == "Tasker") _buildClientProfileCard(),
-                        if (_userRole == "Client") _buildTaskerProfileCard(),
-                        if (_requestInformation?.task_status == "Pending") ...[
-                          SizedBox(height: 24),
-                          _buildActionButtons(
-                              _requestInformation?.requested_from ?? 'Unknown'),
-                        ],
-                        if (_requestInformation?.task_status != "Pending") ...[
-                          SizedBox(height: 16),
-                          _buildActionButton(),
-                        ],
-                      ],
-                    ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildStatusSection(),
+                            SizedBox(height: 16),
+                            _buildTaskCard(constraints),
+                            SizedBox(height: 16),
+                            if (_userRole == "Tasker")
+                              _buildClientProfileCard(),
+                            if (_userRole == "Client")
+                              _buildTaskerProfileCard(),
+                            if (_requestInformation?.task_status ==
+                                "Pending") ...[
+                              SizedBox(height: 24),
+                              _buildActionButtons(
+                                  _requestInformation?.requested_from ??
+                                      'Unknown'),
+                            ],
+                            if (_requestInformation?.task_status !=
+                                "Pending") ...[
+                              SizedBox(height: 16),
+                              _buildActionButton(),
+                            ],
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
     );
@@ -847,50 +727,75 @@ class _TaskPendingState extends State<TaskPending> {
     return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
-  Widget _buildTaskCard() {
+  Widget _buildTaskCard(BoxConstraints constraints) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Theme.of(context).colorScheme.surfaceContainer,
       child: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Color(0xFF03045E).withOpacity(0.1),
+                    color:
+                        Theme.of(context).colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.task, color: Color(0xFF03045E), size: 24),
+                  child: Icon(Icons.task,
+                      color: Theme.of(context).colorScheme.primary, size: 24),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    _taskInformation?.title ?? 'Task',
+                    _taskInformation!.title ?? 'Task',
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF03045E),
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 16),
             _buildTaskInfoRow(
-              icon: Icons.info,
+              icon: FontAwesomeIcons.locationDot,
+              label: 'Description',
+              value: _taskInformation!.description ?? 'N/A',
+            ),
+            const SizedBox(height: 16),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.briefcase,
+              label: 'Work Type',
+              value: _taskInformation!.workType ?? 'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.star,
+              label: 'Specialization',
+              value: _taskInformation!.taskerSpecialization?.specialization ??
+                  'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.dollarSign,
+              label: 'Contract Price',
+              value: _taskInformation!.contactPrice.toString() ?? 'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.info,
               label: 'Status',
-              value: _requestInformation?.task_status ?? 'Pending',
+              value: _requestInformation!.task_status ?? 'Confirmed',
             ),
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.calendar,
               label: 'Start Date',
-              value: _requestInformation!.start_date != null
-                  ? DateFormat('MMM dd, yyyy HH:mm a')
-                      .format(_requestInformation!.start_date!)
+              value: _requestInformation?.task?.taskBeginDate != null
+                  ? DateFormat('MMM dd, yyyy HH:mm a').format(DateTime.parse(
+                      _requestInformation?.task?.taskBeginDate ?? ''))
                   : 'N/A',
             ),
           ],
@@ -953,16 +858,6 @@ class _TaskPendingState extends State<TaskPending> {
                       .trim()
                   : 'Not available',
             ),
-            SizedBox(height: 8),
-            _buildProfileInfoRow(
-                'Email',
-                widget.taskInformation?.taskDetails?.client?.user?.email ??
-                    'Not available'),
-            SizedBox(height: 8),
-            _buildProfileInfoRow(
-                'Phone',
-                widget.taskInformation?.taskDetails?.client?.user?.contact ??
-                    'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow(
                 'Status',
@@ -1030,14 +925,6 @@ class _TaskPendingState extends State<TaskPending> {
                       .trim()
                   : 'Not available',
             ),
-            SizedBox(height: 8),
-            _buildProfileInfoRow('Email',
-                widget.taskInformation?.tasker?.user?.email ?? 'Not available'),
-            SizedBox(height: 8),
-            _buildProfileInfoRow(
-                'Phone',
-                widget.taskInformation?.tasker?.user?.contact ??
-                    'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow(
                 'Status',

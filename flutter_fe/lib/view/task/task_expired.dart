@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:intl/intl.dart';
 
 class TaskExpired extends StatefulWidget {
   final TaskFetch? taskInformation;
@@ -151,30 +153,35 @@ class _TaskExpiredState extends State<TaskExpired> {
                   ),
                 )
               : SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildStatusSection(),
-                        const SizedBox(height: 16),
-                        _buildTaskCard(),
-                        const SizedBox(height: 16),
-                        if (_role == "Tasker") _buildClientProfileCard(),
-                        if (_role == "Client") _buildTaskerProfileCard(),
-                        const SizedBox(height: 16),
-                        _buildActionButton(),
-                      ],
-                    ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildStatusSection(),
+                            const SizedBox(height: 16),
+                            _buildTaskCard(constraints),
+                            const SizedBox(height: 16),
+                            if (_role == "Tasker") _buildClientProfileCard(),
+                            if (_role == "Client") _buildTaskerProfileCard(),
+                            const SizedBox(height: 16),
+                            _buildActionButton(),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
     );
   }
 
-  Widget _buildTaskCard() {
+  Widget _buildTaskCard(BoxConstraints constraints) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Theme.of(context).colorScheme.surfaceContainer,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -185,26 +192,98 @@ class _TaskExpiredState extends State<TaskExpired> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.1),
+                    color:
+                        Theme.of(context).colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.task, color: Colors.black, size: 24),
+                  child: Icon(Icons.task,
+                      color: Theme.of(context).colorScheme.primary, size: 24),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    _taskInformation!.title ?? 'Untitled Task',
+                    _taskInformation!.title ?? 'Task',
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.locationDot,
+              label: 'Description',
+              value: _taskInformation!.description ?? 'N/A',
+            ),
+            const SizedBox(height: 16),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.briefcase,
+              label: 'Work Type',
+              value: _taskInformation!.workType ?? 'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.star,
+              label: 'Specialization',
+              value: _taskInformation!.taskerSpecialization?.specialization ??
+                  'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.dollarSign,
+              label: 'Contract Price',
+              value: _taskInformation!.contactPrice.toString() ?? 'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.info,
+              label: 'Status',
+              value: _requestInformation!.task_status ?? 'Confirmed',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.calendar,
+              label: 'Start Date',
+              value: _requestInformation?.task?.taskBeginDate != null
+                  ? DateFormat('MMM dd, yyyy HH:mm a').format(DateTime.parse(
+                      _requestInformation?.task?.taskBeginDate ?? ''))
+                  : 'N/A',
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTaskInfoRow({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          FaIcon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 12),
+          Text(
+            '$label: ',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

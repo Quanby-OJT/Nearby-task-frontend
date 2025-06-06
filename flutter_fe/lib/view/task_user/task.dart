@@ -13,14 +13,16 @@ import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/task/task_cancelled.dart';
 import 'package:flutter_fe/view/task/task_confirmed.dart';
 import 'package:flutter_fe/view/task/task_declined.dart';
+import 'package:flutter_fe/view/task/task_disputed.dart';
 import 'package:flutter_fe/view/task/task_finished.dart';
 import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:flutter_fe/view/task/task_pending.dart';
+import 'package:flutter_fe/view/task/task_rejected.dart';
 import 'package:flutter_fe/view/task/task_review.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../model/client_model.dart';
 
 class TaskPage extends StatefulWidget {
@@ -58,10 +60,8 @@ class _TaskPageState extends State<TaskPage>
     'Confirmed',
     'Rejected',
     'Declined',
-    'Dispute Settled',
     'Cancelled',
     'Review',
-    'Declined'
   ];
   List<String> specialization = [];
   List<TaskFetch?> clientTasks = [];
@@ -157,15 +157,18 @@ class _TaskPageState extends State<TaskPage>
   Future<void> fetchCreatedTasks() async {
     try {
       final tasks = await controller.getTask(context);
+      debugPrint("All Tasks applied by tasker: $tasks");
       setState(() {
         clientTasks = tasks;
         filteredTasks = List.from(clientTasks);
+        debugPrint("Filtered Tasks: $filteredTasks");
       });
 
       debugPrint("Tasker Tasks: ${clientTasks.toString()}");
       _filterTasks();
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint("Error fetching created tasks: $e");
+      debugPrintStack(stackTrace: stackTrace);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Failed to load tasks. Please try again."),
@@ -422,7 +425,8 @@ class _TaskPageState extends State<TaskPage>
                   onPrimary: Colors.white,
                   surface: Colors.white,
                   onSurface: Colors.black,
-                ), dialogTheme: DialogThemeData(backgroundColor: Colors.white),
+                ),
+                dialogTheme: DialogThemeData(backgroundColor: Colors.white),
               ),
               child: child!,
             );
@@ -462,36 +466,52 @@ class _TaskPageState extends State<TaskPage>
               ? const Center(child: Text("No tasks available"))
               : Column(
                   children: [
-                    // Search
                     Padding(
                       padding:
                           EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      child: TextField(
-                        controller: _searchController,
-                        cursorColor: const Color(0xFFB71A4A),
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.white,
-                          hintText: 'Search tasks...',
-                          hintStyle:
-                              GoogleFonts.poppins(color: Colors.grey[400]),
-                          prefixIcon:
-                              Icon(Icons.search, color: Colors.grey[400]),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.grey[200]!),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                                color: const Color(0xFFB71A4A), width: 2),
-                          ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 4,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
                         ),
-                        style: GoogleFonts.poppins(fontSize: 14),
+                        child: TextField(
+                          controller: _searchController,
+                          cursorColor: const Color(0xFFB71A4A),
+                          decoration: InputDecoration(
+                            hintText: 'Search tasks...',
+                            hintStyle:
+                                GoogleFonts.poppins(color: Colors.grey[500]),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 14),
+                            suffixIcon: _searchController.text.isNotEmpty
+                                ? IconButton(
+                                    icon: Icon(
+                                      FontAwesomeIcons.xmark,
+                                      color: const Color(0xFFB71A4A),
+                                      size: 18,
+                                    ),
+                                    onPressed: () => _searchController.clear(),
+                                  )
+                                : Icon(
+                                    FontAwesomeIcons.magnifyingGlass,
+                                    color: const Color(0xFFB71A4A),
+                                    size: 18,
+                                  ),
+                          ),
+                          style: GoogleFonts.poppins(fontSize: 14),
+                          onChanged: (value) {
+                            // Trigger rebuild to show/hide clear button
+                            (context as Element).markNeedsBuild();
+                          },
+                        ),
                       ),
                     ),
                     TabBar(
@@ -622,6 +642,29 @@ class _TaskPageState extends State<TaskPage>
     );
   }
 
+  void _navigateToTaskStatusPage(TaskFetch task) {
+    final statusPages = {
+      'Completed': TaskFinished(taskInformation: task),
+      'Pending': TaskPending(taskInformation: task),
+      'Confirmed': TaskConfirmed(taskInformation: task),
+      'Cancelled': TaskCancelled(taskInformation: task),
+      'Ongoing': TaskOngoing(taskInformation: task, role: user?.user.role),
+      'Review': TaskReview(taskInformation: task),
+      'Declined': TaskDeclined(taskInformation: task),
+      'Rejected': TaskRejected(taskInformation: task),
+    };
+
+    final page = statusPages[task.taskStatus];
+    if (page != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => page),
+      ).then((_) {
+        _loadMethod();
+      });
+    }
+  }
+
   Widget _buildTaskCard(TaskFetch task) {
     String priceDisplay = "${task.taskDetails} Credits";
 
@@ -633,107 +676,7 @@ class _TaskPageState extends State<TaskPage>
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
-          if (task.taskStatus == "Completed") {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TaskFinished(
-                  taskInformation: task,
-                ),
-              ),
-            );
-          }
-
-          if (task.taskStatus == "Pending") {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TaskPending(
-                  taskInformation: task,
-                ),
-              ),
-            ).then((value) {
-              if (value != null) {
-                _loadMethod();
-              }
-            });
-          }
-
-            if (task.taskStatus == "Declined") {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TaskDeclined(
-                  taskInformation: task,
-                ),
-              ),
-            ).then((value) {
-              if (value != null) {
-                _loadMethod();
-              }
-            });
-          }
-
-          if (task.taskStatus == "Confirmed") {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TaskConfirmed(
-                  taskInformation: task,
-                ),
-              ),
-            ).then((value) {
-              if (value != null) {
-                _loadMethod();
-              }
-            });
-          }
-
-          if (task.taskStatus == "Cancelled") {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TaskCancelled(
-                  taskInformation: task,
-                ),
-              ),
-            ).then((value) {
-              if (value != null) {
-                _loadMethod();
-              }
-            });
-          }
-
-          if (task.taskStatus == "Ongoing") {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TaskOngoing(
-                  taskInformation: task,
-                  role: user?.user.role,
-                ),
-              ),
-            ).then((value) {
-              if (value != null) {
-                _loadMethod();
-              }
-            });
-          }
-
-          if (task.taskStatus == "Review") {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TaskReview(
-                  taskInformation: task,
-                ),
-              ),
-            ).then((value) {
-              if (value != null) {
-                _loadMethod();
-              }
-            });
-          }
+          _navigateToTaskStatusPage(task);
         },
         child: Padding(
           padding: EdgeInsets.all(16),
@@ -835,6 +778,8 @@ class _TaskPageState extends State<TaskPage>
   }
 
   Widget _buildTaskRecieved(TaskFetch task) {
+    debugPrint('task.createdAt: ${task.createdAt}');
+    debugPrint('task.updatedAt: ${task.updatedAt}');
     DateTime createdDateTime = DateTime.parse(task.createdAt.toString());
 
     String formattedDate = DateFormat('MMM d, yyyy').format(createdDateTime);

@@ -354,7 +354,8 @@ class _TaskDeclinedState extends State<TaskDeclined> {
                                       _role ?? 'Unknown',
                                       rejectionReason: newValue,
                                     );
-                                    if (result.containsKey('success') && result['success']) {
+                                    if (result.containsKey('success') &&
+                                        result['success']) {
                                       Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
@@ -499,23 +500,30 @@ class _TaskDeclinedState extends State<TaskDeclined> {
                   ),
                 )
               : SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildStatusSection(),
-                        SizedBox(height: 16),
-                        _buildTaskCard(),
-                        SizedBox(height: 16),
-                        if (_userRole == "Tasker") _buildClientProfileCard(),
-                        if (_userRole == "Client") _buildTaskerProfileCard(),
-                        if (_requestInformation?.task_status == "Declined") ...[
-                          SizedBox(height: 24),
-                          _buildActionButtons(),
-                        ],
-                      ],
-                    ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildStatusSection(),
+                            SizedBox(height: 16),
+                            _buildTaskCard(constraints),
+                            SizedBox(height: 16),
+                            if (_userRole == "Tasker")
+                              _buildClientProfileCard(),
+                            if (_userRole == "Client")
+                              _buildTaskerProfileCard(),
+                            if (_requestInformation?.task_status ==
+                                "Declined") ...[
+                              SizedBox(height: 24),
+                              _buildActionButtons(),
+                            ],
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
     );
@@ -687,50 +695,75 @@ class _TaskDeclinedState extends State<TaskDeclined> {
     return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
-  Widget _buildTaskCard() {
+  Widget _buildTaskCard(BoxConstraints constraints) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Theme.of(context).colorScheme.surfaceContainer,
       child: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Color(0xFF03045E).withOpacity(0.1),
+                    color:
+                        Theme.of(context).colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.task, color: Color(0xFF03045E), size: 24),
+                  child: Icon(Icons.task,
+                      color: Theme.of(context).colorScheme.primary, size: 24),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    _taskInformation?.title ?? 'Task',
+                    _taskInformation!.title ?? 'Task',
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF03045E),
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 16),
             _buildTaskInfoRow(
-              icon: Icons.info,
+              icon: FontAwesomeIcons.locationDot,
+              label: 'Description',
+              value: _taskInformation!.description ?? 'N/A',
+            ),
+            const SizedBox(height: 16),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.briefcase,
+              label: 'Work Type',
+              value: _taskInformation!.workType ?? 'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.star,
+              label: 'Specialization',
+              value: _taskInformation!.taskerSpecialization?.specialization ??
+                  'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.dollarSign,
+              label: 'Contract Price',
+              value: _taskInformation!.contactPrice.toString() ?? 'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.info,
               label: 'Status',
-              value: _requestInformation?.task_status ?? 'Pending',
+              value: _requestInformation!.task_status ?? 'Confirmed',
             ),
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.calendar,
               label: 'Start Date',
-              value: _requestInformation!.start_date != null
-                  ? DateFormat('MMM dd, yyyy HH:mm a')
-                      .format(_requestInformation!.start_date!)
+              value: _requestInformation?.task?.taskBeginDate != null
+                  ? DateFormat('MMM dd, yyyy HH:mm a').format(DateTime.parse(
+                      _requestInformation?.task?.taskBeginDate ?? ''))
                   : 'N/A',
             ),
           ],
@@ -1234,10 +1267,10 @@ class _TaskDeclinedState extends State<TaskDeclined> {
                   : _disputeTypeController.text,
               items: <String>[
                 '--Select Reason of Dispute--',
-                'Poor Quality of Work',
-                'Breach of Contract',
-                'Task Still Not Completed',
-                'Tasker Did Not Finish what\'s Required',
+                'Client is Abusive',
+                'Breach of Terms and Conditions',
+                'Task is Scam',
+                'Task given by Client is very complicated',
                 'Others (Provide Details)'
               ].map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
@@ -1360,7 +1393,7 @@ class _TaskDeclinedState extends State<TaskDeclined> {
                     bool result = await taskController.raiseADispute(
                       _requestInformation?.task_taken_id ?? 0,
                       'Disputed',
-                      widget.taskInformation?.taskDetails!.client?.user?.role ??
+                      widget.taskInformation?.taskDetails!.tasker?.user?.role ??
                           '',
                       _disputeTypeController.text,
                       _disputeDetailsController.text,
