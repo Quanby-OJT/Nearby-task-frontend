@@ -709,35 +709,10 @@ class _TaskInformationState extends State<TaskInformation> {
                       _isLoading = true;
                     });
                     try {
-//                       // Get the current user's information to find their tasker_id
-//                       final userId = storage.read('user_id');
-//                       if (userId == null) {
-//                         throw Exception('User ID not found');
-//                       }
-
-//                       final user = await _profileController
-//                           .getAuthenticatedUser(context, userId);
-//                       if (user == null || !user.isTasker) {
-//                         throw Exception(
-//                             'User is not a tasker or user data not found');
-//                       }
-
-//                       // Use the tasker's ID instead of user ID
-//                       int? taskerId;
-//                       if (user.tasker != null) {
-//                         taskerId = user.tasker!.id;
-//                       } else {
-//                         // If tasker model is null, use the user_id as fallback
-//                         // This might happen if the tasker record doesn't exist yet
-//                         taskerId = userId;
-//                       }
-
-//                       debugPrint("Role is sample: ${widget.role}");
-//                       debugPrint("Using tasker_id: $taskerId");
                       final result = await taskController.assignTask(
                         widget.taskID ?? 0,
                         _taskInformation!.clientId,
-                        taskerId,
+                        _taskInformation!.tasker?.id ?? 0,
                         widget.role,
                       );
                       if (result == 'A New Conversation Has been Opened.') {

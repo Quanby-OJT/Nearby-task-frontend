@@ -290,7 +290,9 @@ class TaskController {
     return false;
   }
 
-  Future<String> assignTask(int? taskId, int? clientId, int? taskerId, String role, {int? daysAvailable}) async {
+  Future<String> assignTask(
+      int? taskId, int? clientId, int? taskerId, String role,
+      {int? daysAvailable}) async {
     daysAvailable ??= 1;
 
     final assignedTask = await _jobPostService.assignTask(
@@ -301,14 +303,17 @@ class TaskController {
         : assignedTask['error'].toString();
   }
 
-  Future<Map<String, dynamic>> updateRequest(int taskTakenId, String value, String role, {String? rejectionReason}) async {
+  Future<Map<String, dynamic>> updateRequest(
+      int taskTakenId, String value, String role,
+      {String? rejectionReason}) async {
     debugPrint("Assigning task...");
     debugPrint("This is rejection reason: $rejectionReason");
     return await _jobPostService.updateRequest(taskTakenId, value, role,
         rejectionReason: rejectionReason);
   }
 
-  Future<String> fetchIsApplied(int? taskId, int? clientId, int? taskerId) async {
+  Future<String> fetchIsApplied(
+      int? taskId, int? clientId, int? taskerId) async {
     final assignedTask =
         await _jobPostService.fetchIsApplied(taskId, clientId, taskerId);
 
@@ -539,9 +544,11 @@ class TaskController {
         return [];
       }
 
-      return (response['transactions'] as List<dynamic>?)?.map((transactionJson) =>
-          Transactions.fromJson(transactionJson)).toList() ?? [];
-    }catch (e, st) {
+      return (response['transactions'] as List<dynamic>?)
+              ?.map((transactionJson) => Transactions.fromJson(transactionJson))
+              .toList() ??
+          [];
+    } catch (e, st) {
       debugPrint("Error in processing transactions: $e");
       debugPrintStack(stackTrace: st);
       return [];
