@@ -15,6 +15,7 @@ import 'package:flutter_fe/view/address/set-up_address.dart';
 import 'package:flutter_fe/view/business_acc/notif_screen.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
 import 'package:flutter_fe/view/service_acc/notif_screen.dart';
+import 'package:flutter_fe/view/service_acc/tasker_feedback.dart';
 import 'package:flutter_fe/view/setting/setting.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
@@ -468,6 +469,24 @@ class _TaskerHomePageState extends State<TaskerHomePage>
     });
   }
 
+  Widget buildListTile(IconData icon, String title, VoidCallback onTap){
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: const Color(0xFFB71A4A),
+      ),
+      title: Text(
+        title,
+        style: GoogleFonts.poppins(
+          color: Colors.black,
+          fontSize: 14,
+          fontWeight: FontWeight.w300,
+        ),
+      ),
+      onTap: onTap
+    );
+  }
+
   void _showAnimatedMenu(BuildContext context) {
     final RenderBox renderBox =
         _moreVertKey.currentContext!.findRenderObject() as RenderBox;
@@ -517,125 +536,77 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    ListTile(
-                      leading: Icon(
-                        Icons.person,
-                        color: const Color(0xFFB71A4A),
-                      ),
-                      title: Text(
-                        'Profile',
-                        style: GoogleFonts.poppins(
-                          color: Colors.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w300,
-                        ),
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => ProfileScreen()),
-                        );
-                        overlayEntry.remove();
-                      },
+                    buildListTile(
+                      FontAwesomeIcons.solidUser,
+                      "My Profile",
+                        () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ProfileScreen()),
+                          );
+                          overlayEntry.remove();
+                        },
                     ),
-                    ListTile(
-                      leading: Icon(
-                        Icons.domain_verification,
-                        color: const Color(0xFFB71A4A),
-                      ),
-                      title: Text(
-                        'Verify Account',
-                        style: GoogleFonts.poppins(
-                          color: Colors.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w300,
-                        ),
-                      ),
-                      onTap: () {
+                    //Implement Here verification Check.
+                    buildListTile(
+                      FontAwesomeIcons.userCheck,
+                      "Verify Account",
+                      () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) => const VerificationPage()),
-                        );
+                          );
                         overlayEntry.remove();
-                      },
+                      }
                     ),
-                    ListTile(
-                      leading: Icon(
-                        Icons.help,
-                        color: const Color(0xFFB71A4A),
-                      ),
-                      title: Text(
-                        'FAQs',
-                        style: GoogleFonts.poppins(
-                          color: Colors.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w300,
-                        ),
-                      ),
-                      onTap: () {
-                        // Handle navigation to FAQs
+                    buildListTile(
+                      FontAwesomeIcons.rankingStar,
+                      "My Client Ratings",
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const TaskerFeedbackPage()),
+                          );
                         overlayEntry.remove();
-                      },
+                      }
                     ),
-                    ListTile(
-                      leading: Icon(
-                        Icons.card_giftcard,
-                        color: const Color(0xFFB71A4A),
-                      ),
-                      title: Text(
-                        'Referral Code',
-                        style: GoogleFonts.poppins(
-                          color: Colors.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w300,
-                        ),
-                      ),
-                      onTap: () {
+                    buildListTile(
+                      FontAwesomeIcons.question,
+                      "FAQs",
+                      () {
                         overlayEntry.remove();
-                      },
+                      }
                     ),
-                    ListTile(
-                      leading: Icon(
-                        Icons.book,
-                        color: const Color(0xFFB71A4A),
-                      ),
-                      title: Text(
-                        'Our Handbook',
-                        style: GoogleFonts.poppins(
-                          color: Colors.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w300,
-                        ),
-                      ),
-                      onTap: () {
+                    buildListTile(
+                      FontAwesomeIcons.ticket,
+                      "Referral Code",
+                      () {
                         overlayEntry.remove();
-                      },
+                      }
                     ),
-                    ListTile(
-                      leading: Icon(
-                        Icons.settings,
-                        color: const Color(0xFFB71A4A),
-                      ),
-                      title: Text(
-                        'Settings',
-                        style: GoogleFonts.poppins(
-                          color: Colors.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w300,
-                        ),
-                      ),
-                      onTap: () {
+                    buildListTile(
+                      FontAwesomeIcons.book,
+                      "Our Handbook",
+                      () {
+                        overlayEntry.remove();
+                      }
+                    ),
+                    buildListTile(
+                      FontAwesomeIcons.gears,
+                      "Settings",
+                      () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) => SettingScreen()),
                         ).then((value) => setState(() {
-                              _fetchTasks();
-                            }));
+                          _fetchTasks();
+                        }));
                         overlayEntry.remove();
-                      },
+                      }
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(

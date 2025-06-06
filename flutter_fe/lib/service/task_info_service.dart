@@ -165,4 +165,16 @@ class TaskDetailsService {
       };
     }
   }
+
+  Future<Map<String, dynamic>> retrieveTransactions() async {
+    try {
+      final userId = await storage.read('user_id');
+      final role = await storage.read('role');
+      return await _getRequest("/transactions/$userId/$role");
+    } catch (e, st) {
+      debugPrint("Error in retrieving transactions: $e");
+      debugPrint(st.toString());
+      return {"error": "An error occurred while retrieving your transactions. Please try again."};
+    }
+  }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/service/task_information.dart';
+import 'package:flutter_fe/service/task_info_service.dart';
 import 'package:get_storage/get_storage.dart';
 import '../model/conversation.dart';
 

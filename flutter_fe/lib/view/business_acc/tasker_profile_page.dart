@@ -80,7 +80,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
         _errorMessage = null;
       });
 
-      skills = widget.tasker.skills.split(',');
+      skills = widget.tasker.skills?.split(',') ?? [];
 
       await Future.wait([
         _loadTaskerDetails(),
@@ -360,7 +360,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                         "Basic Information",
                         [
                           _buildInfoRow(Icons.work, "Specialization",
-                              widget.tasker.specialization),
+                              widget.tasker.specialization ?? "N/A"),
                         ],
                       ),
                     ),

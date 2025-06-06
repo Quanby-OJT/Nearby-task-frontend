@@ -58,15 +58,15 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
         (camera) => camera.lensDirection == CameraLensDirection.front,
         orElse: () => cameras.first,
       );
-      
+
       cameraController = CameraController(
         frontCamera,
         ResolutionPreset.high,
         enableAudio: false,
       );
-      
+
       await cameraController.initialize();
-      
+
       if (mounted) {
         setState(() {
           isCameraInitialized = true;
@@ -156,7 +156,8 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
       if (isNeutralPosition(face)) {
         setState(() {
           waitingForNeutral = false;
-          statusMessage = 'Please ${getActionDescription(challengeActions[currentActionIndex])}';
+          statusMessage =
+              'Please ${getActionDescription(challengeActions[currentActionIndex])}';
         });
       } else {
         setState(() {
@@ -193,16 +194,16 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
     if (actionCompleted) {
       // Add a small delay and visual feedback for successful action
       HapticFeedback.lightImpact();
-      
+
       setState(() {
         completedActions++;
         currentActionIndex++;
         statusMessage = 'Great! Action completed successfully';
       });
-      
+
       // Wait a moment before continuing
       await Future.delayed(const Duration(milliseconds: 800));
-      
+
       if (currentActionIndex >= challengeActions.length) {
         // All challenges completed successfully - capture photo automatically
         await _captureVerificationPhoto();
@@ -229,33 +230,34 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
 
       // Stop the image stream before taking photo
       await cameraController.stopImageStream();
-      
+
       // Wait a moment for the camera to stabilize
       await Future.delayed(const Duration(milliseconds: 500));
-      
+
       // Take the photo
       final XFile photo = await cameraController.takePicture();
-      
+
       setState(() {
         statusMessage = 'Photo captured successfully!';
       });
-      
+
       // Wait a moment to show success message
       await Future.delayed(const Duration(milliseconds: 1000));
-      
-      // Return the captured photo
+
+      // Return the captured photo - let the parent verification page handle navigation
       widget.onDetectionComplete(File(photo.path), true);
-      
-      if (mounted) {
-        Navigator.pop(context, File(photo.path));
-      }
+
+      // Remove this Navigator.pop call - it exits the verification flow
+      // if (mounted) {
+      //   Navigator.pop(context, File(photo.path));
+      // }
     } catch (e) {
       debugPrint('Error capturing photo: $e');
       setState(() {
         statusMessage = 'Error capturing photo. Please try again.';
         isCapturingPhoto = false;
       });
-      
+
       // Restart face detection if photo capture failed
       startFaceDetection();
     }
@@ -314,13 +316,13 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
                 Positioned.fill(
                   child: CameraPreview(cameraController),
                 ),
-                
+
                 // Face detection overlay
                 CustomPaint(
                   painter: HeadMaskPainter(faceDetected: faceDetected),
                   child: Container(),
                 ),
-                
+
                 // Progress and instruction overlay
                 Positioned(
                   top: 16,
@@ -347,16 +349,22 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
                             ),
                             Expanded(
                               child: LinearProgressIndicator(
-                                value: isCapturingPhoto ? 1.0 : completedActions / totalRequiredActions,
+                                value: isCapturingPhoto
+                                    ? 1.0
+                                    : completedActions / totalRequiredActions,
                                 backgroundColor: Colors.grey[400],
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                  isCapturingPhoto ? Colors.green : const Color(0xFFB71A4A),
+                                  isCapturingPhoto
+                                      ? Colors.green
+                                      : const Color(0xFFB71A4A),
                                 ),
                               ),
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              isCapturingPhoto ? 'Complete!' : '$completedActions/$totalRequiredActions',
+                              isCapturingPhoto
+                                  ? 'Complete!'
+                                  : '$completedActions/$totalRequiredActions',
                               style: GoogleFonts.poppins(
                                 color: Colors.white,
                                 fontSize: 14,
@@ -366,7 +374,7 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        
+
                         // Face detection status
                         if (!isCapturingPhoto)
                           Container(
@@ -375,20 +383,25 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: faceDetected ? Colors.green : Colors.orange,
+                              color:
+                                  faceDetected ? Colors.green : Colors.orange,
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  faceDetected ? Icons.face : Icons.face_unlock_outlined,
+                                  faceDetected
+                                      ? Icons.face
+                                      : Icons.face_unlock_outlined,
                                   color: Colors.white,
                                   size: 16,
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  faceDetected ? 'Face Detected' : 'No Face Detected',
+                                  faceDetected
+                                      ? 'Face Detected'
+                                      : 'No Face Detected',
                                   style: GoogleFonts.poppins(
                                     color: Colors.white,
                                     fontSize: 12,
@@ -398,9 +411,9 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
                               ],
                             ),
                           ),
-                        
+
                         if (!isCapturingPhoto) const SizedBox(height: 16),
-                        
+
                         // Current instruction
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -408,7 +421,9 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
                             vertical: 12,
                           ),
                           decoration: BoxDecoration(
-                            color: isCapturingPhoto ? Colors.green : const Color(0xFFB71A4A),
+                            color: isCapturingPhoto
+                                ? Colors.green
+                                : const Color(0xFFB71A4A),
                             borderRadius: BorderRadius.circular(25),
                           ),
                           child: Row(
@@ -443,9 +458,11 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
                     ),
                   ),
                 ),
-                
+
                 // Debug information (bottom left) - only show in debug mode
-                if (MediaQuery.of(context).size.height > 600 && faceDetected && !isCapturingPhoto)
+                if (MediaQuery.of(context).size.height > 600 &&
+                    faceDetected &&
+                    !isCapturingPhoto)
                   Positioned(
                     bottom: 16,
                     left: 16,
@@ -547,7 +564,7 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
 // Custom painter for head mask overlay
 class HeadMaskPainter extends CustomPainter {
   final bool faceDetected;
-  
+
   HeadMaskPainter({this.faceDetected = false});
 
   @override
@@ -585,14 +602,14 @@ class HeadMaskPainter extends CustomPainter {
       ),
       borderPaint,
     );
-    
+
     // Add animated pulse effect when face is detected
     if (faceDetected) {
       final pulsePaint = Paint()
         ..color = Colors.green.withOpacity(0.3)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.0;
-        
+
       canvas.drawOval(
         Rect.fromCenter(
           center: center,
@@ -608,4 +625,4 @@ class HeadMaskPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return true; // Always repaint to show dynamic changes
   }
-} 
+}
