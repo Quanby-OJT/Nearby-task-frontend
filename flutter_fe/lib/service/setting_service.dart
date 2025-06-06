@@ -392,7 +392,6 @@ class SettingService {
       debugPrint('Response Body: ${response.body}');
 
       if (response.body.contains('status')) {
-        debugPrint('Address deleted successfully');
         final responseData = json.decode(response.body);
         return responseData['status'];
       } else {

@@ -301,8 +301,25 @@ class _TaskPendingState extends State<TaskPending> {
     );
 
     if (confirm == true) {
-      CustomScaffold(
-          message: 'Task rejection requested', color: Color(0xFFB71A4A));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Successfully Rejected Task.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
   }
 
@@ -457,8 +474,25 @@ class _TaskPendingState extends State<TaskPending> {
     );
 
     if (confirm == true) {
-      CustomScaffold(
-          message: 'Task cancel requested', color: Color(0xFFB71A4A));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Successfully Cancelled Task.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
   }
 
@@ -556,7 +590,25 @@ class _TaskPendingState extends State<TaskPending> {
         ),
       );
     } else {
-      CustomScaffold(message: 'Failed to accept task', color: Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Successfully Expired Task.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
   }
 
@@ -993,8 +1045,26 @@ class _TaskPendingState extends State<TaskPending> {
                     ),
                   );
                 } else {
-                  CustomScaffold(
-                      message: 'Failed to accept task', color: Colors.red);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        "Successfully Accepted Task.",
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
+                      backgroundColor: Colors.red,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      margin:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
                 }
               },
               style: ElevatedButton.styleFrom(

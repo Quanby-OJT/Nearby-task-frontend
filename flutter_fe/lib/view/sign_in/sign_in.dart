@@ -5,6 +5,7 @@ import 'package:flutter_fe/view/sign_up_acc/pre_sign_up.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'dart:async';
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key});
@@ -21,6 +22,9 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
   late Animation<Offset> _bottomSlideAnimation;
   bool _obsecureText = true;
   bool _isLoading = false;
+  Timer? _countdownTimer;
+  int _remainingSeconds = 0;
+  bool _isLocked = false;
 
   @override
   void initState() {
@@ -63,7 +67,33 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
   @override
   void dispose() {
     _animationController.dispose();
+    _countdownTimer?.cancel();
     super.dispose();
+  }
+
+  void _startCountdownTimer(int seconds) {
+    setState(() {
+      _remainingSeconds = seconds;
+      _isLocked = true;
+    });
+
+    _countdownTimer?.cancel();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_remainingSeconds > 0) {
+          _remainingSeconds--;
+        } else {
+          _isLocked = false;
+          timer.cancel();
+        }
+      });
+    });
+  }
+
+  String _formatTime(int seconds) {
+    int minutes = seconds ~/ 60;
+    int remainingSeconds = seconds % 60;
+    return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
   }
 
   void _toggleObscureText() {
@@ -73,8 +103,18 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
   }
 
   void _handleLogin() async {
+    if (_isLocked) return;
+
     setState(() => _isLoading = true);
-    await _controller.loginAuth(context);
+    final response = await _controller.loginAuth(context);
+
+    if (response != null &&
+        response.containsKey('isThrottled') &&
+        response['isThrottled']) {
+      int remainingTime = response['remainingTime'] ?? 300;
+      _startCountdownTimer(remainingTime);
+    }
+
     setState(() => _isLoading = false);
   }
 
@@ -165,31 +205,63 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                               ),
                             ),
                             const SizedBox(height: 20),
-                            Container(
-                              height: 50,
-                              width: double.infinity,
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 40),
-                              child: ElevatedButton(
-                                onPressed: _isLoading ? null : _handleLogin,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color(0xFFB71A4A),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  elevation: 5,
-                                  shadowColor: Colors.black26,
+                            if (_isLocked)
+                              Container(
+                                margin:
+                                    const EdgeInsets.symmetric(vertical: 10),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.shade50,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border:
+                                      Border.all(color: Colors.red.shade200),
                                 ),
-                                child: Text(
-                                  'Sign in',
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.timer,
+                                        color: Colors.red.shade400),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Try again in ${_formatTime(_remainingSeconds)}',
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.red.shade700,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            if (!_isLocked)
+                              Container(
+                                height: 50,
+                                width: double.infinity,
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 40),
+                                child: ElevatedButton(
+                                  onPressed: (_isLoading || _isLocked)
+                                      ? null
+                                      : _handleLogin,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFFB71A4A),
+                                    disabledBackgroundColor: Colors.grey,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    elevation: 5,
+                                    shadowColor: Colors.black26,
+                                  ),
+                                  child: Text(
+                                    _isLocked ? 'Login Locked' : 'Sign in',
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
                             Center(
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(

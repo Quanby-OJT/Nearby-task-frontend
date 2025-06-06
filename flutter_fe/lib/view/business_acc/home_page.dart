@@ -275,9 +275,25 @@ class _ClientHomePageState extends State<ClientHomePage>
     try {
       int userId = int.parse(storage.read('user_id').toString());
       if (userId == 0) {
-        debugPrint("User ID not found in storage");
-        CustomScaffold(
-            message: "User ID not found in storage", color: Colors.red);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Failed to fetch ID image.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
+          ),
+        );
         return;
       }
 
