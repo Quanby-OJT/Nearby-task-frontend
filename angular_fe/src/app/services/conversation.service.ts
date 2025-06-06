@@ -92,4 +92,23 @@ export class UserConversationService {
       withCredentials: true,
     });
   }
+
+  checkAuthorization(id: number, taskTakenId: number): Observable<any> {
+    const userId = this.sessionStorage.getUserId();
+    if (!userId) {
+      return new Observable((observer) => {
+        observer.error('Logged-in user ID not found');
+        observer.complete();
+      });
+    }
+
+    return this.http.post<any>(
+      `${this.apiUrl}/check-authorization/${id}`,
+      { loggedInUserId: Number(userId), taskTakenId },
+      {
+        headers: this.getHeaders(),
+        withCredentials: true,
+      }
+    );
+  }
 }

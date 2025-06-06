@@ -303,6 +303,58 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
   }
 
   async banUser(id: number, taskTakenId: number): Promise<void> {
+    // First check authorization with backend
+    this.userConversationService.checkAuthorization(id, taskTakenId).subscribe({
+      next: (response) => {
+        // If authorized, show reason modal
+        this.showBanReasonModal(id, taskTakenId);
+      },
+      error: (error) => {
+        if (error.status === 403) {
+          Swal.fire('Error!', error.error.error || 'You don\'t have authority to perform this action.', 'error');
+        } else {
+          Swal.fire('Error!', error.error.error || 'Failed to check authorization.', 'error');
+        }
+      }
+    });
+  }
+
+  async warnUser(id: number, taskTakenId: number): Promise<void> {
+    // First check authorization with backend
+    this.userConversationService.checkAuthorization(id, taskTakenId).subscribe({
+      next: (response) => {
+        // If authorized, show reason modal
+        this.showWarnReasonModal(id, taskTakenId);
+      },
+      error: (error) => {
+        if (error.status === 403) {
+          Swal.fire('Error!', error.error.error || 'You don\'t have authority to perform this action.', 'error');
+        } else {
+          Swal.fire('Error!', error.error.error || 'Failed to check authorization.', 'error');
+        }
+      }
+    });
+  }
+
+  async appealUser(id: number, taskTakenId: number): Promise<void> {
+    // First check authorization with backend
+    this.userConversationService.checkAuthorization(id, taskTakenId).subscribe({
+      next: (response) => {
+        // If authorized, show reason modal
+        this.showAppealReasonModal(id, taskTakenId);
+      },
+      error: (error) => {
+        if (error.status === 403) {
+          Swal.fire('Error!', error.error.error || 'You don\'t have authority to perform this action.', 'error');
+        } else {
+          Swal.fire('Error!', error.error.error || 'Failed to check authorization.', 'error');
+        }
+      }
+    });
+  }
+
+  // Helper methods to show reason modals
+  private async showBanReasonModal(id: number, taskTakenId: number): Promise<void> {
     const { value: reason } = await Swal.fire({
       title: 'Ban User',
       html: `
@@ -349,17 +401,13 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          if (error.status === 403) {
-            Swal.fire('Error!', error.error.error || 'You don\'t have authority to perform this action.', 'error');
-          } else {
-            Swal.fire('Error!', error.error.error || 'Failed to ban the user.', 'error');
-          }
+          Swal.fire('Error!', error.error.error || 'Failed to ban the user.', 'error');
         }
       });
     }
   }
 
-  async warnUser(id: number, taskTakenId: number): Promise<void> {
+  private async showWarnReasonModal(id: number, taskTakenId: number): Promise<void> {
     const { value: reason } = await Swal.fire({
       title: 'Warn User',
       html: `
@@ -406,17 +454,13 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          if (error.status === 403) {
-            Swal.fire('Error!', error.error.error || 'You don\'t have authority to perform this action.', 'error');
-          } else {
-            Swal.fire('Error!', error.error.error || 'Failed to warn the user.', 'error');
-          }
+          Swal.fire('Error!', error.error.error || 'Failed to warn the user.', 'error');
         }
       });
     }
   }
 
-  async appealUser(id: number, taskTakenId: number): Promise<void> {
+  private async showAppealReasonModal(id: number, taskTakenId: number): Promise<void> {
     const { value: reason } = await Swal.fire({
       title: 'Appeal User',
       html: `
@@ -463,11 +507,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          if (error.status === 403) {
-            Swal.fire('Error!', error.error.error || 'You don\'t have authority to perform this action.', 'error');
-          } else {
-            Swal.fire('Error!', error.error.error || 'Failed to appeal the user.', 'error');
-          }
+          Swal.fire('Error!', error.error.error || 'Failed to appeal the user.', 'error');
         }
       });
     }
