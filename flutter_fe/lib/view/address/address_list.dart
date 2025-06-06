@@ -112,20 +112,56 @@ class _AddressListState extends State<AddressList> {
     final result =
         await _addressController.deleteAddress(address.id.toString());
 
-    if (result) {
+    debugPrint('result is this: $result');
+
+    if (result == true) {
       setState(() {
         _addresses.remove(address);
         _loadAddresses();
       });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Address deleted successfully",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
 
-    // In a real app, you would delete this from your backend
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Address deleted'),
-        backgroundColor: Colors.red,
-      ),
-    );
+    if (result == false) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Address is used in a task",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   @override

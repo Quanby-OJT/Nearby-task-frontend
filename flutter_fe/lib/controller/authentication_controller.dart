@@ -42,7 +42,7 @@ class AuthenticationController {
     });
   }
 
-  Future<void> loginAuth(BuildContext context) async {
+  Future<Map<String, dynamic>> loginAuth(BuildContext context) async {
     var response = await ApiService.authUser(
         emailController.text, passwordController.text);
 
@@ -56,6 +56,14 @@ class AuthenticationController {
         MaterialPageRoute(
           builder: (context) => OtpScreen(userId: userId),
         ),
+      );
+    } else if (response.containsKey('isThrottled') && response['isThrottled']) {
+      int remainingTime = response['remainingTime'] ?? 300;
+      _showStatusModal(
+        context: context,
+        isSuccess: false,
+        message:
+            "${response['error']}\nPlease wait ${(remainingTime / 60).ceil()} minutes before trying again.",
       );
     } else if (response.containsKey('validation_error')) {
       String errorMessage =
@@ -73,6 +81,8 @@ class AuthenticationController {
         message: errorMessage,
       );
     }
+
+    return response;
   }
 
   Future<void> forgotPassword(BuildContext context) async {

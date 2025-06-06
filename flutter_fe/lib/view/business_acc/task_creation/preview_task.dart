@@ -12,6 +12,7 @@ class PreviewTask extends StatefulWidget {
   final List<String> relatedSpecializations;
   final List<File> photos;
   final Function() onSubmit;
+  final String? method;
 
   const PreviewTask({
     super.key,
@@ -23,6 +24,7 @@ class PreviewTask extends StatefulWidget {
     required this.relatedSpecializations,
     required this.photos,
     required this.onSubmit,
+    this.method,
   });
 
   @override
@@ -188,7 +190,7 @@ class _PreviewTaskState extends State<PreviewTask> {
                 ),
               ),
               child: Text(
-                'Post Task',
+                widget.method == 'add_task' ? 'Post Task' : 'Update Task',
                 style: GoogleFonts.poppins(color: Colors.white),
               ),
             ),

@@ -245,8 +245,25 @@ class _TaskReviewState extends State<TaskReview> {
                   });
                 });
               } else {
-                CustomScaffold(
-                    message: 'Failed to accept task', color: Colors.red);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      "Successfully Finished Task.",
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
+                    ),
+                    backgroundColor: Colors.red,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    duration: Duration(seconds: 3),
+                  ),
+                );
               }
             },
             style: ElevatedButton.styleFrom(
@@ -321,8 +338,25 @@ class _TaskReviewState extends State<TaskReview> {
   Future<void> _handleTaskDispute() async {
     if (_requestInformation == null ||
         _requestInformation!.task_taken_id == null) {
-      CustomScaffold(
-          message: 'Task information not available', color: Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Task information not available.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
       return;
     }
 
@@ -514,15 +548,50 @@ class _TaskReviewState extends State<TaskReview> {
                         _requestStatus = 'Disputed';
                       });
                     } else {
-                      CustomScaffold(
-                          message: 'Failed to raise dispute. Please Try Again.',
-                          color: Colors.red);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            "Failed to raise dispute. Please Try Again.",
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          margin: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
                     }
                   } catch (e, stackTrace) {
                     debugPrint("Error raising dispute: $e.");
                     debugPrintStack(stackTrace: stackTrace);
-                    CustomScaffold(
-                        message: 'Error occurred', color: Colors.red);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "Error occurred",
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                        backgroundColor: Colors.red,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        margin:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
                   } finally {
                     setState(() {
                       _isLoading = false;
@@ -688,8 +757,26 @@ class _TaskReviewState extends State<TaskReview> {
                       setState(() {
                         _isLoading = false;
                       });
-                      CustomScaffold(
-                          message: 'Failed to review task', color: Colors.red);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            "Failed to review task",
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          margin: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
                     }
                   },
                 ),
@@ -701,7 +788,25 @@ class _TaskReviewState extends State<TaskReview> {
     );
 
     if (confirm == true) {
-      CustomScaffold(message: 'Task has been declined.', color: Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Task has been declined.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
   }
 

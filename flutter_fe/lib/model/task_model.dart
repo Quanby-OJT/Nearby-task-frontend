@@ -77,8 +77,6 @@ class TaskModel {
     } else {
       urgencyValue = "Non-Urgent";
     }
-    debugPrint("Raw Task JSON: $json");
-    debugPrint("Moderator Information: ${json["action_by"]}");
 
     return TaskModel(
       id: json['task_id'] as int? ?? 0,
@@ -101,13 +99,19 @@ class TaskModel {
       scope: json['scope']?.toString() ?? '',
       isVerifiedDocument: json['is_verified'] as bool?,
       taskBeginDate: json['task_begin_date']?.toString(),
-      client: json['clients'] != null && json['clients']['user'] != null
+      client: json['client'] != null && json['client']['user'] != null
           ? ClientModel.fromJson({
               'preferences': '',
               'client_address': '',
-              'user': json['clients']['user'],
+              'user': json['client']['user'],
             })
-          : null,
+          : json['clients'] != null && json['clients']['user'] != null
+              ? ClientModel.fromJson({
+                  'preferences': '',
+                  'client_address': '',
+                  'user': json['clients']['user'],
+                })
+              : null,
       tasker: json['tasker'] != null && json['tasker']['user'] != null
           ? TaskerModel.fromJson({
               'preferences': '',

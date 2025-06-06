@@ -430,7 +430,25 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
           specializationId = null;
         });
 
-        CustomScaffold(message: _message!, color: Colors.green);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _message ?? "Successfully Posted Task.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
+          ),
+        );
         Navigator.pop(context);
       } else {
         setState(() {
@@ -446,13 +464,48 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
           _message = result['error'] ?? 'Failed to post task';
         });
 
-        CustomScaffold(message: _message!, color: Colors.red);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _message ?? "Failed to post task.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
+          ),
+        );
         Navigator.pop(context);
       }
     } catch (error) {
       debugPrint("Error submitting job: $error");
-      CustomScaffold(
-          message: 'An error occurred. Please try again.', color: Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _message ?? "An unexpected error occurred. Please try again.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
       Navigator.pop(context);
     } finally {
       setState(() {
@@ -1481,6 +1534,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
                                           relatedSpecializations,
                                       photos: _photos,
                                       onSubmit: _submitJob,
+                                      method: 'add_task',
                                     ),
                                   ),
                                 );

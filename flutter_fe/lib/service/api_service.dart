@@ -1347,19 +1347,28 @@ class ApiService {
         }),
       );
 
-      //_updateCookies(response);
-
       var responseData = json.decode(response.body);
 
       if (response.statusCode == 200) {
         return {"user_id": responseData['user_id']};
+      } else if (response.statusCode == 429) {
+        // Handle throttling
+        return {
+          "error": responseData['error'],
+          "remainingTime": responseData['remainingTime'],
+          "isThrottled": true
+        };
       } else if (response.statusCode == 400 &&
           responseData.containsKey('errors')) {
         List<dynamic> errors = responseData['errors'];
         String errorMessage = errors.map((e) => e['msg']).join('\n');
         return {"validation_error": errorMessage};
       } else {
-        return {"error": responseData['error'] ?? 'Authentication Failed'};
+        String message = responseData['error'] ?? 'Authentication Failed';
+        if (responseData.containsKey('attemptsLeft')) {
+          message += '\nAttempts left: ${responseData['attemptsLeft']}';
+        }
+        return {"error": message};
       }
     } catch (e, stackTrace) {
       debugPrint('Error: $e');
