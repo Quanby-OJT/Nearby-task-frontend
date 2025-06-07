@@ -268,7 +268,20 @@ class _LikeScreenState extends State<LikeScreen> {
                   (route) => false,
                 );
               },
-              child: const Text('Browse Jobs'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFB71A4A),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+              child: Text(
+                'Browse Jobs',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ],
         ),

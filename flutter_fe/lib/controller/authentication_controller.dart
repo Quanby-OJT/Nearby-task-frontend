@@ -10,6 +10,7 @@ import 'package:get_storage/get_storage.dart';
 import '../view/custom_loading/statusModal.dart';
 
 class AuthenticationController {
+  static final navigatorKey = GlobalKey<NavigatorState>();
   static const String apiUrl = "http://192.168.1.12:5000/connect";
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -235,11 +236,7 @@ class AuthenticationController {
       if (storedUserId == null) {
         debugPrint("No user ID found in storage");
         await storage.erase();
-        Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (context) {
-          return SignIn();
-        }), (route) => false);
-
+        _navigateToSignIn();
         return;
       }
 
@@ -250,37 +247,27 @@ class AuthenticationController {
         final response =
             await ApiService.logout(int.parse(userIdString), sessionToken);
         debugPrint("Logout response: $response");
-
-        if (response.containsKey("message")) {
-          await storage.erase();
-          if (isMounted()) {
-            Navigator.pushAndRemoveUntil(context,
-                MaterialPageRoute(builder: (context) {
-              return SignIn();
-            }), (route) => false);
-          }
-        }
+        await storage.erase();
+        _navigateToSignIn();
       } catch (e, stackTrace) {
         debugPrint("Server logout error: $e");
         debugPrintStack(stackTrace: stackTrace);
+        await storage.erase();
+        _navigateToSignIn();
       }
     } catch (e, stackTrace) {
       debugPrint("Logout Error: $e");
       debugPrintStack(stackTrace: stackTrace);
+      await storage.erase();
+      _navigateToSignIn();
+    }
+  }
 
-      if (e is Exception) {
-        await storage.erase();
-        Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (context) {
-          return SignIn();
-        }), (route) => false);
-      }
-
-      _showStatusModal(
-        context: context,
-        isSuccess: false,
-        message:
-            "An error occurred while logging out, but you have been logged out locally.",
+  void _navigateToSignIn() {
+    if (navigatorKey.currentState != null) {
+      navigatorKey.currentState!.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => SignIn()),
+        (route) => false,
       );
     }
   }

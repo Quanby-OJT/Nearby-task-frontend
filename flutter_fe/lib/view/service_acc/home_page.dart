@@ -537,7 +537,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                   children: [
                     buildListTile(
                       FontAwesomeIcons.solidUser,
-                      "My Profile",
+                      "Profile",
                       () {
                         Navigator.push(
                           context,
