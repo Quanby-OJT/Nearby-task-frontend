@@ -5,13 +5,10 @@ import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
-import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/verification/verification_page.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_fe/controller/task_controller.dart';
-import 'package:flutter_fe/model/task_model.dart';
 import '../../model/tasker_model.dart';
 
 class LikesScreen extends StatefulWidget {

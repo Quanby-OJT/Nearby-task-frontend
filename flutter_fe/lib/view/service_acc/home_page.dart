@@ -469,22 +469,21 @@ class _TaskerHomePageState extends State<TaskerHomePage>
     });
   }
 
-  Widget buildListTile(IconData icon, String title, VoidCallback onTap){
+  Widget buildListTile(IconData icon, String title, VoidCallback onTap) {
     return ListTile(
-      leading: Icon(
-        icon,
-        color: const Color(0xFFB71A4A),
-      ),
-      title: Text(
-        title,
-        style: GoogleFonts.poppins(
-          color: Colors.black,
-          fontSize: 14,
-          fontWeight: FontWeight.w300,
+        leading: Icon(
+          icon,
+          color: const Color(0xFFB71A4A),
         ),
-      ),
-      onTap: onTap
-    );
+        title: Text(
+          title,
+          style: GoogleFonts.poppins(
+            color: Colors.black,
+            fontSize: 14,
+            fontWeight: FontWeight.w300,
+          ),
+        ),
+        onTap: onTap);
   }
 
   void _showAnimatedMenu(BuildContext context) {
@@ -539,75 +538,53 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                     buildListTile(
                       FontAwesomeIcons.solidUser,
                       "My Profile",
-                        () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => ProfileScreen()),
-                          );
-                          overlayEntry.remove();
-                        },
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ProfileScreen()),
+                        );
+                        overlayEntry.remove();
+                      },
                     ),
                     //Implement Here verification Check.
+                    buildListTile(FontAwesomeIcons.userCheck, "Verify Account",
+                        () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const VerificationPage()),
+                      );
+                      overlayEntry.remove();
+                    }),
                     buildListTile(
-                      FontAwesomeIcons.userCheck,
-                      "Verify Account",
-                      () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const VerificationPage()),
-                          );
-                        overlayEntry.remove();
-                      }
-                    ),
-                    buildListTile(
-                      FontAwesomeIcons.rankingStar,
-                      "My Client Ratings",
-                      () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const TaskerFeedbackPage()),
-                          );
-                        overlayEntry.remove();
-                      }
-                    ),
-                    buildListTile(
-                      FontAwesomeIcons.question,
-                      "FAQs",
-                      () {
-                        overlayEntry.remove();
-                      }
-                    ),
-                    buildListTile(
-                      FontAwesomeIcons.ticket,
-                      "Referral Code",
-                      () {
-                        overlayEntry.remove();
-                      }
-                    ),
-                    buildListTile(
-                      FontAwesomeIcons.book,
-                      "Our Handbook",
-                      () {
-                        overlayEntry.remove();
-                      }
-                    ),
-                    buildListTile(
-                      FontAwesomeIcons.gears,
-                      "Settings",
-                      () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => SettingScreen()),
-                        ).then((value) => setState(() {
-                          _fetchTasks();
-                        }));
-                        overlayEntry.remove();
-                      }
-                    ),
+                        FontAwesomeIcons.rankingStar, "My Client Ratings", () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const TaskerFeedbackPage()),
+                      );
+                      overlayEntry.remove();
+                    }),
+                    buildListTile(FontAwesomeIcons.question, "FAQs", () {
+                      overlayEntry.remove();
+                    }),
+                    buildListTile(FontAwesomeIcons.ticket, "Referral Code", () {
+                      overlayEntry.remove();
+                    }),
+                    buildListTile(FontAwesomeIcons.book, "Our Handbook", () {
+                      overlayEntry.remove();
+                    }),
+                    buildListTile(FontAwesomeIcons.gears, "Settings", () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => SettingScreen()),
+                      ).then((value) => setState(() {
+                            _fetchTasks();
+                          }));
+                      overlayEntry.remove();
+                    }),
                     Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 10),
@@ -1453,7 +1430,9 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                             Column(children: [
                               SingleChildScrollView(
                                 child: Text(
-                                  '${DateFormat('MMM dd, yyyy HH:mm a').format(DateTime.parse(task.taskBeginDate ?? ''))}' ??
+                                  DateFormat('MMM dd, yyyy HH:mm a').format(
+                                          DateTime.parse(
+                                              task.taskBeginDate ?? '')) ??
                                       'No start date available for this task.',
                                   style: GoogleFonts.poppins(
                                     fontSize: 12,

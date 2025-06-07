@@ -867,8 +867,8 @@ class _JobPostPageState extends State<JobPostPage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              (task.post_task?.title?.length ?? 0) > 20
-                  ? '${task.post_task?.title?.substring(0, 20)}...'
+              (task.post_task?.title.length ?? 0) > 20
+                  ? '${task.post_task?.title.substring(0, 20)}...'
                   : task.post_task?.title ?? 'Untitled Task',
               style: GoogleFonts.poppins(
                 fontSize: 16,

@@ -1,6 +1,3 @@
-import 'dart:ui';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/tasker_feedback.dart';
 import 'package:flutter_fe/view/custom_loading/custom_loading.dart';
@@ -9,14 +6,14 @@ import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/service/tasker_service.dart';
 
-class TaskerFeedbackPage extends StatefulWidget{
+class TaskerFeedbackPage extends StatefulWidget {
   const TaskerFeedbackPage({super.key});
 
   @override
   State<TaskerFeedbackPage> createState() => _TaskerFeedbackPageState();
 }
 
-class _TaskerFeedbackPageState extends State<TaskerFeedbackPage>{
+class _TaskerFeedbackPageState extends State<TaskerFeedbackPage> {
   final storage = GetStorage();
   List<TaskerFeedback> taskerFeedback = [];
   bool isLoading = false;
@@ -93,7 +90,7 @@ class _TaskerFeedbackPageState extends State<TaskerFeedbackPage>{
                     child: Row(
                       children: List.generate(
                         5,
-                            (index) => Icon(
+                        (index) => Icon(
                           index < rating ? Icons.star : Icons.star_border,
                           color: Colors.amber,
                           size: 16,
@@ -168,120 +165,117 @@ class _TaskerFeedbackPageState extends State<TaskerFeedbackPage>{
   }
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          "Client's Ratings",
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFFB71A4A)
-          )
-        )
-      ),
+          title: Text("Client's Ratings",
+              style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFFB71A4A)))),
       body: isLoading
           ? CustomLoading()
           : taskerFeedback.isEmpty
-            ? Center( // Center the "No reviews yet" message
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        FontAwesomeIcons.commentDots,
-                        size: 80,
-                        color: Colors.grey[400],
-                      ),
-                      const SizedBox(height: 16),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 25),
-                        child: Text(
-                          "You don't have any reviews yet. You can encourage your client to review you, only if you finished the task assigned to you.",
-                          style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
-                          textAlign: TextAlign.center,
+              ? Center(
+                  // Center the "No reviews yet" message
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          FontAwesomeIcons.commentDots,
+                          size: 80,
+                          color: Colors.grey[400],
                         ),
-                      )
-                    ],
+                        const SizedBox(height: 16),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 25),
+                          child: Text(
+                            "You don't have any reviews yet. You can encourage your client to review you, only if you finished the task assigned to you.",
+                            style: GoogleFonts.poppins(
+                                fontSize: 14, color: Colors.grey[600]),
+                            textAlign: TextAlign.center,
+                          ),
+                        )
+                      ],
+                    ),
                   ),
-                ),
-              )
-            : SingleChildScrollView(
-                scrollDirection: Axis.vertical,
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 16),
-                      overallRating(),
-                      const SizedBox(height: 24),
-                      ListView.builder(
-                          shrinkWrap: true, // Add this
-                          physics: NeverScrollableScrollPhysics(), // Add this to disable ListView's own scrolling
-                          itemCount: taskerFeedback.length, // Add itemCount
-                          itemBuilder: (context, index) {
-                            final feedback = taskerFeedback[index];
-                            return _buildReviewItem(
-                              feedback.client.user?.firstName ?? "N/A",
-                              feedback.comment,
-                              feedback.rating.toInt(),
-                            );
-                          })
-                    ],
-                  )
                 )
-      ),
+              : SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 16),
+                          overallRating(),
+                          const SizedBox(height: 24),
+                          ListView.builder(
+                              shrinkWrap: true, // Add this
+                              physics:
+                                  NeverScrollableScrollPhysics(), // Add this to disable ListView's own scrolling
+                              itemCount: taskerFeedback.length, // Add itemCount
+                              itemBuilder: (context, index) {
+                                final feedback = taskerFeedback[index];
+                                return _buildReviewItem(
+                                  feedback.client.user?.firstName ?? "N/A",
+                                  feedback.comment,
+                                  feedback.rating.toInt(),
+                                );
+                              })
+                        ],
+                      ))),
     );
   }
 
-  Widget overallRating(){
+  Widget overallRating() {
     return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Color(0xFF0272B1), width: 1),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              _calculateAverageRating(taskerFeedback),
-              style: GoogleFonts.poppins(
-                fontSize: 48,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0272B1),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
+        elevation: 3,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Color(0xFF0272B1), width: 1),
+        ),
+        child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (index) {
-                int fullStars = _getAverageRatingAsInt(taskerFeedback);
-                bool hasHalfStar = _hasHalfStar(taskerFeedback);
+              children: [
+                Text(
+                  _calculateAverageRating(taskerFeedback),
+                  style: GoogleFonts.poppins(
+                    fontSize: 48,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0272B1),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(5, (index) {
+                    int fullStars = _getAverageRatingAsInt(taskerFeedback);
+                    bool hasHalfStar = _hasHalfStar(taskerFeedback);
 
-                if (index < fullStars) {
-                  return Icon(Icons.star, color: Colors.amber, size: 28);
-                } else if (index == fullStars && hasHalfStar) {
-                  return Icon(Icons.star_half, color: Colors.amber, size: 28);
-                } else {
-                  return Icon(Icons.star_border, color: Colors.amber, size: 28);
-                }
-              }),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              "${_getCompletionRate(taskerFeedback)} completed tasks",
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
-            ),
-          ],
-        )
-      )
-    );
+                    if (index < fullStars) {
+                      return Icon(Icons.star, color: Colors.amber, size: 28);
+                    } else if (index == fullStars && hasHalfStar) {
+                      return Icon(Icons.star_half,
+                          color: Colors.amber, size: 28);
+                    } else {
+                      return Icon(Icons.star_border,
+                          color: Colors.amber, size: 28);
+                    }
+                  }),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  "${_getCompletionRate(taskerFeedback)} completed tasks",
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            )));
   }
 }

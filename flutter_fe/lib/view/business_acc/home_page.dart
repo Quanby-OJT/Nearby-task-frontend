@@ -13,7 +13,6 @@ import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/controller/tasker_controller.dart';
 import 'package:flutter_fe/view/address/set-up_address.dart';
 import 'package:flutter_fe/view/business_acc/notif_screen.dart';
-import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
 import 'package:flutter_fe/view/service_acc/notif_screen.dart';
 import 'package:flutter_fe/view/setting/setting.dart';
@@ -1119,7 +1118,9 @@ class _ClientHomePageState extends State<ClientHomePage>
                                                   ),
                                                   SizedBox(height: 4),
                                                   Text(
-                                                    tasker.tasker
+                                                    tasker
+                                                            .tasker
+                                                            ?.taskerSpecialization
                                                             ?.specialization ??
                                                         "No specialization",
                                                     style: TextStyle(

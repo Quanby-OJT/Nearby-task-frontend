@@ -1,5 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_fe/model/user_model.dart';
+import 'package:flutter_fe/model/task_model.dart';
 import 'dart:convert';
 
 class TaskerModel {
@@ -17,6 +17,7 @@ class TaskerModel {
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final UserModel? user;
+  final TaskerSpecialization? taskerSpecialization;
 
   // Computed getter for the id field (for backward compatibility)
   int get id => taskerId ?? 0;
@@ -41,6 +42,7 @@ class TaskerModel {
     this.createdAt,
     this.updatedAt,
     this.user,
+    this.taskerSpecialization,
   });
 
   @override
@@ -65,6 +67,7 @@ class TaskerModel {
       "created_at": createdAt?.toIso8601String(),
       "updated_at": updatedAt?.toIso8601String(),
       "user": user?.toJson(),
+      "tasker_specialization": taskerSpecialization?.toJson(),
     };
   }
 
@@ -112,6 +115,10 @@ class TaskerModel {
       user: json['user'] != null
           ? UserModel.fromJson(json['user'] as Map<String, dynamic>)
           : null,
+      taskerSpecialization: json['tasker_specialization'] != null
+          ? TaskerSpecialization.fromJson(
+              json['tasker_specialization'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -131,6 +138,7 @@ class TaskerModel {
     DateTime? createdAt,
     DateTime? updatedAt,
     UserModel? user,
+    TaskerSpecialization? taskerSpecialization,
   }) {
     return TaskerModel(
       taskerId: taskerId ?? this.taskerId,
@@ -147,6 +155,7 @@ class TaskerModel {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       user: user ?? this.user,
+      taskerSpecialization: taskerSpecialization ?? this.taskerSpecialization,
     );
   }
 }

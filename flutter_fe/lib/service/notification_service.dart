@@ -6,7 +6,7 @@ import 'package:get_storage/get_storage.dart';
 import '../config/url_strategy.dart';
 
 class NotificationService {
-  static final String url = apiUrl ?? "http://localhost:5000";
+  static final String url = apiUrl ?? "http://192.168.1.6:5000";
 
   final storage = GetStorage();
 

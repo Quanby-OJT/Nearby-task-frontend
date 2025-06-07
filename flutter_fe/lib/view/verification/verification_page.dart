@@ -11,7 +11,6 @@ import 'package:flutter_fe/service/api_service.dart';
 // Import separate verification pages
 import 'general_info_page.dart';
 import 'id_verification_page.dart';
-import 'selfie_verification_page.dart';
 import 'document_upload_page.dart';
 
 class VerificationPage extends StatefulWidget {
