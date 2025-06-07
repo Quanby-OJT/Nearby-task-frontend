@@ -108,9 +108,7 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
     setState(() => _isLoading = true);
     final response = await _controller.loginAuth(context);
 
-    if (response != null &&
-        response.containsKey('isThrottled') &&
-        response['isThrottled']) {
+    if (response.containsKey('isThrottled') && response['isThrottled']) {
       int remainingTime = response['remainingTime'] ?? 300;
       _startCountdownTimer(remainingTime);
     }

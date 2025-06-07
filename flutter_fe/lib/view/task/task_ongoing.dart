@@ -2,9 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/task/task_disputed.dart';
-import 'package:flutter_fe/view/task/task_finished.dart';
 import 'package:flutter_fe/view/task/task_review.dart';
 import 'package:flutter_fe/view/task_user/user_feedback.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';

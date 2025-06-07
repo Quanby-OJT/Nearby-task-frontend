@@ -712,7 +712,7 @@ class _TaskInformationState extends State<TaskInformation> {
                       final result = await taskController.assignTask(
                         widget.taskID ?? 0,
                         _taskInformation!.clientId,
-                        _taskInformation!.tasker?.id ?? 0,
+                        storage.read('user_id') ?? 0,
                         widget.role,
                       );
                       if (result == 'A New Conversation Has been Opened.') {

@@ -71,16 +71,17 @@ class TaskRequestController {
     try {
       debugPrint("TaskRequestController: Rejecting tasker with ID $requestId");
       String rejectionReason = rejectionController.text;
-      var response = await _requestService.rejectTaskerOrCancelTask(requestId, rejectOrCancel, rejectionReason);
+      var response = await _requestService.rejectTaskerOrCancelTask(
+          requestId, rejectOrCancel, rejectionReason);
 
-      if(response.containsKey("message")){
+      if (response.containsKey("message")) {
         return response["message"];
-      }else if(response.containsKey("error")){
+      } else if (response.containsKey("error")) {
         return response["error"];
-      }else{
+      } else {
         return "Unknown Error";
       }
-    }catch(e, stackTrace){
+    } catch (e, stackTrace) {
       debugPrint("Error in TaskRequestController.rejectTasker: $e");
       debugPrintStack(stackTrace: stackTrace);
       return "An Error Occured. Please Try Again.";
@@ -100,7 +101,7 @@ class TaskRequestController {
 
       final disputes = await jobPostService.getDispute(taskTakenId);
 
-      if (disputes == null || disputes.containsKey('message') || disputes.containsKey('error')) {
+      if (disputes.containsKey('message') || disputes.containsKey('error')) {
         return null;
       }
 

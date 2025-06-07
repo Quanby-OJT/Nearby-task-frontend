@@ -9,7 +9,7 @@ import '../config/url_strategy.dart';
 import '../model/conversation.dart';
 
 class TaskDetailsService {
-  static final String url = apiUrl ?? "http://localhost:5000";
+  static final String url = apiUrl ?? "http://192.168.1.6:5000";
   static final storage = GetStorage();
 
   static Map<String, dynamic> _handleResponse(http.Response response) {
@@ -174,7 +174,10 @@ class TaskDetailsService {
     } catch (e, st) {
       debugPrint("Error in retrieving transactions: $e");
       debugPrint(st.toString());
-      return {"error": "An error occurred while retrieving your transactions. Please try again."};
+      return {
+        "error":
+            "An error occurred while retrieving your transactions. Please try again."
+      };
     }
   }
 }

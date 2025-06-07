@@ -455,9 +455,8 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
                                 margin: const EdgeInsets.only(bottom: 12),
                                 child: ListTile(
                                   title: Text(
-                                    task.title != null &&
-                                            task.title!.length > 20
-                                        ? '${task.title?.substring(0, 20)}...'
+                                    task.title.length > 20
+                                        ? '${task.title.substring(0, 20)}...'
                                         : task.title ?? 'Task ${task.id}',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
