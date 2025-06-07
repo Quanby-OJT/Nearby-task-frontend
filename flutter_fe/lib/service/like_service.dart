@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'package:flutter_fe/config/url_strategy.dart';
 
 class LikeService {
-  static final String url = apiUrl ?? "http://192.168.1.6:5000";
+  static final String url = apiUrl ?? "http://localhost:5000";
 
   static Future<void> addLike(int userId, bool like, String likedBy) async {
     final String token = await AuthService.getSessionToken();

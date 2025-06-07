@@ -4,6 +4,7 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
+import 'package:flutter_fe/view/business_acc/business_acc_main_page.dart';
 import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/verification/verification_page.dart';
@@ -435,7 +436,7 @@ class _LikesScreenState extends State<LikesScreen> {
               onPressed: () {
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => ServiceAccMain()),
+                  MaterialPageRoute(builder: (context) => BusinessAccMain()),
                   (route) => false,
                 );
               },
