@@ -550,7 +550,7 @@ class _JobPostPageState extends State<JobPostPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.task_alt, size: 64, color: Colors.grey[400]),
+            Icon(FontAwesomeIcons.screwdriverWrench, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
               'No tasks found',

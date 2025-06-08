@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/client_request.dart';
+import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
@@ -340,12 +341,12 @@ class _ClientRequestState extends State<ClientRequest> {
                                           MaterialPageRoute(
                                             builder: (context) =>
                                                 IndividualChatScreen(
-                                              taskTitle:
-                                                  _taskInformation!.title,
-                                              taskTakenId: _requestInformation!
-                                                  .task_taken_id as int,
-                                              taskId: _requestInformation!
-                                                  .client_id as int,
+                                                  taskAssignment: TaskAssignment(
+                                                    taskTakenId: _requestInformation?.task_taken_id ?? 0,
+                                                    taskStatus: _requestInformation?.task_status ?? '',
+                                                    task: _taskInformation,
+                                                    tasker: _taskInformation?.tasker,
+                                                  ),
                                             ),
                                           ),
                                         ).then((value) {

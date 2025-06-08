@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/view/profile/payment_processing.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/escrow_management_controller.dart';
@@ -105,7 +106,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> with Ti
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Total Balance',
+                        'Your Total Earnings',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 18,
@@ -113,19 +114,14 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> with Ti
                       ),
                       SizedBox(height: 12),
                       _isLoading
-                          ? Text(
-                              'Please Wait while we calculate your credits',
-                              style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.yellow.shade100),
-                              textAlign: TextAlign.left,
+                          ? LinearProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(Color(0XFFE23670)),
+                              backgroundColor: Color(0XFFF5A1BB),
                             )
-                          : _escrowManagementController.tokenCredits.value ==
-                                  0.0
+                          : _escrowManagementController.tokenCredits.value == 0.0
                               ? Text(
                                   "₱ 0.00",
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.montserrat(
                                     color: Colors.white,
                                     fontSize: 36,
                                     fontWeight: FontWeight.bold,
@@ -135,7 +131,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> with Ti
                                   formatCurrency(_escrowManagementController
                                       .tokenCredits.value
                                       .toDouble()),
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.montserrat(
                                     color: Colors.white,
                                     fontSize: 36,
                                     fontWeight: FontWeight.bold,
@@ -190,7 +186,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> with Ti
                               formatCurrency(_escrowManagementController
                                   .tokenCredits.value
                                   .toDouble()),
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.montserrat(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -320,7 +316,25 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> with Ti
                           ),
                         ),
                       )
-                    : ListView.builder(
+                    : _transactionHistory.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                FontAwesomeIcons.fileInvoiceDollar,
+                                size: 50,
+                                color: Colors.grey,
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                "You don't have any transactions yet.",
+                                style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey),
+                              )
+                            ],
+                          )
+                        )
+                      : ListView.builder(
                         shrinkWrap: true, // Important to make ListView scrollable within Column
                         physics: NeverScrollableScrollPhysics(), // Disable ListView's own scrolling
                         itemCount: _transactionHistory.length,

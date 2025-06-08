@@ -1104,7 +1104,7 @@ class _ClientHomePageState extends State<ClientHomePage>
                                                   SizedBox(height: 4),
                                                   Text(
                                                     tasker.tasker
-                                                            ?.specialization ??
+                                                            ?.specialization.specialization ??
                                                         "No specialization",
                                                     style: TextStyle(
                                                       fontSize: 14,

@@ -947,9 +947,7 @@ class _ChatScreenState extends State<ChatScreen> {
               context,
               MaterialPageRoute(
                 builder: (context) => IndividualChatScreen(
-                  taskTakenId: taskTaken.taskTakenId,
-                  taskId: taskTaken.task?.id ?? 0,
-                  taskTitle: taskTaken.task?.title ?? '',
+                  taskAssignment: taskTaken,
                 ),
               ),
             ).then((_) {

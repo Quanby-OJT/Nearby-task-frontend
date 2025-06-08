@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/view/service_acc/fill_up.dart';
 
 class QTaskRules extends StatefulWidget {
   final int userId;
@@ -130,27 +129,6 @@ class _QTaskRulesState extends State<QTaskRules> {
                       fontWeight: FontWeight.normal,
                       color: Colors.black54),
                 )),
-
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => FillUpTaskerLogin()));
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF0272B1),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-              ),
-              child: Text(
-                'Let\'s Set Up Your Tasker Information',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                ),
-              ),
-            ),
           ],
         )));
   }

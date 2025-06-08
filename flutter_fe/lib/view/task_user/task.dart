@@ -19,6 +19,7 @@ import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:flutter_fe/view/task/task_pending.dart';
 import 'package:flutter_fe/view/task/task_rejected.dart';
 import 'package:flutter_fe/view/task/task_review.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -463,7 +464,30 @@ class _TaskPageState extends State<TaskPage>
               child: CircularProgressIndicator(),
             )
           : clientTasks.isEmpty
-              ? const Center(child: Text("No tasks available"))
+              ? Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          FontAwesomeIcons.screwdriverWrench,
+                          size: 64,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'You don\'t have any tasks yet. You can apply for a task by clicking on the "Apply" button, after you saved your desired task.',
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            color: Colors.grey[600],
+                          ),
+                          textAlign: TextAlign.center,
+                        )
+                      ]
+                    )
+                  )
+                )
               : Column(
                   children: [
                     // Search

@@ -360,7 +360,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                         "Basic Information",
                         [
                           _buildInfoRow(Icons.work, "Specialization",
-                              widget.tasker.specialization),
+                              widget.tasker.specialization.specialization),
                         ],
                       ),
                     ),

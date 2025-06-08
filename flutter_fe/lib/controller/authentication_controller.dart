@@ -225,10 +225,12 @@ class AuthenticationController {
       if (storedUserId == null) {
         debugPrint("No user ID found in storage");
         await storage.erase();
-        Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (context) {
-          return SignIn();
-        }), (route) => false);
+        if (isMounted()) {
+          Navigator.pushAndRemoveUntil(context,
+              MaterialPageRoute(builder: (context) {
+            return SignIn();
+          }), (route) => false);
+        }
 
         return;
       }
@@ -243,12 +245,14 @@ class AuthenticationController {
 
         if (response.containsKey("message")) {
           await storage.erase();
-          if (isMounted()) {
-            Navigator.pushAndRemoveUntil(context,
-                MaterialPageRoute(builder: (context) {
-              return SignIn();
-            }), (route) => false);
-          }
+          // Ensure that the navigation happens in the next frame
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (isMounted()) {
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (context) => SignIn()),
+                  (route) => false);
+            }
+          });
         }
       } catch (e, stackTrace) {
         debugPrint("Server logout error: $e");
@@ -258,20 +262,30 @@ class AuthenticationController {
       debugPrint("Logout Error: $e");
       debugPrintStack(stackTrace: stackTrace);
 
-      if (e is Exception) {
-        await storage.erase();
-        Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (context) {
-          return SignIn();
-        }), (route) => false);
-      }
+      await storage.erase(); // Always erase storage on any logout error.
 
-      _showStatusModal(
-        context: context,
-        isSuccess: false,
-        message:
-            "An error occurred while logging out, but you have been logged out locally.",
-      );
+      // Ensure that the navigation or dialog happens in the next frame
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (isMounted()) {
+          // Ensure context is still valid before navigating or showing dialog
+          if (e is Exception) { // Or a more specific check if needed
+            Navigator.pushAndRemoveUntil(context,
+                MaterialPageRoute(builder: (context) => SignIn()),
+                (route) => false);
+          }
+
+          // Show modal only if mounted
+          _showStatusModal(
+            context: context,
+            isSuccess: false,
+            message:
+                "An error occurred while logging out, but you have been logged out locally.",
+          );
+        } else {
+          debugPrint(
+              "Logout Error: Context is no longer mounted, cannot navigate or show dialog.");
+        }
+      });
     }
   }
 

@@ -403,134 +403,133 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
                     ),
                     const SizedBox(height: 24),
 
+                    ///
+                    /// All of this text fields were moved to profile.
+                    ///
+                    /// -Ces
+                    ///
                     // Bio Section
-                    Text(
-                      'Professional Bio',
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Bio Text Field
-                    _buildTextField(
-                      controller: _bioController,
-                      label: 'Tell us about yourself and your skills',
-                      icon: Icons.person_outline,
-                      maxLines: 4,
-                      keyboardType: TextInputType.multiline,
-                      hintText:
-                          'Share your experience, skills, and what you can offer to clients',
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Your bio will be visible to potential clients',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontStyle: FontStyle.italic,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-
-                    // After the specialization section, add the pay period and wage section
-                    const SizedBox(height: 24),
-
-                    // After the Compensation Details section, add Social Media Links section
-                    const SizedBox(height: 24),
+                    // Text(
+                    //   'Professional Bio',
+                    //   style: GoogleFonts.poppins(
+                    //     fontSize: 18,
+                    //     fontWeight: FontWeight.w600,
+                    //     color: Colors.grey[800],
+                    //   ),
+                    // ),
+                    // const SizedBox(height: 16),
+                    //
+                    // // Bio Text Field
+                    // _buildTextField(
+                    //   controller: _bioController,
+                    //   label: 'Tell us about yourself and your skills',
+                    //   icon: Icons.person_outline,
+                    //   maxLines: 4,
+                    //   keyboardType: TextInputType.multiline,
+                    //   hintText:
+                    //       'Share your experience, skills, and what you can offer to clients',
+                    // ),
+                    // const SizedBox(height: 8),
+                    // Text(
+                    //   'Your bio will be visible to potential clients',
+                    //   style: GoogleFonts.poppins(
+                    //     fontSize: 12,
+                    //     fontStyle: FontStyle.italic,
+                    //     color: Colors.grey[600],
+                    //   ),
+                    // ),
 
                     // Social Media Links Section
-                    Text(
-                      'Social Media Links (Optional)',
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Add your social media profiles to enhance your verification',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Facebook
-                    _buildTextField(
-                      controller: _facebookController,
-                      label: 'Facebook Profile URL',
-                      icon: Icons.facebook,
-                      keyboardType: TextInputType.url,
-                      hintText: 'https://facebook.com/yourusername',
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          if (!value.contains('facebook.com')) {
-                            return 'Please enter a valid Facebook URL';
-                          }
-                        }
-                        return null; // Optional field
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Instagram
-                    _buildTextField(
-                      controller: _instagramController,
-                      label: 'Instagram Profile URL',
-                      icon: Icons.camera_alt,
-                      keyboardType: TextInputType.url,
-                      hintText: 'https://instagram.com/yourusername',
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          if (!value.contains('instagram.com')) {
-                            return 'Please enter a valid Instagram URL';
-                          }
-                        }
-                        return null; // Optional field
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // LinkedIn
-                    _buildTextField(
-                      controller: _linkedinController,
-                      label: 'LinkedIn Profile URL',
-                      icon: Icons.business_center,
-                      keyboardType: TextInputType.url,
-                      hintText: 'https://linkedin.com/in/yourusername',
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          if (!value.contains('linkedin.com')) {
-                            return 'Please enter a valid LinkedIn URL';
-                          }
-                        }
-                        return null; // Optional field
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Twitter
-                    _buildTextField(
-                      controller: _twitterController,
-                      label: 'Twitter Profile URL',
-                      icon: Icons.chat,
-                      keyboardType: TextInputType.url,
-                      hintText: 'https://twitter.com/yourusername',
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          if (!value.contains('twitter.com') &&
-                              !value.contains('x.com')) {
-                            return 'Please enter a valid Twitter/X URL';
-                          }
-                        }
-                        return null; // Optional field
-                      },
-                    ),
-                    const SizedBox(height: 24),
+                    // Text(
+                    //   'Social Media Links (Optional)',
+                    //   style: GoogleFonts.poppins(
+                    //     fontSize: 18,
+                    //     fontWeight: FontWeight.w600,
+                    //     color: Colors.grey[800],
+                    //   ),
+                    // ),
+                    // const SizedBox(height: 8),
+                    // Text(
+                    //   'Add your social media profiles to enhance your verification',
+                    //   style: GoogleFonts.poppins(
+                    //     fontSize: 14,
+                    //     color: Colors.grey[600],
+                    //   ),
+                    // ),
+                    // const SizedBox(height: 16),
+                    //
+                    // // Facebook
+                    // _buildTextField(
+                    //   controller: _facebookController,
+                    //   label: 'Facebook Profile URL',
+                    //   icon: Icons.facebook,
+                    //   keyboardType: TextInputType.url,
+                    //   hintText: 'https://facebook.com/yourusername',
+                    //   validator: (value) {
+                    //     if (value != null && value.isNotEmpty) {
+                    //       if (!value.contains('facebook.com')) {
+                    //         return 'Please enter a valid Facebook URL';
+                    //       }
+                    //     }
+                    //     return null; // Optional field
+                    //   },
+                    // ),
+                    // const SizedBox(height: 16),
+                    //
+                    // // Instagram
+                    // _buildTextField(
+                    //   controller: _instagramController,
+                    //   label: 'Instagram Profile URL',
+                    //   icon: Icons.camera_alt,
+                    //   keyboardType: TextInputType.url,
+                    //   hintText: 'https://instagram.com/yourusername',
+                    //   validator: (value) {
+                    //     if (value != null && value.isNotEmpty) {
+                    //       if (!value.contains('instagram.com')) {
+                    //         return 'Please enter a valid Instagram URL';
+                    //       }
+                    //     }
+                    //     return null; // Optional field
+                    //   },
+                    // ),
+                    // const SizedBox(height: 16),
+                    //
+                    // // LinkedIn
+                    // _buildTextField(
+                    //   controller: _linkedinController,
+                    //   label: 'LinkedIn Profile URL',
+                    //   icon: Icons.business_center,
+                    //   keyboardType: TextInputType.url,
+                    //   hintText: 'https://linkedin.com/in/yourusername',
+                    //   validator: (value) {
+                    //     if (value != null && value.isNotEmpty) {
+                    //       if (!value.contains('linkedin.com')) {
+                    //         return 'Please enter a valid LinkedIn URL';
+                    //       }
+                    //     }
+                    //     return null; // Optional field
+                    //   },
+                    // ),
+                    // const SizedBox(height: 16),
+                    //
+                    // // Twitter
+                    // _buildTextField(
+                    //   controller: _twitterController,
+                    //   label: 'Twitter Profile URL',
+                    //   icon: Icons.chat,
+                    //   keyboardType: TextInputType.url,
+                    //   hintText: 'https://twitter.com/yourusername',
+                    //   validator: (value) {
+                    //     if (value != null && value.isNotEmpty) {
+                    //       if (!value.contains('twitter.com') &&
+                    //           !value.contains('x.com')) {
+                    //         return 'Please enter a valid Twitter/X URL';
+                    //       }
+                    //     }
+                    //     return null; // Optional field
+                    //   },
+                    // ),
+                    // const SizedBox(height: 24),
 
                     // Contact Information Section
                     Text(

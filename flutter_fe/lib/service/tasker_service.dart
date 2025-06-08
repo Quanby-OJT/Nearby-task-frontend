@@ -13,7 +13,6 @@ import 'package:flutter_fe/model/tasker_feedback.dart';
 
 import '../model/address.dart';
 import '../model/tasker_model.dart';
-
 class TaskerService {
   static final storage = GetStorage();
   static final String url = apiUrl ?? "http://localhost:5000";
@@ -62,8 +61,7 @@ class TaskerService {
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> _deleteRequest(
-      String endpoint, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
       final request = http.Request("DELETE", Uri.parse('$url$endpoint'))
@@ -110,196 +108,57 @@ class TaskerService {
     }
   }
 
-  Future<Map<String, dynamic>> updateTaskerInfoWithFiles(
-      TaskerModel tasker, AddressModel address, File? file, File? image) async {
-    try {
-      String? token = await AuthService.getSessionToken();
+  Future<Map<String, dynamic>> updateTasker(List<File>? taskerImages, List<File>? taskerDocuments, TaskerModel tasker) async {
+    final token = await AuthService.getSessionToken();
+    final id = await storage.read("user_id");
+    final role = await storage.read("role");
+    final uri = Uri.parse('$url/update-user/$id');
 
-      var request = http.MultipartRequest(
-        "PUT",
-        Uri.parse("$url/update-tasker-login-with-file/${tasker.id}"),
-      );
+    if (taskerImages != null || taskerDocuments != null) {
+      // Multipart request
+      var request = http.MultipartRequest('PUT', uri)
+        ..headers["Authorization"] = "Bearer $token"
+        ..fields['tasker'] = jsonEncode({...tasker.toJson(), "role": role});
 
-      request.headers.addAll({
-        "Authorization": "Bearer $token",
-        "Content-Type": "multipart/form-data",
-      });
-
-      // Add fields with null-safe defaults, matching backend expectations
-      request.fields.addAll({
-        "user_id": tasker.id.toString(),
-        "tasker_id":
-            tasker.id.toString(), // Assuming tasker.id is used for both
-        "first_name": tasker.user?.firstName ?? '',
-        "middle_name": tasker.user?.middleName ?? '',
-        "last_name": tasker.user?.lastName ?? '',
-        "email": tasker.user?.email ?? '',
-        "gender": tasker.user?.gender ?? '',
-        "contact": tasker.user?.contact ?? '',
-        "birthdate": tasker.user?.birthdate ?? '',
-        "bio": tasker.bio ?? '',
-        "specialization": tasker.specialization ?? '',
-        "pay_period": tasker.payPeriod ?? '',
-        "skills": tasker.skills ?? '',
-        "availability": tasker.availability.toString(),
-        "wage_per_hour": tasker.wage.toString(),
-        "street_address": address.streetAddress ?? '',
-        "barangay": address.barangay ?? '',
-        "city": address.city ?? '',
-        "province": address.province ?? '',
-        "postal_code": address.postalCode ?? '',
-        "country": address.country ?? '',
-        // Add social_media_links if needed
-        "social_media_links": '{}',
-      });
-
-      debugPrint('Request fields: ${request.fields}');
-
-      // Add profile image (named "image" to match backend)
-      if (image != null) {
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            "image", // Match backend field name
-            image.path,
-            filename:
-                "profile_image_${DateTime.now().millisecondsSinceEpoch}.jpg",
-          ),
-        );
-      }
-
-      // Add document file (named "document" to match backend)
-      if (file != null) {
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            "documents", // Match backend field name
+      if (taskerImages != null) {
+        for (var file in taskerImages) {
+          request.files.add(await http.MultipartFile.fromPath(
+            'tasker_images', // This should match the backend's expected field name
             file.path,
-            filename: "document_${DateTime.now().millisecondsSinceEpoch}.pdf",
-          ),
-        );
-      }
-
-      debugPrint('Request files: ${request.files}');
-
-      var response = await request.send();
-      var responseBody = await response.stream.bytesToString();
-      final data = jsonDecode(responseBody);
-
-      debugPrint('Response Status: ${response.statusCode}');
-      debugPrint('Response Body: $responseBody');
-
-      if (response.statusCode == 200) {
-        return {
-          "message":
-              data["message"] ?? "Tasker information updated successfully!",
-          "profile_picture": data["profile_picture"],
-          "tesda_document_link": data["tesda_document_link"],
-        };
-      } else if (response.statusCode == 400) {
-        String errorMessage = "";
-        if (data['error'] is String) {
-          errorMessage = data['error'];
-        } else if (data['error'] is Map) {
-          errorMessage = data['error']['message'] ?? "Invalid data provided.";
+          ));
         }
-        return {
-          "errors":
-              errorMessage.isNotEmpty ? errorMessage : "Invalid data provided."
-        };
-      } else {
-        return {
-          "errors": data["error"] ?? "An unexpected server error occurred."
-        };
       }
-    } catch (e) {
-      debugPrint("Error updating tasker with files: $e");
-      return {"errors": "Failed to update tasker information: ${e.toString()}"};
+
+      if (taskerDocuments != null) {
+        for (var file in taskerDocuments) {
+          request.files.add(await http.MultipartFile.fromPath(
+            'tasker_documents', // This should match the backend's expected field name
+            file.path,
+          ));
+        }
+      }
+
+      try {
+        final streamedResponse = await request.send();
+        final response = await http.Response.fromStream(streamedResponse);
+        return _handleResponse(response);
+      } catch (e) {
+        return {"error": "Request failed: $e"};
+      }
+    } else {
+      // Standard PUT request
+      return await _putRequest(
+        endpoint: '/update-user/$id',
+        body: tasker.toJson(),
+      );
     }
   }
 
-  Future<Map<String, dynamic>> updateTaskerProfile(
-      UserModel user, File profileImage, File documentFile) async {
-    try {
-      String token = await AuthService.getSessionToken();
-
-      var request = http.MultipartRequest(
-        "PUT",
-        Uri.parse("$url/update-tasker-with-images/${user.id}"),
-      );
-
-      request.headers.addAll({
-        "Authorization": "Bearer $token",
-        "Content-Type": "multipart/form-data",
-      });
-
-      request.fields.addAll({
-        "first_name": user.firstName,
-        "middle_name": user.middleName ?? '',
-        "last_name": user.lastName,
-        "email": user.email,
-        "user_role": user.role,
-        "contact": user.contact ?? '',
-        "gender": user.gender ?? '',
-        "birthdate": user.birthdate ?? '',
-      });
-
-      // Add the profile image to the request
-      request.files.add(
-        http.MultipartFile.fromBytes(
-          "profileImage",
-          await profileImage.readAsBytes(),
-          filename: "profile_image.jpg",
-        ),
-      );
-
-      // Add the ID image to the request
-      request.files.add(
-        http.MultipartFile.fromBytes(
-          "documentImage",
-          await documentFile.readAsBytes(),
-          filename: "document_image.jpg",
-        ),
-      );
-
-      var response = await request.send();
-      var responseBody = await response.stream.bytesToString();
-
-      debugPrint('Response Status: ${response.statusCode}');
-      debugPrint('Response Body: $responseBody');
-
-      final data = jsonDecode(responseBody);
-
-      if (response.statusCode == 200) {
-        return {
-          "message": data["message"] ??
-              "User information with images updated successfully!",
-          "user": data["user"],
-          "profileImage": data["profileImage"],
-          "documentImage": data["documentImage"],
-        };
-      } else if (response.statusCode == 400) {
-        String errorMessage = "";
-        if (data['errors'] is String) {
-          errorMessage = data['errors'];
-        } else if (data['errors'] is List) {
-          errorMessage = (data['errors'] as List)
-              .map((e) => e['msg'] ?? e.toString())
-              .join('\n');
-        }
-        return {
-          "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed."
-        };
-      } else {
-        return {"errors": data["error"] ?? "An unexpected error occurred."};
-      }
-    } catch (e) {
-      debugPrint("Error updating user with images: $e");
-      return {
-        "errors":
-            "An error occurred during updating user information with images: $e"
-      };
-    }
-  }
-
+  ///
+  /// These four(4) methods are meant to tasker schedule CRUD.
+  ///
+  /// -----START OF TASKER SCHEDULE CRUD METHODS-----
+  ///
   Future<List<TaskerFeedback>> getTaskerFeedback(int taskerId) async {
     try {
       var response = await _getRequest("/get-taskers-feedback/$taskerId");
@@ -347,8 +206,7 @@ class TaskerService {
     }
   }
 
-  Future<String> editTaskerSchedule(
-      int id, Map<String, dynamic> scheduleData) async {
+  Future<String> editTaskerSchedule(int id, Map<String, dynamic> scheduleData) async {
     try {
       final response = await http.put(
         Uri.parse('$url/edit-tasker-schedule/$id'),
@@ -457,4 +315,33 @@ class TaskerService {
       minute: int.parse(parts[1]),
     );
   }
+  ///
+  /// ------END OF TASKER SCHEDULE CRUD METHODS------
+  ///
+
+  Future<Map<String, dynamic>> getRelatedSkills(String specialization) async {
+    try{
+      return await _getRequest("/all-relevant-skills/$specialization");
+    }catch(e, stackTrace){
+      debugPrint("Error getting related skills: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {"error": "Failed to get related skills"};
+    }
+  }
+
+  // Helper method for standard PUT requests (if not already existing)
+  static Future<Map<String, dynamic>> _putRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
+    final token = await AuthService.getSessionToken();
+    final response = await http.put(Uri.parse("$url$endpoint"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json"
+        },
+        body: jsonEncode(body));
+
+    return _handleResponse(response);
+  }
 }
+
+

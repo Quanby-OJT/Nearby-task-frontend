@@ -268,7 +268,7 @@ class _TaskDisputedState extends State<TaskDisputed> {
             SizedBox(height: 8),
             _buildProfileInfoRow(
                 'Specialization',
-                widget.taskInformation.tasker?.specialization ??
+                widget.taskInformation.tasker?.specialization.specialization ??
                     'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow('Related Specialization',

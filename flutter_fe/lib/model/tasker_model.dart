@@ -1,11 +1,12 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'dart:convert';
 
 class TaskerModel {
   final int id;
   final String bio;
-  final String specialization;
+  final SpecializationModel specialization;
   final String skills;
   final bool availability;
   final String? taskerDocuments;
@@ -14,14 +15,15 @@ class TaskerModel {
   final double wage;
   final String payPeriod;
   final DateTime birthDate;
-  final bool? group;
+  final bool group;
   final double rating;
+  final List<String>? taskerImages; //For Displaying of Images only/
   UserModel? user;
 
   TaskerModel({
     required this.id,
     required this.bio,
-    this.group,
+    required this.group,
     required this.specialization,
     required this.skills,
     required this.availability,
@@ -31,6 +33,7 @@ class TaskerModel {
     required this.birthDate,
     this.taskerDocuments,
     this.socialMediaLinks,
+    this.taskerImages,
     this.user,
     required this.rating,
   });
@@ -61,7 +64,7 @@ class TaskerModel {
       id: id ?? this.id,
       bio: bio ?? this.bio,
       group: group ?? this.group,
-      specialization: specialization ?? this.specialization,
+      specialization: SpecializationModel(specialization: this.specialization.toString()),
       skills: skills ?? this.skills,
       availability: availability ?? this.availability,
       address: address ?? this.address,
@@ -105,17 +108,14 @@ class TaskerModel {
     return TaskerModel(
       id: json['tasker_id'] ?? json['user']?['user_id'] ?? 0,
       bio: json['bio'] ?? '',
-      skills: json['skills'] ?? '',
+      skills: json['skills'] ?? 'N/A',
       availability: json['availability'] ?? false,
       socialMediaLinks: parseSocialMediaLinks(json['social_media_links']),
       address: json['address'] != null
           ? Map<String, String>.from(json['address'])
           : null,
       // Safely handle tasker_specialization
-      specialization: json['tasker_specialization'] != null &&
-              json['tasker_specialization']['specialization'] != null
-          ? json['tasker_specialization']['specialization']
-          : '',
+      specialization: SpecializationModel.fromJson(json['tasker_specialization']),
       taskerDocuments: json['tesda_document_link'] ?? '',
       wage: (json['wage_per_hour'] as num?)?.toDouble() ?? 0.0,
       payPeriod: json['pay_period'] ?? '',
@@ -125,25 +125,28 @@ class TaskerModel {
       group: json['group'] ?? false,
       user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
+      taskerImages: json['tasker_images'] != null
+          ? List<String>.from(json['profile_images'])
+          : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      "tasker_id": id,
       "bio": bio,
       "specialization": specialization,
       "skills": skills,
 
       //Must be in another table
       "availability": availability,
-      "tesda_documents_link": taskerDocuments,
       "social_media_links": socialMediaLinks ?? {},
       "address": address ?? {},
 
-      // remove kasi nasa user na siya
+      /// remove kasi nasa user na siya
+      ///
+      /// Ces: Hindi. Ibabalik siya dito.
       "group": group,
-      "wage_per_hour": wage,
+      "wage": wage,
       "pay_period": payPeriod,
       "user": user?.toJson(),
     };

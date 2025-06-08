@@ -4,6 +4,7 @@ import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/transactions.dart';
 import 'package:flutter_fe/view/task/task_details_screen.dart';
 import 'package:flutter_fe/view/profile/payment_processing.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -142,7 +143,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
                                   0.0
                               ? Text(
                                   "₱ 0.00",
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.montserrat(
                                     color: Colors.white,
                                     fontSize: 36,
                                     fontWeight: FontWeight.bold,
@@ -150,7 +151,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
                                 )
                               : Text(
                                   '₱${_escrowManagementController.tokenCredits.value.toStringAsFixed(2)}',
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.montserrat(
                                     color: Colors.white,
                                     fontSize: 36,
                                     fontWeight: FontWeight.bold,
@@ -347,7 +348,23 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
                         ),
                       )
                     : _transactionHistory.isEmpty
-                        ? Text("You don't have any transactions Yet")
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  FontAwesomeIcons.fileInvoiceDollar,
+                                  size: 50,
+                                  color: Colors.grey,
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  "You don't have any transactions yet.",
+                                  style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey),
+                                )
+                              ],
+                            )
+                          )
                         : ListView.builder(
                             shrinkWrap: true, // Important to make ListView scrollable within Column
                             physics: NeverScrollableScrollPhysics(), // Disable ListView's own scrolling
