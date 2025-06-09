@@ -95,7 +95,7 @@ class TaskerModel {
       userId: json['user_id'] as int?,
       bio: json['bio'] as String?,
       specializationId: json['specialization_id'] as int?,
-      specialization: json['specialization'] as String?,
+      specialization: json['tasker_specialization']['specialization'] as String?,
       skills: json['skills'] as String?,
       availability: json['availability'] as bool?,
       wagePerHour: (json['wage_per_hour'] is int
@@ -123,6 +123,16 @@ class TaskerModel {
           ? TaskerSpecialization.fromJson(
               json['tasker_specialization'] as Map<String, dynamic>)
           : null,
+      taskerImages: json['profile_images'] != null && json['profile_images'] is List
+          ? (json['profile_images'] as List<dynamic>?)
+              ?.map((image) {
+                if (image is Map && image['image_url'] is String) {
+                  return image['image_url'] as String;
+                }
+                return ''; // Or handle the error as appropriate
+              })
+              ?.toList() ?? []
+          : [],
     );
   }
 

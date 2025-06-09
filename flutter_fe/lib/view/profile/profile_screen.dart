@@ -91,6 +91,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _userController.availabilityController.text = _isAvailable ? "I am available" : "Not available";
 
         _userController.payPeriodController.text = _user?.tasker?.payPeriod ?? '';
+        // Pre-fill selected skills if user already has skills
+        if (_user?.tasker?.skills != null && _user!.tasker!.skills!.isNotEmpty) {
+          _selectedSkills = _user!.tasker!.skills!.split(',').map((s) => s.trim()).toList();
+        }
         _userController.genderController.text = _user?.user.gender ?? '';
         _userController.contactNumberController.text =
             _user?.user.contact.toString() ?? '';
@@ -505,7 +509,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   "Please Select all of your relevant skills.",
                               validator: (value) {
                                 if (value != null && value.isNotEmpty) {
-                                  if (_selectedSkills.isEmpty) {
+                                  // Check if _user.tasker.skills is null or empty before validating _selectedSkills
+                                  if ((_user?.tasker?.skills == null || _user!.tasker!.skills!.isEmpty) &&
+                                      _selectedSkills.isEmpty) {
                                     return 'Please select at least one skill';
                                   }
                                   return null;
