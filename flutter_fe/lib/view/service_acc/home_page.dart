@@ -174,7 +174,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
       }
 
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
       debugPrint("Current User: $user");
 
       if (user == null) {
@@ -303,7 +303,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
       }
 
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
       final response = await _clientServices.fetchUserIDImage(userId);
 
       debugPrint("Response This is for checking: ${response['status']}");

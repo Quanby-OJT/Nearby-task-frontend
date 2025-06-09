@@ -224,7 +224,7 @@ class _TaskInformationState extends State<TaskInformation> {
   Future<void> _fetchClientDetails(userId) async {
     try {
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
       debugPrint(user.toString());
       setState(() {
         _client = user;

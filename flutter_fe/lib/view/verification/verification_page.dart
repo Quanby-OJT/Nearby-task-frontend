@@ -199,7 +199,7 @@ class _VerificationPageState extends State<VerificationPage> {
       int userId = int.parse(userIdFromStorage.toString());
       debugPrint('VerificationPage: _loadUserData - parsed user_id: $userId');
 
-      final user = await _controller.getAuthenticatedUser(context, userId);
+      final user = await _controller.getAuthenticatedUser(userId);
       debugPrint('VerificationPage: _loadUserData - received user: $user');
 
       // Store user role for verification submission

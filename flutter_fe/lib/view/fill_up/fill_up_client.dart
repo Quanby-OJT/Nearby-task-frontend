@@ -64,7 +64,7 @@ class _FillUpClientState extends State<FillUpClient> {
   //   try {
   //     int userId = int.parse(storage.read('user_id').toString());
   //     AuthenticatedUser? user =
-  //         await _controller.getAuthenticatedUser(context, userId);
+  //         await _controller.getAuthenticatedUser(userId);
   //     if (user == null) throw Exception("User not found");
   //
   //     setState(() {

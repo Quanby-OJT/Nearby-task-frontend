@@ -6,10 +6,10 @@ import 'dart:convert';
 class TaskerModel {
   final int id;
   final String bio;
-  final SpecializationModel specialization;
+  final SpecializationModel? specialization;
   final String skills;
   final bool availability;
-  final String? taskerDocuments;
+  final List<String>? taskerDocuments;
   final Map<String, String>? socialMediaLinks;
   final Map<String, String>? address;
   final double wage;
@@ -24,7 +24,7 @@ class TaskerModel {
     required this.id,
     required this.bio,
     required this.group,
-    required this.specialization,
+    this.specialization,
     required this.skills,
     required this.availability,
     this.address,
@@ -55,7 +55,7 @@ class TaskerModel {
     double? wage,
     String? payPeriod,
     DateTime? birthDate,
-    String? taskerDocuments,
+    List<String>? taskerDocuments,
     Map<String, String>? socialMediaLinks,
     UserModel? user,
     double? rating,
@@ -115,8 +115,8 @@ class TaskerModel {
           ? Map<String, String>.from(json['address'])
           : null,
       // Safely handle tasker_specialization
-      specialization: SpecializationModel.fromJson(json['tasker_specialization']),
-      taskerDocuments: json['tesda_document_link'] ?? '',
+      specialization: json['tasker_specialization'] != null ? SpecializationModel.fromJson(json['tasker_specialization']) : null,
+      taskerDocuments: json['tasker_document_link'] ?? [],
       wage: (json['wage_per_hour'] as num?)?.toDouble() ?? 0.0,
       payPeriod: json['pay_period'] ?? '',
       birthDate: json['birthdate'] != null

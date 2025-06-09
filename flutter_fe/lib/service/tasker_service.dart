@@ -112,7 +112,7 @@ class TaskerService {
     final token = await AuthService.getSessionToken();
     final id = await storage.read("user_id");
     final role = await storage.read("role");
-    final uri = Uri.parse('$url/update-user/$id');
+    final uri = Uri.parse('$url/update-tasker/$id');
 
     if (taskerImages != null || taskerDocuments != null) {
       // Multipart request

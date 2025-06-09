@@ -149,7 +149,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
             buildInfoRow(null, verified ? FontAwesomeIcons.solidCircleCheck : FontAwesomeIcons.circleCheck, verified ? Colors.green : Colors.grey , verified ? "This user is Verified" : "This user is not verified."),
             if(role == "Client") ...[
               SizedBox(height: 8),
-              buildInfoRow("Specialization", FontAwesomeIcons.screwdriverWrench, Colors.black12, widget.taskAssignment.tasker?.specialization.specialization ?? "N/A"),
+              buildInfoRow("Specialization", FontAwesomeIcons.screwdriverWrench, Colors.black12, widget.taskAssignment.tasker?.specialization?.specialization ?? "N/A"),
               SizedBox(height: 8),
               buildInfoRow("Relevant Skills", FontAwesomeIcons.helmetSafety, Colors.amber, widget.taskAssignment.tasker?.skills ?? "N/A")
             ]

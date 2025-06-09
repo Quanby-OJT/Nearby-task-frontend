@@ -161,7 +161,7 @@ class _ClientHomePageState extends State<ClientHomePage>
       }
 
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
       debugPrint("Current User: $user");
 
       if (user == null) {
@@ -282,7 +282,7 @@ class _ClientHomePageState extends State<ClientHomePage>
       }
 
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
       final response = await _clientServices.fetchUserIDImage(userId);
 
       if (response['success']) {
@@ -1104,7 +1104,7 @@ class _ClientHomePageState extends State<ClientHomePage>
                                                   SizedBox(height: 4),
                                                   Text(
                                                     tasker.tasker
-                                                            ?.specialization.specialization ??
+                                                            ?.specialization?.specialization ??
                                                         "No specialization",
                                                     style: TextStyle(
                                                       fontSize: 14,

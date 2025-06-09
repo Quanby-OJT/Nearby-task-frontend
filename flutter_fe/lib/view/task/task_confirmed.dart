@@ -105,7 +105,7 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
       final int userId = storage.read('user_id') ?? 0;
       if (userId == 0) throw Exception('User ID not found');
       final user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
       setState(() {
         _user = user;
         _role = user?.user.role;
@@ -151,7 +151,7 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
   Future<void> _fetchTaskerDetails(int taskerId) async {
     try {
       final user =
-          await _profileController.getAuthenticatedUser(context, taskerId);
+          await _profileController.getAuthenticatedUser(taskerId);
       setState(() {
         _tasker = user;
       });

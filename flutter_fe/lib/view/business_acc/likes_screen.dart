@@ -117,7 +117,7 @@ class _LikesScreenState extends State<LikesScreen> {
     try {
       int userId = int.parse(storage.read('user_id').toString());
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
 
       debugPrint("Fetched User accStatus: ${user?.user.accStatus}");
       debugPrint("Fetched User role: ${user?.user.role}");

@@ -145,7 +145,7 @@ class _JobPostPageState extends State<JobPostPage>
     try {
       final parsedUserId = int.parse(userId.toString());
       final user =
-          await _profileController.getAuthenticatedUser(context, parsedUserId);
+          await _profileController.getAuthenticatedUser(parsedUserId);
       final response = await _clientServices.fetchUserIDImage(parsedUserId);
 
       // Check if user has Review or Active status

@@ -33,8 +33,7 @@ class TaskPage extends StatefulWidget {
   State<TaskPage> createState() => _TaskPageState();
 }
 
-class _TaskPageState extends State<TaskPage>
-    with SingleTickerProviderStateMixin {
+class _TaskPageState extends State<TaskPage> with SingleTickerProviderStateMixin {
   final TaskController controller = TaskController();
   final JobPostService jobPostService = JobPostService();
   final ClientServices _clientServices = ClientServices();
@@ -116,22 +115,29 @@ class _TaskPageState extends State<TaskPage>
       await _loadSkills();
       await _fetchUserIDImage();
       await fetchCreatedTasks();
-      _searchController.addListener(_filterTasks);
+      if (mounted) { // Ensure widget is still mounted before adding listener
+        _searchController.addListener(_filterTasks);
+      }
     });
-    setState(() {
-      isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   Future<void> fetchSpecialization() async {
     try {
       List<SpecializationModel> fetchedSpecializations =
           await jobPostService.getSpecializations();
-      setState(() {
-        specialization =
-            fetchedSpecializations.map((spec) => spec.specialization).toList();
-        debugPrint("Specializations: $specialization");
-      });
+      if (mounted) {
+        setState(() {
+          specialization = fetchedSpecializations
+              .map((spec) => spec.specialization)
+              .toList();
+          debugPrint("Specializations: $specialization");
+        });
+      }
     } catch (error, stackTrace) {
       debugPrint('Error fetching specializations: $error');
       debugPrintStack(stackTrace: stackTrace);
@@ -143,9 +149,11 @@ class _TaskPageState extends State<TaskPage>
       final String response =
           await rootBundle.loadString('assets/tesda_skills.json');
       final data = jsonDecode(response);
-      setState(() {
-        skills = List<String>.from(data['tesda_skills']);
-      });
+      if (mounted) {
+        setState(() {
+          skills = List<String>.from(data['tesda_skills']);
+        });
+      }
     } catch (e, stackTrace) {
       print('Error loading skills: $e');
       debugPrintStack(stackTrace: stackTrace);
@@ -157,64 +165,76 @@ class _TaskPageState extends State<TaskPage>
 
   Future<void> fetchCreatedTasks() async {
     try {
+      if (!mounted) return; // Check if the widget is still mounted
       final tasks = await controller.getTask(context);
       debugPrint("All Tasks applied by tasker: $tasks");
-      setState(() {
-        clientTasks = tasks;
-        filteredTasks = List.from(clientTasks);
-        debugPrint("Filtered Tasks: $filteredTasks");
-      });
+      if (mounted) {
+        setState(() {
+          clientTasks = tasks;
+          filteredTasks = List.from(clientTasks);
+          debugPrint("Filtered Tasks: $filteredTasks");
+        });
+        _filterTasks(); // Call filter tasks only if mounted
+      }
 
       debugPrint("Tasker Tasks: ${clientTasks.toString()}");
-      _filterTasks();
     } catch (e, stackTrace) {
       debugPrint("Error fetching created tasks: $e");
       debugPrintStack(stackTrace: stackTrace);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Failed to load tasks. Please try again."),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
-          action: SnackBarAction(
-            label: 'Retry',
-            onPressed: _loadMethod,
-            textColor: Colors.white,
+      if (mounted) { // Check if the widget is still mounted before showing SnackBar
+        // Ensure context is still valid
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar( //
+          SnackBar(
+            content: Text("Failed to load tasks. Please try again."),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+            action: SnackBarAction(
+              label: 'Retry',
+              onPressed: _loadMethod,
+              textColor: Colors.white,
+            ),
           ),
-        ),
-      );
+        );
+      }
     }
   }
 
   void _filterTasks() {
     String query = _searchController.text.trim().toLowerCase();
-    setState(() {
-      filteredTasks = clientTasks.where((task) {
-        if (task == null) return false;
-        bool matchesSearch =
-            (task.taskDetails!.title.toLowerCase().contains(query) ?? false) ||
-                (task.taskDetails!.description.toLowerCase().contains(query) ??
-                    false);
-        bool matchesStatus =
-            _currentFilter == null || task.taskStatus == _currentFilter;
-        return matchesSearch && matchesStatus;
-      }).toList();
-    });
+    if (mounted) {
+      setState(() {
+        filteredTasks = clientTasks.where((task) {
+          if (task == null) return false;
+          bool matchesSearch = (task.taskDetails!.title
+                      .toLowerCase()
+                      .contains(query) ??
+                  false) ||
+              (task.taskDetails!.description.toLowerCase().contains(query) ??
+                  false);
+          bool matchesStatus =
+              _currentFilter == null || task.taskStatus == _currentFilter;
+          return matchesSearch && matchesStatus;
+        }).toList();
+      });
+    }
   }
-
   Future<void> _fetchUserIDImage() async {
     try {
       int userId = int.parse(storage.read('user_id').toString());
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
       final response = await _clientServices.fetchUserIDImage(userId);
 
       if (response['success']) {
-        setState(() {
-          user = user;
-          existingProfileImageUrl = user?.user.image;
-          existingIDImageUrl = response['url'];
-          documentValid = response['status'];
-        });
+        if (mounted) {
+          setState(() {
+            user = user;
+            existingProfileImageUrl = user?.user.image;
+            existingIDImageUrl = response['url'];
+            documentValid = response['status'];
+          });
+        }
       }
     } catch (e) {
       debugPrint("Error fetching ID image: $e");

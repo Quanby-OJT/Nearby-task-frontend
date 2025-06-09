@@ -90,7 +90,7 @@ class _TaskPendingState extends State<TaskPending> {
     try {
       int userId = storage.read("user_id") ?? 0;
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
 
       setState(() {
         tasker = user;
@@ -107,7 +107,7 @@ class _TaskPendingState extends State<TaskPending> {
     try {
       final int userId = storage.read("user_id") ?? 0;
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
 
       setState(() {
         tasker = user;

@@ -73,9 +73,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _fetchUserData() async {
     try {
       int userId = storage.read("user_id");
-      AuthenticatedUser? user = await _userController.getAuthenticatedUser(context, userId);
+      AuthenticatedUser? user = await _userController.getAuthenticatedUser(userId);
+      String role = user?.user.role ?? '';
 
-      debugPrint("Tasker Specialization: ${user?.tasker?.specialization.specialization}");
+      debugPrint("Tasker Specialization: ${user?.tasker?.specialization?.specialization}");
       setState(() {
         _user = user;
         _isLoading = false;
@@ -83,11 +84,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _userController.birthdateController.text = _user?.user.birthdate ?? '';
         _userController.prefsController.text = '';
         _userController.clientAddressController.text = '';
-        _userController.bioController.text = _user?.user.bio ?? '';
-        _userController.specializationController.text = _user?.tasker?.specialization.specialization ?? '';
+        _userController.bioController.text = role == "Tasker" ? _user?.tasker?.bio ?? '' : _user?.client?.preferences ?? '';
+        _userController.specializationController.text = _user?.tasker?.specialization?.specialization ?? '';
         _userController.skillsController.text = _user?.tasker?.skills ?? '';
-        _userController.availabilityController.text =
-            _isAvailable ? "I am available" : "I am not available";
+        _isAvailable = _user?.tasker?.availability ?? false;
+        _userController.availabilityController.text = _isAvailable ? "I am available" : "Not available";
 
         _userController.payPeriodController.text = _user?.tasker?.payPeriod ?? '';
         _userController.genderController.text = _user?.user.gender ?? '';
@@ -102,7 +103,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         tesdaDocuments = [];
         taskerImages = _user?.tasker?.taskerImages ?? [];
 
-        _userController.wageController.text = '';
+        final currencyFormatter = NumberFormat.currency(locale: 'en_PH', symbol: '₱');
+        _userController.wageController.text = _user?.tasker?.wage != null ? currencyFormatter.format(_user!.tasker!.wage) : '';
 
         _userController.genderController.text = _user?.user.gender ?? '';
         _userController.fbLinkController.text =
@@ -128,6 +130,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> updateUser() async{
     try{
       String updateResult = await _userController.updateUser(profileImages, tesdaDocuments);
+      debugPrint("Result of Update Tasker Result: $updateResult");
       if (mounted) {
         CustomScaffold(
           message: updateResult,
@@ -278,6 +281,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (_isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+
+    String role = storage.read("role");
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -321,7 +327,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             key: updateTasker,
             autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(children: [
-              if(_user?.user.role == "Tasker")
+              if(role == "Tasker")
               _buildSection(
                 title: "Media",
                 description: "Add up to 9 of your best pictures.",
@@ -459,7 +465,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           return null;
                         }),
                     const SizedBox(height: 16),
-                    if (_user?.user.role == "Tasker") ...[
+                    if (role == "Tasker") ...[
                       _buildDropdownField(
                           controller: _userController.specializationController,
                           label: 'Specialization',
@@ -523,12 +529,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ],
                               hintText: '₱ 0.00',
                               validator: (value) { // Remove ₱ from value before parsing
-                                if (value != null && value.isNotEmpty) {
+                                if (value != null && value.isNotEmpty && value != '₱0.00') {
+                                  // Also check if the value is not just the default "₱0.00"
+                                  // before trying to parse.
                                   if (double.tryParse(value.replaceAll(RegExp(r'[^0-9.]'), '')) == 0) {
                                     return 'Please input your desired wage.';
                                   }
                                   return null;
                                 }
+                                return null;
                               }
                             ),
                           ),
@@ -689,7 +698,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildTextField(
                       controller: _userController.fbLinkController,
                       label: 'Facebook Profile URL',
-                      icon: Icons.facebook,
+                      icon: FontAwesomeIcons.facebook,
                       keyboardType: TextInputType.url,
                       hintText: 'https://facebook.com/yourusername',
                       validator: (value) {
@@ -707,7 +716,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildTextField(
                       controller: _userController.instaLinkController,
                       label: 'Instagram Profile URL',
-                      icon: Icons.camera_alt,
+                      icon: FontAwesomeIcons.instagram,
                       keyboardType: TextInputType.url,
                       hintText: 'https://instagram.com/yourusername',
                       validator: (value) {
@@ -724,7 +733,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildTextField(
                       controller: _userController.telegramLinkController,
                       label: 'Twitter Profile URL',
-                      icon: Icons.chat,
+                      icon: FontAwesomeIcons.twitter,
                       keyboardType: TextInputType.url,
                       hintText: 'https://twitter.com/yourusername',
                       validator: (value) {
@@ -1153,9 +1162,7 @@ class CurrencyInputFormatter extends TextInputFormatter {
     }
 
     double value = double.parse(newText);
-    // Remove the peso sign by setting the symbol to an empty string or null
-    // final formatter = NumberFormat.currency(locale: 'en_PH', symbol: '₱');
-    final formatter = NumberFormat.currency(locale: 'en_PH', symbol: '');
+    final formatter = NumberFormat.currency(locale: 'en_PH', symbol: '₱');
     String formattedText = formatter.format(value / 100);
 
     return newValue.copyWith(

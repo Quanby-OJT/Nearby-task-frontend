@@ -169,52 +169,56 @@ class ProfileController {
     }
   }
 
-  Future<AuthenticatedUser?> getAuthenticatedUser(BuildContext context, int userId) async {
+  Future<AuthenticatedUser?> getAuthenticatedUser(int userId) async {
     try {
       debugPrint(
           "ProfileController: Calling fetchAuthenticatedUser with userId: $userId");
-      var result = await ApiService.fetchAuthenticatedUser(userId);
+      var result = await ApiService().fetchAuthenticatedUser(userId);
       debugPrint("ProfileController: API result: $result");
       debugPrint("ProfileController: Result keys: ${result.keys.join(', ')}");
 
-      if (result.containsKey("user")) {
-        UserModel user = result["user"] as UserModel;
-        debugPrint("ProfileController: Retrieved user: $user");
-
-        // Create a unified user object that works for both roles
-        UserModel unifiedUser = user;
-
-        if (result.containsKey("client")) {
+      if (result.containsKey("data")) {
+        final data = result["data"];
+        debugPrint("User Data: $data");
+        if (data != null && data.containsKey("client")) {
           // For clients, use the user data as-is (bio and social_media_links are already in user)
           debugPrint("ProfileController: Processing client user");
 
           return AuthenticatedUser(
-            user: unifiedUser,
+            user: UserModel.fromJson(data["user"]),
             isClient: true,
             isTasker: false,
-            client: ClientModel.fromJson(result['client'])
+            client: result['client'] != null ? ClientModel.fromJson(result['client']) : null
           );
-        } else if (result.containsKey("tasker")) {
+        } else if (data!= null && data.containsKey("tasker")) {
           // For taskers, we no longer merge data from tasker table
           // All verification data should come from user_verify table only
           debugPrint("ProfileController: Processing tasker user");
-
+          debugPrint(data["tasker"].toString());
           return AuthenticatedUser(
-            user: unifiedUser,
+            user: UserModel.fromJson(data["user"]),
             isClient: false,
             isTasker: true,
-            tasker: TaskerModel.fromJson(result['tasker']),
+            tasker: data['tasker'] != null ? TaskerModel.fromJson(data['tasker']) : null,
           );
         } else {
           debugPrint("ProfileController: No client or tasker data found");
           return null;
+          // If neither client nor tasker specific data is present, but user data exists
+          // This case might be relevant for users who haven't completed their profile as client or tasker yet.
+          // debugPrint("ProfileController: Processing generic user data");
+          // return AuthenticatedUser(
+          //   user: UserModel.fromJson(data["user"]),
+          // );
         }
+
       } else {
         debugPrint("ProfileController: No user data in result");
         return null;
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint("ProfileController: Error in getAuthenticatedUser: $e");
+      debugPrintStack(stackTrace: stackTrace);
       return null;
     }
   }
@@ -262,6 +266,13 @@ class ProfileController {
         );
 
         final updateClientResult = await clientService.updateClient(client);
+
+        if(updateClientResult.containsKey("message")){
+          return updateClientResult["message"];
+        }else if(updateClientResult.containsKey("error")){
+          debugPrint("Error in updating client: ${updateClientResult["error"]}");
+          return updateClientResult["error"];
+        }
         return "An Error Occurred while Updating your information. Please Try Again.";
       }else if(role == "Tasker"){
         TaskerModel tasker = TaskerModel(
@@ -270,7 +281,7 @@ class ProfileController {
           specialization: SpecializationModel(specialization: specializationController.text),
           skills: skillsController.text,
           availability: availabilityController.text == "I am available" ? true : false,
-          wage: double.parse(wageController.text),
+          wage: double.parse(wageController.text.replaceAll(RegExp(r'[^\d.]'), '')),
           payPeriod: payPeriodController.text,
           birthDate: DateTime.parse(birthdateController.text),
           group: taskerGroupController.text == "Agency" ? true : false,
