@@ -285,9 +285,25 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
       final clientServices = ClientServices();
       final String? clientId = await clientServices.getUserId();
       if (clientId == null) {
-        CustomScaffold(
-            message: 'Unable to identify client. Please log in again.',
-            color: Colors.red);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Failed to fetch ID image.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
+          ),
+        );
         return;
       }
 
@@ -302,9 +318,25 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
       final isSuccess = !result.toLowerCase().contains('already') &&
           !result.toLowerCase().contains('error') &&
           !result.toLowerCase().contains('failed');
-
-      CustomScaffold(
-          message: result, color: isSuccess ? Colors.green : Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Successfully Assigned Task.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
 
       if (isSuccess) {
         final jobPostService = JobPostService();
@@ -317,8 +349,25 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
         });
       }
     } catch (e) {
-      debugPrint("Error in _assignTask: $e");
-      CustomScaffold(message: 'Failed to assign task: $e', color: Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Error occurred",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
     } finally {
       loadingOverlay?.remove();
       if (mounted) setState(() => _isAssigning = false);
@@ -406,9 +455,8 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
                                 margin: const EdgeInsets.only(bottom: 12),
                                 child: ListTile(
                                   title: Text(
-                                    task.title != null &&
-                                            task.title!.length > 20
-                                        ? '${task.title?.substring(0, 20)}...'
+                                    task.title.length > 20
+                                        ? '${task.title.substring(0, 20)}...'
                                         : task.title ?? 'Task ${task.id}',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,

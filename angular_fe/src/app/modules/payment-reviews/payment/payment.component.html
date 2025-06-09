@@ -9,7 +9,7 @@
   </div>
 </div>
 
-<div *ngIf="!isLoading" class="mb-4 flex justify-between">
+<div *ngIf="!isLoading" class="flex justify-end w-full max-w-[1440px] mx-auto px-4">
   <div class="inline-block"></div>
   <div class="flex space-x-4">
     <button class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-120 transition-transform duration-500 flex items-center space-x-2" (click)="exportCSV()">
@@ -22,6 +22,7 @@
     </button>
   </div>
 </div>
+<div class="py-2"></div>
 
 <div *ngIf="!isLoading" class="bg-white w-full max-w-[1440px] mx-auto flex-col rounded-xl min-h-[400px]">
 <div class="bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">

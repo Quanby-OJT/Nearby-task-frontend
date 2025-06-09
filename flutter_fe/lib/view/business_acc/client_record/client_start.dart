@@ -590,7 +590,7 @@ class _ClientStartState extends State<ClientStart> {
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.star,
               label: 'Specialization',
-              value: _taskInformation!.tasker?.specialization?.specialization ?? 'N/A',
+              value: _taskInformation!.tasker?.specialization ?? 'N/A',
             ),
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.dollarSign,

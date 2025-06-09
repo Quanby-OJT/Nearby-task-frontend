@@ -167,18 +167,35 @@ class _UserFeedbackState extends State<UserFeedback> {
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             title: Text(
               'Feedback Submitted',
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+              style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.black),
             ),
             content: Text(
               'Thank you for your feedback!',
-              style: GoogleFonts.poppins(),
+              style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w300,
+                  fontSize: 14,
+                  color: Colors.black),
             ),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(
-                  'OK',
-                  style: GoogleFonts.poppins(color: Color(0xFF03045E)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  color: const Color(0xFFB71A4A),
+                ),
+                child: TextButton(
+                  child: Text('OK',
+                      style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white)),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                  },
                 ),
               ),
             ],
@@ -238,6 +255,7 @@ class _UserFeedbackState extends State<UserFeedback> {
             size: 20,
           ),
           onPressed: () {
+            Navigator.pop(context);
             Navigator.pop(context);
           },
         ),

@@ -130,12 +130,13 @@ class TaskerController {
         int score = 0;
         double distance = double.infinity;
         double rating =
-            tasker.rating; // Use tasker.rating, default to 0.0
+            tasker.rating ?? 0.0; // Use tasker.rating, default to 0.0
 
         // Check specialization match (highest priority)
         bool matchesSpecialization = includesAllSpecializations ||
             desiredSpecializationNames.isEmpty ||
-            desiredSpecializationNames.contains(tasker.specialization);
+            desiredSpecializationNames
+                .contains(tasker.taskerSpecialization?.specialization);
         if (matchesSpecialization) {
           score += 10; // High weight for specialization
         }
@@ -184,7 +185,7 @@ class TaskerController {
         }
 
         debugPrint(
-            "Tasker: ${tasker.user?.firstName}, Specialization: ${tasker.specialization}, "
+            "Tasker: ${tasker.user?.firstName}, Specialization: ${tasker.taskerSpecialization?.specialization}, "
             "Matches Specialization: $matchesSpecialization, Matches Distance: $matchesDistance, "
             "Matches Age: $matchesAge, Distance: $distance, Score: $score, Rating: $rating");
 
@@ -262,7 +263,7 @@ class TaskerController {
       debugPrint("Total taskers returned: ${result.length}");
       for (var tasker in result) {
         debugPrint("Final Result Tasker: ${tasker.user?.firstName}, "
-            "Specialization: ${tasker.specialization}, "
+            "Specialization: ${tasker.taskerSpecialization?.specialization}, "
             "Score: ${taskerScores[tasker]!['score']}, "
             "Rating: ${taskerScores[tasker]!['rating']}, "
             "Distance: ${taskerScores[tasker]!['distance']}");

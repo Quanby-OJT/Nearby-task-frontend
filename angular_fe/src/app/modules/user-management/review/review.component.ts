@@ -41,6 +41,7 @@ export class ReviewComponent {
   idImage: string | null = null;
   isIdImage: boolean = false;
   actionByName: string = '';
+  userRole: string = '';
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -63,6 +64,23 @@ export class ReviewComponent {
       this.loadActionByName();
       console.log('User ID being reviewed:', this.userId);
     }
+
+    // Get current user's role
+    const currentUserId = localStorage.getItem('user_id');
+    if (currentUserId) {
+      this.userAccountService.getUserById(Number(currentUserId)).subscribe({
+        next: (response: any) => {
+          const user = response.user || response;
+          this.userRole = user.user_role || 'Unknown';
+          this.cdRef.detectChanges();
+        },
+        error: (error: any) => {
+          console.error('Error fetching current user role:', error);
+          this.userRole = 'Unknown';
+          this.cdRef.detectChanges();
+        }
+      });
+    }
   }
 
   loadActionByName(): void {
@@ -72,11 +90,13 @@ export class ReviewComponent {
         next: (response: any) => {
           const user = response.user || response;
           this.actionByName = `${user.first_name || ''} ${user.middle_name || ''} ${user.last_name || ''}`.trim();
+          this.userRole = user.user_role || 'Unknown';
           this.cdRef.detectChanges();
         },
         error: (error: any) => {
           console.error('Error fetching action_by user data:', error);
           this.actionByName = 'Unknown User';
+          this.userRole = 'Unknown';
           this.cdRef.detectChanges();
         },
       });
@@ -123,6 +143,25 @@ export class ReviewComponent {
         console.log('Processed User Data (ReviewComponent):', this.userData);
 
         if (this.userData) {
+          // If there's an action_by, fetch that user's data to get their role
+          if (this.userData.action_by) {
+            this.userAccountService.getUserById(Number(this.userData.action_by)).subscribe({
+              next: (actionByResponse: any) => {
+                const actionByUser = actionByResponse.user || actionByResponse;
+                this.userData.action_by_user = {
+                  first_name: actionByUser.first_name,
+                  middle_name: actionByUser.middle_name,
+                  last_name: actionByUser.last_name,
+                  user_role: actionByUser.user_role
+                };
+                this.cdRef.detectChanges();
+              },
+              error: (error: any) => {
+                console.error('Error fetching action_by user data:', error);
+              }
+            });
+          }
+
           const age = this.calculateAge(this.userData.birthdate);
           this.Form.patchValue({
             firstName: this.userData.first_name || '',
@@ -277,6 +316,12 @@ export class ReviewComponent {
         title: 'Validation Error',
         text: 'Please select a valid user role and status!',
       });
+      return;
+    }
+
+    // Check if current user is Moderator and prior action was by Admin
+    if (this.userRole === 'Moderator' && this.userData?.action_by_user?.user_role === 'Admin') {
+      await Swal.fire('Error', "You don't have authority to take action here since this action is made by an admin", 'error');
       return;
     }
 

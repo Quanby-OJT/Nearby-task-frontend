@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
+import 'package:flutter_fe/model/specialization.dart';
+import 'package:flutter_fe/service/job_post_service.dart';
 import 'dart:convert';
 
 class GeneralInfoPage extends StatefulWidget {
@@ -20,6 +22,7 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
   final _formKey = GlobalKey<FormState>();
   final GetStorage storage = GetStorage();
   final ProfileController _profileController = ProfileController();
+  final JobPostService _jobPostService = JobPostService();
 
   // Text controllers
   final TextEditingController _firstNameController = TextEditingController();
@@ -29,6 +32,8 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _birthdateController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
+  final TextEditingController _skillsController = TextEditingController();
+  final TextEditingController _wageController = TextEditingController();
 
   // Social media controllers
   final TextEditingController _facebookController = TextEditingController();
@@ -40,6 +45,22 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
   String? _gender;
   DateTime? _birthdate;
   bool _isLoading = false;
+  String? _userRole;
+
+  // Specialization data
+  List<SpecializationModel> _specializations = [];
+  SpecializationModel? _selectedSpecialization;
+  bool _isLoadingSpecializations = false;
+
+  // Pay period data
+  String _selectedPayPeriod = 'Hourly';
+  final List<String> _payPeriods = [
+    'Hourly',
+    'Daily',
+    'Weekly',
+    'Monthly',
+    'Per Project'
+  ];
 
   @override
   void initState() {
@@ -48,6 +69,7 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
 
     Future.microtask(() {
       _loadUserData();
+      _loadSpecializations();
     });
   }
 
@@ -60,6 +82,8 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
     _phoneController.dispose();
     _birthdateController.dispose();
     _bioController.dispose();
+    _skillsController.dispose();
+    _wageController.dispose();
     _facebookController.dispose();
     _instagramController.dispose();
     _linkedinController.dispose();
@@ -79,6 +103,9 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
         if (authUser != null && mounted) {
           // Populate form fields with user data
           setState(() {
+            // Store user role for conditional UI
+            _userRole = authUser.user.role;
+
             _firstNameController.text = authUser.user.firstName;
             _lastNameController.text = authUser.user.lastName;
 
@@ -117,6 +144,34 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
             // Set bio if available in user model
             if (authUser.user.bio != null && authUser.user.bio!.isNotEmpty) {
               _bioController.text = authUser.user.bio!;
+            }
+
+            // Set tasker-specific data if available
+            if (authUser.tasker != null) {
+              if (authUser.tasker!.skills != null &&
+                  authUser.tasker!.skills!.isNotEmpty) {
+                _skillsController.text = authUser.tasker!.skills!;
+              }
+
+              if (authUser.tasker!.wagePerHour != null) {
+                _wageController.text = authUser.tasker!.wagePerHour.toString();
+              }
+
+              if (authUser.tasker!.payPeriod != null &&
+                  authUser.tasker!.payPeriod!.isNotEmpty) {
+                _selectedPayPeriod = authUser.tasker!.payPeriod!;
+              }
+
+              // Set selected specialization if available
+              if (authUser.tasker!.specializationId != null) {
+                // Find matching specialization from loaded list
+                for (var spec in _specializations) {
+                  if (spec.id == authUser.tasker!.specializationId) {
+                    _selectedSpecialization = spec;
+                    break;
+                  }
+                }
+              }
             }
 
             // Set social media links if available in user model
@@ -183,6 +238,34 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
     }
   }
 
+  Future<void> _loadSpecializations() async {
+    try {
+      setState(() {
+        _isLoadingSpecializations = true;
+      });
+
+      debugPrint('GeneralInfoPage: Loading specializations...');
+      final specializations = await _jobPostService.getSpecializations();
+
+      if (mounted) {
+        setState(() {
+          _specializations = specializations;
+          _isLoadingSpecializations = false;
+        });
+
+        debugPrint(
+            'GeneralInfoPage: Loaded ${specializations.length} specializations');
+      }
+    } catch (e) {
+      debugPrint('GeneralInfoPage: Error loading specializations: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingSpecializations = false;
+        });
+      }
+    }
+  }
+
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -214,19 +297,53 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
 
   void _submitInfo() {
     if (_formKey.currentState!.validate()) {
-      // Create social media links object
-      Map<String, String> socialMediaLinks = {
-        'facebook': _facebookController.text.trim(),
-        'instagram': _instagramController.text.trim(),
-        'linkedin': _linkedinController.text.trim(),
-        'twitter': _twitterController.text.trim(),
-      };
-
-      // Remove empty values
-      socialMediaLinks.removeWhere((key, value) => value.isEmpty);
-
-      // Convert to JSON string for storage
-      String socialMediaJson = jsonEncode(socialMediaLinks);
+      // Additional validation for tasker-specific fields
+      // if (_userRole?.toLowerCase() == 'tasker') {
+      //   if (_selectedSpecialization == null) {
+      //     ScaffoldMessenger.of(context).showSnackBar(
+      //       const SnackBar(
+      //         content: Text('Please select a specialization'),
+      //         backgroundColor: Colors.red,
+      //       ),
+      //     );
+      //     return;
+      //   }
+      //
+      //   if (_wageController.text.trim().isEmpty) {
+      //     ScaffoldMessenger.of(context).showSnackBar(
+      //       const SnackBar(
+      //         content: Text('Please enter your hourly wage'),
+      //         backgroundColor: Colors.red,
+      //       ),
+      //     );
+      //     return;
+      //   }
+      //
+      //   double? wage = double.tryParse(_wageController.text.trim());
+      //   if (wage == null || wage <= 0) {
+      //     ScaffoldMessenger.of(context).showSnackBar(
+      //       const SnackBar(
+      //         content: Text('Please enter a valid wage amount'),
+      //         backgroundColor: Colors.red,
+      //       ),
+      //     );
+      //     return;
+      //   }
+      // }
+      //
+      // // Create social media links object
+      // Map<String, String> socialMediaLinks = {
+      //   'facebook': _facebookController.text.trim(),
+      //   'instagram': _instagramController.text.trim(),
+      //   'linkedin': _linkedinController.text.trim(),
+      //   'twitter': _twitterController.text.trim(),
+      // };
+      //
+      // // Remove empty values
+      // socialMediaLinks.removeWhere((key, value) => value.isEmpty);
+      //
+      // // Convert to JSON string for storage
+      // String socialMediaJson = jsonEncode(socialMediaLinks);
 
       // Create user info object
       Map<String, dynamic> userInfo = {
@@ -239,16 +356,31 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
         'birthdate': _birthdate != null
             ? DateFormat('yyyy-MM-dd').format(_birthdate!)
             : null,
-        'payPeriod': 'Hourly', // Default value
-        'wage': 0.0, // Default value
-        'socialMediaJson': socialMediaJson,
+        //'socialMediaJson': socialMediaJson,
         'bio': _bioController.text.trim(),
-        'socialMediaLinks': socialMediaLinks,
+        //'socialMediaLinks': socialMediaLinks,
       };
 
+      // Add tasker-specific fields if user is a tasker
+      if (_userRole?.toLowerCase() == 'tasker') {
+        userInfo.addAll({
+          'specializationId': _selectedSpecialization?.id,
+          'skills': _skillsController.text.trim(),
+          'payPeriod': _selectedPayPeriod,
+          'wage': double.parse(_wageController.text.trim()),
+          'availability': true, // Default to available
+        });
+      } else {
+        // For client users, add default values
+        userInfo.addAll({
+          'payPeriod': 'Hourly',
+          'wage': 0.0,
+        });
+      }
+
       // Save to storage for future reference
-      storage.write('bio', _bioController.text.trim());
-      storage.write('social_media_links', socialMediaJson);
+      //storage.write('bio', _bioController.text.trim());
+      //storage.write('social_media_links', socialMediaJson);
 
       // Call the callback function with the user info
       widget.onInfoCompleted(userInfo);

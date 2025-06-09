@@ -76,7 +76,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       AuthenticatedUser? user = await _userController.getAuthenticatedUser(userId);
       String role = user?.user.role ?? '';
 
-      debugPrint("Tasker Specialization: ${user?.tasker?.specialization?.specialization}");
+      debugPrint("Tasker Specialization: ${user?.tasker?.specialization}");
       setState(() {
         _user = user;
         _isLoading = false;
@@ -85,7 +85,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _userController.prefsController.text = '';
         _userController.clientAddressController.text = '';
         _userController.bioController.text = role == "Tasker" ? _user?.tasker?.bio ?? '' : _user?.client?.preferences ?? '';
-        _userController.specializationController.text = _user?.tasker?.specialization?.specialization ?? '';
+        _userController.specializationController.text = _user?.tasker?.specialization ?? '';
         _userController.skillsController.text = _user?.tasker?.skills ?? '';
         _isAvailable = _user?.tasker?.availability ?? false;
         _userController.availabilityController.text = _isAvailable ? "I am available" : "Not available";
@@ -132,9 +132,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       String updateResult = await _userController.updateUser(profileImages, tesdaDocuments);
       debugPrint("Result of Update Tasker Result: $updateResult");
       if (mounted) {
-        CustomScaffold(
-          message: updateResult,
-          color: Colors.green,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(updateResult),
+            duration: const Duration(seconds: 3),
+          ),
         );
       }
     }catch(error, stackTrace){

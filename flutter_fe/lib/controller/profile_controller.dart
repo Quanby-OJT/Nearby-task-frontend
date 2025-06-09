@@ -261,7 +261,7 @@ class ProfileController {
 
       if(role == "Client"){
         ClientModel client = ClientModel(
-          id: storage.read("user_id"),
+          clientId: storage.read("user_id"),
           preferences: bioController.text
         );
 
@@ -276,14 +276,13 @@ class ProfileController {
         return "An Error Occurred while Updating your information. Please Try Again.";
       }else if(role == "Tasker"){
         TaskerModel tasker = TaskerModel(
-          id: storage.read("user_id"),
+          taskerId: storage.read("user_id"),
           bio: bioController.text,
-          specialization: SpecializationModel(specialization: specializationController.text),
+          specialization: specializationController.text,
           skills: skillsController.text,
           availability: availabilityController.text == "I am available" ? true : false,
-          wage: double.parse(wageController.text.replaceAll(RegExp(r'[^\d.]'), '')),
+          wagePerHour: double.parse(wageController.text.replaceAll(RegExp(r'[^\d.]'), '')),
           payPeriod: payPeriodController.text,
-          birthDate: DateTime.parse(birthdateController.text),
           group: taskerGroupController.text == "Agency" ? true : false,
           rating: 0.0
         );

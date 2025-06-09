@@ -756,7 +756,7 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(30),
+                borderRadius: BorderRadius.circular(10),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black12,
@@ -767,6 +767,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               child: TextField(
                 controller: conversationController.searchConversation,
+                cursorColor: const Color(0xFFB71A4A),
                 decoration: InputDecoration(
                   hintText: 'Search messages...',
                   hintStyle: GoogleFonts.poppins(color: Colors.grey[500]),

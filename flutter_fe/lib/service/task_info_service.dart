@@ -173,7 +173,10 @@ class TaskDetailsService {
     } catch (e, st) {
       debugPrint("Error in retrieving transactions: $e");
       debugPrint(st.toString());
-      return {"error": "An error occurred while retrieving your transactions. Please try again."};
+      return {
+        "error":
+            "An error occurred while retrieving your transactions. Please try again."
+      };
     }
   }
 }

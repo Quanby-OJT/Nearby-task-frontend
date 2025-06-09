@@ -13,7 +13,6 @@ import 'package:flutter_fe/view/address/address_list.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/preview_task.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/select_related_spec.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/select_spec.dart';
-import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/verification/verification_page.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -73,6 +72,8 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
   bool _documentValid = false;
   int _currentStep = 0;
   final bool _isVerifiedDocument = false;
+  static const int _maxCharactersTitle = 50;
+  final ValueNotifier<String?> dynamicError = ValueNotifier<String?>(null);
 
   @override
   void initState() {
@@ -88,6 +89,8 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
 
   @override
   void dispose() {
+    controller.jobTitleController.dispose();
+    dynamicError.dispose();
     _pageController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -235,12 +238,13 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
   bool _validateStep(int step) {
     setState(() {
       _errors.clear();
+      dynamicError.value = null;
     });
 
     switch (step) {
       case 0:
         if (controller.jobTitleController.text.trim().isEmpty) {
-          _errors['task_title'] = 'Please indicate your needed task';
+          dynamicError.value = 'Please indicate your needed task';
           return false;
         }
         if (controller.jobDescriptionController.text.trim().isEmpty) {
@@ -425,7 +429,25 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
           specializationId = null;
         });
 
-        CustomScaffold(message: _message!, color: Colors.green);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _message ?? "Successfully Posted Task.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
+          ),
+        );
         Navigator.pop(context);
       } else {
         setState(() {
@@ -441,13 +463,48 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
           _message = result['error'] ?? 'Failed to post task';
         });
 
-        CustomScaffold(message: _message!, color: Colors.red);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _message ?? "Failed to post task.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
+          ),
+        );
         Navigator.pop(context);
       }
     } catch (error) {
       debugPrint("Error submitting job: $error");
-      CustomScaffold(
-          message: 'An error occurred. Please try again.', color: Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _message ?? "An unexpected error occurred. Please try again.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
       Navigator.pop(context);
     } finally {
       setState(() {
@@ -513,6 +570,113 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
             Future.delayed(Duration(milliseconds: 200), () {});
           },
         ),
+      ],
+    );
+  }
+
+  Widget _buildTitleTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    int maxLines = 1,
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
+    String? errorText,
+    bool isRequired = false,
+    int? maxLength,
+  }) {
+    final ValueNotifier<int> charCount =
+        ValueNotifier<int>(controller.text.length);
+    final ValueNotifier<String?> dynamicError =
+        ValueNotifier<String?>(errorText);
+
+    controller.addListener(() {
+      charCount.value = controller.text.length;
+
+      if (isRequired && controller.text.isEmpty) {
+        dynamicError.value = 'Title is required';
+      } else if (maxLength != null && controller.text.length > maxLength) {
+        setState(() {
+          dynamicError.value = '';
+        });
+      } else {
+        dynamicError.value = errorText;
+      }
+    });
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          isRequired ? '$label *' : label,
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        SizedBox(height: 8),
+        ValueListenableBuilder<String?>(
+          valueListenable: dynamicError,
+          builder: (context, error, child) {
+            return TextField(
+              controller: controller,
+              maxLines: maxLines,
+              keyboardType: keyboardType,
+              inputFormatters: inputFormatters,
+              maxLength: maxLength,
+              decoration: InputDecoration(
+                hintText: hint,
+                hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[200]!),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Color(0xFFB71A4A), width: 2),
+                ),
+                errorText: error,
+                errorStyle: GoogleFonts.poppins(color: Colors.red[400]),
+                suffixIcon: controller.text.isNotEmpty && error == null
+                    ? Icon(Icons.check_circle, color: Colors.green, size: 20)
+                    : null,
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                counterText: '', // Hide default counter
+              ),
+              style: GoogleFonts.poppins(fontSize: 12),
+              onChanged: (_) {},
+              onTap: () {
+                Future.delayed(Duration(milliseconds: 200), () {});
+              },
+            );
+          },
+        ),
+        // Custom character counter
+        if (maxLength != null)
+          ValueListenableBuilder<int>(
+            valueListenable: charCount,
+            builder: (context, count, child) {
+              return Padding(
+                padding: EdgeInsets.only(top: 4, left: 16),
+                child: Text(
+                  '$count / $maxLength characters',
+                  style: GoogleFonts.poppins(
+                    fontSize: 10,
+                    color:
+                        count > maxLength ? Colors.red[400] : Colors.grey[600],
+                  ),
+                ),
+              );
+            },
+          ),
       ],
     );
   }
@@ -1003,13 +1167,14 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
                                           'Task Basics',
                                           'Provide the core details of your task',
                                         ),
-                                        _buildTextField(
+                                        _buildTitleTextField(
                                           controller:
                                               controller.jobTitleController,
                                           label: 'Title',
                                           hint: 'Enter task title',
-                                          errorText: _errors['task_title'],
+                                          errorText: dynamicError.value,
                                           isRequired: true,
+                                          maxLength: _maxCharactersTitle,
                                         ),
                                         SizedBox(height: 16),
                                         Text(
@@ -1368,6 +1533,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
                                           relatedSpecializations,
                                       photos: _photos,
                                       onSubmit: _submitJob,
+                                      method: 'add_task',
                                     ),
                                   ),
                                 );

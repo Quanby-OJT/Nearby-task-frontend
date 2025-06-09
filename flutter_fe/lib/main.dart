@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/view/business_acc/business_acc_main_page.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:get/get.dart';
@@ -43,13 +44,18 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
+      navigatorKey: AuthenticationController.navigatorKey,
       title: 'QTask',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: isLoggedIn ? (role == "Client" ? const BusinessAccMain() : const ServiceAccMain()) : const WelcomePageViewMain(),
+      home: isLoggedIn
+          ? (role == "Client"
+              ? const BusinessAccMain()
+              : const ServiceAccMain())
+          : const WelcomePageViewMain(),
     );
   }
 }

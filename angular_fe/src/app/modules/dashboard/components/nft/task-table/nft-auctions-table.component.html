@@ -1,27 +1,27 @@
 <div class="bg-background flex-col rounded-lg px-8 py-8 shadow-md lg:h-[19rem] xl:h-[26rem] ">
   <!--lg:h-[19rem] xl:h-[30.5rem] 2xl:h-[66rem]-->
-  <h1 class="text-[#5F50E7] text-base sm:text-sm lg:text-lg xl:text-xl 2xl:text-2xl font-bold text-start font-barlow">Available Tasks</h1>
+  <h1 class="text-[#5F50E7] text-base sm:text-lg lg:text-xl xl:text-2xl 2xl:text-3xl font-bold text-start font-barlow">Available Tasks</h1>
   <div class="relative" style="height: calc(100% - 40px); overflow-y: auto;">
     <table class="w-full table-auto">
       <thead class="text-muted-foreground text-xs uppercase sticky top-0 bg-background">
-        <tr class="text-[#B174ED] text-2xls font-barlow">
-          <th class="py-3 px-4 text-center text-[0.30rem] sm:text-[0.63rem] lg:text-[0.63rem] xl:text-[0.85rem] 2xl:text-[1.53rem]">Client Name</th>
-          <th class="py-3 px-4 text-center text-[0.30rem] sm:text-[0.63rem] lg:text-[0.63rem] xl:text-[0.85rem] 2xl:text-[1.53rem]">Job Title</th>
-          <th class="py-3 px-8 text-center text-[0.30rem] sm:text-[0.63rem] lg:text-[0.63rem] xl:text-[0.85rem] 2xl:text-[1.53rem]">Date Posted</th>
+        <tr class="text-[#B174ED] text-2xls font-monserrat">
+          <th class="py-3 px-4 text-start text-[0.30rem] sm:text-[0.63rem] lg:text-[0.63rem] xl:text-[0.85rem]">Client Name</th>
+          <th class="py-3 px-4 text-start text-[0.30rem] sm:text-[0.63rem] lg:text-[0.63rem] xl:text-[0.85rem]">Job Title</th>
+          <th class="py-3 px-8 text-start text-[0.rem] sm:text-[0.63rem] lg:text-[0.63rem] xl:text-[0.85rem]">Date Posted</th>
           <!-- For Debugging Only
-           <th class="py-3 px-8   text-center">Status</th>
+          <th class="py-3 px-8   text-center">Status</th>
             -->
         </tr>
       </thead>
 
       <tbody *ngIf="!isLoading">
         <tr *ngFor="let data of taskTableData" class="text-xm font-montserrat">
-          <td class="py-3 px-5 text-center text-[0.30rem] sm:text-[0.63rem] lg:text-[0.63rem] xl:text-[0.85rem] 2xl:text-[1.53rem]">{{ data.client }}</td>
-          <td class="py-3 px-5 text-center text-[0.30rem] sm:text-[0.63rem] lg:text-[0.63rem] xl:text-[0.85rem] 2xl:text-[1.53rem]">{{ data.tasker }}</td>
-          <td class="py-3 px-5 text-center text-[0.30rem] sm:text-[0.63rem] lg:text-[0.63rem] xl:text-[0.85rem] 2xl:text-[1.53rem]">{{ data.ending_in }}</td>
+          <td class="py-3 px-5 text-start text-[0.30rem] sm:text-[0.63rem] lg:text-[0.63rem] xl:text-[0.85rem]">{{ data.client }}</td>
+          <td class="py-3 px-5 text-start text-[0.30rem] sm:text-[0.63rem] lg:text-[0.63rem] xl:text-[0.85rem]">{{ data.tasker }}</td>
+          <td class="py-3 px-5 text-start text-[0.30rem] sm:text-[0.63rem] lg:text-[0.63rem] xl:text-[0.85rem]">{{ data.ending_in }}</td>
           <!-- For Debugging Only
-           <td class="py-3 px-5 text-center text-xs">{{ data.status }}</td> 
-           -->
+          <td class="py-3 px-5 text-center text-xs">{{ data.status }}</td> 
+          -->
         </tr>
       </tbody>
     </table>

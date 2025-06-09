@@ -130,7 +130,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                 buildTitleSection(isTasker ? "About the Client" : "About the Tasker", isTasker ? FontAwesomeIcons.userTie : FontAwesomeIcons.userGear),
                 _buildInfoRow("Name: ",  name),
                 if(!isTasker)...[
-                  _buildInfoRow("Specialization", widget.taskAssignment.tasker?.specialization?.specialization ?? "N/A"),
+                  _buildInfoRow("Specialization", widget.taskAssignment.tasker?.specialization ?? "N/A"),
                   _buildInfoRow("Related Skills", widget.taskAssignment.tasker?.skills ?? "N/A"),
                 ]
               ]

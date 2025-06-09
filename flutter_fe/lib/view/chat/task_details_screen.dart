@@ -38,6 +38,64 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     });
   }
 
+  // Future<void> _fetchTaskDetails() async {
+  //   role = await storage.read('role');
+  //   debugPrint(widget.taskTakenId.toString());
+  //   try {
+  //     final response = await _jobPostService
+  //         .fetchAssignedTaskInformation(widget.taskTakenId);
+  //     debugPrint("Response: $response");
+  //     setState(() {
+  //       taskAssignment = response;
+  //       selectedTaskStatus = taskStatus();
+  //       skills = taskAssignment?.tasker?.skills.split(',') ?? [];
+  //       _isLoading = false;
+  //
+  //       // Check if address exists and format it
+  //       if (taskAssignment?.tasker?.address != null) {
+  //         final addressMap = taskAssignment?.tasker?.address!;
+  //
+  //         // Format the address string using map key access
+  //         address = [
+  //           addressMap?["street"] ?? "",
+  //           addressMap?["barangay"] ?? "",
+  //           addressMap?["city"] ?? "",
+  //           addressMap?["province"] ?? "",
+  //           addressMap?["country"] ?? "",
+  //           addressMap?["postal_code"] ?? ""
+  //         ].where((element) => element.isNotEmpty).join(", ");
+  //       } else {
+  //         address = "N/A";
+  //       }
+  //     });
+  //   } catch (e) {
+  //     debugPrint("Error fetching task details: $e");
+  //     setState(() {
+  //       _isLoading = false;
+  //     });
+  //   }
+  // }
+
+  // String taskStatus() {
+  //   switch (taskAssignment?.taskStatus) {
+  //     case "Rejected":
+  //       return "Reject the Tasker";
+  //     case "Cancelled":
+  //       return "Cancel the Task";
+  //     case "Confirmed":
+  //       return "Confirm Tasker";
+  //     case "Ongoing":
+  //       return "Ongoing";
+  //     case "Completed":
+  //       return "Completed";
+  //     case "Pending":
+  //       return "Waiting for Client";
+  //     default:
+  //       return "Unknown";
+  //   }
+  // }
+
+  //Main Application
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -149,7 +207,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
             buildInfoRow(null, verified ? FontAwesomeIcons.solidCircleCheck : FontAwesomeIcons.circleCheck, verified ? Colors.green : Colors.grey , verified ? "This user is Verified" : "This user is not verified."),
             if(role == "Client") ...[
               SizedBox(height: 8),
-              buildInfoRow("Specialization", FontAwesomeIcons.screwdriverWrench, Colors.black12, widget.taskAssignment.tasker?.specialization?.specialization ?? "N/A"),
+              buildInfoRow("Specialization", FontAwesomeIcons.screwdriverWrench, Colors.black12, widget.taskAssignment.tasker?.specialization ?? "N/A"),
               SizedBox(height: 8),
               buildInfoRow("Relevant Skills", FontAwesomeIcons.helmetSafety, Colors.amber, widget.taskAssignment.tasker?.skills ?? "N/A")
             ]

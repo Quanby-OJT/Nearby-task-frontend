@@ -2,9 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/task/task_disputed.dart';
-import 'package:flutter_fe/view/task/task_finished.dart';
 import 'package:flutter_fe/view/task/task_review.dart';
 import 'package:flutter_fe/view/task_user/user_feedback.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -159,8 +157,25 @@ class _TaskOngoingState extends State<TaskOngoing> {
   Future<void> _handleTaskDispute() async {
     if (_requestInformation == null ||
         _requestInformation!.task_taken_id == null) {
-      CustomScaffold(
-          message: 'Task information not available', color: Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Task information not available.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
       return;
     }
 
@@ -357,15 +372,50 @@ class _TaskOngoingState extends State<TaskOngoing> {
                         ),
                       );
                     } else {
-                      CustomScaffold(
-                          message: 'Failed to raise dispute. Please Try Again.',
-                          color: Colors.red);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            "Failed to raise dispute. Please Try Again.",
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          margin: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
                     }
                   } catch (e, stackTrace) {
                     debugPrint("Error raising dispute: $e.");
                     debugPrintStack(stackTrace: stackTrace);
-                    CustomScaffold(
-                        message: 'Error occurred', color: Colors.red);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "Error occurred",
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                        backgroundColor: Colors.red,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        margin:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
                   } finally {
                     setState(() {
                       _isLoading = false;
@@ -655,8 +705,25 @@ class _TaskOngoingState extends State<TaskOngoing> {
     );
 
     if (confirm == true) {
-      CustomScaffold(
-          message: 'Task finished successfully', color: Color(0xFFB71A4A));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Successfully Finished Task.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
   }
 
@@ -809,8 +876,25 @@ class _TaskOngoingState extends State<TaskOngoing> {
     );
 
     if (confirm == true) {
-      CustomScaffold(
-          message: 'Task finished successfully', color: Color(0xFFB71A4A));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Task finished successfully",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
   }
 

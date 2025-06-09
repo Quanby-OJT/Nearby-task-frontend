@@ -10,6 +10,7 @@ import 'package:get_storage/get_storage.dart';
 import '../view/custom_loading/statusModal.dart';
 
 class AuthenticationController {
+  static final navigatorKey = GlobalKey<NavigatorState>();
   static const String apiUrl = "http://192.168.1.12:5000/connect";
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -42,7 +43,7 @@ class AuthenticationController {
     });
   }
 
-  Future<void> loginAuth(BuildContext context) async {
+  Future<Map<String, dynamic>> loginAuth(BuildContext context) async {
     var response = await ApiService.authUser(
         emailController.text, passwordController.text);
 
@@ -56,6 +57,14 @@ class AuthenticationController {
         MaterialPageRoute(
           builder: (context) => OtpScreen(userId: userId),
         ),
+      );
+    } else if (response.containsKey('isThrottled') && response['isThrottled']) {
+      int remainingTime = response['remainingTime'] ?? 300;
+      _showStatusModal(
+        context: context,
+        isSuccess: false,
+        message:
+            "${response['error']}\nPlease wait ${(remainingTime / 60).ceil()} minutes before trying again.",
       );
     } else if (response.containsKey('validation_error')) {
       String errorMessage =
@@ -73,6 +82,8 @@ class AuthenticationController {
         message: errorMessage,
       );
     }
+
+    return response;
   }
 
   Future<void> forgotPassword(BuildContext context) async {
@@ -225,13 +236,7 @@ class AuthenticationController {
       if (storedUserId == null) {
         debugPrint("No user ID found in storage");
         await storage.erase();
-        if (isMounted()) {
-          Navigator.pushAndRemoveUntil(context,
-              MaterialPageRoute(builder: (context) {
-            return SignIn();
-          }), (route) => false);
-        }
-
+        _navigateToSignIn();
         return;
       }
 
@@ -242,50 +247,28 @@ class AuthenticationController {
         final response =
             await ApiService.logout(int.parse(userIdString), sessionToken);
         debugPrint("Logout response: $response");
-
-        if (response.containsKey("message")) {
-          await storage.erase();
-          // Ensure that the navigation happens in the next frame
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (isMounted()) {
-              Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (context) => SignIn()),
-                  (route) => false);
-            }
-          });
-        }
+        await storage.erase();
+        _navigateToSignIn();
       } catch (e, stackTrace) {
         debugPrint("Server logout error: $e");
         debugPrintStack(stackTrace: stackTrace);
+        await storage.erase();
+        _navigateToSignIn();
       }
     } catch (e, stackTrace) {
       debugPrint("Logout Error: $e");
       debugPrintStack(stackTrace: stackTrace);
+      await storage.erase();
+      _navigateToSignIn();
+    }
+  }
 
-      await storage.erase(); // Always erase storage on any logout error.
-
-      // Ensure that the navigation or dialog happens in the next frame
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (isMounted()) {
-          // Ensure context is still valid before navigating or showing dialog
-          if (e is Exception) { // Or a more specific check if needed
-            Navigator.pushAndRemoveUntil(context,
-                MaterialPageRoute(builder: (context) => SignIn()),
-                (route) => false);
-          }
-
-          // Show modal only if mounted
-          _showStatusModal(
-            context: context,
-            isSuccess: false,
-            message:
-                "An error occurred while logging out, but you have been logged out locally.",
-          );
-        } else {
-          debugPrint(
-              "Logout Error: Context is no longer mounted, cannot navigate or show dialog.");
-        }
-      });
+  void _navigateToSignIn() {
+    if (navigatorKey.currentState != null) {
+      navigatorKey.currentState!.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => SignIn()),
+        (route) => false,
+      );
     }
   }
 

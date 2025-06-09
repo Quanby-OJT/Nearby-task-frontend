@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_fe/model/client_model.dart';
 import 'package:flutter_fe/model/address.dart';
 import 'package:flutter_fe/model/images_model.dart';
@@ -77,8 +76,6 @@ class TaskModel {
     } else {
       urgencyValue = "Non-Urgent";
     }
-    debugPrint("Raw Task JSON: $json");
-    debugPrint("Moderator Information: ${json["action_by"]}");
 
     return TaskModel(
       id: json['task_id'] as int? ?? 0,
@@ -107,7 +104,13 @@ class TaskModel {
               'client_address': '',
               'user': json['client']['user'],
             })
-          : null,
+          : json['clients'] != null && json['clients']['user'] != null
+              ? ClientModel.fromJson({
+                  'preferences': '',
+                  'client_address': '',
+                  'user': json['clients']['user'],
+                })
+              : null,
       tasker: json['tasker'] != null && json['tasker']['user'] != null
           ? TaskerModel.fromJson({
               'preferences': '',

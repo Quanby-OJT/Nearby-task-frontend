@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
-import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:flutter_fe/view/task/task_rejected.dart';
 import 'package:flutter_fe/view/task_user/user_feedback.dart';
@@ -456,8 +455,25 @@ class _TaskDeclinedState extends State<TaskDeclined> {
     );
 
     if (confirm == true) {
-      CustomScaffold(
-          message: 'Task rejection requested', color: Color(0xFFB71A4A));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Successfully Rejected Task.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
   }
 
@@ -953,8 +969,26 @@ class _TaskDeclinedState extends State<TaskDeclined> {
                     ),
                   );
                 } else {
-                  CustomScaffold(
-                      message: 'Failed to accept task', color: Colors.red);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        "Failed to accept task.",
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
+                      backgroundColor: Colors.red,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      margin:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -1181,8 +1215,26 @@ class _TaskDeclinedState extends State<TaskDeclined> {
                       setState(() {
                         _isLoading = false;
                       });
-                      CustomScaffold(
-                          message: 'Failed to finish task', color: Colors.red);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            "Failed to finish task",
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          margin: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
                     }
                   },
                 ),
@@ -1194,7 +1246,25 @@ class _TaskDeclinedState extends State<TaskDeclined> {
     );
 
     if (confirm == true) {
-      CustomScaffold(message: 'Task Finished', color: Colors.green);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Successfully Finished Task.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
   }
 
@@ -1218,8 +1288,25 @@ class _TaskDeclinedState extends State<TaskDeclined> {
   Future<void> _handleTaskDispute() async {
     if (_requestInformation == null ||
         _requestInformation!.task_taken_id == null) {
-      CustomScaffold(
-          message: 'Task information not available', color: Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Task information not available.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
       return;
     }
 
@@ -1411,15 +1498,50 @@ class _TaskDeclinedState extends State<TaskDeclined> {
                         _requestStatus = 'Disputed';
                       });
                     } else {
-                      CustomScaffold(
-                          message: 'Failed to raise dispute. Please Try Again.',
-                          color: Colors.red);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            "Failed to raise dispute. Please Try Again.",
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          margin: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
                     }
                   } catch (e, stackTrace) {
                     debugPrint("Error raising dispute: $e.");
                     debugPrintStack(stackTrace: stackTrace);
-                    CustomScaffold(
-                        message: 'Error occurred', color: Colors.red);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "Error occurred",
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                        backgroundColor: Colors.red,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        margin:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
                   } finally {
                     setState(() {
                       _isLoading = false;

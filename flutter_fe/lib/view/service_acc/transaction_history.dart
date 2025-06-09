@@ -17,7 +17,8 @@ class TransactionHistoryPage extends StatefulWidget {
   State<TransactionHistoryPage> createState() => _TransactionHistoryPageState();
 }
 
-class _TransactionHistoryPageState extends State<TransactionHistoryPage> with TickerProviderStateMixin {
+class _TransactionHistoryPageState extends State<TransactionHistoryPage>
+    with TickerProviderStateMixin {
   final storage = GetStorage();
   final _escrowManagementController = EscrowManagementController();
   List<TaskerFeedback> taskerFeedback = [];
@@ -210,7 +211,8 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> with Ti
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => PaymentProcessingPage(transferMethod: "withdraw"),
+                              builder: (context) => PaymentProcessingPage(
+                                  transferMethod: "withdraw"),
                             ),
                           );
                         },
@@ -262,138 +264,143 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> with Ti
 
             // Transaction History - Vertical Scrolling
             Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Transaction History",
-                    style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0XFFE23670)
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  _isLoading
-                    ? Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            children: [
-                              // Add a SizedBox for spacing (20% of card width for example)
-                              SizedBox(width: MediaQuery.of(context).size.width * 0.1), // Adjust the percentage as needed
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Transaction History",
+                        style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black),
+                      ),
+                      SizedBox(height: 10),
+                      _isLoading
+                          ? Card(
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Row(
                                   children: [
-                                    SizedBox(height: 8),
-                                    LinearProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(Color(0XFFE23670)),
-                                      backgroundColor: Color(0XFFF5A1BB),
-                                    ),
-                                    SizedBox(height: 8),
-                                    LinearProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(Color(0XFFE23670)),
-                                      backgroundColor: Color(0XFFF5A1BB),
-                                    ),
-                                    SizedBox(height: 8),
-                                    LinearProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(Color(0XFFE23670)),
-                                      backgroundColor: Color(0XFFF5A1BB),
-                                    ),
-                                    SizedBox(height: 8),
-                                    LinearProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(Color(0XFFE23670)),
-                                      backgroundColor: Color(0XFFF5A1BB),
+                                    // Add a SizedBox for spacing (20% of card width for example)
+                                    SizedBox(
+                                        width: MediaQuery.of(context)
+                                                .size
+                                                .width *
+                                            0.1), // Adjust the percentage as needed
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          SizedBox(height: 8),
+                                          LinearProgressIndicator(
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                    Color(0XFFE23670)),
+                                            backgroundColor: Color(0XFFF5A1BB),
+                                          ),
+                                          SizedBox(height: 8),
+                                          LinearProgressIndicator(
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                    Color(0XFFE23670)),
+                                            backgroundColor: Color(0XFFF5A1BB),
+                                          ),
+                                          SizedBox(height: 8),
+                                          LinearProgressIndicator(
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                    Color(0XFFE23670)),
+                                            backgroundColor: Color(0XFFF5A1BB),
+                                          ),
+                                          SizedBox(height: 8),
+                                          LinearProgressIndicator(
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                    Color(0XFFE23670)),
+                                            backgroundColor: Color(0XFFF5A1BB),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                      )
-                    : _transactionHistory.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                FontAwesomeIcons.fileInvoiceDollar,
-                                size: 50,
-                                color: Colors.grey,
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                "You don't have any transactions yet.",
-                                style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey),
-                              )
-                            ],
-                          )
-                        )
-                      : ListView.builder(
-                        shrinkWrap: true, // Important to make ListView scrollable within Column
-                        physics: NeverScrollableScrollPhysics(), // Disable ListView's own scrolling
-                        itemCount: _transactionHistory.length,
-                        itemBuilder: (context, index) {
-                          final transaction = _transactionHistory[index];
-                          return Card(
-                            margin: EdgeInsets.only(bottom: 10),
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: ListTile(
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => TaskDetailsScreen(
-                                    taskAssignment: transaction.taskAssignment,
-                                    taskStatus: transaction.recordStatus,
-                                    transactionDate: DateTime.parse(transaction.date),
-                                  )
-                                )
-                              ),
-                              leading: CircleAvatar(
-                                backgroundColor: statusColor(transaction.recordStatus),
-                                radius: 5, // Small color indicator
-                              ),
-                              title: Text(
-                                transaction.taskAssignment.task?.title ?? "N/A",
-                                style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Client: ${transaction.taskAssignment.client?.user?.firstName ?? ''} ${transaction.taskAssignment.client?.user?.middleName ?? ''} ${transaction.taskAssignment.client?.user?.lastName ?? ''}',
-                                    style: GoogleFonts.poppins(fontSize: 12),
+                            )
+                          : ListView.builder(
+                              shrinkWrap:
+                                  true, // Important to make ListView scrollable within Column
+                              physics:
+                                  NeverScrollableScrollPhysics(), // Disable ListView's own scrolling
+                              itemCount: _transactionHistory.length,
+                              itemBuilder: (context, index) {
+                                final transaction = _transactionHistory[index];
+                                return Card(
+                                  margin: EdgeInsets.only(bottom: 10),
+                                  elevation: 2,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
-                                  Text(
-                                    'Status: ${transaction.recordStatus}',
-                                    style: GoogleFonts.poppins(fontSize: 12, fontStyle: FontStyle.italic),
+                                  child: ListTile(
+                                    onTap: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                TaskDetailsScreen(
+                                                  taskAssignment: transaction
+                                                      .taskAssignment,
+                                                  taskStatus:
+                                                      transaction.recordStatus,
+                                                  transactionDate:
+                                                      DateTime.parse(
+                                                          transaction.date),
+                                                ))),
+                                    leading: CircleAvatar(
+                                      backgroundColor:
+                                          statusColor(transaction.recordStatus),
+                                      radius: 5, // Small color indicator
+                                    ),
+                                    title: Text(
+                                      transaction.taskAssignment.task?.title ??
+                                          "N/A",
+                                      style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Client: ${transaction.taskAssignment.client?.user?.firstName ?? ''} ${transaction.taskAssignment.client?.user?.middleName ?? ''} ${transaction.taskAssignment.client?.user?.lastName ?? ''}',
+                                          style:
+                                              GoogleFonts.poppins(fontSize: 12),
+                                        ),
+                                        Text(
+                                          'Status: ${transaction.recordStatus}',
+                                          style: GoogleFonts.poppins(
+                                              fontSize: 12,
+                                              fontStyle: FontStyle.italic),
+                                        ),
+                                      ],
+                                    ),
+                                    trailing: Text(
+                                      DateFormat('yyyy-MM-dd HH:mm a').format(
+                                          DateTime.parse(transaction
+                                              .date)), // Display formatted date and time
+                                      style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.normal,
+                                          color: Colors.grey[600]),
+                                    ),
                                   ),
-                                ],
-                              ),
-                              trailing: Text(
-                                DateFormat('yyyy-MM-dd HH:mm a').format(DateTime.parse(transaction.date)), // Display formatted date and time
-                                style: GoogleFonts.poppins(
-                                    fontWeight: FontWeight.normal,
-                                    color: Colors.grey[600]
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      )
-                ]
-              )
-            )
+                                );
+                              },
+                            )
+                    ]))
           ],
         ),
       ),

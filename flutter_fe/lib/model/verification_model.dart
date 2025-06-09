@@ -21,6 +21,9 @@ class VerificationModel {
   final String? idImageUrl;
   final String? selfieImageUrl;
   final String? documentUrl;
+  final String? clientDocumentUrl;
+  final String? clientDocumentType;
+  final bool? documentValid;
   final String status;
   final String? verificationDate;
   final String? verifiedBy;
@@ -48,6 +51,9 @@ class VerificationModel {
     this.idImageUrl,
     this.selfieImageUrl,
     this.documentUrl,
+    this.clientDocumentUrl,
+    this.clientDocumentType,
+    this.documentValid,
     required this.status,
     this.verificationDate,
     this.verifiedBy,
@@ -137,6 +143,9 @@ class VerificationModel {
       documentUrl: json['documentUrl'] ??
           json['document_url'] ??
           json['user_document_link'],
+      clientDocumentUrl: json['client_document_url'],
+      clientDocumentType: json['client_document_type'],
+      documentValid: json['document_valid'],
       status: json['status'] ?? 'pending',
       verificationDate: json['verification_date'],
       verifiedBy: json['verified_by'],
@@ -168,6 +177,9 @@ class VerificationModel {
       'id_image_url': idImageUrl,
       'selfie_image_url': selfieImageUrl,
       'document_url': documentUrl,
+      'client_document_url': clientDocumentUrl,
+      'client_document_type': clientDocumentType,
+      'document_valid': documentValid,
       'status': status,
       'verification_date': verificationDate,
       'verified_by': verifiedBy,
@@ -198,6 +210,9 @@ class VerificationModel {
     String? idImageUrl,
     String? selfieImageUrl,
     String? documentUrl,
+    String? clientDocumentUrl,
+    String? clientDocumentType,
+    bool? documentValid,
     String? status,
     String? verificationDate,
     String? verifiedBy,
@@ -225,6 +240,9 @@ class VerificationModel {
       idImageUrl: idImageUrl ?? this.idImageUrl,
       selfieImageUrl: selfieImageUrl ?? this.selfieImageUrl,
       documentUrl: documentUrl ?? this.documentUrl,
+      clientDocumentUrl: clientDocumentUrl ?? this.clientDocumentUrl,
+      clientDocumentType: clientDocumentType ?? this.clientDocumentType,
+      documentValid: documentValid ?? this.documentValid,
       status: status ?? this.status,
       verificationDate: verificationDate ?? this.verificationDate,
       verifiedBy: verifiedBy ?? this.verifiedBy,
