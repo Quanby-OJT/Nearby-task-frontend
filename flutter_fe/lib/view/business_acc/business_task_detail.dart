@@ -4,7 +4,6 @@ import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
-import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -54,9 +53,25 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
         _isLoading = false;
       });
     } catch (e) {
-      CustomScaffold(
-          message: 'Failed to load task details: ${e.toString()}',
-          color: Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Failed to fetch task details.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
       setState(() {
         _isLoading = false;
       });
@@ -114,17 +129,67 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
     try {
       final result = await _taskController.deleteTask(widget.task!.id);
       if (result['success'] == true) {
-        CustomScaffold(
-            message: 'Task deleted successfully', color: Colors.green);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Successfully Deleted Task.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
+          ),
+        );
         Navigator.pop(context, true);
       } else {
-        CustomScaffold(
-            message:
-                'Failed to delete task: ${result['error'] ?? "Unknown error"}',
-            color: Colors.red);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Failed to delete task.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
+          ),
+        );
       }
     } catch (e) {
-      CustomScaffold(message: 'Error: ${e.toString()}', color: Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Error occurred",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
     } finally {
       setState(() {
         _isDeleting = false;
@@ -148,7 +213,6 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
 
     return Scaffold(
       appBar: AppBar(
-        centerTitle: true,
         title: Text(
           'Task Details',
           style: GoogleFonts.poppins(
@@ -317,7 +381,7 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              taskFetch.taskDetails!.title != null
+              taskFetch.taskDetails?.title != null
                   ? taskFetch.taskDetails!.title.length > 25
                       ? '${taskFetch.taskDetails!.title.substring(0, 25)}...'
                       : taskFetch.taskDetails!.title

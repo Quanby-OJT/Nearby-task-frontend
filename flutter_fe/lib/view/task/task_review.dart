@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
-import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/task/task_finished.dart';
 import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -176,35 +175,42 @@ class _TaskReviewState extends State<TaskReview> {
                   ),
                 )
               : SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // // Tasker Card
-                        if (widget.taskInformation?.tasker?.user == null) ...[
-                          _buildTaskerReviewSection(),
-                          SizedBox(height: 16),
-                          _buildTaskCard(),
-                          SizedBox(height: 16),
-                          _buildPendingPayment(),
-                          SizedBox(height: 16),
-                          _buildClientProfileCard(),
-                          SizedBox(height: 16),
-                          _buildTaskerActionButton(),
-                        ] else ...[
-                          _requestStatus == "Review" ? _buildClientReviewSection() : _buildDisputeSection(),
-                          SizedBox(height: 16),
-                          _buildTaskCard(),
-                          SizedBox(height: 16),
-                          _buildPendingPayment(),
-                          SizedBox(height: 16),
-                          _buildTaskerProfileCard(),
-                          SizedBox(height: 16),
-                          _buildClientActionButton(),
-                        ],
-                      ],
-                    ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // // Tasker Card
+                            if (widget.taskInformation?.tasker?.user ==
+                                null) ...[
+                              _buildTaskerReviewSection(),
+                              SizedBox(height: 16),
+                              _buildTaskCard(constraints),
+                              SizedBox(height: 16),
+                              _buildPendingPayment(),
+                              SizedBox(height: 16),
+                              _buildClientProfileCard(),
+                              SizedBox(height: 16),
+                              _buildTaskerActionButton(),
+                            ] else ...[
+                              _requestStatus == "Review"
+                                  ? _buildClientReviewSection()
+                                  : _buildDisputeSection(),
+                              SizedBox(height: 16),
+                              _buildTaskCard(constraints),
+                              SizedBox(height: 16),
+                              _buildPendingPayment(),
+                              SizedBox(height: 16),
+                              _buildTaskerProfileCard(),
+                              SizedBox(height: 16),
+                              _buildClientActionButton(),
+                            ],
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
     );
@@ -225,18 +231,38 @@ class _TaskReviewState extends State<TaskReview> {
               final result = await taskController.updateRequest(
                   _requestInformation?.task_taken_id ?? 0, value, 'Client');
               if (result.containsKey('success') && result['success']) {
-                Navigator.pop(context);
                 Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => TaskFinished(
-                      taskInformation: widget.taskInformation,
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TaskFinished(
+                        taskInformation: widget.taskInformation,
+                      ),
+                    )).then((value) {
+                  setState(() {
+                    _isLoading = false;
+                    _fetchRequestDetails();
+                  });
+                });
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      "Successfully Finished Task.",
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
                     ),
+                    backgroundColor: Colors.red,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    duration: Duration(seconds: 3),
                   ),
                 );
-              } else {
-                CustomScaffold(
-                    message: 'Failed to accept task', color: Colors.red);
               }
             },
             style: ElevatedButton.styleFrom(
@@ -311,8 +337,25 @@ class _TaskReviewState extends State<TaskReview> {
   Future<void> _handleTaskDispute() async {
     if (_requestInformation == null ||
         _requestInformation!.task_taken_id == null) {
-      CustomScaffold(
-          message: 'Task information not available', color: Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Task information not available.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
       return;
     }
 
@@ -504,15 +547,50 @@ class _TaskReviewState extends State<TaskReview> {
                         _requestStatus = 'Disputed';
                       });
                     } else {
-                      CustomScaffold(
-                          message: 'Failed to raise dispute. Please Try Again.',
-                          color: Colors.red);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            "Failed to raise dispute. Please Try Again.",
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          margin: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
                     }
                   } catch (e, stackTrace) {
                     debugPrint("Error raising dispute: $e.");
                     debugPrintStack(stackTrace: stackTrace);
-                    CustomScaffold(
-                        message: 'Error occurred', color: Colors.red);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "Error occurred",
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                        backgroundColor: Colors.red,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        margin:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
                   } finally {
                     setState(() {
                       _isLoading = false;
@@ -678,8 +756,26 @@ class _TaskReviewState extends State<TaskReview> {
                       setState(() {
                         _isLoading = false;
                       });
-                      CustomScaffold(
-                          message: 'Failed to review task', color: Colors.red);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            "Failed to review task",
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          margin: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
                     }
                   },
                 ),
@@ -691,7 +787,25 @@ class _TaskReviewState extends State<TaskReview> {
     );
 
     if (confirm == true) {
-      CustomScaffold(message: 'Task has been declined.', color: Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Task has been declined.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
   }
 
@@ -944,7 +1058,7 @@ class _TaskReviewState extends State<TaskReview> {
             'Please Wait for Our Team to review your dispute and file Appropriate Action.',
             textAlign: TextAlign.center,
             style:
-            GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
+                GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
       ),
@@ -989,43 +1103,68 @@ class _TaskReviewState extends State<TaskReview> {
     );
   }
 
-  Widget _buildTaskCard() {
+  Widget _buildTaskCard(BoxConstraints constraints) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Theme.of(context).colorScheme.surfaceContainer,
       child: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Color(0xFF03045E).withOpacity(0.1),
+                    color:
+                        Theme.of(context).colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.task, color: Color(0xFF03045E), size: 24),
+                  child: Icon(Icons.task,
+                      color: Theme.of(context).colorScheme.primary, size: 24),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     _taskInformation!.title ?? 'Task',
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF03045E),
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 16),
             _buildTaskInfoRow(
-              icon: Icons.info,
+              icon: FontAwesomeIcons.locationDot,
+              label: 'Description',
+              value: _taskInformation!.description ?? 'N/A',
+            ),
+            const SizedBox(height: 16),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.briefcase,
+              label: 'Work Type',
+              value: _taskInformation!.workType ?? 'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.star,
+              label: 'Specialization',
+              value: _taskInformation!.taskerSpecialization?.specialization ??
+                  'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.dollarSign,
+              label: 'Contract Price',
+              value: _taskInformation!.contactPrice.toString() ?? 'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.info,
               label: 'Status',
-              value: _requestInformation?.task_status ?? 'Ongoing',
+              value: _requestInformation!.task_status ?? 'Confirmed',
             ),
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.calendar,

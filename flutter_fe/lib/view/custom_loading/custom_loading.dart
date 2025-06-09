@@ -5,10 +5,10 @@ class CustomLoading extends StatefulWidget {
   const CustomLoading({super.key});
 
   @override
-  _CustomLoadingState createState() => _CustomLoadingState();
+  CustomLoadingState createState() => CustomLoadingState();
 }
 
-class _CustomLoadingState extends State<CustomLoading>
+class CustomLoadingState extends State<CustomLoading>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _rotationAnimation;

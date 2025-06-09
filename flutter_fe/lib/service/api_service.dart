@@ -13,7 +13,7 @@ import '../model/tasker_model.dart';
 import 'package:flutter_fe/config/url_strategy.dart';
 
 class ApiService {
-  static String url = apiUrl ?? "http://192.168.43.15:5000";
+  static String url = apiUrl ?? "http://localhost:5000";
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
   static final Map<String, String> _cookies = {};
@@ -998,23 +998,170 @@ class ApiService {
     }
   }
 
-  // Submit user verification data to the new tasker_verify table
-  static Future<Map<String, dynamic>> submitTaskerVerificationWithNewTable(
+  // Submit client verification data to the client table
+  static Future<Map<String, dynamic>> submitClientVerification(
     int userId,
     Map<String, dynamic> verificationData,
     File? idImage,
     File? selfieImage,
     File? documentFile,
   ) async {
-    // Use the unified submitUserVerification method
-    // This ensures both Tasker and Client data goes to user_verify table
-    return await submitUserVerification(
-      userId,
-      verificationData,
-      idImage,
-      selfieImage,
-      documentFile,
-    );
+    try {
+      String token = await AuthService.getSessionToken();
+      debugPrint("ApiService: Submitting client verification to client table");
+      debugPrint("ApiService: Verification data: $verificationData");
+
+      final String endpoint = "$apiUrl/submit-client-verification/$userId";
+
+      var request = http.MultipartRequest("POST", Uri.parse(endpoint));
+
+      request.headers.addAll({
+        "Authorization": "Bearer $token",
+        "Content-Type": "multipart/form-data",
+      });
+
+      // Add verification data fields
+      request.fields.addAll({
+        "user_id": userId.toString(),
+        "bio": verificationData['bio'] ?? '',
+        "socialMediaJson": verificationData['socialMediaJson'] ?? '{}',
+        "preferences": verificationData['preferences'] ?? '',
+        "client_address": verificationData['clientAddress'] ?? '',
+        "firstName": verificationData['firstName'] ?? '',
+        "middleName": verificationData['middleName'] ?? '',
+        "lastName": verificationData['lastName'] ?? '',
+        "email": verificationData['email'] ?? '',
+        "phone": verificationData['phone'] ?? '',
+        "gender": verificationData['gender'] ?? '',
+        "birthdate": verificationData['birthdate'] ?? '',
+      });
+
+      // Add files
+      if (idImage != null) {
+        request.files
+            .add(await http.MultipartFile.fromPath('idImage', idImage.path));
+      }
+      if (selfieImage != null) {
+        request.files.add(
+            await http.MultipartFile.fromPath('selfieImage', selfieImage.path));
+      }
+      if (documentFile != null) {
+        request.files.add(
+            await http.MultipartFile.fromPath('documents', documentFile.path));
+      }
+
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+      final responseData = jsonDecode(responseBody);
+
+      debugPrint("ApiService: Client verification response: $responseData");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          "success": true,
+          "message": responseData["message"] ??
+              "Client verification submitted successfully!"
+        };
+      } else {
+        return {
+          "success": false,
+          "error":
+              responseData["error"] ?? "Failed to submit client verification"
+        };
+      }
+    } catch (e, stackTrace) {
+      debugPrint("ApiService: Error submitting client verification: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {
+        "success": false,
+        "error": "An error occurred while submitting client verification: $e"
+      };
+    }
+  }
+
+  // Submit tasker verification data to the tasker table
+  static Future<Map<String, dynamic>> submitTaskerVerificationNew(
+    int userId,
+    Map<String, dynamic> verificationData,
+    File? idImage,
+    File? selfieImage,
+    File? documentFile,
+  ) async {
+    try {
+      String token = await AuthService.getSessionToken();
+      debugPrint("ApiService: Submitting tasker verification to tasker table");
+      debugPrint("ApiService: Verification data: $verificationData");
+
+      final String endpoint = "$apiUrl/submit-tasker-verification-new/$userId";
+
+      var request = http.MultipartRequest("POST", Uri.parse(endpoint));
+
+      request.headers.addAll({
+        "Authorization": "Bearer $token",
+        "Content-Type": "multipart/form-data",
+      });
+
+      // Add verification data fields
+      request.fields.addAll({
+        "user_id": userId.toString(),
+        "bio": verificationData['bio'] ?? '',
+        "socialMediaJson": verificationData['socialMediaJson'] ?? '{}',
+        "specialization_id":
+            verificationData['specializationId']?.toString() ?? '',
+        "skills": verificationData['skills'] ?? '',
+        "wage_per_hour": verificationData['wagePerHour']?.toString() ?? '0',
+        "pay_period": verificationData['payPeriod'] ?? 'Hourly',
+        "availability": verificationData['availability']?.toString() ?? 'true',
+        "firstName": verificationData['firstName'] ?? '',
+        "middleName": verificationData['middleName'] ?? '',
+        "lastName": verificationData['lastName'] ?? '',
+        "email": verificationData['email'] ?? '',
+        "phone": verificationData['phone'] ?? '',
+        "gender": verificationData['gender'] ?? '',
+        "birthdate": verificationData['birthdate'] ?? '',
+      });
+
+      // Add files
+      if (idImage != null) {
+        request.files
+            .add(await http.MultipartFile.fromPath('idImage', idImage.path));
+      }
+      if (selfieImage != null) {
+        request.files.add(
+            await http.MultipartFile.fromPath('selfieImage', selfieImage.path));
+      }
+      if (documentFile != null) {
+        request.files.add(
+            await http.MultipartFile.fromPath('documents', documentFile.path));
+      }
+
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+      final responseData = jsonDecode(responseBody);
+
+      debugPrint("ApiService: Tasker verification response: $responseData");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          "success": true,
+          "message": responseData["message"] ??
+              "Tasker verification submitted successfully!"
+        };
+      } else {
+        return {
+          "success": false,
+          "error":
+              responseData["error"] ?? "Failed to submit tasker verification"
+        };
+      }
+    } catch (e, stackTrace) {
+      debugPrint("ApiService: Error submitting tasker verification: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {
+        "success": false,
+        "error": "An error occurred while submitting tasker verification: $e"
+      };
+    }
   }
 
   static Future<Map<String, dynamic>> createTasker(
@@ -1089,7 +1236,7 @@ class ApiService {
     try {
       final String token = await AuthService.getSessionToken();
       debugPrint(
-          "API Service: Retrieved session token: ${token?.isNotEmpty == true ? 'Token exists (${token.length} chars)' : 'Token is empty or null'}");
+          "API Service: Retrieved session token: ${token.isNotEmpty == true ? 'Token exists (${token.length} chars)' : 'Token is empty or null'}");
 
       // Check if token is empty and handle accordingly
       if (token.isEmpty) {
@@ -1200,19 +1347,28 @@ class ApiService {
         }),
       );
 
-      //_updateCookies(response);
-
       var responseData = json.decode(response.body);
 
       if (response.statusCode == 200) {
         return {"user_id": responseData['user_id']};
+      } else if (response.statusCode == 429) {
+        // Handle throttling
+        return {
+          "error": responseData['error'],
+          "remainingTime": responseData['remainingTime'],
+          "isThrottled": true
+        };
       } else if (response.statusCode == 400 &&
           responseData.containsKey('errors')) {
         List<dynamic> errors = responseData['errors'];
         String errorMessage = errors.map((e) => e['msg']).join('\n');
         return {"validation_error": errorMessage};
       } else {
-        return {"error": responseData['error'] ?? 'Authentication Failed'};
+        String message = responseData['error'] ?? 'Authentication Failed';
+        if (responseData.containsKey('attemptsLeft')) {
+          message += '\nAttempts left: ${responseData['attemptsLeft']}';
+        }
+        return {"error": message};
       }
     } catch (e, stackTrace) {
       debugPrint('Error: $e');

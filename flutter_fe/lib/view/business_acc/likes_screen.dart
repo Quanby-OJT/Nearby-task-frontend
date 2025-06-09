@@ -4,14 +4,12 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
+import 'package:flutter_fe/view/business_acc/business_acc_main_page.dart';
 import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
-import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
 import 'package:flutter_fe/view/verification/verification_page.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_fe/controller/task_controller.dart';
-import 'package:flutter_fe/model/task_model.dart';
 import '../../model/tasker_model.dart';
 
 class LikesScreen extends StatefulWidget {
@@ -98,6 +96,7 @@ class _LikesScreenState extends State<LikesScreen> {
       }
 
       final likedTasks = await _clientServices.fetchUserLikedTasks();
+      debugPrint("Liked Tasks: $likedTasks");
       setState(() {
         _likedTasks = likedTasks;
         _filteredTasks = List.from(_likedTasks);
@@ -148,7 +147,25 @@ class _LikesScreenState extends State<LikesScreen> {
       });
     } catch (e) {
       debugPrint("Error fetching ID image: $e");
-     CustomScaffold(message: 'Failed to load user image. Please try again.', color: Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Failed to fetch ID image.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
   }
 
@@ -218,62 +235,66 @@ class _LikesScreenState extends State<LikesScreen> {
           _filteredTasks.removeWhere((item) => item.id == job.id);
           savedTasksCount = _filteredTasks.length;
         });
-        CustomScaffold(message: result['message'], color: Colors.green);
-       
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Successfully Unliked Task.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
+          ),
+        );
       } else {
-        CustomScaffold(message: result['message'], color: Colors.red);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Failed to unlike task. Please try again.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
+          ),
+        );
       }
     } catch (e) {
-      debugPrint("Error in _unlikeJob: $e");
-      CustomScaffold(message: 'Failed to unlike task. Please try again.', color: Colors.red);
-    }
-  }
-
-  Future<void> _assignTask(UserModel tasker) async {
-    try {
-      List<TaskModel> clientTasks = await _fetchClientTasks();
-      if (clientTasks.isEmpty) {
-        CustomScaffold(message: 'You have no active tasks to assign.', color: Colors.orange);
-        return;
-      }
-
-      final TaskModel? selectedTask = await showDialog<TaskModel>(
-        context: context,
-        builder: (context) => _TaskSelectionDialog(tasks: clientTasks),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Error occurred",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
       );
-
-      if (selectedTask == null) return;
-
-      final String? clientId = await _clientServices.getUserId();
-      if (clientId == null) {
-        CustomScaffold(message: 'Unable to identify client. Please log in again.', color: Colors.red);
-        return;
-      }
-
-      final taskController = TaskController();
-      final result = await taskController.assignTask(
-        selectedTask.id,
-        int.parse(clientId),
-        tasker.id ?? 0,
-        _role,
-      );
-
-      CustomScaffold(message: result, color: result.toLowerCase().contains('success') ? Colors.green : Colors.red);
-    } catch (e) {
-      debugPrint("Error in _assignTask: $e");
-      CustomScaffold(message: 'Failed to assign task.', color: Colors.red);
-    }
-  }
-
-  Future<List<TaskModel>> _fetchClientTasks() async {
-    try {
-      final taskController = TaskController();
-      final String? clientId = await _clientServices.getUserId();
-      if (clientId == null) return [];
-      return await taskController.getCreatedTasksByClient(int.parse(clientId));
-    } catch (e) {
-      debugPrint("Error fetching client tasks: $e");
-      return [];
     }
   }
 
@@ -415,7 +436,7 @@ class _LikesScreenState extends State<LikesScreen> {
               onPressed: () {
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => ServiceAccMain()),
+                  MaterialPageRoute(builder: (context) => BusinessAccMain()),
                   (route) => false,
                 );
               },
@@ -642,98 +663,6 @@ class _LikesScreenState extends State<LikesScreen> {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _TaskSelectionDialog extends StatelessWidget {
-  final List<TaskModel> tasks;
-
-  const _TaskSelectionDialog({required this.tasks});
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Text(
-        'Select a Task to Assign',
-        style: GoogleFonts.poppins(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF0272B1),
-        ),
-        textAlign: TextAlign.center,
-      ),
-      content: Container(
-        width: double.maxFinite,
-        constraints: BoxConstraints(maxHeight: 300),
-        child: tasks.isEmpty
-            ? Center(
-                child: Text(
-                  'No tasks available',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              )
-            : ListView.builder(
-                shrinkWrap: true,
-                itemCount: tasks.length,
-                itemBuilder: (context, index) {
-                  final task = tasks[index];
-                  return Card(
-                    elevation: 1,
-                    margin: EdgeInsets.symmetric(vertical: 4),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
-                    child: ListTile(
-                      contentPadding: EdgeInsets.all(12),
-                      title: Text(
-                        task.title ?? 'Untitled Task',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF0272B1),
-                        ),
-                      ),
-                      subtitle: Text(
-                        task.description ?? 'No description',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                      trailing: task.contactPrice != null
-                          ? Text(
-                              '\$${task.contactPrice}',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.green[700],
-                              ),
-                            )
-                          : null,
-                      onTap: () => Navigator.of(context).pop(task),
-                    ),
-                  );
-                },
-              ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(
-            'Cancel',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: Colors.red[400],
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

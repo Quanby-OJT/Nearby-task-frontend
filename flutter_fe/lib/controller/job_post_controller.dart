@@ -25,14 +25,15 @@ class JobPostController {
           spec.id!: spec.specialization,
       };
 
-      debugPrint("My data this is my data: $fetchedMyData");
-      debugPrint("Specialization Map: $specializationMap");
-      debugPrint("This is fetched task, $fetchedTasks");
+      debugPrint(
+          "Fetched user data: ${fetchedMyData?.user?.email ?? 'No user data'}");
+      debugPrint("Specialization map: $specializationMap");
+      debugPrint("Total tasks fetched: ${fetchedTasks.length}");
 
       if (fetchedMyData?.user == null ||
           fetchedMyData?.user?.userPreferences == null ||
           fetchedMyData?.user?.userPreferences?.isEmpty == true) {
-        debugPrint("No tasker preferences found");
+        debugPrint("No tasker preferences found, returning all tasks");
         return fetchedTasks;
       }
 
@@ -40,57 +41,45 @@ class JobPostController {
 
       final desiredSpecializationIds = <int>[];
       if (taskerPreferences.specialization.isNotEmpty) {
-        debugPrint("Raw specialization: ${taskerPreferences.specialization}");
-
         for (final item in taskerPreferences.specialization) {
           try {
-            if (item.startsWith('[') && item.endsWith(']')) {
-              final List<dynamic> ids = jsonDecode(item);
-              for (final idStr in ids) {
-                if (idStr != null && idStr.toString().trim().isNotEmpty) {
-                  final id = int.tryParse(idStr.toString().trim());
-                  if (id != null) {
-                    desiredSpecializationIds.add(id);
-                  }
-                }
-              }
-            } else {
-              final id = int.tryParse(item.trim());
+            final decoded = item.startsWith('[') && item.endsWith(']')
+                ? jsonDecode(item) as List<dynamic>
+                : [item];
+            for (final idStr in decoded) {
+              final id = int.tryParse(idStr.toString().trim());
               if (id != null) {
                 desiredSpecializationIds.add(id);
               }
             }
           } catch (e) {
-            debugPrint("Error parsing specialization item: $item, error: $e");
+            debugPrint("Error parsing specialization '$item': $e");
           }
         }
-      } else {
-        debugPrint("Specialization list is empty");
       }
 
       final includesAllSpecializations = desiredSpecializationIds.contains(0);
-
       final desiredSpecializationNames = includesAllSpecializations
           ? <String>[]
           : desiredSpecializationIds
               .map((id) => specializationMap[id])
-              .where((name) => name != null)
-              .cast<String>()
+              .whereType<String>()
               .toList();
 
       debugPrint("Desired specialization IDs: $desiredSpecializationIds");
       debugPrint("Desired specialization names: $desiredSpecializationNames");
-      debugPrint("Includes all specializations: $includesAllSpecializations");
 
       final taskerLat = taskerPreferences.address.latitude ?? 0.0;
       final taskerLon = taskerPreferences.address.longitude ?? 0.0;
-      final maxDistance = taskerPreferences.distance;
+      final maxDistance = taskerPreferences.distance ?? 100.0;
+      final ageStart = taskerPreferences.ageStart ?? 18;
+      final ageEnd = taskerPreferences.ageEnd ?? 100;
 
       double degToRad(double deg) => deg * (math.pi / 180);
 
       double calculateDistance(
           double lat1, double lon1, double lat2, double lon2) {
-        const R = 6371;
+        const R = 6371; // Earth's radius in km
         final dLat = degToRad(lat2 - lat1);
         final dLon = degToRad(lon2 - lon1);
         final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
@@ -107,56 +96,76 @@ class JobPostController {
       final jobScores = <TaskModel, Map<String, dynamic>>{};
 
       for (var job in fetchedTasks) {
+        int score = 0;
         bool matchesSpecialization = false;
         bool matchesDistance = false;
         double distance = double.infinity;
-        int score = 0;
 
+        final jobSpecializationId = job.specializationId;
         if (includesAllSpecializations ||
-            desiredSpecializationNames.isEmpty ||
-            desiredSpecializationNames.contains(job.specialization)) {
+            desiredSpecializationIds.contains(jobSpecializationId) ||
+            (job.relatedSpecializationsIds != null &&
+                job.relatedSpecializationsIds!
+                    .any((id) => desiredSpecializationIds.contains(id)))) {
           matchesSpecialization = true;
-          score += 2;
+          score += 3;
         }
 
-        final jobLat = job.address?.latitude ?? 0.0;
-        final jobLon = job.address?.longitude ?? 0.0;
-
-        if (taskerLat != 0.0 &&
-            taskerLon != 0.0 &&
-            jobLat != 0.0 &&
-            jobLon != 0.0) {
+        final jobLat = job.address?.latitude;
+        final jobLon = job.address?.longitude;
+        if (jobLat != null &&
+            jobLon != null &&
+            taskerLat != 0.0 &&
+            taskerLon != 0.0) {
           distance = calculateDistance(taskerLat, taskerLon, jobLat, jobLon);
           if (distance <= maxDistance) {
             matchesDistance = true;
-            score += 1;
+            score += 2;
           }
         } else {
           matchesDistance = true;
           score += 1;
         }
 
+        // Optional: Add age-based filtering (if tasks include client age info)
+        // Note: The provided data doesn't include client age, so this is a placeholder
+        // If client age is available in TaskModel, you could add:
+        /*
+        final clientAge = job.client?.birthdate != null
+            ? DateTime.now().year - job.client!.birthdate!.year
+            : null;
+        bool matchesAge = clientAge != null &&
+            clientAge >= ageStart &&
+            clientAge <= ageEnd;
+        if (matchesAge) score += 1;
+        */
+
+        // Optional: Boost score for urgent tasks
+        if (job.urgency == 'Urgent') {
+          score += 1;
+        }
+
+        jobScores[job] = {'score': score, 'distance': distance};
         if (matchesSpecialization && matchesDistance) {
           matchedJobs.add(job);
         } else {
           unmatchedJobs.add(job);
         }
-
-        jobScores[job] = {'score': score, 'distance': distance};
       }
 
       List<TaskModel> result = [];
-      if (taskerPreferences.limit) {
+      if (taskerPreferences.limit == true) {
+        // Include all jobs, sorted by score and distance
         result = [...matchedJobs, ...unmatchedJobs];
         result.sort((a, b) {
           final scoreA = jobScores[a]!['score'] as int;
           final scoreB = jobScores[b]!['score'] as int;
           if (scoreA != scoreB) {
-            return scoreB.compareTo(scoreA);
+            return scoreB.compareTo(scoreA); // Higher score first
           }
           final distA = jobScores[a]!['distance'] as double;
           final distB = jobScores[b]!['distance'] as double;
-          return distA.compareTo(distB);
+          return distA.compareTo(distB); // Closer distance first
         });
       } else {
         result = matchedJobs;
@@ -168,7 +177,7 @@ class JobPostController {
 
       return result;
     } catch (e, stackTrace) {
-      debugPrint("Error while fetching jobs for tasker: $e");
+      debugPrint("Error fetching jobs: $e");
       debugPrintStack(stackTrace: stackTrace);
       return [];
     }

@@ -17,7 +17,7 @@ import '../model/client_model.dart';
 import '../model/tasker_model.dart';
 
 class JobPostService {
-  static String url = apiUrl ?? "http://192.168.43.15:5000/connect";
+  static String url = apiUrl ?? "http://localhost:5000";
   static final storage = GetStorage();
   static final token = storage.read('session');
 
@@ -275,7 +275,7 @@ class JobPostService {
         'client_id': task.clientId?.toString(),
         'task_title': task.title,
         'task_description': task.description,
-        'proposed_price': task.contactPrice?.toString() ?? '0',
+        'proposed_price': task.contactPrice.toString() ?? '0',
         'urgent': (task.urgency == 'Urgent').toString(),
         'remarks': task.remarks,
         'work_type': task.workType,
@@ -466,7 +466,7 @@ class JobPostService {
 
       debugPrint("JobPostService: Images response: ${response.toString()}");
 
-      if (response is Map<String, dynamic> && response.containsKey("images")) {
+      if (response.containsKey("images")) {
         final List<dynamic> imagesList = response["images"] as List;
         final List<ImagesModel> images = imagesList
             .map((item) => ImagesModel.fromJson(item as Map<String, dynamic>))
@@ -601,37 +601,56 @@ class JobPostService {
         return [];
       }
 
+      // Fetch liked jobs and all jobs
       final likedJobsResponse = await _getRequest("/displayLikedJob/$userId");
       final allJobsResponse = await _getRequest("/fetchTasks");
 
       debugPrint("Liked Jobs Response: $likedJobsResponse");
-
       debugPrint("All Jobs Response: $allJobsResponse");
 
+      // Check for error in allJobsResponse
       if (allJobsResponse.containsKey("error")) {
         debugPrint(
             "Error fetching jobs: ${allJobsResponse['error'] ?? 'Invalid response'}");
         return [];
       }
 
+      // Validate tasks list
       final tasks = allJobsResponse["taskers"];
       if (tasks == null || tasks is! List) {
         debugPrint(
-            "Unexpected response format: 'tasks' is missing or not a list");
+            "Unexpected response format: 'taskers' is missing or not a list");
         return [];
       }
 
+      // Extract liked task IDs
       final likedTaskIds = (likedJobsResponse["liked_tasks"] as List? ?? [])
           .map((likedTask) => (likedTask["job_post_id"] as int?)?.toString())
-          .where((id) => id != null)
+          .whereType<String>()
           .toSet();
 
-      debugPrint("This is like tasks ID, $likedTaskIds");
+      debugPrint("Liked task IDs: $likedTaskIds");
 
-      return tasks
-          .map((task) => TaskModel.fromJson(task as Map<String, dynamic>))
-          .where((task) => !likedTaskIds.contains(task.toString().toString()))
-          .toList();
+      // Filter and map valid tasks
+      final validTasks = <TaskModel>[];
+      for (var task in tasks) {
+        if (task is Map<String, dynamic>) {
+          try {
+            final taskModel = TaskModel.fromJson(task);
+            if (!likedTaskIds.contains(taskModel.id.toString())) {
+              validTasks.add(taskModel);
+            }
+          } catch (e) {
+            debugPrint("Error parsing task: $task, error: $e");
+          }
+        } else {
+          debugPrint(
+              "Invalid task format, expected Map<String, dynamic>, got: $task");
+        }
+      }
+
+      debugPrint("Fetched ${validTasks.length} valid tasks");
+      return validTasks;
     } catch (e, stackTrace) {
       debugPrint('Error fetching jobs: $e');
       debugPrintStack(stackTrace: stackTrace);
@@ -757,6 +776,8 @@ class JobPostService {
         debugPrint("Falling back to general task endpoint");
         final allTasksResponse = await _getRequest("/displayTask");
 
+        debugPrint("All Tasks Response: ${allTasksResponse.toString()}");
+
         if (allTasksResponse.containsKey("tasks") &&
             allTasksResponse["tasks"] is List) {
           final List<dynamic> allTasks =
@@ -823,7 +844,7 @@ class JobPostService {
         return [];
       }
     } catch (e, st) {
-      debugPrint("Exception in fetchCreatedTasksByClient: $e");
+      debugPrint("Exception in fetchCreatedTasksByClient sample : $e");
       debugPrintStack(stackTrace: st);
       return [];
     }
@@ -1034,7 +1055,7 @@ class JobPostService {
       String disputeReason,
       String disputeDetails) async {
     try {
-      int clientId = await storage.read('user_id');
+      int userId = await storage.read('user_id');
 
       if (imageEvidence.length > 10) {
         return {
@@ -1049,7 +1070,7 @@ class JobPostService {
             body: {
               "value": value,
               "role": role,
-              "client_id": clientId.toString(),
+              "user_id": userId,
               "reason_for_dispute": disputeReason,
               "dispute_details": disputeDetails
             },
@@ -1060,7 +1081,7 @@ class JobPostService {
       return await _putRequest(endpoint: '/update-request/$taskTakenId', body: {
         "value": value,
         "role": role,
-        "client_id": clientId,
+        "user_id": userId,
         "reason_for_dispute": disputeReason,
         "dispute_details": disputeDetails
       });

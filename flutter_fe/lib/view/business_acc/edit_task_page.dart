@@ -12,9 +12,9 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/address/address_list.dart';
+import 'package:flutter_fe/view/business_acc/task_creation/preview_task.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/select_related_spec.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/select_spec.dart';
-import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -89,6 +89,8 @@ class _EditTaskPageState extends State<EditTaskPage>
   int _currentStep = 0;
   final bool _isVerifiedDocument = false;
   Map<String, bool> saveImages = {};
+  static const int _maxCharactersTitle = 50;
+  final ValueNotifier<String?> dynamicError = ValueNotifier<String?>(null);
 
   @override
   void initState() {
@@ -114,9 +116,25 @@ class _EditTaskPageState extends State<EditTaskPage>
         _taskInformation = response.task;
       });
     } catch (e) {
-      CustomScaffold(
-          message: 'Failed to load task details: ${e.toString()}',
-          color: Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _message ?? "Failed to fetch task details.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
   }
 
@@ -469,11 +487,30 @@ class _EditTaskPageState extends State<EditTaskPage>
       if (result['success'] == true) {
         if (mounted) {
           Navigator.pop(context, true);
+          Navigator.pop(context, true);
         }
         setState(() {
           _message = result['message'] ?? "Task updated successfully.";
         });
-        CustomScaffold(message: _message!, color: Colors.green);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _message ?? "Successfully Updated Task.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
+          ),
+        );
       } else {
         setState(() {
           _message = result['error'] ?? 'Failed to update task';
@@ -487,7 +524,26 @@ class _EditTaskPageState extends State<EditTaskPage>
             }
           }
         });
-        CustomScaffold(message: _message!, color: Colors.red);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _message ?? "Failed to update task.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
+          ),
+        );
+        Navigator.pop(context);
       }
     } catch (error, stackTrace) {
       debugPrint("Error updating job: $error");
@@ -495,7 +551,25 @@ class _EditTaskPageState extends State<EditTaskPage>
       setState(() {
         _message = 'An unexpected error occurred. Please try again.';
       });
-      CustomScaffold(message: _message!, color: Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _message ?? "Successfully Posted Task.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
     } finally {
       setState(() {
         _isLoading = false;
@@ -1019,6 +1093,113 @@ class _EditTaskPageState extends State<EditTaskPage>
     );
   }
 
+  Widget _buildTitleTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    int maxLines = 1,
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
+    String? errorText,
+    bool isRequired = false,
+    int? maxLength,
+  }) {
+    final ValueNotifier<int> charCount =
+        ValueNotifier<int>(controller.text.length);
+    final ValueNotifier<String?> dynamicError =
+        ValueNotifier<String?>(errorText);
+
+    controller.addListener(() {
+      charCount.value = controller.text.length;
+
+      if (isRequired && controller.text.isEmpty) {
+        dynamicError.value = 'Title is required';
+      } else if (maxLength != null && controller.text.length > maxLength) {
+        setState(() {
+          dynamicError.value = '';
+        });
+      } else {
+        dynamicError.value = errorText;
+      }
+    });
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          isRequired ? '$label *' : label,
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        SizedBox(height: 8),
+        ValueListenableBuilder<String?>(
+          valueListenable: dynamicError,
+          builder: (context, error, child) {
+            return TextField(
+              controller: controller,
+              maxLines: maxLines,
+              keyboardType: keyboardType,
+              inputFormatters: inputFormatters,
+              maxLength: maxLength,
+              decoration: InputDecoration(
+                hintText: hint,
+                hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[200]!),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Color(0xFFB71A4A), width: 2),
+                ),
+                errorText: error,
+                errorStyle: GoogleFonts.poppins(color: Colors.red[400]),
+                suffixIcon: controller.text.isNotEmpty && error == null
+                    ? Icon(Icons.check_circle, color: Colors.green, size: 20)
+                    : null,
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                counterText: '', // Hide default counter
+              ),
+              style: GoogleFonts.poppins(fontSize: 12),
+              onChanged: (_) {},
+              onTap: () {
+                Future.delayed(Duration(milliseconds: 200), () {});
+              },
+            );
+          },
+        ),
+        // Custom character counter
+        if (maxLength != null)
+          ValueListenableBuilder<int>(
+            valueListenable: charCount,
+            builder: (context, count, child) {
+              return Padding(
+                padding: EdgeInsets.only(top: 4, left: 16),
+                child: Text(
+                  '$count / $maxLength characters',
+                  style: GoogleFonts.poppins(
+                    fontSize: 10,
+                    color:
+                        count > maxLength ? Colors.red[400] : Colors.grey[600],
+                  ),
+                ),
+              );
+            },
+          ),
+      ],
+    );
+  }
+
   void _showAddress() async {
     final selectedAddress = await Navigator.push<AddressModel>(
       context,
@@ -1108,13 +1289,14 @@ class _EditTaskPageState extends State<EditTaskPage>
                                         'Task Basics',
                                         'Update the core details of your task',
                                       ),
-                                      _buildTextField(
+                                      _buildTitleTextField(
                                         controller:
                                             controller.jobTitleController,
                                         label: 'Title',
                                         hint: 'Enter task title',
-                                        errorText: _errors['task_title'],
+                                        errorText: dynamicError.value,
                                         isRequired: true,
+                                        maxLength: _maxCharactersTitle,
                                       ),
                                       SizedBox(height: 16),
                                       Text(
@@ -1471,7 +1653,24 @@ class _EditTaskPageState extends State<EditTaskPage>
                                 }
                               } else {
                                 if (_validateStep(_currentStep)) {
-                                  _updateJob();
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => PreviewTask(
+                                        controller: controller,
+                                        selectedSpecialization:
+                                            selectedSpecialization,
+                                        selectedUrgency: selectedUrgency,
+                                        selectedWorkType: selectedWorkType,
+                                        selectedScope: selectedScope,
+                                        relatedSpecializations:
+                                            relatedSpecializationsIds,
+                                        photos: _photos,
+                                        onSubmit: _updateJob,
+                                        method: 'edit_task',
+                                      ),
+                                    ),
+                                  );
                                 }
                               }
                             },

@@ -351,7 +351,7 @@ class _EditAddressState extends State<EditAddress> {
       });
 
       await _settingController.updateAddress(
-        widget.address.id as String,
+        widget.address.id,
         _markerPosition!.latitude,
         _markerPosition!.longitude,
         selectedAddress,

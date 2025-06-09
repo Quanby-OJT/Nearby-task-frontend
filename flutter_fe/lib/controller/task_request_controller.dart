@@ -71,43 +71,53 @@ class TaskRequestController {
     try {
       debugPrint("TaskRequestController: Rejecting tasker with ID $requestId");
       String rejectionReason = rejectionController.text;
-      var response = await _requestService.rejectTaskerOrCancelTask(requestId, rejectOrCancel, rejectionReason);
+      var response = await _requestService.rejectTaskerOrCancelTask(
+          requestId, rejectOrCancel, rejectionReason);
 
-      if(response.containsKey("message")){
+      if (response.containsKey("message")) {
         return response["message"];
-      }else if(response.containsKey("error")){
+      } else if (response.containsKey("error")) {
         return response["error"];
-      }else{
+      } else {
         return "Unknown Error";
       }
-    }catch(e, stackTrace){
+    } catch (e, stackTrace) {
       debugPrint("Error in TaskRequestController.rejectTasker: $e");
       debugPrintStack(stackTrace: stackTrace);
       return "An Error Occured. Please Try Again.";
     }
   }
 
-  Future<Disputes> getDispute(int taskTakenId) async {
+  Future<Disputes?> getDispute(int taskTakenId) async {
     try {
-      if(taskTakenId == 0){
+      if (taskTakenId == 0) {
         return Disputes(
           disputeReason: "",
           disputeDetails: "",
           moderatorAction: "",
-          moderatorNotes: ""
+          moderatorNotes: "",
         );
       }
+
       final disputes = await jobPostService.getDispute(taskTakenId);
+
+      if (disputes.containsKey('message') || disputes.containsKey('error')) {
+        return null;
+      }
+
+      // Safely ensure the required fields exist and are not null
+      if (disputes['disputeReason'] == null ||
+          disputes['disputeDetails'] == null ||
+          disputes['moderatorAction'] == null ||
+          disputes['moderatorNotes'] == null) {
+        return null;
+      }
+
       return Disputes.fromJson(disputes);
-    }catch(e, stackTrace){
+    } catch (e, stackTrace) {
       debugPrint("Error in TaskRequestController.getDispute: $e");
       debugPrintStack(stackTrace: stackTrace);
-      return Disputes(
-        disputeReason: "",
-        disputeDetails: "",
-        moderatorAction: "",
-        moderatorNotes: ""
-      );
+      return null;
     }
   }
 }

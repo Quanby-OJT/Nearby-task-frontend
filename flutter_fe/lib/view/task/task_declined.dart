@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
-import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:flutter_fe/view/task/task_rejected.dart';
 import 'package:flutter_fe/view/task_user/user_feedback.dart';
@@ -455,8 +454,25 @@ class _TaskDeclinedState extends State<TaskDeclined> {
     );
 
     if (confirm == true) {
-      CustomScaffold(
-          message: 'Task rejection requested', color: Color(0xFFB71A4A));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Successfully Rejected Task.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
   }
 
@@ -500,23 +516,30 @@ class _TaskDeclinedState extends State<TaskDeclined> {
                   ),
                 )
               : SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildStatusSection(),
-                        SizedBox(height: 16),
-                        _buildTaskCard(),
-                        SizedBox(height: 16),
-                        if (_userRole == "Tasker") _buildClientProfileCard(),
-                        if (_userRole == "Client") _buildTaskerProfileCard(),
-                        if (_requestInformation?.task_status == "Declined") ...[
-                          SizedBox(height: 24),
-                          _buildActionButtons(),
-                        ],
-                      ],
-                    ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildStatusSection(),
+                            SizedBox(height: 16),
+                            _buildTaskCard(constraints),
+                            SizedBox(height: 16),
+                            if (_userRole == "Tasker")
+                              _buildClientProfileCard(),
+                            if (_userRole == "Client")
+                              _buildTaskerProfileCard(),
+                            if (_requestInformation?.task_status ==
+                                "Declined") ...[
+                              SizedBox(height: 24),
+                              _buildActionButtons(),
+                            ],
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
     );
@@ -688,43 +711,68 @@ class _TaskDeclinedState extends State<TaskDeclined> {
     return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
-  Widget _buildTaskCard() {
+  Widget _buildTaskCard(BoxConstraints constraints) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Theme.of(context).colorScheme.surfaceContainer,
       child: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Color(0xFF03045E).withOpacity(0.1),
+                    color:
+                        Theme.of(context).colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.task, color: Color(0xFF03045E), size: 24),
+                  child: Icon(Icons.task,
+                      color: Theme.of(context).colorScheme.primary, size: 24),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    _taskInformation?.title ?? 'Task',
+                    _taskInformation!.title ?? 'Task',
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF03045E),
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 16),
             _buildTaskInfoRow(
-              icon: Icons.info,
+              icon: FontAwesomeIcons.locationDot,
+              label: 'Description',
+              value: _taskInformation!.description ?? 'N/A',
+            ),
+            const SizedBox(height: 16),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.briefcase,
+              label: 'Work Type',
+              value: _taskInformation!.workType ?? 'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.star,
+              label: 'Specialization',
+              value: _taskInformation!.taskerSpecialization?.specialization ??
+                  'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.dollarSign,
+              label: 'Contract Price',
+              value: _taskInformation!.contactPrice.toString() ?? 'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.info,
               label: 'Status',
-              value: _requestInformation?.task_status ?? 'Pending',
+              value: _requestInformation!.task_status ?? 'Confirmed',
             ),
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.calendar,
@@ -920,8 +968,26 @@ class _TaskDeclinedState extends State<TaskDeclined> {
                     ),
                   );
                 } else {
-                  CustomScaffold(
-                      message: 'Failed to accept task', color: Colors.red);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        "Failed to accept task.",
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
+                      backgroundColor: Colors.red,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      margin:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -1148,8 +1214,26 @@ class _TaskDeclinedState extends State<TaskDeclined> {
                       setState(() {
                         _isLoading = false;
                       });
-                      CustomScaffold(
-                          message: 'Failed to finish task', color: Colors.red);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            "Failed to finish task",
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          margin: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
                     }
                   },
                 ),
@@ -1161,7 +1245,25 @@ class _TaskDeclinedState extends State<TaskDeclined> {
     );
 
     if (confirm == true) {
-      CustomScaffold(message: 'Task Finished', color: Colors.green);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Successfully Finished Task.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
   }
 
@@ -1181,8 +1283,25 @@ class _TaskDeclinedState extends State<TaskDeclined> {
   Future<void> _handleTaskDispute() async {
     if (_requestInformation == null ||
         _requestInformation!.task_taken_id == null) {
-      CustomScaffold(
-          message: 'Task information not available', color: Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Task information not available.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
       return;
     }
 
@@ -1235,10 +1354,10 @@ class _TaskDeclinedState extends State<TaskDeclined> {
                   : _disputeTypeController.text,
               items: <String>[
                 '--Select Reason of Dispute--',
-                'Poor Quality of Work',
-                'Breach of Contract',
-                'Task Still Not Completed',
-                'Tasker Did Not Finish what\'s Required',
+                'Client is Abusive',
+                'Breach of Terms and Conditions',
+                'Task is Scam',
+                'Task given by Client is very complicated',
                 'Others (Provide Details)'
               ].map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
@@ -1361,7 +1480,7 @@ class _TaskDeclinedState extends State<TaskDeclined> {
                     bool result = await taskController.raiseADispute(
                       _requestInformation?.task_taken_id ?? 0,
                       'Disputed',
-                      widget.taskInformation?.taskDetails!.client?.user?.role ??
+                      widget.taskInformation?.taskDetails!.tasker?.user?.role ??
                           '',
                       _disputeTypeController.text,
                       _disputeDetailsController.text,
@@ -1374,15 +1493,50 @@ class _TaskDeclinedState extends State<TaskDeclined> {
                         _requestStatus = 'Disputed';
                       });
                     } else {
-                      CustomScaffold(
-                          message: 'Failed to raise dispute. Please Try Again.',
-                          color: Colors.red);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            "Failed to raise dispute. Please Try Again.",
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          margin: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
                     }
                   } catch (e, stackTrace) {
                     debugPrint("Error raising dispute: $e.");
                     debugPrintStack(stackTrace: stackTrace);
-                    CustomScaffold(
-                        message: 'Error occurred', color: Colors.red);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "Error occurred",
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                        backgroundColor: Colors.red,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        margin:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
                   } finally {
                     setState(() {
                       _isLoading = false;

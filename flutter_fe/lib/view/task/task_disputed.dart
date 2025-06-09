@@ -5,7 +5,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
-import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:get_storage/get_storage.dart';
@@ -13,8 +12,6 @@ import 'package:get_storage/get_storage.dart';
 import '../../../model/disputes.dart';
 
 class TaskDisputed extends StatefulWidget {
-  // final int? finishID;
-  // final String? role;
   final TaskFetch taskInformation;
   const TaskDisputed({super.key, required this.taskInformation});
 
@@ -37,68 +34,11 @@ class _TaskDisputedState extends State<TaskDisputed> {
   void initState() {
     super.initState();
     _fetchTaskDetails();
-    // _fetchRequestDetails();
-    // _fetchUserData();
-    //
-    // debugPrint("Task ID from the widget: ${widget.finishID}");
   }
-
-  // Future<void> _fetchUserData() async {
-  //   try {
-  //     int userId = storage.read("user_id");
-  //     AuthenticatedUser? user =
-  //         await _profileController.getAuthenticatedUser(context, userId);
-  //     debugPrint(user.toString());
-  //     setState(() {
-  //       _role = user?.user.role;
-  //     });
-  //   } catch (e) {
-  //     print("Error fetching user data: $e");
-  //     setState(() => _isLoading = false);
-  //   }
-  // }
-  //
-  // Future<void> _fetchTaskerDetails(int userId) async {
-  //   try {
-  //     AuthenticatedUser? user =
-  //         await _profileController.getAuthenticatedUser(context, userId);
-  //     debugPrint(user.toString());
-  //     setState(() {
-  //       tasker = user;
-  //     });
-  //   } catch (e) {
-  //     debugPrint("Error fetching tasker details: $e");
-  //     setState(() {
-  //       _isLoading = false;
-  //     });
-  //   }
-  // }
-  //
-  // Future<void> _fetchRequestDetails() async {
-  //   try {
-  //     final response =
-  //         await _jobPostService.fetchRequestInformation(widget.finishID ?? 0);
-  //     debugPrint("Fetched request details: $response");
-  //     setState(() {
-  //       _requestInformation = response;
-  //     });
-  //     await _fetchTaskDetails();
-  //     if (widget.role == "Client") {
-  //       await _fetchTaskerDetails(_requestInformation!.tasker_id as int);
-  //     } else {
-  //       await _fetchTaskerDetails(_requestInformation!.client_id as int);
-  //     }
-  //   } catch (e) {
-  //     debugPrint("Error fetching task details: $e");
-  //     setState(() {
-  //       _isLoading = false;
-  //     });
-  //   }
-  // }
-  //
   Future<void> _fetchTaskDetails() async {
     try {
-      final response = await taskRequestController.getDispute(widget.taskInformation.taskTakenId);
+      final response = await taskRequestController
+          .getDispute(widget.taskInformation.taskTakenId);
       setState(() {
         disputes = response;
         _isLoading = false;
@@ -197,7 +137,7 @@ class _TaskDisputedState extends State<TaskDisputed> {
             'Please Wait for Our Team to review your dispute and file Appropriate Action.',
             textAlign: TextAlign.center,
             style:
-            GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
+                GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
       ),
@@ -243,12 +183,13 @@ class _TaskDisputedState extends State<TaskDisputed> {
               value: '',
             ),
             SizedBox(height: 8),
-            buildTextSection(widget.taskInformation.post_task?.description ?? 'N/A'),
+            buildTextSection(
+                widget.taskInformation.post_task?.description ?? 'N/A'),
             SizedBox(height: 8),
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.gavel,
               label: "Reason for Dispute",
-              value:  '',
+              value: '',
             ),
             SizedBox(height: 8),
             buildTextSection(disputes?.disputeReason ?? 'Not available'),
@@ -256,8 +197,7 @@ class _TaskDisputedState extends State<TaskDisputed> {
             _buildTaskInfoRow(
                 icon: FontAwesomeIcons.noteSticky,
                 label: "Dispute Details",
-                value: ""
-            ),
+                value: ""),
             SizedBox(height: 8),
             buildTextSection(disputes?.disputeDetails ?? 'Not available')
           ],
@@ -266,10 +206,10 @@ class _TaskDisputedState extends State<TaskDisputed> {
     );
   }
 
-  Widget buildTextSection(String info){
+  Widget buildTextSection(String info) {
     return Text(
       info,
-      style: GoogleFonts.montserrat(
+      style: GoogleFonts.poppins(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         color: Color(0xFF03045E),
@@ -304,9 +244,7 @@ class _TaskDisputedState extends State<TaskDisputed> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                     role == "Client"
-                          ? "Tasker Profile"
-                          : "Client Profile",
+                      role == "Client" ? "Tasker Profile" : "Client Profile",
                       style: GoogleFonts.montserrat(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -325,14 +263,16 @@ class _TaskDisputedState extends State<TaskDisputed> {
               ],
             ),
             SizedBox(height: 16),
-            _buildProfileInfoRow(
-                'Name', "${widget.taskInformation.tasker?.user?.firstName} ${widget.taskInformation.tasker?.user?.middleName ?? ""} ${widget.taskInformation.tasker?.user?.lastName}"),
+            _buildProfileInfoRow('Name',
+                "${widget.taskInformation.tasker?.user?.firstName} ${widget.taskInformation.tasker?.user?.middleName ?? ""} ${widget.taskInformation.tasker?.user?.lastName}"),
             SizedBox(height: 8),
             _buildProfileInfoRow(
-                'Specialization', widget.taskInformation.tasker?.specialization ?? 'Not available'),
+                'Specialization',
+                widget.taskInformation.tasker?.specialization ??
+                    'Not available'),
             SizedBox(height: 8),
-            _buildProfileInfoRow(
-                'Related Specialization', widget.taskInformation.tasker?.skills ?? 'Not available'),
+            _buildProfileInfoRow('Related Specialization',
+                widget.taskInformation.tasker?.skills ?? 'Not available'),
             SizedBox(height: 8),
             _buildProfileInfoRow('Account', 'Verified', isVerified: true),
           ],
@@ -372,7 +312,7 @@ class _TaskDisputedState extends State<TaskDisputed> {
       {required IconData? icon, required String label, required String value}) {
     return Row(
       children: [
-        if(icon != null) ...[
+        if (icon != null) ...[
           Icon(icon, color: Colors.grey[600], size: 20),
           SizedBox(width: 8)
         ],

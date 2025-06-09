@@ -6,6 +6,7 @@ import 'package:flutter_fe/model/document_model.dart';
 import 'package:flutter_fe/service/profile_service.dart';
 import 'package:flutter_fe/service/tasker_service.dart';
 import 'package:flutter_fe/view/custom_loading/custom_loading.dart';
+import 'package:flutter_fe/view/sign_in/sign_in.dart';
 import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -608,9 +609,22 @@ class ProfileController {
                   message: resultData["errors"] ??
                       "Registration failed. Please try again.",
                   actions: [
-                    TextButton(
-                      child: Text("OK"),
-                      onPressed: () => Navigator.pop(context),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(5),
+                        color: const Color(0xFFB71A4A),
+                      ),
+                      child: TextButton(
+                        child: Text('OK',
+                            style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white)),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
                     ),
                   ],
                 ));
@@ -618,16 +632,41 @@ class ProfileController {
         showDialog(
             context: context,
             builder: (context) => AlertDialog(
-                  title: Text("Registration Successful"),
-                  content: Text(resultData["message"] ??
-                      "Registration successful! Use a valid email to get your login code."),
+                  title: Text(
+                    "Registration Successful",
+                    style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black),
+                  ),
+                  content: Text(
+                    resultData["message"] ??
+                        "Registration successful! You can now login to your account.",
+                    style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w300,
+                        color: Colors.black),
+                  ),
                   actions: [
-                    TextButton(
-                      child: Text("OK"),
-                      onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => WelcomePageViewMain())),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(5),
+                        color: const Color(0xFFB71A4A),
+                      ),
+                      child: TextButton(
+                        child: Text('Login',
+                            style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white)),
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => SignIn()));
+                        },
+                      ),
                     ),
                   ],
                 ));
@@ -638,8 +677,14 @@ class ProfileController {
       showDialog(
           context: context,
           builder: (context) => AlertDialog(
-                title: Text("Error"),
-                content: Text("An error occurred. Please try again later."),
+                title: Text(
+                  "Error",
+                  style: GoogleFonts.poppins(
+                      fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                content: Text("An error occurred. Please try again later.",
+                    style: GoogleFonts.poppins(
+                        fontSize: 14, fontWeight: FontWeight.w300)),
                 actions: [
                   TextButton(
                     child: Text("OK"),
@@ -1166,15 +1211,13 @@ class ProfileController {
       );
 
       TaskerModel tasker = TaskerModel(
-          id: userId,
+          taskerId: userId,
           bio: bioController.text.trim(),
           specialization: specializationIdController.text.trim(),
           skills: skillsController.text.trim(),
           availability: availabilityController.text.trim() == 'true',
-          wage: double.tryParse(wageController.text.trim()) ?? 0.0,
+          wagePerHour: double.tryParse(wageController.text.trim()) ?? 0.0,
           payPeriod: payPeriodController.text.trim(),
-          group: taskerGroupController.text.trim() == 'true',
-          birthDate: DateTime.parse(birthdateController.text),
           user: user,
           rating: 0);
 
@@ -1330,7 +1373,7 @@ class ProfileController {
 
     if (role == 'Client') {
       ClientModel client = ClientModel(
-        id: 0,
+        clientId: 0,
         preferences: prefsController.text,
         clientAddress: clientAddressController.text,
       );
@@ -1369,19 +1412,15 @@ class ProfileController {
       };
 
       TaskerModel tasker = TaskerModel(
-          id: taskerId,
+          taskerId: taskerId,
           bio: bioController.text,
-          group: false,
           specialization: specializationController.text,
           skills: skillsController.text,
-          address: address,
-          taskerDocuments: documentFile.toString(),
           availability:
               availabilityController.text == "I am available" ? true : false,
           socialMediaLinks: socials,
-          wage: double.parse(cleanedWage),
+          wagePerHour: double.parse(cleanedWage),
           payPeriod: payPeriodController.text,
-          birthDate: DateTime.parse(birthdateController.text),
           user: null,
           rating: 0);
 

@@ -130,8 +130,25 @@ class _JobPostPageState extends State<JobPostPage>
         _fetchTasksStatus(),
       ]);
     } catch (e) {
-      CustomScaffold(
-          message: 'Failed to initialize data: $e', color: Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Error occurred",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
     } finally {
       setState(() => _isLoading = false);
     }
@@ -147,11 +164,12 @@ class _JobPostPageState extends State<JobPostPage>
       final user =
           await _profileController.getAuthenticatedUser(context, parsedUserId);
       final response = await _clientServices.fetchUserIDImage(parsedUserId);
-      
+
       // Check if user has Review or Active status
       final userAccStatus = user?.user.accStatus;
-      final isStatusAllowed = userAccStatus == 'Review' || userAccStatus == 'Active';
-      
+      final isStatusAllowed =
+          userAccStatus == 'Review' || userAccStatus == 'Active';
+
       if (response['success'] == true) {
         setState(() {
           _user = user;
@@ -264,8 +282,25 @@ class _JobPostPageState extends State<JobPostPage>
   }
 
   void _showErrorSnackBar(String message) {
-    CustomScaffold(
-        message: 'Error fetching tasks: $message', color: Colors.red);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(5),
+        ),
+        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        duration: Duration(seconds: 3),
+      ),
+    );
   }
 
   Future<void> _navigateToTaskDetail(TaskModel task) async {
@@ -461,7 +496,8 @@ class _JobPostPageState extends State<JobPostPage>
         _buildSearchBar(hint: 'Search tasks by status...'),
         _buildFilterBar(
           count: _filteredTasksStatus.length,
-          filterLabel: _currentFilterStatus ?? '',
+          filterLabel:
+              _currentFilterStatus == 'All' ? '' : _currentFilterStatus,
           onFilterPressed: _showFilterModalStatus,
         ),
         Expanded(
@@ -507,7 +543,6 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
-  // Reusable filter bar widget
   Widget _buildFilterBar({
     required int count,
     String? filterLabel,
@@ -627,9 +662,12 @@ class _JobPostPageState extends State<JobPostPage>
                     children: [
                       IconButton(
                         icon: const Icon(Icons.edit, color: Color(0xFFE23670)),
-                        onPressed: () => task.ableToDelete == true
-                            ? _navigateToEditTask(task)
-                            : _cannotEditTask(task),
+                        onPressed: () =>
+                            task.ableToDelete == true && task.status != 'Closed'
+                                ? _navigateToEditTask(task)
+                                : task.status == 'Closed'
+                                    ? _cannotEditTaskClosed(task)
+                                    : _cannotEditTask(task),
                       ),
                       IconButton(
                         icon:
@@ -719,7 +757,6 @@ class _JobPostPageState extends State<JobPostPage>
       'Declined': TaskDeclined(taskInformation: task),
       'Rejected': TaskRejected(taskInformation: task),
       'Disputed': TaskDisputed(taskInformation: task),
-
     };
 
     final page = statusPages[task.taskStatus];
@@ -727,10 +764,8 @@ class _JobPostPageState extends State<JobPostPage>
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => page),
-      ).then((value) {
-        if (value != null) {
-          _initializeData();
-        }
+      ).then((_) {
+        _initializeData();
       });
     }
   }
@@ -769,9 +804,9 @@ class _JobPostPageState extends State<JobPostPage>
 
   // Build task received timestamp
   Widget _buildTaskReceived(TaskFetch task) {
-    final createdDateTime = DateTime.parse(task.createdAt.toString());
-    final formattedDate = DateFormat('MMM d, yyyy').format(createdDateTime);
-    final difference = DateTime.now().toUtc().difference(createdDateTime);
+    final updatedDateTime = DateTime.parse(task.updatedAt.toString());
+    final formattedDate = DateFormat('MMM d, yyyy').format(updatedDateTime);
+    final difference = DateTime.now().toUtc().difference(updatedDateTime);
     final timeAgo = difference.inMinutes < 60
         ? '${difference.inMinutes} ${difference.inMinutes == 1 ? 'min' : 'mins'} ago'
         : '${difference.inHours} ${difference.inHours == 1 ? 'hour' : 'hours'} ago';
@@ -832,7 +867,9 @@ class _JobPostPageState extends State<JobPostPage>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              task.post_task?.title ?? 'Untitled Task',
+              (task.post_task?.title.length ?? 0) > 20
+                  ? '${task.post_task?.title.substring(0, 20)}...'
+                  : task.post_task?.title ?? 'Untitled Task',
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -876,18 +913,22 @@ class _JobPostPageState extends State<JobPostPage>
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
         title: Text(
           'Delete Task',
           style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFFB71A4A),
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
         ),
         content: Text(
           'Are you sure you want to delete this task?',
-          style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey[800],
+          ),
         ),
         actions: [
           TextButton(
@@ -898,16 +939,22 @@ class _JobPostPageState extends State<JobPostPage>
                   fontSize: 14, color: const Color(0xFFB71A4A)),
             ),
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFE23670),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: Color(0xFFB71A4A),
             ),
-            child: Text(
-              'Delete',
-              style: GoogleFonts.poppins(fontSize: 14, color: Colors.white),
+            child: TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(
+                'Delete',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ),
         ],
@@ -928,30 +975,36 @@ class _JobPostPageState extends State<JobPostPage>
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
         title: Text(
           'Cannot Delete Task',
           style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFFB71A4A),
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
         ),
         content: Text(
           'This task is currently being worked on by a tasker. Please wait for the task to be completed before deleting it.',
-          style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w300,
+            color: Colors.grey[800],
+          ),
         ),
         actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFE23670),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(5),
+              color: Color(0xFFB71A4A),
             ),
-            child: Text(
-              'OK',
-              style: GoogleFonts.poppins(fontSize: 14, color: Colors.white),
+            child: TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(
+                'OK',
+                style: GoogleFonts.poppins(fontSize: 14, color: Colors.white),
+              ),
             ),
           ),
         ],
@@ -963,30 +1016,85 @@ class _JobPostPageState extends State<JobPostPage>
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
         title: Text(
           'Cannot Edit Task',
           style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFFB71A4A),
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
         ),
         content: Text(
           'This task is currently being worked on by a tasker. Please wait for the task to be completed before editing it.',
-          style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w300,
+            color: Colors.grey[800],
+          ),
         ),
         actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFE23670),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(5),
+              color: Color(0xFFB71A4A),
             ),
-            child: Text(
-              'OK',
-              style: GoogleFonts.poppins(fontSize: 14, color: Colors.white),
+            child: TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(
+                'OK',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _cannotEditTaskClosed(TaskModel task) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+        title: Text(
+          'Cannot Edit Closed Task',
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        content: Text(
+          'This task is already closed. You cannot edit it. Please create a new task instead.',
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w300,
+            color: Colors.grey[800],
+          ),
+        ),
+        actions: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(5),
+              color: Color(0xFFB71A4A),
+            ),
+            child: TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(
+                'OK',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ),
         ],

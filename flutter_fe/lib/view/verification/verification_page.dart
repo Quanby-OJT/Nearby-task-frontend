@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
+import 'package:flutter_fe/view/verification/face_detection_page.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/model/verification_model.dart';
@@ -10,7 +11,6 @@ import 'package:flutter_fe/service/api_service.dart';
 // Import separate verification pages
 import 'general_info_page.dart';
 import 'id_verification_page.dart';
-import 'selfie_verification_page.dart';
 import 'document_upload_page.dart';
 
 class VerificationPage extends StatefulWidget {
@@ -82,18 +82,26 @@ class _VerificationPageState extends State<VerificationPage> {
         final result =
             await ApiService.getTaskerVerificationStatus(parsedUserId);
 
-        debugPrint('Verification status check result: ${jsonEncode(result['verification'])}');
+        debugPrint(
+            'Verification status check result: ${jsonEncode(result['verification'])}');
 
         if (result['success'] == true && result['exists'] == true) {
           // User has existing verification data
           if (result['verification'] != null) {
-            final verificationData = VerificationModel.fromJson(result['verification']);
-            debugPrint('VerificationPage: Existing verification data: ${verificationData.status}');
+            final verificationData =
+                VerificationModel.fromJson(result['verification']);
+            debugPrint(
+                'VerificationPage: Existing verification data status: ${verificationData.status}');
+            debugPrint(
+                'VerificationPage: Raw verification result: ${jsonEncode(result['verification'])}');
 
             setState(() {
               _existingVerification = verificationData;
               _verificationStatus = verificationData.status;
               _isUpdateMode = true;
+
+              debugPrint(
+                  'VerificationPage: Set _verificationStatus to: $_verificationStatus');
 
               // Pre-populate data
               if (verificationData.idImageUrl != null) {
@@ -105,7 +113,8 @@ class _VerificationPageState extends State<VerificationPage> {
                 _isSelfieVerified = true;
               }
 
-              if (verificationData.documentUrl != null) {
+              if (verificationData.documentUrl != null ||
+                  verificationData.clientDocumentUrl != null) {
                 _isDocumentsUploaded = true;
               }
 
@@ -126,8 +135,7 @@ class _VerificationPageState extends State<VerificationPage> {
             });
 
             // Show appropriate message based on verification status
-            if (_verificationStatus == 'Active' ||
-                _verificationStatus == 'Review') {
+            if (_verificationStatus == 'Active') {
               Future.delayed(Duration.zero, () {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -140,7 +148,7 @@ class _VerificationPageState extends State<VerificationPage> {
                   );
                 }
               });
-            } else if (_verificationStatus == 'pending') {
+            } else if (_verificationStatus == 'Review') {
               Future.delayed(Duration.zero, () {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -315,7 +323,7 @@ class _VerificationPageState extends State<VerificationPage> {
       // Get the current user ID
       final userId = int.parse(storage.read('user_id').toString());
 
-      // Prepare the complete verification data including all user information
+      // Prepare the complete verification data
       final verificationData = {
         // User basic information
         "firstName": _userInfo['firstName'] ?? '',
@@ -325,29 +333,53 @@ class _VerificationPageState extends State<VerificationPage> {
         "phone": _userInfo['phone'] ?? '',
         "gender": _userInfo['gender'] ?? '',
         "birthdate": _userInfo['birthdate'] ?? '',
-        "userRole": _userRole ?? 'tasker',
-
-        // Verification-specific data for user_verify table
         "bio": _userInfo['bio'] ?? '',
         "socialMediaJson": _userInfo['socialMediaJson'] ?? '{}',
-
-        // Update mode flag
-        "status": _verificationStatus,
       };
 
-      // Log the verification data for debugging
-      debugPrint('VerificationPage: Submitting verification');
       debugPrint(
-          'VerificationPage: Complete verification data: $verificationData');
+          'VerificationPage: Submitting verification for role: $_userRole');
+      debugPrint('VerificationPage: Verification data: $verificationData');
 
-      // Submit verification using the unified method
-      final result = await ApiService.submitUserVerification(
-        userId,
-        verificationData,
-        _idImage,
-        _selfieImage,
-        _documentFile,
-      );
+      Map<String, dynamic> result;
+
+      // Submit based on user role to appropriate table
+      if (_userRole?.toLowerCase() == 'tasker') {
+        // Add tasker-specific fields
+        verificationData.addAll({
+          "specializationId": _userInfo['specializationId'],
+          "skills": _userInfo['skills'] ?? '',
+          "wagePerHour": _userInfo['wage'],
+          "payPeriod": _userInfo['payPeriod'] ?? 'Hourly',
+          "availability": _userInfo['availability'] ?? true,
+        });
+
+        // Submit to tasker table
+        result = await ApiService.submitTaskerVerificationNew(
+          userId,
+          verificationData,
+          _idImage,
+          _selfieImage,
+          _documentFile,
+        );
+      } else if (_userRole?.toLowerCase() == 'client') {
+        // Add client-specific fields
+        verificationData.addAll({
+          "preferences": _userInfo['preferences'] ?? '',
+          "clientAddress": _userInfo['clientAddress'] ?? '',
+        });
+
+        // Submit to client table
+        result = await ApiService.submitClientVerification(
+          userId,
+          verificationData,
+          _idImage,
+          _selfieImage,
+          _documentFile,
+        );
+      } else {
+        throw Exception('Unknown user role: $_userRole');
+      }
 
       // Hide loading indicator
       setState(() {
@@ -498,10 +530,10 @@ class _VerificationPageState extends State<VerificationPage> {
                 IdVerificationPage(
                   onIdVerified: _onIdVerified,
                 ),
-
                 // Page 3: Selfie Verification
-                SelfieVerificationPage(
-                  onSelfieVerified: _onSelfieVerified,
+                FaceDetectionPage(
+                  onDetectionComplete: (file, isValid) =>
+                      _onSelfieVerified(file!),
                 ),
 
                 // Page 4: Document Upload (Optional)

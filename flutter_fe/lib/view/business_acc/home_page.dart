@@ -13,7 +13,6 @@ import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/controller/tasker_controller.dart';
 import 'package:flutter_fe/view/address/set-up_address.dart';
 import 'package:flutter_fe/view/business_acc/notif_screen.dart';
-import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
 import 'package:flutter_fe/view/service_acc/notif_screen.dart';
 import 'package:flutter_fe/view/setting/setting.dart';
@@ -275,9 +274,25 @@ class _ClientHomePageState extends State<ClientHomePage>
     try {
       int userId = int.parse(storage.read('user_id').toString());
       if (userId == 0) {
-        debugPrint("User ID not found in storage");
-        CustomScaffold(
-            message: "User ID not found in storage", color: Colors.red);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Failed to fetch ID image.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
+          ),
+        );
         return;
       }
 
@@ -486,81 +501,6 @@ class _ClientHomePageState extends State<ClientHomePage>
                         overlayEntry.remove();
                       },
                     ),
-                    // if (_role == "Client") ...[
-                    //   ListTile(
-                    //     leading: Icon(
-                    //       FontAwesomeIcons.coins,
-                    //       color: const Color(0xFFB71A4A),
-                    //     ),
-                    //     title: Text(
-                    //       'Manage Tokens',
-                    //       style: GoogleFonts.poppins(
-                    //         color: Colors.black,
-                    //         fontSize: 14,
-                    //         fontWeight: FontWeight.w300,
-                    //       ),
-                    //     ),
-                    //     onTap: () {
-                    //       if (_user?.user.accStatus?.toLowerCase() ==
-                    //           'review') {
-                    //         Navigator.push(
-                    //           context,
-                    //           MaterialPageRoute(
-                    //               builder: (context) => EscrowTokenScreen()),
-                    //         );
-                    //         overlayEntry.remove();
-                    //         return;
-                    //       }
-                    //
-                    //       if (_existingProfileImageUrl == null ||
-                    //           _existingIDImageUrl == null ||
-                    //           _existingProfileImageUrl!.isEmpty ||
-                    //           _existingIDImageUrl!.isEmpty ||
-                    //           !_documentValid) {
-                    //         overlayEntry.remove();
-                    //         _showWarningDialog();
-                    //         return;
-                    //       }
-                    //       Navigator.push(
-                    //         context,
-                    //         MaterialPageRoute(
-                    //             builder: (context) => EscrowTokenScreen()),
-                    //       );
-                    //       overlayEntry.remove();
-                    //     },
-                    //   ),
-                    // ],
-                    // ListTile(
-                    //   leading: Icon(
-                    //     FontAwesomeIcons.coins,
-                    //     color: const Color(0xFF03045E),
-                    //   ),
-                    //   title: Text(
-                    //     'Tokens',
-                    //     style: GoogleFonts.poppins(
-                    //       color: const Color(0xFF03045E),
-                    //       fontSize: 14,
-                    //       fontWeight: FontWeight.w300,
-                    //     ),
-                    //   ),
-                    //   onTap: () {
-                    //     if (_existingProfileImageUrl == null ||
-                    //         _existingIDImageUrl == null ||
-                    //         _existingProfileImageUrl!.isEmpty ||
-                    //         _existingIDImageUrl!.isEmpty ||
-                    //         !_documentValid) {
-                    //       overlayEntry.remove();
-                    //       _showWarningDialog();
-                    //       return;
-                    //     }
-                    //     Navigator.push(
-                    //       context,
-                    //       MaterialPageRoute(
-                    //           builder: (context) => EscrowTokenScreen()),
-                    //     );
-                    //     overlayEntry.remove();
-                    //   },
-                    // ),
                     ListTile(
                       leading: Icon(
                         Icons.help,
@@ -768,17 +708,17 @@ class _ClientHomePageState extends State<ClientHomePage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _role,
-                    style: GoogleFonts.poppins(
-                        color: const Color(0xFFB71A4A), fontSize: 10),
-                  ),
-                  Text(
                     _fullName,
                     style: GoogleFonts.poppins(
                       color: Colors.black,
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
+                  ),
+                  Text(
+                    _role,
+                    style: GoogleFonts.poppins(
+                        color: const Color(0xFFB71A4A), fontSize: 10),
                   ),
                 ],
               ),
@@ -1103,7 +1043,9 @@ class _ClientHomePageState extends State<ClientHomePage>
                                                   ),
                                                   SizedBox(height: 4),
                                                   Text(
-                                                    tasker.tasker
+                                                    tasker
+                                                            .tasker
+                                                            ?.taskerSpecialization
                                                             ?.specialization ??
                                                         "No specialization",
                                                     style: TextStyle(

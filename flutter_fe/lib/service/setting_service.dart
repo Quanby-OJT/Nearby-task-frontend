@@ -8,7 +8,7 @@ import 'dart:convert';
 import 'package:flutter_fe/model/setting.dart';
 
 class SettingService {
-  static String url = apiUrl ?? "http://192.168.43.15:5000";
+  static String url = apiUrl ?? "http://localhost:5000";
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
 
@@ -392,7 +392,6 @@ class SettingService {
       debugPrint('Response Body: ${response.body}');
 
       if (response.body.contains('status')) {
-        debugPrint('Address deleted successfully');
         final responseData = json.decode(response.body);
         return responseData['status'];
       } else {

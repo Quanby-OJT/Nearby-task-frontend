@@ -12,9 +12,8 @@ import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class TaskAssignmentScreen extends StatefulWidget {
-  const TaskAssignmentScreen({super.key, required this.tasker});
-
   final TaskerModel tasker;
+  const TaskAssignmentScreen({super.key, required this.tasker});
 
   @override
   State<TaskAssignmentScreen> createState() => _TaskAssignmentScreenState();
@@ -33,7 +32,6 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
   bool _isAssigning = false;
   List<TaskModel>? _availableTasks;
   List<TaskModel>? _filteredTasks;
-  List<TaskModel>? _preloadedTasks;
 
   @override
   void initState() {
@@ -74,19 +72,6 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
     }
   }
 
-  Future<void> _preloadClientTasks() async {
-    try {
-      final tasks = await _fetchClientTasks();
-      if (mounted) {
-        setState(() {
-          _preloadedTasks = tasks;
-        });
-      }
-    } catch (e) {
-      debugPrint("Error preloading tasks: $e");
-    }
-  }
-
   Future<List<TaskModel>> _fetchClientTasks() async {
     try {
       final cachedTasks = TaskCache.getTasks();
@@ -94,6 +79,8 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
         debugPrint("Using cached tasks");
         return cachedTasks;
       }
+
+      debugPrint("Fetching client tasks from the database");
 
       final clientServices = ClientServices();
       final String? clientId = await clientServices.getUserId();
@@ -117,6 +104,8 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
       List<TaskModel> clientTasks = await _fetchClientTasks();
       _availableTasks =
           await _filterAvailableTasks(clientTasks, widget.tasker.id);
+
+      debugPrint("Available tasks: ${_availableTasks?.length}");
     } catch (e) {
       setState(() {
         _errorMessage = "Failed to load tasks: $e";
@@ -180,16 +169,29 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: Text(
-                'Assign Task: ${task.title ?? 'Task ${task.id}'}',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5),
+              ),
+              title: Center(
+                child: Text(
+                  'Assign Task: ${task.title ?? 'Task ${task.id}'}',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     'Set request expiration (days):',
-                    style: GoogleFonts.poppins(),
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w300,
+                      color: Colors.grey[800],
+                    ),
                   ),
                   Slider(
                     value: tempDays.toDouble(),
@@ -206,26 +208,47 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
                 ],
               ),
               actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    'Cancel',
-                    style: GoogleFonts.poppins(),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context, {
-                      'daysAvailable': tempDays,
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFB71A4A),
-                  ),
-                  child: Text(
-                    'Confirm',
-                    style: GoogleFonts.poppins(color: Colors.white),
-                  ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      child: Text(
+                        'Cancel',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFFB71A4A),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    const SizedBox(width: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(5),
+                        color: Color(0xFFB71A4A),
+                      ),
+                      child: TextButton(
+                        child: Text(
+                          'Confirm',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context, {
+                            'daysAvailable': tempDays,
+                          });
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ],
             );
@@ -262,9 +285,25 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
       final clientServices = ClientServices();
       final String? clientId = await clientServices.getUserId();
       if (clientId == null) {
-        CustomScaffold(
-            message: 'Unable to identify client. Please log in again.',
-            color: Colors.red);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Failed to fetch ID image.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
+          ),
+        );
         return;
       }
 
@@ -279,9 +318,25 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
       final isSuccess = !result.toLowerCase().contains('already') &&
           !result.toLowerCase().contains('error') &&
           !result.toLowerCase().contains('failed');
-
-      CustomScaffold(
-          message: result, color: isSuccess ? Colors.green : Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Successfully Assigned Task.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
 
       if (isSuccess) {
         final jobPostService = JobPostService();
@@ -294,8 +349,25 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
         });
       }
     } catch (e) {
-      debugPrint("Error in _assignTask: $e");
-      CustomScaffold(message: 'Failed to assign task: $e', color: Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Error occurred",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
     } finally {
       loadingOverlay?.remove();
       if (mounted) setState(() => _isAssigning = false);
@@ -383,19 +455,32 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
                                 margin: const EdgeInsets.only(bottom: 12),
                                 child: ListTile(
                                   title: Text(
-                                    task.title ?? 'Task ${task.id}',
+                                    task.title.length > 20
+                                        ? '${task.title.substring(0, 20)}...'
+                                        : task.title ?? 'Task ${task.id}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                     style: GoogleFonts.poppins(
-                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
                                     ),
                                   ),
                                   subtitle: Text(
                                     task.description ?? 'No description',
-                                    style: GoogleFonts.poppins(),
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w300,
+                                      color: Colors.grey[800],
+                                    ),
                                   ),
                                   trailing: ElevatedButton(
                                     onPressed: () => _assignTask(task),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: const Color(0xFFB71A4A),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(5),
+                                      ),
                                     ),
                                     child: Text(
                                       'Assign',

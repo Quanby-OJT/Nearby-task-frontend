@@ -2,8 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
-import 'package:flutter_fe/view/task/task_finished.dart';
+import 'package:flutter_fe/view/task/task_disputed.dart';
 import 'package:flutter_fe/view/task/task_review.dart';
 import 'package:flutter_fe/view/task_user/user_feedback.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -18,6 +17,7 @@ import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:async';
+import 'package:intl/intl.dart';
 
 class TaskOngoing extends StatefulWidget {
   final TaskFetch? taskInformation;
@@ -41,10 +41,10 @@ class _TaskOngoingState extends State<TaskOngoing> {
   Timer? _timer;
   String _requestStatus = 'Unknown';
 
-  int _rating = 0;
+  final int _rating = 0;
   final TextEditingController _feedbackController = TextEditingController();
   final TextEditingController _reportController = TextEditingController();
-  bool _isSatisfied = true;
+  final bool _isSatisfied = true;
 
   final TextEditingController _disputeTypeController = TextEditingController();
   final TextEditingController _disputeDetailsController =
@@ -157,8 +157,25 @@ class _TaskOngoingState extends State<TaskOngoing> {
   Future<void> _handleTaskDispute() async {
     if (_requestInformation == null ||
         _requestInformation!.task_taken_id == null) {
-      CustomScaffold(
-          message: 'Task information not available', color: Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Task information not available.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
       return;
     }
 
@@ -330,7 +347,6 @@ class _TaskOngoingState extends State<TaskOngoing> {
                 onPressed: () async {
                   setState(() {
                     _isLoading = true;
-                    _fetchRequestDetails();
                   });
                   Navigator.pop(context);
                   try {
@@ -346,23 +362,63 @@ class _TaskOngoingState extends State<TaskOngoing> {
 
                     if (result) {
                       if (!mounted) return;
-                      setState(() {
-                        _requestStatus = 'Disputed';
-                      });
+
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TaskDisputed(
+                            taskInformation: widget.taskInformation!,
+                          ),
+                        ),
+                      );
                     } else {
-                      CustomScaffold(
-                          message: 'Failed to raise dispute. Please Try Again.',
-                          color: Colors.red);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            "Failed to raise dispute. Please Try Again.",
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          margin: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
                     }
                   } catch (e, stackTrace) {
                     debugPrint("Error raising dispute: $e.");
                     debugPrintStack(stackTrace: stackTrace);
-                    CustomScaffold(
-                        message: 'Error occurred', color: Colors.red);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "Error occurred",
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                        backgroundColor: Colors.red,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        margin:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
                   } finally {
                     setState(() {
                       _isLoading = false;
-                      _fetchRequestDetails();
                     });
                   }
                 },
@@ -431,29 +487,33 @@ class _TaskOngoingState extends State<TaskOngoing> {
                   ),
                 )
               : SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (_requestStatus == 'Ongoing' ||
-                            _requestStatus == 'Reworking')
-                          _buildStatusSection(),
-                        SizedBox(height: 16),
-                        _buildTaskCard(),
-                        if (widget.taskInformation?.tasker?.user == null)
-                          _buildClientProfileCard(),
-                        SizedBox(height: 16),
-                        if (widget.taskInformation?.tasker?.user == null)
-                          _buildtaskerActionButton(),
-                        SizedBox(height: 16),
-                        if (widget.taskInformation?.tasker?.user != null)
-                          _buildTaskerProfileCard(),
-                        SizedBox(height: 16),
-                        if (widget.taskInformation?.tasker?.user != null)
-                          _buildclientActionButton()
-                      ],
-                    ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (_requestStatus == 'Ongoing' ||
+                                _requestStatus == 'Reworking')
+                              _buildStatusSection(),
+                            SizedBox(height: 10),
+                            _buildTaskCard(constraints),
+                            if (widget.taskInformation?.tasker?.user == null)
+                              _buildClientProfileCard(),
+                            SizedBox(height: 10),
+                            if (widget.taskInformation?.tasker?.user == null)
+                              _buildtaskerActionButton(),
+                            SizedBox(height: 10),
+                            if (widget.taskInformation?.tasker?.user != null)
+                              _buildTaskerProfileCard(),
+                            SizedBox(height: 10),
+                            if (widget.taskInformation?.tasker?.user != null)
+                              _buildclientActionButton()
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
     );
@@ -645,8 +705,25 @@ class _TaskOngoingState extends State<TaskOngoing> {
     );
 
     if (confirm == true) {
-      CustomScaffold(
-          message: 'Task finished successfully', color: Color(0xFFB71A4A));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Successfully Finished Task.",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
   }
 
@@ -799,8 +876,25 @@ class _TaskOngoingState extends State<TaskOngoing> {
     );
 
     if (confirm == true) {
-      CustomScaffold(
-          message: 'Task finished successfully', color: Color(0xFFB71A4A));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Task finished successfully",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
   }
 
@@ -829,40 +923,113 @@ class _TaskOngoingState extends State<TaskOngoing> {
     );
   }
 
-  Widget _buildTaskCard() {
+  Widget _buildTaskCard(BoxConstraints constraints) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Theme.of(context).colorScheme.surfaceContainer,
       child: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Color(0xFF03045E).withOpacity(0.1),
+                    color:
+                        Theme.of(context).colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.task, color: Color(0xFF03045E), size: 24),
+                  child: Icon(Icons.task,
+                      color: Theme.of(context).colorScheme.primary, size: 24),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     _taskInformation!.title ?? 'Task',
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF03045E),
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.locationDot,
+              label: 'Description',
+              value: _taskInformation!.description ?? 'N/A',
+            ),
+            const SizedBox(height: 16),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.briefcase,
+              label: 'Work Type',
+              value: _taskInformation!.workType ?? 'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.star,
+              label: 'Specialization',
+              value: _taskInformation!.taskerSpecialization?.specialization ??
+                  'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.dollarSign,
+              label: 'Contract Price',
+              value: _taskInformation!.contactPrice.toString() ?? 'N/A',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.info,
+              label: 'Status',
+              value: _requestInformation!.task_status ?? 'Confirmed',
+            ),
+            _buildTaskInfoRow(
+              icon: FontAwesomeIcons.calendar,
+              label: 'Start Date',
+              value: _requestInformation?.task?.taskBeginDate != null
+                  ? DateFormat('MMM dd, yyyy HH:mm a').format(DateTime.parse(
+                      _requestInformation?.task?.taskBeginDate ?? ''))
+                  : 'N/A',
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTaskInfoRow({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          FaIcon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 12),
+          Text(
+            '$label: ',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

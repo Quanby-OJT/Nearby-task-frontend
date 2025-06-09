@@ -1,151 +1,161 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_fe/model/user_model.dart';
+import 'package:flutter_fe/model/task_model.dart';
 import 'dart:convert';
 
 class TaskerModel {
-  final int id;
-  final String bio;
-  final String specialization;
-  final String skills;
-  final bool availability;
-  final String? taskerDocuments;
+  final int? taskerId;
+  final int? userId;
+  final String? bio;
+  final int? specializationId;
+  final String? specialization;
+  final String? skills;
+  final bool? availability;
+  final double? wagePerHour;
+  final String? payPeriod;
   final Map<String, String>? socialMediaLinks;
-  final Map<String, String>? address;
-  final double wage;
-  final String payPeriod;
-  final DateTime birthDate;
-  final bool? group;
-  final double rating;
-  UserModel? user;
+  final double? rating;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final UserModel? user;
+  final TaskerSpecialization? taskerSpecialization;
+
+  // Computed getter for the id field (for backward compatibility)
+  int get id => taskerId ?? 0;
+  double get wage => wagePerHour ?? 0.0;
+  DateTime get birthDate => createdAt ?? DateTime.now();
+  String get taskerDocuments => '';
+  bool? get group => null;
+  Map<String, String>? get address => null;
 
   TaskerModel({
-    required this.id,
-    required this.bio,
-    this.group,
-    required this.specialization,
-    required this.skills,
-    required this.availability,
-    this.address,
-    required this.wage,
-    required this.payPeriod,
-    required this.birthDate,
-    this.taskerDocuments,
+    this.taskerId,
+    this.userId,
+    this.bio,
+    this.specializationId,
+    this.specialization,
+    this.skills,
+    this.availability,
+    this.wagePerHour,
+    this.payPeriod,
     this.socialMediaLinks,
+    this.rating,
+    this.createdAt,
+    this.updatedAt,
     this.user,
-    required this.rating,
+    this.taskerSpecialization,
   });
 
   @override
   String toString() {
-    return "Tasker(id: $id, bio: $bio, specialization: $specialization, user: $user)";
-  }
-
-  // Add a copyWith method to create a new instance with some properties changed
-  TaskerModel copyWith({
-    int? id,
-    String? bio,
-    bool? group,
-    String? specialization,
-    String? skills,
-    bool? availability,
-    Map<String, String>? address,
-    double? wage,
-    String? payPeriod,
-    DateTime? birthDate,
-    String? taskerDocuments,
-    Map<String, String>? socialMediaLinks,
-    UserModel? user,
-    double? rating,
-  }) {
-    return TaskerModel(
-      id: id ?? this.id,
-      bio: bio ?? this.bio,
-      group: group ?? this.group,
-      specialization: specialization ?? this.specialization,
-      skills: skills ?? this.skills,
-      availability: availability ?? this.availability,
-      address: address ?? this.address,
-      wage: wage ?? this.wage,
-      payPeriod: payPeriod ?? this.payPeriod,
-      birthDate: birthDate ?? this.birthDate,
-      taskerDocuments: taskerDocuments ?? this.taskerDocuments,
-      socialMediaLinks: socialMediaLinks ?? this.socialMediaLinks,
-      user: user ?? this.user,
-      rating: rating ?? this.rating,
-    );
-  }
-
-  // Factory method to map JSON to TaskerModel
-  factory TaskerModel.fromJson(Map<String, dynamic> json) {
-    debugPrint('JSON Data: $json');
-
-    // Helper function to parse social media links
-    Map<String, String>? parseSocialMediaLinks(dynamic socialMediaData) {
-      if (socialMediaData == null) return null;
-
-      try {
-        if (socialMediaData is String) {
-          // If it's a string, try to parse it as JSON
-          if (socialMediaData.isEmpty || socialMediaData == '{}') {
-            return <String, String>{};
-          }
-          final parsed = jsonDecode(socialMediaData);
-          return Map<String, String>.from(parsed);
-        } else if (socialMediaData is Map) {
-          // If it's already a Map, convert it
-          return Map<String, String>.from(socialMediaData);
-        }
-      } catch (e) {
-        debugPrint('Error parsing social media links: $e');
-      }
-
-      return <String, String>{};
-    }
-
-    return TaskerModel(
-      id: json['tasker_id'] ?? json['user']?['user_id'] ?? 0,
-      bio: json['bio'] ?? '',
-      skills: json['skills'] ?? '',
-      availability: json['availability'] ?? false,
-      socialMediaLinks: parseSocialMediaLinks(json['social_media_links']),
-      address: json['address'] != null
-          ? Map<String, String>.from(json['address'])
-          : null,
-      // Safely handle tasker_specialization
-      specialization: json['tasker_specialization'] != null &&
-              json['tasker_specialization']['specialization'] != null
-          ? json['tasker_specialization']['specialization']
-          : '',
-      taskerDocuments: json['tesda_document_link'] ?? '',
-      wage: (json['wage_per_hour'] as num?)?.toDouble() ?? 0.0,
-      payPeriod: json['pay_period'] ?? '',
-      birthDate: json['birthdate'] != null
-          ? DateTime.parse(json['birthdate'])
-          : DateTime.now(),
-      group: json['group'] ?? false,
-      user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
-      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
-    );
+    return "TaskerModel(taskerId: $taskerId, userId: $userId, bio: $bio, specialization: $specialization, skills: $skills, user: $user)";
   }
 
   Map<String, dynamic> toJson() {
     return {
-      "tasker_id": id,
+      "tasker_id": taskerId,
+      "user_id": userId,
       "bio": bio,
+      "specialization_id": specializationId,
       "specialization": specialization,
       "skills": skills,
-
-      //Must be in another table
       "availability": availability,
-      "tesda_documents_link": taskerDocuments,
-      "social_media_links": socialMediaLinks ?? {},
-      "address": address ?? {},
-
-      // remove kasi nasa user na siya
-      "group": group,
-      "wage_per_hour": wage,
+      "wage_per_hour": wagePerHour,
       "pay_period": payPeriod,
+      "social_media_links":
+          socialMediaLinks != null ? jsonEncode(socialMediaLinks) : '{}',
+      "rating": rating,
+      "created_at": createdAt?.toIso8601String(),
+      "updated_at": updatedAt?.toIso8601String(),
       "user": user?.toJson(),
+      "tasker_specialization": taskerSpecialization?.toJson(),
     };
+  }
+
+  factory TaskerModel.fromJson(Map<String, dynamic> json) {
+    Map<String, String>? socialLinks;
+    if (json['social_media_links'] != null) {
+      try {
+        if (json['social_media_links'] is String) {
+          final decoded = jsonDecode(json['social_media_links']);
+          socialLinks = Map<String, String>.from(decoded);
+        } else if (json['social_media_links'] is Map) {
+          socialLinks = Map<String, String>.from(json['social_media_links']);
+        }
+      } catch (e) {
+        socialLinks = {};
+      }
+    }
+
+    return TaskerModel(
+      taskerId: json['tasker_id'] as int? ?? json['id'] as int?,
+      userId: json['user_id'] as int?,
+      bio: json['bio'] as String?,
+      specializationId: json['specialization_id'] as int?,
+      specialization: json['specialization'] as String?,
+      skills: json['skills'] as String?,
+      availability: json['availability'] as bool?,
+      wagePerHour: (json['wage_per_hour'] is int
+              ? (json['wage_per_hour'] as int).toDouble()
+              : json['wage_per_hour'] as double?) ??
+          (json['wage'] is int
+              ? (json['wage'] as int).toDouble()
+              : json['wage'] as double?),
+      payPeriod: json['pay_period'] as String?,
+      socialMediaLinks: socialLinks,
+      rating: (json['rating'] is int
+              ? (json['rating'] as int).toDouble()
+              : json['rating'] as double?) ??
+          0.0,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : null,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.parse(json['updated_at'])
+          : null,
+      user: json['user'] != null
+          ? UserModel.fromJson(json['user'] as Map<String, dynamic>)
+          : null,
+      taskerSpecialization: json['tasker_specialization'] != null
+          ? TaskerSpecialization.fromJson(
+              json['tasker_specialization'] as Map<String, dynamic>)
+          : null,
+    );
+  }
+
+  // Create a copy with updated fields
+  TaskerModel copyWith({
+    int? taskerId,
+    int? userId,
+    String? bio,
+    int? specializationId,
+    String? specialization,
+    String? skills,
+    bool? availability,
+    double? wagePerHour,
+    String? payPeriod,
+    Map<String, String>? socialMediaLinks,
+    double? rating,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    UserModel? user,
+    TaskerSpecialization? taskerSpecialization,
+  }) {
+    return TaskerModel(
+      taskerId: taskerId ?? this.taskerId,
+      userId: userId ?? this.userId,
+      bio: bio ?? this.bio,
+      specializationId: specializationId ?? this.specializationId,
+      specialization: specialization ?? this.specialization,
+      skills: skills ?? this.skills,
+      availability: availability ?? this.availability,
+      wagePerHour: wagePerHour ?? this.wagePerHour,
+      payPeriod: payPeriod ?? this.payPeriod,
+      socialMediaLinks: socialMediaLinks ?? this.socialMediaLinks,
+      rating: rating ?? this.rating,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      user: user ?? this.user,
+      taskerSpecialization: taskerSpecialization ?? this.taskerSpecialization,
+    );
   }
 }

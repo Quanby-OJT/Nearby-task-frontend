@@ -80,7 +80,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
         _errorMessage = null;
       });
 
-      skills = widget.tasker.skills.split(',');
+      skills = widget.tasker.skills?.split(',') ?? [];
 
       await Future.wait([
         _loadTaskerDetails(),
@@ -322,7 +322,8 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildStatItem("4.8", "Rating", Icons.star),
+                            _buildStatItem(widget.tasker.rating.toString(),
+                                "Rating", Icons.star),
                             _buildStatItem(taskerFeedback!.length.toString(),
                                 "Jobs", Icons.work),
                             _buildStatItem("2 yrs", "Experience", Icons.timer),
@@ -335,7 +336,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                         "About",
                         [
                           Text(
-                            _user?.user.bio ?? "Not Available",
+                            widget.tasker.bio ?? "Not Available",
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               color: Colors.grey[600],
@@ -346,37 +347,14 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
                     ),
                     SliverToBoxAdapter(
                       child: _buildSectionCard(
-                        "Contact Information",
-                        [
-                          _buildInfoRow(
-                              Icons.email, "Email", widget.tasker.user!.email),
-                          _buildInfoRow(
-                              Icons.phone, "Phone", "+63 XXX XXX XXXX"),
-                        ],
-                      ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: _buildSectionCard(
                         "Basic Information",
                         [
                           _buildInfoRow(
-                              Icons.badge, "ID", "#${widget.tasker.id}"),
-                          _buildInfoRow(Icons.work, "Specialization",
-                              widget.tasker.specialization),
-                        ],
-                      ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: _buildSectionCard(
-                        "Skills & Expertise",
-                        [
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: skills.map((skill) {
-                              return _buildSkillChip(skill);
-                            }).toList(),
-                          ),
+                              Icons.work,
+                              "Specialization",
+                              widget.tasker.taskerSpecialization
+                                      ?.specialization ??
+                                  "N/A"),
                         ],
                       ),
                     ),
@@ -605,16 +583,42 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
       if (result.containsKey('message')) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result['message'] ?? "Tasker liked successfully!"),
+            content: Text(
+              "Successfully Liked Tasker.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
             backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
           ),
         );
         Navigator.of(context).pop();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result['error'] ?? "Failed to like tasker"),
+            content: Text(
+              "Failed to like tasker.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
             backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
           ),
         );
       }

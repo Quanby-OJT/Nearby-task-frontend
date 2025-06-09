@@ -9,7 +9,7 @@ import '../config/url_strategy.dart';
 import '../model/conversation.dart';
 
 class TaskDetailsService {
-  static final String url = apiUrl ?? "http://192.168.43.15:5000/connect";
+  static final String url = apiUrl ?? "http://localhost:5000";
   static final storage = GetStorage();
 
   static Map<String, dynamic> _handleResponse(http.Response response) {
@@ -162,6 +162,21 @@ class TaskDetailsService {
       return {
         "error":
             "An error occurred while deleting your message. Please try again."
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> retrieveTransactions() async {
+    try {
+      final userId = await storage.read('user_id');
+      final role = await storage.read('role');
+      return await _getRequest("/transactions/$userId/$role");
+    } catch (e, st) {
+      debugPrint("Error in retrieving transactions: $e");
+      debugPrint(st.toString());
+      return {
+        "error":
+            "An error occurred while retrieving your transactions. Please try again."
       };
     }
   }
