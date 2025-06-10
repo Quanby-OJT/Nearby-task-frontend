@@ -74,7 +74,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
 
   Future<void> _loadStoredSignature() async {
     debugPrint(
-        "Attempting to load stored signature. User first name: $_userFirstName");
+        "Attempting to load Registered Signature. User first name: $_userFirstName");
     if (_userFirstName != null) {
       final assetPath = 'lib/signatures/${_userFirstName}.png';
       // For checking existence of asset, we can't directly use File.exists() on assets.
@@ -87,7 +87,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
       });
       debugPrint("Signature asset path set: $_storedSignaturePath");
     } else {
-      debugPrint("User first name is null, cannot load stored signature.");
+      debugPrint("User first name is null, cannot load Registered Signature.");
     }
   }
 
@@ -494,6 +494,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                               Container(
                                 height: 200,
                                 decoration: BoxDecoration(
+                                  color: Colors.white,
                                   border: Border.all(color: Colors.grey),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -507,7 +508,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                                               'Error loading asset image: $error');
                                           return Center(
                                             child: Text(
-                                              "No stored signature found",
+                                              "No Registered Signature found",
                                               style: GoogleFonts.poppins(
                                                 color: Colors.grey,
                                               ),
@@ -517,19 +518,20 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                                       )
                                     : Center(
                                         child: Text(
-                                          "No stored signature found",
+                                          "No Registered Signature found",
                                           style: GoogleFonts.poppins(
                                             color: Colors.grey,
                                           ),
                                         ),
                                       ),
                               ),
-                              SizedBox(height: 8),
+                              SizedBox(height: 16),
                               Text(
-                                "Stored Signature",
+                                "Registered Signature",
                                 style: GoogleFonts.poppins(
                                   fontSize: 14,
                                   color: Colors.grey[700],
+                                  backgroundColor: Colors.white,
                                 ),
                               ),
                             ],
@@ -553,7 +555,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                                   maximumStrokeWidth: 2.5,
                                 ),
                               ),
-                              SizedBox(height: 8),
+                              SizedBox(height: 16),
                               Text(
                                 "New Signature",
                                 style: GoogleFonts.poppins(
