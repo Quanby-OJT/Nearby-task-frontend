@@ -9,7 +9,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 
 class TaskRequestService {
-  static String url = apiUrl ?? "http://localhost:5000";
+  static String url = apiUrl ?? "https://localhost:5000";
   static final storage = GetStorage();
 
   Future<String?> getUserId() async => storage.read('user_id')?.toString();
