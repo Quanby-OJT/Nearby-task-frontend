@@ -40,6 +40,8 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
   File? _rightSignatureFile;
   String? _storedSignaturePath;
   String? _userFirstName;
+  bool _showRegisteredSignature = false;
+  bool _signaturePadEnabled = true;
 
   @override
   void initState() {
@@ -498,7 +500,8 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                                   border: Border.all(color: Colors.grey),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: _storedSignaturePath != null
+                                child: _showRegisteredSignature &&
+                                        _storedSignaturePath != null
                                     ? Image.asset(
                                         _storedSignaturePath!,
                                         fit: BoxFit.contain,
@@ -547,12 +550,15 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                                   border: Border.all(color: Colors.grey),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: SfSignaturePad(
-                                  key: _rightSignaturePadKey,
-                                  backgroundColor: Colors.white,
-                                  strokeColor: Colors.black,
-                                  minimumStrokeWidth: 1.0,
-                                  maximumStrokeWidth: 2.5,
+                                child: AbsorbPointer(
+                                  absorbing: !_signaturePadEnabled,
+                                  child: SfSignaturePad(
+                                    key: _rightSignaturePadKey,
+                                    backgroundColor: Colors.white,
+                                    strokeColor: Colors.black,
+                                    minimumStrokeWidth: 1.0,
+                                    maximumStrokeWidth: 2.5,
+                                  ),
                                 ),
                               ),
                               SizedBox(height: 16),
@@ -573,9 +579,11 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         ElevatedButton(
-                          onPressed: () {
-                            _rightSignaturePadKey.currentState?.clear();
-                          },
+                          onPressed: _signaturePadEnabled
+                              ? () {
+                                  _rightSignaturePadKey.currentState?.clear();
+                                }
+                              : null,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.grey[300],
                           ),
@@ -583,6 +591,42 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                             "Clear Signature",
                             style: GoogleFonts.poppins(
                               color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: _signaturePadEnabled
+                              ? () async {
+                                  // Save the signature (if needed)
+                                  await _saveSignature();
+                                  setState(() {
+                                    _showRegisteredSignature = true;
+                                    _signaturePadEnabled = false;
+                                  });
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: Text("Signature uploading"),
+                                      content:
+                                          Text("Ready for admin confirmation."),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(),
+                                          child: Text("OK"),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
+                              : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue[300],
+                          ),
+                          child: Text(
+                            "Done",
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
                             ),
                           ),
                         ),
