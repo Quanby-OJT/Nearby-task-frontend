@@ -365,8 +365,8 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
         // Case 1: Moderator trying to act on Admin's action
         if (this.userRole === 'Moderator' && priorActionRole === 'Admin') {
           Swal.fire({
-            title: 'Error',
-            text: 'You don\'t have authority to take action here since this action is made by an admin',
+            title: 'Access Denied',
+            text: `You don't have authority to take action here since this action is made by an admin`,
             icon: 'error',
             confirmButtonText: 'OK',
             confirmButtonColor: '#3C28CC'
@@ -453,8 +453,8 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
         // Case 1: Moderator trying to act on Admin's action
         if (this.userRole === 'Moderator' && priorActionRole === 'Admin') {
           Swal.fire({
-            title: 'Error',
-            text: 'You don\'t have authority to take action here since this action is made by an admin',
+            title: 'Access Denied',
+            text: `You don't have authority to take action here since this action is made by an admin`,
             icon: 'error',
             confirmButtonText: 'OK',
             confirmButtonColor: '#3C28CC'

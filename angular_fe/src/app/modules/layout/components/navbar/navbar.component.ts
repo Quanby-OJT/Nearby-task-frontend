@@ -70,6 +70,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   public toggleMobileMenu(): void {
-    this.menuService.showMobileMenu = true;
+    this.menuService.showMobileMenu = !this.menuService.showMobileMenu;
   }
 }

@@ -311,7 +311,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         if (error.status === 403) {
-          Swal.fire('Error!', error.error.error || 'You don\'t have authority to perform this action.', 'error');
+          Swal.fire('Access Denied', error.error.error || `You don't authority to take action here since this action is made by an admin.`, 'error');
         } else {
           Swal.fire('Error!', error.error.error || 'Failed to check authorization.', 'error');
         }
@@ -328,7 +328,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         if (error.status === 403) {
-          Swal.fire('Error!', error.error.error || 'You don\'t have authority to perform this action.', 'error');
+          Swal.fire('Access Denied', error.error.error || `You don't authority to take action here since this action is made by an admin.`, 'error');
         } else {
           Swal.fire('Error!', error.error.error || 'Failed to check authorization.', 'error');
         }
@@ -345,7 +345,7 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         if (error.status === 403) {
-          Swal.fire('Error!', error.error.error || 'You don\'t have authority to perform this action.', 'error');
+          Swal.fire('Access Denied', error.error.error || `You don't authority to take action here since this action is made by an admin.`, 'error');
         } else {
           Swal.fire('Error!', error.error.error || 'Failed to check authorization.', 'error');
         }
