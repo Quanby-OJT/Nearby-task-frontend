@@ -557,7 +557,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                               ),
                               SizedBox(height: 16),
                               Text(
-                                "New Signature",
+                                "Write Signature",
                                 style: GoogleFonts.poppins(
                                   fontSize: 14,
                                   color: Colors.grey[700],
