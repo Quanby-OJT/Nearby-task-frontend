@@ -83,6 +83,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _user = user;
         _isLoading = false;
         taskerId = _user?.user.id ?? 0;
+        _userController.firstNameController.text = _user?.user.firstName ?? '';
+        _userController.middleNameController.text =
+            _user?.user.middleName ?? '';
+        _userController.lastNameController.text = _user?.user.lastName ?? '';
         _userController.emailController.text = _user?.user.email ?? '';
         _userController.birthdateController.text = _user?.user.birthdate ?? '';
         _userController.prefsController.text = '';
