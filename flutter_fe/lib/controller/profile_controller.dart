@@ -25,8 +25,7 @@ class ProfileController {
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-      TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
   final TextEditingController roleController = TextEditingController();
   final TextEditingController statusController = TextEditingController();
   final TextEditingController fbLinkController = TextEditingController();
@@ -63,11 +62,7 @@ class ProfileController {
   final ClientServices clientService = ClientServices();
   final TextEditingController accStatusController = TextEditingController();
 
-  //Client Text Controller
-  final TextEditingController prefsController = TextEditingController();
-  final TextEditingController clientAddressController = TextEditingController();
-  final storage = GetStorage();
-
+  final GetStorage storage = GetStorage();
   void _showStatusModal({required BuildContext context, required bool isSuccess, required String message}) {
     showDialog(
       context: context,
@@ -204,12 +199,6 @@ class ProfileController {
         } else {
           debugPrint("ProfileController: No client or tasker data found");
           return null;
-          // If neither client nor tasker specific data is present, but user data exists
-          // This case might be relevant for users who haven't completed their profile as client or tasker yet.
-          // debugPrint("ProfileController: Processing generic user data");
-          // return AuthenticatedUser(
-          //   user: UserModel.fromJson(data["user"]),
-          // );
         }
 
       } else {
@@ -255,7 +244,7 @@ class ProfileController {
     }
   }
 
-  Future<String> updateUser(List<File> images, List<File> documents) async{
+  Future<String> updateUser(List<File>? images, List<File>? documents, List<String>? taskerImageUrl, List<String>? taskerDocuments) async{
     try{
       String role = storage.read("role");
 
@@ -284,18 +273,23 @@ class ProfileController {
           wagePerHour: double.parse(wageController.text.replaceAll(RegExp(r'[^\d.]'), '')),
           payPeriod: payPeriodController.text,
           group: taskerGroupController.text == "Agency" ? true : false,
-          rating: 0.0
+          rating: 0.0,
+          taskerImages: taskerImageUrl ?? [],
         );
 
         List<File> taskerImages = [];
         List<File> taskerDocuments = [];
 
-        for(var image in images){
-          taskerImages.add(File(image.path));
+        if(images != null){
+          for(var image in images){
+            taskerImages.add(File(image.path));
+          }
         }
 
-        for(var document in documents){
-          taskerDocuments.add(File(document.path));
+        if(documents != null){
+          for(var document in documents){
+            taskerDocuments.add(File(document.path));
+          }
         }
 
         final updateTaskerResult = await taskerService.updateTasker(taskerImages, taskerDocuments, tasker);
@@ -315,5 +309,46 @@ class ProfileController {
       debugPrintStack(stackTrace: stackTrace);
       return "An Error Occurred while Updating your information. Please Try Again.";
     }
+  }
+
+  void dispose() {
+    //General Account Information
+    firstNameController.dispose();
+    middleNameController.dispose();
+    lastNameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    roleController.dispose();
+    statusController.dispose();
+    fbLinkController.dispose();
+    instaLinkController.dispose();
+    telegramLinkController.dispose();
+
+    //Tasker Text
+    birthdateController.dispose();
+    imageController.dispose();
+    companyNameController.dispose();
+    taskerGroupController.dispose();
+    bioController.dispose();
+    specializationController.dispose();
+    skillsController.dispose();
+    taskerAddressController.dispose();
+    availabilityController.dispose();
+    wageController.dispose();
+    contactNumberController.dispose();
+    genderController.dispose();
+    addressController.dispose();
+    payPeriodController.dispose();
+
+    // Address controllers
+    streetAddressController.dispose();
+    barangayController.dispose();
+    cityController.dispose();
+    provinceController.dispose();
+    postalCodeController.dispose();
+    countryController.dispose();
+
+    accStatusController.dispose();
   }
 }

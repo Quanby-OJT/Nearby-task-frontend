@@ -386,8 +386,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
                                                 builder: (context) =>
                                                     TaskDetailsScreen(
                                                       taskAssignment:
-                                                          transaction
-                                                              .taskAssignment,
+                                                          transaction.taskAssignment,
                                                       taskStatus: transaction
                                                           .recordStatus,
                                                       transactionDate:

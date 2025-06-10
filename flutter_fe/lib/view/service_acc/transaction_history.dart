@@ -331,76 +331,86 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
                                 ),
                               ),
                             )
-                          : ListView.builder(
-                              shrinkWrap:
-                                  true, // Important to make ListView scrollable within Column
-                              physics:
-                                  NeverScrollableScrollPhysics(), // Disable ListView's own scrolling
-                              itemCount: _transactionHistory.length,
-                              itemBuilder: (context, index) {
-                                final transaction = _transactionHistory[index];
-                                return Card(
-                                  margin: EdgeInsets.only(bottom: 10),
-                                  elevation: 2,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: ListTile(
-                                    onTap: () => Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                TaskDetailsScreen(
-                                                  taskAssignment: transaction
-                                                      .taskAssignment,
-                                                  taskStatus:
-                                                      transaction.recordStatus,
-                                                  transactionDate:
-                                                      DateTime.parse(
-                                                          transaction.date),
-                                                ))),
-                                    leading: CircleAvatar(
-                                      backgroundColor:
-                                          statusColor(transaction.recordStatus),
-                                      radius: 5, // Small color indicator
+                          : _transactionHistory.isEmpty
+                            ? Text(
+                                "You don't have any transactions yet",
+                                style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w300,
+                                    color: Colors.black)
+                              )
+                            : ListView.builder(
+                                shrinkWrap:
+                                    true, // Important to make ListView scrollable within Column
+                                physics:
+                                    NeverScrollableScrollPhysics(), // Disable ListView's own scrolling
+                                itemCount: _transactionHistory.length,
+                                itemBuilder: (context, index) {
+                                  final transaction = _transactionHistory[index];
+                                  return Card(
+                                    margin: EdgeInsets.only(bottom: 10),
+                                    elevation: 2,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
-                                    title: Text(
-                                      transaction.taskAssignment.task?.title ??
-                                          "N/A",
-                                      style: GoogleFonts.poppins(
-                                        fontWeight: FontWeight.w500,
+                                    child: ListTile(
+                                      onTap: () => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  TaskDetailsScreen(
+                                                    taskAssignment: transaction
+                                                        .taskAssignment,
+                                                    taskStatus:
+                                                        transaction.recordStatus,
+                                                    transactionDate:
+                                                        DateTime.parse(
+                                                            transaction.date),
+                                                  ))),
+                                      leading: CircleAvatar(
+                                        backgroundColor:
+                                            statusColor(transaction.recordStatus),
+                                        radius: 5, // Small color indicator
+                                      ),
+                                      title: Text(
+                                        transaction.taskAssignment.task?.title ??
+                                            "N/A",
+                                        style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      subtitle: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Client: ${transaction.taskAssignment.client?.user?.firstName ?? ''} ${transaction.taskAssignment.client?.user?.middleName ?? ''} ${transaction.taskAssignment.client?.user?.lastName ?? ''}',
+                                            style:
+                                                GoogleFonts.poppins(fontSize: 12),
+                                          ),
+                                          Text(
+                                            'Status: ${transaction.recordStatus}',
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 12,
+                                                fontStyle: FontStyle.italic),
+                                          ),
+                                        ],
+                                      ),
+                                      trailing: Text(
+                                        DateFormat('yyyy-MM-dd HH:mm a').format(
+                                            DateTime.parse(transaction
+                                                .date)), // Display formatted date and time
+                                        style: GoogleFonts.poppins(
+                                            fontWeight: FontWeight.normal,
+                                            color: Colors.grey[600]),
                                       ),
                                     ),
-                                    subtitle: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Client: ${transaction.taskAssignment.client?.user?.firstName ?? ''} ${transaction.taskAssignment.client?.user?.middleName ?? ''} ${transaction.taskAssignment.client?.user?.lastName ?? ''}',
-                                          style:
-                                              GoogleFonts.poppins(fontSize: 12),
-                                        ),
-                                        Text(
-                                          'Status: ${transaction.recordStatus}',
-                                          style: GoogleFonts.poppins(
-                                              fontSize: 12,
-                                              fontStyle: FontStyle.italic),
-                                        ),
-                                      ],
-                                    ),
-                                    trailing: Text(
-                                      DateFormat('yyyy-MM-dd HH:mm a').format(
-                                          DateTime.parse(transaction
-                                              .date)), // Display formatted date and time
-                                      style: GoogleFonts.poppins(
-                                          fontWeight: FontWeight.normal,
-                                          color: Colors.grey[600]),
-                                    ),
-                                  ),
-                                );
-                              },
-                            )
-                    ]))
+                                  );
+                                },
+                              )
+                      ]
+                )
+            )
           ],
         ),
       ),

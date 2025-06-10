@@ -47,8 +47,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _userController.firstNameController.text = fullName;
         _userController.emailController.text = _user?.user.email ?? '';
         _userController.birthdateController.text = _user?.user.birthdate ?? '';
-        _userController.prefsController.text = _user?.user.bio ?? '';
-        _userController.clientAddressController.text = '';
       });
     } catch (e) {
       print("Error fetching user data: $e");
@@ -143,49 +141,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ],
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                left: 40, right: 40, top: 10),
-                            child: Column(
-                              spacing: 10,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Preferences',
-                                    style: GoogleFonts.openSans(
-                                        color: Color(0xFF0272B1),
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14)),
-                                TextField(
-                                  controller: _userController.prefsController,
-                                  enabled: true,
-                                  cursorColor: Color(0xFF0272B1),
-                                  decoration: InputDecoration(
-                                      filled: true,
-                                      fillColor: Color(0xFFF1F4FF),
-                                      hintText: 'Electrician',
-                                      hintStyle: TextStyle(color: Colors.grey),
-                                      disabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          borderSide: BorderSide(
-                                              color: Colors.transparent,
-                                              width: 2)),
-                                      enabledBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Colors.transparent,
-                                              width: 0),
-                                          borderRadius:
-                                              BorderRadius.circular(10)),
-                                      border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          borderSide: BorderSide(
-                                              color: Color(0xFF0272B1),
-                                              width: 2))),
-                                ),
-                              ],
-                            ),
-                          ),
+                          // Padding(
+                          //   padding: const EdgeInsets.only(
+                          //       left: 40, right: 40, top: 10),
+                          //   child: Column(
+                          //     spacing: 10,
+                          //     crossAxisAlignment: CrossAxisAlignment.start,
+                          //     children: [
+                          //       Text('Preferences',
+                          //           style: GoogleFonts.openSans(
+                          //               color: Color(0xFF0272B1),
+                          //               fontWeight: FontWeight.bold,
+                          //               fontSize: 14)),
+                          //       TextField(
+                          //         controller: _userController.prefsController,
+                          //         enabled: true,
+                          //         cursorColor: Color(0xFF0272B1),
+                          //         decoration: InputDecoration(
+                          //             filled: true,
+                          //             fillColor: Color(0xFFF1F4FF),
+                          //             hintText: 'Electrician',
+                          //             hintStyle: TextStyle(color: Colors.grey),
+                          //             disabledBorder: OutlineInputBorder(
+                          //                 borderRadius:
+                          //                     BorderRadius.circular(10),
+                          //                 borderSide: BorderSide(
+                          //                     color: Colors.transparent,
+                          //                     width: 2)),
+                          //             enabledBorder: OutlineInputBorder(
+                          //                 borderSide: BorderSide(
+                          //                     color: Colors.transparent,
+                          //                     width: 0),
+                          //                 borderRadius:
+                          //                     BorderRadius.circular(10)),
+                          //             border: OutlineInputBorder(
+                          //                 borderRadius:
+                          //                     BorderRadius.circular(10),
+                          //                 borderSide: BorderSide(
+                          //                     color: Color(0xFF0272B1),
+                          //                     width: 2))),
+                          //       ),
+                          //     ],
+                          //   ),
+                          // ),
                           Padding(
                             padding: const EdgeInsets.only(
                                 left: 40, right: 40, top: 10),
@@ -283,35 +281,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         color: Color(0xFF0272B1),
                                         fontWeight: FontWeight.bold,
                                         fontSize: 14)),
-                                TextField(
-                                  controller:
-                                      _userController.clientAddressController,
-                                  enabled: true,
-                                  cursorColor: Color(0xFF0272B1),
-                                  decoration: InputDecoration(
-                                      filled: true,
-                                      fillColor: Color(0xFFF1F4FF),
-                                      hintText: 'Legazpi, Albay',
-                                      hintStyle: TextStyle(color: Colors.grey),
-                                      disabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          borderSide: BorderSide(
-                                              color: Colors.transparent,
-                                              width: 2)),
-                                      enabledBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Colors.transparent,
-                                              width: 0),
-                                          borderRadius:
-                                              BorderRadius.circular(10)),
-                                      border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          borderSide: BorderSide(
-                                              color: Color(0xFF0272B1),
-                                              width: 2))),
-                                ),
+                                // TextField(
+                                //   controller:
+                                //       _userController.clientAddressController,
+                                //   enabled: true,
+                                //   cursorColor: Color(0xFF0272B1),
+                                //   decoration: InputDecoration(
+                                //       filled: true,
+                                //       fillColor: Color(0xFFF1F4FF),
+                                //       hintText: 'Legazpi, Albay',
+                                //       hintStyle: TextStyle(color: Colors.grey),
+                                //       disabledBorder: OutlineInputBorder(
+                                //           borderRadius:
+                                //               BorderRadius.circular(10),
+                                //           borderSide: BorderSide(
+                                //               color: Colors.transparent,
+                                //               width: 2)),
+                                //       enabledBorder: OutlineInputBorder(
+                                //           borderSide: BorderSide(
+                                //               color: Colors.transparent,
+                                //               width: 0),
+                                //           borderRadius:
+                                //               BorderRadius.circular(10)),
+                                //       border: OutlineInputBorder(
+                                //           borderRadius:
+                                //               BorderRadius.circular(10),
+                                //           borderSide: BorderSide(
+                                //               color: Color(0xFF0272B1),
+                                //               width: 2))),
+                                // ),
                               ],
                             ),
                           ),

@@ -20,12 +20,12 @@ class TaskerModel {
   final TaskerSpecialization? taskerSpecialization;
   final List<String>? taskerImages;
   final bool? group;
+  final List<String>? taskerDocuments;
 
   // Computed getter for the id field (for backward compatibility)
   int get id => taskerId ?? 0;
   double get wage => wagePerHour ?? 0.0;
   DateTime get birthDate => createdAt ?? DateTime.now();
-  String get taskerDocuments => '';
   // bool? get group => null;
   Map<String, String>? get address => null;
 
@@ -46,6 +46,7 @@ class TaskerModel {
     this.user,
     this.taskerSpecialization,
     this.taskerImages,
+    this.taskerDocuments,
     this.group
   });
 
@@ -72,6 +73,9 @@ class TaskerModel {
       "updated_at": updatedAt?.toIso8601String(),
       "user": user?.toJson(),
       "tasker_specialization": taskerSpecialization?.toJson(),
+      "profile_images": taskerImages,
+      "tasker_documents": taskerDocuments,
+      "group": group,
     };
   }
 
@@ -126,10 +130,7 @@ class TaskerModel {
       taskerImages: json['profile_images'] != null && json['profile_images'] is List
           ? (json['profile_images'] as List<dynamic>?)
               ?.map((image) {
-                if (image is Map && image['image_url'] is String) {
-                  return image['image_url'] as String;
-                }
-                return ''; // Or handle the error as appropriate
+                return image is String ? image : ''; // Or handle the error as appropriate
               })
               ?.toList() ?? []
           : [],

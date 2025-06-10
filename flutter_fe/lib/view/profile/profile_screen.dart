@@ -58,6 +58,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     fetchSpecialization();
   }
 
+  @override
+  void dispose(){
+    _userController.dispose();
+    super.dispose();
+  }
+
   Future<void> fetchSpecialization() async {
     try {
       _specializations = await JobPostService().getSpecializations();
@@ -76,14 +82,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       AuthenticatedUser? user = await _userController.getAuthenticatedUser(userId);
       String role = user?.user.role ?? '';
 
-      debugPrint("Tasker Specialization: ${user?.tasker?.specialization}");
+      debugPrint("User Images: ${user?.tasker?.taskerImages}");
       setState(() {
         _user = user;
-        _isLoading = false;
         _userController.emailController.text = _user?.user.email ?? '';
         _userController.birthdateController.text = _user?.user.birthdate ?? '';
-        _userController.prefsController.text = '';
-        _userController.clientAddressController.text = '';
         _userController.bioController.text = role == "Tasker" ? _user?.tasker?.bio ?? '' : _user?.client?.preferences ?? '';
         _userController.specializationController.text = _user?.tasker?.specialization ?? '';
         _userController.skillsController.text = _user?.tasker?.skills ?? '';
@@ -127,13 +130,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
     } catch (e) {
       print("Error fetching user data: $e");
-      setState(() => _isLoading = false);
+    }finally{
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
   Future<void> updateUser() async{
     try{
-      String updateResult = await _userController.updateUser(profileImages, tesdaDocuments);
+      String updateResult = await _userController.updateUser(profileImages, tesdaDocuments, taskerImages, []);
       debugPrint("Result of Update Tasker Result: $updateResult");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
