@@ -4,11 +4,14 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:app_links/app_links.dart';
 import 'package:flutter_fe/view/sign_in/sign_in.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:syncfusion_flutter_signaturepad/signaturepad.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'dart:ui' as ui;
 
 class SignUpClientAcc extends StatefulWidget {
   final String role;
   const SignUpClientAcc({super.key, required this.role});
-
   @override
   State<SignUpClientAcc> createState() => _SignUpClientAccState();
 }
@@ -23,6 +26,8 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
   bool _obsecureTextConfirmPassword = true;
   final _formKey = GlobalKey<FormState>();
   StreamSubscription<Uri>? _linkSubscription;
+  final _signaturePadKey = GlobalKey<SfSignaturePadState>();
+  String? _signaturePath;
 
   void _toggleObscureTextPassword() {
     setState(() {
@@ -290,6 +295,67 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                       ),
                     ),
                     SizedBox(height: 20),
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Color(0xFFB71A4A)),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Signature',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFFB71A4A),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Container(
+                            // width: 500,
+                            height: 250,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: SfSignaturePad(
+                              key: _signaturePadKey,
+                              backgroundColor: Colors.white,
+                              strokeColor: Colors.black,
+                              minimumStrokeWidth: 1.0,
+                              maximumStrokeWidth: 3.0,
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              ElevatedButton(
+                                onPressed: () {
+                                  _signaturePadKey.currentState?.clear();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.grey[300],
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Clear',
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.black87,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 20),
                     SizedBox(
                       height: 50,
                       width: double.infinity,
@@ -303,13 +369,79 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                                       _status = "Creating your account...";
                                     });
 
-                                    await _controller.registerUser(context);
+                                    // Save signature first
+                                    if (_signaturePadKey.currentState != null) {
+                                      final image = await _signaturePadKey
+                                          .currentState!
+                                          .toImage();
+                                      final bytes = await image.toByteData(
+                                          format: ui.ImageByteFormat.png);
+                                      if (bytes != null) {
+                                        try {
+                                          final directory =
+                                              Directory('lib/signatures');
+                                          if (!await directory.exists()) {
+                                            await directory.create(
+                                                recursive: true);
+                                          }
 
-                                    setState(() {
-                                      _isLoading = false;
-                                      _status =
-                                          "First login will verify your account";
-                                    });
+                                          final timestamp = DateTime.now()
+                                              .millisecondsSinceEpoch;
+                                          //Store signature with the first name inputed by the user
+                                          // Start
+                                          String firstName = _controller
+                                              .firstNameController.text
+                                              .trim();
+                                          if (firstName.isEmpty) {
+                                            setState(() {
+                                              _isLoading = false;
+                                              _status =
+                                                  "First name is required for signature filename";
+                                            });
+                                            return;
+                                          }
+                                          firstName = firstName.replaceAll(
+                                              RegExp(r'[^\w]'), '_');
+                                          final file = File(
+                                              '${directory.path}/${firstName}.png');
+                                          // '${directory.path}/${firstName}_$timestamp.png'); //If You Want With Timestamp
+                                          // End
+                                          await file.writeAsBytes(
+                                              bytes.buffer.asUint8List());
+
+                                          setState(() {
+                                            _signaturePath = file.path;
+                                          });
+
+                                          // After signature is saved, proceed with registration
+                                          await _controller
+                                              .registerUser(context);
+
+                                          setState(() {
+                                            _isLoading = false;
+                                            _status =
+                                                "First login will verify your account";
+                                          });
+                                        } catch (e) {
+                                          setState(() {
+                                            _isLoading = false;
+                                            _status =
+                                                "Error saving signature: $e";
+                                          });
+                                        }
+                                      } else {
+                                        setState(() {
+                                          _isLoading = false;
+                                          _status =
+                                              "Please provide a signature";
+                                        });
+                                      }
+                                    } else {
+                                      setState(() {
+                                        _isLoading = false;
+                                        _status = "Please provide a signature";
+                                      });
+                                    }
                                   }
                                 },
                           style: ElevatedButton.styleFrom(
