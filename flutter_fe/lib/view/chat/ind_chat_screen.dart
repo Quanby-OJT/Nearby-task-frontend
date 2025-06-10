@@ -5,20 +5,26 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/controller/conversation_controller.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/view/address/user_shared_location.dart';
 import 'package:flutter_fe/view/chat/task_details_screen.dart';
+import 'package:flutter_fe/view/profile/profile_screen.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class IndividualChatScreen extends StatefulWidget {
   final String? taskTitle;
   final int? taskTakenId;
   final int? taskId;
+  final UserModel? user;
+
   const IndividualChatScreen({
     super.key,
     this.taskTitle,
-    required this.taskTakenId,
-    required this.taskId,
+    this.taskTakenId,
+    this.taskId,
+    this.user,
   });
 
   @override
@@ -29,12 +35,15 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   final List<Conversation> _messages = [];
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final GlobalKey _moreVertKey = GlobalKey();
+  bool _isLocationShared = false;
   final storage = GetStorage();
   final ConversationController conversationController =
       ConversationController();
   final JobPostService jobPostService = JobPostService();
   TaskModel? task;
   Timer? _timer;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -52,12 +61,18 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   }
 
   Future<void> loadInitialData() async {
+    setState(() {
+      _isLoading = true;
+    });
     final task =
         await jobPostService.fetchTaskInformation(widget.taskTakenId ?? 0);
     setState(() {
       this.task = task.task;
     });
     await loadConversationHistory();
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   Future<void> loadConversationHistory() async {
@@ -85,6 +100,126 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
     _scrollController.dispose();
     _textController.dispose();
     super.dispose();
+  }
+
+  void _showAnimatedMenu(BuildContext context) {
+    final RenderBox renderBox =
+        _moreVertKey.currentContext!.findRenderObject() as RenderBox;
+    final position = renderBox.localToGlobal(Offset.zero);
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    final double menuWidth = screenWidth / 1.5;
+    final double leftPosition =
+        position.dx + renderBox.size.width - menuWidth - 10;
+    final double topPosition = position.dy + renderBox.size.height;
+
+    final double adjustedLeft = leftPosition < 0
+        ? 0
+        : leftPosition + menuWidth > screenWidth
+            ? screenWidth - menuWidth
+            : leftPosition;
+
+    OverlayState overlayState = Overlay.of(context);
+    late OverlayEntry overlayEntry;
+
+    overlayEntry = OverlayEntry(
+      builder: (context) => Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () {
+                overlayEntry.remove();
+              },
+              child: Container(
+                color: Colors.transparent,
+              ),
+            ),
+          ),
+          Positioned(
+            left: adjustedLeft,
+            top: topPosition,
+            width: menuWidth,
+            child: Material(
+              elevation: 4,
+              borderRadius: BorderRadius.circular(8),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    buildListTile(
+                      Icons.location_on,
+                      "View Location",
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => UserSharedLocation(
+                                    taskTakenId: widget.taskTakenId ?? 0,
+                                    user: widget.user ??
+                                        UserModel(
+                                          firstName: '',
+                                          middleName: '',
+                                          lastName: '',
+                                          email: '',
+                                          role: '',
+                                          accStatus: '',
+                                        ),
+                                  )),
+                        );
+                        overlayEntry.remove();
+                      },
+                    ),
+                    buildListTile(
+                      Icons.info_outline,
+                      "Task Details",
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => TaskDetailsScreen(
+                                    taskTakenId: widget.taskTakenId ?? 0,
+                                  )),
+                        );
+                        overlayEntry.remove();
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    overlayState.insert(overlayEntry);
+  }
+
+  Widget buildListTile(
+    IconData icon,
+    String title,
+    VoidCallback onTap,
+  ) {
+    return ListTile(
+        leading: Icon(
+          icon,
+          color: const Color(0xFFB71A4A),
+        ),
+        title: Text(
+          title,
+          style: GoogleFonts.poppins(
+            color: Colors.black,
+            fontSize: 14,
+            fontWeight: FontWeight.w300,
+          ),
+        ),
+        onTap: onTap);
   }
 
   @override
@@ -121,81 +256,82 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
         ),
         actions: [
           IconButton(
+            key: _moreVertKey,
             icon: Icon(
-              Icons.info_outline,
+              Icons.more_horiz,
               color: Color(0xFFB71A4A),
             ),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => TaskDetailsScreen(
-                    taskTakenId: widget.taskTakenId ?? 0,
-                  ),
-                ),
-              );
+              _showAnimatedMenu(context);
             },
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: _messages.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.chat_bubble_outline,
-                          size: 60,
-                          color: Color(0xFF0272B1),
-                        ),
-                        SizedBox(height: 16),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 24),
-                          child: Text(
-                            "Start the conversation with your client!",
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.w500,
-                            ),
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFFB71A4A),
+              ),
+            )
+          : Column(
+              children: [
+                Expanded(
+                  child: _messages.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.chat_bubble_outline,
+                                size: 60,
+                                color: Color(0xFF0272B1),
+                              ),
+                              SizedBox(height: 16),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 24),
+                                child: Text(
+                                  "Start the conversation with your client!",
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
+                        )
+                      : ListView.builder(
+                          controller: _scrollController,
+                          padding:
+                              EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                          itemCount: _messages.length,
+                          itemBuilder: (context, index) {
+                            final message = _messages[index];
+                            return _ChatBubble(
+                              message: message,
+                              profile: message.user ??
+                                  UserModel(
+                                    firstName:
+                                        message.user?.firstName ?? "Loading...",
+                                    middleName: '',
+                                    lastName: '',
+                                    email: '',
+                                    role: '',
+                                    accStatus: '',
+                                  ),
+                            );
+                          },
                         ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    controller: _scrollController,
-                    padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                    itemCount: _messages.length,
-                    itemBuilder: (context, index) {
-                      final message = _messages[index];
-                      return _ChatBubble(
-                        message: message,
-                        profile: message.user ??
-                            UserModel(
-                              firstName:
-                                  message.user?.firstName ?? "Loading...",
-                              middleName: '',
-                              lastName: '',
-                              email: '',
-                              role: '',
-                              accStatus: '',
-                            ),
-                      );
-                    },
-                  ),
-          ),
-          _MessageBar(
-            controller: conversationController,
-            taskTakenId: widget.taskTakenId ?? 0,
-            onMessageSent: loadConversationHistory,
-          ),
-        ],
-      ),
+                ),
+                _MessageBar(
+                  controller: conversationController,
+                  taskTakenId: widget.taskTakenId ?? 0,
+                  onMessageSent: loadConversationHistory,
+                ),
+              ],
+            ),
     );
   }
 }
@@ -317,7 +453,9 @@ class _ChatBubble extends StatelessWidget {
               Padding(
                 padding: EdgeInsets.only(left: 8, bottom: 4),
                 child: Text(
-                  profile.firstName.isNotEmpty ? profile.firstName : 'User',
+                  profile.firstName.isNotEmpty
+                      ? '${profile.firstName} ${profile.middleName} ${profile.lastName}'
+                      : 'User',
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     color: Colors.grey[600],

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/view/business_acc/edit_task_page.dart';
 import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
+import 'package:flutter_fe/view/task/task_archive.dart';
 import 'package:flutter_fe/view/task/task_cancelled.dart';
 import 'package:flutter_fe/view/task/task_confirmed.dart';
 import 'package:flutter_fe/view/task/task_declined.dart';
@@ -47,6 +48,8 @@ class _JobPostPageState extends State<JobPostPage>
   final TextEditingController _searchController = TextEditingController();
   late final PageController _pageController;
   late final TabController _tabController;
+  final GlobalKey<PopupMenuButtonState> _moreVertKey =
+      GlobalKey<PopupMenuButtonState>();
 
   // Data
   List<TaskModel> _clientTasks = [];
@@ -269,6 +272,12 @@ class _JobPostPageState extends State<JobPostPage>
 
       // Filter status tasks
       _filteredTasksStatus = _clientTasksTasker.where((task) {
+        // Exclude deleted, recovered, and archived tasks
+        if (task.taskStatus == 'Deleted' ||
+            task.taskStatus == 'Recovered' ||
+            task.taskStatus == 'Archived') {
+          return false;
+        }
         if (_currentFilterStatus == 'All') return true;
         final matchesSearch =
             (task.post_task?.title.toLowerCase().contains(query) ?? false) ||
@@ -716,6 +725,198 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
+  void _showSelectorModal(BuildContext context, TaskFetch task) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          elevation: 8.0,
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Task Options',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildModalOption(
+                  context,
+                  icon: Icons.archive_outlined,
+                  title: 'Archive Task',
+                  color: Colors.blueAccent,
+                  onTap: () async {
+                    try {
+                      await _taskController.updateTaskStatus(
+                          context, task.id, 'Archived');
+                      setState(() {
+                        // Remove the task from both lists
+                        _clientTasksTasker.removeWhere((t) => t.id == task.id);
+                        _filteredTasksStatus
+                            .removeWhere((t) => t.id == task.id);
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Task archived successfully',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                          backgroundColor: Colors.green,
+                          behavior: SnackBarBehavior.floating,
+                          margin: EdgeInsets.all(10),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      Navigator.pop(context);
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Failed to archive task',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                          margin: EdgeInsets.all(10),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      debugPrint('Error archiving task: $e');
+                    }
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildModalOption(
+                  context,
+                  icon: Icons.delete_outline,
+                  title: 'Delete Task',
+                  color: Colors.redAccent,
+                  onTap: () async {
+                    try {
+                      await _taskController.updateTaskStatus(
+                          context, task.id, 'Deleted');
+                      setState(() {
+                        // Remove the task from both lists
+                        _clientTasksTasker.removeWhere((t) => t.id == task.id);
+                        _filteredTasksStatus
+                            .removeWhere((t) => t.id == task.id);
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Task deleted successfully',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                          backgroundColor: Colors.green,
+                          behavior: SnackBarBehavior.floating,
+                          margin: EdgeInsets.all(10),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      Navigator.pop(context);
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Failed to delete task',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                          margin: EdgeInsets.all(10),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      debugPrint('Error deleting task: $e');
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.center,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      'Cancel',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w300,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildModalOption(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.grey[100], // Light background for contrast
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: color,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w300,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildTaskStatusViewCard(TaskFetch task) {
     return Card(
       elevation: 3,
@@ -725,6 +926,9 @@ class _JobPostPageState extends State<JobPostPage>
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () => _navigateToTaskStatusPage(task),
+        onLongPress: () {
+          _showSelectorModal(context, task);
+        },
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -1109,6 +1313,102 @@ class _JobPostPageState extends State<JobPostPage>
     ).then((value) => _fetchTasksManagement());
   }
 
+  void _showAnimatedMenu(BuildContext context) {
+    final RenderBox renderBox =
+        _moreVertKey.currentContext!.findRenderObject() as RenderBox;
+    final position = renderBox.localToGlobal(Offset.zero);
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    final double menuWidth = screenWidth / 1.5;
+    final double leftPosition =
+        position.dx + renderBox.size.width - menuWidth - 10;
+    final double topPosition = position.dy + renderBox.size.height;
+
+    final double adjustedLeft = leftPosition < 0
+        ? 0
+        : leftPosition + menuWidth > screenWidth
+            ? screenWidth - menuWidth
+            : leftPosition;
+
+    OverlayState overlayState = Overlay.of(context);
+    late OverlayEntry overlayEntry;
+
+    overlayEntry = OverlayEntry(
+      builder: (context) => Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () {
+                overlayEntry.remove();
+              },
+              child: Container(
+                color: Colors.transparent,
+              ),
+            ),
+          ),
+          Positioned(
+            left: adjustedLeft,
+            top: topPosition,
+            width: menuWidth,
+            child: Material(
+              elevation: 4,
+              borderRadius: BorderRadius.circular(8),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    buildListTile(
+                      Icons.archive_outlined,
+                      "Task Archive",
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  TaskArchivePage(role: _user?.user.role)),
+                        );
+                        overlayEntry.remove();
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    overlayState.insert(overlayEntry);
+  }
+
+  Widget buildListTile(
+    IconData icon,
+    String title,
+    VoidCallback onTap,
+  ) {
+    return ListTile(
+        leading: Icon(
+          icon,
+          color: const Color(0xFFB71A4A),
+        ),
+        title: Text(
+          title,
+          style: GoogleFonts.poppins(
+            color: Colors.black87,
+            fontSize: 14,
+            fontWeight: FontWeight.w300,
+          ),
+        ),
+        onTap: onTap);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1122,7 +1422,19 @@ class _JobPostPageState extends State<JobPostPage>
             color: const Color(0xFFB71A4A),
           ),
         ),
-        centerTitle: true,
+        actions: [
+          IconButton(
+            key: _moreVertKey,
+            icon: Icon(
+              Icons.more_horiz,
+              color: Color(0xFFB71A4A),
+            ),
+            onPressed: () {
+              _showAnimatedMenu(context);
+            },
+          ),
+        ],
+        centerTitle: false,
         backgroundColor: Colors.grey[100],
         elevation: 0,
         bottom: TabBar(

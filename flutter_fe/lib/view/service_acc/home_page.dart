@@ -13,6 +13,7 @@ import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/address/set-up_address.dart';
 import 'package:flutter_fe/view/business_acc/notif_screen.dart';
+import 'package:flutter_fe/view/configuration/configuration_list.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
 import 'package:flutter_fe/view/service_acc/notif_screen.dart';
 import 'package:flutter_fe/view/service_acc/tasker_feedback.dart';
@@ -548,7 +549,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                       },
                     ),
                     //Implement Here verification Check.
-                    buildListTile(FontAwesomeIcons.userCheck, "Verify Account",
+                    buildListTile(FontAwesomeIcons.shield, "Verify Account",
                         () {
                       Navigator.push(
                         context,
@@ -575,6 +576,16 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                     buildListTile(FontAwesomeIcons.book, "Our Handbook", () {
                       overlayEntry.remove();
                     }),
+                    buildListTile(FontAwesomeIcons.gear, "Configuration", () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => ConfigurationList()),
+                      ).then((value) => setState(() {
+                            _fetchTasks();
+                          }));
+                      overlayEntry.remove();
+                    }),
                     buildListTile(FontAwesomeIcons.gears, "Settings", () {
                       Navigator.push(
                         context,
@@ -585,6 +596,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                           }));
                       overlayEntry.remove();
                     }),
+
                     Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 10),

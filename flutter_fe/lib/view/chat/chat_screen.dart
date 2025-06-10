@@ -951,6 +951,15 @@ class _ChatScreenState extends State<ChatScreen> {
                   taskTakenId: taskTaken.taskTakenId,
                   taskId: taskTaken.task?.id ?? 0,
                   taskTitle: taskTaken.task?.title ?? '',
+                  user: user ??
+                      UserModel(
+                        firstName: '',
+                        middleName: '',
+                        lastName: '',
+                        email: '',
+                        role: '',
+                        accStatus: '',
+                      ),
                 ),
               ),
             ).then((_) {

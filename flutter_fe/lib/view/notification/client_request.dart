@@ -281,14 +281,16 @@ class _ClientRequestState extends State<ClientRequest> {
 
                                       final String value = 'Reject';
                                       debugPrint("Reject request role: $_role");
-                                      final result = await taskController.updateRequest(
+                                      final result =
+                                          await taskController.updateRequest(
                                         _requestInformation!.task_taken_id!,
                                         value,
                                         _role!,
                                       );
                                       debugPrint(
                                           "Reject request result: $result");
-                                      if (result.containsKey('success') && result['success']) {
+                                      if (result.containsKey('success') &&
+                                          result['success']) {
                                         Navigator.pop(context);
                                       } else {
                                         setState(() {
@@ -329,12 +331,14 @@ class _ClientRequestState extends State<ClientRequest> {
                                       });
                                       debugPrint("Reject request role: $_role");
                                       final String value = 'Accept';
-                                      final result = await taskController.updateRequest(
+                                      final result =
+                                          await taskController.updateRequest(
                                         _requestInformation!.task_taken_id!,
                                         value,
                                         _role!,
                                       );
-                                      if (result.containsKey('success') && result['success']) {
+                                      if (result.containsKey('success') &&
+                                          result['success']) {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(

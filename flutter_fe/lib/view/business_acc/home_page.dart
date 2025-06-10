@@ -13,6 +13,7 @@ import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/controller/tasker_controller.dart';
 import 'package:flutter_fe/view/address/set-up_address.dart';
 import 'package:flutter_fe/view/business_acc/notif_screen.dart';
+import 'package:flutter_fe/view/configuration/configuration_list.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
 import 'package:flutter_fe/view/service_acc/notif_screen.dart';
 import 'package:flutter_fe/view/setting/setting.dart';
@@ -549,6 +550,30 @@ class _ClientHomePageState extends State<ClientHomePage>
                         ),
                       ),
                       onTap: () {
+                        overlayEntry.remove();
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(
+                        Icons.settings,
+                        color: const Color(0xFFB71A4A),
+                      ),
+                      title: Text(
+                        'Configuration',
+                        style: GoogleFonts.poppins(
+                          color: Colors.black,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w300,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ConfigurationList()),
+                        ).then((value) => setState(() {
+                              _fetchTaskers();
+                            }));
                         overlayEntry.remove();
                       },
                     ),
