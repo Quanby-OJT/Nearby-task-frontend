@@ -3,7 +3,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TaskService } from 'src/app/services/task.service';
 import { CommonModule } from '@angular/common';
 import { AngularSvgIconModule } from 'angular-svg-icon';
-import Swal from 'sweetalert2'; // Import SweetAlert2
+import Swal from 'sweetalert2';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-task-reported-list',
@@ -14,12 +15,14 @@ import Swal from 'sweetalert2'; // Import SweetAlert2
 })
 export class TaskReportedListComponent implements OnInit {
   task: any;
+  userRole: string | undefined;
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private taskService: TaskService,
-    private cdr: ChangeDetectorRef 
+    private cdr: ChangeDetectorRef,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -35,6 +38,14 @@ export class TaskReportedListComponent implements OnInit {
         }
       });
     }
+    this.authService.userInformation().subscribe(
+      (response: any) => {
+        this.userRole = response.user.user_role;
+      },
+      (error: any) => {
+        console.error('Error fetching user role:', error);
+      }
+    );
   }
 
   taskList() {
@@ -46,7 +57,11 @@ export class TaskReportedListComponent implements OnInit {
 
     if (!this.task?.task_id) return;
 
-    // Show SweetAlert2 popup with input field
+    if (this.userRole === 'Moderator' && this.task.action_by_user?.user_role === 'Admin') {
+      await Swal.fire('Access Denied', "You don't have authority to take action here since this action is made by an admin", 'error');
+      return;
+    }
+
     const { value: reason } = await Swal.fire({
       title: 'Close This Task',
       html: `
@@ -67,12 +82,10 @@ export class TaskReportedListComponent implements OnInit {
         const confirmButton = Swal.getConfirmButton();
         const reasonInput = document.getElementById('reason-input') as HTMLInputElement;
 
-        // Disable confirm button initially
         if (confirmButton) {
           confirmButton.disabled = true;
         }
 
-        // Enable confirm button only when input has a value
         reasonInput.addEventListener('input', () => {
           if (confirmButton) {
             confirmButton.disabled = !reasonInput.value.trim();
@@ -81,7 +94,6 @@ export class TaskReportedListComponent implements OnInit {
       }
     });
 
-    // If the user confirms and provides a reason, proceed with disabling the task
     if (reason) {
       this.taskService.disableTask(this.task.task_id, reason).subscribe({
         next: () => {
@@ -99,13 +111,16 @@ export class TaskReportedListComponent implements OnInit {
     }
   }
 
-
   async activateTask(event: Event) { 
     event.preventDefault(); 
 
     if (!this.task?.task_id) return;
 
-    // Show SweetAlert2 popup with input field
+    if (this.userRole === 'Moderator' && this.task.action_by_user?.user_role === 'Admin') {
+      await Swal.fire('Access Denied', "You don't have authority to take action here since this action is made by an admin", 'error');
+      return;
+    }
+
     const { value: reason } = await Swal.fire({
       title: 'Activate This Task',
       html: `
@@ -126,12 +141,10 @@ export class TaskReportedListComponent implements OnInit {
         const confirmButton = Swal.getConfirmButton();
         const reasonInput = document.getElementById('reason-input') as HTMLInputElement;
 
-        // Disable confirm button initially
         if (confirmButton) {
           confirmButton.disabled = true;
         }
 
-        // Enable confirm button only when input has a value
         reasonInput.addEventListener('input', () => {
           if (confirmButton) {
             confirmButton.disabled = !reasonInput.value.trim();
@@ -140,7 +153,6 @@ export class TaskReportedListComponent implements OnInit {
       }
     });
 
-    // If the user confirms and provides a reason, proceed with disabling the task
     if (reason) {
       this.taskService.activateTask(this.task.task_id, reason).subscribe({
         next: () => {

@@ -15,6 +15,7 @@ import '../service/api_service.dart';
 import '../model/tasker_model.dart';
 import '../model/auth_user.dart';
 import '../view/custom_loading/statusModal.dart';
+import 'package:syncfusion_flutter_signaturepad/signaturepad.dart';
 
 class ProfileController {
   //General Account Information

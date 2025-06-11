@@ -28,6 +28,7 @@ export class UpdateUserComponent {
   isLoading: boolean = true;
   today: string;
   actionByName: string = '';
+  userRole: string = '';
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -50,6 +51,23 @@ export class UpdateUserComponent {
       this.loadUserData();
       this.loadActionByName();
       console.log('User ID:', this.userId);
+    }
+
+    // Get current user's role
+    const currentUserId = localStorage.getItem('user_id');
+    if (currentUserId) {
+      this.userAccountService.getUserById(Number(currentUserId)).subscribe({
+        next: (response: any) => {
+          const user = response.user || response;
+          this.userRole = user.user_role || 'Unknown';
+          this.cdRef.detectChanges();
+        },
+        error: (error: any) => {
+          console.error('Error fetching current user role:', error);
+          this.userRole = 'Unknown';
+          this.cdRef.detectChanges();
+        }
+      });
     }
   }
 
@@ -108,6 +126,25 @@ export class UpdateUserComponent {
         console.log('Processed User Data:', this.userData);
 
         if (this.userData) {
+          // If there's an action_by, fetch that user's data to get their role
+          if (this.userData.action_by) {
+            this.userAccountService.getUserById(Number(this.userData.action_by)).subscribe({
+              next: (actionByResponse: any) => {
+                const actionByUser = actionByResponse.user || actionByResponse;
+                this.userData.action_by_user = {
+                  first_name: actionByUser.first_name,
+                  middle_name: actionByUser.middle_name,
+                  last_name: actionByUser.last_name,
+                  user_role: actionByUser.user_role
+                };
+                this.cdRef.detectChanges();
+              },
+              error: (error: any) => {
+                console.error('Error fetching action_by user data:', error);
+              }
+            });
+          }
+
           const birthdate = this.userData.birthdate
             ? new Date(this.userData.birthdate).toISOString().split('T')[0]
             : '';
@@ -145,7 +182,7 @@ export class UpdateUserComponent {
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'Failed to load user data: ' + (error.message915 || 'Unknown error'),
+          text: 'Failed to load user data: ' + (error.message || 'Unknown error'),
         });
       },
     });
@@ -195,6 +232,12 @@ export class UpdateUserComponent {
         title: 'Validation Error',
         text: 'Please check the form for errors!',
       });
+      return;
+    }
+
+    // Check if current user is Moderator and prior action was by Admin
+    if (this.userRole === 'Moderator' && this.userData?.action_by_user?.user_role === 'Admin') {
+      await Swal.fire('Access Denied', "You don't have authority to take action here since this action is made by an admin", 'error');
       return;
     }
 

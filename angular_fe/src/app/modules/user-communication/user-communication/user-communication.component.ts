@@ -302,60 +302,59 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
     }
   }
 
-  async appealUser(id: number, taskTakenId: number): Promise<void> {
-    const { value: reason } = await Swal.fire({
-      title: 'Appeal User',
-      html: `
-        <label for="reason-input" class="block text-sm font-medium text-gray-700 mb-2">Reason for banning</label>
-        <input id="reason-input" class="swal2-input" placeholder="Enter reason" />
-      `,
-      showCancelButton: true,
-      confirmButtonText: 'Confirm',
-      cancelButtonText: 'Cancel',
-      preConfirm: () => {
-        const reasonInput = (document.getElementById('reason-input') as HTMLInputElement).value;
-        if (!reasonInput) {
-          Swal.showValidationMessage('Please provide a reason for this action');
-        }
-        return reasonInput;
+  async banUser(id: number, taskTakenId: number): Promise<void> {
+    // First check authorization with backend
+    this.userConversationService.checkAuthorization(id, taskTakenId).subscribe({
+      next: (response) => {
+        // If authorized, show reason modal
+        this.showBanReasonModal(id, taskTakenId);
       },
-      willOpen: () => {
-        const confirmButton = Swal.getConfirmButton();
-        const reasonInput = document.getElementById('reason-input') as HTMLInputElement;
-        if (confirmButton) {
-          confirmButton.disabled = true;
+      error: (error) => {
+        if (error.status === 403) {
+          Swal.fire('Access Denied', error.error.error || `You don't authority to take action here since this action is made by an admin.`, 'error');
+        } else {
+          Swal.fire('Error!', error.error.error || 'Failed to check authorization.', 'error');
         }
-        reasonInput.addEventListener('input', () => {
-          if (confirmButton) {
-            confirmButton.disabled = !reasonInput.value.trim();
-          }
-        });
       }
     });
-
-    if (reason) {
-      this.userConversationService.appealUser(id, taskTakenId, reason).subscribe({
-        next: (response) => {
-          if (response) {
-            Swal.fire('Banned!', 'User has been banned.', 'success').then(() => {
-              this.userConversationService.getUserConversation().subscribe((response: { data: Conversation[] }) => {
-                if (response && response.data) {
-                  this.conversation = response.data;
-                  this.filteredConversations = [...this.conversation];
-                  this.updatePage();
-                }
-              });
-            });
-          }
-        },
-        error: (error) => {
-          Swal.fire('Error!', error.message || 'Failed to ban the user.', 'error');
-        }
-      });
-    }
   }
 
-  async banUser(id: number, taskTakenId: number): Promise<void> {
+  async warnUser(id: number, taskTakenId: number): Promise<void> {
+    // First check authorization with backend
+    this.userConversationService.checkAuthorization(id, taskTakenId).subscribe({
+      next: (response) => {
+        // If authorized, show reason modal
+        this.showWarnReasonModal(id, taskTakenId);
+      },
+      error: (error) => {
+        if (error.status === 403) {
+          Swal.fire('Access Denied', error.error.error || `You don't authority to take action here since this action is made by an admin.`, 'error');
+        } else {
+          Swal.fire('Error!', error.error.error || 'Failed to check authorization.', 'error');
+        }
+      }
+    });
+  }
+
+  async appealUser(id: number, taskTakenId: number): Promise<void> {
+    // First check authorization with backend
+    this.userConversationService.checkAuthorization(id, taskTakenId).subscribe({
+      next: (response) => {
+        // If authorized, show reason modal
+        this.showAppealReasonModal(id, taskTakenId);
+      },
+      error: (error) => {
+        if (error.status === 403) {
+          Swal.fire('Access Denied', error.error.error || `You don't authority to take action here since this action is made by an admin.`, 'error');
+        } else {
+          Swal.fire('Error!', error.error.error || 'Failed to check authorization.', 'error');
+        }
+      }
+    });
+  }
+
+  // Helper methods to show reason modals
+  private async showBanReasonModal(id: number, taskTakenId: number): Promise<void> {
     const { value: reason } = await Swal.fire({
       title: 'Ban User',
       html: `
@@ -402,13 +401,13 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          Swal.fire('Error!', error.message || 'Failed to ban the user.', 'error');
+          Swal.fire('Error!', error.error.error || 'Failed to ban the user.', 'error');
         }
       });
     }
   }
 
-  async warnUser(id: number, taskTakenId: number): Promise<void> {
+  private async showWarnReasonModal(id: number, taskTakenId: number): Promise<void> {
     const { value: reason } = await Swal.fire({
       title: 'Warn User',
       html: `
@@ -455,7 +454,60 @@ export class UserCommunicationComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          Swal.fire('Error!', error.message || 'Failed to warn the user.', 'error');
+          Swal.fire('Error!', error.error.error || 'Failed to warn the user.', 'error');
+        }
+      });
+    }
+  }
+
+  private async showAppealReasonModal(id: number, taskTakenId: number): Promise<void> {
+    const { value: reason } = await Swal.fire({
+      title: 'Appeal User',
+      html: `
+        <label for="reason-input" class="block text-sm font-medium text-gray-700 mb-2">Reason for appealing</label>
+        <input id="reason-input" class="swal2-input" placeholder="Enter reason" />
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Confirm',
+      cancelButtonText: 'Cancel',
+      preConfirm: () => {
+        const reasonInput = (document.getElementById('reason-input') as HTMLInputElement).value;
+        if (!reasonInput) {
+          Swal.showValidationMessage('Please provide a reason for this action');
+        }
+        return reasonInput;
+      },
+      willOpen: () => {
+        const confirmButton = Swal.getConfirmButton();
+        const reasonInput = document.getElementById('reason-input') as HTMLInputElement;
+        if (confirmButton) {
+          confirmButton.disabled = true;
+        }
+        reasonInput.addEventListener('input', () => {
+          if (confirmButton) {
+            confirmButton.disabled = !reasonInput.value.trim();
+          }
+        });
+      }
+    });
+
+    if (reason) {
+      this.userConversationService.appealUser(id, taskTakenId, reason).subscribe({
+        next: (response) => {
+          if (response) {
+            Swal.fire('Appealed!', 'User has been appealed.', 'success').then(() => {
+              this.userConversationService.getUserConversation().subscribe((response: { data: Conversation[] }) => {
+                if (response && response.data) {
+                  this.conversation = response.data;
+                  this.filteredConversations = [...this.conversation];
+                  this.updatePage();
+                }
+              });
+            });
+          }
+        },
+        error: (error) => {
+          Swal.fire('Error!', error.error.error || 'Failed to appeal the user.', 'error');
         }
       });
     }

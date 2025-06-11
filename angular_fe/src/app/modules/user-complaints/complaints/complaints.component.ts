@@ -15,6 +15,7 @@ import Swal from 'sweetalert2';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { ReportCardComponent } from './report-card/report-card.component';
 import { LoadingService } from 'src/app/services/loading.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-complaints',
@@ -343,115 +344,189 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
   }
 
   async banUser(reportId: number) {
-    const { value: reason } = await Swal.fire({
-      title: 'Ban User',
-      html: `
-        <label for="reason-input" class="block text-sm font-medium text-gray-700 mb-2">Reason for banning</label>
-        <input id="reason-input" class="swal2-input" placeholder="Enter reason" />
-      `,
-      showCancelButton: true,
-      confirmButtonText: 'Confirm',
-      cancelButtonText: 'Cancel',
-      preConfirm: () => {
-        const reasonInput = (document.getElementById('reason-input') as HTMLInputElement).value;
-        if (!reasonInput) {
-          Swal.showValidationMessage('Please provide a reason for this action');
+    try {
+      // Get the selected report
+      const report = this.reports.find(r => r.report_id === reportId);
+      if (!report) {
+        Swal.fire({
+          title: 'Error',
+          text: 'Report not found',
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#3C28CC'
+        });
+        return;
+      }
+
+      // Check authorization based on roles and prior actions
+      if (report.actionBy) {
+        const priorActionRole = report.actionBy.user_role;
+        
+        // Case 1: Moderator trying to act on Admin's action
+        if (this.userRole === 'Moderator' && priorActionRole === 'Admin') {
+          Swal.fire({
+            title: 'Access Denied',
+            text: `You don't have authority to take action here since this action is made by an admin`,
+            icon: 'error',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#3C28CC'
+          });
+          return;
         }
-        return reasonInput;
-      },
-      willOpen: () => {
-        const confirmButton = Swal.getConfirmButton();
-        const reasonInput = document.getElementById('reason-input') as HTMLInputElement;
-        if (confirmButton) {
-          confirmButton.disabled = true;
+      }
+
+      // If authorized, proceed with showing the ban reason modal
+      const { value: reason } = await Swal.fire({
+        title: 'Ban User',
+        input: 'textarea',
+        inputLabel: 'Reason for banning',
+        inputPlaceholder: 'Enter your reason here...',
+        showCancelButton: true,
+        confirmButtonText: 'Ban',
+        confirmButtonColor: '#3C28CC',
+        cancelButtonText: 'Cancel',
+        inputValidator: (value) => {
+          if (!value) {
+            return 'You need to write something!';
+          }
+          return null;
         }
-        reasonInput.addEventListener('input', () => {
-          if (confirmButton) {
-            confirmButton.disabled = !reasonInput.value.trim();
+      });
+
+      if (reason) {
+        this.loadingService.show();
+        this.reportService.updateReportStatus(reportId, true, reason, 'ban').subscribe({
+          next: () => {
+            this.loadingService.hide();
+            Swal.fire({
+              title: 'Success!',
+              text: 'User has been banned successfully',
+              icon: 'success',
+              confirmButtonText: 'OK',
+              confirmButtonColor: '#3C28CC'
+            });
+            this.reportService.getReport().subscribe();
+          },
+          error: (error) => {
+            this.loadingService.hide();
+            Swal.fire({
+              title: 'Error!',
+              text: error.message || 'Failed to ban user',
+              icon: 'error',
+              confirmButtonText: 'OK',
+              confirmButtonColor: '#3C28CC'
+            });
           }
         });
       }
-    });
-
-    if (reason) {
-      console.log('Ban User Request:', { reportId, status: true, reason, actionType: 'ban' });
-      this.reportService.updateReportStatus(reportId, true, reason, 'ban').subscribe({
-        next: (response) => {
-          if (response.success) {
-            Swal.fire('Banned!', 'User has been banned.', 'success').then(() => {
-              this.reportService.getReport().subscribe((response: { success: boolean; reports: Report[] }) => {
-                if (response.success) {
-                  this.reports = response.reports;
-                  this.filteredReports = [...this.reports];
-                  this.updatePage();
-                }
-              });
-            });
-          } else {
-            Swal.fire('Error!', 'Failed to ban the user.', 'error');
-          }
-        },
-        error: (err) => {
-          console.error('Ban User Error:', err);
-          Swal.fire('Error!', err.message || 'Error banning user.', 'error');
-        }
+    } catch (error: any) {
+      this.loadingService.hide();
+      Swal.fire({
+        title: 'Error!',
+        text: error.message || 'Failed to process request',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#3C28CC'
       });
     }
   }
 
   async unbanUser(reportId: number) {
-    const { value: reason } = await Swal.fire({
-      title: 'Unban User',
-      html: `
-        <label for="reason-input" class="block text-sm font-medium text-gray-700 mb-2">Reason for unbanning</label>
-        <input id="reason-input" class="swal2-input" placeholder="Enter reason" />
-      `,
-      showCancelButton: true,
-      confirmButtonText: 'Confirm',
-      cancelButtonText: 'Cancel',
-      preConfirm: () => {
-        const reasonInput = (document.getElementById('reason-input') as HTMLInputElement).value;
-        if (!reasonInput) {
-          Swal.showValidationMessage('Please provide a reason for this action');
+    try {
+      // Get the selected report
+      const report = this.reports.find(r => r.report_id === reportId);
+      if (!report) {
+        Swal.fire({
+          title: 'Error',
+          text: 'Report not found',
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#3C28CC'
+        });
+        return;
+      }
+
+      // Check authorization based on roles and prior actions
+      if (report.actionBy) {
+        const priorActionRole = report.actionBy.user_role;
+        
+        // Case 1: Moderator trying to act on Admin's action
+        if (this.userRole === 'Moderator' && priorActionRole === 'Admin') {
+          Swal.fire({
+            title: 'Access Denied',
+            text: `You don't have authority to take action here since this action is made by an admin`,
+            icon: 'error',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#3C28CC'
+          });
+          return;
         }
-        return reasonInput;
-      },
-      willOpen: () => {
-        const confirmButton = Swal.getConfirmButton();
-        const reasonInput = document.getElementById('reason-input') as HTMLInputElement;
-        if (confirmButton) {
-          confirmButton.disabled = true;
-        }
-        reasonInput.addEventListener('input', () => {
+      }
+
+      const { value: reason } = await Swal.fire({
+        title: 'Unban User',
+        html: `
+          <label for="reason-input" class="block text-sm font-medium text-gray-700 mb-2">Reason for unbanning</label>
+          <input id="reason-input" class="swal2-input" placeholder="Enter reason" />
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Confirm',
+        cancelButtonText: 'Cancel',
+        preConfirm: () => {
+          const reasonInput = (document.getElementById('reason-input') as HTMLInputElement).value;
+          if (!reasonInput) {
+            Swal.showValidationMessage('Please provide a reason for this action');
+          }
+          return reasonInput;
+        },
+        willOpen: () => {
+          const confirmButton = Swal.getConfirmButton();
+          const reasonInput = document.getElementById('reason-input') as HTMLInputElement;
           if (confirmButton) {
-            confirmButton.disabled = !reasonInput.value.trim();
+            confirmButton.disabled = true;
+          }
+          reasonInput.addEventListener('input', () => {
+            if (confirmButton) {
+              confirmButton.disabled = !reasonInput.value.trim();
+            }
+          });
+        }
+      });
+
+      if (reason) {
+        this.loadingService.show();
+        this.reportService.updateReportStatus(reportId, true, reason, 'unban').subscribe({
+          next: (response) => {
+            this.loadingService.hide();
+            if (response.success) {
+              Swal.fire('Unbanned!', 'User has been unbanned.', 'success').then(() => {
+                this.reportService.getReport().subscribe((response: { success: boolean; reports: Report[] }) => {
+                  if (response.success) {
+                    this.reports = response.reports;
+                    this.filteredReports = [...this.reports];
+                    this.updatePage();
+                  }
+                });
+              });
+            } else {
+              Swal.fire('Error!', 'Failed to unban the user.', 'error');
+            }
+          },
+          error: (err) => {
+            this.loadingService.hide();
+            console.error('Unban User Error:', err);
+            Swal.fire('Error!', err.message || 'Error unbanning user.', 'error');
           }
         });
       }
-    });
-
-    if (reason) {
-      console.log('Unban User Request:', { reportId, status: true, reason, actionType: 'unban' });
-      this.reportService.updateReportStatus(reportId, true, reason, 'unban').subscribe({
-        next: (response) => {
-          if (response.success) {
-            Swal.fire('Unbanned!', 'User has been unbanned.', 'success').then(() => {
-              this.reportService.getReport().subscribe((response: { success: boolean; reports: Report[] }) => {
-                if (response.success) {
-                  this.reports = response.reports;
-                  this.filteredReports = [...this.reports];
-                  this.updatePage();
-                }
-              });
-            });
-          } else {
-            Swal.fire('Error!', 'Failed to unban the user.', 'error');
-          }
-        },
-        error: (err) => {
-          console.error('Unban User Error:', err);
-          Swal.fire('Error!', err.message || 'Error unbanning user.', 'error');
-        }
+    } catch (error: any) {
+      this.loadingService.hide();
+      Swal.fire({
+        title: 'Error!',
+        text: error.message || 'Failed to process request',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#3C28CC'
       });
     }
   }

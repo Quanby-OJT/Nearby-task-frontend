@@ -24,6 +24,7 @@ export interface Task {
       first_name: string;
       middle_name?: string;
       last_name: string;
+      user_role: string;
   };
   action_reason?: string;
   task_begin_date: string; 
