@@ -58,8 +58,8 @@ class _ServiceAccMainState extends State<ServiceAccMain>
   Widget build(BuildContext context) {
     final List<IconData> icons = [
       FontAwesomeIcons.house,
-      FontAwesomeIcons.listCheck,
-      FontAwesomeIcons.pesoSign,
+      FontAwesomeIcons.screwdriverWrench,
+      FontAwesomeIcons.moneyBill1Wave,
       FontAwesomeIcons.solidMessage,
       FontAwesomeIcons.solidHeart,
     ];

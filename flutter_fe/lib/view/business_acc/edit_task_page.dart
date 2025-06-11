@@ -220,7 +220,7 @@ class _EditTaskPageState extends State<EditTaskPage>
     try {
       int userId = int.parse(storage.read('user_id').toString());
       AuthenticatedUser? user =
-          await profileController.getAuthenticatedUser(context, userId);
+          await profileController.getAuthenticatedUser(userId);
       final response = await clientServices.fetchUserIDImage(userId);
 
       if (response['success']) {

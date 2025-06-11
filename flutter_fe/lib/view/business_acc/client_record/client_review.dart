@@ -296,7 +296,7 @@ class _ClientReviewState extends State<ClientReview> {
   Future<void> _fetchTaskerDetails(int userId) async {
     try {
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
       setState(() {
         client = user;
       });

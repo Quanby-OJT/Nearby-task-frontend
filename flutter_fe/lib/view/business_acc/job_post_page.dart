@@ -162,7 +162,7 @@ class _JobPostPageState extends State<JobPostPage>
     try {
       final parsedUserId = int.parse(userId.toString());
       final user =
-          await _profileController.getAuthenticatedUser(context, parsedUserId);
+          await _profileController.getAuthenticatedUser(parsedUserId);
       final response = await _clientServices.fetchUserIDImage(parsedUserId);
 
       // Check if user has Review or Active status
@@ -584,7 +584,7 @@ class _JobPostPageState extends State<JobPostPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.task_alt, size: 64, color: Colors.grey[400]),
+            Icon(FontAwesomeIcons.screwdriverWrench, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
               'No tasks found',

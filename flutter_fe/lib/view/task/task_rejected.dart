@@ -61,7 +61,7 @@ class _TaskRejectedState extends State<TaskRejected> {
     try {
       final int userId = storage.read("user_id") ?? 0;
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
 
       setState(() {
         tasker = user;

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/conversation.dart';
+import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/controller/conversation_controller.dart';
@@ -11,14 +12,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class IndividualChatScreen extends StatefulWidget {
-  final String? taskTitle;
-  final int? taskTakenId;
-  final int? taskId;
+  final TaskAssignment taskAssignment;
   const IndividualChatScreen({
     super.key,
-    this.taskTitle,
-    required this.taskTakenId,
-    required this.taskId,
+    required this.taskAssignment
   });
 
   @override
@@ -53,7 +50,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
 
   Future<void> loadInitialData() async {
     final task =
-        await jobPostService.fetchTaskInformation(widget.taskTakenId ?? 0);
+        await jobPostService.fetchTaskInformation(widget.taskAssignment.taskTakenId);
     setState(() {
       this.task = task.task;
     });
@@ -62,7 +59,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
 
   Future<void> loadConversationHistory() async {
     final messages = await conversationController.getMessages(
-        context, widget.taskTakenId ?? 0);
+        context, widget.taskAssignment.taskTakenId);
     setState(() {
       _messages.clear();
       _messages.addAll(messages);
@@ -98,7 +95,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
             SizedBox(width: 10),
             Flexible(
               child: Text(
-                widget.taskTitle ?? "Please Wait...",
+                widget.taskAssignment.task?.title ?? "Please Wait...",
                 style: GoogleFonts.poppins(
                   color: Color(0xFFB71A4A),
                   fontSize: 18,
@@ -130,7 +127,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => TaskDetailsScreen(
-                    taskTakenId: widget.taskTakenId ?? 0,
+                    taskAssignment: widget.taskAssignment,
                   ),
                 ),
               );
@@ -191,7 +188,7 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
           ),
           _MessageBar(
             controller: conversationController,
-            taskTakenId: widget.taskTakenId ?? 0,
+            taskTakenId: widget.taskAssignment.taskTakenId,
             onMessageSent: loadConversationHistory,
           ),
         ],

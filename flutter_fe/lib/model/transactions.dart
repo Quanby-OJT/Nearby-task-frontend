@@ -13,7 +13,7 @@ class Transactions{
 
   factory Transactions.fromJson(Map<String, dynamic> json) {
     return Transactions(
-      taskAssignment: TaskAssignment.fromJson(json['task_taken']),
+      taskAssignment: json['task_taken'] != null ? TaskAssignment.fromJson(json['task_taken']) : TaskAssignment(taskTakenId: 0, taskStatus: ""),
       recordStatus: json['task_status'],
       date: json['created_at'],
     );

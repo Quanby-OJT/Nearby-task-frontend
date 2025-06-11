@@ -4,6 +4,7 @@ import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/transactions.dart';
 import 'package:flutter_fe/view/task/task_details_screen.dart';
 import 'package:flutter_fe/view/profile/payment_processing.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -140,7 +141,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
                                   0.0
                               ? Text(
                                   "₱ 0.00",
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.montserrat(
                                     color: Colors.white,
                                     fontSize: 36,
                                     fontWeight: FontWeight.bold,
@@ -148,7 +149,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
                                 )
                               : Text(
                                   '₱${_escrowManagementController.tokenCredits.value.toStringAsFixed(2)}',
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.montserrat(
                                     color: Colors.white,
                                     fontSize: 36,
                                     fontWeight: FontWeight.bold,
@@ -385,8 +386,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
                                                 builder: (context) =>
                                                     TaskDetailsScreen(
                                                       taskAssignment:
-                                                          transaction
-                                                              .taskAssignment,
+                                                          transaction.taskAssignment,
                                                       taskStatus: transaction
                                                           .recordStatus,
                                                       transactionDate:

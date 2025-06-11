@@ -29,7 +29,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       int userId = storage.read("user_id");
       AuthenticatedUser? user =
-          await _userController.getAuthenticatedUser(context, userId);
+          await _userController.getAuthenticatedUser(userId);
       debugPrint(user.toString());
       setState(() {
         _user = user;

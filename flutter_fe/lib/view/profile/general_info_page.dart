@@ -74,7 +74,7 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
       if (userId != null) {
         // Fetch authenticated user data from API
         final AuthenticatedUser? authUser = await _profileController
-            .getAuthenticatedUser(context, int.parse(userId.toString()));
+            .getAuthenticatedUser(int.parse(userId.toString()));
 
         if (authUser != null && mounted) {
           // Populate form fields with user data

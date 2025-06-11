@@ -15,24 +15,29 @@ class _LegalTermsAndConditionsScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text("QTask Terms and Conditions",
-              style: GoogleFonts.montserrat(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              )),
-          backgroundColor: Color(0XFF170A66),
+      appBar: AppBar(
+        title: Text("QTask Terms and Conditions",
+          style: GoogleFonts.montserrat(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          )
         ),
-        body: SingleChildScrollView(
-            child: Padding(
-                padding: EdgeInsets.all(20),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ///NOTE: The Legal Terms and Conditions must be crafted with the consultation with a Business Lawyer in relation to using this application.
-                      ///
-                      /// -Ces
-                    ]))));
+        backgroundColor: Color(0XFF170A66),
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ///NOTE: The Legal Terms and Conditions must be crafted with the consultation with a Business Lawyer in relation to using this application.
+              ///
+              /// -Ces
+            ]
+          )
+        )
+      )
+    );
   }
 }

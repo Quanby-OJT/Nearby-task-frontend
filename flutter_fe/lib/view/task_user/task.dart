@@ -18,6 +18,7 @@ import 'package:flutter_fe/view/task/task_ongoing.dart';
 import 'package:flutter_fe/view/task/task_pending.dart';
 import 'package:flutter_fe/view/task/task_rejected.dart';
 import 'package:flutter_fe/view/task/task_review.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -31,8 +32,7 @@ class TaskPage extends StatefulWidget {
   State<TaskPage> createState() => _TaskPageState();
 }
 
-class _TaskPageState extends State<TaskPage>
-    with SingleTickerProviderStateMixin {
+class _TaskPageState extends State<TaskPage> with SingleTickerProviderStateMixin {
   final TaskController controller = TaskController();
   final JobPostService jobPostService = JobPostService();
   final ClientServices _clientServices = ClientServices();
@@ -114,22 +114,29 @@ class _TaskPageState extends State<TaskPage>
       await _loadSkills();
       await _fetchUserIDImage();
       await fetchCreatedTasks();
-      _searchController.addListener(_filterTasks);
+      if (mounted) { // Ensure widget is still mounted before adding listener
+        _searchController.addListener(_filterTasks);
+      }
     });
-    setState(() {
-      isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   Future<void> fetchSpecialization() async {
     try {
       List<SpecializationModel> fetchedSpecializations =
           await jobPostService.getSpecializations();
-      setState(() {
-        specialization =
-            fetchedSpecializations.map((spec) => spec.specialization).toList();
-        debugPrint("Specializations: $specialization");
-      });
+      if (mounted) {
+        setState(() {
+          specialization = fetchedSpecializations
+              .map((spec) => spec.specialization)
+              .toList();
+          debugPrint("Specializations: $specialization");
+        });
+      }
     } catch (error, stackTrace) {
       debugPrint('Error fetching specializations: $error');
       debugPrintStack(stackTrace: stackTrace);
@@ -141,9 +148,11 @@ class _TaskPageState extends State<TaskPage>
       final String response =
           await rootBundle.loadString('assets/tesda_skills.json');
       final data = jsonDecode(response);
-      setState(() {
-        skills = List<String>.from(data['tesda_skills']);
-      });
+      if (mounted) {
+        setState(() {
+          skills = List<String>.from(data['tesda_skills']);
+        });
+      }
     } catch (e, stackTrace) {
       print('Error loading skills: $e');
       debugPrintStack(stackTrace: stackTrace);
@@ -155,64 +164,76 @@ class _TaskPageState extends State<TaskPage>
 
   Future<void> fetchCreatedTasks() async {
     try {
+      if (!mounted) return; // Check if the widget is still mounted
       final tasks = await controller.getTask(context);
       debugPrint("All Tasks applied by tasker: $tasks");
-      setState(() {
-        clientTasks = tasks;
-        filteredTasks = List.from(clientTasks);
-        debugPrint("Filtered Tasks: $filteredTasks");
-      });
+      if (mounted) {
+        setState(() {
+          clientTasks = tasks;
+          filteredTasks = List.from(clientTasks);
+          debugPrint("Filtered Tasks: $filteredTasks");
+        });
+        _filterTasks(); // Call filter tasks only if mounted
+      }
 
       debugPrint("Tasker Tasks: ${clientTasks.toString()}");
-      _filterTasks();
     } catch (e, stackTrace) {
       debugPrint("Error fetching created tasks: $e");
       debugPrintStack(stackTrace: stackTrace);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Failed to load tasks. Please try again."),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
-          action: SnackBarAction(
-            label: 'Retry',
-            onPressed: _loadMethod,
-            textColor: Colors.white,
+      if (mounted) { // Check if the widget is still mounted before showing SnackBar
+        // Ensure context is still valid
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar( //
+          SnackBar(
+            content: Text("Failed to load tasks. Please try again."),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+            action: SnackBarAction(
+              label: 'Retry',
+              onPressed: _loadMethod,
+              textColor: Colors.white,
+            ),
           ),
-        ),
-      );
+        );
+      }
     }
   }
 
   void _filterTasks() {
     String query = _searchController.text.trim().toLowerCase();
-    setState(() {
-      filteredTasks = clientTasks.where((task) {
-        if (task == null) return false;
-        bool matchesSearch =
-            (task.taskDetails!.title.toLowerCase().contains(query) ?? false) ||
-                (task.taskDetails!.description.toLowerCase().contains(query) ??
-                    false);
-        bool matchesStatus =
-            _currentFilter == null || task.taskStatus == _currentFilter;
-        return matchesSearch && matchesStatus;
-      }).toList();
-    });
+    if (mounted) {
+      setState(() {
+        filteredTasks = clientTasks.where((task) {
+          if (task == null) return false;
+          bool matchesSearch = (task.taskDetails!.title
+                      .toLowerCase()
+                      .contains(query) ??
+                  false) ||
+              (task.taskDetails!.description.toLowerCase().contains(query) ??
+                  false);
+          bool matchesStatus =
+              _currentFilter == null || task.taskStatus == _currentFilter;
+          return matchesSearch && matchesStatus;
+        }).toList();
+      });
+    }
   }
-
   Future<void> _fetchUserIDImage() async {
     try {
       int userId = int.parse(storage.read('user_id').toString());
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
       final response = await _clientServices.fetchUserIDImage(userId);
 
       if (response['success']) {
-        setState(() {
-          user = user;
-          existingProfileImageUrl = user?.user.image;
-          existingIDImageUrl = response['url'];
-          documentValid = response['status'];
-        });
+        if (mounted) {
+          setState(() {
+            user = user;
+            existingProfileImageUrl = user?.user.image;
+            existingIDImageUrl = response['url'];
+            documentValid = response['status'];
+          });
+        }
       }
     } catch (e) {
       debugPrint("Error fetching ID image: $e");
@@ -308,7 +329,30 @@ class _TaskPageState extends State<TaskPage>
               child: CircularProgressIndicator(),
             )
           : clientTasks.isEmpty
-              ? const Center(child: Text("No tasks available"))
+              ? Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          FontAwesomeIcons.screwdriverWrench,
+                          size: 64,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'You don\'t have any tasks yet. You can apply for a task by clicking on the "Apply" button, after you saved your desired task.',
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            color: Colors.grey[600],
+                          ),
+                          textAlign: TextAlign.center,
+                        )
+                      ]
+                    )
+                  )
+                )
               : Column(
                   children: [
                     Padding(
