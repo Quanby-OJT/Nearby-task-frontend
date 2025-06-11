@@ -407,16 +407,6 @@ class _LikesScreenState extends State<LikesScreen> {
       );
     }
 
-    if (_user?.user.accStatus?.trim().toLowerCase() != 'review' &&
-        (_existingProfileImageUrl == null ||
-            _existingIDImageUrl == null ||
-            _existingProfileImageUrl!.isEmpty ||
-            _existingIDImageUrl!.isEmpty)) {
-      debugPrint(
-          "Showing missing information - Status: ${_user?.user.accStatus}");
-      return _buildMissingInformation();
-    }
-
     if (_filteredTasks.isEmpty) {
       return Center(
         child: Column(
@@ -470,63 +460,6 @@ class _LikesScreenState extends State<LikesScreen> {
           final tasker = _filteredTasks[index];
           return _buildTaskerCard(tasker);
         },
-      ),
-    );
-  }
-
-  Widget _buildMissingInformation() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.info_outline, size: 48, color: Colors.orange[400]),
-          SizedBox(height: 16),
-          Text(
-            'Complete Your Profile',
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              color: Colors.orange[700],
-              fontWeight: FontWeight.w600,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Please upload your profile and ID images to continue.',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () async {
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const VerificationPage()),
-              );
-              if (result == true) {
-                await _initializeData();
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFB71A4A),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
-            child: Text(
-              'Upload Profile',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
-import 'dart:convert';
 
 class GeneralInfoPage extends StatefulWidget {
   final Function(Map<String, dynamic> userInfo) onInfoCompleted;
@@ -28,13 +27,6 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _birthdateController = TextEditingController();
-  final TextEditingController _bioController = TextEditingController();
-
-  // Social media controllers
-  final TextEditingController _facebookController = TextEditingController();
-  final TextEditingController _instagramController = TextEditingController();
-  final TextEditingController _linkedinController = TextEditingController();
-  final TextEditingController _twitterController = TextEditingController();
 
   // Form data
   String? _gender;
@@ -59,11 +51,6 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
     _emailController.dispose();
     _phoneController.dispose();
     _birthdateController.dispose();
-    _bioController.dispose();
-    _facebookController.dispose();
-    _instagramController.dispose();
-    _linkedinController.dispose();
-    _twitterController.dispose();
     super.dispose();
   }
 
@@ -113,61 +100,6 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
                 debugPrint('Error parsing birthdate: $e');
               }
             }
-
-            // Set bio if available in user model
-            if (authUser.user.bio != null && authUser.user.bio!.isNotEmpty) {
-              _bioController.text = authUser.user.bio!;
-            }
-
-            // Set social media links if available in user model
-            if (authUser.user.socialMediaLinks != null &&
-                authUser.user.socialMediaLinks!.isNotEmpty) {
-              final socialLinks = authUser.user.socialMediaLinks!;
-
-              if (socialLinks.containsKey('facebook')) {
-                _facebookController.text = socialLinks['facebook']!;
-              }
-
-              if (socialLinks.containsKey('instagram')) {
-                _instagramController.text = socialLinks['instagram']!;
-              }
-
-              if (socialLinks.containsKey('linkedin')) {
-                _linkedinController.text = socialLinks['linkedin']!;
-              }
-
-              if (socialLinks.containsKey('twitter')) {
-                _twitterController.text = socialLinks['twitter']!;
-              }
-            } else {
-              // Try to parse social media links from JSON string if stored that way
-              try {
-                final String socialMediaJson =
-                    storage.read('social_media_links') ?? '{}';
-                if (socialMediaJson != '{}') {
-                  final Map<String, dynamic> socialLinks =
-                      jsonDecode(socialMediaJson);
-
-                  if (socialLinks.containsKey('facebook')) {
-                    _facebookController.text = socialLinks['facebook'];
-                  }
-
-                  if (socialLinks.containsKey('instagram')) {
-                    _instagramController.text = socialLinks['instagram'];
-                  }
-
-                  if (socialLinks.containsKey('linkedin')) {
-                    _linkedinController.text = socialLinks['linkedin'];
-                  }
-
-                  if (socialLinks.containsKey('twitter')) {
-                    _twitterController.text = socialLinks['twitter'];
-                  }
-                }
-              } catch (e) {
-                debugPrint('Error parsing social media links: $e');
-              }
-            }
           });
         }
       }
@@ -214,20 +146,6 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
 
   void _submitInfo() {
     if (_formKey.currentState!.validate()) {
-      // Create social media links object
-      Map<String, String> socialMediaLinks = {
-        'facebook': _facebookController.text.trim(),
-        'instagram': _instagramController.text.trim(),
-        'linkedin': _linkedinController.text.trim(),
-        'twitter': _twitterController.text.trim(),
-      };
-
-      // Remove empty values
-      socialMediaLinks.removeWhere((key, value) => value.isEmpty);
-
-      // Convert to JSON string for storage
-      String socialMediaJson = jsonEncode(socialMediaLinks);
-
       // Create user info object
       Map<String, dynamic> userInfo = {
         'firstName': _firstNameController.text.trim(),
@@ -239,16 +157,7 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
         'birthdate': _birthdate != null
             ? DateFormat('yyyy-MM-dd').format(_birthdate!)
             : null,
-        'payPeriod': 'Hourly', // Default value
-        'wage': 0.0, // Default value
-        'socialMediaJson': socialMediaJson,
-        'bio': _bioController.text.trim(),
-        'socialMediaLinks': socialMediaLinks,
       };
-
-      // Save to storage for future reference
-      storage.write('bio', _bioController.text.trim());
-      storage.write('social_media_links', socialMediaJson);
 
       // Call the callback function with the user info
       widget.onInfoCompleted(userInfo);
@@ -401,135 +310,7 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 24),
 
-                    // Bio Section
-                    Text(
-                      'Professional Bio',
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Bio Text Field
-                    _buildTextField(
-                      controller: _bioController,
-                      label: 'Tell us about yourself and your skills',
-                      icon: Icons.person_outline,
-                      maxLines: 4,
-                      keyboardType: TextInputType.multiline,
-                      hintText:
-                          'Share your experience, skills, and what you can offer to clients',
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Your bio will be visible to potential clients',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontStyle: FontStyle.italic,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-
-                    // After the specialization section, add the pay period and wage section
-                    const SizedBox(height: 24),
-
-                    // After the Compensation Details section, add Social Media Links section
-                    const SizedBox(height: 24),
-
-                    // Social Media Links Section
-                    Text(
-                      'Social Media Links (Optional)',
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Add your social media profiles to enhance your verification',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Facebook
-                    _buildTextField(
-                      controller: _facebookController,
-                      label: 'Facebook Profile URL',
-                      icon: Icons.facebook,
-                      keyboardType: TextInputType.url,
-                      hintText: 'https://facebook.com/yourusername',
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          if (!value.contains('facebook.com')) {
-                            return 'Please enter a valid Facebook URL';
-                          }
-                        }
-                        return null; // Optional field
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Instagram
-                    _buildTextField(
-                      controller: _instagramController,
-                      label: 'Instagram Profile URL',
-                      icon: Icons.camera_alt,
-                      keyboardType: TextInputType.url,
-                      hintText: 'https://instagram.com/yourusername',
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          if (!value.contains('instagram.com')) {
-                            return 'Please enter a valid Instagram URL';
-                          }
-                        }
-                        return null; // Optional field
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // LinkedIn
-                    _buildTextField(
-                      controller: _linkedinController,
-                      label: 'LinkedIn Profile URL',
-                      icon: Icons.business_center,
-                      keyboardType: TextInputType.url,
-                      hintText: 'https://linkedin.com/in/yourusername',
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          if (!value.contains('linkedin.com')) {
-                            return 'Please enter a valid LinkedIn URL';
-                          }
-                        }
-                        return null; // Optional field
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Twitter
-                    _buildTextField(
-                      controller: _twitterController,
-                      label: 'Twitter Profile URL',
-                      icon: Icons.chat,
-                      keyboardType: TextInputType.url,
-                      hintText: 'https://twitter.com/yourusername',
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          if (!value.contains('twitter.com') &&
-                              !value.contains('x.com')) {
-                            return 'Please enter a valid Twitter/X URL';
-                          }
-                        }
-                        return null; // Optional field
-                      },
-                    ),
                     const SizedBox(height: 24),
 
                     // Contact Information Section

@@ -9,6 +9,7 @@ import 'package:flutter_fe/model/setting.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/model/tasker_feedback.dart';
+import 'package:flutter_fe/model/verification_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/controller/tasker_controller.dart';
@@ -23,6 +24,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
+import 'dart:convert';
+import 'package:flutter_fe/service/api_service.dart';
 
 class ClientHomePage extends StatefulWidget {
   const ClientHomePage({super.key});
@@ -71,6 +74,15 @@ class _ClientHomePageState extends State<ClientHomePage>
   bool _showLikeAnimation = false;
   bool _showDislikeAnimation = false;
 
+  VerificationModel? _existingVerification;
+  String? _verificationStatus;
+  bool _isIdVerified = false;
+  bool _isSelfieVerified = false;
+  bool _isDocumentsUploaded = false;
+  bool _isGeneralInfoCompleted = false;
+  String? _idType;
+  Map<String, dynamic> _userInfo = {};
+
   @override
   void initState() {
     super.initState();
@@ -113,10 +125,10 @@ class _ClientHomePageState extends State<ClientHomePage>
   Future<void> _loadAllFunction() async {
     try {
       await Future.wait([
-        _fetchUserIDImage(),
         _fetchUserData(),
         _fetchTaskers(),
-        getAllTaskerImages()
+        getAllTaskerImages(),
+        _checkVerificationStatus(),
       ]);
       setState(() {
         _isLoading = false;
@@ -147,6 +159,60 @@ class _ClientHomePageState extends State<ClientHomePage>
         _isLoading = false;
         _errorMessage = "Failed to load data: $e";
       });
+    }
+  }
+
+  Future<void> _checkVerificationStatus() async {
+    try {
+      final userId = storage.read('user_id');
+      debugPrint('VerificationPage: Retrieved user_id from storage: $userId');
+      debugPrint('VerificationPage: user_id type: ${userId.runtimeType}');
+
+      if (userId != null) {
+        final parsedUserId = int.parse(userId.toString());
+        debugPrint('VerificationPage: Parsed user_id: $parsedUserId');
+
+        final result =
+            await ApiService.getTaskerVerificationStatus(parsedUserId);
+
+        debugPrint(
+            'Verification status check result: ${jsonEncode(result['verification'])}');
+
+        if (result['success'] == true && result['exists'] == true) {
+          // User has existing verification data
+          if (result['verification'] != null) {
+            final verificationData =
+                VerificationModel.fromJson(result['verification']);
+            debugPrint(
+                'VerificationPage: Existing verification data status: ${verificationData.status}');
+
+            setState(() {
+              _existingVerification = verificationData;
+              _verificationStatus = verificationData.status;
+
+              debugPrint(
+                  'VerificationPage: Set _verificationStatus to: $_verificationStatus');
+
+              // Pre-populate data
+              if (verificationData.idImageUrl != null) {
+                _isIdVerified = true;
+                _idType = verificationData.idType;
+              }
+
+              if (verificationData.selfieImageUrl != null) {
+                _isSelfieVerified = true;
+              }
+
+              if (verificationData.documentUrl != null ||
+                  verificationData.clientDocumentUrl != null) {
+                _isDocumentsUploaded = true;
+              }
+            });
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error checking verification status: $e');
     }
   }
 
@@ -274,49 +340,6 @@ class _ClientHomePageState extends State<ClientHomePage>
         });
   }
 
-  Future<void> _fetchUserIDImage() async {
-    try {
-      int userId = int.parse(storage.read('user_id').toString());
-      if (userId == 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              "Failed to fetch ID image.",
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
-            ),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(5),
-            ),
-            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            duration: Duration(seconds: 3),
-          ),
-        );
-        return;
-      }
-
-      AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(userId);
-      final response = await _clientServices.fetchUserIDImage(userId);
-
-      if (response['success']) {
-        setState(() {
-          _user = user;
-          _existingProfileImageUrl = user?.user.image;
-          _existingIDImageUrl = response['url'];
-          _documentValid = response['status'];
-        });
-      }
-    } catch (e) {
-      debugPrint("Error fetching ID image: $e");
-    }
-  }
-
   Future<void> _fetchTaskers() async {
     setState(() {
       _isLoading = true;
@@ -344,11 +367,12 @@ class _ClientHomePageState extends State<ClientHomePage>
     }
   }
 
-  Future<void> getAllTaskerImages() async{
+  Future<void> getAllTaskerImages() async {
     List<int> taskerIds = fetchedTaskers.map((tasker) => tasker.id).toList();
 
-    for(int taskId in taskerIds){
-      List<ImagesModel> images = await taskerController.getAllTaskerImages(taskId) ?? [];
+    for (int taskId in taskerIds) {
+      List<ImagesModel> images =
+          await taskerController.getAllTaskerImages(taskId) ?? [];
       taskerImages.addAll(images.map((image) => image.image_url).toList());
     }
 
@@ -394,8 +418,7 @@ class _ClientHomePageState extends State<ClientHomePage>
                 setState(() {
                   _isLoading = true;
                 });
-                await _fetchUserIDImage();
-                await _fetchTaskers();
+                await _loadAllFunction();
               } else {
                 setState(() {
                   _isUploadDialogShown = false;
@@ -904,16 +927,12 @@ class _ClientHomePageState extends State<ClientHomePage>
                                       return true;
                                     }
 
-                                    // Only show verification dialog if the user isn't verified
-                                    // We check both document validity AND if both images exist
-                                    if (!_documentValid ||
-                                        _existingProfileImageUrl == null ||
-                                        _existingIDImageUrl == null ||
-                                        _existingProfileImageUrl!.isEmpty ||
-                                        _existingIDImageUrl!.isEmpty) {
+                                    if (_verificationStatus != "Approved" &&
+                                        _verificationStatus != "Review") {
                                       _showWarningDialog();
                                       return false;
                                     }
+
                                     _saveLikedTasker(
                                         taskers[previousIndex].user);
                                     _cardCounter();
@@ -936,26 +955,33 @@ class _ClientHomePageState extends State<ClientHomePage>
                                       child: Stack(
                                         children: [
                                           ClipRRect(
-                                            borderRadius: BorderRadius.circular(20),
+                                            borderRadius:
+                                                BorderRadius.circular(20),
                                             child: taskerImages.isEmpty
-                                                ? Center( // Center the icon
+                                                ? Center(
+                                                    // Center the icon
                                                     child: Icon(
-                                                      FontAwesomeIcons.screwdriverWrench,
-                                                      size: 150, // Increase size for prominence
-                                                      color: Colors.grey[400], // Lighter grey for better visibility
-                                                    )
-                                                  )
+                                                    FontAwesomeIcons
+                                                        .screwdriverWrench,
+                                                    size:
+                                                        150, // Increase size for prominence
+                                                    color: Colors.grey[
+                                                        400], // Lighter grey for better visibility
+                                                  ))
                                                 : PageView.builder(
-                                              itemCount: taskerImages.length,
-                                              itemBuilder: (context, imageIndex) {
-                                                return Image.network(
-                                                  taskerImages[imageIndex],
-                                                  fit: BoxFit.cover,
-                                                  width: double.infinity,
-                                                  height: double.infinity,
-                                                );
-                                              },
-                                            ),
+                                                    itemCount:
+                                                        taskerImages.length,
+                                                    itemBuilder:
+                                                        (context, imageIndex) {
+                                                      return Image.network(
+                                                        taskerImages[
+                                                            imageIndex],
+                                                        fit: BoxFit.cover,
+                                                        width: double.infinity,
+                                                        height: double.infinity,
+                                                      );
+                                                    },
+                                                  ),
                                           ),
                                           // Darker overlay on the entire image
                                           Positioned.fill(
