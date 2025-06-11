@@ -702,6 +702,9 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                             color: Colors.white)),
                     onPressed: () {
                       _authController.logout(context, () => mounted);
+                      setState(() {
+                        _isLoading = true;
+                      });
                       Navigator.pop(context);
                     },
                   ),

@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:intl/intl.dart';
+
+// Placeholder imports (replace with actual imports)
+import 'package:flutter_fe/view/profile/payment_processing.dart';
 import 'package:flutter_fe/controller/escrow_management_controller.dart';
-import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/transactions.dart';
 import 'package:flutter_fe/view/task/task_details_screen.dart';
-import 'package:flutter_fe/view/profile/payment_processing.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:intl/intl.dart';
-import 'package:get_storage/get_storage.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_fe/controller/task_controller.dart';
 
 class TransactionHistoryPage extends StatefulWidget {
   const TransactionHistoryPage({super.key});
@@ -18,18 +20,15 @@ class TransactionHistoryPage extends StatefulWidget {
 
 class _TransactionHistoryPageState extends State<TransactionHistoryPage>
     with TickerProviderStateMixin {
-  final storage = GetStorage();
-  final EscrowManagementController _escrowManagementController =
-      EscrowManagementController();
+  final _escrowManagementController = EscrowManagementController();
   final TaskController taskController = TaskController();
-  bool _isLoading = false;
-
-  List<Transactions> _transactionHistory = [];
   late AnimationController loadingController;
-
-  double totalBalance = 4500.00;
-  double income = 10500.00;
-  double expense = 6000.00;
+  List<Transactions> _transactionHistory = [];
+  List<Transactions> _filteredTransactions = [];
+  bool _isLoading = true;
+  final TextEditingController _searchController = TextEditingController();
+  String? _selectedStatus;
+  int _displayLimit = 5;
 
   @override
   void initState() {
@@ -38,12 +37,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
       vsync: this,
       duration: const Duration(seconds: 1),
     );
-    _loadData();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+    _searchController.addListener(_filterTransactions);
     _loadData();
   }
 
@@ -58,7 +52,6 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
     } finally {
       if (mounted) {
         loadingController.stop();
-        // Ensure the controller value is at a resting state (e.g., 0 or 1)
         loadingController.value = 0;
       }
     }
@@ -67,33 +60,312 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
 
   Future<void> getTransactionHistory() async {
     final transactionData = await taskController.getAllTransactions();
-
     setState(() {
       _transactionHistory = transactionData;
+      _filteredTransactions = transactionData;
     });
   }
 
-  @override
-  void dispose() {
-    loadingController.dispose();
-    super.dispose();
+  void _filterTransactions() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredTransactions = _transactionHistory.where((transaction) {
+        final title =
+            transaction.taskAssignment.task?.title.toLowerCase() ?? '';
+        final taskerName =
+            '${transaction.taskAssignment.tasker?.user?.firstName ?? ''} ${transaction.taskAssignment.tasker?.user?.lastName ?? ''}'
+                .toLowerCase();
+        final clientName =
+            '${transaction.taskAssignment.client?.user?.firstName ?? ''} ${transaction.taskAssignment.client?.user?.middleName ?? ''} ${transaction.taskAssignment.client?.user?.lastName ?? ''}'
+                .toLowerCase();
+        final matchesQuery = title.contains(query) ||
+            taskerName.contains(query) ||
+            clientName.contains(query);
+        final matchesStatus = _selectedStatus == null ||
+            transaction.recordStatus == _selectedStatus;
+        return matchesQuery && matchesStatus;
+      }).toList();
+    });
+  }
+
+  void _loadMore() {
+    setState(() {
+      _displayLimit += 5;
+    });
+  }
+
+  String formatCurrency(double amount) {
+    final format = NumberFormat.currency(locale: 'en_PH', symbol: '₱');
+    return format.format(amount);
+  }
+
+  Color statusColor(String status) {
+    switch (status) {
+      case 'Pending':
+        return const Color(0xFFE7A335);
+      case 'Confirmed':
+        return const Color(0xFF7BC0F5);
+      case 'Rejected':
+        return const Color(0xFFD43D4D);
+      case 'Cancelled':
+        return const Color(0xFFD43D4D);
+      case 'Ongoing':
+        return const Color(0xFF3E9FE5);
+      case 'Review':
+        return const Color(0xFFD6932A);
+      case 'Disputed':
+        return const Color(0xFFD43D4D);
+      case 'Completed':
+        return const Color(0xFF4DBF66);
+      case 'Reworking':
+        return const Color(0xFF3E9FE5);
+      case 'Expired':
+        return const Color(0xFFD43D4D);
+      case 'Declined':
+        return const Color(0xFFD43D4D);
+      default:
+        return const Color(0xFF4A4A68);
+    }
+  }
+
+  Widget _buildSearchBar() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: _searchController,
+        cursorColor: const Color(0xFFB71A4A),
+        style: GoogleFonts.poppins(fontSize: 14),
+        decoration: InputDecoration(
+          hintText: 'Search transactions...',
+          hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
+          border: InputBorder.none,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          prefixIcon: const Icon(
+            FontAwesomeIcons.magnifyingGlass,
+            color: Color(0xFFB71A4A),
+            size: 18,
+          ),
+          suffixIcon: ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _searchController,
+            builder: (context, value, child) {
+              return value.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(
+                        Icons.clear,
+                        color: Color(0xFFB71A4A),
+                        size: 18,
+                      ),
+                      onPressed: () {
+                        _searchController.clear();
+                        _filterTransactions();
+                      },
+                    )
+                  : const SizedBox.shrink();
+            },
+          ),
+        ),
+        textInputAction: TextInputAction.search,
+        onSubmitted: (value) => _filterTransactions(),
+      ),
+    );
+  }
+
+  Widget _buildTransactionCard(Transactions transaction) {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Colors.white,
+      margin: const EdgeInsets.only(bottom: 12),
+      child: GestureDetector(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TaskDetailsScreen(
+              taskAssignment: transaction.taskAssignment,
+              taskStatus: transaction.recordStatus,
+              transactionDate: DateTime.parse(transaction.date),
+            ),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildTransactionReceived(transaction),
+                  _buildTransactionStatusColor(transaction),
+                ],
+              ),
+              const SizedBox(height: 8),
+              _buildTransactionInfo(transaction),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTransactionStatusColor(Transactions transaction) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: statusColor(transaction.recordStatus),
+      ),
+      child: Text(
+        transaction.recordStatus,
+        style: GoogleFonts.poppins(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTransactionReceived(Transactions transaction) {
+    final updatedDateTime = DateTime.parse(transaction.date);
+    final formattedDate = DateFormat('MMM d, yyyy').format(updatedDateTime);
+    final difference = DateTime.now().toUtc().difference(updatedDateTime);
+    final timeAgo = difference.inMinutes < 60
+        ? '${difference.inMinutes} ${difference.inMinutes == 1 ? 'min' : 'mins'} ago'
+        : difference.inHours < 24
+            ? '${difference.inHours} ${difference.inHours == 1 ? 'hour' : 'hours'} ago'
+            : formattedDate;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(formattedDate, style: GoogleFonts.poppins(fontSize: 14)),
+        Text(
+          timeAgo,
+          style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTransactionInfo(Transactions transaction, {double size = 40.0}) {
+    final imageUrl =
+        transaction.taskAssignment.tasker?.user?.image ?? 'Unknown';
+    final hasValidImage =
+        imageUrl != null && imageUrl.isNotEmpty && imageUrl != 'Unknown';
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(size / 2),
+          child: Container(
+            height: size,
+            width: size,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.grey.shade300, width: 1),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: hasValidImage
+                ? CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    errorWidget: (context, url, error) => const Icon(
+                      Icons.person,
+                      color: Colors.grey,
+                      size: 24,
+                    ),
+                  )
+                : const Icon(Icons.person, color: Colors.grey, size: 24),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                (transaction.taskAssignment.task?.title.length ?? 0) > 20
+                    ? '${transaction.taskAssignment.task?.title.substring(0, 20)}...'
+                    : transaction.taskAssignment.task?.title ?? 'Untitled Task',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                semanticsLabel:
+                    transaction.taskAssignment.task?.title ?? 'Untitled Task',
+              ),
+              Text(
+                "${transaction.taskAssignment.tasker?.user?.firstName ?? 'Unknown'} ${transaction.taskAssignment.tasker?.user?.lastName ?? 'Unknown'}",
+                style: GoogleFonts.poppins(
+                  color: const Color(0xFFB71A4A),
+                  fontSize: 10,
+                ),
+              ),
+              Text(
+                'Client: ${transaction.taskAssignment.client?.user?.firstName ?? ''} ${transaction.taskAssignment.client?.user?.middleName ?? ''} ${transaction.taskAssignment.client?.user?.lastName ?? ''}',
+                style: GoogleFonts.poppins(fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final statusOptions = [
+      null, // For "All" option
+      'Pending',
+      'Confirmed',
+      'Rejected',
+      'Cancelled',
+      'Ongoing',
+      'Review',
+      'Disputed',
+      'Completed',
+      'Reworking',
+      'Expired',
+      'Declined'
+    ];
+
     return Scaffold(
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
-        title: Center(
-          child: Text(
-            'Wallet',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              color: Color(0xFFB71A4A),
-              fontWeight: FontWeight.w600,
-              fontSize: 18,
-            ),
+        centerTitle: true,
+        title: Text(
+          'Wallet',
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFFB71A4A),
           ),
         ),
       ),
@@ -104,7 +376,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
             // Financial Summary Card
             Container(
               width: double.infinity,
-              height: 150, // Fixed taller height
+              height: 150,
               margin:
                   const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
               child: Card(
@@ -113,7 +385,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
-                color: Color(0xFFB71A4A), // Purple background color
+                color: const Color(0xFFB71A4A),
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Column(
@@ -121,47 +393,37 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Total Balance',
+                        'Your Total Earnings',
                         style: GoogleFonts.poppins(
                           color: Colors.white,
                           fontSize: 18,
                         ),
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       _isLoading
-                          ? Text(
-                              '0.00',
-                              style: GoogleFonts.poppins(
+                          ? LinearProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                const Color(0xFFE23670),
+                              ),
+                              backgroundColor: const Color(0xFFF5A1BB),
+                            )
+                          : Text(
+                              formatCurrency(
+                                _escrowManagementController.tokenCredits.value
+                                    .toDouble(),
+                              ),
+                              style: GoogleFonts.montserrat(
                                 color: Colors.white,
                                 fontSize: 36,
                                 fontWeight: FontWeight.bold,
                               ),
-                            )
-                          : _escrowManagementController.tokenCredits.value ==
-                                  0.0
-                              ? Text(
-                                  "₱ 0.00",
-                                  style: GoogleFonts.montserrat(
-                                    color: Colors.white,
-                                    fontSize: 36,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                )
-                              : Text(
-                                  '₱${_escrowManagementController.tokenCredits.value.toStringAsFixed(2)}',
-                                  style: GoogleFonts.montserrat(
-                                    color: Colors.white,
-                                    fontSize: 36,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                            ),
                     ],
                   ),
                 ),
               ),
             ),
 
-            // Income and Expense Row
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
@@ -289,185 +551,176 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
               ),
             ),
 
-            // Transaction History - Vertical Scrolling
+            // Transaction History
             Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Transaction History",
-                        style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black),
-                      ),
-                      SizedBox(height: 10),
-                      _isLoading
-                          ? Card(
-                              elevation: 2,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10)),
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Row(
-                                  children: [
-                                    // Add a SizedBox for spacing (20% of card width for example)
-                                    SizedBox(
-                                        width: MediaQuery.of(context)
-                                                .size
-                                                .width *
-                                            0.1), // Adjust the percentage as needed
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          SizedBox(height: 8),
-                                          LinearProgressIndicator(
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                                    Color(0XFFE23670)),
-                                            backgroundColor: Color(0XFFF5A1BB),
-                                          ),
-                                          SizedBox(height: 8),
-                                          LinearProgressIndicator(
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                                    Color(0XFFE23670)),
-                                            backgroundColor: Color(0XFFF5A1BB),
-                                          ),
-                                          SizedBox(height: 8),
-                                          LinearProgressIndicator(
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                                    Color(0XFFE23670)),
-                                            backgroundColor: Color(0XFFF5A1BB),
-                                          ),
-                                          SizedBox(height: 8),
-                                          LinearProgressIndicator(
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                                    Color(0XFFE23670)),
-                                            backgroundColor: Color(0XFFF5A1BB),
-                                          ),
-                                        ],
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Transaction History',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  _buildSearchBar(),
+                  const SizedBox(height: 10),
+                  DropdownButton<String?>(
+                    value: _selectedStatus,
+                    hint: Text(
+                      'Filter by status',
+                      style:
+                          GoogleFonts.poppins(fontSize: 14, color: Colors.grey),
+                    ),
+                    isExpanded: true,
+                    items: statusOptions.map((status) {
+                      return DropdownMenuItem<String?>(
+                        value: status,
+                        child: Text(
+                          status ?? 'All',
+                          style: GoogleFonts.poppins(fontSize: 14),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedStatus = value;
+                        _filterTransactions();
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  _isLoading
+                      ? Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                    width: MediaQuery.of(context).size.width *
+                                        0.1),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const SizedBox(height: 8),
+                                      LinearProgressIndicator(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                          const Color(0xFFE23670),
+                                        ),
+                                        backgroundColor:
+                                            const Color(0xFFF5A1BB),
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(height: 8),
+                                      LinearProgressIndicator(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                          const Color(0xFFE23670),
+                                        ),
+                                        backgroundColor:
+                                            const Color(0xFFF5A1BB),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      LinearProgressIndicator(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                          const Color(0xFFE23670),
+                                        ),
+                                        backgroundColor:
+                                            const Color(0xFFF5A1BB),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      LinearProgressIndicator(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                          const Color(0xFFE23670),
+                                        ),
+                                        backgroundColor:
+                                            const Color(0xFFF5A1BB),
+                                      ),
+                                    ],
+                                  ),
                                 ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : _filteredTransactions.isEmpty
+                          ? Text(
+                              "No transactions match your criteria",
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w300,
+                                color: Colors.black,
                               ),
                             )
-                          : _transactionHistory.isEmpty
-                              ? Text("You don't have any transactions yet",
-                                  style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w300,
-                                      color: Colors.black))
-                              : ListView.builder(
-                                  shrinkWrap:
-                                      true, // Important to make ListView scrollable within Column
-                                  physics:
-                                      NeverScrollableScrollPhysics(), // Disable ListView's own scrolling
-                                  itemCount: _transactionHistory.length,
+                          : Column(
+                              children: [
+                                ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: _filteredTransactions.length >=
+                                          _displayLimit
+                                      ? _displayLimit
+                                      : _filteredTransactions.length,
                                   itemBuilder: (context, index) {
                                     final transaction =
-                                        _transactionHistory[index];
-                                    return Card(
-                                      margin: EdgeInsets.only(bottom: 10),
-                                      elevation: 2,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: ListTile(
-                                        onTap: () => Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (context) =>
-                                                    TaskDetailsScreen(
-                                                      taskAssignment:
-                                                          transaction.taskAssignment,
-                                                      taskStatus: transaction
-                                                          .recordStatus,
-                                                      transactionDate:
-                                                          DateTime.parse(
-                                                              transaction.date),
-                                                    ))),
-                                        leading: CircleAvatar(
-                                          backgroundColor: statusColor(
-                                              transaction.recordStatus),
-                                          radius: 5,
-                                        ),
-                                        title: Text(
-                                          transaction
-                                                  .taskAssignment.task?.title ??
-                                              "N/A",
-                                          style: GoogleFonts.poppins(
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                        subtitle: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              'Tasker: ${transaction.taskAssignment.tasker?.user?.firstName ?? ''} ${transaction.taskAssignment.tasker?.user?.middleName ?? ''} ${transaction.taskAssignment.tasker?.user?.lastName ?? ''}',
-                                              style: GoogleFonts.poppins(
-                                                  fontSize: 12),
-                                            ),
-                                            Text(
-                                              'Status: ${transaction.recordStatus}',
-                                              style: GoogleFonts.poppins(
-                                                  fontSize: 12,
-                                                  fontStyle: FontStyle.italic),
-                                            ),
-                                          ],
-                                        ),
-                                        trailing: Text(
-                                          DateFormat('yyyy-MM-dd HH:mm a')
-                                              .format(DateTime.parse(transaction
-                                                  .date)), // Display formatted date and time
-                                          style: GoogleFonts.poppins(
-                                              fontWeight: FontWeight.normal,
-                                              color: Colors.grey[600]),
-                                        ),
-                                      ),
+                                        _filteredTransactions[index];
+                                    return Semantics(
+                                      label:
+                                          'Transaction: ${transaction.taskAssignment.task?.title ?? 'Untitled'}, ${transaction.recordStatus}, ${DateFormat('MMM d, yyyy').format(DateTime.parse(transaction.date))}',
+                                      child: _buildTransactionCard(transaction),
                                     );
                                   },
-                                )
-                    ]))
+                                ),
+                                if (_filteredTransactions.length >
+                                    _displayLimit)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10),
+                                    child: ElevatedButton(
+                                      onPressed: _loadMore,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            const Color(0xFFB71A4A),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Load More',
+                                        style: GoogleFonts.poppins(
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Color statusColor(String status) {
-    switch (status) {
-      case 'Pending':
-        return Color(0XFFE7A335);
-      case 'Confirmed':
-        return Color(0XFF7BC0F5);
-      case 'Rejected':
-        return Color(0XFFD43D4D);
-      case 'Cancelled':
-        return Color(0XFFD43D4D);
-      case 'Ongoing':
-        return Color(0XFF3E9FE5);
-      case 'Review':
-        return Color(0XFFD6932A);
-      case 'Disputed':
-        return Color(0XFFD43D4D);
-      case 'Completed':
-        return Color(0XFF4DBF66);
-      case 'Reworking':
-        return Color(0XFF3E9FE5);
-      case 'Expired':
-        return Color(0XFFD43D4D);
-      case 'Declined':
-        return Color(0XFFD43D4D);
-      default:
-        return Color(0XFF4A4A68);
-    }
+  @override
+  void dispose() {
+    _searchController.dispose();
+    loadingController.dispose();
+    super.dispose();
   }
 }

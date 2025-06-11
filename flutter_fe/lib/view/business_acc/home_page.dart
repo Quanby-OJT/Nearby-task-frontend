@@ -697,6 +697,9 @@ class _ClientHomePageState extends State<ClientHomePage>
                             color: Colors.white)),
                     onPressed: () {
                       _authController.logout(context, () => mounted);
+                      setState(() {
+                        _isLoading = true;
+                      });
                       Navigator.pop(context);
                     },
                   ),

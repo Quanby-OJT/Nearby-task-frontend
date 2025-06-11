@@ -16,7 +16,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
-import 'package:flutter_fe/controller/escrow_management_controller.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/model/auth_user.dart';
@@ -509,33 +508,55 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
-  // Reusable search bar widget
   Widget _buildSearchBar({String hint = 'Search tasks...'}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: TextField(
-        controller: _searchController,
-        cursorColor: const Color(0xFFB71A4A),
-        decoration: InputDecoration(
-          filled: true,
-          fillColor: Colors.white,
-          hintText: hint,
-          hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
-          prefixIcon: const Icon(Icons.search, color: Color(0xFFB71A4A)),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey[200]!),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFFE23670), width: 2),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: TextField(
+          controller: _searchController,
+          cursorColor: const Color(0xFFB71A4A),
+          style: GoogleFonts.poppins(fontSize: 14),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: GoogleFonts.poppins(color: Colors.grey[500]),
+            border: InputBorder.none,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            prefixIcon: const Icon(
+              FontAwesomeIcons.magnifyingGlass,
+              color: Color(0xFFB71A4A),
+              size: 18,
+            ),
+            suffixIcon: ValueListenableBuilder<TextEditingValue>(
+              valueListenable: _searchController,
+              builder: (context, value, child) {
+                return value.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(
+                          Icons.clear,
+                          color: Color(0xFFB71A4A),
+                          size: 18,
+                        ),
+                        onPressed: () {
+                          _searchController.clear();
+                        },
+                      )
+                    : const SizedBox.shrink();
+              },
+            ),
           ),
         ),
-        style: GoogleFonts.poppins(fontSize: 14),
       ),
     );
   }

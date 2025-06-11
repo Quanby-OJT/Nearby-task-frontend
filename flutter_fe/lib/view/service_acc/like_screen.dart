@@ -34,9 +34,21 @@ class _LikeScreenState extends State<LikeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadLikedJobs();
+    loadAllFunction();
     _searchController.addListener(_filterTaskFunction);
-    _fetchUserData();
+  }
+
+  Future<void> loadAllFunction() async {
+    setState(() {
+      _isLoading = true;
+    });
+    await Future.wait<void>([
+      _loadLikedJobs(),
+      _fetchUserData(),
+    ]);
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   void _filterTaskFunction() {
@@ -53,11 +65,6 @@ class _LikeScreenState extends State<LikeScreen> {
 
   Future<void> _loadLikedJobs() async {
     try {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
-
       final userId = await _jobService.getUserId();
       if (userId == null || userId.isEmpty) {
         setState(() {
@@ -76,14 +83,7 @@ class _LikeScreenState extends State<LikeScreen> {
         savedJobsCount = _filteredJobs.length;
         _isLoading = false;
       });
-    } catch (e, st) {
-      setState(() {
-        _isLoading = false;
-        debugPrint(e.toString());
-        debugPrint(st.toString());
-        _errorMessage = 'Error loading liked jobs. Please Try Again.';
-      });
-    }
+    } catch (e, st) {}
   }
 
   void _updateSavedJobs() {
@@ -100,7 +100,6 @@ class _LikeScreenState extends State<LikeScreen> {
       debugPrint(user.toString());
       setState(() {
         _user = user;
-        _isLoading = false;
 
         _role = _user?.user.role ?? '';
       });
@@ -479,53 +478,49 @@ class _LikeScreenState extends State<LikeScreen> {
       final bool? confirm = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          title: Center(
-            child: Text(
-              'Remove from Saved Jobs?',
-              style: GoogleFonts.montserrat(
-                  fontSize: 14, fontWeight: FontWeight.bold),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
             ),
-          ),
-          content: SizedBox(
-            height: 50,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Center(
-                  child: Text(
-                    'This job will be removed from your liked jobs list.',
-                    style: GoogleFonts.montserrat(
-                        fontSize: 10, fontWeight: FontWeight.normal),
+            title: Text('Remove from Saved Jobs?',
+                style: GoogleFonts.poppins(
+                    fontSize: 16, fontWeight: FontWeight.bold)),
+            content: Text(
+                'Are you sure you want to remove this job from your saved jobs?',
+                style: GoogleFonts.poppins(
+                    fontSize: 14, fontWeight: FontWeight.w300)),
+            actions: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton(
+                    child: Text('Cancel',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFFB71A4A),
+                        )),
+                    onPressed: () => Navigator.pop(context),
                   ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    icon: Icon(
-                      Icons.cancel,
-                      size: 24,
-                      color: Colors.green.shade400,
-                    )),
-                IconButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  icon: Icon(
-                    Icons.delete,
-                    size: 24,
-                    color: Colors.red,
+                  const SizedBox(width: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(5),
+                      color: const Color(0xFFB71A4A),
+                    ),
+                    child: TextButton(
+                      child: Text('Remove',
+                          style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white)),
+                      onPressed: () => Navigator.pop(context, true),
+                    ),
                   ),
-                )
-              ],
-            )
-          ],
-        ),
+                ],
+              ),
+            ]),
       );
 
       // if (confirm != true) return;
