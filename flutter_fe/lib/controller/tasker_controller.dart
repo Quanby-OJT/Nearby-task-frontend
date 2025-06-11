@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/service/tasker_service.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:flutter_fe/model/images_model.dart';
 import 'dart:math' as math;
 import 'dart:convert';
 
@@ -11,6 +13,7 @@ class TaskerController {
   final clientServices = ClientServices();
   final JobPostService jobPostService = JobPostService();
   List<MapEntry<int, String>> specialization = [MapEntry(0, 'All')];
+  final TaskerService taskerService = TaskerService();
 
   Future<List<TaskerModel>> getAllTaskers() async {
     try {
@@ -272,6 +275,21 @@ class TaskerController {
       return result;
     } catch (e, stackTrace) {
       debugPrint("Error in getAllTaskers: $e");
+      debugPrint(stackTrace.toString());
+      return [];
+    }
+  }
+
+  Future<List<ImagesModel>>? getAllTaskerImages(int taskerId) async {
+    try {
+      final taskerImages = await taskerService.getTaskerImages(taskerId);
+
+      final List<dynamic> imagesList = taskerImages["images"] as List;
+      debugPrint("Tasker Images: $imagesList");
+      return imagesList.map((image) => ImagesModel.fromJson(image as Map<String, dynamic>)).toList();
+    }catch(e, stackTrace){
+      //TO catch errors, it is mandatory to put stacktrace to trace the source of the error, as well as method that produces an error.
+      debugPrint("Error in getAllTaskerImages: $e");
       debugPrint(stackTrace.toString());
       return [];
     }

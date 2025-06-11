@@ -198,6 +198,9 @@ class _VerificationPageState extends State<VerificationPage> {
         return;
       }
 
+      _userRole = await storage.read('role');
+      debugPrint("Role from session: ${storage.read('role')}");
+
       final userIdFromStorage = storage.read('user_id');
       debugPrint(
           'VerificationPage: _loadUserData - user_id from storage: $userIdFromStorage');
@@ -212,9 +215,10 @@ class _VerificationPageState extends State<VerificationPage> {
 
       // Store user role for verification submission
       if (user != null) {
-        setState(() {
-          _userRole = user.user.role;
-        });
+        // setState(() {
+        //   // _userRole = user.user.role;
+        //   _userRole = storage.read('role');
+        // });
         debugPrint(
             'VerificationPage: _loadUserData - set user role: $_userRole');
       } else {
@@ -322,6 +326,7 @@ class _VerificationPageState extends State<VerificationPage> {
 
       // Get the current user ID
       final userId = int.parse(storage.read('user_id').toString());
+      _userRole = storage.read('role');
 
       // Prepare the complete verification data
       final verificationData = {
@@ -420,17 +425,18 @@ class _VerificationPageState extends State<VerificationPage> {
           ),
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       setState(() {
         _isLoading = false;
       });
 
       debugPrint('Error submitting verification: $e');
+      debugPrintStack(stackTrace: stackTrace);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                'Error ${_isUpdateMode ? 'updating' : 'submitting'} verification: ${e.toString()}'),
+                'Error while ${_isUpdateMode ? 'updating' : 'submitting'} verification. Please Try Again. If the problem persists. Contact our support.'),
             backgroundColor: Colors.red,
           ),
         );

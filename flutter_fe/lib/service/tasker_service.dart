@@ -48,8 +48,7 @@ class TaskerService {
     }
   }
 
-  static Future<Map<String, dynamic>> _postRequest(
-      {required String endpoint, required Map<String, dynamic> body}) async {
+  static Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     final response = await http.post(Uri.parse("$url$endpoint"),
         headers: {
@@ -326,6 +325,16 @@ class TaskerService {
       debugPrint("Error getting related skills: $e");
       debugPrintStack(stackTrace: stackTrace);
       return {"error": "Failed to get related skills"};
+    }
+  }
+
+  Future<Map<String, dynamic>> getTaskerImages(int taskerId) async {
+    try {
+      return await _getRequest('/get-tasker-images/$taskerId');
+    }catch(e, stackTrace){
+      debugPrint("Error getting tasker images: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {"error": "Failed to get tasker images"};
     }
   }
 

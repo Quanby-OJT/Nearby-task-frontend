@@ -2,9 +2,10 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/controller/tasker_controller.dart';
+import 'package:flutter_fe/model/images_model.dart';
 import 'package:flutter_fe/model/tasker_skills.dart';
 import 'package:flutter_fe/view/custom_loading/custom_loading.dart';
-import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
@@ -28,6 +29,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final ProfileController _userController = ProfileController();
   final GetStorage storage = GetStorage();
+  final TaskerController taskerController = TaskerController();
   AuthenticatedUser? _user;
   bool _isLoading = true;
   bool willEdit = false;
@@ -36,6 +38,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   List<String> gender = ["Male", "Female", "Non-Binary", "Other"];
   bool _isAvailable = true; // true for available, false for not available
   List<SpecializationModel> _specializations = [];
+  List<int> existingTaskerImages = [];
+  List<ImagesModel> taskerImages = [];
   List<String> payPeriods = [
     'Hourly',
     'Daily',
@@ -46,7 +50,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool isSaving = false;
   List<File> profileImages = [];
   List<File> tesdaDocuments = [];
-  List<String> taskerImages = [];
+  List<int> taskerImageIds = [];
   String saveText = "Save";
   List<String> _selectedSkills = [];
   final updateTasker = GlobalKey<FormState>();
@@ -54,8 +58,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchUserData();
-    fetchSpecialization();
+    loadAllDataAtOnce();
+  }
+
+  void loadAllDataAtOnce() async {
+    setState(() {
+      _isLoading = true;
+    });
+    await Future.wait([
+      _fetchUserData(),
+      fetchSpecialization(),
+      getAllTaskerImages()
+    ]);
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   @override
@@ -95,8 +113,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         _userController.payPeriodController.text = _user?.tasker?.payPeriod ?? '';
         // Pre-fill selected skills if user already has skills
-        if (_user?.tasker?.skills != null && _user!.tasker!.skills!.isNotEmpty) {
-          _selectedSkills = _user!.tasker!.skills!.split(',').map((s) => s.trim()).toList();
+        if (_user?.tasker?.skills != null && _user!.tasker!.skills.isNotEmpty) {
+          _selectedSkills = _user!.tasker!.skills.split(',').map((s) => s.trim()).toList();
         }
         _userController.genderController.text = _user?.user.gender ?? '';
         _userController.contactNumberController.text =
@@ -108,7 +126,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _userController.telegramLinkController.text =
             _user?.user.socialMediaLinks?['tg'] ?? '';
         tesdaDocuments = [];
-        taskerImages = _user?.tasker?.taskerImages ?? [];
+        //taskerImageIds = _user?.tasker?.taskerImages ?? [];
 
         final currencyFormatter = NumberFormat.currency(locale: 'en_PH', symbol: '₱');
         _userController.wageController.text = _user?.tasker?.wage != null ? currencyFormatter.format(_user!.tasker!.wage) : '';
@@ -128,18 +146,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _userController.postalCodeController.text = '';
         _userController.countryController.text = '';
       });
-    } catch (e) {
-      print("Error fetching user data: $e");
-    }finally{
-      setState(() {
-        _isLoading = false;
-      });
+    } catch (e, stackTrace) {
+      debugPrint("Error fetching user data: $e");
+      debugPrintStack(stackTrace: stackTrace);
     }
+  }
+
+  Future<void> getAllTaskerImages() async {
+    int userId = storage.read("user_id");
+
+    final taskerImages = await taskerController.getAllTaskerImages(userId);
+    List<String> imageUrls = taskerImages?.map((image) => image.image_url).toList() ?? [];
+    List<int?> imageUrlIds = taskerImages?.map((image) => image.id).toList() ?? [];
+    debugPrint("All Images: $imageUrls");
+    debugPrint("All Image Ids: $imageUrlIds");
+
+    setState(() {
+      this.taskerImages = taskerImages ?? [];
+    });
   }
 
   Future<void> updateUser() async{
     try{
-      String updateResult = await _userController.updateUser(profileImages, tesdaDocuments, taskerImages, []);
+      setState(() {
+        isSaving = true;
+      });
+      List<int> taskerImgIds = taskerImages.map((imgIds) => imgIds.id ?? 0).toList();
+      debugPrint("Updated Image Ids: $taskerImgIds");
+      String updateResult = await _userController.updateUser(profileImages, tesdaDocuments, taskerImgIds, []);
       debugPrint("Result of Update Tasker Result: $updateResult");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -157,6 +191,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         isSaving = false;
         willEdit = false;
       });
+      loadAllDataAtOnce();
     }
   }
 
@@ -168,6 +203,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     if (result != null && result.files.isNotEmpty) {
+      if(result.files.length > 9){
+        if(mounted){
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('You can only upload up to 9 images.', style: GoogleFonts.poppins(color: Colors.white)),
+              backgroundColor: Colors.amber,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+        return;
+      }
       setState(() {
         for (var file in result.files) {
           if (file.path != null && profileImages.length < 9) { // Ensure not to exceed 9 images
@@ -180,7 +227,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> pickTESDADocuments() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
+      type: FileType.any,
       allowMultiple: true,
     );
 
@@ -291,7 +338,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(body: Center(child: CustomLoading()));
     }
 
     String role = storage.read("role");
@@ -299,7 +346,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "${_user?.user.firstName} ${_user?.user.middleName} ${_user?.user.lastName}",
+          "${_user?.user.firstName} ${_user?.user.middleName ?? ""} ${_user?.user.lastName}",
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -366,16 +413,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           );
                         }
                         // 2. Fill remaining with tasker images if not empty
-                        else if (index - profileImages.length < taskerImages.length &&
-                            taskerImages[index - profileImages.length].isNotEmpty) {
+                        else if (index - profileImages.length < taskerImages.length) {
                           imageWidget = ClipRRect(
                             borderRadius: BorderRadius.circular(10),
                             child: Image.network(
-                              taskerImages[index - profileImages.length],
+                              //taskerImages.[index - profileImages.length],
+                              taskerImages.isNotEmpty ? taskerImages[index - profileImages.length].image_url : '',
                               fit: BoxFit.cover,
                             ),
                           );
-                        } else {
+                        }
+                        else {
                           imageWidget = Center(
                             child: SizedBox(
                               height: 200,
@@ -429,8 +477,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                                   // Delete icon for taskerImages
                                   else if (willEdit &&
-                                      index - profileImages.length < taskerImages.length &&
-                                      taskerImages[index - profileImages.length].isNotEmpty)
+                                      index - profileImages.length < taskerImages.length) //&& taskerImages[index - profileImages.length].isNotEmpty)
                                     Positioned(
                                       top: 4,
                                       right: 4,
@@ -516,7 +563,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               validator: (value) {
                                 if (value != null && value.isNotEmpty) {
                                   // Check if _user.tasker.skills is null or empty before validating _selectedSkills
-                                  if ((_user?.tasker?.skills == null || _user!.tasker!.skills!.isEmpty) &&
+                                  if ((_user?.tasker?.skills == null || _user!.tasker!.skills.isEmpty) &&
                                       _selectedSkills.isEmpty) {
                                     return 'Please select at least one skill';
                                   }

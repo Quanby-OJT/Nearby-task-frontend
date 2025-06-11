@@ -4,22 +4,22 @@ import 'dart:convert';
 
 class TaskerModel {
   final int? taskerId;
-  final int? userId;
-  final String? bio;
+  final int userId;
+  final String bio;
   final int? specializationId;
-  final String? specialization;
-  final String? skills;
-  final bool? availability;
-  final double? wagePerHour;
-  final String? payPeriod;
+  final String specialization;
+  final String skills;
+  final bool availability;
+  final double wagePerHour;
+  final String payPeriod;
   final Map<String, String>? socialMediaLinks;
   final double? rating;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final UserModel? user;
   final TaskerSpecialization? taskerSpecialization;
-  final List<String>? taskerImages;
-  final bool? group;
+  final List<int>? taskerImages;
+  final bool group;
   final List<String>? taskerDocuments;
 
   // Computed getter for the id field (for backward compatibility)
@@ -30,15 +30,15 @@ class TaskerModel {
   Map<String, String>? get address => null;
 
   TaskerModel({
-    this.taskerId,
-    this.userId,
-    this.bio,
+    required this.taskerId,
+    required this.userId,
+    required this.bio,
     this.specializationId,
-    this.specialization,
-    this.skills,
-    this.availability,
-    this.wagePerHour,
-    this.payPeriod,
+    required this.specialization,
+    required this.skills,
+    required this.availability,
+    required this.wagePerHour,
+    required this.payPeriod,
     this.socialMediaLinks,
     this.rating,
     this.createdAt,
@@ -47,7 +47,7 @@ class TaskerModel {
     this.taskerSpecialization,
     this.taskerImages,
     this.taskerDocuments,
-    this.group
+    required this.group
   });
 
   @override
@@ -73,7 +73,7 @@ class TaskerModel {
       "updated_at": updatedAt?.toIso8601String(),
       "user": user?.toJson(),
       "tasker_specialization": taskerSpecialization?.toJson(),
-      "profile_images": taskerImages,
+      "profile_images_id": taskerImages,
       "tasker_documents": taskerDocuments,
       "group": group,
     };
@@ -96,19 +96,16 @@ class TaskerModel {
 
     return TaskerModel(
       taskerId: json['tasker_id'] as int? ?? json['id'] as int?,
-      userId: json['user_id'] as int?,
-      bio: json['bio'] as String?,
-      specializationId: json['specialization_id'] as int?,
-      specialization: json['tasker_specialization']['specialization'] as String?,
-      skills: json['skills'] as String?,
-      availability: json['availability'] as bool?,
+      userId: json['user_id'] as int,
+      bio: json['bio'] as String,
+      specializationId: json['specialization_id'] as int,
+      specialization: json['tasker_specialization']['specialization'] as String,
+      skills: json['skills'] as String,
+      availability: (json['availability'] is int ? json['availability'] == 1 : json['availability'] as bool?) ?? false,
       wagePerHour: (json['wage_per_hour'] is int
               ? (json['wage_per_hour'] as int).toDouble()
-              : json['wage_per_hour'] as double?) ??
-          (json['wage'] is int
-              ? (json['wage'] as int).toDouble()
-              : json['wage'] as double?),
-      payPeriod: json['pay_period'] as String?,
+              : json['wage_per_hour'] as double?) ?? 0.0,
+      payPeriod: json['pay_period'] as String,
       socialMediaLinks: socialLinks,
       rating: (json['rating'] is int
               ? (json['rating'] as int).toDouble()
@@ -128,12 +125,10 @@ class TaskerModel {
               json['tasker_specialization'] as Map<String, dynamic>)
           : null,
       taskerImages: json['profile_images'] != null && json['profile_images'] is List
-          ? (json['profile_images'] as List<dynamic>?)
-              ?.map((image) {
-                return image is String ? image : ''; // Or handle the error as appropriate
-              })
-              ?.toList() ?? []
+          ? List<int>.from(
+              (json['profile_images'] as List<dynamic>).map((e) => e is int ? e : int.tryParse(e.toString()) ?? 0))
           : [],
+      group: json['group'] as bool,
     );
   }
 
@@ -171,6 +166,7 @@ class TaskerModel {
       updatedAt: updatedAt ?? this.updatedAt,
       user: user ?? this.user,
       taskerSpecialization: taskerSpecialization ?? this.taskerSpecialization,
+      group: group,
     );
   }
 }

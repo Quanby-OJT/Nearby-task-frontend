@@ -304,6 +304,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
       debugPrint("User ID This is for checking: ${response['url']}");
 
       if (response['success']) {
+        debugPrint("User Image: ${user?.user.image}. User ID Image: ${response['url']}. Status: ${response['status']}");
         setState(() {
           _user = user;
           _existingProfileImageUrl = user?.user.image;
@@ -860,9 +861,9 @@ class _TaskerHomePageState extends State<TaskerHomePage>
 
                     // Only show warning if verification is not in progress and documents are missing
                     if (!isVerificationInProgress &&
-                        (_existingProfileImageUrl == null ||
+                        (//_existingProfileImageUrl == null ||
                             _existingIDImageUrl == null ||
-                            _existingProfileImageUrl!.isEmpty ||
+                            //_existingProfileImageUrl!.isEmpty ||
                             _existingIDImageUrl!.isEmpty ||
                             !_documentValid)) {
                       _showWarningDialog();

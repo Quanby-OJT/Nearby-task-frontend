@@ -244,7 +244,7 @@ class ProfileController {
     }
   }
 
-  Future<String> updateUser(List<File>? images, List<File>? documents, List<String>? taskerImageUrl, List<String>? taskerDocuments) async{
+  Future<String> updateUser(List<File>? images, List<File>? documents, List<int>? taskerImageUrl, List<String>? taskerDocuments) async{
     try{
       String role = storage.read("role");
 
@@ -266,6 +266,7 @@ class ProfileController {
       }else if(role == "Tasker"){
         TaskerModel tasker = TaskerModel(
           taskerId: storage.read("user_id"),
+          userId: storage.read("user_id"),
           bio: bioController.text,
           specialization: specializationController.text,
           skills: skillsController.text,
