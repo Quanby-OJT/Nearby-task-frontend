@@ -12,7 +12,7 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
 import 'config/url_strategy.dart';
-import 'controller/deep_link_controller.dart'; // Adjust import
+import 'controller/deep_link_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,7 +26,7 @@ void main() async {
   Get.put(DeepLinkController());
 
   final session = storage.read('session');
-  final userId = storage.read('user_id');
+
   final role = storage.read('role');
 
   runApp(MyApp(
