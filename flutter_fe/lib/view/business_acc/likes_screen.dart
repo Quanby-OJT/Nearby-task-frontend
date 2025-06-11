@@ -6,11 +6,12 @@ import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/view/business_acc/business_acc_main_page.dart';
 import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
-import 'package:flutter_fe/view/service_acc/service_acc_main_page.dart';
-import 'package:flutter_fe/view/verification/verification_page.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../model/tasker_model.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:intl/intl.dart';
 
 class LikesScreen extends StatefulWidget {
   const LikesScreen({super.key});
@@ -22,7 +23,7 @@ class LikesScreen extends StatefulWidget {
 class _LikesScreenState extends State<LikesScreen> {
   final ClientServices _clientServices = ClientServices();
   final TextEditingController _searchController = TextEditingController();
-  final AuthenticationController _authController = AuthenticationController();
+
   final ProfileController _profileController = ProfileController();
   final GetStorage storage = GetStorage();
   bool _isLoading = true;
@@ -174,56 +175,49 @@ class _LikesScreenState extends State<LikesScreen> {
       final bool? confirm = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Text(
-            'Remove from Liked Tasks?',
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF0272B1),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
             ),
-            textAlign: TextAlign.center,
-          ),
-          content: Text(
-            'This tasker will be removed from your liked tasks list.',
-            style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
-            textAlign: TextAlign.center,
-          ),
-          actions: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: Text(
-                    'Cancel',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: Colors.grey[600],
+            title: Text('Remove from Saved Taskers?',
+                style: GoogleFonts.poppins(
+                    fontSize: 16, fontWeight: FontWeight.bold)),
+            content: Text(
+                'Are you sure you want to remove this tasker from your saved taskers?',
+                style: GoogleFonts.poppins(
+                    fontSize: 14, fontWeight: FontWeight.w300)),
+            actions: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton(
+                    child: Text('Cancel',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFFB71A4A),
+                        )),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  const SizedBox(width: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(5),
+                      color: const Color(0xFFB71A4A),
+                    ),
+                    child: TextButton(
+                      child: Text('Remove',
+                          style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white)),
+                      onPressed: () => Navigator.pop(context, true),
                     ),
                   ),
-                ),
-                ElevatedButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red[400],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    'Remove',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+                ],
+              ),
+            ]),
       );
 
       if (confirm != true) return;
@@ -234,6 +228,7 @@ class _LikesScreenState extends State<LikesScreen> {
           _likedTasks.removeWhere((item) => item.id == job.id);
           _filteredTasks.removeWhere((item) => item.id == job.id);
           savedTasksCount = _filteredTasks.length;
+          _loadLikedTasks();
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -301,7 +296,7 @@ class _LikesScreenState extends State<LikesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         centerTitle: true,
         title: Text(
@@ -320,28 +315,50 @@ class _LikesScreenState extends State<LikesScreen> {
           // Search Bar
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.white,
-                hintText: 'Search taskers...',
-                hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
-                prefixIcon: const Icon(Icons.search, color: Color(0xFFB71A4A)),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFFB71A4A)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Color(0xFFB71A4A)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Color(0xFFB71A4A), width: 2),
-                ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
               ),
-              style: GoogleFonts.poppins(fontSize: 14),
+              child: TextField(
+                controller: _searchController,
+                cursorColor: const Color(0xFFB71A4A),
+                decoration: InputDecoration(
+                    hintText: 'Search taskers...',
+                    hintStyle: GoogleFonts.poppins(color: Colors.grey[500]),
+                    border: InputBorder.none,
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    prefixIcon: Icon(
+                      FontAwesomeIcons.magnifyingGlass,
+                      color: Color(0xFFB71A4A),
+                      size: 18,
+                    ),
+                    suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                      valueListenable: _searchController,
+                      builder: (context, value, child) {
+                        return value.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(
+                                  Icons.clear,
+                                  color: Color(0xFFB71A4A),
+                                  size: 18,
+                                ),
+                                onPressed: () {
+                                  _searchController.clear();
+                                },
+                              )
+                            : const SizedBox.shrink();
+                      },
+                    )),
+              ),
             ),
           ),
           // Task Count
@@ -466,134 +483,154 @@ class _LikesScreenState extends State<LikesScreen> {
 
   Widget _buildTaskerCard(TaskerModel tasker) {
     return Container(
-      margin: EdgeInsets.only(bottom: 1),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: Colors.grey[200]!, width: 1),
-        ),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.black.withOpacity(0.03),
-              Colors.black.withOpacity(0.07),
-            ],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[300]!, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
-        ),
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(50),
-              child: Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  image: tasker.user?.image != null &&
-                          tasker.user?.image!.isNotEmpty
-                      ? DecorationImage(
-                          image: NetworkImage(tasker.user?.image!),
-                          fit: BoxFit.cover,
-                          onError: (exception, stackTrace) =>
-                              AssetImage('assets/images/image1.jpg'),
-                        )
-                      : DecorationImage(
-                          image: AssetImage('assets/images/image1.jpg'),
-                          fit: BoxFit.cover,
-                        ),
-                ),
+        ],
+      ),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TaskerProfilePage(
+                tasker: tasker,
+                isSaved: true,
+                taskerId: tasker.id,
               ),
             ),
-            SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    tasker.user?.firstName ?? 'Unknown Tasker',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFFB71A4A),
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(Icons.work_outline, size: 16, color: Colors.grey),
-                      SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          tasker.user?.email ?? 'No email',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            color: Colors.grey[600],
+          );
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    // Avatar, Name, and Status Dot
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Avatar
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                            ),
+                            child: tasker.user?.image != null &&
+                                    tasker.user!.image!.isNotEmpty
+                                ? CachedNetworkImage(
+                                    imageUrl: tasker.user!.image!,
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) => const Center(
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2),
+                                    ),
+                                    errorWidget: (context, url, error) =>
+                                        const Icon(
+                                      Icons.person,
+                                      color: Colors.grey,
+                                      size: 30,
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.person,
+                                    color: Colors.grey,
+                                    size: 30,
+                                  ),
                           ),
-                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 8),
-                  if (tasker.user?.accStatus != null)
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        tasker.user!.accStatus!,
-                        style: GoogleFonts.poppins(
-                          fontSize: 10,
-                          color: Colors.white,
-                        ),
-                      ),
+                        const SizedBox(width: 12),
+                        // Name and Status Dot
+                        Expanded(
+                            child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    '${tasker.user?.firstName ?? 'Unknown'} ${tasker.user?.lastName ?? ''}',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                      height: 1.2,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: tasker.user?.accStatus == 'Active'
+                                        ? Colors.green
+                                        : Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (tasker.user?.email != null &&
+                                tasker.user!.email!.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: Text(
+                                  tasker.user!.email!,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 10,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        )),
+                      ],
                     ),
+                    // Email
+                  ],
+                ),
+              ),
+              Column(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFB71A4A).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.delete,
+                        color: Color(0xFFB71A4A),
+                        size: 24,
+                      ),
+                      onPressed: () => _unlikeJob(tasker.user!),
+                    ),
+                  ),
                 ],
               ),
-            ),
-            Row(
-              children: [
-                CircleAvatar(
-                  backgroundColor: Color(0xFF78DCFA),
-                  radius: 20,
-                  child: IconButton(
-                    icon:
-                        Icon(Icons.info_outline, color: Colors.white, size: 20),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TaskerProfilePage(
-                            tasker: tasker,
-                            isSaved: true,
-                            taskerId: tasker.id,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                SizedBox(width: 12),
-                CircleAvatar(
-                  backgroundColor: Colors.red,
-                  radius: 20,
-                  child: IconButton(
-                    icon: Icon(Icons.favorite, color: Colors.white, size: 20),
-                    onPressed: () => _unlikeJob(tasker.user!),
-                  ),
-                ),
-              ],
-            ),
-          ],
+              const SizedBox(width: 16),
+            ],
+          ),
         ),
       ),
     );
