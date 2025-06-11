@@ -81,6 +81,7 @@ dependencies:
   capture_identity: ^1.0.1
   # Blur detection for image quality validation
   blur_detection: ^1.0.0
+  dotted_border: ^2.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

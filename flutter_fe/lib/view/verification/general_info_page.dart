@@ -98,7 +98,7 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
       if (userId != null) {
         // Fetch authenticated user data from API
         final AuthenticatedUser? authUser = await _profileController
-            .getAuthenticatedUser(context, int.parse(userId.toString()));
+            .getAuthenticatedUser(int.parse(userId.toString()));
 
         if (authUser != null && mounted) {
           // Populate form fields with user data
@@ -298,52 +298,52 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
   void _submitInfo() {
     if (_formKey.currentState!.validate()) {
       // Additional validation for tasker-specific fields
-      if (_userRole?.toLowerCase() == 'tasker') {
-        if (_selectedSpecialization == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Please select a specialization'),
-              backgroundColor: Colors.red,
-            ),
-          );
-          return;
-        }
-
-        if (_wageController.text.trim().isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Please enter your hourly wage'),
-              backgroundColor: Colors.red,
-            ),
-          );
-          return;
-        }
-
-        double? wage = double.tryParse(_wageController.text.trim());
-        if (wage == null || wage <= 0) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Please enter a valid wage amount'),
-              backgroundColor: Colors.red,
-            ),
-          );
-          return;
-        }
-      }
-
-      // Create social media links object
-      Map<String, String> socialMediaLinks = {
-        'facebook': _facebookController.text.trim(),
-        'instagram': _instagramController.text.trim(),
-        'linkedin': _linkedinController.text.trim(),
-        'twitter': _twitterController.text.trim(),
-      };
-
-      // Remove empty values
-      socialMediaLinks.removeWhere((key, value) => value.isEmpty);
-
-      // Convert to JSON string for storage
-      String socialMediaJson = jsonEncode(socialMediaLinks);
+      // if (_userRole?.toLowerCase() == 'tasker') {
+      //   if (_selectedSpecialization == null) {
+      //     ScaffoldMessenger.of(context).showSnackBar(
+      //       const SnackBar(
+      //         content: Text('Please select a specialization'),
+      //         backgroundColor: Colors.red,
+      //       ),
+      //     );
+      //     return;
+      //   }
+      //
+      //   if (_wageController.text.trim().isEmpty) {
+      //     ScaffoldMessenger.of(context).showSnackBar(
+      //       const SnackBar(
+      //         content: Text('Please enter your hourly wage'),
+      //         backgroundColor: Colors.red,
+      //       ),
+      //     );
+      //     return;
+      //   }
+      //
+      //   double? wage = double.tryParse(_wageController.text.trim());
+      //   if (wage == null || wage <= 0) {
+      //     ScaffoldMessenger.of(context).showSnackBar(
+      //       const SnackBar(
+      //         content: Text('Please enter a valid wage amount'),
+      //         backgroundColor: Colors.red,
+      //       ),
+      //     );
+      //     return;
+      //   }
+      // }
+      //
+      // // Create social media links object
+      // Map<String, String> socialMediaLinks = {
+      //   'facebook': _facebookController.text.trim(),
+      //   'instagram': _instagramController.text.trim(),
+      //   'linkedin': _linkedinController.text.trim(),
+      //   'twitter': _twitterController.text.trim(),
+      // };
+      //
+      // // Remove empty values
+      // socialMediaLinks.removeWhere((key, value) => value.isEmpty);
+      //
+      // // Convert to JSON string for storage
+      // String socialMediaJson = jsonEncode(socialMediaLinks);
 
       // Create user info object
       Map<String, dynamic> userInfo = {
@@ -356,9 +356,9 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
         'birthdate': _birthdate != null
             ? DateFormat('yyyy-MM-dd').format(_birthdate!)
             : null,
-        'socialMediaJson': socialMediaJson,
+        //'socialMediaJson': socialMediaJson,
         'bio': _bioController.text.trim(),
-        'socialMediaLinks': socialMediaLinks,
+        //'socialMediaLinks': socialMediaLinks,
       };
 
       // Add tasker-specific fields if user is a tasker
@@ -379,8 +379,8 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
       }
 
       // Save to storage for future reference
-      storage.write('bio', _bioController.text.trim());
-      storage.write('social_media_links', socialMediaJson);
+      //storage.write('bio', _bioController.text.trim());
+      //storage.write('social_media_links', socialMediaJson);
 
       // Call the callback function with the user info
       widget.onInfoCompleted(userInfo);
@@ -535,328 +535,133 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
                     ),
                     const SizedBox(height: 24),
 
+                    ///
+                    /// All of this text fields were moved to profile.
+                    ///
+                    /// -Ces
+                    ///
                     // Bio Section
-                    Text(
-                      'Professional Bio',
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Bio Text Field
-                    _buildTextField(
-                      controller: _bioController,
-                      label: 'Tell us about yourself and your skills',
-                      icon: Icons.person_outline,
-                      maxLines: 4,
-                      keyboardType: TextInputType.multiline,
-                      hintText:
-                          'Share your experience, skills, and what you can offer to clients',
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Your bio will be visible to potential clients',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontStyle: FontStyle.italic,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-
-                    // Tasker-specific fields (only show for taskers)
-                    if (_userRole?.toLowerCase() == 'tasker') ...[
-                      const SizedBox(height: 24),
-
-                      // Professional Details Section for Taskers
-                      Text(
-                        'Professional Details',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[800],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Specialization Dropdown
-                      Text(
-                        'Specialization *',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey[700],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey[300]!),
-                        ),
-                        child: _isLoadingSpecializations
-                            ? Container(
-                                height: 56,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 16),
-                                child: const Row(
-                                  children: [
-                                    Icon(Icons.work, color: Colors.grey),
-                                    SizedBox(width: 12),
-                                    Text('Loading specializations...'),
-                                    Spacer(),
-                                    SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 2),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : DropdownButtonFormField<SpecializationModel>(
-                                value: _selectedSpecialization,
-                                decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: Colors.grey[100],
-                                  prefixIcon:
-                                      Icon(Icons.work, color: Colors.grey[600]),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderSide:
-                                        BorderSide(color: Colors.grey[300]!),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                    borderSide: const BorderSide(
-                                        color: Color(0xFF0272B1), width: 2),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 16),
-                                  hintText: 'Select your specialization',
-                                ),
-                                items: _specializations.map((specialization) {
-                                  return DropdownMenuItem<SpecializationModel>(
-                                    value: specialization,
-                                    child: Text(
-                                      specialization.specialization,
-                                      style: GoogleFonts.poppins(fontSize: 14),
-                                    ),
-                                  );
-                                }).toList(),
-                                onChanged: (SpecializationModel? newValue) {
-                                  setState(() {
-                                    _selectedSpecialization = newValue;
-                                  });
-                                },
-                                validator: (value) {
-                                  if (value == null) {
-                                    return 'Please select a specialization';
-                                  }
-                                  return null;
-                                },
-                              ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Skills Text Field
-                      _buildTextField(
-                        controller: _skillsController,
-                        label: 'Skills & Expertise',
-                        icon: Icons.star,
-                        maxLines: 3,
-                        keyboardType: TextInputType.multiline,
-                        hintText:
-                            'List your specific skills, certifications, and areas of expertise',
-                        validator: (value) {
-                          if (_userRole?.toLowerCase() == 'tasker' &&
-                              (value == null || value.isEmpty)) {
-                            return 'Please describe your skills and expertise';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Pay Period Dropdown
-                      Text(
-                        'Pay Period *',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey[700],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      DropdownButtonFormField<String>(
-                        value: _selectedPayPeriod,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.grey[100],
-                          prefixIcon:
-                              Icon(Icons.schedule, color: Colors.grey[600]),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey[300]!),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(
-                                color: Color(0xFF0272B1), width: 2),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 16),
-                        ),
-                        items: _payPeriods.map((period) {
-                          return DropdownMenuItem<String>(
-                            value: period,
-                            child: Text(
-                              period,
-                              style: GoogleFonts.poppins(fontSize: 14),
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _selectedPayPeriod = newValue ?? 'Hourly';
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Wage/Rate Text Field
-                      _buildTextField(
-                        controller: _wageController,
-                        label:
-                            'Rate (PHP per ${_selectedPayPeriod.toLowerCase().replaceAll('ly', '')})',
-                        icon: Icons.attach_money,
-                        keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
-                        hintText: 'Enter your rate in PHP',
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                              RegExp(r'^\d+\.?\d{0,2}')),
-                        ],
-                        validator: (value) {
-                          if (_userRole?.toLowerCase() == 'tasker') {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your rate';
-                            }
-                            double? wage = double.tryParse(value);
-                            if (wage == null || wage <= 0) {
-                              return 'Please enter a valid amount';
-                            }
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'This rate will be visible to clients when they view your profile',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontStyle: FontStyle.italic,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
-
-                    const SizedBox(height: 24),
+                    // Text(
+                    //   'Professional Bio',
+                    //   style: GoogleFonts.poppins(
+                    //     fontSize: 18,
+                    //     fontWeight: FontWeight.w600,
+                    //     color: Colors.grey[800],
+                    //   ),
+                    // ),
+                    // const SizedBox(height: 16),
+                    //
+                    // // Bio Text Field
+                    // _buildTextField(
+                    //   controller: _bioController,
+                    //   label: 'Tell us about yourself and your skills',
+                    //   icon: Icons.person_outline,
+                    //   maxLines: 4,
+                    //   keyboardType: TextInputType.multiline,
+                    //   hintText:
+                    //       'Share your experience, skills, and what you can offer to clients',
+                    // ),
+                    // const SizedBox(height: 8),
+                    // Text(
+                    //   'Your bio will be visible to potential clients',
+                    //   style: GoogleFonts.poppins(
+                    //     fontSize: 12,
+                    //     fontStyle: FontStyle.italic,
+                    //     color: Colors.grey[600],
+                    //   ),
+                    // ),
 
                     // Social Media Links Section
-                    Text(
-                      'Social Media Links (Optional)',
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Add your social media profiles to enhance your verification',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Facebook
-                    _buildTextField(
-                      controller: _facebookController,
-                      label: 'Facebook Profile URL',
-                      icon: Icons.facebook,
-                      keyboardType: TextInputType.url,
-                      hintText: 'https://facebook.com/yourusername',
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          if (!value.contains('facebook.com')) {
-                            return 'Please enter a valid Facebook URL';
-                          }
-                        }
-                        return null; // Optional field
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Instagram
-                    _buildTextField(
-                      controller: _instagramController,
-                      label: 'Instagram Profile URL',
-                      icon: Icons.camera_alt,
-                      keyboardType: TextInputType.url,
-                      hintText: 'https://instagram.com/yourusername',
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          if (!value.contains('instagram.com')) {
-                            return 'Please enter a valid Instagram URL';
-                          }
-                        }
-                        return null; // Optional field
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // LinkedIn
-                    _buildTextField(
-                      controller: _linkedinController,
-                      label: 'LinkedIn Profile URL',
-                      icon: Icons.business_center,
-                      keyboardType: TextInputType.url,
-                      hintText: 'https://linkedin.com/in/yourusername',
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          if (!value.contains('linkedin.com')) {
-                            return 'Please enter a valid LinkedIn URL';
-                          }
-                        }
-                        return null; // Optional field
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Twitter
-                    _buildTextField(
-                      controller: _twitterController,
-                      label: 'Twitter Profile URL',
-                      icon: Icons.chat,
-                      keyboardType: TextInputType.url,
-                      hintText: 'https://twitter.com/yourusername',
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          if (!value.contains('twitter.com') &&
-                              !value.contains('x.com')) {
-                            return 'Please enter a valid Twitter/X URL';
-                          }
-                        }
-                        return null; // Optional field
-                      },
-                    ),
-                    const SizedBox(height: 24),
+                    // Text(
+                    //   'Social Media Links (Optional)',
+                    //   style: GoogleFonts.poppins(
+                    //     fontSize: 18,
+                    //     fontWeight: FontWeight.w600,
+                    //     color: Colors.grey[800],
+                    //   ),
+                    // ),
+                    // const SizedBox(height: 8),
+                    // Text(
+                    //   'Add your social media profiles to enhance your verification',
+                    //   style: GoogleFonts.poppins(
+                    //     fontSize: 14,
+                    //     color: Colors.grey[600],
+                    //   ),
+                    // ),
+                    // const SizedBox(height: 16),
+                    //
+                    // // Facebook
+                    // _buildTextField(
+                    //   controller: _facebookController,
+                    //   label: 'Facebook Profile URL',
+                    //   icon: Icons.facebook,
+                    //   keyboardType: TextInputType.url,
+                    //   hintText: 'https://facebook.com/yourusername',
+                    //   validator: (value) {
+                    //     if (value != null && value.isNotEmpty) {
+                    //       if (!value.contains('facebook.com')) {
+                    //         return 'Please enter a valid Facebook URL';
+                    //       }
+                    //     }
+                    //     return null; // Optional field
+                    //   },
+                    // ),
+                    // const SizedBox(height: 16),
+                    //
+                    // // Instagram
+                    // _buildTextField(
+                    //   controller: _instagramController,
+                    //   label: 'Instagram Profile URL',
+                    //   icon: Icons.camera_alt,
+                    //   keyboardType: TextInputType.url,
+                    //   hintText: 'https://instagram.com/yourusername',
+                    //   validator: (value) {
+                    //     if (value != null && value.isNotEmpty) {
+                    //       if (!value.contains('instagram.com')) {
+                    //         return 'Please enter a valid Instagram URL';
+                    //       }
+                    //     }
+                    //     return null; // Optional field
+                    //   },
+                    // ),
+                    // const SizedBox(height: 16),
+                    //
+                    // // LinkedIn
+                    // _buildTextField(
+                    //   controller: _linkedinController,
+                    //   label: 'LinkedIn Profile URL',
+                    //   icon: Icons.business_center,
+                    //   keyboardType: TextInputType.url,
+                    //   hintText: 'https://linkedin.com/in/yourusername',
+                    //   validator: (value) {
+                    //     if (value != null && value.isNotEmpty) {
+                    //       if (!value.contains('linkedin.com')) {
+                    //         return 'Please enter a valid LinkedIn URL';
+                    //       }
+                    //     }
+                    //     return null; // Optional field
+                    //   },
+                    // ),
+                    // const SizedBox(height: 16),
+                    //
+                    // // Twitter
+                    // _buildTextField(
+                    //   controller: _twitterController,
+                    //   label: 'Twitter Profile URL',
+                    //   icon: Icons.chat,
+                    //   keyboardType: TextInputType.url,
+                    //   hintText: 'https://twitter.com/yourusername',
+                    //   validator: (value) {
+                    //     if (value != null && value.isNotEmpty) {
+                    //       if (!value.contains('twitter.com') &&
+                    //           !value.contains('x.com')) {
+                    //         return 'Please enter a valid Twitter/X URL';
+                    //       }
+                    //     }
+                    //     return null; // Optional field
+                    //   },
+                    // ),
+                    // const SizedBox(height: 24),
 
                     // Contact Information Section
                     Text(

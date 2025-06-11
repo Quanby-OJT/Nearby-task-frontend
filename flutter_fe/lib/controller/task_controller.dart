@@ -475,8 +475,9 @@ class TaskController {
               .toList() ??
           [];
 
-      debugPrint('Fetched tasks: $taskAssignments');
-      debugPrint('Fetched conversations: $conversations');
+      // debugPrint('Fetched tasks: $taskAssignments');
+      // debugPrint('Fetched conversations: $conversations');
+      debugPrint("Task Information: ${taskAssignments.isNotEmpty ? taskAssignments[0] : 'No tasks'}");
 
       return TaskAndConversationResult(
         taskAssignments: taskAssignments,

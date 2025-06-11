@@ -4,6 +4,7 @@ import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/setting_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
+import 'package:flutter_fe/model/images_model.dart';
 import 'package:flutter_fe/model/setting.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
@@ -42,6 +43,8 @@ class _ClientHomePageState extends State<ClientHomePage>
   final SettingController _settingController = SettingController();
   List<MapEntry<int, String>> categories = [];
   Map<String, bool> selectedCategories = {};
+  List<String> taskerImages = [];
+  final TaskerController taskerController = TaskerController();
 
   SettingModel _userPreference = SettingModel();
   AuthenticatedUser? tasker;
@@ -113,6 +116,7 @@ class _ClientHomePageState extends State<ClientHomePage>
         _fetchUserIDImage(),
         _fetchUserData(),
         _fetchTaskers(),
+        getAllTaskerImages()
       ]);
       setState(() {
         _isLoading = false;
@@ -160,7 +164,7 @@ class _ClientHomePageState extends State<ClientHomePage>
       }
 
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
       debugPrint("Current User: $user");
 
       if (user == null) {
@@ -297,7 +301,7 @@ class _ClientHomePageState extends State<ClientHomePage>
       }
 
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
       final response = await _clientServices.fetchUserIDImage(userId);
 
       if (response['success']) {
@@ -338,6 +342,18 @@ class _ClientHomePageState extends State<ClientHomePage>
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> getAllTaskerImages() async{
+    List<int> taskerIds = fetchedTaskers.map((tasker) => tasker.id).toList();
+
+    for(int taskId in taskerIds){
+      List<ImagesModel> images = await taskerController.getAllTaskerImages(taskId) ?? [];
+      taskerImages.addAll(images.map((image) => image.image_url).toList());
+    }
+
+    // Example: Print all tasker IDs
+    debugPrint("All Tasker IDs: $taskerImages");
   }
 
   Future<void> _saveLikedTasker(UserModel tasker) async {
@@ -920,41 +936,26 @@ class _ClientHomePageState extends State<ClientHomePage>
                                       child: Stack(
                                         children: [
                                           ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                            child: tasker.user.image != null &&
-                                                    tasker
-                                                        .user.image!.isNotEmpty
-                                                ? Image.network(
-                                                    tasker.user.image!,
-                                                    fit: BoxFit.cover,
-                                                    width: double.infinity,
-                                                    height: double.infinity,
-                                                    errorBuilder: (context,
-                                                        error, stackTrace) {
-                                                      return Container(
-                                                        color: Colors.grey[200],
-                                                        child: Center(
-                                                          child: Icon(
-                                                            Icons.person,
-                                                            size: 100,
-                                                            color: Colors
-                                                                .grey[400],
-                                                          ),
-                                                        ),
-                                                      );
-                                                    },
+                                            borderRadius: BorderRadius.circular(20),
+                                            child: taskerImages.isEmpty
+                                                ? Center( // Center the icon
+                                                    child: Icon(
+                                                      FontAwesomeIcons.screwdriverWrench,
+                                                      size: 150, // Increase size for prominence
+                                                      color: Colors.grey[400], // Lighter grey for better visibility
+                                                    )
                                                   )
-                                                : Container(
-                                                    color: Colors.grey[200],
-                                                    child: Center(
-                                                      child: Icon(
-                                                        Icons.person,
-                                                        size: 100,
-                                                        color: Colors.grey[400],
-                                                      ),
-                                                    ),
-                                                  ),
+                                                : PageView.builder(
+                                              itemCount: taskerImages.length,
+                                              itemBuilder: (context, imageIndex) {
+                                                return Image.network(
+                                                  taskerImages[imageIndex],
+                                                  fit: BoxFit.cover,
+                                                  width: double.infinity,
+                                                  height: double.infinity,
+                                                );
+                                              },
+                                            ),
                                           ),
                                           // Darker overlay on the entire image
                                           Positioned.fill(

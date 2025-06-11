@@ -86,7 +86,7 @@ class _FinishTaskState extends State<FinishTask> {
         return;
       }
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
       debugPrint("User data: $user");
       setState(() {
         _role = user?.user.role;
@@ -171,7 +171,7 @@ class _FinishTaskState extends State<FinishTask> {
         return;
       }
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
       debugPrint("Tasker/Client data: $user");
       setState(() {
         tasker = user;

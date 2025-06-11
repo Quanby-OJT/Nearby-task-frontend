@@ -66,7 +66,7 @@ class _TaskExpiredState extends State<TaskExpired> {
   Future<void> _fetchTaskerDetails(int userId) async {
     try {
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
       setState(() {
         tasker = user;
       });
@@ -100,7 +100,7 @@ class _TaskExpiredState extends State<TaskExpired> {
           .fetchTaskInformation(_requestInformation!.task_id as int);
 
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
 
       setState(() {
         _role = user?.user.role ?? 'Unknown';
