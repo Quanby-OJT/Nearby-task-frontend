@@ -154,9 +154,21 @@ class _VerificationPageState extends State<VerificationPage> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                          'Your verification is pending review. You can update your information.'),
+                        "Your verification is pending review. You can update your information.",
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
                       backgroundColor: Colors.amber,
-                      duration: const Duration(seconds: 5),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      margin:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      duration: Duration(seconds: 3),
                     ),
                   );
                 }
@@ -167,9 +179,21 @@ class _VerificationPageState extends State<VerificationPage> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                          'Your verification was rejected. Please update your information and resubmit.'),
+                        "Your verification was rejected. Please update your information and resubmit.",
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
                       backgroundColor: Colors.red,
-                      duration: const Duration(seconds: 5),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      margin:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      duration: Duration(seconds: 3),
                     ),
                   );
                 }
@@ -202,25 +226,13 @@ class _VerificationPageState extends State<VerificationPage> {
       debugPrint("Role from session: ${storage.read('role')}");
 
       final userIdFromStorage = storage.read('user_id');
-      debugPrint(
-          'VerificationPage: _loadUserData - user_id from storage: $userIdFromStorage');
-      debugPrint(
-          'VerificationPage: _loadUserData - user_id type: ${userIdFromStorage.runtimeType}');
 
       int userId = int.parse(userIdFromStorage.toString());
-      debugPrint('VerificationPage: _loadUserData - parsed user_id: $userId');
 
       final user = await _controller.getAuthenticatedUser(userId);
       debugPrint('VerificationPage: _loadUserData - received user: $user');
 
-      // Store user role for verification submission
       if (user != null) {
-        // setState(() {
-        //   // _userRole = user.user.role;
-        //   _userRole = storage.read('role');
-        // });
-        debugPrint(
-            'VerificationPage: _loadUserData - set user role: $_userRole');
       } else {
         debugPrint('VerificationPage: _loadUserData - user is null!');
       }
@@ -228,7 +240,23 @@ class _VerificationPageState extends State<VerificationPage> {
       debugPrint('Error loading user data: $error');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading user data: $error')),
+          SnackBar(
+            content: Text(
+              "Error loading user data. Please try again.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
+          ),
         );
       }
     }
@@ -398,13 +426,21 @@ class _VerificationPageState extends State<VerificationPage> {
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_isUpdateMode
-                ? (result['message'] ??
-                    'Your information has been updated successfully!')
-                : (result['message'] ??
-                    'Verification submitted successfully! We will review your information and notify you once verified.')),
+            content: Text(
+              "Verification submitted successfully! Your information will be reviewed shortly.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
             backgroundColor: Colors.green,
-            duration: const Duration(seconds: 5),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
           ),
         );
 
@@ -416,12 +452,21 @@ class _VerificationPageState extends State<VerificationPage> {
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result['error'] ??
-                (_isUpdateMode
-                    ? 'Failed to update information'
-                    : 'Failed to submit verification')),
+            content: Text(
+              "Failed to submit verification. Please try again.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
             backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
           ),
         );
       }
@@ -436,8 +481,20 @@ class _VerificationPageState extends State<VerificationPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                'Error while ${_isUpdateMode ? 'updating' : 'submitting'} verification. Please Try Again. If the problem persists. Contact our support.'),
+              "Error while ${_isUpdateMode ? 'updating' : 'submitting'} verification. Please Try Again. If the problem persists. Contact our support.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
             backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
           ),
         );
       }
@@ -462,55 +519,6 @@ class _VerificationPageState extends State<VerificationPage> {
       body: Stack(
         children: [
           // Verification Status Banner (if verified)
-          if (_verificationStatus != null)
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-              color: (_verificationStatus == 'approved' ||
-                      _verificationStatus == 'Review')
-                  ? Colors.green[50]
-                  : _verificationStatus == 'rejected'
-                      ? Colors.red[50]
-                      : Colors.amber[50],
-              child: Row(
-                children: [
-                  Icon(
-                    (_verificationStatus == 'approved' ||
-                            _verificationStatus == 'Review')
-                        ? Icons.check_circle
-                        : _verificationStatus == 'rejected'
-                            ? Icons.cancel
-                            : Icons.pending,
-                    color: (_verificationStatus == 'approved' ||
-                            _verificationStatus == 'Review')
-                        ? Colors.green
-                        : _verificationStatus == 'rejected'
-                            ? Colors.red
-                            : Colors.amber,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      (_verificationStatus == 'approved' ||
-                              _verificationStatus == 'Review')
-                          ? 'Your account is verified. You can update your information.'
-                          : _verificationStatus == 'rejected'
-                              ? 'Your verification was rejected. Please update your information.'
-                              : 'Your verification is pending review.',
-                      style: TextStyle(
-                        color: (_verificationStatus == 'approved' ||
-                                _verificationStatus == 'Review')
-                            ? Colors.green[800]
-                            : _verificationStatus == 'rejected'
-                                ? Colors.red[800]
-                                : Colors.amber[800],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
 
           // Main content
           Padding(
@@ -549,33 +557,6 @@ class _VerificationPageState extends State<VerificationPage> {
               ],
             ),
           ),
-
-          // Loading overlay
-          if (_isLoading)
-            Container(
-              color: Colors.black54,
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const CircularProgressIndicator(
-                      color: Colors.white,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      _isUpdateMode
-                          ? 'Updating your information...'
-                          : 'Submitting verification...',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
         ],
       ),
       bottomNavigationBar: _currentPageIndex == 3 && !_isDocumentsUploaded

@@ -9,6 +9,7 @@ import 'package:flutter_fe/model/images_model.dart';
 import 'package:flutter_fe/model/setting.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_model.dart';
+import 'package:flutter_fe/model/verification_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/address/set-up_address.dart';
@@ -24,6 +25,8 @@ import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:flutter_fe/view/verification/verification_page.dart';
 import 'package:dots_indicator/dots_indicator.dart';
+import 'dart:convert';
+import 'package:flutter_fe/service/api_service.dart';
 
 class TaskerHomePage extends StatefulWidget {
   const TaskerHomePage({super.key});
@@ -76,6 +79,15 @@ class _TaskerHomePageState extends State<TaskerHomePage>
   List<int> imagesToDelete = [];
   List<int> existingImageIds = [];
 
+  VerificationModel? _existingVerification;
+  String? _verificationStatus;
+  bool _isIdVerified = false;
+  bool _isSelfieVerified = false;
+  bool _isDocumentsUploaded = false;
+  bool _isGeneralInfoCompleted = false;
+  String? _idType;
+  Map<String, dynamic> _userInfo = {};
+
   @override
   void initState() {
     super.initState();
@@ -125,8 +137,8 @@ class _TaskerHomePageState extends State<TaskerHomePage>
     try {
       await Future.wait([
         _fetchUserData(),
-        _fetchUserIDImage(),
         fetchSpecialization(),
+        _checkVerificationStatus(),
         _fetchTasks(),
       ]);
       setState(() {
@@ -173,7 +185,8 @@ class _TaskerHomePageState extends State<TaskerHomePage>
         return;
       }
 
-      AuthenticatedUser? user = await _profileController.getAuthenticatedUser(userId);
+      AuthenticatedUser? user =
+          await _profileController.getAuthenticatedUser(userId);
       debugPrint("Current User: $user");
 
       if (user == null) {
@@ -227,22 +240,22 @@ class _TaskerHomePageState extends State<TaskerHomePage>
         builder: (BuildContext childContext) {
           return AlertDialog(
               content: Row(children: [
-                Icon(
-                  FontAwesomeIcons.triangleExclamation,
-                  color: Color(0XFFE7A335),
-                  size: 50,
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                    child: Text(
-                      "You have been flagged for suspicious activity in your account. Please Contact Support for more information. Tap anywhere to remove this warning.",
-                      style: GoogleFonts.poppins(
-                        color: Colors.black,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w300,
-                      ),
-                    ))
-              ]));
+            Icon(
+              FontAwesomeIcons.triangleExclamation,
+              color: Color(0XFFE7A335),
+              size: 50,
+            ),
+            SizedBox(width: 10),
+            Expanded(
+                child: Text(
+              "You have been flagged for suspicious activity in your account. Please Contact Support for more information. Tap anywhere to remove this warning.",
+              style: GoogleFonts.poppins(
+                color: Colors.black,
+                fontSize: 14,
+                fontWeight: FontWeight.w300,
+              ),
+            ))
+          ]));
         });
   }
 
@@ -261,13 +274,13 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                 SizedBox(width: 10),
                 Expanded(
                     child: Text(
-                      "You have been banned from using this application. Please contact our support if you want to appeal.",
-                      style: GoogleFonts.poppins(
-                        color: Colors.black,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w300,
-                      ),
-                    ))
+                  "You have been banned from using this application. Please contact our support if you want to appeal.",
+                  style: GoogleFonts.poppins(
+                    color: Colors.black,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w300,
+                  ),
+                ))
               ]),
               actions: [
                 TextButton(
@@ -286,41 +299,64 @@ class _TaskerHomePageState extends State<TaskerHomePage>
         });
   }
 
-  Future<void> _fetchUserIDImage() async {
+  Future<void> _checkVerificationStatus() async {
     try {
-      int userId = int.parse(storage.read('user_id').toString());
-      if (userId == 0) {
-        debugPrint("User ID not found in storage");
+      final userId = storage.read('user_id');
+      debugPrint('VerificationPage: Retrieved user_id from storage: $userId');
+      debugPrint('VerificationPage: user_id type: ${userId.runtimeType}');
 
-        return;
-      }
+      if (userId != null) {
+        final parsedUserId = int.parse(userId.toString());
+        debugPrint('VerificationPage: Parsed user_id: $parsedUserId');
 
-      AuthenticatedUser? user =
-      await _profileController.getAuthenticatedUser(userId);
-      final response = await _clientServices.fetchUserIDImage(userId);
+        final result =
+            await ApiService.getTaskerVerificationStatus(parsedUserId);
 
-      debugPrint("Response This is for checking: ${response['status']}");
-      debugPrint("User This is for checking: ${user?.user.image}");
-      debugPrint("User ID This is for checking: ${response['url']}");
+        debugPrint(
+            'Verification status check result: ${jsonEncode(result['verification'])}');
 
-      if (response['success']) {
-        debugPrint("User Image: ${user?.user.image}. User ID Image: ${response['url']}. Status: ${response['status']}");
-        setState(() {
-          _user = user;
-          _existingProfileImageUrl = user?.user.image;
-          _existingIDImageUrl = response['url'];
-          _documentValid = response['status'];
-        });
+        if (result['success'] == true && result['exists'] == true) {
+          // User has existing verification data
+          if (result['verification'] != null) {
+            final verificationData =
+                VerificationModel.fromJson(result['verification']);
+            debugPrint(
+                'VerificationPage: Existing verification data status: ${verificationData.status}');
+
+            setState(() {
+              _existingVerification = verificationData;
+              _verificationStatus = verificationData.status;
+
+              debugPrint(
+                  'VerificationPage: Set _verificationStatus to: $_verificationStatus');
+
+              // Pre-populate data
+              if (verificationData.idImageUrl != null) {
+                _isIdVerified = true;
+                _idType = verificationData.idType;
+              }
+
+              if (verificationData.selfieImageUrl != null) {
+                _isSelfieVerified = true;
+              }
+
+              if (verificationData.documentUrl != null ||
+                  verificationData.clientDocumentUrl != null) {
+                _isDocumentsUploaded = true;
+              }
+            });
+          }
+        }
       }
     } catch (e) {
-      debugPrint("Error fetching ID image: $e");
+      debugPrint('Error checking verification status: $e');
     }
   }
 
   Future<void> fetchSpecialization() async {
     try {
       List<SpecializationModel> fetchedSpecializations =
-      await jobPostService.getSpecializations();
+          await jobPostService.getSpecializations();
 
       setState(() {
         categories = [
@@ -347,7 +383,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
       for (int i = 0; i < fetchedTasks.length; i++) {
         try {
           final images =
-          await jobPostService.fetchTaskImages(fetchedTasks[i].id);
+              await jobPostService.fetchTaskImages(fetchedTasks[i].id);
           fetchedTasks[i] = TaskModel(
             id: fetchedTasks[i].id,
             title: fetchedTasks[i].title,
@@ -439,8 +475,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                 setState(() {
                   _isLoading = true;
                 });
-                await _fetchUserIDImage();
-                await _fetchTasks();
+                await _loadAllFunction();
               } else {
                 setState(() {
                   _isUploadDialogShown = false;
@@ -488,7 +523,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
 
   void _showAnimatedMenu(BuildContext context) {
     final RenderBox renderBox =
-    _moreVertKey.currentContext!.findRenderObject() as RenderBox;
+        _moreVertKey.currentContext!.findRenderObject() as RenderBox;
     final position = renderBox.localToGlobal(Offset.zero);
     final screenWidth = MediaQuery.of(context).size.width;
 
@@ -499,8 +534,8 @@ class _TaskerHomePageState extends State<TaskerHomePage>
     final double adjustedLeft = leftPosition < 0
         ? 0
         : leftPosition + menuWidth > screenWidth
-        ? screenWidth - menuWidth
-        : leftPosition;
+            ? screenWidth - menuWidth
+            : leftPosition;
 
     OverlayState overlayState = Overlay.of(context);
     late OverlayEntry overlayEntry;
@@ -538,7 +573,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                     buildListTile(
                       FontAwesomeIcons.solidUser,
                       "Profile",
-                          () {
+                      () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -549,14 +584,14 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                     ),
                     //Implement Here verification Check.
                     buildListTile(FontAwesomeIcons.userCheck, "Verify Account",
-                            () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const VerificationPage()),
-                          );
-                          overlayEntry.remove();
-                        }),
+                        () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const VerificationPage()),
+                      );
+                      overlayEntry.remove();
+                    }),
                     buildListTile(
                         FontAwesomeIcons.rankingStar, "My Client Ratings", () {
                       Navigator.push(
@@ -581,8 +616,8 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                         MaterialPageRoute(
                             builder: (context) => SettingScreen()),
                       ).then((value) => setState(() {
-                        _fetchTasks();
-                      }));
+                            _fetchTasks();
+                          }));
                       overlayEntry.remove();
                     }),
                     Padding(
@@ -696,14 +731,14 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                       color: Colors.white,
                       image: _image != "Unknown" && _image.isNotEmpty
                           ? DecorationImage(
-                        image: NetworkImage(_image),
-                        fit: BoxFit.cover,
-                        onError: (exception, stackTrace) {
-                          setState(() {
-                            _image = "Unknown";
-                          });
-                        },
-                      )
+                              image: NetworkImage(_image),
+                              fit: BoxFit.cover,
+                              onError: (exception, stackTrace) {
+                                setState(() {
+                                  _image = "Unknown";
+                                });
+                              },
+                            )
                           : null,
                     ),
                     child: _image == "Unknown" || _image.isEmpty
@@ -821,7 +856,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: Color(0xFF0272B1)),
                       padding:
-                      EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -853,19 +888,8 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                     _dislikeAnimationController?.forward();
                     _cardCounter();
                   } else if (swipeDirection == CardSwiperDirection.right) {
-                    // Check if user account is already under review or approved
-                    bool isVerificationInProgress =
-                        _user?.user.accStatus == "Review" ||
-                            _user?.user.accStatus == "approved" ||
-                            _user?.user.accStatus == "Approved";
-
-                    // Only show warning if verification is not in progress and documents are missing
-                    if (!isVerificationInProgress &&
-                        (//_existingProfileImageUrl == null ||
-                            _existingIDImageUrl == null ||
-                            //_existingProfileImageUrl!.isEmpty ||
-                            _existingIDImageUrl!.isEmpty ||
-                            !_documentValid)) {
+                    if (_verificationStatus != "Approved" &&
+                        _verificationStatus != "Review") {
                       _showWarningDialog();
                       return false;
                     }
@@ -905,11 +929,11 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                               child: isShowingFront
                                   ? _buildFrontCard(task, index)
                                   : Transform(
-                                alignment: Alignment.center,
-                                transform: Matrix4.identity()
-                                  ..rotateY(3.14159),
-                                child: _buildBackCard(task, index),
-                              ),
+                                      alignment: Alignment.center,
+                                      transform: Matrix4.identity()
+                                        ..rotateY(3.14159),
+                                      child: _buildBackCard(task, index),
+                                    ),
                             );
                           },
                         ),
@@ -1013,48 +1037,48 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                     children: [
                       task.imageUrls != null && task.imageUrls!.isNotEmpty
                           ? CardSwiper(
-                        controller: _imageSwiperControllers[index]!,
-                        cardsCount: task.imageUrls!.length,
-                        numberOfCardsDisplayed: 1,
-                        allowedSwipeDirection: AllowedSwipeDirection.only(
-                            left: true, right: true),
-                        onSwipe: (prevIndex, currIndex, direction) {
-                          setState(() {
-                            _imageSwiperIndex[index] = currIndex ?? 0;
-                          });
-                          return true;
-                        },
-                        cardBuilder: (context, imageIndex, _, __) {
-                          if (imageIndex >= task.imageUrls!.length) {
-                            return _buildNoImagePlaceholder(imageHeight);
-                          }
-                          final image = task.imageUrls![imageIndex];
-                          return Image.network(
-                            image.image_url.isNotEmpty
-                                ? image.image_url
-                                : 'https://via.placeholder.com/150',
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            height: imageHeight,
-                            loadingBuilder: (context, child, progress) {
-                              if (progress == null) return child;
-                              return Center(
-                                child: CircularProgressIndicator(
-                                  value: progress.expectedTotalBytes !=
-                                      null
-                                      ? progress.cumulativeBytesLoaded /
-                                      progress.expectedTotalBytes!
-                                      : null,
-                                ),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              return _buildNoImagePlaceholder(
-                                  imageHeight);
-                            },
-                          );
-                        },
-                      )
+                              controller: _imageSwiperControllers[index]!,
+                              cardsCount: task.imageUrls!.length,
+                              numberOfCardsDisplayed: 1,
+                              allowedSwipeDirection: AllowedSwipeDirection.only(
+                                  left: true, right: true),
+                              onSwipe: (prevIndex, currIndex, direction) {
+                                setState(() {
+                                  _imageSwiperIndex[index] = currIndex ?? 0;
+                                });
+                                return true;
+                              },
+                              cardBuilder: (context, imageIndex, _, __) {
+                                if (imageIndex >= task.imageUrls!.length) {
+                                  return _buildNoImagePlaceholder(imageHeight);
+                                }
+                                final image = task.imageUrls![imageIndex];
+                                return Image.network(
+                                  image.image_url.isNotEmpty
+                                      ? image.image_url
+                                      : 'https://via.placeholder.com/150',
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: imageHeight,
+                                  loadingBuilder: (context, child, progress) {
+                                    if (progress == null) return child;
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        value: progress.expectedTotalBytes !=
+                                                null
+                                            ? progress.cumulativeBytesLoaded /
+                                                progress.expectedTotalBytes!
+                                            : null,
+                                      ),
+                                    );
+                                  },
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return _buildNoImagePlaceholder(
+                                        imageHeight);
+                                  },
+                                );
+                              },
+                            )
                           : _buildNoImagePlaceholder(imageHeight),
                       // Flip indicator
                       Positioned(
@@ -1116,7 +1140,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                     children: [
                       Container(
                         padding:
-                        EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                           color: Color(0xFFB71A4A),
                           borderRadius: BorderRadius.circular(5),
@@ -1288,7 +1312,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                   children: [
                     Container(
                       padding:
-                      EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
                         color: Color(0xFFB71A4A),
                         borderRadius: BorderRadius.circular(5),
@@ -1431,8 +1455,8 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                               SingleChildScrollView(
                                 child: Text(
                                   DateFormat('MMM dd, yyyy HH:mm a').format(
-                                      DateTime.parse(
-                                          task.taskBeginDate ?? '')) ??
+                                          DateTime.parse(
+                                              task.taskBeginDate ?? '')) ??
                                       'No start date available for this task.',
                                   style: GoogleFonts.poppins(
                                     fontSize: 12,
