@@ -190,6 +190,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         isSaving = false;
         willEdit = false;
+        taskerImages = [];
+        tesdaDocuments = [];
+        profileImages = [];
       });
       loadAllDataAtOnce();
     }
