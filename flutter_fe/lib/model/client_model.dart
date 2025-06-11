@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'dart:convert';
 
@@ -40,8 +41,6 @@ class ClientModel {
     return {
       "client_id": clientId,
       "user_id": userId,
-      "preferences": preferences,
-      "client_address": clientAddress,
       "bio": bio,
       "social_media_links":
           socialMediaLinks != null ? jsonEncode(socialMediaLinks) : '{}',
@@ -54,6 +53,7 @@ class ClientModel {
   }
 
   factory ClientModel.fromJson(Map<String, dynamic> json) {
+    //debugPrint("Client Data Raw: $json");
     Map<String, String>? socialLinks;
     if (json['social_media_links'] != null) {
       try {

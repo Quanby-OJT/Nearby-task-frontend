@@ -18,7 +18,8 @@ class TaskerModel {
   final DateTime? updatedAt;
   final UserModel? user;
   final TaskerSpecialization? taskerSpecialization;
-  final List<int>? taskerImages;
+  final List<int>? taskerImagesId;
+  final List<String>? taskerImages;
   final bool group;
   final List<String>? taskerDocuments;
 
@@ -45,6 +46,7 @@ class TaskerModel {
     this.updatedAt,
     this.user,
     this.taskerSpecialization,
+    this.taskerImagesId,
     this.taskerImages,
     this.taskerDocuments,
     required this.group
@@ -73,7 +75,7 @@ class TaskerModel {
       "updated_at": updatedAt?.toIso8601String(),
       "user": user?.toJson(),
       "tasker_specialization": taskerSpecialization?.toJson(),
-      "profile_images_id": taskerImages,
+      "profile_images_id": taskerImagesId,
       "tasker_documents": taskerDocuments,
       "group": group,
     };
@@ -96,7 +98,7 @@ class TaskerModel {
 
     return TaskerModel(
       taskerId: json['tasker_id'] as int? ?? json['id'] as int?,
-      userId: json['user_id'] as int,
+      userId: json['user_id'] != null ? json['user_id'] as int : 0,
       bio: json['bio'] as String,
       specializationId: json['specialization_id'] as int,
       specialization: json['tasker_specialization']['specialization'] as String,
@@ -124,7 +126,7 @@ class TaskerModel {
           ? TaskerSpecialization.fromJson(
               json['tasker_specialization'] as Map<String, dynamic>)
           : null,
-      taskerImages: json['profile_images'] != null && json['profile_images'] is List
+      taskerImagesId: json['profile_images'] != null && json['profile_images'] is List
           ? List<int>.from(
               (json['profile_images'] as List<dynamic>).map((e) => e is int ? e : int.tryParse(e.toString()) ?? 0))
           : [],

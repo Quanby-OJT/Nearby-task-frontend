@@ -638,7 +638,7 @@ class ClientServices {
 
   Future<Map<String, dynamic>> updateClient(ClientModel client) async{
     try{
-      return await _putRequest(endpoint: "/client/updateClient/${client.id}", body: client.toJson());
+      return await _putRequest(endpoint: "/update-client-profile/${client.id}", body: client.toJson());
     }catch(e, stackTrace){
       debugPrint("Error updating client: $e");
       debugPrint(stackTrace.toString());

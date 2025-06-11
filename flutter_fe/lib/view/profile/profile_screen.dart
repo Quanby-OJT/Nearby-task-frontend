@@ -65,10 +65,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {
       _isLoading = true;
     });
+    final role = storage.read('role');
     await Future.wait([
       _fetchUserData(),
-      fetchSpecialization(),
-      getAllTaskerImages()
+
+      if(role == "Tasker") fetchSpecialization(),
+      if(role == "Tasker") getAllTaskerImages()
     ]);
 
     setState(() {
@@ -98,14 +100,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       int userId = storage.read("user_id");
       AuthenticatedUser? user = await _userController.getAuthenticatedUser(userId);
-      String role = user?.user.role ?? '';
+      String role = storage.read('role');
 
-      debugPrint("User Images: ${user?.tasker?.taskerImages}");
+      debugPrint("Current User: ${user?.client?.bio}");
       setState(() {
         _user = user;
         _userController.emailController.text = _user?.user.email ?? '';
         _userController.birthdateController.text = _user?.user.birthdate ?? '';
-        _userController.bioController.text = role == "Tasker" ? _user?.tasker?.bio ?? '' : _user?.client?.preferences ?? '';
+        _userController.bioController.text = role == "Tasker" ? _user?.tasker?.bio ?? '' : _user?.client?.bio ?? '';
         _userController.specializationController.text = _user?.tasker?.specialization ?? '';
         _userController.skillsController.text = _user?.tasker?.skills ?? '';
         _isAvailable = _user?.tasker?.availability ?? false;

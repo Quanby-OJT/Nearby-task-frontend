@@ -183,7 +183,7 @@ class ProfileController {
             user: UserModel.fromJson(data["user"]),
             isClient: true,
             isTasker: false,
-            client: result['client'] != null ? ClientModel.fromJson(result['client']) : null
+            client: data['client'] != null ? ClientModel.fromJson(data['client']) : null
           );
         } else if (data!= null && data.containsKey("tasker")) {
           // For taskers, we no longer merge data from tasker table
@@ -251,7 +251,7 @@ class ProfileController {
       if(role == "Client"){
         ClientModel client = ClientModel(
           clientId: storage.read("user_id"),
-          preferences: bioController.text
+          bio: bioController.text
         );
 
         final updateClientResult = await clientService.updateClient(client);
@@ -275,7 +275,7 @@ class ProfileController {
           payPeriod: payPeriodController.text,
           group: taskerGroupController.text == "Agency" ? true : false,
           rating: 0.0,
-          taskerImages: taskerImageUrl ?? [],
+          taskerImagesId: taskerImageUrl ?? [],
         );
 
         List<File> taskerImages = [];
