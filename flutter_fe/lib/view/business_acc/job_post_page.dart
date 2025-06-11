@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/view/business_acc/edit_task_page.dart';
-import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/task/task_cancelled.dart';
 import 'package:flutter_fe/view/task/task_confirmed.dart';
 import 'package:flutter_fe/view/task/task_declined.dart';
@@ -41,8 +40,7 @@ class _JobPostPageState extends State<JobPostPage>
   final JobPostService _jobPostService = JobPostService();
   final ClientServices _clientServices = ClientServices();
   final ProfileController _profileController = ProfileController();
-  final EscrowManagementController _escrowController =
-      EscrowManagementController();
+
   final GetStorage _storage = GetStorage();
   final TextEditingController _searchController = TextEditingController();
   late final PageController _pageController;
@@ -161,8 +159,7 @@ class _JobPostPageState extends State<JobPostPage>
 
     try {
       final parsedUserId = int.parse(userId.toString());
-      final user =
-          await _profileController.getAuthenticatedUser(parsedUserId);
+      final user = await _profileController.getAuthenticatedUser(parsedUserId);
       final response = await _clientServices.fetchUserIDImage(parsedUserId);
 
       // Check if user has Review or Active status
@@ -584,7 +581,8 @@ class _JobPostPageState extends State<JobPostPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(FontAwesomeIcons.screwdriverWrench, size: 64, color: Colors.grey[400]),
+            Icon(FontAwesomeIcons.screwdriverWrench,
+                size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
               'No tasks found',

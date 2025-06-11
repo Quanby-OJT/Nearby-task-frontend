@@ -108,143 +108,194 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
           iconTheme: IconThemeData(color: Color(0xFFE23670)),
         ),
         body: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                buildTaskInformation(),
-                SizedBox(height: 16),
-                buildUserInformation(),
-                SizedBox(height: 16),
-                ElevatedButton(
-                  iconAlignment: IconAlignment.start,
-                  onPressed: () => Navigator.pop(context),
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all<Color>(Color(0XFFE23670)),
-                    foregroundColor: WidgetStateProperty.all<Color>(Colors.white),
-                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                    ),
-                    padding: WidgetStateProperty.all<EdgeInsetsGeometry>(EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0)),
-                  ),
-                  child: Text(
-                    "Back to Messages",
-                    style: GoogleFonts.poppins(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
-                  )
-                )
-              ],
-            )
-          )
-        )
-    );
+            child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    buildTaskInformation(),
+                    SizedBox(height: 16),
+                    buildUserInformation(),
+                    SizedBox(height: 16),
+                    ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ButtonStyle(
+                          backgroundColor:
+                              WidgetStateProperty.all<Color>(Color(0XFFE23670)),
+                          foregroundColor:
+                              WidgetStateProperty.all<Color>(Colors.white),
+                          shape:
+                              WidgetStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                          ),
+                          padding: WidgetStateProperty.all<EdgeInsetsGeometry>(
+                              EdgeInsets.symmetric(
+                                  vertical: 16.0, horizontal: 24.0)),
+                        ),
+                        child: Text(
+                          "Back to Messages",
+                          style: GoogleFonts.poppins(
+                              fontSize: 18,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold),
+                        ))
+                  ],
+                ))));
   }
 
-  Widget buildTaskInformation(){
+  Widget buildTaskInformation() {
     return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            buildCardTitle(FontAwesomeIcons.screwdriverWrench, widget.taskAssignment.task?.title ?? "Unknown Task"),
-            SizedBox(height: 10),
-            Text(
-              "Description: ",
-              style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            Text(
-              widget.taskAssignment.task?.description ?? "No description available",
-              style: GoogleFonts.poppins(fontSize: 16),
-            ),
-            SizedBox(height: 8),
-            buildInfoRow("Address", Icons.location_pin, Color(0XFFD43D4D) ,widget.taskAssignment.task?.address?.city ?? "Unknown Location"),
-            SizedBox(height: 8),
-            buildInfoRow("Required Specialization", FontAwesomeIcons.gears, Color(0XFF4A4A68), widget.taskAssignment.task?.specialization ?? ""),
-            SizedBox(height: 8),
-            Row(
-              children: [
+        elevation: 4,
+        child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              buildCardTitle(FontAwesomeIcons.screwdriverWrench,
+                  widget.taskAssignment.task?.title ?? "Unknown Task"),
+              SizedBox(height: 10),
+              Text(
+                "Description: ",
+                style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              Text(
+                widget.taskAssignment.task?.description ??
+                    "No description available",
+                style: GoogleFonts.poppins(fontSize: 16),
+              ),
+              SizedBox(height: 8),
+              buildInfoRow(
+                  "Address",
+                  Icons.location_pin,
+                  Color(0XFFD43D4D),
+                  widget.taskAssignment.task?.address?.city ??
+                      "Unknown Location"),
+              SizedBox(height: 8),
+              buildInfoRow(
+                  "Required Specialization",
+                  FontAwesomeIcons.gears,
+                  Color(0XFF4A4A68),
+                  widget.taskAssignment.task?.specialization ?? ""),
+              SizedBox(height: 8),
+              Row(children: [
                 Text(
                   "Status: ",
                   style: GoogleFonts.poppins(fontSize: 16),
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     decoration: BoxDecoration(
-                    color: badgeColor(widget.taskAssignment.taskStatus),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
+                      color: badgeColor(widget.taskAssignment.taskStatus),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
                     child: Text(
                       widget.taskAssignment.taskStatus.toUpperCase(),
-                      style: GoogleFonts.poppins(fontSize: 16, color: Colors.white),
-                    )
-                  ),
-              ]
-            )
-          ]
-        )
-      )
-    );
+                      style: GoogleFonts.poppins(
+                          fontSize: 16, color: Colors.white),
+                    )),
+              ])
+            ])));
   }
 
-  Widget buildUserInformation(){
+  Widget buildUserInformation() {
     String role = GetStorage().read('role');
-    bool verified = role == "Client" ? widget.taskAssignment.tasker?.user?.verified ?? false : widget.taskAssignment.client?.user?.verified ?? false;
+    bool verified = role == "Client"
+        ? widget.taskAssignment.tasker?.user?.verified ?? false
+        : widget.taskAssignment.client?.user?.verified ?? false;
 
     return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            role == "Client"
-              ? buildCardTitle(role == "Client" ? FontAwesomeIcons.userGear : FontAwesomeIcons.userTie, widget.taskAssignment.tasker?.user != null ? "${widget.taskAssignment.tasker?.user?.firstName ?? ""} ${widget.taskAssignment.tasker?.user?.middleName ?? ""} ${widget.taskAssignment.tasker?.user?.lastName ?? ""}" : "Unknown User")
-              : buildCardTitle(FontAwesomeIcons.userGear, widget.taskAssignment.client?.user != null ? "${widget.taskAssignment.client?.user?.firstName ?? ""} ${widget.taskAssignment.client?.user?.middleName ?? ""} ${widget.taskAssignment.client?.user?.lastName ?? ""}" : "Unknown User"),
-            SizedBox(height: 10),
-            buildInfoRow(null, verified ? FontAwesomeIcons.solidCircleCheck : FontAwesomeIcons.circleCheck, verified ? Colors.green : Colors.grey , verified ? "This user is Verified" : "This user is not verified."),
-            if(role == "Client") ...[
-              SizedBox(height: 8),
-              buildInfoRow("Specialization", FontAwesomeIcons.screwdriverWrench, Colors.black12, widget.taskAssignment.tasker?.specialization ?? "N/A"),
-              SizedBox(height: 8),
-              buildInfoRow("Relevant Skills", FontAwesomeIcons.helmetSafety, Colors.amber, widget.taskAssignment.tasker?.skills ?? "N/A")
-            ]
-          ]
-        )
-      )
-    );
+        elevation: 4,
+        child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              role == "Client"
+                  ? buildCardTitle(
+                      role == "Client"
+                          ? FontAwesomeIcons.userGear
+                          : FontAwesomeIcons.userTie,
+                      widget.taskAssignment.tasker?.user != null
+                          ? "${widget.taskAssignment.tasker?.user?.firstName ?? ""} ${widget.taskAssignment.tasker?.user?.middleName ?? ""} ${widget.taskAssignment.tasker?.user?.lastName ?? ""}"
+                          : "Unknown User")
+                  : buildCardTitle(
+                      FontAwesomeIcons.userGear,
+                      widget.taskAssignment.client?.user != null
+                          ? "${widget.taskAssignment.client?.user?.firstName ?? ""} ${widget.taskAssignment.client?.user?.middleName ?? ""} ${widget.taskAssignment.client?.user?.lastName ?? ""}"
+                          : "Unknown User"),
+              SizedBox(height: 10),
+              buildInfoRow(
+                  null,
+                  verified
+                      ? FontAwesomeIcons.solidCircleCheck
+                      : FontAwesomeIcons.circleCheck,
+                  verified ? Colors.green : Colors.grey,
+                  verified
+                      ? "This user is Verified"
+                      : "This user is not verified."),
+              if (role == "Client") ...[
+                SizedBox(height: 8),
+                buildInfoRow(
+                    "Specialization",
+                    FontAwesomeIcons.screwdriverWrench,
+                    Colors.black12,
+                    widget.taskAssignment.tasker?.specialization ?? "N/A"),
+                SizedBox(height: 8),
+                buildInfoRow("Relevant Skills", FontAwesomeIcons.helmetSafety,
+                    Colors.amber, widget.taskAssignment.tasker?.skills ?? "N/A")
+              ]
+            ])));
   }
 
-  Widget buildInfoRow(String? label, IconData? icon, Color color, String value){
-    return Row(
-      children: [
-        if(icon != null) ...[
-          Icon(icon, color: color, size: 20,),
-          SizedBox(width: 10)
-        ],
-        if(label != null) Text("$label: ", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16)),
-        Text(value, style: GoogleFonts.poppins(fontSize: 16))
-      ]
-    );
+  Widget buildInfoRow(
+      String? label, IconData? icon, Color color, String value) {
+    return Row(children: [
+      if (icon != null) ...[
+        Icon(
+          icon,
+          color: color,
+          size: 20,
+        ),
+        SizedBox(width: 10)
+      ],
+      if (label != null)
+        Text("$label: ",
+            style:
+                GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16)),
+      Text(value, style: GoogleFonts.poppins(fontSize: 16))
+    ]);
   }
 
-  Widget buildCardTitle(IconData icon, String title){
-    return Row(
-      children: [
-        Icon(icon, color: Color(0xFFE23670), size: 30,),
-        SizedBox(width: 16),
-        Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 20)),
-      ]
-    );
+  Widget buildCardTitle(IconData icon, String title) {
+    return Row(children: [
+      Icon(
+        icon,
+        color: Color(0xFFE23670),
+        size: 30,
+      ),
+      SizedBox(width: 16),
+      Text(title,
+          style:
+              GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 20)),
+    ]);
   }
 
   Color badgeColor(String status) {
-    if(status == "Pending" || status == "Disputed") return Color(0XFFD6932A);
-    else if(status == "Rejected" || status == "Cancelled" || status == "Expired" || status == "Declined") return Color(0XFFD43D4D);
-    else if(status == "Review" || status == "Confirmed" || status == "Ongoing" || status == "Reworking") return Color(0XFF3E9FE5);
-    else if(status == "Completed") return Color(0XFF4A4A68);
-    else return Color(0XFF4A4A68);
+    if (status == "Pending" || status == "Disputed")
+      return Color(0XFFD6932A);
+    else if (status == "Rejected" ||
+        status == "Cancelled" ||
+        status == "Expired" ||
+        status == "Declined")
+      return Color(0XFFD43D4D);
+    else if (status == "Review" ||
+        status == "Confirmed" ||
+        status == "Ongoing" ||
+        status == "Reworking")
+      return Color(0XFF3E9FE5);
+    else if (status == "Completed")
+      return Color(0XFF4A4A68);
+    else
+      return Color(0XFF4A4A68);
   }
 }
