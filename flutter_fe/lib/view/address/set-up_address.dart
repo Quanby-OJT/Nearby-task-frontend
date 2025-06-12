@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/setting_controller.dart';
 import 'package:flutter_fe/view/custom_loading/custom_loading.dart';
+import 'package:flutter_fe/view/sign_in/sign_in.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:get_storage/get_storage.dart';
 
 class SetUpAddressScreen extends StatefulWidget {
   const SetUpAddressScreen({super.key});
@@ -18,6 +20,7 @@ class _SetUpAddressScreenState extends State<SetUpAddressScreen>
   bool _isDescriptionVisible = false;
   late AnimationController _animationController;
   late Animation<Offset> _slideAnimation;
+  final storage = GetStorage();
 
   String _locationMessage = "Tap to get location";
   double? _latitude;
@@ -115,10 +118,67 @@ class _SetUpAddressScreenState extends State<SetUpAddressScreen>
         _isLoading = false;
         _locationMessage = "Error getting location: $e";
       });
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            title: const Text(
+              'Cannot Get Location',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            content: Text(
+              "Please try again.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: Colors.black,
+                fontWeight: FontWeight.w300,
+              ),
+            ),
+            actions: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  color: const Color(0xFFB71A4A),
+                ),
+                child: TextButton(
+                  child: Text('OK',
+                      style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white)),
+                  onPressed: () {
+                    Navigator.pop(context, false);
+                    Navigator.pop(context, false);
+                  },
+                ),
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 
   Future<void> _saveLocation() async {
+    final int userid = storage.read('user_id');
+
+    debugPrint("This is the user ID $userid");
+
+    if (userid.toString().isEmpty) {
+      Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const SignIn()),
+          (route) => false);
+    }
+
     if (_latitude == null || _longitude == null) {
       debugPrint('Cannot save location: latitude or longitude is null');
       return;

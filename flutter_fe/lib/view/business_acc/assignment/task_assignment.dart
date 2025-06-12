@@ -89,8 +89,8 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
         return [];
       }
 
-      final tasks =
-          await taskController.getCreatedTasksByClient(int.parse(clientId));
+      final tasks = await taskController.getCreatedTasksByClient(
+          context, int.parse(clientId));
       TaskCache.setTasks(tasks);
       return tasks;
     } catch (e) {

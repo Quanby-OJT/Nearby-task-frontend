@@ -13,6 +13,8 @@ class PreviewTask extends StatefulWidget {
   final List<File> photos;
   final Function() onSubmit;
   final String? method;
+  final List<dynamic>? taskImages;
+  final List<int>? imagesToDelete;
 
   const PreviewTask({
     super.key,
@@ -25,6 +27,8 @@ class PreviewTask extends StatefulWidget {
     required this.photos,
     required this.onSubmit,
     this.method,
+    this.taskImages,
+    this.imagesToDelete,
   });
 
   @override
@@ -159,33 +163,66 @@ class _PreviewTaskState extends State<PreviewTask> {
                   },
                   {
                     'label': 'Photos',
-                    'value': widget.photos.isNotEmpty
-                        ? '${widget.photos.length} photo(s) uploaded'
+                    'value': widget.photos.isNotEmpty ||
+                            (widget.taskImages != null &&
+                                widget.taskImages!.isNotEmpty)
+                        ? '${widget.photos.length + (widget.taskImages?.length ?? 0)} photo(s) uploaded'
                         : 'None'
                   },
                 ]),
-                if (widget.photos.isNotEmpty) ...[
+                if (widget.photos.isNotEmpty ||
+                    (widget.taskImages != null &&
+                        widget.taskImages!.isNotEmpty)) ...[
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: widget.photos.map((photo) {
-                      return Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey[300]!),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.file(
-                            photo,
-                            fit: BoxFit.cover,
+                    children: [
+                      if (widget.taskImages != null)
+                        ...widget.taskImages!
+                            .where((image) =>
+                                !widget.imagesToDelete!.contains(image.id))
+                            .map((image) {
+                          return Container(
+                            width: 100,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey[300]!),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                image.image_url,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Icon(
+                                  Icons.broken_image,
+                                  color: Colors.grey,
+                                  size: 40,
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ...widget.photos.map((photo) {
+                        return Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey[300]!),
                           ),
-                        ),
-                      );
-                    }).toList(),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.file(
+                              photo,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ],
                   ),
                 ],
               ],

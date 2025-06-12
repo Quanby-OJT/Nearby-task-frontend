@@ -1054,7 +1054,6 @@ class ApiService {
         "birthdate": verificationData['birthdate'] ?? '',
       });
 
-      // Add files only if they exist and are readable
       if (idImage != null && await idImage.exists()) {
         debugPrint("ApiService: Adding ID image to request");
         request.files.add(
