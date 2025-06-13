@@ -42,6 +42,7 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
   @override
   void initState() {
     super.initState();
+
     _initDeepLinkListener();
     _controller.roleController.text = widget.role;
   }
@@ -308,7 +309,8 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your first name';
-                        } else if(value != _controller.passwordController.text){
+                        } else if (value !=
+                            _controller.passwordController.text) {
                           return "Passwords do not match.";
                         } else {
                           return null;

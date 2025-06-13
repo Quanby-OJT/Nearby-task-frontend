@@ -17,7 +17,8 @@ class ClientServices {
   static final token = storage.read('session');
   Future<String?> getUserId() async => storage.read('user_id')?.toString();
 
-  Future<Map<String, dynamic>> _postRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _postRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final response = await http.post(Uri.parse("$url$endpoint"),
         headers: {
           "Authorization": "Bearer $token",
@@ -226,7 +227,8 @@ class ClientServices {
     }
   }
 
-  Future<Map<String, dynamic>> _putRequest({required String endpoint, required Map<String, dynamic> body}) async {
+  Future<Map<String, dynamic>> _putRequest(
+      {required String endpoint, required Map<String, dynamic> body}) async {
     final token = await AuthService.getSessionToken();
     try {
       final response = await http.put(
@@ -333,6 +335,10 @@ class ClientServices {
         'requiresLogin': true
       };
     }
+
+    debugPrint('User Id $userId');
+    debugPrint('User Thsi is save task $taskID');
+
     return _postRequest(endpoint: "/liketasker", body: {
       "user_id": int.parse(userId),
       "task_post_id": taskID,
@@ -369,7 +375,8 @@ class ClientServices {
     }
   }
 
-  Future<Map<String, dynamic>> _deleteRequest(String endpoint, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> _deleteRequest(
+      String endpoint, Map<String, dynamic> body) async {
     final token = await AuthService.getSessionToken();
     try {
       final request = http.Request("DELETE", Uri.parse('$url$endpoint'))
@@ -499,7 +506,8 @@ class ClientServices {
     }
   }
 
-  Future<Map<String, dynamic>> submitTaskerRating(int taskerId, double rating) async {
+  Future<Map<String, dynamic>> submitTaskerRating(
+      int taskerId, double rating) async {
     try {
       final response = await http.post(
         Uri.parse('rate-tasker'),
@@ -529,7 +537,8 @@ class ClientServices {
     }
   }
 
-  Future<List<TaskerModel>> fetchTaskersBySpecialization(String specialization) async {
+  Future<List<TaskerModel>> fetchTaskersBySpecialization(
+      String specialization) async {
     final userId = await getUserId();
     if (userId == null) {
       debugPrint("Cannot fetch taskers: User ID is null");
@@ -636,13 +645,18 @@ class ClientServices {
     return [];
   }
 
-  Future<Map<String, dynamic>> updateClient(ClientModel client) async{
-    try{
-      return await _putRequest(endpoint: "/update-client-profile/${client.id}", body: client.toJson());
-    }catch(e, stackTrace){
+  Future<Map<String, dynamic>> updateClient(ClientModel client) async {
+    try {
+      return await _putRequest(
+          endpoint: "/update-client-profile/${client.id}",
+          body: client.toJson());
+    } catch (e, stackTrace) {
       debugPrint("Error updating client: $e");
       debugPrint(stackTrace.toString());
-      return {"error": "An Error Occurred while Updating your information. Please Try Again."};
+      return {
+        "error":
+            "An Error Occurred while Updating your information. Please Try Again."
+      };
     }
   }
 }
