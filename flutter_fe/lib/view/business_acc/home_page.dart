@@ -398,7 +398,9 @@ class _ClientHomePageState extends State<ClientHomePage>
                 context,
                 MaterialPageRoute(
                     builder: (context) => const VerificationPage()),
-              );
+              ).then((value) async {
+                await _loadAllFunction();
+              });
               if (result == true) {
                 setState(() {
                   _isLoading = true;
