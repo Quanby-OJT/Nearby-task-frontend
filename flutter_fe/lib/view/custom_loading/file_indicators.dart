@@ -52,9 +52,9 @@ class DownloadFileIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     Color color = Color(0XFFE23670);
     return SizedBox(
-      height: 100,
       width: 100,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Stack(
