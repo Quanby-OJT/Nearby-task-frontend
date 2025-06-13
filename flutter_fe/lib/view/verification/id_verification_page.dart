@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:capture_identity/capture_identity.dart';
+import 'package:cunning_document_scanner/cunning_document_scanner.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/service/api_service.dart';
@@ -115,19 +115,22 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
     }
   }
 
-  // Enhanced ID capture with ML Kit text recognition
+  // Enhanced ID capture with Cunning Document Scanner
   Future<void> _captureIdImage() async {
     try {
       setState(() => _isLoading = true);
 
-      // Use capture_identity package to capture ID document
-      final File? capturedId = await showCapture(
-        context: context,
-        title: "Scan Your ID Document",
-        hideIdWidget: false,
+      // Use cunning_document_scanner to capture ID document with automatic cropping
+      final List<String>? scannedDocuments =
+          await CunningDocumentScanner.getPictures(
+        noOfPages: 1, // Limit to 1 page for ID documents
+        isGalleryImportAllowed: true, // Allow gallery import on Android
       );
 
-      if (capturedId != null) {
+      if (scannedDocuments != null && scannedDocuments.isNotEmpty) {
+        final String documentPath = scannedDocuments.first;
+        final File capturedId = File(documentPath);
+
         setState(() {
           _idImage = capturedId;
           _idImageName = capturedId.path.split('/').last;
@@ -145,9 +148,12 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('ID document captured successfully!'),
+                  const Text('ID document scanned successfully!'),
+                  const Text('✨ Auto-cropped with AI precision',
+                      style:
+                          TextStyle(fontSize: 12, fontStyle: FontStyle.italic)),
                   if (_detectedIdType != null)
-                    Text('AI Detected: $_detectedIdType',
+                    Text('🤖 AI Detected: $_detectedIdType',
                         style: const TextStyle(fontSize: 12)),
                 ],
               ),
@@ -157,11 +163,11 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
           );
         }
       } else {
-        // User cancelled the capture
+        // User cancelled the scan
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('ID capture was cancelled'),
+              content: Text('Document scan was cancelled'),
               backgroundColor: Colors.amber,
               duration: Duration(seconds: 2),
             ),
@@ -169,11 +175,11 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
         }
       }
     } catch (e) {
-      debugPrint('Error capturing ID image: $e');
+      debugPrint('Error scanning ID document: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error capturing ID: ${e.toString()}'),
+            content: Text('Error scanning document: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -418,7 +424,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'Smart ID Verification',
+                                'Cunning Document Scanner',
                                 style: GoogleFonts.poppins(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
@@ -429,7 +435,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'AI-powered document scanning with text recognition',
+                            'Professional document scanning with automatic cropping',
                             textAlign: TextAlign.center,
                             style: GoogleFonts.poppins(
                               fontSize: 14,
@@ -575,13 +581,13 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                             Row(
                               children: [
                                 Icon(
-                                  Icons.auto_awesome,
+                                  Icons.document_scanner,
                                   color: Color(0xFFB71A4A),
                                   size: 20,
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'Smart Document Scanning',
+                                  'Cunning Document Scanner',
                                   style: GoogleFonts.poppins(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -592,10 +598,11 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              '✨ AI-powered text recognition automatically detects your ID type\n'
-                              '📄 Professional document capture with positioning guides\n'
-                              '🔍 Text validation ensures document authenticity\n'
-                              '⚡ Instant processing and smart error detection',
+                              '⚡ Fast and easy document scanning\n'
+                              '📄 Automatic cropping with edge detection\n'
+                              '🖼️ High-quality digital file conversion\n'
+                              '📱 Gallery import allowed on Android\n'
+                              '🤖 AI-powered text recognition and validation',
                               style: GoogleFonts.poppins(
                                 fontSize: 14,
                                 color: Colors.grey[800],
@@ -661,7 +668,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                                     ),
                                   ),
                                   Text(
-                                    'Analyzing document text',
+                                    'Analyzing scanned document text',
                                     style: GoogleFonts.poppins(
                                       fontSize: 12,
                                       color: Colors.grey[500],
@@ -774,7 +781,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                                           ),
                                           const SizedBox(height: 16),
                                           Text(
-                                            'Tap to scan ID with AI',
+                                            'Tap to scan with Cunning Scanner',
                                             style: GoogleFonts.poppins(
                                               fontSize: 16,
                                               fontWeight: FontWeight.w600,
@@ -783,7 +790,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                                           ),
                                           const SizedBox(height: 8),
                                           Text(
-                                            'Smart text recognition & validation',
+                                            'Auto-crop & high-quality conversion',
                                             style: GoogleFonts.poppins(
                                               fontSize: 12,
                                               color: Colors.grey[500],
@@ -871,12 +878,12 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                             height: 50,
                             child: ElevatedButton.icon(
                               onPressed: _isVerified ? null : _captureIdImage,
-                              icon: const Icon(Icons.auto_awesome,
+                              icon: const Icon(Icons.document_scanner,
                                   color: Colors.white),
                               label: Text(
                                 _idImage == null
-                                    ? "AI Scan Document"
-                                    : "Rescan with AI",
+                                    ? "Cunning Scan"
+                                    : "Rescan Document",
                                 style: GoogleFonts.poppins(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
