@@ -1506,7 +1506,7 @@ class _JobPostPageState extends State<JobPostPage>
               backgroundColor: const Color(0xFFE23670),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
-              child: const Icon(Icons.add, color: Colors.white),
+              child: const Icon(FontAwesomeIcons.plus, color: Colors.white),
             )
           : null,
     );

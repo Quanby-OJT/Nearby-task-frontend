@@ -121,7 +121,7 @@ class ClientServices {
 
             // Inject the list of image URLs into the JSON
             tasker['images_url'] = images.map((img) => img.image_url).toList();
-            debugPrint("Tasker Images after adding to tasker: ${images.map((img) => img.image_url).toList()}");
+            debugPrint("Tasker Images after adding to tasker: ${tasker['images_url']}");
           } else {
             tasker['images_url'] = [];
           }
