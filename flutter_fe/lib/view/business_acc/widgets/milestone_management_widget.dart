@@ -104,8 +104,8 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
       builder: (context) => _MilestoneDialog(
         taskId: widget.task.id,
         totalTaskAmount: widget.task.contactPrice.toDouble(),
-        usedAmount:
-            _milestones.fold(0.0, (sum, milestone) => sum + milestone.amount),
+        usedAmount: _milestones.fold(
+            0.0, (sum, milestone) => sum + (milestone.amount ?? 0.0)),
         nextOrder: _milestones.length + 1,
       ),
     );
@@ -140,7 +140,7 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
         totalTaskAmount: widget.task.contactPrice.toDouble(),
         usedAmount: _milestones
             .where((m) => m.id != milestone.id)
-            .fold(0.0, (sum, m) => sum + m.amount),
+            .fold(0.0, (sum, m) => sum + (m.amount ?? 0.0)),
       ),
     );
 
@@ -307,7 +307,7 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
               ),
               SizedBox(height: 8),
               Text(
-                '₱${NumberFormat("#,##0.00").format(_milestones.where((m) => m.isCompleted).fold(0.0, (sum, m) => sum + m.amount))} of ₱${NumberFormat("#,##0.00").format(_milestones.fold(0.0, (sum, m) => sum + m.amount))} completed',
+                '₱${NumberFormat("#,##0.00").format(_milestones.where((m) => m.isCompleted).fold(0.0, (sum, m) => sum + (m.amount ?? 0.0)))} of ₱${NumberFormat("#,##0.00").format(_milestones.fold(0.0, (sum, m) => sum + (m.amount ?? 0.0)))} completed',
                 style: GoogleFonts.poppins(
                   fontSize: 12,
                   color: Colors.grey[600],
@@ -597,7 +597,9 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Amount: ₱${NumberFormat("#,##0.00").format(milestone.amount)}',
+                  milestone.amount != null
+                      ? 'Amount: ₱${NumberFormat("#,##0.00").format(milestone.amount!)}'
+                      : 'Amount: Not specified',
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -692,7 +694,9 @@ class _MilestoneDialogState extends State<_MilestoneDialog> {
         taskId: widget.taskId,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
-        amount: double.parse(_amountController.text.trim()),
+        amount: _amountController.text.trim().isNotEmpty
+            ? double.parse(_amountController.text.trim())
+            : null,
         dueDate: _selectedDueDate,
         status: _selectedStatus,
         order: widget.milestone?.order ?? widget.nextOrder ?? 1,
@@ -774,7 +778,7 @@ class _MilestoneDialogState extends State<_MilestoneDialog> {
               TextFormField(
                 controller: _amountController,
                 decoration: InputDecoration(
-                  labelText: 'Amount (₱)',
+                  labelText: 'Amount (₱) - Optional',
                   labelStyle: GoogleFonts.poppins(fontSize: 14),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -791,15 +795,14 @@ class _MilestoneDialogState extends State<_MilestoneDialog> {
                 style: GoogleFonts.poppins(fontSize: 14),
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter an amount';
-                  }
-                  final amount = double.tryParse(value.trim());
-                  if (amount == null || amount <= 0) {
-                    return 'Please enter a valid amount';
-                  }
-                  if (amount > remainingAmount) {
-                    return 'Amount exceeds remaining budget';
+                  if (value != null && value.trim().isNotEmpty) {
+                    final amount = double.tryParse(value.trim());
+                    if (amount == null || amount <= 0) {
+                      return 'Please enter a valid amount';
+                    }
+                    if (amount > remainingAmount) {
+                      return 'Amount exceeds remaining budget';
+                    }
                   }
                   return null;
                 },
