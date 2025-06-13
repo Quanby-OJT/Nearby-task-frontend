@@ -8,12 +8,13 @@ import { SessionLocalStorage } from 'src/services/sessionStorage';
 import { interval, Subscription } from 'rxjs';
 import { AuthService } from 'src/app/services/auth.service';
 import { Users } from 'src/model/user-management';
+import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-navbar',
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css'],
-  imports: [AngularSvgIconModule, NavbarMenuComponent, ProfileMenuComponent, NavbarMobileComponent],
+  imports: [AngularSvgIconModule, NavbarMenuComponent, ProfileMenuComponent, NavbarMobileComponent, NgClass],
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   currentDateTime: string = '';
