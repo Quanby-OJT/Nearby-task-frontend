@@ -69,7 +69,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
 
   bool _isLoading = true;
   bool _showButton = false;
-  bool _isUploadDialogShown = false;
+  final bool _isUploadDialogShown = false;
   bool _documentValid = false;
   int _currentStep = 0;
   final bool _isVerifiedDocument = false;
@@ -734,7 +734,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(
-            color: errorText != null ? Colors.red : Colors.black!,
+            color: errorText != null ? Colors.red : Colors.black,
           ),
           borderRadius: BorderRadius.circular(8),
         ),

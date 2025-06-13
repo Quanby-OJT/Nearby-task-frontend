@@ -55,7 +55,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
   String _image = "";
   String? _existingProfileImageUrl;
   String? _existingIDImageUrl;
-  bool _documentValid = false;
+  final bool _documentValid = false;
   int? cardNumber;
   bool _isUploadDialogShown = false;
   bool _isLoading = true;
@@ -81,12 +81,12 @@ class _TaskerHomePageState extends State<TaskerHomePage>
 
   VerificationModel? _existingVerification;
   String? _verificationStatus;
-  bool _isIdVerified = false;
-  bool _isSelfieVerified = false;
-  bool _isDocumentsUploaded = false;
-  bool _isGeneralInfoCompleted = false;
+  final bool _isIdVerified = false;
+  final bool _isSelfieVerified = false;
+  final bool _isDocumentsUploaded = false;
+  final bool _isGeneralInfoCompleted = false;
   String? _idType;
-  Map<String, dynamic> _userInfo = {};
+  final Map<String, dynamic> _userInfo = {};
 
   @override
   void initState() {
@@ -458,7 +458,6 @@ class _TaskerHomePageState extends State<TaskerHomePage>
               ).then((value) async {
                 await _loadAllFunction();
               });
-              ;
               if (result == true) {
                 setState(() {
                   _isLoading = true;

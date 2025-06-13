@@ -39,12 +39,12 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
   String? _userRole;
 
   // Specialization data
-  List<SpecializationModel> _specializations = [];
+  final List<SpecializationModel> _specializations = [];
   SpecializationModel? _selectedSpecialization;
-  bool _isLoadingSpecializations = false;
+  final bool _isLoadingSpecializations = false;
 
   // Pay period data
-  String _selectedPayPeriod = 'Hourly';
+  final String _selectedPayPeriod = 'Hourly';
   final List<String> _payPeriods = [
     'Hourly',
     'Daily',

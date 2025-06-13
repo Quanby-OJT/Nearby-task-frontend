@@ -590,11 +590,11 @@ class _LikesScreenState extends State<LikesScreen> {
                               ],
                             ),
                             if (tasker.user?.email != null &&
-                                tasker.user!.email!.isNotEmpty)
+                                tasker.user!.email.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.only(top: 4),
                                 child: Text(
-                                  tasker.user!.email!,
+                                  tasker.user!.email,
                                   style: GoogleFonts.poppins(
                                     fontSize: 10,
                                     color: Colors.grey[600],

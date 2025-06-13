@@ -23,7 +23,7 @@ class TaskDetailsScreen extends StatefulWidget {
 class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   final TaskController taskController = TaskController();
   final TaskRequestController taskRequestController = TaskRequestController();
-  bool _isLoading = true;
+  final bool _isLoading = true;
   String role = "";
   final storage = GetStorage();
   List<String> skills = [];
@@ -281,9 +281,9 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   }
 
   Color badgeColor(String status) {
-    if (status == "Pending" || status == "Disputed")
+    if (status == "Pending" || status == "Disputed") {
       return Color(0XFFD6932A);
-    else if (status == "Rejected" ||
+    } else if (status == "Rejected" ||
         status == "Cancelled" ||
         status == "Expired" ||
         status == "Declined")

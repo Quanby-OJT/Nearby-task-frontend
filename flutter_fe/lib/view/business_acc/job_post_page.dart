@@ -58,19 +58,19 @@ class _JobPostPageState extends State<JobPostPage>
   AuthenticatedUser? _user;
   String? _profileImageUrl;
   String? _idImageUrl;
-  bool _isDocumentValid = false;
+  final bool _isDocumentValid = false;
   bool _isLoading = true;
-  bool _showButton = false;
+  final bool _showButton = false;
   bool _isUploadDialogShown = false;
 
   VerificationModel? _existingVerification;
   String? _verificationStatus;
-  bool _isIdVerified = false;
-  bool _isSelfieVerified = false;
-  bool _isDocumentsUploaded = false;
-  bool _isGeneralInfoCompleted = false;
+  final bool _isIdVerified = false;
+  final bool _isSelfieVerified = false;
+  final bool _isDocumentsUploaded = false;
+  final bool _isGeneralInfoCompleted = false;
   String? _idType;
-  Map<String, dynamic> _userInfo = {};
+  final Map<String, dynamic> _userInfo = {};
   final GetStorage storage = GetStorage();
   // Task management and status filters
   static const List<String> _taskManagementFilters = [

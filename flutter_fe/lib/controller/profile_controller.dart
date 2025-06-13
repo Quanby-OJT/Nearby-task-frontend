@@ -1,12 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/model/address.dart';
 import 'package:flutter_fe/model/client_model.dart';
 import 'package:flutter_fe/model/document_model.dart';
-import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/tasker_skills.dart';
 import 'package:flutter_fe/service/client_service.dart';
-import 'package:flutter_fe/service/profile_service.dart';
 import 'package:flutter_fe/service/tasker_service.dart';
 import 'package:flutter_fe/view/custom_loading/custom_loading.dart';
 import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
@@ -16,7 +13,6 @@ import '../model/user_model.dart';
 import '../service/api_service.dart';
 import '../model/tasker_model.dart';
 import '../model/auth_user.dart';
-import '../view/custom_loading/statusModal.dart';
 
 class ProfileController {
   //General Account Information

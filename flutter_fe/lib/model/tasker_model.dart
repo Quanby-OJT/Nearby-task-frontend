@@ -173,7 +173,7 @@ class TaskerModel {
       updatedAt: updatedAt ?? this.updatedAt,
       user: user ?? this.user,
       taskerSpecialization: taskerSpecialization ?? this.taskerSpecialization,
-      group: group ?? this.group,
+      group: group ?? group,
     );
   }
 }
