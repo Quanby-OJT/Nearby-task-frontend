@@ -36,9 +36,8 @@ class ApiService {
     final token = await AuthService.getSessionToken();
     try {
       // Ensure endpoint starts with a slash if not already
-      String formattedEndpoint = endpoint.startsWith('/')
-          ? endpoint
-          : '/$endpoint';
+      String formattedEndpoint =
+          endpoint.startsWith('/') ? endpoint : '/$endpoint';
       debugPrint('Making GET request to: $url$formattedEndpoint');
       debugPrint('Using token: $token');
 
@@ -845,8 +844,7 @@ class ApiService {
 
       if (response.statusCode == 201) {
         return {
-          "message":
-              responseData["message"] ??
+          "message": responseData["message"] ??
               "Registration successful! This email will be used to get your login code.",
           "user": responseData["user"],
         };
@@ -862,8 +860,7 @@ class ApiService {
         return {"errors": "Registration failed. Please try again."};
       } else {
         return {
-          "errors":
-              responseData["error"] ??
+          "errors": responseData["error"] ??
               "An error occurred during registration. Please try again.",
         };
       }
@@ -896,8 +893,7 @@ class ApiService {
         };
       } else {
         return {
-          "error":
-              responseData["error"] ??
+          "error": responseData["error"] ??
               "Email verification failed. Please try again.",
         };
       }
@@ -923,8 +919,7 @@ class ApiService {
       debugPrint("ApiService: Verification data: $verificationData");
 
       // Check if this is an update to existing verification
-      final bool isUpdate =
-          verificationData['status'] != null &&
+      final bool isUpdate = verificationData['status'] != null &&
           verificationData['status'] != 'pending';
 
       final String endpoint = "$apiUrl/submit-user-verification/$userId";
@@ -1018,8 +1013,7 @@ class ApiService {
         debugPrint("ApiService: Verification submission successful");
         return {
           "success": true,
-          "message":
-              responseData["message"] ??
+          "message": responseData["message"] ??
               "Verification submitted successfully! Your information will be reviewed shortly.",
         };
       } else {
@@ -1030,8 +1024,7 @@ class ApiService {
         debugPrint("ApiService: Error response: $responseData");
         return {
           "success": false,
-          "error":
-              responseData["error"] ??
+          "error": responseData["error"] ??
               responseData["errors"] ??
               "Failed to submit verification. Status: ${response.statusCode}",
         };
@@ -1077,11 +1070,6 @@ class ApiService {
         "phone": verificationData['phone'] ?? '',
         "gender": verificationData['gender'] ?? '',
         "birthdate": verificationData['birthdate'] ?? '',
-        "social_media_links": jsonEncode(
-          verificationData['social_media_links'] ?? {},
-        ),
-        "preferences": verificationData['preferences'] ?? '',
-        "client_address": verificationData['client_address'] ?? '',
       });
 
       // Add files
@@ -1199,8 +1187,7 @@ class ApiService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         return {
           "success": true,
-          "message":
-              responseData["message"] ??
+          "message": responseData["message"] ??
               "Tasker verification submitted successfully!",
         };
       } else {
@@ -1267,20 +1254,17 @@ class ApiService {
 
       if (response.statusCode == 201) {
         return {
-          "message":
-              responseData["message"] ??
+          "message": responseData["message"] ??
               "Profile Created Successfully. Please Wait for Our Team to Verify Your Account",
         };
       } else if (response.statusCode == 400) {
         return {
-          "error":
-              responseData["errors"] ??
+          "error": responseData["errors"] ??
               "Please Check Your inputs and try again",
         };
       } else {
         return {
-          "error":
-              responseData["error"] ??
+          "error": responseData["error"] ??
               "Something went wrong when creating your profile. Please try again.",
         };
       }
@@ -1305,88 +1289,19 @@ class ApiService {
       }
 
       return {"error": "Invalid role"};
-      // return await _getRequest("/getUserData/$userId");
-      // debugPrint("API Service: Making request to: $apiUrl/getUserData/$userId");
-      // final response = await http.get(Uri.parse("$apiUrl/getUserData/$userId"),
-      //     headers: {
-      //       "Authorization": "Bearer $token",
-      //       "Content-Type": "application/json"
-      //     });
-      //
-      // debugPrint("API Response Status Code: ${response.statusCode}");
-      // debugPrint("API Response Body: ${response.body}");
-      //
-      // var responseData = jsonDecode(response.body);
-      // debugPrint("Parsed Response Data: $responseData");
-      //
-      // if (response.statusCode == 200) {
-      //   if (responseData.containsKey("user")) {
-      //     UserModel user = UserModel.fromJson(responseData["user"]);
-      //     debugPrint("Created user model: $user");
-      //
-      //     // Check if this is a client or tasker and merge additional data
-      //     if (responseData.containsKey("client")) {
-      //       debugPrint("Processing client user");
-      //       // For clients, the user object should already have all needed data
-      //       return {"user": user, "client": responseData["client"]};
-      //     } else if (responseData.containsKey("tasker")) {
-      //       debugPrint("Processing tasker user");
-      //       var taskerData = responseData["tasker"];
-      //
-      //       // Merge tasker-specific data into user if available
-      //       Map<String, String>? mergedSocialLinks = user.socialMediaLinks;
-      //       String? mergedBio = user.bio;
-      //
-      //       if (taskerData != null) {
-      //         // Merge bio if available in tasker data
-      //         if (taskerData['bio'] != null &&
-      //             taskerData['bio'].toString().isNotEmpty) {
-      //           mergedBio = taskerData['bio'].toString();
-      //         }
-      //
-      //         // Merge social media links if available in tasker data
-      //         if (taskerData['social_media_links'] != null) {
-      //           try {
-      //             if (taskerData['social_media_links'] is Map) {
-      //               mergedSocialLinks = Map<String, String>.from(
-      //                   taskerData['social_media_links']);
-      //             } else if (taskerData['social_media_links'] is String) {
-      //               final decoded =
-      //                   jsonDecode(taskerData['social_media_links']);
-      //               if (decoded is Map) {
-      //                 mergedSocialLinks = Map<String, String>.from(decoded);
-      //               }
-      //             }
-      //           } catch (e) {
-      //             debugPrint("Error parsing tasker social media links: $e");
-      //           }
-      //         }
-      //       }
-      //
-      //       // Create updated user with merged data
-      //       UserModel updatedUser = user.copyWith(
-      //         bio: mergedBio,
-      //         socialMediaLinks: mergedSocialLinks,
-      //       );
-      //
-      //       debugPrint("Updated user with tasker data: $updatedUser");
-      //       return {"user": updatedUser, "tasker": taskerData};
-      //     } else {
-      //       return {
-      //         "error": "User role not recognized or missing role-specific data"
-      //       };
-      //     }
-      //   } else {
-      //     return {
-      //       "error": responseData['error'] ??
-      //           "An Error Occurred while retrieving data"
-      //     };
-      //   }
-      // } else {
-      //   debugPrint(
-      //       "API Error Response: Status ${response.statusCode}, Body: ${response.body}");
-      //   return {"error": responseData['error'] ?? "Failed to fetch user data"};
-      // }
+    } catch (e, stackTrace) {
+      debugPrint("Exception in fetchAuthenticatedUser: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {
+        "error":
+            "An error occurred while retrieving your information. Please try again.",
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchAuthenticatedUserClient(int userId) async {
+    try {
+      return await _getRequest("/get-client-info/$userId");
     } catch (e, stackTrace) {
       debugPrint("Exception in fetchAuthenticatedUser: $e");
       debugPrintStack(stackTrace: stackTrace);
@@ -1498,8 +1413,7 @@ class ApiService {
         return {"validation_error": validationMessage};
       } else {
         return {
-          "error":
-              responseData['error'] ??
+          "error": responseData['error'] ??
               "OTP Authentication Failed. Please Try again.",
         };
       }
@@ -1565,8 +1479,7 @@ class ApiService {
         };
       } else if (response.statusCode == 400) {
         return {
-          "error":
-              responseData["errors"] ??
+          "error": responseData["errors"] ??
               "Please Check Your inputs and try again",
         };
       } else {
@@ -1642,8 +1555,7 @@ class ApiService {
 
       if (response.statusCode == 200) {
         return {
-          "message":
-              responseData["message"] ??
+          "message": responseData["message"] ??
               "Tasker information updated successfully!",
           "tasker": responseData["tasker"],
         };
@@ -1878,9 +1790,8 @@ class ApiService {
   // }
 
   static Map<String, String> _getHeaders() {
-    String cookieHeader = _cookies.entries
-        .map((e) => '${e.key}=${e.value}')
-        .join('; ');
+    String cookieHeader =
+        _cookies.entries.map((e) => '${e.key}=${e.value}').join('; ');
     return {
       "Content-Type": "application/json",
       "Accept": "application/json",

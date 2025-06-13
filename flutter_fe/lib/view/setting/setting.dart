@@ -51,7 +51,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
     try {
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(userId);
+          await _profileController.getAuthenticatedUser(context, userId);
 
       setState(() {
         tasker = user;

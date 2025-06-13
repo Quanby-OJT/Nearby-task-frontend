@@ -41,7 +41,7 @@ class _DisplayListRecordCancelState extends State<DisplayListRecordCancel> {
     try {
       int userId = storage.read("user_id");
       AuthenticatedUser? user =
-          await _userController.getAuthenticatedUser(userId);
+          await _userController.getAuthenticatedUser(context, userId);
 
       debugPrint(user.toString());
       setState(() {

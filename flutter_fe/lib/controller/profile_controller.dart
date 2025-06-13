@@ -248,7 +248,8 @@ class ProfileController {
     }
   }
 
-  Future<AuthenticatedUser?> getAuthenticatedUser(int userId) async {
+  Future<AuthenticatedUser?> getAuthenticatedUser(
+      BuildContext context, userId) async {
     try {
       debugPrint(
           "ProfileController: Calling fetchAuthenticatedUser with userId: $userId");
@@ -285,6 +286,44 @@ class ProfileController {
           );
         } else {
           debugPrint("ProfileController: No client or tasker data found");
+          return null;
+        }
+      } else {
+        debugPrint("ProfileController: No user data in result");
+        return null;
+      }
+    } catch (e, stackTrace) {
+      debugPrint("ProfileController: Error in getAuthenticatedUser: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return null;
+    }
+  }
+
+  Future<AuthenticatedUser?> getAuthenticatedUserclient(
+      BuildContext context, userId) async {
+    try {
+      debugPrint(
+          "ProfileController: Calling fetchAuthenticatedUser with userId: $userId");
+      var result = await ApiService().fetchAuthenticatedUserClient(userId);
+      debugPrint("ProfileController: API result: $result");
+      debugPrint("ProfileController: Result keys: ${result.keys.join(', ')}");
+
+      if (result.containsKey("data")) {
+        final data = result["data"];
+        debugPrint("User Data: $data");
+        if (data != null && data.containsKey("client")) {
+          // For clients, use the user data as-is (bio and social_media_links are already in user)
+          debugPrint("ProfileController: Processing client user");
+
+          return AuthenticatedUser(
+              user: UserModel.fromJson(data["user"]),
+              isClient: true,
+              isTasker: false,
+              client: data['client'] != null
+                  ? ClientModel.fromJson(data['client'])
+                  : null);
+        } else {
+          debugPrint("ProfileController: No client data found");
           return null;
         }
       } else {

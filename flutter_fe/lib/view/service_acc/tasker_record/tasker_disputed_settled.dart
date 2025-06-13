@@ -44,7 +44,7 @@ class _TaskerDisputedSettledState extends State<TaskerDisputedSettled> {
     try {
       int userId = storage.read("user_id");
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(userId);
+          await _profileController.getAuthenticatedUser(context, userId);
       debugPrint(user.toString());
       setState(() {
         _role = user?.user.role;
@@ -58,7 +58,7 @@ class _TaskerDisputedSettledState extends State<TaskerDisputedSettled> {
   Future<void> _fetchTaskerDetails(int userId) async {
     try {
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(userId);
+          await _profileController.getAuthenticatedUser(context, userId);
       debugPrint(user.toString());
       setState(() {
         tasker = user;
@@ -95,7 +95,8 @@ class _TaskerDisputedSettledState extends State<TaskerDisputedSettled> {
 
   Future<void> _fetchTaskDetails() async {
     try {
-      final response = await _taskRequestController.getDispute(widget.finishID ?? 0);
+      final response =
+          await _taskRequestController.getDispute(widget.finishID ?? 0);
       setState(() {
         dispute = response;
         _isLoading = false;
@@ -248,19 +249,18 @@ class _TaskerDisputedSettledState extends State<TaskerDisputedSettled> {
               value: "",
             ),
             SizedBox(height: 12),
-            Text(
-              dispute?.disputeDetails ?? 'Not available',
-              style: GoogleFonts.montserrat(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF03045E),
-              )
-            ),
+            Text(dispute?.disputeDetails ?? 'Not available',
+                style: GoogleFonts.montserrat(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF03045E),
+                )),
             SizedBox(height: 12),
             _buildTaskInfoRow(
               icon: Icons.info,
               label: 'Status',
-              value: _requestInformation?.task_status ?? 'Dispute has been Settled',
+              value: _requestInformation?.task_status ??
+                  'Dispute has been Settled',
             ),
             SizedBox(height: 12),
             _buildTaskInfoRow(
@@ -269,28 +269,23 @@ class _TaskerDisputedSettledState extends State<TaskerDisputedSettled> {
               value: '',
             ),
             SizedBox(height: 8),
-            Text(
-              dispute?.moderatorAction ?? 'Not available',
-              style: GoogleFonts.montserrat(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF03045E),
-              )
-            ),
+            Text(dispute?.moderatorAction ?? 'Not available',
+                style: GoogleFonts.montserrat(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF03045E),
+                )),
             SizedBox(height: 8),
             _buildTaskInfoRow(
-              icon: FontAwesomeIcons.noteSticky,
-              label: "Moderator Notes",
-              value: ""
-            ),
+                icon: FontAwesomeIcons.noteSticky,
+                label: "Moderator Notes",
+                value: ""),
             SizedBox(height: 8),
-            Text(
-              dispute?.moderatorNotes ?? 'Not available',
-              style: GoogleFonts.montserrat(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              )
-            )
+            Text(dispute?.moderatorNotes ?? 'Not available',
+                style: GoogleFonts.montserrat(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ))
           ],
         ),
       ),

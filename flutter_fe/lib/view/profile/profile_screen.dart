@@ -100,7 +100,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       int userId = storage.read("user_id");
       AuthenticatedUser? user =
-          await _userController.getAuthenticatedUser(userId);
+          await _userController.getAuthenticatedUser(context, userId);
       String role = storage.read('role');
 
       debugPrint("Current User: ${user?.client?.bio}");

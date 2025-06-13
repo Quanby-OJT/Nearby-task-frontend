@@ -268,7 +268,7 @@ class _VerificationPageState extends State<VerificationPage> {
 
       int userId = int.parse(userIdFromStorage.toString());
 
-      final user = await _controller.getAuthenticatedUser(userId);
+      final user = await _controller.getAuthenticatedUser(context, userId);
       debugPrint('VerificationPage: _loadUserData - received user: $user');
 
       if (user != null) {

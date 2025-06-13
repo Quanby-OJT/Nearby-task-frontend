@@ -121,7 +121,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
     try {
       int userId = int.parse(storage.read('user_id').toString());
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(userId);
+          await _profileController.getAuthenticatedUser(context, userId);
       final response = await _clientServices.fetchUserIDImage(userId);
       debugPrint('add task verification: $response');
 
