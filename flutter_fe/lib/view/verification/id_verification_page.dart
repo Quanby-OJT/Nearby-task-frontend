@@ -147,8 +147,8 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                 children: [
                   const Text('ID document captured successfully!'),
                   if (_detectedIdType != null)
-                    Text('AI Detected: $_detectedIdType', 
-                         style: const TextStyle(fontSize: 12)),
+                    Text('AI Detected: $_detectedIdType',
+                        style: const TextStyle(fontSize: 12)),
                 ],
               ),
               backgroundColor: Colors.green,
@@ -192,29 +192,30 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
   Future<void> _processImageWithMLKit(File imageFile) async {
     try {
       debugPrint('Processing image with ML Kit text recognition...');
-      
+
       // Create InputImage from file
       final inputImage = InputImage.fromFile(imageFile);
-      
+
       // Process image with text recognizer
-      final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
-      
+      final RecognizedText recognizedText =
+          await _textRecognizer.processImage(inputImage);
+
       List<String> extractedTextList = [];
       String fullText = recognizedText.text.toLowerCase();
-      
+
       // Extract text from blocks
       for (TextBlock block in recognizedText.blocks) {
         extractedTextList.add(block.text);
         debugPrint('Detected text block: ${block.text}');
       }
-      
+
       setState(() {
         _extractedText = extractedTextList;
       });
-      
+
       // Detect ID type based on recognized text
       String? detectedType = _detectIdType(fullText);
-      
+
       if (detectedType != null) {
         setState(() {
           _detectedIdType = detectedType;
@@ -224,22 +225,22 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
       } else {
         debugPrint('Could not determine ID type from text');
       }
-      
+
       // Validate that this looks like an ID document
       bool isValidId = _validateIdDocument(fullText, extractedTextList);
-      
+
       if (!isValidId) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('This doesn\'t appear to be a valid ID document. Please try again.'),
+              content: Text(
+                  'This doesn\'t appear to be a valid ID document. Please try again.'),
               backgroundColor: Colors.orange,
               duration: Duration(seconds: 4),
             ),
           );
         }
       }
-      
     } catch (e) {
       debugPrint('Error processing image with ML Kit: $e');
       if (mounted) {
@@ -256,44 +257,56 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
   // Detect ID type based on recognized text
   String? _detectIdType(String text) {
     text = text.toLowerCase();
-    
+
     // Driver's License detection
-    if (text.contains('driver') || text.contains('license') || 
-        text.contains('driving') || text.contains('dl no') ||
+    if (text.contains('driver') ||
+        text.contains('license') ||
+        text.contains('driving') ||
+        text.contains('dl no') ||
         text.contains('license no')) {
       return 'Driver\'s License';
     }
-    
+
     // National ID detection
-    if (text.contains('national') || text.contains('philsys') ||
-        text.contains('national id') || text.contains('republic of the philippines')) {
+    if (text.contains('national') ||
+        text.contains('philsys') ||
+        text.contains('national id') ||
+        text.contains('republic of the philippines')) {
       return 'National ID';
     }
-    
+
     // Passport detection
-    if (text.contains('passport') || text.contains('republic of the philippines') ||
-        text.contains('pasaporte') || text.contains('type p')) {
+    if (text.contains('passport') ||
+        text.contains('republic of the philippines') ||
+        text.contains('pasaporte') ||
+        text.contains('type p')) {
       return 'Passport';
     }
-    
+
     // SSS ID detection
-    if (text.contains('sss') || text.contains('social security') ||
-        text.contains('ss no') || text.contains('sss no')) {
+    if (text.contains('sss') ||
+        text.contains('social security') ||
+        text.contains('ss no') ||
+        text.contains('sss no')) {
       return 'SSS ID';
     }
-    
+
     // PhilHealth ID detection
-    if (text.contains('philhealth') || text.contains('phil health') ||
-        text.contains('phic') || text.contains('pin')) {
+    if (text.contains('philhealth') ||
+        text.contains('phil health') ||
+        text.contains('phic') ||
+        text.contains('pin')) {
       return 'PhilHealth ID';
     }
-    
+
     // Voter's ID detection
-    if (text.contains('voter') || text.contains('comelec') ||
-        text.contains('precinct') || text.contains('voter\'s')) {
+    if (text.contains('voter') ||
+        text.contains('comelec') ||
+        text.contains('precinct') ||
+        text.contains('voter\'s')) {
       return 'Voter\'s ID';
     }
-    
+
     return null;
   }
 
@@ -303,35 +316,41 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
     bool hasName = _containsName(fullText);
     bool hasNumbers = _containsIdNumbers(fullText);
     bool hasDate = _containsDate(fullText);
-    
+
     // Should have at least 2 of these elements
     int validElements = [hasName, hasNumbers, hasDate].where((e) => e).length;
-    
-    debugPrint('ID Validation - Name: $hasName, Numbers: $hasNumbers, Date: $hasDate');
-    
+
+    debugPrint(
+        'ID Validation - Name: $hasName, Numbers: $hasNumbers, Date: $hasDate');
+
     return validElements >= 2 && textBlocks.length >= 3;
   }
 
   bool _containsName(String text) {
     // Look for common name patterns or prefixes
-    return text.contains(RegExp(r'[a-z]+ [a-z]+')) || 
-           text.contains('name') || text.contains('surname') ||
-           text.contains('given') || text.contains('middle');
+    return text.contains(RegExp(r'[a-z]+ [a-z]+')) ||
+        text.contains('name') ||
+        text.contains('surname') ||
+        text.contains('given') ||
+        text.contains('middle');
   }
 
   bool _containsIdNumbers(String text) {
     // Look for ID number patterns
-    return text.contains(RegExp(r'\d{2,}')) || 
-           text.contains('no') || text.contains('number') ||
-           text.contains('#');
+    return text.contains(RegExp(r'\d{2,}')) ||
+        text.contains('no') ||
+        text.contains('number') ||
+        text.contains('#');
   }
 
   bool _containsDate(String text) {
     // Look for date patterns
     return text.contains(RegExp(r'\d{1,2}[/-]\d{1,2}[/-]\d{2,4}')) ||
-           text.contains(RegExp(r'\d{4}')) ||
-           text.contains('birth') || text.contains('born') ||
-           text.contains('exp') || text.contains('valid');
+        text.contains(RegExp(r'\d{4}')) ||
+        text.contains('birth') ||
+        text.contains('born') ||
+        text.contains('exp') ||
+        text.contains('valid');
   }
 
   void _verifyId() {
@@ -340,10 +359,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
         // Use the captured image with detected or selected ID type
         widget.onIdVerified(_idImage!, _selectedIdType ?? '');
       } else if (_idImageUrl != null) {
-        // If we have an existing image URL but no new image captured,
-        // create a dummy file to continue the flow
-        final dummyFile = File('dummy_path');
-        widget.onIdVerified(dummyFile, _selectedIdType ?? '');
+        widget.onIdVerified(File(_idImageUrl!), _selectedIdType ?? '');
       } else {
         // No image at all
         ScaffoldMessenger.of(context).showSnackBar(
@@ -514,7 +530,8 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.psychology, color: Colors.green[700], size: 20),
+                            Icon(Icons.psychology,
+                                color: Colors.green[700], size: 20),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Column(
@@ -615,7 +632,8 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                                 : _idImage != null || _idImageUrl != null
                                     ? Colors.blue
                                     : const Color(0xFFB71A4A).withOpacity(0.5),
-                            width: _idImage != null || _idImageUrl != null ? 2 : 1,
+                            width:
+                                _idImage != null || _idImageUrl != null ? 2 : 1,
                           ),
                           boxShadow: [
                             BoxShadow(
@@ -693,10 +711,12 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                                           ),
                                         );
                                       },
-                                      errorBuilder: (context, error, stackTrace) {
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
                                         debugPrint(
                                             'Error loading ID image: $error');
-                                        debugPrint('ID image URL: $_idImageUrl');
+                                        debugPrint(
+                                            'ID image URL: $_idImageUrl');
                                         return Center(
                                           child: Column(
                                             mainAxisAlignment:
@@ -732,15 +752,18 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                                 : _idImage != null
                                     ? ClipRRect(
                                         borderRadius: BorderRadius.circular(11),
-                                        child: Image.file(_idImage!, fit: BoxFit.cover),
+                                        child: Image.file(_idImage!,
+                                            fit: BoxFit.cover),
                                       )
                                     : Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           Container(
                                             padding: const EdgeInsets.all(16),
                                             decoration: BoxDecoration(
-                                              color: const Color(0xFFB71A4A).withOpacity(0.1),
+                                              color: const Color(0xFFB71A4A)
+                                                  .withOpacity(0.1),
                                               shape: BoxShape.circle,
                                             ),
                                             child: Icon(
@@ -777,7 +800,8 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                         padding: const EdgeInsets.only(top: 8.0),
                         child: Row(
                           children: [
-                            Icon(Icons.psychology, size: 16, color: Colors.green),
+                            Icon(Icons.psychology,
+                                size: 16, color: Colors.green),
                             const SizedBox(width: 6),
                             Text(
                               'AI detected: $_detectedIdType',
@@ -790,7 +814,9 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                           ],
                         ),
                       ),
-                    if (_idImageName != null && _idImageUrl == null && _detectedIdType == null)
+                    if (_idImageName != null &&
+                        _idImageUrl == null &&
+                        _detectedIdType == null)
                       Padding(
                         padding: const EdgeInsets.only(top: 8.0),
                         child: Row(
@@ -845,9 +871,12 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                             height: 50,
                             child: ElevatedButton.icon(
                               onPressed: _isVerified ? null : _captureIdImage,
-                              icon: const Icon(Icons.auto_awesome, color: Colors.white),
+                              icon: const Icon(Icons.auto_awesome,
+                                  color: Colors.white),
                               label: Text(
-                                _idImage == null ? "AI Scan Document" : "Rescan with AI",
+                                _idImage == null
+                                    ? "AI Scan Document"
+                                    : "Rescan with AI",
                                 style: GoogleFonts.poppins(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -856,7 +885,8 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.grey[800],
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -873,7 +903,8 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                             height: 50,
                             child: ElevatedButton.icon(
                               onPressed: canProceed ? _verifyId : null,
-                              icon: const Icon(Icons.verified, color: Colors.white),
+                              icon: const Icon(Icons.verified,
+                                  color: Colors.white),
                               label: Text(
                                 "Verify",
                                 style: GoogleFonts.poppins(
@@ -884,7 +915,8 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFFB71A4A),
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -898,7 +930,8 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                     ),
 
                     // Debug extracted text (for development)
-                    if (_extractedText.isNotEmpty && false) // Set to true for debugging
+                    if (_extractedText.isNotEmpty &&
+                        false) // Set to true for debugging
                       Container(
                         margin: const EdgeInsets.only(top: 16),
                         padding: const EdgeInsets.all(12),
@@ -909,13 +942,13 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Extracted Text:', 
+                            Text('Extracted Text:',
                                 style: TextStyle(fontWeight: FontWeight.bold)),
                             const SizedBox(height: 8),
-                            ...(_extractedText.take(5).map((text) => 
-                                Padding(
+                            ...(_extractedText.take(5).map((text) => Padding(
                                   padding: const EdgeInsets.only(bottom: 4),
-                                  child: Text(text, style: TextStyle(fontSize: 12)),
+                                  child: Text(text,
+                                      style: TextStyle(fontSize: 12)),
                                 ))),
                           ],
                         ),

@@ -335,6 +335,10 @@ class ClientServices {
         'requiresLogin': true
       };
     }
+
+    debugPrint('User Id $userId');
+    debugPrint('User Thsi is save task $taskID');
+
     return _postRequest(endpoint: "/liketasker", body: {
       "user_id": int.parse(userId),
       "task_post_id": taskID,
@@ -639,5 +643,20 @@ class ClientServices {
           .toList();
     }
     return [];
+  }
+
+  Future<Map<String, dynamic>> updateClient(ClientModel client) async {
+    try {
+      return await _putRequest(
+          endpoint: "/update-client-profile/${client.id}",
+          body: client.toJson());
+    } catch (e, stackTrace) {
+      debugPrint("Error updating client: $e");
+      debugPrint(stackTrace.toString());
+      return {
+        "error":
+            "An Error Occurred while Updating your information. Please Try Again."
+      };
+    }
   }
 }

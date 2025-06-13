@@ -10,6 +10,7 @@ import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/service/task_info_service.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/controller/escrow_management_controller.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../model/conversation.dart';
 
@@ -63,20 +64,6 @@ class TaskController {
       final priceText = contactPriceController.text.trim();
       final priceInt = int.tryParse(priceText) ?? 0;
 
-      // if (priceInt <= 0) {
-      //   return {
-      //     'success': false,
-      //     'error': 'Please input a valid price greater than 0.',
-      //   };
-      // }
-      //
-      // if (priceInt > _escrowManagementController.tokenCredits.value) {
-      //   return {
-      //     'success': false,
-      //     'error':
-      //         'Insufficient tokens to update the task. Please deposit more tokens.',
-      //   };
-      // }
       debugPrint("Updating job with ID: $id");
       debugPrint("Photos to upload: ${photos?.length ?? 0}");
       debugPrint("Updated Price: $priceInt");
@@ -214,20 +201,59 @@ class TaskController {
         }).toList();
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(clientTask['error']?.toString() ?? 'No tasks found'),
-        ),
-      );
+      _showErrorSnackBar(context, 'No tasks found');
       return [];
     } catch (e, stackTrace) {
       debugPrint("Error rendering created tasks: $e");
       debugPrintStack(stackTrace: stackTrace);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content:
-              Text('Error while rendering your tasks. Please Try Again.')));
+      _showErrorSnackBar(
+          context, 'Error while rendering your tasks. Please Try Again.');
       return [];
     }
+  }
+
+  void _showErrorSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(5),
+        ),
+        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        duration: Duration(seconds: 3),
+      ),
+    );
+  }
+
+  void _showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(5),
+        ),
+        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        duration: Duration(seconds: 3),
+      ),
+    );
   }
 
   Future<List<TaskFetch?>> getTask(BuildContext context) async {
@@ -241,12 +267,10 @@ class TaskController {
       return tasks;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(clientTask['error'] ??
-            "Something Went Wrong while Retrieving Your Tasks."),
-      ),
-    );
+    _showErrorSnackBar(
+        context,
+        clientTask['error'] ??
+            "Something Went Wrong while Retrieving Your Tasks.");
     return [];
   }
 
@@ -261,21 +285,20 @@ class TaskController {
       return tasks;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(clientTask['error'] ??
-            "Something Went Wrong while Retrieving Your Tasks."),
-      ),
-    );
+    _showErrorSnackBar(
+        context,
+        clientTask['error'] ??
+            "Something Went Wrong while Retrieving Your Tasks.");
     return [];
   }
 
-  Future<List<TaskModel>> getCreatedTasksByClient(int clientId) async {
+  Future<List<TaskModel>> getCreatedTasksByClient(
+      BuildContext context, int clientId) async {
     try {
       return await _jobPostService.fetchAssignTasksByClient(clientId);
     } catch (e, stackTrace) {
-      debugPrint("Error fetching created tasks: $e");
-      debugPrintStack(stackTrace: stackTrace);
+      _showErrorSnackBar(
+          context, "Something Went Wrong while Retrieving Your Tasks.");
       return [];
     }
   }
@@ -475,8 +498,10 @@ class TaskController {
               .toList() ??
           [];
 
-      debugPrint('Fetched tasks: $taskAssignments');
-      debugPrint('Fetched conversations: $conversations');
+      // debugPrint('Fetched tasks: $taskAssignments');
+      // debugPrint('Fetched conversations: $conversations');
+      debugPrint(
+          "Task Information: ${taskAssignments.isNotEmpty ? taskAssignments[0] : 'No tasks'}");
 
       return TaskAndConversationResult(
         taskAssignments: taskAssignments,
@@ -533,7 +558,6 @@ class TaskController {
     }
   }
 
-  //All transactions generated by the interaction.
   Future<List<Transactions>> getAllTransactions() async {
     try {
       final response = await _taskDetailsService.retrieveTransactions();

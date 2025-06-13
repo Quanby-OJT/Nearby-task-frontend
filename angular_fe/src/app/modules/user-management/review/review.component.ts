@@ -52,7 +52,7 @@ export class ReviewComponent {
     private sessionStorage: SessionLocalStorage,
     private http: HttpClient,
     private cdRef: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.formValidation();
@@ -177,63 +177,61 @@ export class ReviewComponent {
           console.log('Form value after patching (ReviewComponent):', this.Form.value);
           this.profileImage = this.userData.image_link; // Set profileImage from image_link
 
-          this.userAccountService.getUserDocuments(userId).subscribe({
+            this.userAccountService.getUserDocuments(userId).subscribe({
             next: (docResponse: any) => {
               console.log('Raw response from getUserDocuments (ReviewComponent):', docResponse);
 
-              // Populate documents array only with actual user documents (excluding ID/Face images for this button's logic)
+              // --- Process actual user documents ---
               let userDocuments: { url: string, name: string, type: string }[] = [];
 
-              if (docResponse.user?.user_documents?.length > 0) {
-                console.log('Processing User documents (ReviewComponent):', docResponse.user.user_documents);
-                userDocuments = docResponse.user.user_documents.map((doc: any) => ({
-                  url: doc.user_document_link,
-                  name: doc.doc_name || 'User_Document',
-                  type: doc.document_type || ''
-                }));
+              if (docResponse.user?.user?.user_documents?.user_document_link) {
+              console.log('Processing User documents (ReviewComponent):', docResponse.user.user.user_documents);
+              userDocuments.push({
+                url: docResponse.user.user.user_documents.user_document_link,
+                name: 'User_Document',
+                type: docResponse.user.user.user_documents.document_type || ''
+              });
               }
 
-              // --- Start: Restore logic for ID and Face images ---
-              if (docResponse.user?.user_id?.length > 0 && docResponse.user.user_id[0]?.id_image) {
-                console.log('Processing ID image (ReviewComponent):', docResponse.user.user_id[0].id_image);
-                this.idImage = docResponse.user.user_id[0].id_image;
-                const idExtension = this.idImage?.split('.').pop()?.toLowerCase() || '';
-                this.isIdImage = ['jpg', 'jpeg', 'png', 'gif'].includes(idExtension);
-                console.log('Is id_image an image? (ReviewComponent):', this.isIdImage);
+              console.log(userDocuments);
+
+              // --- Process ID image ---
+              if (docResponse.user?.user?.user_id?.id_image) {
+              console.log('Processing ID image (ReviewComponent):', docResponse.user.user.user_id.id_image);
+              this.idImage = docResponse.user.user.user_id.id_image;
+              const idExtension = this.idImage?.split('.').pop()?.toLowerCase() || '';
+              this.isIdImage = ['jpg', 'jpeg', 'png', 'gif'].includes(idExtension);
               } else {
-                this.idImage = null;
-                this.isIdImage = false;
-                console.log('No id_image found for this user (ReviewComponent).');
+              this.idImage = null;
+              this.isIdImage = false;
+              console.log('No id_image found for this user (ReviewComponent).');
               }
 
-              if (docResponse.user?.user_face_identity?.length > 0 && docResponse.user.user_face_identity[0]?.face_image) {
-                console.log('Processing Selfie Image (ReviewComponent):', docResponse.user.user_face_identity[0].face_image);
-                this.faceImage = docResponse.user.user_face_identity[0].face_image;
-                const faceExtension = this.faceImage?.split('.').pop()?.toLowerCase() || '';
-                this.isFaceImage = ['jpg', 'jpeg', 'png', 'gif'].includes(faceExtension);
-                console.log('Is face_image an image? (ReviewComponent):', this.isFaceImage);
+              // --- Process Selfie image ---
+              if (docResponse.user?.user?.user_face_identity?.face_image) {
+              console.log('Processing Selfie Image (ReviewComponent):', docResponse.user.user.user_face_identity.face_image);
+              this.faceImage = docResponse.user.user.user_face_identity.face_image;
+              const faceExtension = this.faceImage?.split('.').pop()?.toLowerCase() || '';
+              this.isFaceImage = ['jpg', 'jpeg', 'png', 'gif'].includes(faceExtension);
               } else {
-                this.faceImage = null;
-                this.isFaceImage = false;
-                console.log('No face_image found for this user (ReviewComponent).');
+              this.faceImage = null;
+              this.isFaceImage = false;
+              console.log('No face_image found for this user (ReviewComponent).');
               }
-              // --- End: Restore logic for ID and Face images ---
 
               // Store all user documents
               this.userDocuments = userDocuments;
               console.log('Stored user documents:', this.userDocuments);
 
-              // Optional: Set imageUrl if the first document is an image (for potential display elsewhere if needed)
+              // Check if the first document is an image
               if (this.userDocuments.length > 0) {
-                  const firstDoc = this.userDocuments[0];
-                  const extension = firstDoc.url.split('.').pop()?.toLowerCase();
-                  this.isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(extension || '');
-                   if (this.isImage) {
-                      this.imageUrl = firstDoc.url;
-                   }
+              const firstDoc = this.userDocuments[0];
+              const extension = firstDoc.url.split('.').pop()?.toLowerCase();
+              this.isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(extension || '');
+              this.imageUrl = this.isImage ? firstDoc.url : null;
               } else {
-                  this.isImage = false;
-                  this.imageUrl = null;
+              this.isImage = false;
+              this.imageUrl = null;
               }
 
               this.cdRef.detectChanges();
@@ -246,13 +244,14 @@ export class ReviewComponent {
               this.idImage = null;
               this.isIdImage = false;
               Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'Failed to fetch documents. Please try again.',
+              icon: 'error',
+              title: 'Error',
+              text: 'Failed to fetch documents. Please try again.',
               });
               this.cdRef.detectChanges();
             }
-          });
+            });
+
         } else {
           console.warn('No user data found in response (ReviewComponent)');
           Swal.fire({

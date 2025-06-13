@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
+import 'package:flutter_fe/model/verification_model.dart';
 import 'package:flutter_fe/view/business_acc/edit_task_page.dart';
-import 'package:flutter_fe/view/custom_loading/custom_scaffold.dart';
 import 'package:flutter_fe/view/task/task_cancelled.dart';
 import 'package:flutter_fe/view/task/task_confirmed.dart';
 import 'package:flutter_fe/view/task/task_declined.dart';
@@ -17,7 +17,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
-import 'package:flutter_fe/controller/escrow_management_controller.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/model/auth_user.dart';
@@ -26,6 +25,7 @@ import 'package:flutter_fe/view/business_acc/business_task_detail.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/add_task.dart';
 import 'package:flutter_fe/view/task/task_disputed.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_fe/service/api_service.dart';
 
 class JobPostPage extends StatefulWidget {
   const JobPostPage({super.key});
@@ -41,8 +41,7 @@ class _JobPostPageState extends State<JobPostPage>
   final JobPostService _jobPostService = JobPostService();
   final ClientServices _clientServices = ClientServices();
   final ProfileController _profileController = ProfileController();
-  final EscrowManagementController _escrowController =
-      EscrowManagementController();
+
   final GetStorage _storage = GetStorage();
   final TextEditingController _searchController = TextEditingController();
   late final PageController _pageController;
@@ -64,6 +63,15 @@ class _JobPostPageState extends State<JobPostPage>
   bool _showButton = false;
   bool _isUploadDialogShown = false;
 
+  VerificationModel? _existingVerification;
+  String? _verificationStatus;
+  bool _isIdVerified = false;
+  bool _isSelfieVerified = false;
+  bool _isDocumentsUploaded = false;
+  bool _isGeneralInfoCompleted = false;
+  String? _idType;
+  Map<String, dynamic> _userInfo = {};
+  final GetStorage storage = GetStorage();
   // Task management and status filters
   static const List<String> _taskManagementFilters = [
     'All',
@@ -123,12 +131,7 @@ class _JobPostPageState extends State<JobPostPage>
   Future<void> _initializeData() async {
     setState(() => _isLoading = true);
     try {
-      await Future.wait([
-        _fetchUserIDImage(),
-        _fetchSpecializations(),
-        _fetchTasksManagement(),
-        _fetchTasksStatus(),
-      ]);
+      await _all();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -154,44 +157,13 @@ class _JobPostPageState extends State<JobPostPage>
     }
   }
 
-  // Fetch user ID image and profile data
-  Future<void> _fetchUserIDImage() async {
-    final userId = _storage.read('user_id');
-    if (userId == null) return;
-
-    try {
-      final parsedUserId = int.parse(userId.toString());
-      final user =
-          await _profileController.getAuthenticatedUser(context, parsedUserId);
-      final response = await _clientServices.fetchUserIDImage(parsedUserId);
-
-      // Check if user has Review or Active status
-      final userAccStatus = user?.user.accStatus;
-      final isStatusAllowed =
-          userAccStatus == 'Review' || userAccStatus == 'Active';
-
-      if (response['success'] == true) {
-        setState(() {
-          _user = user;
-          _profileImageUrl = user?.user.image;
-          _idImageUrl = response['url'];
-          _isDocumentValid = response['status'] ?? false;
-          _showButton = true;
-        });
-      } else {
-        debugPrint('Failed to fetch user ID image: ${response['message']}');
-        setState(() {
-          _user = user;
-          _profileImageUrl = user?.user.image;
-          _idImageUrl = null;
-          _isDocumentValid = false;
-          // Allow task posting if user status is Review or Active
-          _showButton = isStatusAllowed;
-        });
-      }
-    } catch (e) {
-      _showErrorSnackBar('Error fetching user data: $e');
-    }
+  Future<void> _all() async {
+    await Future.wait([
+      _fetchSpecializations(),
+      _fetchTasksManagement(),
+      _fetchTasksStatus(),
+      _checkVerificationStatus(),
+    ]);
   }
 
   // Fetch specializations
@@ -321,18 +293,19 @@ class _JobPostPageState extends State<JobPostPage>
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
         title: Text(
           'Complete Your Profile',
           style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFFB71A4A),
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
         ),
         content: Text(
           'Please upload your profile and ID images to post tasks.',
-          style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
+          style: GoogleFonts.poppins(
+              fontSize: 14, color: Colors.black, fontWeight: FontWeight.w300),
         ),
         actions: [
           TextButton(
@@ -343,30 +316,35 @@ class _JobPostPageState extends State<JobPostPage>
             child: Text(
               'Cancel',
               style: GoogleFonts.poppins(
-                  fontSize: 14, color: const Color(0xFFB71A4A)),
+                  fontSize: 14,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w500),
             ),
           ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const VerificationPage()),
-              );
-              if (result == true) {
-                await _fetchUserIDImage();
-              }
-              setState(() => _isUploadDialogShown = false);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFE23670),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(5),
+              color: const Color(0xFFB71A4A),
             ),
-            child: Text(
-              'Verify Now',
-              style: GoogleFonts.poppins(fontSize: 14, color: Colors.white),
+            child: TextButton(
+              child: Text('Verify Now',
+                  style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white)),
+              onPressed: () async {
+                Navigator.pop(context);
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const VerificationPage()),
+                );
+                if (result == true) {
+                  await _all();
+                }
+                setState(() => _isUploadDialogShown = false);
+              },
             ),
           ),
         ],
@@ -400,6 +378,43 @@ class _JobPostPageState extends State<JobPostPage>
         });
       },
     );
+  }
+
+  Future<void> _checkVerificationStatus() async {
+    try {
+      final userId = storage.read('user_id');
+      debugPrint('VerificationPage: Retrieved user_id from storage: $userId');
+      debugPrint('VerificationPage: user_id type: ${userId.runtimeType}');
+
+      if (userId != null) {
+        final parsedUserId = int.parse(userId.toString());
+        debugPrint('VerificationPage: Parsed user_id: $parsedUserId');
+
+        final result =
+            await ApiService.getTaskerVerificationStatus(parsedUserId);
+
+        if (result['success'] == true && result['exists'] == true) {
+          // User has existing verification data
+          if (result['verification'] != null) {
+            final verificationData = result['verification'];
+            setState(() {
+              _verificationStatus = verificationData['acc_status'];
+              debugPrint(
+                  'VerificationPage: Set _verificationStatus to: $_verificationStatus');
+            });
+          }
+        } else {
+          setState(() {
+            _verificationStatus = 'Pending';
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error checking verification status: $e');
+      setState(() {
+        _verificationStatus = 'Error';
+      });
+    }
   }
 
   void _showFilterModal({
@@ -512,33 +527,55 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
-  // Reusable search bar widget
   Widget _buildSearchBar({String hint = 'Search tasks...'}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: TextField(
-        controller: _searchController,
-        cursorColor: const Color(0xFFB71A4A),
-        decoration: InputDecoration(
-          filled: true,
-          fillColor: Colors.white,
-          hintText: hint,
-          hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
-          prefixIcon: const Icon(Icons.search, color: Color(0xFFB71A4A)),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey[200]!),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFFE23670), width: 2),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: TextField(
+          controller: _searchController,
+          cursorColor: const Color(0xFFB71A4A),
+          style: GoogleFonts.poppins(fontSize: 14),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: GoogleFonts.poppins(color: Colors.grey[500]),
+            border: InputBorder.none,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            prefixIcon: const Icon(
+              FontAwesomeIcons.magnifyingGlass,
+              color: Color(0xFFB71A4A),
+              size: 18,
+            ),
+            suffixIcon: ValueListenableBuilder<TextEditingValue>(
+              valueListenable: _searchController,
+              builder: (context, value, child) {
+                return value.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(
+                          Icons.clear,
+                          color: Color(0xFFB71A4A),
+                          size: 18,
+                        ),
+                        onPressed: () {
+                          _searchController.clear();
+                        },
+                      )
+                    : const SizedBox.shrink();
+              },
+            ),
           ),
         ),
-        style: GoogleFonts.poppins(fontSize: 14),
       ),
     );
   }
@@ -584,7 +621,8 @@ class _JobPostPageState extends State<JobPostPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.task_alt, size: 64, color: Colors.grey[400]),
+            Icon(FontAwesomeIcons.screwdriverWrench,
+                size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
               'No tasks found',
@@ -1150,7 +1188,8 @@ class _JobPostPageState extends State<JobPostPage>
       ),
       floatingActionButton: _tabController.index == 0
           ? FloatingActionButton(
-              onPressed: _showButton
+              onPressed: _verificationStatus != 'Review' ||
+                      _verificationStatus != 'Active'
                   ? () => Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => AddTask()),

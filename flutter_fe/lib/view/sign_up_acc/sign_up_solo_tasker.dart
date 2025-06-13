@@ -42,6 +42,7 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
   @override
   void initState() {
     super.initState();
+
     _initDeepLinkListener();
     _controller.roleController.text = widget.role;
   }
@@ -179,8 +180,13 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
                     TextFormField(
                       cursorColor: Color(0xFFB71A4A),
                       controller: _controller.firstNameController,
-                      validator: (value) =>
-                          _controller.validateName(value, "first name"),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your first name';
+                        } else {
+                          return null;
+                        }
+                      },
                       decoration: _getInputDecoration('First Name'),
                     ),
                     SizedBox(height: 10),
@@ -193,15 +199,28 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
                     TextFormField(
                       cursorColor: Color(0xFFB71A4A),
                       controller: _controller.lastNameController,
-                      validator: (value) =>
-                          _controller.validateName(value, "last name"),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your last name';
+                        } else {
+                          return null;
+                        }
+                      },
                       decoration: _getInputDecoration('Last Name'),
                     ),
                     SizedBox(height: 10),
                     TextFormField(
                       cursorColor: Color(0xFFB71A4A),
                       controller: _controller.emailController,
-                      validator: _controller.validateEmail,
+                      validator: (value) {
+                        if (value == null ||
+                            value.isEmpty ||
+                            !RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                                .hasMatch(value)) {
+                          return 'Please enter your valid email';
+                        }
+                        return null;
+                      },
                       keyboardType: TextInputType.emailAddress,
                       decoration: _getInputDecoration('Email Address'),
                     ),
@@ -209,7 +228,13 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
                     TextFormField(
                       cursorColor: Color(0xFFB71A4A),
                       controller: _controller.passwordController,
-                      validator: _controller.validatePassword,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Password cannot be empty.';
+                        } else {
+                          return null;
+                        }
+                      },
                       obscureText: _obsecureTextPassword,
                       decoration: _getInputDecoration('Password').copyWith(
                         suffixIcon: Padding(
@@ -281,7 +306,16 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
                     TextFormField(
                       cursorColor: Color(0xFFB71A4A),
                       controller: _controller.confirmPasswordController,
-                      validator: _controller.validateConfirmPassword,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your first name';
+                        } else if (value !=
+                            _controller.passwordController.text) {
+                          return "Passwords do not match.";
+                        } else {
+                          return null;
+                        }
+                      },
                       obscureText: _obsecureTextConfirmPassword,
                       decoration:
                           _getInputDecoration('Confirm Password').copyWith(

@@ -51,7 +51,7 @@ class _VerificationPageState extends State<VerificationPage> {
     'General Information',
     'ID Verification',
     'Selfie Verification',
-    'Document Upload'
+    'Document Upload',
   ];
 
   @override
@@ -79,21 +79,26 @@ class _VerificationPageState extends State<VerificationPage> {
         final parsedUserId = int.parse(userId.toString());
         debugPrint('VerificationPage: Parsed user_id: $parsedUserId');
 
-        final result =
-            await ApiService.getTaskerVerificationStatus(parsedUserId);
+        final result = await ApiService.getTaskerVerificationStatus(
+          parsedUserId,
+        );
 
         debugPrint(
-            'Verification status check result: ${jsonEncode(result['verification'])}');
+          'Verification status check result: ${jsonEncode(result['verification'])}',
+        );
 
         if (result['success'] == true && result['exists'] == true) {
           // User has existing verification data
           if (result['verification'] != null) {
-            final verificationData =
-                VerificationModel.fromJson(result['verification']);
+            final verificationData = VerificationModel.fromJson(
+              result['verification'],
+            );
             debugPrint(
-                'VerificationPage: Existing verification data status: ${verificationData.status}');
+              'VerificationPage: Existing verification data status: ${verificationData.status}',
+            );
             debugPrint(
-                'VerificationPage: Raw verification result: ${jsonEncode(result['verification'])}');
+              'VerificationPage: Raw verification result: ${jsonEncode(result['verification'])}',
+            );
 
             setState(() {
               _existingVerification = verificationData;
@@ -101,7 +106,8 @@ class _VerificationPageState extends State<VerificationPage> {
               _isUpdateMode = true;
 
               debugPrint(
-                  'VerificationPage: Set _verificationStatus to: $_verificationStatus');
+                'VerificationPage: Set _verificationStatus to: $_verificationStatus',
+              );
 
               // Pre-populate data
               if (verificationData.idImageUrl != null) {
@@ -141,7 +147,8 @@ class _VerificationPageState extends State<VerificationPage> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                          'Your account is already verified. You can update your information.'),
+                        'Your account is already verified. You can update your information.',
+                      ),
                       backgroundColor: Colors.green,
                       duration: const Duration(seconds: 5),
                     ),
@@ -154,9 +161,23 @@ class _VerificationPageState extends State<VerificationPage> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                          'Your verification is pending review. You can update your information.'),
+                        "Your verification is pending review. You can update your information.",
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
                       backgroundColor: Colors.amber,
-                      duration: const Duration(seconds: 5),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      margin: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      duration: Duration(seconds: 3),
                     ),
                   );
                 }
@@ -167,9 +188,50 @@ class _VerificationPageState extends State<VerificationPage> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                          'Your verification was rejected. Please update your information and resubmit.'),
+                        "Your verification was rejected. Please update your information and resubmit.",
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
                       backgroundColor: Colors.red,
-                      duration: const Duration(seconds: 5),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      margin: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                }
+              });
+            } else {
+              Future.delayed(Duration.zero, () {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        "You must be verified to access this page. Please submit your verification.",
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
+                      backgroundColor: Colors.red,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      margin: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      duration: Duration(seconds: 3),
                     ),
                   );
                 }
@@ -194,29 +256,22 @@ class _VerificationPageState extends State<VerificationPage> {
       // If we already have user info from verification data, skip this step
       if (_isGeneralInfoCompleted && _userInfo.isNotEmpty) {
         debugPrint(
-            'VerificationPage: Skipping user data load - already have verification data');
+          'VerificationPage: Skipping user data load - already have verification data',
+        );
         return;
       }
 
+      _userRole = await storage.read('role');
+      debugPrint("Role from session: ${storage.read('role')}");
+
       final userIdFromStorage = storage.read('user_id');
-      debugPrint(
-          'VerificationPage: _loadUserData - user_id from storage: $userIdFromStorage');
-      debugPrint(
-          'VerificationPage: _loadUserData - user_id type: ${userIdFromStorage.runtimeType}');
 
       int userId = int.parse(userIdFromStorage.toString());
-      debugPrint('VerificationPage: _loadUserData - parsed user_id: $userId');
 
-      final user = await _controller.getAuthenticatedUser(context, userId);
+      final user = await _controller.getAuthenticatedUser(userId);
       debugPrint('VerificationPage: _loadUserData - received user: $user');
 
-      // Store user role for verification submission
       if (user != null) {
-        setState(() {
-          _userRole = user.user.role;
-        });
-        debugPrint(
-            'VerificationPage: _loadUserData - set user role: $_userRole');
       } else {
         debugPrint('VerificationPage: _loadUserData - user is null!');
       }
@@ -224,7 +279,23 @@ class _VerificationPageState extends State<VerificationPage> {
       debugPrint('Error loading user data: $error');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading user data: $error')),
+          SnackBar(
+            content: Text(
+              "Error loading user data. Please try again.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
+          ),
         );
       }
     }
@@ -247,12 +318,14 @@ class _VerificationPageState extends State<VerificationPage> {
       if (_userInfo.containsKey('socialMediaJson')) {
         final String socialMediaJson = _userInfo['socialMediaJson'] as String;
         debugPrint(
-            'VerificationPage: Social Media Links JSON: $socialMediaJson');
+          'VerificationPage: Social Media Links JSON: $socialMediaJson',
+        );
 
         // Parse the JSON to show individual links for debugging
         try {
-          final Map<String, dynamic> socialMediaLinks =
-              jsonDecode(socialMediaJson);
+          final Map<String, dynamic> socialMediaLinks = jsonDecode(
+            socialMediaJson,
+          );
           debugPrint('VerificationPage: Social Media Links (parsed):');
           socialMediaLinks.forEach((platform, url) {
             debugPrint('  - $platform: $url');
@@ -322,6 +395,7 @@ class _VerificationPageState extends State<VerificationPage> {
 
       // Get the current user ID
       final userId = int.parse(storage.read('user_id').toString());
+      _userRole = storage.read('role');
 
       // Prepare the complete verification data
       final verificationData = {
@@ -332,28 +406,17 @@ class _VerificationPageState extends State<VerificationPage> {
         "email": _userInfo['email'] ?? '',
         "phone": _userInfo['phone'] ?? '',
         "gender": _userInfo['gender'] ?? '',
-        "birthdate": _userInfo['birthdate'] ?? '',
-        "bio": _userInfo['bio'] ?? '',
-        "socialMediaJson": _userInfo['socialMediaJson'] ?? '{}',
       };
 
       debugPrint(
-          'VerificationPage: Submitting verification for role: $_userRole');
+        'VerificationPage: Submitting verification for role: $_userRole',
+      );
       debugPrint('VerificationPage: Verification data: $verificationData');
 
       Map<String, dynamic> result;
 
       // Submit based on user role to appropriate table
       if (_userRole?.toLowerCase() == 'tasker') {
-        // Add tasker-specific fields
-        verificationData.addAll({
-          "specializationId": _userInfo['specializationId'],
-          "skills": _userInfo['skills'] ?? '',
-          "wagePerHour": _userInfo['wage'],
-          "payPeriod": _userInfo['payPeriod'] ?? 'Hourly',
-          "availability": _userInfo['availability'] ?? true,
-        });
-
         // Submit to tasker table
         result = await ApiService.submitTaskerVerificationNew(
           userId,
@@ -381,7 +444,6 @@ class _VerificationPageState extends State<VerificationPage> {
         throw Exception('Unknown user role: $_userRole');
       }
 
-      // Hide loading indicator
       setState(() {
         _isLoading = false;
       });
@@ -393,13 +455,21 @@ class _VerificationPageState extends State<VerificationPage> {
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_isUpdateMode
-                ? (result['message'] ??
-                    'Your information has been updated successfully!')
-                : (result['message'] ??
-                    'Verification submitted successfully! We will review your information and notify you once verified.')),
+            content: Text(
+              "Verification submitted successfully! Your information will be reviewed shortly.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
             backgroundColor: Colors.green,
-            duration: const Duration(seconds: 5),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
           ),
         );
 
@@ -411,27 +481,49 @@ class _VerificationPageState extends State<VerificationPage> {
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result['error'] ??
-                (_isUpdateMode
-                    ? 'Failed to update information'
-                    : 'Failed to submit verification')),
+            content: Text(
+              "Failed to submit verification. Please try again.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
             backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
           ),
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       setState(() {
         _isLoading = false;
       });
 
       debugPrint('Error submitting verification: $e');
+      debugPrintStack(stackTrace: stackTrace);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                'Error ${_isUpdateMode ? 'updating' : 'submitting'} verification: ${e.toString()}'),
+              "Error while ${_isUpdateMode ? 'updating' : 'submitting'} verification. Please Try Again. If the problem persists. Contact our support.",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
             backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            duration: Duration(seconds: 3),
           ),
         );
       }
@@ -442,9 +534,11 @@ class _VerificationPageState extends State<VerificationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isUpdateMode
-            ? 'Update ${_pageTitles[_currentPageIndex]}'
-            : _pageTitles[_currentPageIndex]),
+        title: Text(
+          _isUpdateMode
+              ? 'Update ${_pageTitles[_currentPageIndex]}'
+              : _pageTitles[_currentPageIndex],
+        ),
         backgroundColor: const Color(0xFFB71A4A),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -453,125 +547,43 @@ class _VerificationPageState extends State<VerificationPage> {
           onPressed: _navigateToPreviousPage,
         ),
       ),
-      body: Stack(
-        children: [
-          // Verification Status Banner (if verified)
-          if (_verificationStatus != null)
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-              color: (_verificationStatus == 'approved' ||
-                      _verificationStatus == 'Review')
-                  ? Colors.green[50]
-                  : _verificationStatus == 'rejected'
-                      ? Colors.red[50]
-                      : Colors.amber[50],
-              child: Row(
-                children: [
-                  Icon(
-                    (_verificationStatus == 'approved' ||
-                            _verificationStatus == 'Review')
-                        ? Icons.check_circle
-                        : _verificationStatus == 'rejected'
-                            ? Icons.cancel
-                            : Icons.pending,
-                    color: (_verificationStatus == 'approved' ||
-                            _verificationStatus == 'Review')
-                        ? Colors.green
-                        : _verificationStatus == 'rejected'
-                            ? Colors.red
-                            : Colors.amber,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      (_verificationStatus == 'approved' ||
-                              _verificationStatus == 'Review')
-                          ? 'Your account is verified. You can update your information.'
-                          : _verificationStatus == 'rejected'
-                              ? 'Your verification was rejected. Please update your information.'
-                              : 'Your verification is pending review.',
-                      style: TextStyle(
-                        color: (_verificationStatus == 'approved' ||
-                                _verificationStatus == 'Review')
-                            ? Colors.green[800]
-                            : _verificationStatus == 'rejected'
-                                ? Colors.red[800]
-                                : Colors.amber[800],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          // Main content
-          Padding(
-            padding: EdgeInsets.only(
-              top: _verificationStatus != null ? 40.0 : 0.0,
-            ),
-            child: PageView(
-              controller: _pageController,
-              physics:
-                  const NeverScrollableScrollPhysics(), // Prevent swiping between pages
-              onPageChanged: (index) {
-                setState(() {
-                  _currentPageIndex = index;
-                });
-              },
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Stack(
               children: [
-                // Page 1: General Information
-                GeneralInfoPage(
-                  onInfoCompleted: _onGeneralInfoCompleted,
-                ),
+                Padding(
+                  padding: EdgeInsets.only(
+                    top: _verificationStatus != null ? 40.0 : 0.0,
+                  ),
+                  child: PageView(
+                    controller: _pageController,
+                    physics:
+                        const NeverScrollableScrollPhysics(), // Prevent swiping between pages
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentPageIndex = index;
+                      });
+                    },
+                    children: [
+                      // Page 1: General Information
+                      GeneralInfoPage(onInfoCompleted: _onGeneralInfoCompleted),
 
-                // Page 2: ID Verification
-                IdVerificationPage(
-                  onIdVerified: _onIdVerified,
-                ),
-                // Page 3: Selfie Verification
-                FaceDetectionPage(
-                  onDetectionComplete: (file, isValid) =>
-                      _onSelfieVerified(file!),
-                ),
+                      // Page 2: ID Verification
+                      IdVerificationPage(onIdVerified: _onIdVerified),
+                      // Page 3: Selfie Verification
+                      FaceDetectionPage(
+                        onDetectionComplete: (file, isValid) =>
+                            _onSelfieVerified(file!),
+                      ),
 
-                // Page 4: Document Upload (Optional)
-                DocumentUploadPage(
-                  onDocumentUploaded: _onDocumentUploaded,
+                      // Page 4: Document Upload (Optional)
+                      DocumentUploadPage(
+                          onDocumentUploaded: _onDocumentUploaded),
+                    ],
+                  ),
                 ),
               ],
             ),
-          ),
-
-          // Loading overlay
-          if (_isLoading)
-            Container(
-              color: Colors.black54,
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const CircularProgressIndicator(
-                      color: Colors.white,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      _isUpdateMode
-                          ? 'Updating your information...'
-                          : 'Submitting verification...',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-        ],
-      ),
       bottomNavigationBar: _currentPageIndex == 3 && !_isDocumentsUploaded
           ? Container(
               padding: const EdgeInsets.all(16),

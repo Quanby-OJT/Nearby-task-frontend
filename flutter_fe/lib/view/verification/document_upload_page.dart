@@ -70,23 +70,37 @@ class _DocumentUploadPageState extends State<DocumentUploadPage> {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'],
+        withData: false,
+        withReadStream: false,
       );
 
-      if (result != null) {
-        setState(() {
-          _documentFile = File(result.files.single.path!);
-          _documentFileName = result.files.single.name;
-          _uploadMethod = 'file';
-        });
+      if (result != null && result.files.single.path != null) {
+        final file = File(result.files.single.path!);
+        if (await file.exists()) {
+          setState(() {
+            _documentFile = file;
+            _documentFileName = result.files.single.name;
+            _uploadMethod = 'file';
+          });
 
-        // Show success message
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Document selected successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          // Show success message
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Document selected successfully'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Selected file does not exist'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
         }
       }
     } catch (e) {
@@ -105,8 +119,28 @@ class _DocumentUploadPageState extends State<DocumentUploadPage> {
   }
 
   void _completeVerification() {
-    // Document upload is optional, so we can proceed regardless
-    widget.onDocumentUploaded(_documentFile);
+    if (_documentFile != null) {
+      // Only pass the file if it exists
+      if (_documentFile!.existsSync()) {
+        debugPrint("Document file exists, proceeding with upload");
+        widget.onDocumentUploaded(_documentFile);
+      } else {
+        debugPrint("Document file doesn't exist, proceeding without document");
+        widget.onDocumentUploaded(null);
+
+        // Show informative message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Proceeding without document upload'),
+            backgroundColor: Colors.blue,
+          ),
+        );
+      }
+    } else {
+      // If no document was selected, proceed without it
+      debugPrint("No document selected, proceeding without document");
+      widget.onDocumentUploaded(null);
+    }
   }
 
   @override
@@ -197,76 +231,6 @@ class _DocumentUploadPageState extends State<DocumentUploadPage> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // // Camera Upload Option
-                          // GestureDetector(
-                          //   onTap: _captureDocumentImage,
-                          //   child: Container(
-                          //     width: double.infinity,
-                          //     padding: const EdgeInsets.all(20),
-                          //     decoration: BoxDecoration(
-                          //       color: Colors.white,
-                          //       borderRadius: BorderRadius.circular(12),
-                          //       border: Border.all(color: Colors.grey[300]!),
-                          //       boxShadow: [
-                          //         BoxShadow(
-                          //           color: Colors.grey.withOpacity(0.1),
-                          //           spreadRadius: 1,
-                          //           blurRadius: 3,
-                          //           offset: const Offset(0, 2),
-                          //         ),
-                          //       ],
-                          //     ),
-                          //     child: Row(
-                          //       children: [
-                          //         Container(
-                          //           width: 52,
-                          //           height: 52,
-                          //           decoration: BoxDecoration(
-                          //             color: Colors.blue[50],
-                          //             shape: BoxShape.circle,
-                          //           ),
-                          //           child: Icon(
-                          //             Icons.camera_alt,
-                          //             size: 28,
-                          //             color: const Color(0xFF0272B1),
-                          //           ),
-                          //         ),
-                          //         const SizedBox(width: 16),
-                          //         Expanded(
-                          //           child: Column(
-                          //             crossAxisAlignment:
-                          //                 CrossAxisAlignment.start,
-                          //             children: [
-                          //               Text(
-                          //                 'Take Photo of Document',
-                          //                 style: GoogleFonts.poppins(
-                          //                   fontSize: 16,
-                          //                   fontWeight: FontWeight.w600,
-                          //                   color: Colors.grey[800],
-                          //                 ),
-                          //               ),
-                          //               const SizedBox(height: 4),
-                          //               Text(
-                          //                 'Use your camera to capture document',
-                          //                 style: GoogleFonts.poppins(
-                          //                   fontSize: 13,
-                          //                   color: Colors.grey[600],
-                          //                 ),
-                          //               ),
-                          //             ],
-                          //           ),
-                          //         ),
-                          //         Icon(
-                          //           Icons.arrow_forward_ios,
-                          //           size: 16,
-                          //           color: Colors.grey[400],
-                          //         ),
-                          //       ],
-                          //     ),
-                          //   ),
-                          // ),
-                          // const SizedBox(height: 16),
-
                           // File Upload Option
                           GestureDetector(
                             onTap: _pickDocument,

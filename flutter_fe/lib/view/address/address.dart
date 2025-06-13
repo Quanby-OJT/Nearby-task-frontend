@@ -40,6 +40,7 @@ class _AddressState extends State<Address> {
   bool _isLoadingCities = false;
   bool _isLoadingBarangays = false;
   bool _isLoadingMap = false;
+  bool _isLoading = false;
 
   // Map-related variables
   GoogleMapController? _mapController;
@@ -280,7 +281,7 @@ class _AddressState extends State<Address> {
     }
 
     try {
-      setState(() => _isLoadingMap = true);
+      setState(() => _isLoading = true);
 
       selectedAddress =
           '${_streetAddressController.text.isNotEmpty ? '${_streetAddressController.text}, ' : ''}'
@@ -340,9 +341,11 @@ class _AddressState extends State<Address> {
       if (widget.onAddressSelected != null) {
         widget.onAddressSelected!(addressModel);
       }
+
+      _showSuccess('Address saved successfully');
       Navigator.pop(context, addressModel);
     } catch (e) {
-      setState(() => _isLoadingMap = false);
+      setState(() => _isLoading = false);
       _showError('Failed to save location: ${e.toString()}');
     }
   }
@@ -350,8 +353,43 @@ class _AddressState extends State<Address> {
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Text(
+          message,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+          ),
+        ),
         backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(5),
+        ),
+        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        duration: Duration(seconds: 3),
+      ),
+    );
+  }
+
+  void _showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(5),
+        ),
+        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        duration: Duration(seconds: 3),
       ),
     );
   }
@@ -378,7 +416,7 @@ class _AddressState extends State<Address> {
             value: value,
             decoration: InputDecoration(
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: BorderRadius.circular(8),
               ),
               filled: true,
               fillColor: Colors.grey[100],
@@ -392,8 +430,18 @@ class _AddressState extends State<Address> {
             onChanged: isLoading || onChanged == null ? null : onChanged,
             isExpanded: true,
             hint: isLoading
-                ? const Text('Loading...')
-                : const Text('Select Location'),
+                ? const Text('Loading...',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w300,
+                      color: Colors.black,
+                    ))
+                : const Text('Select Location',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w300,
+                      color: Colors.black,
+                    )),
           ),
         ],
       ),
@@ -426,7 +474,7 @@ class _AddressState extends State<Address> {
           },
         ),
       ),
-      body: _isLoadingRegions
+      body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
@@ -436,9 +484,9 @@ class _AddressState extends State<Address> {
                   Text(
                     'Select Your Address',
                     style: GoogleFonts.poppins(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFFB71A4A),
+                      color: Colors.black,
                     ),
                   ),
                   _buildDropdown<Map<String, dynamic>>(
@@ -521,7 +569,13 @@ class _AddressState extends State<Address> {
                           controller: _postalCodeController,
                           decoration: InputDecoration(
                             labelText: 'Postal Code',
+                            labelStyle: GoogleFonts.poppins(
+                              fontSize: 14,
+                            ),
                             hintText: 'Enter postal code',
+                            hintStyle: GoogleFonts.poppins(
+                              fontSize: 14,
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -537,7 +591,13 @@ class _AddressState extends State<Address> {
                     controller: _remarksController,
                     decoration: InputDecoration(
                       labelText: 'Remarks',
+                      labelStyle: GoogleFonts.poppins(
+                        fontSize: 14,
+                      ),
                       hintText: 'Enter remarks',
+                      hintStyle: GoogleFonts.poppins(
+                        fontSize: 14,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -561,7 +621,7 @@ class _AddressState extends State<Address> {
                               'Selected Address:',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                color: Colors.black,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -571,6 +631,10 @@ class _AddressState extends State<Address> {
                               '${_selectedCity!['name']}, '
                               '${_selectedProvince!['name']}, '
                               '${_locationService.getRegionDisplayName(_selectedRegion!)}',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w300,
+                              ),
                             ),
                           ],
                         ),
@@ -586,15 +650,7 @@ class _AddressState extends State<Address> {
                             padding: const EdgeInsets.all(16.0),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'Pin Your Exact Location',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ],
+                              children: [],
                             ),
                           ),
                           SizedBox(
@@ -651,8 +707,10 @@ class _AddressState extends State<Address> {
                               padding: const EdgeInsets.all(8.0),
                               child: Text(
                                 'Coordinates: ${_markerPosition!.latitude.toStringAsFixed(6)}, ${_markerPosition!.longitude.toStringAsFixed(6)}',
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w300,
+                                ),
                               ),
                             ),
                         ],

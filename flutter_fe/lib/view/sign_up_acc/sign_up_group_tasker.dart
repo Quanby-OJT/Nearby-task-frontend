@@ -167,7 +167,13 @@ class _SignUpGroupTaskerAccState extends State<SignUpGroupTaskerAcc> {
                           controller: _controller.passwordController,
                           obscureText: true,
                           cursorColor: Color(0xFF0272B1),
-                          validator: _controller.validatePassword,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Password Cannot be Empty.';
+                            } else {
+                              return null;
+                            }
+                          },
                           decoration: _inputDecoration('Your Password'),
                         ),
                       ),
@@ -262,15 +268,15 @@ class _SignUpGroupTaskerAccState extends State<SignUpGroupTaskerAcc> {
                                 return;
                               }
 
-                              String? passwordError =
-                                  _controller.validatePassword(
-                                      _controller.passwordController.text);
-                              if (passwordError != null) {
-                                setState(() {
-                                  _status = passwordError;
-                                });
-                                return;
-                              }
+                              // String? passwordError =
+                              //     _controller.validatePassword(
+                              //         _controller.passwordController.text);
+                              // if (passwordError != null) {
+                              //   setState(() {
+                              //     _status = passwordError;
+                              //   });
+                              //   return;
+                              // }
 
                               setState(() {
                                 _status = "Creating your account...";

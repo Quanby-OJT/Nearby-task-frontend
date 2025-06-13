@@ -96,7 +96,7 @@ class SettingService {
     String province,
   ) async {
     debugPrint('Setting location: $latitude, $longitude, $city, $province');
-    final token = await AuthService.getSessionToken();
+
     final response = await _putRequest(
         endpoint: '/set-location/$userId',
         body: {

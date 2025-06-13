@@ -9,6 +9,7 @@ import 'package:flutter_fe/model/images_model.dart';
 import 'package:flutter_fe/model/setting.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_model.dart';
+import 'package:flutter_fe/model/verification_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/address/set-up_address.dart';
@@ -24,6 +25,8 @@ import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:flutter_fe/view/verification/verification_page.dart';
 import 'package:dots_indicator/dots_indicator.dart';
+import 'dart:convert';
+import 'package:flutter_fe/service/api_service.dart';
 
 class TaskerHomePage extends StatefulWidget {
   const TaskerHomePage({super.key});
@@ -76,6 +79,15 @@ class _TaskerHomePageState extends State<TaskerHomePage>
   List<int> imagesToDelete = [];
   List<int> existingImageIds = [];
 
+  VerificationModel? _existingVerification;
+  String? _verificationStatus;
+  bool _isIdVerified = false;
+  bool _isSelfieVerified = false;
+  bool _isDocumentsUploaded = false;
+  bool _isGeneralInfoCompleted = false;
+  String? _idType;
+  Map<String, dynamic> _userInfo = {};
+
   @override
   void initState() {
     super.initState();
@@ -125,8 +137,8 @@ class _TaskerHomePageState extends State<TaskerHomePage>
     try {
       await Future.wait([
         _fetchUserData(),
-        _fetchUserIDImage(),
         fetchSpecialization(),
+        _checkVerificationStatus(),
         _fetchTasks(),
       ]);
       setState(() {
@@ -174,7 +186,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
       }
 
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
       debugPrint("Current User: $user");
 
       if (user == null) {
@@ -287,33 +299,42 @@ class _TaskerHomePageState extends State<TaskerHomePage>
         });
   }
 
-  Future<void> _fetchUserIDImage() async {
+  Future<void> _checkVerificationStatus() async {
     try {
-      int userId = int.parse(storage.read('user_id').toString());
-      if (userId == 0) {
-        debugPrint("User ID not found in storage");
+      final userId = storage.read('user_id');
+      debugPrint('VerificationPage: Retrieved user_id from storage: $userId');
+      debugPrint('VerificationPage: user_id type: ${userId.runtimeType}');
 
-        return;
-      }
+      if (userId != null) {
+        final parsedUserId = int.parse(userId.toString());
+        debugPrint('VerificationPage: Parsed user_id: $parsedUserId');
 
-      AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
-      final response = await _clientServices.fetchUserIDImage(userId);
+        final result =
+            await ApiService.getTaskerVerificationStatus(parsedUserId);
+        debugPrint(
+            'Verification status check result tasker: ${jsonEncode(result)}');
 
-      debugPrint("Response This is for checking: ${response['status']}");
-      debugPrint("User This is for checking: ${user?.user.image}");
-      debugPrint("User ID This is for checking: ${response['url']}");
-
-      if (response['success']) {
-        setState(() {
-          _user = user;
-          _existingProfileImageUrl = user?.user.image;
-          _existingIDImageUrl = response['url'];
-          _documentValid = response['status'];
-        });
+        if (result['success'] == true && result['exists'] == true) {
+          // User has existing verification data
+          if (result['verification'] != null) {
+            final verificationData = result['verification'];
+            setState(() {
+              _verificationStatus = verificationData['acc_status'];
+              debugPrint(
+                  'VerificationPage: Set _verificationStatus to: $_verificationStatus');
+            });
+          }
+        } else {
+          setState(() {
+            _verificationStatus = 'Pending';
+          });
+        }
       }
     } catch (e) {
-      debugPrint("Error fetching ID image: $e");
+      debugPrint('Error checking verification status: $e');
+      setState(() {
+        _verificationStatus = 'Error';
+      });
     }
   }
 
@@ -434,13 +455,15 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                 context,
                 MaterialPageRoute(
                     builder: (context) => const VerificationPage()),
-              );
+              ).then((value) async {
+                await _loadAllFunction();
+              });
+              ;
               if (result == true) {
                 setState(() {
                   _isLoading = true;
                 });
-                await _fetchUserIDImage();
-                await _fetchTasks();
+                await _loadAllFunction();
               } else {
                 setState(() {
                   _isUploadDialogShown = false;
@@ -667,6 +690,9 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                             color: Colors.white)),
                     onPressed: () {
                       _authController.logout(context, () => mounted);
+                      setState(() {
+                        _isLoading = true;
+                      });
                       Navigator.pop(context);
                     },
                   ),
@@ -853,19 +879,8 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                     _dislikeAnimationController?.forward();
                     _cardCounter();
                   } else if (swipeDirection == CardSwiperDirection.right) {
-                    // Check if user account is already under review or approved
-                    bool isVerificationInProgress =
-                        _user?.user.accStatus == "Review" ||
-                            _user?.user.accStatus == "approved" ||
-                            _user?.user.accStatus == "Approved";
-
-                    // Only show warning if verification is not in progress and documents are missing
-                    if (!isVerificationInProgress &&
-                        (_existingProfileImageUrl == null ||
-                            _existingIDImageUrl == null ||
-                            _existingProfileImageUrl!.isEmpty ||
-                            _existingIDImageUrl!.isEmpty ||
-                            !_documentValid)) {
+                    if (_verificationStatus != "Active" &&
+                        _verificationStatus != "Review") {
                       _showWarningDialog();
                       return false;
                     }

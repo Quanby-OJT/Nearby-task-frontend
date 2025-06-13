@@ -44,7 +44,7 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
     try {
       int userId = storage.read("user_id");
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
       debugPrint(user.toString());
       setState(() {
         _role = user?.user.role;
@@ -58,7 +58,7 @@ class _ClientDisputedSettledState extends State<ClientDisputedSettled> {
   Future<void> _fetchTaskerDetails(int userId) async {
     try {
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
       debugPrint(user.toString());
       setState(() {
         tasker = user;

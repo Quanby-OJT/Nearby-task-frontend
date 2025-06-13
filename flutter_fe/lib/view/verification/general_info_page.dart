@@ -31,15 +31,6 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _birthdateController = TextEditingController();
-  final TextEditingController _bioController = TextEditingController();
-  final TextEditingController _skillsController = TextEditingController();
-  final TextEditingController _wageController = TextEditingController();
-
-  // Social media controllers
-  final TextEditingController _facebookController = TextEditingController();
-  final TextEditingController _instagramController = TextEditingController();
-  final TextEditingController _linkedinController = TextEditingController();
-  final TextEditingController _twitterController = TextEditingController();
 
   // Form data
   String? _gender;
@@ -69,7 +60,7 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
 
     Future.microtask(() {
       _loadUserData();
-      _loadSpecializations();
+      //_loadSpecializations();
     });
   }
 
@@ -81,13 +72,6 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
     _emailController.dispose();
     _phoneController.dispose();
     _birthdateController.dispose();
-    _bioController.dispose();
-    _skillsController.dispose();
-    _wageController.dispose();
-    _facebookController.dispose();
-    _instagramController.dispose();
-    _linkedinController.dispose();
-    _twitterController.dispose();
     super.dispose();
   }
 
@@ -98,7 +82,7 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
       if (userId != null) {
         // Fetch authenticated user data from API
         final AuthenticatedUser? authUser = await _profileController
-            .getAuthenticatedUser(context, int.parse(userId.toString()));
+            .getAuthenticatedUser(int.parse(userId.toString()));
 
         if (authUser != null && mounted) {
           // Populate form fields with user data
@@ -140,89 +124,6 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
                 debugPrint('Error parsing birthdate: $e');
               }
             }
-
-            // Set bio if available in user model
-            if (authUser.user.bio != null && authUser.user.bio!.isNotEmpty) {
-              _bioController.text = authUser.user.bio!;
-            }
-
-            // Set tasker-specific data if available
-            if (authUser.tasker != null) {
-              if (authUser.tasker!.skills != null &&
-                  authUser.tasker!.skills!.isNotEmpty) {
-                _skillsController.text = authUser.tasker!.skills!;
-              }
-
-              if (authUser.tasker!.wagePerHour != null) {
-                _wageController.text = authUser.tasker!.wagePerHour.toString();
-              }
-
-              if (authUser.tasker!.payPeriod != null &&
-                  authUser.tasker!.payPeriod!.isNotEmpty) {
-                _selectedPayPeriod = authUser.tasker!.payPeriod!;
-              }
-
-              // Set selected specialization if available
-              if (authUser.tasker!.specializationId != null) {
-                // Find matching specialization from loaded list
-                for (var spec in _specializations) {
-                  if (spec.id == authUser.tasker!.specializationId) {
-                    _selectedSpecialization = spec;
-                    break;
-                  }
-                }
-              }
-            }
-
-            // Set social media links if available in user model
-            if (authUser.user.socialMediaLinks != null &&
-                authUser.user.socialMediaLinks!.isNotEmpty) {
-              final socialLinks = authUser.user.socialMediaLinks!;
-
-              if (socialLinks.containsKey('facebook')) {
-                _facebookController.text = socialLinks['facebook']!;
-              }
-
-              if (socialLinks.containsKey('instagram')) {
-                _instagramController.text = socialLinks['instagram']!;
-              }
-
-              if (socialLinks.containsKey('linkedin')) {
-                _linkedinController.text = socialLinks['linkedin']!;
-              }
-
-              if (socialLinks.containsKey('twitter')) {
-                _twitterController.text = socialLinks['twitter']!;
-              }
-            } else {
-              // Try to parse social media links from JSON string if stored that way
-              try {
-                final String socialMediaJson =
-                    storage.read('social_media_links') ?? '{}';
-                if (socialMediaJson != '{}') {
-                  final Map<String, dynamic> socialLinks =
-                      jsonDecode(socialMediaJson);
-
-                  if (socialLinks.containsKey('facebook')) {
-                    _facebookController.text = socialLinks['facebook'];
-                  }
-
-                  if (socialLinks.containsKey('instagram')) {
-                    _instagramController.text = socialLinks['instagram'];
-                  }
-
-                  if (socialLinks.containsKey('linkedin')) {
-                    _linkedinController.text = socialLinks['linkedin'];
-                  }
-
-                  if (socialLinks.containsKey('twitter')) {
-                    _twitterController.text = socialLinks['twitter'];
-                  }
-                }
-              } catch (e) {
-                debugPrint('Error parsing social media links: $e');
-              }
-            }
           });
         }
       }
@@ -233,34 +134,6 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _loadSpecializations() async {
-    try {
-      setState(() {
-        _isLoadingSpecializations = true;
-      });
-
-      debugPrint('GeneralInfoPage: Loading specializations...');
-      final specializations = await _jobPostService.getSpecializations();
-
-      if (mounted) {
-        setState(() {
-          _specializations = specializations;
-          _isLoadingSpecializations = false;
-        });
-
-        debugPrint(
-            'GeneralInfoPage: Loaded ${specializations.length} specializations');
-      }
-    } catch (e) {
-      debugPrint('GeneralInfoPage: Error loading specializations: $e');
-      if (mounted) {
-        setState(() {
-          _isLoadingSpecializations = false;
         });
       }
     }
@@ -297,55 +170,6 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
 
   void _submitInfo() {
     if (_formKey.currentState!.validate()) {
-      // Additional validation for tasker-specific fields
-      if (_userRole?.toLowerCase() == 'tasker') {
-        if (_selectedSpecialization == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Please select a specialization'),
-              backgroundColor: Colors.red,
-            ),
-          );
-          return;
-        }
-
-        if (_wageController.text.trim().isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Please enter your hourly wage'),
-              backgroundColor: Colors.red,
-            ),
-          );
-          return;
-        }
-
-        double? wage = double.tryParse(_wageController.text.trim());
-        if (wage == null || wage <= 0) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Please enter a valid wage amount'),
-              backgroundColor: Colors.red,
-            ),
-          );
-          return;
-        }
-      }
-
-      // Create social media links object
-      Map<String, String> socialMediaLinks = {
-        'facebook': _facebookController.text.trim(),
-        'instagram': _instagramController.text.trim(),
-        'linkedin': _linkedinController.text.trim(),
-        'twitter': _twitterController.text.trim(),
-      };
-
-      // Remove empty values
-      socialMediaLinks.removeWhere((key, value) => value.isEmpty);
-
-      // Convert to JSON string for storage
-      String socialMediaJson = jsonEncode(socialMediaLinks);
-
-      // Create user info object
       Map<String, dynamic> userInfo = {
         'firstName': _firstNameController.text.trim(),
         'middleName': _middleNameController.text.trim(),
@@ -356,33 +180,8 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
         'birthdate': _birthdate != null
             ? DateFormat('yyyy-MM-dd').format(_birthdate!)
             : null,
-        'socialMediaJson': socialMediaJson,
-        'bio': _bioController.text.trim(),
-        'socialMediaLinks': socialMediaLinks,
       };
 
-      // Add tasker-specific fields if user is a tasker
-      if (_userRole?.toLowerCase() == 'tasker') {
-        userInfo.addAll({
-          'specializationId': _selectedSpecialization?.id,
-          'skills': _skillsController.text.trim(),
-          'payPeriod': _selectedPayPeriod,
-          'wage': double.parse(_wageController.text.trim()),
-          'availability': true, // Default to available
-        });
-      } else {
-        // For client users, add default values
-        userInfo.addAll({
-          'payPeriod': 'Hourly',
-          'wage': 0.0,
-        });
-      }
-
-      // Save to storage for future reference
-      storage.write('bio', _bioController.text.trim());
-      storage.write('social_media_links', socialMediaJson);
-
-      // Call the callback function with the user info
       widget.onInfoCompleted(userInfo);
     }
   }
@@ -400,7 +199,6 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Header
                     Center(
                       child: Column(
                         children: [
@@ -535,330 +333,6 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Bio Section
-                    Text(
-                      'Professional Bio',
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Bio Text Field
-                    _buildTextField(
-                      controller: _bioController,
-                      label: 'Tell us about yourself and your skills',
-                      icon: Icons.person_outline,
-                      maxLines: 4,
-                      keyboardType: TextInputType.multiline,
-                      hintText:
-                          'Share your experience, skills, and what you can offer to clients',
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Your bio will be visible to potential clients',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontStyle: FontStyle.italic,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-
-                    // Tasker-specific fields (only show for taskers)
-                    if (_userRole?.toLowerCase() == 'tasker') ...[
-                      const SizedBox(height: 24),
-
-                      // Professional Details Section for Taskers
-                      Text(
-                        'Professional Details',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[800],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Specialization Dropdown
-                      Text(
-                        'Specialization *',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey[700],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey[300]!),
-                        ),
-                        child: _isLoadingSpecializations
-                            ? Container(
-                                height: 56,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 16),
-                                child: const Row(
-                                  children: [
-                                    Icon(Icons.work, color: Colors.grey),
-                                    SizedBox(width: 12),
-                                    Text('Loading specializations...'),
-                                    Spacer(),
-                                    SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 2),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : DropdownButtonFormField<SpecializationModel>(
-                                value: _selectedSpecialization,
-                                decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: Colors.grey[100],
-                                  prefixIcon:
-                                      Icon(Icons.work, color: Colors.grey[600]),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderSide:
-                                        BorderSide(color: Colors.grey[300]!),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                    borderSide: const BorderSide(
-                                        color: Color(0xFF0272B1), width: 2),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 16),
-                                  hintText: 'Select your specialization',
-                                ),
-                                items: _specializations.map((specialization) {
-                                  return DropdownMenuItem<SpecializationModel>(
-                                    value: specialization,
-                                    child: Text(
-                                      specialization.specialization,
-                                      style: GoogleFonts.poppins(fontSize: 14),
-                                    ),
-                                  );
-                                }).toList(),
-                                onChanged: (SpecializationModel? newValue) {
-                                  setState(() {
-                                    _selectedSpecialization = newValue;
-                                  });
-                                },
-                                validator: (value) {
-                                  if (value == null) {
-                                    return 'Please select a specialization';
-                                  }
-                                  return null;
-                                },
-                              ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Skills Text Field
-                      _buildTextField(
-                        controller: _skillsController,
-                        label: 'Skills & Expertise',
-                        icon: Icons.star,
-                        maxLines: 3,
-                        keyboardType: TextInputType.multiline,
-                        hintText:
-                            'List your specific skills, certifications, and areas of expertise',
-                        validator: (value) {
-                          if (_userRole?.toLowerCase() == 'tasker' &&
-                              (value == null || value.isEmpty)) {
-                            return 'Please describe your skills and expertise';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Pay Period Dropdown
-                      Text(
-                        'Pay Period *',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey[700],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      DropdownButtonFormField<String>(
-                        value: _selectedPayPeriod,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.grey[100],
-                          prefixIcon:
-                              Icon(Icons.schedule, color: Colors.grey[600]),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.grey[300]!),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(
-                                color: Color(0xFF0272B1), width: 2),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 16),
-                        ),
-                        items: _payPeriods.map((period) {
-                          return DropdownMenuItem<String>(
-                            value: period,
-                            child: Text(
-                              period,
-                              style: GoogleFonts.poppins(fontSize: 14),
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _selectedPayPeriod = newValue ?? 'Hourly';
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Wage/Rate Text Field
-                      _buildTextField(
-                        controller: _wageController,
-                        label:
-                            'Rate (PHP per ${_selectedPayPeriod.toLowerCase().replaceAll('ly', '')})',
-                        icon: Icons.attach_money,
-                        keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
-                        hintText: 'Enter your rate in PHP',
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                              RegExp(r'^\d+\.?\d{0,2}')),
-                        ],
-                        validator: (value) {
-                          if (_userRole?.toLowerCase() == 'tasker') {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your rate';
-                            }
-                            double? wage = double.tryParse(value);
-                            if (wage == null || wage <= 0) {
-                              return 'Please enter a valid amount';
-                            }
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'This rate will be visible to clients when they view your profile',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontStyle: FontStyle.italic,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
-
-                    const SizedBox(height: 24),
-
-                    // Social Media Links Section
-                    Text(
-                      'Social Media Links (Optional)',
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Add your social media profiles to enhance your verification',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Facebook
-                    _buildTextField(
-                      controller: _facebookController,
-                      label: 'Facebook Profile URL',
-                      icon: Icons.facebook,
-                      keyboardType: TextInputType.url,
-                      hintText: 'https://facebook.com/yourusername',
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          if (!value.contains('facebook.com')) {
-                            return 'Please enter a valid Facebook URL';
-                          }
-                        }
-                        return null; // Optional field
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Instagram
-                    _buildTextField(
-                      controller: _instagramController,
-                      label: 'Instagram Profile URL',
-                      icon: Icons.camera_alt,
-                      keyboardType: TextInputType.url,
-                      hintText: 'https://instagram.com/yourusername',
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          if (!value.contains('instagram.com')) {
-                            return 'Please enter a valid Instagram URL';
-                          }
-                        }
-                        return null; // Optional field
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // LinkedIn
-                    _buildTextField(
-                      controller: _linkedinController,
-                      label: 'LinkedIn Profile URL',
-                      icon: Icons.business_center,
-                      keyboardType: TextInputType.url,
-                      hintText: 'https://linkedin.com/in/yourusername',
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          if (!value.contains('linkedin.com')) {
-                            return 'Please enter a valid LinkedIn URL';
-                          }
-                        }
-                        return null; // Optional field
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Twitter
-                    _buildTextField(
-                      controller: _twitterController,
-                      label: 'Twitter Profile URL',
-                      icon: Icons.chat,
-                      keyboardType: TextInputType.url,
-                      hintText: 'https://twitter.com/yourusername',
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          if (!value.contains('twitter.com') &&
-                              !value.contains('x.com')) {
-                            return 'Please enter a valid Twitter/X URL';
-                          }
-                        }
-                        return null; // Optional field
-                      },
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Contact Information Section
                     Text(
                       'Contact Information',
                       style: GoogleFonts.poppins(

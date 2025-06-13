@@ -172,7 +172,7 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       int userId = int.parse(storage.read('user_id').toString());
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
       final response = await _clientServices.fetchUserIDImage(userId);
 
       if (response['success']) {
@@ -769,17 +769,35 @@ class _ChatScreenState extends State<ChatScreen> {
                 controller: conversationController.searchConversation,
                 cursorColor: const Color(0xFFB71A4A),
                 decoration: InputDecoration(
-                  hintText: 'Search messages...',
-                  hintStyle: GoogleFonts.poppins(color: Colors.grey[500]),
-                  border: InputBorder.none,
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                  suffixIcon: Icon(
-                    FontAwesomeIcons.magnifyingGlass,
-                    color: Color(0xFFB71A4A),
-                    size: 18,
-                  ),
-                ),
+                    hintText: 'Search messages...',
+                    hintStyle: GoogleFonts.poppins(color: Colors.grey[500]),
+                    border: InputBorder.none,
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    prefixIcon: Icon(
+                      FontAwesomeIcons.magnifyingGlass,
+                      color: Color(0xFFB71A4A),
+                      size: 18,
+                    ),
+                    suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                      valueListenable:
+                          conversationController.searchConversation,
+                      builder: (context, value, child) {
+                        return value.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(
+                                  Icons.clear,
+                                  color: Color(0xFFB71A4A),
+                                  size: 18,
+                                ),
+                                onPressed: () {
+                                  conversationController.searchConversation
+                                      .clear();
+                                },
+                              )
+                            : const SizedBox.shrink();
+                      },
+                    )),
               ),
             ),
           ),
@@ -948,9 +966,7 @@ class _ChatScreenState extends State<ChatScreen> {
               context,
               MaterialPageRoute(
                 builder: (context) => IndividualChatScreen(
-                  taskTakenId: taskTaken.taskTakenId,
-                  taskId: taskTaken.task?.id ?? 0,
-                  taskTitle: taskTaken.task?.title ?? '',
+                  taskAssignment: taskTaken,
                 ),
               ),
             ).then((_) {

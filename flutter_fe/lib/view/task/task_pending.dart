@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:flutter_fe/view/task/task_cancelled.dart';
@@ -88,7 +89,7 @@ class _TaskPendingState extends State<TaskPending> {
     try {
       int userId = storage.read("user_id") ?? 0;
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
 
       setState(() {
         tasker = user;
@@ -105,7 +106,7 @@ class _TaskPendingState extends State<TaskPending> {
     try {
       final int userId = storage.read("user_id") ?? 0;
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
+          await _profileController.getAuthenticatedUser(userId);
 
       setState(() {
         tasker = user;
@@ -1162,9 +1163,13 @@ class _TaskPendingState extends State<TaskPending> {
       context,
       MaterialPageRoute(
         builder: (context) => IndividualChatScreen(
-          taskTitle: _taskInformation?.title,
-          taskTakenId: _requestInformation?.task_taken_id,
-          taskId: _requestInformation?.task_id,
+          taskAssignment: TaskAssignment(
+            taskTakenId: _requestInformation?.task_taken_id ?? 0,
+            taskStatus: _requestInformation?.task_status ?? '',
+            task: _taskInformation,
+            tasker: _taskInformation?.tasker,
+            client: _taskInformation?.client,
+          ),
         ),
       ),
     );
