@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { AngularSvgIconModule } from 'angular-svg-icon';
 import { UserTableFilterService } from 'src/services/user-table-filter';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-table-action',
-  imports: [AngularSvgIconModule],
+  imports: [AngularSvgIconModule, CommonModule],
   templateUrl: './table-action.component.html',
   styleUrl: './table-action.component.css',
 })
