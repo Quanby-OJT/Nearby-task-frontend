@@ -311,45 +311,30 @@ class _TaskerHomePageState extends State<TaskerHomePage>
 
         final result =
             await ApiService.getTaskerVerificationStatus(parsedUserId);
-
         debugPrint(
-            'Verification status check result: ${jsonEncode(result['verification'])}');
+            'Verification status check result tasker: ${jsonEncode(result)}');
 
         if (result['success'] == true && result['exists'] == true) {
           // User has existing verification data
           if (result['verification'] != null) {
-            final verificationData =
-                VerificationModel.fromJson(result['verification']);
-            debugPrint(
-                'VerificationPage: Existing verification data status: ${verificationData.status}');
-
+            final verificationData = result['verification'];
             setState(() {
-              _existingVerification = verificationData;
-              _verificationStatus = verificationData.status;
-
+              _verificationStatus = verificationData['acc_status'];
               debugPrint(
                   'VerificationPage: Set _verificationStatus to: $_verificationStatus');
-
-              // Pre-populate data
-              if (verificationData.idImageUrl != null) {
-                _isIdVerified = true;
-                _idType = verificationData.idType;
-              }
-
-              if (verificationData.selfieImageUrl != null) {
-                _isSelfieVerified = true;
-              }
-
-              if (verificationData.documentUrl != null ||
-                  verificationData.clientDocumentUrl != null) {
-                _isDocumentsUploaded = true;
-              }
             });
           }
+        } else {
+          setState(() {
+            _verificationStatus = 'Pending';
+          });
         }
       }
     } catch (e) {
       debugPrint('Error checking verification status: $e');
+      setState(() {
+        _verificationStatus = 'Error';
+      });
     }
   }
 
@@ -891,7 +876,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                     _dislikeAnimationController?.forward();
                     _cardCounter();
                   } else if (swipeDirection == CardSwiperDirection.right) {
-                    if (_verificationStatus != "Approved" &&
+                    if (_verificationStatus != "Active" &&
                         _verificationStatus != "Review") {
                       _showWarningDialog();
                       return false;

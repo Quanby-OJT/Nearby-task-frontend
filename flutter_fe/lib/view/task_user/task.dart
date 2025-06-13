@@ -32,7 +32,8 @@ class TaskPage extends StatefulWidget {
   State<TaskPage> createState() => _TaskPageState();
 }
 
-class _TaskPageState extends State<TaskPage> with SingleTickerProviderStateMixin {
+class _TaskPageState extends State<TaskPage>
+    with SingleTickerProviderStateMixin {
   final TaskController controller = TaskController();
   final JobPostService jobPostService = JobPostService();
   final ClientServices _clientServices = ClientServices();
@@ -114,7 +115,8 @@ class _TaskPageState extends State<TaskPage> with SingleTickerProviderStateMixin
       await _loadSkills();
       await _fetchUserIDImage();
       await fetchCreatedTasks();
-      if (mounted) { // Ensure widget is still mounted before adding listener
+      if (mounted) {
+        // Ensure widget is still mounted before adding listener
         _searchController.addListener(_filterTasks);
       }
     });
@@ -180,10 +182,12 @@ class _TaskPageState extends State<TaskPage> with SingleTickerProviderStateMixin
     } catch (e, stackTrace) {
       debugPrint("Error fetching created tasks: $e");
       debugPrintStack(stackTrace: stackTrace);
-      if (mounted) { // Check if the widget is still mounted before showing SnackBar
+      if (mounted) {
+        // Check if the widget is still mounted before showing SnackBar
         // Ensure context is still valid
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar( //
+        ScaffoldMessenger.of(context).showSnackBar(
+          //
           SnackBar(
             content: Text("Failed to load tasks. Please try again."),
             backgroundColor: Colors.red,
@@ -218,6 +222,7 @@ class _TaskPageState extends State<TaskPage> with SingleTickerProviderStateMixin
       });
     }
   }
+
   Future<void> _fetchUserIDImage() async {
     try {
       int userId = int.parse(storage.read('user_id').toString());
@@ -331,28 +336,25 @@ class _TaskPageState extends State<TaskPage> with SingleTickerProviderStateMixin
           : clientTasks.isEmpty
               ? Center(
                   child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          FontAwesomeIcons.screwdriverWrench,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'You don\'t have any tasks yet. You can apply for a task by clicking on the "Apply" button, after you saved your desired task.',
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            color: Colors.grey[600],
-                          ),
-                          textAlign: TextAlign.center,
-                        )
-                      ]
-                    )
-                  )
-                )
+                      padding: EdgeInsets.all(20),
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              FontAwesomeIcons.screwdriverWrench,
+                              size: 64,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No tasks yet. Click "Apply" after saving your desired task.',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                color: Colors.grey[600],
+                              ),
+                              textAlign: TextAlign.center,
+                            )
+                          ])))
               : Column(
                   children: [
                     Padding(

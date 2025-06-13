@@ -198,6 +198,31 @@ class _VerificationPageState extends State<VerificationPage> {
                   );
                 }
               });
+            } else {
+              Future.delayed(Duration.zero, () {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        "You must be verified to access this page. Please submit your verification.",
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
+                      backgroundColor: Colors.red,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      margin:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                }
+              });
             }
           }
         }
@@ -365,9 +390,6 @@ class _VerificationPageState extends State<VerificationPage> {
         "email": _userInfo['email'] ?? '',
         "phone": _userInfo['phone'] ?? '',
         "gender": _userInfo['gender'] ?? '',
-        "birthdate": _userInfo['birthdate'] ?? '',
-        "bio": _userInfo['bio'] ?? '',
-        "socialMediaJson": _userInfo['socialMediaJson'] ?? '{}',
       };
 
       debugPrint(
@@ -378,15 +400,6 @@ class _VerificationPageState extends State<VerificationPage> {
 
       // Submit based on user role to appropriate table
       if (_userRole?.toLowerCase() == 'tasker') {
-        // Add tasker-specific fields
-        verificationData.addAll({
-          "specializationId": _userInfo['specializationId'],
-          "skills": _userInfo['skills'] ?? '',
-          "wagePerHour": _userInfo['wage'],
-          "payPeriod": _userInfo['payPeriod'] ?? 'Hourly',
-          "availability": _userInfo['availability'] ?? true,
-        });
-
         // Submit to tasker table
         result = await ApiService.submitTaskerVerificationNew(
           userId,
@@ -587,7 +600,7 @@ class _VerificationPageState extends State<VerificationPage> {
                   ),
                 ),
                 child: Text(
-                  _isUpdateMode ? "Update Information" : "Submit Verification",
+                  _isUpdateMode ? "Update Information" : "Submit",
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

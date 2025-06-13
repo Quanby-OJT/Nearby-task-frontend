@@ -1030,11 +1030,10 @@ class ApiService {
   ) async {
     try {
       String token = await AuthService.getSessionToken();
-      debugPrint("ApiService: Submitting client verification to client table");
+      debugPrint("ApiService: Submitting client verification");
       debugPrint("ApiService: Verification data: $verificationData");
 
       final String endpoint = "$apiUrl/submit-client-verification/$userId";
-
       var request = http.MultipartRequest("POST", Uri.parse(endpoint));
 
       request.headers.addAll({
@@ -1052,58 +1051,56 @@ class ApiService {
         "phone": verificationData['phone'] ?? '',
         "gender": verificationData['gender'] ?? '',
         "birthdate": verificationData['birthdate'] ?? '',
+        "social_media_links":
+            jsonEncode(verificationData['social_media_links'] ?? {}),
+        "preferences": verificationData['preferences'] ?? '',
+        "client_address": verificationData['client_address'] ?? '',
       });
 
+      // Add files
       if (idImage != null && await idImage.exists()) {
-        debugPrint("ApiService: Adding ID image to request");
-        request.files.add(
-          await http.MultipartFile.fromPath('idImage', idImage.path),
-        );
+        debugPrint("ApiService: Adding ID image");
+        request.files
+            .add(await http.MultipartFile.fromPath('idImage', idImage.path));
       }
 
       if (selfieImage != null && await selfieImage.exists()) {
-        debugPrint("ApiService: Adding selfie image to request");
+        debugPrint("ApiService: Adding selfie image");
         request.files.add(
-          await http.MultipartFile.fromPath('selfieImage', selfieImage.path),
-        );
+            await http.MultipartFile.fromPath('selfieImage', selfieImage.path));
       }
 
       if (documentFile != null && await documentFile.exists()) {
-        debugPrint("ApiService: Adding documents to request");
+        debugPrint("ApiService: Adding documents");
         request.files.add(
-          await http.MultipartFile.fromPath(
-            'documents',
-            documentFile.path,
-          ),
-        );
+            await http.MultipartFile.fromPath('documents', documentFile.path));
       }
 
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
       final responseData = jsonDecode(responseBody);
 
-      debugPrint("ApiService: Tasker verification response: $responseData");
+      debugPrint("ApiService: Client verification response: $responseData");
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
+      if (response.statusCode == 200 || response.statusCode == 207) {
         return {
-          "success": true,
-          "message": responseData["message"] ??
-              "Tasker verification submitted successfully!"
+          "success": responseData["success"] ?? false,
+          "message": responseData["message"] ?? "Client verification submitted",
+          "data": responseData["data"],
+          "failedTables": responseData["failedTables"],
+          "uploadErrors": responseData["uploadErrors"]
         };
       } else {
         return {
           "success": false,
           "error":
-              responseData["error"] ?? "Failed to submit tasker verification"
+              responseData["error"] ?? "Failed to submit client verification"
         };
       }
     } catch (e, stackTrace) {
-      debugPrint("ApiService: Error submitting tasker verification: $e");
+      debugPrint("ApiService: Error submitting client verification: $e");
       debugPrintStack(stackTrace: stackTrace);
-      return {
-        "success": false,
-        "error": "An error occurred while submitting tasker verification: $e"
-      };
+      return {"success": false, "error": "An error occurred: $e"};
     }
   }
 
@@ -1871,9 +1868,9 @@ class ApiService {
       );
 
       debugPrint(
-          "ApiService: User verification status response status: ${response.statusCode}");
+          "ApiService: User verification status response status for tasker: ${response.statusCode}");
       debugPrint(
-          "ApiService: User verification status response body: ${response.body}");
+          "ApiService: User verification status response body for tasker: ${response.body}");
 
       final responseData = jsonDecode(response.body);
 
