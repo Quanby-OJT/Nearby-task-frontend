@@ -604,26 +604,31 @@ class _TaskInformationState extends State<TaskInformation> {
                         '${_client?.user.firstName ?? ''} ${_client?.user.middleName ?? ''} ${_client?.user.lastName ?? ''}',
                   ),
                   _buildInfoRow(
-                    icon: FontAwesomeIcons.checkCircle,
+                    icon: FontAwesomeIcons.solidCircleCheck,
                     label: 'Account Status',
                     value: _client?.user.accStatus ?? 'Verified',
                   ),
                   _buildInfoRow(
-                    icon: FontAwesomeIcons.envelope,
-                    label: 'Email',
-                    value: _client?.user.email ?? 'N/A',
+                    icon: FontAwesomeIcons.info,
+                    label: 'About the Client',
+                    value: _client?.client?.bio ?? 'N/A',
                   ),
-                  _buildInfoRow(
-                    icon: FontAwesomeIcons.phone,
-                    label: 'Phone',
-                    value: _client?.user.contact ?? 'N/A',
-                  ),
-                  _buildInfoRow(
-                    icon: FontAwesomeIcons.solidStar,
-                    label: 'Rating',
-                    value:
-                        '4.5', // Default rating since UserModel doesn't have rating
-                  ),
+                  // _buildInfoRow(
+                  //   icon: FontAwesomeIcons.envelope,
+                  //   label: 'Email',
+                  //   value: _client?.user.email ?? 'N/A',
+                  // ),
+                  // _buildInfoRow(
+                  //   icon: FontAwesomeIcons.phone,
+                  //   label: 'Phone',
+                  //   value: _client?.user.contact ?? 'N/A',
+                  // ),
+                  // _buildInfoRow(
+                  //   icon: FontAwesomeIcons.solidStar,
+                  //   label: 'Rating',
+                  //   value:
+                  //       '4.5', // Default rating since UserModel doesn't have rating
+                  // ),
                 ],
               ),
             ),
