@@ -46,7 +46,6 @@ class _ClientHomePageState extends State<ClientHomePage>
   final SettingController _settingController = SettingController();
   List<MapEntry<int, String>> categories = [];
   Map<String, bool> selectedCategories = {};
-  List<String> taskerImages = [];
   final TaskerController taskerController = TaskerController();
 
   SettingModel _userPreference = SettingModel();
@@ -127,7 +126,6 @@ class _ClientHomePageState extends State<ClientHomePage>
       await Future.wait([
         _fetchUserData(),
         _fetchTaskers(),
-        getAllTaskerImages(),
         _checkVerificationStatus(),
       ]);
       setState(() {
@@ -172,10 +170,8 @@ class _ClientHomePageState extends State<ClientHomePage>
         final parsedUserId = int.parse(userId.toString());
         debugPrint('VerificationPage: Parsed user_id: $parsedUserId');
 
-        final result =
-            await ApiService.getTaskerVerificationStatus(parsedUserId);
-        debugPrint(
-            'Verification status check result client: ${jsonEncode(result)}');
+        final result = await ApiService.getTaskerVerificationStatus(parsedUserId);
+        debugPrint('Verification status check result client: ${jsonEncode(result)}');
 
         if (result['success'] == true && result['exists'] == true) {
           // User has existing verification data
@@ -350,19 +346,6 @@ class _ClientHomePageState extends State<ClientHomePage>
         _isLoading = false;
       });
     }
-  }
-
-  Future<void> getAllTaskerImages() async {
-    List<int> taskerIds = fetchedTaskers.map((tasker) => tasker.id).toList();
-
-    for (int taskId in taskerIds) {
-      List<ImagesModel> images =
-          await taskerController.getAllTaskerImages(taskId) ?? [];
-      taskerImages.addAll(images.map((image) => image.image_url).toList());
-    }
-
-    // Example: Print all tasker IDs
-    debugPrint("All Tasker IDs: $taskerImages");
   }
 
   Future<void> _saveLikedTasker(UserModel tasker) async {
@@ -929,9 +912,11 @@ class _ClientHomePageState extends State<ClientHomePage>
                                   }
                                   return true;
                                 },
+                  //Tasker Images
                                 cardBuilder: (context, index, percentThresholdX,
                                     percentThresholdY) {
                                   final tasker = taskers[index];
+                                  debugPrint("All Taskers in Card: ${tasker.tasker}");
                                   return Container(
                                     width: double.infinity,
                                     height: MediaQuery.of(context).size.height,
@@ -945,33 +930,34 @@ class _ClientHomePageState extends State<ClientHomePage>
                                       child: Stack(
                                         children: [
                                           ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                            child: taskerImages.isEmpty
+                                            borderRadius: BorderRadius.circular(20),
+                                            child: tasker.tasker?.taskerImages != null
                                                 ? Center(
-                                                    // Center the icon
-                                                    child: Icon(
-                                                    FontAwesomeIcons
-                                                        .screwdriverWrench,
-                                                    size:
-                                                        150, // Increase size for prominence
-                                                    color: Colors.grey[
-                                                        400], // Lighter grey for better visibility
-                                                  ))
+                                              child: Icon(
+                                                FontAwesomeIcons.screwdriverWrench,
+                                                size: 150,
+                                                color: Colors.grey[400],
+                                              ),
+                                            )
                                                 : PageView.builder(
-                                                    itemCount:
-                                                        taskerImages.length,
-                                                    itemBuilder:
-                                                        (context, imageIndex) {
-                                                      return Image.network(
-                                                        taskerImages[
-                                                            imageIndex],
-                                                        fit: BoxFit.cover,
-                                                        width: double.infinity,
-                                                        height: double.infinity,
-                                                      );
-                                                    },
+                                              itemCount: tasker.tasker?.taskerImages?.length ?? 0,
+                                              itemBuilder: (context, index) {
+                                                List<String> taskerImages = tasker.tasker?.taskerImages ?? [];
+                                                return Image.network(
+                                                  taskerImages[index],
+                                                  fit: BoxFit.cover,
+                                                  width: double.infinity,
+                                                  height: double.infinity,
+                                                  errorBuilder: (context, error, stackTrace) => Center(
+                                                    child: Icon(
+                                                      Icons.broken_image,
+                                                      color: Colors.grey[400],
+                                                      size: 100,
+                                                    ),
                                                   ),
+                                                );
+                                              },
+                                            ),
                                           ),
                                           // Darker overlay on the entire image
                                           Positioned.fill(

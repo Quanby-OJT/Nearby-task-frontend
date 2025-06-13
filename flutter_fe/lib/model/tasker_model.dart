@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'dart:convert';
@@ -95,6 +96,8 @@ class TaskerModel {
       }
     }
 
+    debugPrint("Tasker Model: ${json}");
+
     return TaskerModel(
       taskerId: json['tasker_id'] as int? ?? json['id'] as int?,
       userId: json['user_id'] != null ? json['user_id'] as int : 0,
@@ -136,6 +139,7 @@ class TaskerModel {
                   .map((e) => e is int ? e : int.tryParse(e.toString()) ?? 0))
               : [],
       group: json['group'] as bool? ?? false,
+      taskerImages: json['images_url'] ?? []
     );
   }
 
