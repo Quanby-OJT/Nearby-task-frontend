@@ -455,7 +455,10 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                 context,
                 MaterialPageRoute(
                     builder: (context) => const VerificationPage()),
-              );
+              ).then((value) async {
+                await _loadAllFunction();
+              });
+              ;
               if (result == true) {
                 setState(() {
                   _isLoading = true;

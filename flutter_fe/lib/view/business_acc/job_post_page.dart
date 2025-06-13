@@ -71,6 +71,7 @@ class _JobPostPageState extends State<JobPostPage>
   bool _isGeneralInfoCompleted = false;
   String? _idType;
   Map<String, dynamic> _userInfo = {};
+  final GetStorage storage = GetStorage();
   // Task management and status filters
   static const List<String> _taskManagementFilters = [
     'All',
@@ -163,52 +164,6 @@ class _JobPostPageState extends State<JobPostPage>
       _fetchTasksStatus(),
       _checkVerificationStatus(),
     ]);
-  }
-
-  Future<void> _checkVerificationStatus() async {
-    try {
-      final userId = _storage.read('user_id');
-      debugPrint('VerificationPage: Retrieved user_id from storage: $userId');
-      debugPrint('VerificationPage: user_id type: ${userId.runtimeType}');
-
-      if (userId != null) {
-        final parsedUserId = int.parse(userId.toString());
-        debugPrint('VerificationPage: Parsed user_id: $parsedUserId');
-
-        final result =
-            await ApiService.getTaskerVerificationStatus(parsedUserId);
-
-        if (result['success'] == true && result['exists'] == true) {
-          // User has existing verification data
-          if (result['verification'] != null) {
-            final verificationData =
-                VerificationModel.fromJson(result['verification']);
-
-            setState(() {
-              _existingVerification = verificationData;
-              _verificationStatus = verificationData.status;
-
-              // Pre-populate data
-              if (verificationData.idImageUrl != null) {
-                _isIdVerified = true;
-                _idType = verificationData.idType;
-              }
-
-              if (verificationData.selfieImageUrl != null) {
-                _isSelfieVerified = true;
-              }
-
-              if (verificationData.documentUrl != null ||
-                  verificationData.clientDocumentUrl != null) {
-                _isDocumentsUploaded = true;
-              }
-            });
-          }
-        }
-      }
-    } catch (e) {
-      debugPrint('Error checking verification status: $e');
-    }
   }
 
   // Fetch specializations
@@ -423,6 +378,43 @@ class _JobPostPageState extends State<JobPostPage>
         });
       },
     );
+  }
+
+  Future<void> _checkVerificationStatus() async {
+    try {
+      final userId = storage.read('user_id');
+      debugPrint('VerificationPage: Retrieved user_id from storage: $userId');
+      debugPrint('VerificationPage: user_id type: ${userId.runtimeType}');
+
+      if (userId != null) {
+        final parsedUserId = int.parse(userId.toString());
+        debugPrint('VerificationPage: Parsed user_id: $parsedUserId');
+
+        final result =
+            await ApiService.getTaskerVerificationStatus(parsedUserId);
+
+        if (result['success'] == true && result['exists'] == true) {
+          // User has existing verification data
+          if (result['verification'] != null) {
+            final verificationData = result['verification'];
+            setState(() {
+              _verificationStatus = verificationData['acc_status'];
+              debugPrint(
+                  'VerificationPage: Set _verificationStatus to: $_verificationStatus');
+            });
+          }
+        } else {
+          setState(() {
+            _verificationStatus = 'Pending';
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error checking verification status: $e');
+      setState(() {
+        _verificationStatus = 'Error';
+      });
+    }
   }
 
   void _showFilterModal({
