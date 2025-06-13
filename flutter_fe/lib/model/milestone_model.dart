@@ -3,7 +3,7 @@ class MilestoneModel {
   final int taskId;
   final String title;
   final String description;
-  final double amount;
+  final double? amount;
   final DateTime? dueDate;
   final String status; // 'pending', 'in_progress', 'completed', 'overdue'
   final DateTime? completedAt;
@@ -16,7 +16,7 @@ class MilestoneModel {
     required this.taskId,
     required this.title,
     required this.description,
-    required this.amount,
+    this.amount,
     this.dueDate,
     this.status = 'pending',
     this.completedAt,
@@ -31,7 +31,8 @@ class MilestoneModel {
       taskId: json['task_id'] as int,
       title: json['title'] as String,
       description: json['description'] as String,
-      amount: (json['amount'] as num).toDouble(),
+      amount:
+          json['amount'] != null ? (json['amount'] as num).toDouble() : null,
       dueDate: json['due_date'] != null
           ? DateTime.parse(json['due_date'] as String)
           : null,
@@ -112,8 +113,8 @@ extension MilestoneListExtension on List<MilestoneModel> {
   }
 
   double get totalAmount =>
-      fold(0.0, (sum, milestone) => sum + milestone.amount);
+      fold(0.0, (sum, milestone) => sum + (milestone.amount ?? 0.0));
 
   double get completedAmount => where((m) => m.isCompleted)
-      .fold(0.0, (sum, milestone) => sum + milestone.amount);
+      .fold(0.0, (sum, milestone) => sum + (milestone.amount ?? 0.0));
 }

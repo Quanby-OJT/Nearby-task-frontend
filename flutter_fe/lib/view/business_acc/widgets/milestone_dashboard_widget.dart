@@ -116,8 +116,9 @@ class _MilestoneDashboardWidgetState extends State<MilestoneDashboardWidget> {
     final progressPercentage = (completedCount / totalCount * 100).round();
     final completedAmount = _milestones
         .where((m) => m.isCompleted)
-        .fold(0.0, (sum, m) => sum + m.amount);
-    final totalAmount = _milestones.fold(0.0, (sum, m) => sum + m.amount);
+        .fold(0.0, (sum, m) => sum + (m.amount ?? 0.0));
+    final totalAmount =
+        _milestones.fold(0.0, (sum, m) => sum + (m.amount ?? 0.0));
     final overdueCount = _milestones.where((m) => m.isOverdue).length;
 
     return GestureDetector(
