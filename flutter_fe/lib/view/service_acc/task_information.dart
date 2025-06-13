@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/controller/generate_pdf_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/client_request.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/view/custom_loading/file_indicators.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:printing/printing.dart';
 
 // StatusConfig class for dynamic status properties
 class StatusConfig {
@@ -399,6 +402,21 @@ class _TaskInformationState extends State<TaskInformation> {
     );
   }
 
+  //For PCIC Only
+  void downloadFile(BuildContext parentContext) {
+    showDialog(
+      context: parentContext,
+      builder: (BuildContext childContext) {
+        return PopScope(
+          child: AlertDialog(
+            content: DownloadFileIndicator(),
+            contentPadding: const EdgeInsets.all(24),
+          )
+        );
+      }
+    );
+  }
+
   Widget _buildStatusSection() {
     final config = statusConfigs[_requestStatus] ??
         StatusConfig(
@@ -604,26 +622,31 @@ class _TaskInformationState extends State<TaskInformation> {
                         '${_client?.user.firstName ?? ''} ${_client?.user.middleName ?? ''} ${_client?.user.lastName ?? ''}',
                   ),
                   _buildInfoRow(
-                    icon: FontAwesomeIcons.checkCircle,
+                    icon: FontAwesomeIcons.solidCircleCheck,
                     label: 'Account Status',
                     value: _client?.user.accStatus ?? 'Verified',
                   ),
                   _buildInfoRow(
-                    icon: FontAwesomeIcons.envelope,
-                    label: 'Email',
-                    value: _client?.user.email ?? 'N/A',
+                    icon: FontAwesomeIcons.info,
+                    label: 'About the Client',
+                    value: _client?.client?.bio ?? 'N/A',
                   ),
-                  _buildInfoRow(
-                    icon: FontAwesomeIcons.phone,
-                    label: 'Phone',
-                    value: _client?.user.contact ?? 'N/A',
-                  ),
-                  _buildInfoRow(
-                    icon: FontAwesomeIcons.solidStar,
-                    label: 'Rating',
-                    value:
-                        '4.5', // Default rating since UserModel doesn't have rating
-                  ),
+                  // _buildInfoRow(
+                  //   icon: FontAwesomeIcons.envelope,
+                  //   label: 'Email',
+                  //   value: _client?.user.email ?? 'N/A',
+                  // ),
+                  // _buildInfoRow(
+                  //   icon: FontAwesomeIcons.phone,
+                  //   label: 'Phone',
+                  //   value: _client?.user.contact ?? 'N/A',
+                  // ),
+                  // _buildInfoRow(
+                  //   icon: FontAwesomeIcons.solidStar,
+                  //   label: 'Rating',
+                  //   value:
+                  //       '4.5', // Default rating since UserModel doesn't have rating
+                  // ),
                 ],
               ),
             ),
@@ -709,6 +732,9 @@ class _TaskInformationState extends State<TaskInformation> {
                       _isLoading = true;
                     });
                     try {
+                      downloadFile(context);
+                      final pdf = await generatePdf();
+                      await Printing.layoutPdf(onLayout: (_) => pdf);
                       final result = await taskController.assignTask(
                         widget.taskID ?? 0,
                         _taskInformation!.clientId,
@@ -721,10 +747,11 @@ class _TaskInformationState extends State<TaskInformation> {
                           _requestStatus = 'Pending';
                         });
                         await _fetchTaskDetails();
+                        if(mounted) Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              result,
+                              "You have downloaded the task information from our server. Please read it very carefully.",
                               style: GoogleFonts.poppins(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
@@ -742,11 +769,13 @@ class _TaskInformationState extends State<TaskInformation> {
                           ),
                         );
                       }
-                    } catch (e) {
+                    } catch (e, stackTrace) {
+                      debugPrint("Error in _fetchTaskDetails: $e");
+                      debugPrintStack(stackTrace: stackTrace);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
-                            "Error in _fetchTaskDetails: $e",
+                            "An error occurred while processing your application. Please Try Again.",
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,

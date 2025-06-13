@@ -82,6 +82,8 @@ dependencies:
   # Blur detection for image quality validation
   blur_detection: ^1.0.0
   dotted_border: ^2.1.0
+  printing: ^5.14.2
+  pdf: ^3.11.3
 dev_dependencies:
   flutter_test:
     sdk: flutter
