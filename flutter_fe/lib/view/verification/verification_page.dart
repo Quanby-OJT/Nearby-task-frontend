@@ -261,14 +261,14 @@ class _VerificationPageState extends State<VerificationPage> {
         return;
       }
 
-      _userRole = await storage.read('role');
+      _userRole = storage.read('role');
       debugPrint("Role from session: ${storage.read('role')}");
 
       final userIdFromStorage = storage.read('user_id');
 
       int userId = int.parse(userIdFromStorage.toString());
 
-      final user = await _controller.getAuthenticatedUser(userId);
+      final user = await _controller.getAuthenticatedUser(context, userId);
       debugPrint('VerificationPage: _loadUserData - received user: $user');
 
       if (user != null) {

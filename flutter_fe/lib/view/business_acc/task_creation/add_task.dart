@@ -69,7 +69,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
 
   bool _isLoading = true;
   bool _showButton = false;
-  bool _isUploadDialogShown = false;
+  final bool _isUploadDialogShown = false;
   bool _documentValid = false;
   bool isUploading = false;
   int _currentStep = 0;
@@ -122,7 +122,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
     try {
       int userId = int.parse(storage.read('user_id').toString());
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(userId);
+          await _profileController.getAuthenticatedUser(context, userId);
       final response = await _clientServices.fetchUserIDImage(userId);
       debugPrint('add task verification: $response');
 
@@ -758,7 +758,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(
-            color: errorText != null ? Colors.red : Colors.black!,
+            color: errorText != null ? Colors.red : Colors.black,
           ),
           borderRadius: BorderRadius.circular(8),
         ),

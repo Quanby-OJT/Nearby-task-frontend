@@ -15,6 +15,7 @@ import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/controller/tasker_controller.dart';
 import 'package:flutter_fe/view/address/set-up_address.dart';
 import 'package:flutter_fe/view/business_acc/notif_screen.dart';
+import 'package:flutter_fe/view/configuration/configuration_list.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
 import 'package:flutter_fe/view/service_acc/notif_screen.dart';
 import 'package:flutter_fe/view/setting/setting.dart';
@@ -62,7 +63,7 @@ class _ClientHomePageState extends State<ClientHomePage>
   String _image = "";
   String? _existingProfileImageUrl;
   String? _existingIDImageUrl;
-  bool _documentValid = false;
+  final bool _documentValid = false;
   bool _isLoading = true;
   bool _isUploadDialogShown = false;
   final GlobalKey _moreVertKey = GlobalKey();
@@ -75,12 +76,12 @@ class _ClientHomePageState extends State<ClientHomePage>
 
   VerificationModel? _existingVerification;
   String? _verificationStatus;
-  bool _isIdVerified = false;
-  bool _isSelfieVerified = false;
-  bool _isDocumentsUploaded = false;
-  bool _isGeneralInfoCompleted = false;
+  final bool _isIdVerified = false;
+  final bool _isSelfieVerified = false;
+  final bool _isDocumentsUploaded = false;
+  final bool _isGeneralInfoCompleted = false;
   String? _idType;
-  Map<String, dynamic> _userInfo = {};
+  final Map<String, dynamic> _userInfo = {};
 
   @override
   void initState() {
@@ -170,8 +171,10 @@ class _ClientHomePageState extends State<ClientHomePage>
         final parsedUserId = int.parse(userId.toString());
         debugPrint('VerificationPage: Parsed user_id: $parsedUserId');
 
-        final result = await ApiService.getTaskerVerificationStatus(parsedUserId);
-        debugPrint('Verification status check result client: ${jsonEncode(result)}');
+        final result =
+            await ApiService.getTaskerVerificationStatus(parsedUserId);
+        debugPrint(
+            'Verification status check result client: ${jsonEncode(result)}');
 
         if (result['success'] == true && result['exists'] == true) {
           // User has existing verification data
@@ -211,7 +214,7 @@ class _ClientHomePageState extends State<ClientHomePage>
       }
 
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(userId);
+          await _profileController.getAuthenticatedUser(context, userId);
       debugPrint("Current User: $user");
 
       if (user == null) {
@@ -370,41 +373,71 @@ class _ClientHomePageState extends State<ClientHomePage>
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text("Account Verification"),
-        content: const Text(
-            "Upload your Profile and ID images to complete your account. Verification will follow."),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(5),
+        ),
+        title: Text("Account Verification",
+            style:
+                GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold)),
+        content: Text(
+            "Upload your Profile and ID images to complete your account. Verification will follow.",
+            style:
+                GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w300)),
         actions: [
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const VerificationPage()),
-              ).then((value) async {
-                await _loadAllFunction();
-              });
-              if (result == true) {
-                setState(() {
-                  _isLoading = true;
-                });
-                await _loadAllFunction();
-              } else {
-                setState(() {
-                  _isUploadDialogShown = false;
-                });
-              }
-            },
-            child: const Text("Verify Account"),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() {
-                _isUploadDialogShown = false;
-              });
-            },
-            child: Text('Cancel'),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton(
+                child: Text('Cancel',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFFB71A4A),
+                    )),
+                onPressed: () {
+                  Navigator.pop(context);
+                  setState(() {
+                    _isUploadDialogShown = false;
+                  });
+                },
+              ),
+              const SizedBox(width: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  color: const Color(0xFFB71A4A),
+                ),
+                child: TextButton(
+                  child: Text('Verify Now',
+                      style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white)),
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const VerificationPage()),
+                    ).then((value) async {
+                      await _loadAllFunction();
+                    });
+                    if (result == true) {
+                      setState(() {
+                        _isLoading = true;
+                      });
+                      await _loadAllFunction();
+                    } else {
+                      setState(() {
+                        _isUploadDialogShown = false;
+                      });
+                    }
+                  },
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -558,6 +591,30 @@ class _ClientHomePageState extends State<ClientHomePage>
                         ),
                       ),
                       onTap: () {
+                        overlayEntry.remove();
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(
+                        Icons.settings,
+                        color: const Color(0xFFB71A4A),
+                      ),
+                      title: Text(
+                        'Configuration',
+                        style: GoogleFonts.poppins(
+                          color: Colors.black,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w300,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ConfigurationList()),
+                        ).then((value) => setState(() {
+                              _fetchTaskers();
+                            }));
                         overlayEntry.remove();
                       },
                     ),
@@ -900,7 +957,7 @@ class _ClientHomePageState extends State<ClientHomePage>
                                       return true;
                                     }
 
-                                    if (_verificationStatus != "Approved" &&
+                                    if (_verificationStatus != "Active" &&
                                         _verificationStatus != "Review") {
                                       _showWarningDialog();
                                       return false;
@@ -912,11 +969,12 @@ class _ClientHomePageState extends State<ClientHomePage>
                                   }
                                   return true;
                                 },
-                  //Tasker Images
+                                //Tasker Images
                                 cardBuilder: (context, index, percentThresholdX,
                                     percentThresholdY) {
                                   final tasker = taskers[index];
-                                  debugPrint("All Taskers in Card: ${tasker.tasker}");
+                                  debugPrint(
+                                      "All Taskers in Card: ${tasker.tasker}");
                                   return Container(
                                     width: double.infinity,
                                     height: MediaQuery.of(context).size.height,
@@ -930,34 +988,51 @@ class _ClientHomePageState extends State<ClientHomePage>
                                       child: Stack(
                                         children: [
                                           ClipRRect(
-                                            borderRadius: BorderRadius.circular(20),
-                                            child: tasker.tasker?.taskerImages != null
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                            child: tasker
+                                                        .tasker?.taskerImages !=
+                                                    null
                                                 ? Center(
-                                              child: Icon(
-                                                FontAwesomeIcons.screwdriverWrench,
-                                                size: 150,
-                                                color: Colors.grey[400],
-                                              ),
-                                            )
-                                                : PageView.builder(
-                                              itemCount: tasker.tasker?.taskerImages?.length ?? 0,
-                                              itemBuilder: (context, index) {
-                                                List<String> taskerImages = tasker.tasker?.taskerImages ?? [];
-                                                return Image.network(
-                                                  taskerImages[index],
-                                                  fit: BoxFit.cover,
-                                                  width: double.infinity,
-                                                  height: double.infinity,
-                                                  errorBuilder: (context, error, stackTrace) => Center(
                                                     child: Icon(
-                                                      Icons.broken_image,
+                                                      FontAwesomeIcons
+                                                          .screwdriverWrench,
+                                                      size: 150,
                                                       color: Colors.grey[400],
-                                                      size: 100,
                                                     ),
+                                                  )
+                                                : PageView.builder(
+                                                    itemCount: tasker
+                                                            .tasker
+                                                            ?.taskerImages
+                                                            ?.length ??
+                                                        0,
+                                                    itemBuilder:
+                                                        (context, index) {
+                                                      List<String>
+                                                          taskerImages = tasker
+                                                                  .tasker
+                                                                  ?.taskerImages ??
+                                                              [];
+                                                      return Image.network(
+                                                        taskerImages[index],
+                                                        fit: BoxFit.cover,
+                                                        width: double.infinity,
+                                                        height: double.infinity,
+                                                        errorBuilder: (context,
+                                                                error,
+                                                                stackTrace) =>
+                                                            Center(
+                                                          child: Icon(
+                                                            Icons.broken_image,
+                                                            color: Colors
+                                                                .grey[400],
+                                                            size: 100,
+                                                          ),
+                                                        ),
+                                                      );
+                                                    },
                                                   ),
-                                                );
-                                              },
-                                            ),
                                           ),
                                           // Darker overlay on the entire image
                                           Positioned.fill(

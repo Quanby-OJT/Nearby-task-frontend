@@ -1,12 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/model/address.dart';
 import 'package:flutter_fe/model/client_model.dart';
 import 'package:flutter_fe/model/document_model.dart';
-import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/tasker_skills.dart';
 import 'package:flutter_fe/service/client_service.dart';
-import 'package:flutter_fe/service/profile_service.dart';
 import 'package:flutter_fe/service/tasker_service.dart';
 import 'package:flutter_fe/view/custom_loading/custom_loading.dart';
 import 'package:flutter_fe/view/welcome_page/welcome_page_view_main.dart';
@@ -16,7 +13,6 @@ import '../model/user_model.dart';
 import '../service/api_service.dart';
 import '../model/tasker_model.dart';
 import '../model/auth_user.dart';
-import '../view/custom_loading/statusModal.dart';
 
 class ProfileController {
   //General Account Information
@@ -252,7 +248,8 @@ class ProfileController {
     }
   }
 
-  Future<AuthenticatedUser?> getAuthenticatedUser(int userId) async {
+  Future<AuthenticatedUser?> getAuthenticatedUser(
+      BuildContext context, userId) async {
     try {
       debugPrint(
           "ProfileController: Calling fetchAuthenticatedUser with userId: $userId");
@@ -289,6 +286,44 @@ class ProfileController {
           );
         } else {
           debugPrint("ProfileController: No client or tasker data found");
+          return null;
+        }
+      } else {
+        debugPrint("ProfileController: No user data in result");
+        return null;
+      }
+    } catch (e, stackTrace) {
+      debugPrint("ProfileController: Error in getAuthenticatedUser: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return null;
+    }
+  }
+
+  Future<AuthenticatedUser?> getAuthenticatedUserclient(
+      BuildContext context, userId) async {
+    try {
+      debugPrint(
+          "ProfileController: Calling fetchAuthenticatedUser with userId: $userId");
+      var result = await ApiService().fetchAuthenticatedUserClient(userId);
+      debugPrint("ProfileController: API result: $result");
+      debugPrint("ProfileController: Result keys: ${result.keys.join(', ')}");
+
+      if (result.containsKey("data")) {
+        final data = result["data"];
+        debugPrint("User Data: $data");
+        if (data != null && data.containsKey("client")) {
+          // For clients, use the user data as-is (bio and social_media_links are already in user)
+          debugPrint("ProfileController: Processing client user");
+
+          return AuthenticatedUser(
+              user: UserModel.fromJson(data["user"]),
+              isClient: true,
+              isTasker: false,
+              client: data['client'] != null
+                  ? ClientModel.fromJson(data['client'])
+                  : null);
+        } else {
+          debugPrint("ProfileController: No client data found");
           return null;
         }
       } else {

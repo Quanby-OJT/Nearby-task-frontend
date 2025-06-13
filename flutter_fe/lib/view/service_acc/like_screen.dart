@@ -83,7 +83,7 @@ class _LikeScreenState extends State<LikeScreen> {
         savedJobsCount = _filteredJobs.length;
         _isLoading = false;
       });
-    } catch (e, st) {}
+    } catch (e) {}
   }
 
   void _updateSavedJobs() {
@@ -96,7 +96,7 @@ class _LikeScreenState extends State<LikeScreen> {
     try {
       int userId = storage.read("user_id");
       AuthenticatedUser? user =
-          await _userController.getAuthenticatedUser(userId);
+          await _userController.getAuthenticatedUser(context, userId);
       debugPrint(user.toString());
       setState(() {
         _user = user;

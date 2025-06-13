@@ -156,12 +156,16 @@ class _TaskInformationState extends State<TaskInformation> {
       if (response.task == null) {
         throw Exception('No task information available');
       }
+
+      debugPrint("Task information: ${response.task?.clientId}");
+
+      debugPrint("Task ID: ${widget.taskID}");
       setState(() {
         _taskInformation = response.task;
         _isTaskTaken = response.task!.status == 'Already Taken';
         _isLoading = false;
       });
-      await _fetchClientDetails(_taskInformation!.clientId);
+      await _fetchClientDetails(response.task?.clientId);
       await _fetchIfTaskIsAssigned();
       await _fetchIfTaskIsAssignedID();
     } catch (e) {
@@ -258,9 +262,11 @@ class _TaskInformationState extends State<TaskInformation> {
 
   Future<void> _fetchClientDetails(userId) async {
     try {
+      debugPrint("User ID of the client: $userId");
+
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(userId);
-      debugPrint(user.toString());
+          await _profileController.getAuthenticatedUserclient(context, userId);
+      debugPrint('This is client date $user');
       setState(() {
         _client = user;
       });
@@ -325,17 +331,27 @@ class _TaskInformationState extends State<TaskInformation> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        iconTheme: IconThemeData(color: const Color(0xFFB71A4A)),
+        centerTitle: true,
         title: Text(
           'Task Information',
-          style: GoogleFonts.montserrat(
+          style: GoogleFonts.poppins(
             color: const Color(0xFFB71A4A),
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
         ),
+        backgroundColor: Colors.grey[100],
         elevation: 0,
-        backgroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: Color(0xFFB71A4A),
+            size: 20,
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: SafeArea(
         child: LayoutBuilder(
@@ -537,7 +553,7 @@ class _TaskInformationState extends State<TaskInformation> {
                   _buildInfoRow(
                     icon: FontAwesomeIcons.briefcase,
                     label: 'Required Tasker',
-                    value: _taskInformation!.workType ?? 'N/A',
+                    value: _taskInformation?.workType ?? 'N/A',
                   ),
                   _buildInfoRow(
                     icon: FontAwesomeIcons.screwdriverWrench,
@@ -549,12 +565,12 @@ class _TaskInformationState extends State<TaskInformation> {
                   _buildInfoRow(
                     icon: FontAwesomeIcons.pesoSign,
                     label: 'Contract Price',
-                    value: _taskInformation!.contactPrice.toString() ?? 'N/A',
+                    value: _taskInformation?.contactPrice.toString() ?? 'N/A',
                   ),
                   _buildInfoRow(
                     icon: FontAwesomeIcons.fileAlt,
                     label: 'Description',
-                    value: _taskInformation!.description ??
+                    value: _taskInformation?.description ??
                         'No description available',
                   ),
                 ],
@@ -619,9 +635,16 @@ class _TaskInformationState extends State<TaskInformation> {
                     icon: FontAwesomeIcons.user,
                     label: 'Name',
                     value:
-                        '${_client?.user.firstName ?? ''} ${_client?.user.middleName ?? ''} ${_client?.user.lastName ?? ''}',
+                        '${_client?.user.firstName} ${_client?.user.middleName} ${_client?.user.lastName}',
                   ),
                   _buildInfoRow(
+
+                    icon: FontAwesomeIcons.checkCircle,
+                    label: 'Verification',
+                    value: _client?.user.verified == true
+                        ? 'Verified'
+                        : 'Unverified',
+
                     icon: FontAwesomeIcons.solidCircleCheck,
                     label: 'Account Status',
                     value: _client?.user.accStatus ?? 'Verified',
@@ -630,23 +653,9 @@ class _TaskInformationState extends State<TaskInformation> {
                     icon: FontAwesomeIcons.info,
                     label: 'About the Client',
                     value: _client?.client?.bio ?? 'N/A',
+
                   ),
-                  // _buildInfoRow(
-                  //   icon: FontAwesomeIcons.envelope,
-                  //   label: 'Email',
-                  //   value: _client?.user.email ?? 'N/A',
-                  // ),
-                  // _buildInfoRow(
-                  //   icon: FontAwesomeIcons.phone,
-                  //   label: 'Phone',
-                  //   value: _client?.user.contact ?? 'N/A',
-                  // ),
-                  // _buildInfoRow(
-                  //   icon: FontAwesomeIcons.solidStar,
-                  //   label: 'Rating',
-                  //   value:
-                  //       '4.5', // Default rating since UserModel doesn't have rating
-                  // ),
+               
                 ],
               ),
             ),

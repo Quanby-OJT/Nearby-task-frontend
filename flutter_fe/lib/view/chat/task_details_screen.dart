@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/task_request_controller.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
-import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-import '../service_acc/legal_terms_and_conditions.dart';
 
 class TaskDetailsScreen extends StatefulWidget {
   final TaskAssignment taskAssignment;
@@ -23,7 +19,7 @@ class TaskDetailsScreen extends StatefulWidget {
 class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   final TaskController taskController = TaskController();
   final TaskRequestController taskRequestController = TaskRequestController();
-  bool _isLoading = true;
+
   String role = "";
   final storage = GetStorage();
   List<String> skills = [];
@@ -37,63 +33,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
       agreed = false;
     });
   }
-
-  // Future<void> _fetchTaskDetails() async {
-  //   role = await storage.read('role');
-  //   debugPrint(widget.taskTakenId.toString());
-  //   try {
-  //     final response = await _jobPostService
-  //         .fetchAssignedTaskInformation(widget.taskTakenId);
-  //     debugPrint("Response: $response");
-  //     setState(() {
-  //       taskAssignment = response;
-  //       selectedTaskStatus = taskStatus();
-  //       skills = taskAssignment?.tasker?.skills.split(',') ?? [];
-  //       _isLoading = false;
-  //
-  //       // Check if address exists and format it
-  //       if (taskAssignment?.tasker?.address != null) {
-  //         final addressMap = taskAssignment?.tasker?.address!;
-  //
-  //         // Format the address string using map key access
-  //         address = [
-  //           addressMap?["street"] ?? "",
-  //           addressMap?["barangay"] ?? "",
-  //           addressMap?["city"] ?? "",
-  //           addressMap?["province"] ?? "",
-  //           addressMap?["country"] ?? "",
-  //           addressMap?["postal_code"] ?? ""
-  //         ].where((element) => element.isNotEmpty).join(", ");
-  //       } else {
-  //         address = "N/A";
-  //       }
-  //     });
-  //   } catch (e) {
-  //     debugPrint("Error fetching task details: $e");
-  //     setState(() {
-  //       _isLoading = false;
-  //     });
-  //   }
-  // }
-
-  // String taskStatus() {
-  //   switch (taskAssignment?.taskStatus) {
-  //     case "Rejected":
-  //       return "Reject the Tasker";
-  //     case "Cancelled":
-  //       return "Cancel the Task";
-  //     case "Confirmed":
-  //       return "Confirm Tasker";
-  //     case "Ongoing":
-  //       return "Ongoing";
-  //     case "Completed":
-  //       return "Completed";
-  //     case "Pending":
-  //       return "Waiting for Client";
-  //     default:
-  //       return "Unknown";
-  //   }
-  // }
 
   //Main Application
   @override
@@ -281,9 +220,9 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   }
 
   Color badgeColor(String status) {
-    if (status == "Pending" || status == "Disputed")
+    if (status == "Pending" || status == "Disputed") {
       return Color(0XFFD6932A);
-    else if (status == "Rejected" ||
+    } else if (status == "Rejected" ||
         status == "Cancelled" ||
         status == "Expired" ||
         status == "Declined")

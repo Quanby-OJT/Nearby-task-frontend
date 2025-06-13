@@ -116,7 +116,7 @@ class _LikesScreenState extends State<LikesScreen> {
     try {
       int userId = int.parse(storage.read('user_id').toString());
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(userId);
+          await _profileController.getAuthenticatedUser(context, userId);
 
       debugPrint("Fetched User accStatus: ${user?.user.accStatus}");
       debugPrint("Fetched User role: ${user?.user.role}");
@@ -590,11 +590,11 @@ class _LikesScreenState extends State<LikesScreen> {
                               ],
                             ),
                             if (tasker.user?.email != null &&
-                                tasker.user!.email!.isNotEmpty)
+                                tasker.user!.email.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.only(top: 4),
                                 child: Text(
-                                  tasker.user!.email!,
+                                  tasker.user!.email,
                                   style: GoogleFonts.poppins(
                                     fontSize: 10,
                                     color: Colors.grey[600],

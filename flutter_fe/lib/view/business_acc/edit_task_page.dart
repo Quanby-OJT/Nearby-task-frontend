@@ -84,8 +84,8 @@ class _EditTaskPageState extends State<EditTaskPage>
   String? _existingIDImageUrl;
   String? _addressID;
 
-  bool _isUploadDialogShown = false;
-  bool _documentValid = false;
+  final bool _isUploadDialogShown = false;
+  final bool _documentValid = false;
   int _currentStep = 0;
   final bool _isVerifiedDocument = false;
   Map<String, bool> saveImages = {};
@@ -720,7 +720,7 @@ class _EditTaskPageState extends State<EditTaskPage>
                   ),
                 ),
               )
-            : Container(
+            : SizedBox(
                 height: 220, // Fixed height to prevent overflow
                 child: SingleChildScrollView(
                   scrollDirection: Axis.vertical,
@@ -786,7 +786,7 @@ class _EditTaskPageState extends State<EditTaskPage>
                       // Display new images
                       ..._photos.asMap().entries.map((entry) {
                         int index = entry.key;
-                        File photo = entry.value as File;
+                        File photo = entry.value;
                         return Stack(
                           children: [
                             Container(
@@ -829,7 +829,7 @@ class _EditTaskPageState extends State<EditTaskPage>
                             ),
                           ],
                         );
-                      }).toList(),
+                      }),
                       // Add new image button
                       if (totalPhotos < maxPhotos)
                         GestureDetector(
@@ -991,7 +991,7 @@ class _EditTaskPageState extends State<EditTaskPage>
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(
-            color: errorText != null ? Colors.red : Colors.black!,
+            color: errorText != null ? Colors.red : Colors.black,
           ),
           borderRadius: BorderRadius.circular(8),
         ),

@@ -296,7 +296,7 @@ class TaskController {
       BuildContext context, int clientId) async {
     try {
       return await _jobPostService.fetchAssignTasksByClient(clientId);
-    } catch (e, stackTrace) {
+    } catch (e) {
       _showErrorSnackBar(
           context, "Something Went Wrong while Retrieving Your Tasks.");
       return [];

@@ -36,7 +36,6 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
   void initState() {
     super.initState();
 
-    // If task was passed, use it immediately
     if (widget.task != null) {
       _taskInformation = widget.task;
       _isLoading = false;

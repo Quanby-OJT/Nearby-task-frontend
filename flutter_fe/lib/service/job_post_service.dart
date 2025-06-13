@@ -659,21 +659,27 @@ class JobPostService {
   }
 
   Future<Map<String, dynamic>> saveLikedJob(int jobId) async {
-    // debugPrint(jobId.toString());
-    final userId = await getUserId();
-    // debugPrint(userId);
-    if (userId == null) {
-      return {
-        'success': false,
-        'message': 'Please log in to like jobs',
-        'requiresLogin': true
-      };
+    try {
+      // debugPrint(jobId.toString());
+      final userId = await getUserId();
+      // debugPrint(userId);
+      if (userId == null) {
+        return {
+          'success': false,
+          'message': 'Please log in to like jobs',
+          'requiresLogin': true
+        };
+      }
+      return _postRequest(endpoint: "/likeJob", body: {
+        "user_id": int.parse(userId),
+        "task_id": jobId,
+        "created_at": DateTime.now().toString()
+      });
+    } catch (e) {
+      debugPrint(e.toString());
+      debugPrintStack();
+      return {"error": "An Error Occured while getting all jobs."};
     }
-    return _postRequest(endpoint: "/likeJob", body: {
-      "user_id": int.parse(userId),
-      "task_id": jobId,
-      "created_at": DateTime.now().toString()
-    });
   }
 
   Future<Map<String, dynamic>> unlikeJob(int jobId) async {
