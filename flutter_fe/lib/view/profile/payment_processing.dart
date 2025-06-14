@@ -10,6 +10,8 @@ import '../../controller/escrow_management_controller.dart';
 import '../../controller/profile_controller.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:signature/signature.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class PaymentProcessingPage extends StatefulWidget {
   final String? transferMethod;
@@ -32,6 +34,8 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
   final _formKey = GlobalKey<FormState>();
   int taskerId = 0;
   late SignatureController _signatureController;
+  File? _signatureImage;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -240,6 +244,32 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                     )
                   ])));
         });
+  }
+
+  Future<void> _pickSignatureImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        setState(() {
+          _signatureImage = File(image.path);
+          // Clear the signature pad if an image is uploaded
+          _signatureController.clear();
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error picking image: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -495,6 +525,40 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                           ),
                         ),
                         SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            TextButton.icon(
+                              onPressed: _pickSignatureImage,
+                              icon: Icon(Icons.upload_file,
+                                  color: Color(0xFF0272B1)),
+                              label: Text(
+                                'Upload Signature',
+                                style: GoogleFonts.poppins(
+                                  color: Color(0xFF0272B1),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            if (_signatureImage != null)
+                              TextButton.icon(
+                                onPressed: () {
+                                  setState(() {
+                                    _signatureImage = null;
+                                  });
+                                },
+                                icon: Icon(Icons.delete, color: Colors.red),
+                                label: Text(
+                                  'Remove',
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        SizedBox(height: 10),
                         Container(
                           height: 200,
                           decoration: BoxDecoration(
@@ -503,30 +567,43 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(10),
-                            child: Signature(
-                              controller: _signatureController,
-                              backgroundColor: Colors.white,
-                            ),
+                            child: _signatureImage != null
+                                ? Container(
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.white,
+                                    ),
+                                    child: Image.file(
+                                      _signatureImage!,
+                                      fit: BoxFit.contain,
+                                    ),
+                                  )
+                                : Signature(
+                                    controller: _signatureController,
+                                    backgroundColor: Colors.white,
+                                  ),
                           ),
                         ),
                         SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            TextButton(
-                              onPressed: () {
-                                _signatureController.clear();
-                              },
-                              child: Text(
-                                'Clear',
-                                style: GoogleFonts.poppins(
-                                  color: Color(0xFF0272B1),
-                                  fontWeight: FontWeight.w500,
+                        if (_signatureImage == null)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  _signatureController.clear();
+                                },
+                                child: Text(
+                                  'Clear',
+                                  style: GoogleFonts.poppins(
+                                    color: Color(0xFF0272B1),
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          ),
                       ],
                     ),
                   ),
