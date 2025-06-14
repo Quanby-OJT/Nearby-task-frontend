@@ -5,6 +5,9 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'dart:async';
 import 'package:app_links/app_links.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:signature/signature.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class SignUpSoloTaskerAcc extends StatefulWidget {
   final String role;
@@ -19,6 +22,7 @@ class SignUpSoloTaskerAcc extends StatefulWidget {
 class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
   final ProfileController _controller = ProfileController();
   String _status = "Please fill out the form to register";
+  late SignatureController _signatureController;
   bool _isVerified = false;
   StreamSubscription<Uri>? _linkSubscription;
 
@@ -26,6 +30,8 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
   bool _obsecureTextConfirmPassword = true;
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
+  File? _signatureImage;
+  final ImagePicker _picker = ImagePicker();
 
   void _toggleObscureTextPassword() {
     setState(() {
@@ -45,6 +51,11 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
 
     _initDeepLinkListener();
     _controller.roleController.text = widget.role;
+    _signatureController = SignatureController(
+      penStrokeWidth: 3,
+      penColor: Colors.black,
+      exportBackgroundColor: Colors.white,
+    );
   }
 
   Future<void> _initDeepLinkListener() async {
@@ -104,8 +115,35 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
     }
   }
 
+  Future<void> _pickSignatureImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        setState(() {
+          _signatureImage = File(image.path);
+          // Clear the signature pad if an image is uploaded
+          _signatureController.clear();
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error picking image: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   void dispose() {
+    _signatureController.dispose();
     _linkSubscription?.cancel();
     super.dispose();
   }
@@ -331,6 +369,107 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
                             onPressed: _toggleObscureTextConfirmPassword,
                           ),
                         ),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Color(0xFFB71A4A)),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Signature',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFFB71A4A),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              TextButton.icon(
+                                onPressed: _pickSignatureImage,
+                                icon: Icon(Icons.upload_file,
+                                    color: Color(0xFFB71A4A)),
+                                label: Text(
+                                  'Upload Signature',
+                                  style: GoogleFonts.poppins(
+                                    color: Color(0xFFB71A4A),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              if (_signatureImage != null)
+                                TextButton.icon(
+                                  onPressed: () {
+                                    setState(() {
+                                      _signatureImage = null;
+                                    });
+                                  },
+                                  icon: Icon(Icons.delete, color: Colors.red),
+                                  label: Text(
+                                    'Remove',
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          SizedBox(height: 10),
+                          Container(
+                            height: 200,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: _signatureImage != null
+                                  ? Container(
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                      decoration: const BoxDecoration(
+                                        color: Colors.white,
+                                      ),
+                                      child: Image.file(
+                                        _signatureImage!,
+                                        fit: BoxFit.contain,
+                                      ),
+                                    )
+                                  : Signature(
+                                      controller: _signatureController,
+                                      backgroundColor: Colors.white,
+                                    ),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          if (_signatureImage == null)
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                TextButton(
+                                  onPressed: () {
+                                    _signatureController.clear();
+                                  },
+                                  child: Text(
+                                    'Clear',
+                                    style: GoogleFonts.poppins(
+                                      color: Color(0xFFB71A4A),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
                       ),
                     ),
                     SizedBox(height: 20),

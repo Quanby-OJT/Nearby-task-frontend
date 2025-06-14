@@ -421,16 +421,14 @@ class _TaskInformationState extends State<TaskInformation> {
   //For PCIC Only
   void downloadFile(BuildContext parentContext) {
     showDialog(
-      context: parentContext,
-      builder: (BuildContext childContext) {
-        return PopScope(
-          child: AlertDialog(
+        context: parentContext,
+        builder: (BuildContext childContext) {
+          return PopScope(
+              child: AlertDialog(
             content: DownloadFileIndicator(),
             contentPadding: const EdgeInsets.all(24),
-          )
-        );
-      }
-    );
+          ));
+        });
   }
 
   Widget _buildStatusSection() {
@@ -638,13 +636,13 @@ class _TaskInformationState extends State<TaskInformation> {
                         '${_client?.user.firstName} ${_client?.user.middleName} ${_client?.user.lastName}',
                   ),
                   _buildInfoRow(
-
                     icon: FontAwesomeIcons.checkCircle,
                     label: 'Verification',
                     value: _client?.user.verified == true
                         ? 'Verified'
                         : 'Unverified',
-
+                  ),
+                  _buildInfoRow(
                     icon: FontAwesomeIcons.solidCircleCheck,
                     label: 'Account Status',
                     value: _client?.user.accStatus ?? 'Verified',
@@ -653,9 +651,7 @@ class _TaskInformationState extends State<TaskInformation> {
                     icon: FontAwesomeIcons.info,
                     label: 'About the Client',
                     value: _client?.client?.bio ?? 'N/A',
-
                   ),
-               
                 ],
               ),
             ),
@@ -756,7 +752,7 @@ class _TaskInformationState extends State<TaskInformation> {
                           _requestStatus = 'Pending';
                         });
                         await _fetchTaskDetails();
-                        if(mounted) Navigator.pop(context);
+                        if (mounted) Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
