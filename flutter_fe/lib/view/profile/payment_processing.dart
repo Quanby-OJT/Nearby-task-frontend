@@ -256,7 +256,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                     style: GoogleFonts.poppins(
                         fontSize: 16, fontWeight: FontWeight.bold)),
                 content: Text(
-                    'Are you sure you want to go back? Your signature will be lost.',
+                    'Are you sure you want to go back? Your inputs will be lost.',
                     style: GoogleFonts.poppins(fontSize: 14)),
                 actions: [
                   TextButton(
