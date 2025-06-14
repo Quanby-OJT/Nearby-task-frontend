@@ -64,7 +64,7 @@ class _ClientRequestState extends State<ClientRequest> {
     try {
       int userId = storage.read("user_id");
       AuthenticatedUser? user =
-          await _userController.getAuthenticatedUser(userId);
+          await _userController.getAuthenticatedUser(context, userId);
       debugPrint(user.toString());
       setState(() {
         _user = user;
@@ -282,14 +282,16 @@ class _ClientRequestState extends State<ClientRequest> {
 
                                       final String value = 'Reject';
                                       debugPrint("Reject request role: $_role");
-                                      final result = await taskController.updateRequest(
+                                      final result =
+                                          await taskController.updateRequest(
                                         _requestInformation!.task_taken_id!,
                                         value,
                                         _role!,
                                       );
                                       debugPrint(
                                           "Reject request result: $result");
-                                      if (result.containsKey('success') && result['success']) {
+                                      if (result.containsKey('success') &&
+                                          result['success']) {
                                         Navigator.pop(context);
                                       } else {
                                         setState(() {
@@ -330,23 +332,30 @@ class _ClientRequestState extends State<ClientRequest> {
                                       });
                                       debugPrint("Reject request role: $_role");
                                       final String value = 'Accept';
-                                      final result = await taskController.updateRequest(
+                                      final result =
+                                          await taskController.updateRequest(
                                         _requestInformation!.task_taken_id!,
                                         value,
                                         _role!,
                                       );
-                                      if (result.containsKey('success') && result['success']) {
+                                      if (result.containsKey('success') &&
+                                          result['success']) {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) =>
                                                 IndividualChatScreen(
-                                                  taskAssignment: TaskAssignment(
-                                                    taskTakenId: _requestInformation?.task_taken_id ?? 0,
-                                                    taskStatus: _requestInformation?.task_status ?? '',
-                                                    task: _taskInformation,
-                                                    tasker: _taskInformation?.tasker,
-                                                  ),
+                                              taskAssignment: TaskAssignment(
+                                                taskTakenId: _requestInformation
+                                                        ?.task_taken_id ??
+                                                    0,
+                                                taskStatus: _requestInformation
+                                                        ?.task_status ??
+                                                    '',
+                                                task: _taskInformation,
+                                                tasker:
+                                                    _taskInformation?.tasker,
+                                              ),
                                             ),
                                           ),
                                         ).then((value) {

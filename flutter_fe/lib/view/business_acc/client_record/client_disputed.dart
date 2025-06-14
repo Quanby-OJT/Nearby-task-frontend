@@ -45,7 +45,7 @@ class _ClientDisputedState extends State<ClientDisputed> {
     try {
       int userId = storage.read("user_id");
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(userId);
+          await _profileController.getAuthenticatedUser(context, userId);
       debugPrint(user.toString());
       setState(() {
         _role = user?.user.role;
@@ -59,7 +59,7 @@ class _ClientDisputedState extends State<ClientDisputed> {
   Future<void> _fetchTaskerDetails(int userId) async {
     try {
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(userId);
+          await _profileController.getAuthenticatedUser(context, userId);
       debugPrint(user.toString());
       setState(() {
         tasker = user;
@@ -96,7 +96,8 @@ class _ClientDisputedState extends State<ClientDisputed> {
 
   Future<void> _fetchTaskDetails() async {
     try {
-      final response = await taskRequestController.getDispute(widget.finishID ?? 0);
+      final response =
+          await taskRequestController.getDispute(widget.finishID ?? 0);
       setState(() {
         disputes = response;
         _isLoading = false;
@@ -195,7 +196,7 @@ class _ClientDisputedState extends State<ClientDisputed> {
             'Please Wait for Our Team to review your dispute and file Appropriate Action.',
             textAlign: TextAlign.center,
             style:
-            GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
+                GoogleFonts.montserrat(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
       ),
@@ -244,7 +245,7 @@ class _ClientDisputedState extends State<ClientDisputed> {
             _buildTaskInfoRow(
               icon: FontAwesomeIcons.gavel,
               label: "Reason for Dispute",
-              value:  '',
+              value: '',
             ),
             SizedBox(height: 8),
             Text(
@@ -260,8 +261,7 @@ class _ClientDisputedState extends State<ClientDisputed> {
             _buildTaskInfoRow(
                 icon: FontAwesomeIcons.noteSticky,
                 label: "Dispute Details",
-                value: ""
-            ),
+                value: ""),
             SizedBox(height: 8),
             Text(
               disputes?.disputeDetails ?? 'Not available',

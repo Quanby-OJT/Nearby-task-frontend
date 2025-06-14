@@ -14,6 +14,8 @@ import 'package:flutter_fe/view/business_acc/task_creation/preview_task.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/select_related_spec.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/select_spec.dart';
 import 'package:flutter_fe/view/business_acc/transaction_history.dart';
+import 'package:flutter_fe/view/custom_loading/custom_loading.dart';
+import 'package:flutter_fe/view/custom_loading/file_indicators.dart';
 import 'package:flutter_fe/view/verification/verification_page.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -32,8 +34,6 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
   final JobPostService jobPostService = JobPostService();
   final ClientServices _clientServices = ClientServices();
   final ProfileController _profileController = ProfileController();
-  final EscrowManagementController _escrowManagementController =
-      EscrowManagementController();
   final GetStorage storage = GetStorage();
   final PageController _pageController = PageController();
   final ImagePicker _picker = ImagePicker();
@@ -69,8 +69,9 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
 
   bool _isLoading = true;
   bool _showButton = false;
-  bool _isUploadDialogShown = false;
+  final bool _isUploadDialogShown = false;
   bool _documentValid = false;
+  bool isUploading = false;
   int _currentStep = 0;
   final bool _isVerifiedDocument = false;
   static const int _maxCharactersTitle = 50;
@@ -121,7 +122,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
     try {
       int userId = int.parse(storage.read('user_id').toString());
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(userId);
+          await _profileController.getAuthenticatedUser(context, userId);
       final response = await _clientServices.fetchUserIDImage(userId);
       debugPrint('add task verification: $response');
 
@@ -321,6 +322,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
     }
 
     try {
+      showUploadDialog(context);
       final result = await controller.postJob(
         selectedSpecialization ?? "",
         selectedUrgency ?? "",
@@ -333,13 +335,16 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
         addressId: _addressID,
       );
 
+      if(mounted) Navigator.pop(context);
+
       if (result['success']) {
         if (mounted) {
           Navigator.pop(context);
         }
 
         setState(() {
-          _message = result['message'] ?? "Successfully Posted Task.";
+          //_message = result['message'] ?? "Successfully Posted Task.";
+          _message = "Your Task has been successfully uploaded to the Cloud Server. Taskers can now download your task upon application.";
         });
 
         controller.clearControllers();
@@ -374,7 +379,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
             duration: Duration(seconds: 3),
           ),
         );
-        Navigator.pop(context);
+        if (mounted) Navigator.pop(context);
       } else {
         setState(() {
           _message = result['error'] ?? 'Failed to post task';
@@ -453,9 +458,28 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
     } finally {
       setState(() {
         _isLoading = false;
+        isUploading = false;
       });
     }
   }
+
+  //For PCIC Presentation Only
+  void showUploadDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext childContext) {
+        return PopScope(
+          canPop: false,
+          child: AlertDialog(
+            content: UploadFileIndicator(),
+            contentPadding: const EdgeInsets.all(24),
+          ),
+        );
+      },
+    );
+  }
+
 
   Widget _buildTextField({
     required TextEditingController controller,
@@ -734,7 +758,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(
-            color: errorText != null ? Colors.red : Colors.black!,
+            color: errorText != null ? Colors.red : Colors.black,
           ),
           borderRadius: BorderRadius.circular(8),
         ),
@@ -1083,7 +1107,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
       ),
       body: SafeArea(
         child: _isLoading
-            ? Center(child: CircularProgressIndicator())
+            ? Center(child: CustomLoading())
             : Column(
                 children: [
                   _buildProgressBar(),

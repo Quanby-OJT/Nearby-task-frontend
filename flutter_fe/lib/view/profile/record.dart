@@ -31,7 +31,7 @@ class _RecordPageState extends State<RecordPage> {
     try {
       int userId = storage.read("user_id");
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(userId);
+          await _profileController.getAuthenticatedUser(context, userId);
       debugPrint(user.toString());
       setState(() {
         isLoading = false;

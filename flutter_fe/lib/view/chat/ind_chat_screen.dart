@@ -6,6 +6,7 @@ import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/controller/conversation_controller.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/view/address/user_shared_location.dart';
 import 'package:flutter_fe/view/chat/task_details_screen.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -13,9 +14,11 @@ import 'package:intl/intl.dart';
 
 class IndividualChatScreen extends StatefulWidget {
   final TaskAssignment taskAssignment;
+  final UserModel? user;
   const IndividualChatScreen({
     super.key,
-    required this.taskAssignment
+    required this.taskAssignment,
+    this.user,
   });
 
   @override
@@ -27,6 +30,8 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final storage = GetStorage();
+  final GlobalKey<PopupMenuButtonState> _moreVertKey =
+      GlobalKey<PopupMenuButtonState>();
   final ConversationController conversationController =
       ConversationController();
   final JobPostService jobPostService = JobPostService();
@@ -49,8 +54,8 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
   }
 
   Future<void> loadInitialData() async {
-    final task =
-        await jobPostService.fetchTaskInformation(widget.taskAssignment.taskTakenId);
+    final task = await jobPostService
+        .fetchTaskInformation(widget.taskAssignment.taskTakenId);
     setState(() {
       this.task = task.task;
     });
@@ -82,6 +87,127 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
     _scrollController.dispose();
     _textController.dispose();
     super.dispose();
+  }
+
+  void _showAnimatedMenu(BuildContext context) {
+    final RenderBox renderBox =
+        _moreVertKey.currentContext!.findRenderObject() as RenderBox;
+    final position = renderBox.localToGlobal(Offset.zero);
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    final double menuWidth = screenWidth / 1.5;
+    final double leftPosition =
+        position.dx + renderBox.size.width - menuWidth - 10;
+    final double topPosition = position.dy + renderBox.size.height;
+
+    final double adjustedLeft = leftPosition < 0
+        ? 0
+        : leftPosition + menuWidth > screenWidth
+            ? screenWidth - menuWidth
+            : leftPosition;
+
+    OverlayState overlayState = Overlay.of(context);
+    late OverlayEntry overlayEntry;
+
+    overlayEntry = OverlayEntry(
+      builder: (context) => Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () {
+                overlayEntry.remove();
+              },
+              child: Container(
+                color: Colors.transparent,
+              ),
+            ),
+          ),
+          Positioned(
+            left: adjustedLeft,
+            top: topPosition,
+            width: menuWidth,
+            child: Material(
+              elevation: 4,
+              borderRadius: BorderRadius.circular(8),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    buildListTile(
+                      Icons.location_on,
+                      "View Location",
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => UserSharedLocation(
+                                    taskTakenId:
+                                        widget.taskAssignment.taskTakenId,
+                                    user: widget.user ??
+                                        UserModel(
+                                          firstName: '',
+                                          middleName: '',
+                                          lastName: '',
+                                          email: '',
+                                          role: '',
+                                          accStatus: '',
+                                        ),
+                                  )),
+                        );
+                        overlayEntry.remove();
+                      },
+                    ),
+                    buildListTile(
+                      Icons.info_outline,
+                      "Task Details",
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => TaskDetailsScreen(
+                                    taskAssignment: widget.taskAssignment,
+                                  )),
+                        );
+                        overlayEntry.remove();
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    overlayState.insert(overlayEntry);
+  }
+
+  Widget buildListTile(
+    IconData icon,
+    String title,
+    VoidCallback onTap,
+  ) {
+    return ListTile(
+        leading: Icon(
+          icon,
+          color: const Color(0xFFB71A4A),
+        ),
+        title: Text(
+          title,
+          style: GoogleFonts.poppins(
+            color: Colors.black,
+            fontSize: 14,
+            fontWeight: FontWeight.w300,
+          ),
+        ),
+        onTap: onTap);
   }
 
   @override
@@ -118,19 +244,13 @@ class _IndividualChatScreenState extends State<IndividualChatScreen> {
         ),
         actions: [
           IconButton(
+            key: _moreVertKey,
             icon: Icon(
-              Icons.info_outline,
+              Icons.more_vert,
               color: Color(0xFFB71A4A),
             ),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => TaskDetailsScreen(
-                    taskAssignment: widget.taskAssignment,
-                  ),
-                ),
-              );
+              _showAnimatedMenu(context);
             },
           ),
         ],

@@ -14,6 +14,7 @@ import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/address/set-up_address.dart';
 import 'package:flutter_fe/view/business_acc/notif_screen.dart';
+import 'package:flutter_fe/view/configuration/configuration_list.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
 import 'package:flutter_fe/view/service_acc/notif_screen.dart';
 import 'package:flutter_fe/view/service_acc/tasker_feedback.dart';
@@ -55,7 +56,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
   String _image = "";
   String? _existingProfileImageUrl;
   String? _existingIDImageUrl;
-  bool _documentValid = false;
+  final bool _documentValid = false;
   int? cardNumber;
   bool _isUploadDialogShown = false;
   bool _isLoading = true;
@@ -81,12 +82,12 @@ class _TaskerHomePageState extends State<TaskerHomePage>
 
   VerificationModel? _existingVerification;
   String? _verificationStatus;
-  bool _isIdVerified = false;
-  bool _isSelfieVerified = false;
-  bool _isDocumentsUploaded = false;
-  bool _isGeneralInfoCompleted = false;
+  final bool _isIdVerified = false;
+  final bool _isSelfieVerified = false;
+  final bool _isDocumentsUploaded = false;
+  final bool _isGeneralInfoCompleted = false;
   String? _idType;
-  Map<String, dynamic> _userInfo = {};
+  final Map<String, dynamic> _userInfo = {};
 
   @override
   void initState() {
@@ -186,7 +187,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
       }
 
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(userId);
+          await _profileController.getAuthenticatedUser(context, userId);
       debugPrint("Current User: $user");
 
       if (user == null) {
@@ -444,42 +445,71 @@ class _TaskerHomePageState extends State<TaskerHomePage>
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text("Account Verification"),
-        content: const Text(
-            "Please upload your Profile and ID images to complete your account."),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(5),
+        ),
+        title: Text("Account Verification",
+            style:
+                GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold)),
+        content: Text(
+            "Upload your Profile and ID images to complete your account.",
+            style:
+                GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w300)),
         actions: [
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const VerificationPage()),
-              ).then((value) async {
-                await _loadAllFunction();
-              });
-              ;
-              if (result == true) {
-                setState(() {
-                  _isLoading = true;
-                });
-                await _loadAllFunction();
-              } else {
-                setState(() {
-                  _isUploadDialogShown = false;
-                });
-              }
-            },
-            child: const Text("Verify Account"),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() {
-                _isUploadDialogShown = false;
-              });
-            },
-            child: Text('Cancel'),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton(
+                child: Text('Cancel',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFFB71A4A),
+                    )),
+                onPressed: () {
+                  Navigator.pop(context);
+                  setState(() {
+                    _isUploadDialogShown = false;
+                  });
+                },
+              ),
+              const SizedBox(width: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  color: const Color(0xFFB71A4A),
+                ),
+                child: TextButton(
+                  child: Text('Verify Now',
+                      style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white)),
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const VerificationPage()),
+                    ).then((value) async {
+                      await _loadAllFunction();
+                    });
+                    if (result == true) {
+                      setState(() {
+                        _isLoading = true;
+                      });
+                      await _loadAllFunction();
+                    } else {
+                      setState(() {
+                        _isUploadDialogShown = false;
+                      });
+                    }
+                  },
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -596,6 +626,16 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                       overlayEntry.remove();
                     }),
                     buildListTile(FontAwesomeIcons.book, "Our Handbook", () {
+                      overlayEntry.remove();
+                    }),
+                    buildListTile(FontAwesomeIcons.gear, "Configuration", () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => ConfigurationList()),
+                      ).then((value) => setState(() {
+                            _fetchTasks();
+                          }));
                       overlayEntry.remove();
                     }),
                     buildListTile(FontAwesomeIcons.gears, "Settings", () {

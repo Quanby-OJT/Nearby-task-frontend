@@ -100,7 +100,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       int userId = storage.read("user_id");
       AuthenticatedUser? user =
-          await _userController.getAuthenticatedUser(userId);
+          await _userController.getAuthenticatedUser(context, userId);
       String role = storage.read('role');
 
       debugPrint("Current User: ${user?.client?.bio}");
@@ -654,8 +654,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     items: payPeriods,
                                     hintText: "Per",
                                     validator: (String? value) {
-                                      if (value == null)
+                                      if (value == null) {
                                         return 'Please select a pay period';
+                                      }
 
                                       return null;
                                     })),
@@ -1182,8 +1183,9 @@ class _RelevantSkillsBottomSheetState extends State<RelevantSkillsBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading)
+    if (isLoading) {
       return FractionallySizedBox(heightFactor: 0.5, child: CustomLoading());
+    }
 
     return FractionallySizedBox(
       heightFactor: 0.5, // Occupy half of the screen height

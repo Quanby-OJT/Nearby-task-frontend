@@ -8,6 +8,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_fe/view/business_acc/edit_task_page.dart';
+import 'package:flutter_fe/view/business_acc/widgets/milestone_management_widget.dart';
 
 class BusinessTaskDetail extends StatefulWidget {
   final TaskModel? task;
@@ -35,7 +36,6 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
   void initState() {
     super.initState();
 
-    // If task was passed, use it immediately
     if (widget.task != null) {
       _taskInformation = widget.task;
       _isLoading = false;
@@ -297,6 +297,16 @@ class _BusinessTaskDetailState extends State<BusinessTaskDetail> {
                               "Status", taskToDisplay.status ?? "Active"),
                           _buildInfoRow(
                               "Remarks", taskToDisplay.remarks ?? "N/A"),
+                          const SizedBox(height: 20),
+
+                          // Milestone Management Section
+                          MilestoneManagementWidget(
+                            task: taskToDisplay,
+                            onMilestonesChanged: () {
+                              // Optionally refresh task data or update UI
+                              setState(() {});
+                            },
+                          ),
                           const SizedBox(height: 20),
                           Container(
                               width: double.infinity,

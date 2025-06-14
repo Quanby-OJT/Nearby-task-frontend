@@ -221,7 +221,7 @@ class _PreviewTaskState extends State<PreviewTask> {
                             ),
                           ),
                         );
-                      }).toList(),
+                      }),
                     ],
                   ),
                 ],

@@ -1,9 +1,11 @@
 import 'package:flutter_fe/model/client_model.dart';
+import 'package:flutter_fe/model/images_model.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/service/auth_service.dart';
+import 'package:flutter_fe/service/tasker_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:get_storage/get_storage.dart';
 import 'package:dio/dio.dart';
@@ -96,8 +98,7 @@ class ClientServices {
           return [];
         }
 
-        final allTaskers =
-            allTaskersResponse["taskers"] as List<dynamic>? ?? [];
+        final allTaskers = allTaskersResponse["taskers"] as List<dynamic>? ?? [];
         debugPrint("All Taskers Count: ${allTaskers.length}");
 
         if (allTaskers.isEmpty) {
@@ -110,30 +111,42 @@ class ClientServices {
                 .map<int>((task) => task["tasker_id"] as int)
                 .toSet();
         debugPrint("Liked Tasker IDs: $likedTaskerIds");
+        for (var tasker in allTaskers) {
+          final taskerImages = await TaskerService().getTaskerImages(tasker['tasker_id']);
 
-        final taskerList = allTaskers
+          if (taskerImages.containsKey('images')) {
+            final List<ImagesModel> images = (taskerImages['images'] as List<dynamic>)
+                .map<ImagesModel>((image) => ImagesModel.fromJson(image))
+                .toList();
+
+            // Inject the list of image URLs into the JSON
+            tasker['images_url'] = images.map((img) => img.image_url).toList();
+            debugPrint("Tasker Images after adding to tasker: ${tasker['images_url']}");
+          } else {
+            tasker['images_url'] = [];
+          }
+        }
+
+        final taskerFutures = allTaskers
             .where((tasker) {
-              final taskerId = tasker["user_id"] ?? tasker["tasker_id"];
-              final isNotLiked =
-                  taskerId is int && !likedTaskerIds.contains(taskerId);
-              if (!isNotLiked) {
-                debugPrint("Filtering out already liked tasker: $taskerId");
-              }
-              return isNotLiked;
-            })
-            .map((tasker) {
-              try {
-                debugPrint("Tasker Data: $tasker");
-                return TaskerModel.fromJson(tasker);
-              } catch (e) {
-                debugPrint("Error parsing tasker: $e");
-                debugPrint("Problematic tasker data: $tasker");
-                return null;
-              }
-            })
-            .where((tasker) => tasker != null)
-            .cast<TaskerModel>()
-            .toList();
+          final taskerId = tasker["user_id"] ?? tasker["tasker_id"];
+          final isNotLiked = taskerId is int && !likedTaskerIds.contains(taskerId);
+          return isNotLiked;
+        })
+            .map<Future<TaskerModel?>>((tasker) async {
+          try {
+            return TaskerModel.fromJson(tasker);
+          } catch (e) {
+            debugPrint("Error parsing tasker: $e");
+            return null;
+          }
+        }).toList();
+
+        final resolvedTaskers = await Future.wait(taskerFutures);
+
+// Filter out nulls
+        final taskerList = resolvedTaskers.whereType<TaskerModel>().toList();
+
 
         debugPrint("Filtered Taskers Count: ${taskerList.length}");
         return taskerList;

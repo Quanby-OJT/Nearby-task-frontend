@@ -39,12 +39,12 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
   String? _userRole;
 
   // Specialization data
-  List<SpecializationModel> _specializations = [];
+  final List<SpecializationModel> _specializations = [];
   SpecializationModel? _selectedSpecialization;
-  bool _isLoadingSpecializations = false;
+  final bool _isLoadingSpecializations = false;
 
   // Pay period data
-  String _selectedPayPeriod = 'Hourly';
+  final String _selectedPayPeriod = 'Hourly';
   final List<String> _payPeriods = [
     'Hourly',
     'Daily',
@@ -82,7 +82,7 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
       if (userId != null) {
         // Fetch authenticated user data from API
         final AuthenticatedUser? authUser = await _profileController
-            .getAuthenticatedUser(int.parse(userId.toString()));
+            .getAuthenticatedUser(context, int.parse(userId.toString()));
 
         if (authUser != null && mounted) {
           // Populate form fields with user data
