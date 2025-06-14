@@ -5,6 +5,7 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'dart:async';
 import 'package:app_links/app_links.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:signature/signature.dart';
 
 class SignUpSoloTaskerAcc extends StatefulWidget {
   final String role;
@@ -19,6 +20,7 @@ class SignUpSoloTaskerAcc extends StatefulWidget {
 class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
   final ProfileController _controller = ProfileController();
   String _status = "Please fill out the form to register";
+  late SignatureController _signatureController;
   bool _isVerified = false;
   StreamSubscription<Uri>? _linkSubscription;
 
@@ -45,6 +47,11 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
 
     _initDeepLinkListener();
     _controller.roleController.text = widget.role;
+    _signatureController = SignatureController(
+      penStrokeWidth: 3,
+      penColor: Colors.black,
+      exportBackgroundColor: Colors.white,
+    );
   }
 
   Future<void> _initDeepLinkListener() async {
@@ -106,6 +113,7 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
 
   @override
   void dispose() {
+    _signatureController.dispose();
     _linkSubscription?.cancel();
     super.dispose();
   }
@@ -331,6 +339,60 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
                             onPressed: _toggleObscureTextConfirmPassword,
                           ),
                         ),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Color(0xFFB71A4A)),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Signature',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFFB71A4A),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Container(
+                            height: 200,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Signature(
+                                controller: _signatureController,
+                                backgroundColor: Colors.white,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  _signatureController.clear();
+                                },
+                                child: Text(
+                                  'Clear',
+                                  style: GoogleFonts.poppins(
+                                    color: Color(0xFFB71A4A),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                     SizedBox(height: 20),
