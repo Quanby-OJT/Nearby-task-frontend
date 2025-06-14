@@ -4,6 +4,11 @@ import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:camera/camera.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
+import 'dart:convert';
+import 'package:get_storage/get_storage.dart';
+import 'package:flutter_fe/service/api_service.dart';
+import 'package:flutter_fe/model/verification_model.dart';
+import 'existing_selfie_review_page.dart';
 
 class FaceDetectionPage extends StatefulWidget {
   final Function(File? capturedImage, bool success) onDetectionComplete;
@@ -23,6 +28,7 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
       performanceMode: FaceDetectorMode.fast,
     ),
   );
+  final GetStorage storage = GetStorage();
 
   late CameraController cameraController;
   bool isCameraInitialized = false;
@@ -36,6 +42,8 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
   bool faceDetected = false;
   String statusMessage = '';
   bool isCapturingPhoto = false;
+  bool isCheckingExistingImage = true;
+  String? existingSelfieUrl;
 
   double? smilingProbability;
   double? leftEyeOpenProbability;
@@ -45,9 +53,90 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
   @override
   void initState() {
     super.initState();
+    _checkForExistingSelfie();
+  }
+
+  // Check for existing selfie image first
+  Future<void> _checkForExistingSelfie() async {
+    try {
+      final userId = storage.read('user_id');
+      if (userId != null) {
+        final result = await ApiService.getTaskerVerificationStatus(
+            int.parse(userId.toString()));
+
+        debugPrint('FaceDetection: Checking for existing selfie...');
+        debugPrint('FaceDetection: API response: ${jsonEncode(result)}');
+
+        if (result['success'] == true) {
+          String? selfieImageUrl;
+
+          // Check if verification data exists
+          if (result['exists'] == true && result['verification'] != null) {
+            final verificationData =
+                VerificationModel.fromJson(result['verification']);
+            selfieImageUrl = verificationData.selfieImageUrl;
+            debugPrint(
+                'FaceDetection: Selfie URL from verification: $selfieImageUrl');
+          }
+
+          // Check for images in additional data fields
+          if ((selfieImageUrl == null || selfieImageUrl.isEmpty)) {
+            if (result['faceImage'] != null &&
+                result['faceImage']['face_image'] != null) {
+              selfieImageUrl = result['faceImage']['face_image'];
+              debugPrint(
+                  'FaceDetection: ✅ Selfie URL from faceImage field: $selfieImageUrl');
+            }
+          }
+
+          if (selfieImageUrl != null && selfieImageUrl.isNotEmpty) {
+            // Show existing selfie in review screen
+            setState(() {
+              existingSelfieUrl = selfieImageUrl;
+              isCheckingExistingImage = false;
+            });
+            _showExistingSelfieReview(selfieImageUrl);
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('FaceDetection: Error checking existing selfie: $e');
+    }
+
+    // No existing selfie found, proceed with camera initialization
+    setState(() {
+      isCheckingExistingImage = false;
+    });
+    _initializeCameraAndStart();
+  }
+
+  // Initialize camera and start face detection
+  void _initializeCameraAndStart() {
     initializeCamera();
     challengeActions.shuffle();
     statusMessage = 'Position your face in the oval';
+  }
+
+  // Show existing selfie in review screen
+  void _showExistingSelfieReview(String imageUrl) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ExistingSelfieReviewPage(
+          selfieImageUrl: imageUrl,
+          onReviewComplete: (approved) {
+            if (approved) {
+              // User approved the existing selfie
+              widget.onDetectionComplete(null, true);
+            } else {
+              // User wants to take a new selfie
+              _initializeCameraAndStart();
+            }
+          },
+        ),
+      ),
+    );
   }
 
   // Initialize the camera controller
@@ -244,13 +333,7 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
       // Wait a moment to show success message
       await Future.delayed(const Duration(milliseconds: 1000));
 
-      // Return the captured photo - let the parent verification page handle navigation
-      widget.onDetectionComplete(File(photo.path), true);
-
-      // Remove this Navigator.pop call - it exits the verification flow
-      // if (mounted) {
-      //   Navigator.pop(context, File(photo.path));
-      // }
+      // Navigate to selfie review page
     } catch (e) {
       debugPrint('Error capturing photo: $e');
       setState(() {
@@ -309,238 +392,260 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
           },
         ),
       ),
-      body: isCameraInitialized
-          ? Stack(
-              children: [
-                // Camera preview
-                Positioned.fill(
-                  child: CameraPreview(cameraController),
-                ),
-
-                // Face detection overlay
-                CustomPaint(
-                  painter: HeadMaskPainter(faceDetected: faceDetected),
-                  child: Container(),
-                ),
-
-                // Progress and instruction overlay
-                Positioned(
-                  top: 16,
-                  left: 16,
-                  right: 16,
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.8),
-                      borderRadius: BorderRadius.circular(12),
+      body: isCheckingExistingImage
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    color: const Color(0xFFB71A4A),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Checking for existing selfie...',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
                     ),
-                    child: Column(
-                      children: [
-                        // Progress bar
-                        Row(
-                          children: [
-                            Text(
-                              'Progress: ',
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Expanded(
-                              child: LinearProgressIndicator(
-                                value: isCapturingPhoto
-                                    ? 1.0
-                                    : completedActions / totalRequiredActions,
-                                backgroundColor: Colors.grey[400],
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  isCapturingPhoto
-                                      ? Colors.green
-                                      : const Color(0xFFB71A4A),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              isCapturingPhoto
-                                  ? 'Complete!'
-                                  : '$completedActions/$totalRequiredActions',
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
+                  ),
+                ],
+              ),
+            )
+          : isCameraInitialized
+              ? Stack(
+                  children: [
+                    // Camera preview
+                    Positioned.fill(
+                      child: CameraPreview(cameraController),
+                    ),
 
-                        // Face detection status
-                        if (!isCapturingPhoto)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  faceDetected ? Colors.green : Colors.orange,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
+                    // Face detection overlay
+                    CustomPaint(
+                      painter: HeadMaskPainter(faceDetected: faceDetected),
+                      child: Container(),
+                    ),
+
+                    // Progress and instruction overlay
+                    Positioned(
+                      top: 16,
+                      left: 16,
+                      right: 16,
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            // Progress bar
+                            Row(
                               children: [
-                                Icon(
-                                  faceDetected
-                                      ? Icons.face
-                                      : Icons.face_unlock_outlined,
-                                  color: Colors.white,
-                                  size: 16,
-                                ),
-                                const SizedBox(width: 6),
                                 Text(
-                                  faceDetected
-                                      ? 'Face Detected'
-                                      : 'No Face Detected',
+                                  'Progress: ',
                                   style: GoogleFonts.poppins(
                                     color: Colors.white,
-                                    fontSize: 12,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: LinearProgressIndicator(
+                                    value: isCapturingPhoto
+                                        ? 1.0
+                                        : completedActions /
+                                            totalRequiredActions,
+                                    backgroundColor: Colors.grey[400],
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      isCapturingPhoto
+                                          ? Colors.green
+                                          : const Color(0xFFB71A4A),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  isCapturingPhoto
+                                      ? 'Complete!'
+                                      : '$completedActions/$totalRequiredActions',
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.white,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
                               ],
                             ),
-                          ),
+                            const SizedBox(height: 16),
 
-                        if (!isCapturingPhoto) const SizedBox(height: 16),
-
-                        // Current instruction
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isCapturingPhoto
-                                ? Colors.green
-                                : const Color(0xFFB71A4A),
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (isCapturingPhoto) ...[
-                                const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
+                            // Face detection status
+                            if (!isCapturingPhoto)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
                                 ),
-                                const SizedBox(width: 8),
-                              ],
-                              Flexible(
-                                child: Text(
-                                  statusMessage,
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
+                                decoration: BoxDecoration(
+                                  color: faceDetected
+                                      ? Colors.green
+                                      : Colors.orange,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      faceDetected
+                                          ? Icons.face
+                                          : Icons.face_unlock_outlined,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      faceDetected
+                                          ? 'Face Detected'
+                                          : 'No Face Detected',
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                            if (!isCapturingPhoto) const SizedBox(height: 16),
+
+                            // Current instruction
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isCapturingPhoto
+                                    ? Colors.green
+                                    : const Color(0xFFB71A4A),
+                                borderRadius: BorderRadius.circular(25),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (isCapturingPhoto) ...[
+                                    const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                  ],
+                                  Flexible(
+                                    child: Text(
+                                      statusMessage,
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
                                   ),
-                                  textAlign: TextAlign.center,
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // Debug information (bottom left) - only show in debug mode
+                    if (MediaQuery.of(context).size.height > 600 &&
+                        faceDetected &&
+                        !isCapturingPhoto)
+                      Positioned(
+                        bottom: 16,
+                        left: 16,
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.7),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Detection Status:',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Smile: ${smilingProbability != null ? (smilingProbability! * 100).toStringAsFixed(1) : 'N/A'}%',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white70,
+                                  fontSize: 10,
+                                ),
+                              ),
+                              Text(
+                                'Eyes: ${leftEyeOpenProbability != null && rightEyeOpenProbability != null ? (((leftEyeOpenProbability! + rightEyeOpenProbability!) / 2) * 100).toStringAsFixed(1) : 'N/A'}%',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white70,
+                                  fontSize: 10,
+                                ),
+                              ),
+                              Text(
+                                'Head Y: ${headEulerAngleY != null ? headEulerAngleY!.toStringAsFixed(1) : 'N/A'}°',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white70,
+                                  fontSize: 10,
                                 ),
                               ),
                             ],
                           ),
                         ),
+                      ),
+                  ],
+                )
+              : Container(
+                  color: Colors.black,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const CircularProgressIndicator(
+                          color: Color(0xFFB71A4A),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Initializing camera...',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Please allow camera access when prompted',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                       ],
                     ),
                   ),
                 ),
-
-                // Debug information (bottom left) - only show in debug mode
-                if (MediaQuery.of(context).size.height > 600 &&
-                    faceDetected &&
-                    !isCapturingPhoto)
-                  Positioned(
-                    bottom: 16,
-                    left: 16,
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.7),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Detection Status:',
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Smile: ${smilingProbability != null ? (smilingProbability! * 100).toStringAsFixed(1) : 'N/A'}%',
-                            style: GoogleFonts.poppins(
-                              color: Colors.white70,
-                              fontSize: 10,
-                            ),
-                          ),
-                          Text(
-                            'Eyes: ${leftEyeOpenProbability != null && rightEyeOpenProbability != null ? (((leftEyeOpenProbability! + rightEyeOpenProbability!) / 2) * 100).toStringAsFixed(1) : 'N/A'}%',
-                            style: GoogleFonts.poppins(
-                              color: Colors.white70,
-                              fontSize: 10,
-                            ),
-                          ),
-                          Text(
-                            'Head Y: ${headEulerAngleY != null ? headEulerAngleY!.toStringAsFixed(1) : 'N/A'}°',
-                            style: GoogleFonts.poppins(
-                              color: Colors.white70,
-                              fontSize: 10,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
-            )
-          : Container(
-              color: Colors.black,
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const CircularProgressIndicator(
-                      color: Color(0xFFB71A4A),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Initializing camera...',
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Please allow camera access when prompted',
-                      style: GoogleFonts.poppins(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            ),
     );
   }
 
