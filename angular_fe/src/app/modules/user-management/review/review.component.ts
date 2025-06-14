@@ -177,46 +177,44 @@ export class ReviewComponent {
           console.log('Form value after patching (ReviewComponent):', this.Form.value);
           this.profileImage = this.userData.image_link; // Set profileImage from image_link
 
-            this.userAccountService.getUserDocuments(userId).subscribe({
+          this.userAccountService.getUserDocuments(userId).subscribe({
             next: (docResponse: any) => {
               console.log('Raw response from getUserDocuments (ReviewComponent):', docResponse);
 
-              // --- Process actual user documents ---
+              // Process user documents with the new structure
               let userDocuments: { url: string, name: string, type: string }[] = [];
 
-              if (docResponse.user?.user?.user_documents?.user_document_link) {
-              console.log('Processing User documents (ReviewComponent):', docResponse.user.user.user_documents);
-              userDocuments.push({
-                url: docResponse.user.user.user_documents.user_document_link,
-                name: 'User_Document',
-                type: docResponse.user.user.user_documents.document_type || ''
-              });
+              // Process user_documents array
+              if (docResponse.user?.user?.user_documents) {
+                docResponse.user.user.user_documents.forEach((doc: any) => {
+                  if (doc.user_document_link) {
+                    userDocuments.push({
+                      url: doc.user_document_link,
+                      name: 'User_Document',
+                      type: doc.document_type || 'No Type'
+                    });
+                  }
+                });
               }
 
-              console.log(userDocuments);
-
-              // --- Process ID image ---
+              // Process ID image
               if (docResponse.user?.user?.user_id?.id_image) {
-              console.log('Processing ID image (ReviewComponent):', docResponse.user.user.user_id.id_image);
-              this.idImage = docResponse.user.user.user_id.id_image;
-              const idExtension = this.idImage?.split('.').pop()?.toLowerCase() || '';
-              this.isIdImage = ['jpg', 'jpeg', 'png', 'gif'].includes(idExtension);
+                this.idImage = docResponse.user.user.user_id.id_image;
+                const idExtension = this.idImage?.split('.').pop()?.toLowerCase() || '';
+                this.isIdImage = ['jpg', 'jpeg', 'png', 'gif'].includes(idExtension);
               } else {
-              this.idImage = null;
-              this.isIdImage = false;
-              console.log('No id_image found for this user (ReviewComponent).');
+                this.idImage = null;
+                this.isIdImage = false;
               }
 
-              // --- Process Selfie image ---
+              // Process Selfie image
               if (docResponse.user?.user?.user_face_identity?.face_image) {
-              console.log('Processing Selfie Image (ReviewComponent):', docResponse.user.user.user_face_identity.face_image);
-              this.faceImage = docResponse.user.user.user_face_identity.face_image;
-              const faceExtension = this.faceImage?.split('.').pop()?.toLowerCase() || '';
-              this.isFaceImage = ['jpg', 'jpeg', 'png', 'gif'].includes(faceExtension);
+                this.faceImage = docResponse.user.user.user_face_identity.face_image;
+                const faceExtension = this.faceImage?.split('.').pop()?.toLowerCase() || '';
+                this.isFaceImage = ['jpg', 'jpeg', 'png', 'gif'].includes(faceExtension);
               } else {
-              this.faceImage = null;
-              this.isFaceImage = false;
-              console.log('No face_image found for this user (ReviewComponent).');
+                this.faceImage = null;
+                this.isFaceImage = false;
               }
 
               // Store all user documents
@@ -225,13 +223,13 @@ export class ReviewComponent {
 
               // Check if the first document is an image
               if (this.userDocuments.length > 0) {
-              const firstDoc = this.userDocuments[0];
-              const extension = firstDoc.url.split('.').pop()?.toLowerCase();
-              this.isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(extension || '');
-              this.imageUrl = this.isImage ? firstDoc.url : null;
+                const firstDoc = this.userDocuments[0];
+                const extension = firstDoc.url.split('.').pop()?.toLowerCase();
+                this.isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(extension || '');
+                this.imageUrl = this.isImage ? firstDoc.url : null;
               } else {
-              this.isImage = false;
-              this.imageUrl = null;
+                this.isImage = false;
+                this.imageUrl = null;
               }
 
               this.cdRef.detectChanges();
@@ -244,14 +242,13 @@ export class ReviewComponent {
               this.idImage = null;
               this.isIdImage = false;
               Swal.fire({
-              icon: 'error',
-              title: 'Error',
-              text: 'Failed to fetch documents. Please try again.',
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to fetch documents. Please try again.',
               });
               this.cdRef.detectChanges();
             }
-            });
-
+          });
         } else {
           console.warn('No user data found in response (ReviewComponent)');
           Swal.fire({
@@ -418,9 +415,11 @@ export class ReviewComponent {
       return;
     }
 
-    const urlParts = documentUrl.split('/storage/v1/object/public/crud_bucket/');
-    if (urlParts.length < 2) {
-      console.error('Could not extract file path from document URL:', documentUrl);
+    // Extract bucket name and file path from the Supabase public URL
+    // Example: https://<project>.supabase.co/storage/v1/object/public/<bucket>/<filePath>
+    const marker = '/storage/v1/object/public/';
+    const markerIndex = documentUrl.indexOf(marker);
+    if (markerIndex === -1) {
       Swal.fire({
         icon: 'error',
         title: 'Preview Failed',
@@ -428,11 +427,20 @@ export class ReviewComponent {
       });
       return;
     }
+    const afterMarker = documentUrl.substring(markerIndex + marker.length);
+    const firstSlash = afterMarker.indexOf('/');
+    if (firstSlash === -1) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Preview Failed',
+        text: 'Invalid document URL format.',
+      });
+      return;
+    }
+    const bucketName = afterMarker.substring(0, firstSlash);
+    const filePath = afterMarker.substring(firstSlash + 1);
 
-    const filePath = urlParts[1];
-    console.log('Extracted file path:', filePath);
-
-    const url = `${this.userAccountService['apiUrl']}/viewDocument/${encodeURIComponent(filePath)}`;
+    const url = `${this.userAccountService['apiUrl']}/viewDocument/${encodeURIComponent(bucketName)}/${encodeURIComponent(filePath)}`;
     const token = this.sessionStorage.getSessionToken();
     if (!token) {
       console.error('No session token found. Please log in.');
