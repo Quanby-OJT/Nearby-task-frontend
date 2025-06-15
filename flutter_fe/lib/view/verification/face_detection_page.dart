@@ -9,6 +9,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/service/api_service.dart';
 import 'package:flutter_fe/model/verification_model.dart';
 import 'existing_selfie_review_page.dart';
+import 'selfie_review_page.dart';
 
 class FaceDetectionPage extends StatefulWidget {
   final Function(File? capturedImage, bool success) onDetectionComplete;
@@ -334,6 +335,33 @@ class _FaceDetectionPageState extends State<FaceDetectionPage> {
       await Future.delayed(const Duration(milliseconds: 1000));
 
       // Navigate to selfie review page
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SelfieReviewPage(
+              selfieImage: File(photo.path),
+              onReviewComplete: (approved, newImage) {
+                if (approved && newImage != null) {
+                  // User approved the selfie
+                  widget.onDetectionComplete(newImage, true);
+                } else {
+                  // User wants to retake - restart the face detection
+                  setState(() {
+                    isCapturingPhoto = false;
+                    completedActions = 0;
+                    currentActionIndex = 0;
+                    waitingForNeutral = false;
+                    statusMessage = 'Position your face in the oval';
+                  });
+                  challengeActions.shuffle();
+                  startFaceDetection();
+                }
+              },
+            ),
+          ),
+        );
+      }
     } catch (e) {
       debugPrint('Error capturing photo: $e');
       setState(() {
