@@ -70,38 +70,78 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
 
         debugPrint('Verification API response: ${jsonEncode(result)}');
 
-        if (result['success'] == true && result['exists'] == true) {
+        if (result['success'] == true) {
+          String? idImageUrl;
+          VerificationModel? verificationData;
+          String? verificationStatus;
+          String? idType;
+          bool isVerified = false;
+
           // Check if verification data exists
-          if (result['verification'] != null) {
+          if (result['exists'] == true && result['verification'] != null) {
             debugPrint(
                 'Raw verification data: ${jsonEncode(result['verification'])}');
-            final verificationData =
+            verificationData =
                 VerificationModel.fromJson(result['verification']);
 
-            // Check for idImageUrl directly in verification data
-            String? idImageUrl = verificationData.idImageUrl;
+            // The backend now includes all image URLs directly in the verification data
+            idImageUrl = verificationData.idImageUrl;
             debugPrint('ID image URL from verification model: $idImageUrl');
 
-            // If not found in the verification model, check if it's in the idImage field
-            if ((idImageUrl == null || idImageUrl.isEmpty) &&
-                result['idImage'] != null &&
+            verificationStatus = verificationData.status;
+            idType = verificationData.idType;
+            isVerified = verificationData.status == 'approved';
+          }
+
+          // Always check for images in additional data fields (whether verification exists or not)
+          debugPrint('=== CHECKING FOR IMAGES IN ADDITIONAL FIELDS ===');
+          debugPrint('Current idImageUrl: $idImageUrl');
+          debugPrint('result[\'idImage\']: ${result['idImage']}');
+
+          if ((idImageUrl == null || idImageUrl.isEmpty)) {
+            if (result['idImage'] != null &&
                 result['idImage']['id_image'] != null) {
               idImageUrl = result['idImage']['id_image'];
-              debugPrint('ID image URL from idImage field: $idImageUrl');
+              debugPrint(
+                  '✅ ID image URL extracted from additional idImage field: $idImageUrl');
+
+              // Also get ID type from idImage data if available
+              if (idType == null && result['idImage']['id_type'] != null) {
+                idType = result['idImage']['id_type'];
+                debugPrint('✅ ID type extracted from idImage: $idType');
+              }
+            } else {
+              debugPrint('❌ No idImage data found in additional fields');
             }
-
-            setState(() {
-              _verificationData = verificationData;
-              _idImageUrl = idImageUrl;
-              _selectedIdType = verificationData.idType;
-              _verificationStatus = verificationData.status;
-              _isVerified = verificationData.status == 'approved';
-            });
-
-            debugPrint('Final ID Image URL: $_idImageUrl');
-            debugPrint('ID Type: $_selectedIdType');
-            debugPrint('Verification Status: $_verificationStatus');
+          } else {
+            debugPrint('✅ idImageUrl already set from verification data');
           }
+
+          // If no verification record exists but we have user data, use that for status
+          if (verificationStatus == null && result['user'] != null) {
+            verificationStatus = result['user']['acc_status'] ?? 'pending';
+            debugPrint(
+                'Using user acc_status as verification status: $verificationStatus');
+          }
+
+          setState(() {
+            _verificationData = verificationData;
+            _idImageUrl = idImageUrl;
+            _selectedIdType = idType;
+            _verificationStatus = verificationStatus;
+            _isVerified = isVerified;
+          });
+
+          debugPrint('=== FINAL STATE AFTER UPDATE ===');
+          debugPrint('Final ID Image URL: $_idImageUrl');
+          debugPrint('ID Type: $_selectedIdType');
+          debugPrint('Verification Status: $_verificationStatus');
+          debugPrint(
+              'Has Image Check: ${_idImage != null || _idImageUrl != null}');
+          debugPrint('Can Proceed: ${_canProceed}');
+          debugPrint('_idImageUrl is null: ${_idImageUrl == null}');
+          debugPrint('_idImageUrl is empty: ${_idImageUrl?.isEmpty}');
+          debugPrint('================================');
         }
       }
     } catch (e) {
@@ -683,13 +723,18 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                                     child: Image.network(
                                       _idImageUrl!,
                                       fit: BoxFit.cover,
+                                      headers: {
+                                        'Accept': 'image/*',
+                                      },
                                       loadingBuilder:
                                           (context, child, loadingProgress) {
                                         if (loadingProgress == null) {
                                           debugPrint(
-                                              'ID image loaded successfully');
+                                              '✅ ID image loaded successfully from: $_idImageUrl');
                                           return child;
                                         }
+                                        debugPrint(
+                                            '⏳ Loading ID image: ${loadingProgress.cumulativeBytesLoaded}/${loadingProgress.expectedTotalBytes}');
                                         return Center(
                                           child: Column(
                                             mainAxisAlignment:
@@ -721,9 +766,11 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                                       errorBuilder:
                                           (context, error, stackTrace) {
                                         debugPrint(
-                                            'Error loading ID image: $error');
+                                            '❌ Error loading ID image: $error');
                                         debugPrint(
-                                            'ID image URL: $_idImageUrl');
+                                            '❌ ID image URL: $_idImageUrl');
+                                        debugPrint(
+                                            '❌ Stack trace: $stackTrace');
                                         return Center(
                                           child: Column(
                                             mainAxisAlignment:
@@ -740,6 +787,14 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                                                 style: GoogleFonts.poppins(
                                                   fontSize: 14,
                                                   color: Colors.red[700],
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                'URL: ${_idImageUrl?.substring(0, 50)}...',
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 10,
+                                                  color: Colors.grey[600],
                                                 ),
                                               ),
                                               const SizedBox(height: 4),
