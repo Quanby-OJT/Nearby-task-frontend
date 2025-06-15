@@ -307,9 +307,13 @@ class _VerificationPageState extends State<VerificationPage> {
     });
   }
 
-  void _onSelfieVerified(File selfieImage) {
+  void _onSelfieVerified(File? selfieImage) {
     setState(() {
-      _selfieImage = selfieImage;
+      // Only set _selfieImage if a new file was provided
+      // If null, it means user approved existing selfie
+      if (selfieImage != null) {
+        _selfieImage = selfieImage;
+      }
       _isSelfieVerified = true;
       _navigateToNextPage();
     });
@@ -341,8 +345,153 @@ class _VerificationPageState extends State<VerificationPage> {
         curve: Curves.easeInOut,
       );
     } else {
+      _showExitConfirmationDialog();
+    }
+  }
+
+  // Show confirmation dialog when user tries to exit verification
+  Future<void> _showExitConfirmationDialog() async {
+    final bool? shouldExit = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false, // Prevent dismissing by tapping outside
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.orange[600],
+                size: 28,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Exit Verification?',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[800],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Are you sure you want to exit the verification process?',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[700],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange[200]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'If you exit now:',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.orange[800],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _buildWarningPoint('Your progress will be saved'),
+                    _buildWarningPoint('You can continue later'),
+                    if (!_isUpdateMode)
+                      _buildWarningPoint('Verification will remain incomplete'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              style: TextButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              ),
+              child: Text(
+                'Continue Verification',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFFB71A4A),
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey[600],
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'Exit',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldExit == true) {
       Navigator.of(context).pop();
     }
+  }
+
+  // Helper method to build warning points
+  Widget _buildWarningPoint(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '• ',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              color: Colors.orange[700],
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              text,
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                color: Colors.orange[700],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _submitVerification() async {
@@ -503,100 +652,227 @@ class _VerificationPageState extends State<VerificationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_isUpdateMode
-            ? 'Update ${_pageTitles[_currentPageIndex]}'
-            : _pageTitles[_currentPageIndex]),
-        backgroundColor: const Color(0xFFB71A4A),
-        foregroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: _navigateToPreviousPage,
-        ),
-      ),
-      body: Stack(
-        children: [
-          // Verification Status Banner (if verified)
-
-          // Main content
-          Padding(
-            padding: EdgeInsets.only(
-              top: _verificationStatus != null ? 40.0 : 0.0,
-            ),
-            child: PageView(
-              controller: _pageController,
-              physics:
-                  const NeverScrollableScrollPhysics(), // Prevent swiping between pages
-              onPageChanged: (index) {
-                setState(() {
-                  _currentPageIndex = index;
-                });
-              },
-              children: [
-                // Page 1: General Information
-                GeneralInfoPage(
-                  onInfoCompleted: _onGeneralInfoCompleted,
+    return WillPopScope(
+      onWillPop: () async {
+        // Handle device back button press
+        if (_currentPageIndex > 0) {
+          _pageController.animateToPage(
+            _currentPageIndex - 1,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+          return false; // Prevent default back navigation
+        } else {
+          // Show exit confirmation dialog
+          final bool? shouldExit = await showDialog<bool>(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
-
-                // Page 2: ID Verification
-                IdVerificationPage(
-                  onIdVerified: _onIdVerified,
+                title: Row(
+                  children: [
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.orange[600],
+                      size: 28,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Exit Verification?',
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[800],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                // Page 3: Selfie Verification
-                FaceDetectionPage(
-                  onDetectionComplete: (file, isValid) =>
-                      _onSelfieVerified(file!),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Are you sure you want to exit the verification process?',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.orange[50],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.orange[200]!),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'If you exit now:',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.orange[800],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          _buildWarningPoint('Your progress will be saved'),
+                          _buildWarningPoint('You can continue later'),
+                          if (!_isUpdateMode)
+                            _buildWarningPoint(
+                                'Verification will remain incomplete'),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-
-                // Page 4: Document Upload (Optional)
-                DocumentUploadPage(
-                  onDocumentUploaded: _onDocumentUploaded,
-                ),
-              ],
-            ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 12),
+                    ),
+                    child: Text(
+                      'Continue Verification',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFFB71A4A),
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey[600],
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      'Exit',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+          return shouldExit ?? false; // Return the user's choice
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(_isUpdateMode
+              ? 'Update ${_pageTitles[_currentPageIndex]}'
+              : _pageTitles[_currentPageIndex]),
+          backgroundColor: const Color(0xFFB71A4A),
+          foregroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: _navigateToPreviousPage,
           ),
-        ],
-      ),
-      bottomNavigationBar: _currentPageIndex == 3 && !_isDocumentsUploaded
-          ? Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.3),
-                    blurRadius: 5,
-                    offset: const Offset(0, -2),
+        ),
+        body: Stack(
+          children: [
+            // Verification Status Banner (if verified)
+
+            // Main content
+            Padding(
+              padding: EdgeInsets.only(
+                top: _verificationStatus != null ? 40.0 : 0.0,
+              ),
+              child: PageView(
+                controller: _pageController,
+                physics:
+                    const NeverScrollableScrollPhysics(), // Prevent swiping between pages
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentPageIndex = index;
+                  });
+                },
+                children: [
+                  // Page 1: General Information
+                  GeneralInfoPage(
+                    onInfoCompleted: _onGeneralInfoCompleted,
+                  ),
+
+                  // Page 2: ID Verification
+                  IdVerificationPage(
+                    onIdVerified: _onIdVerified,
+                  ),
+                  // Page 3: Selfie Verification
+                  FaceDetectionPage(
+                    onDetectionComplete: (file, isValid) =>
+                        _onSelfieVerified(file),
+                  ),
+
+                  // Page 4: Document Upload (Optional)
+                  DocumentUploadPage(
+                    onDocumentUploaded: _onDocumentUploaded,
                   ),
                 ],
               ),
-              child: ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _isDocumentsUploaded = true;
-                    _submitVerification();
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFB71A4A),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+            ),
+          ],
+        ),
+        bottomNavigationBar: _currentPageIndex == 3 && !_isDocumentsUploaded
+            ? Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.3),
+                      blurRadius: 5,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _isDocumentsUploaded = true;
+                      _submitVerification();
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFB71A4A),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    _isUpdateMode
+                        ? "Update Information"
+                        : "Submit Verification",
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-                child: Text(
-                  _isUpdateMode ? "Update Information" : "Submit Verification",
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            )
-          : null,
+              )
+            : null,
+      ),
     );
   }
 }
