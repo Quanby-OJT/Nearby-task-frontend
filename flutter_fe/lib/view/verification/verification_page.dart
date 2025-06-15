@@ -411,7 +411,6 @@ class _VerificationPageState extends State<VerificationPage> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    _buildWarningPoint('Your progress will be saved'),
                     _buildWarningPoint('You can continue later'),
                     if (!_isUpdateMode)
                       _buildWarningPoint('Verification will remain incomplete'),
@@ -724,7 +723,6 @@ class _VerificationPageState extends State<VerificationPage> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          _buildWarningPoint('Your progress will be saved'),
                           _buildWarningPoint('You can continue later'),
                           if (!_isUpdateMode)
                             _buildWarningPoint(
