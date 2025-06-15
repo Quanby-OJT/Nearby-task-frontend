@@ -107,7 +107,7 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
       int userId = storage.read("user_id");
       debugPrint("Fetching user data for user ID: $userId");
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(userId);
+          await _profileController.getAuthenticatedUser(context, userId);
       debugPrint(user.toString());
       setState(() {
         _user = user;
@@ -156,8 +156,8 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
         return [];
       }
 
-      final tasks =
-          await taskController.getCreatedTasksByClient(int.parse(clientId));
+      final tasks = await taskController.getCreatedTasksByClient(
+          context, int.parse(clientId));
       TaskCache.setTasks(tasks);
       return tasks;
     } catch (e) {

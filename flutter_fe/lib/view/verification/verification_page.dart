@@ -51,7 +51,7 @@ class _VerificationPageState extends State<VerificationPage> {
     'General Information',
     'ID Verification',
     'Selfie Verification',
-    'Document Upload'
+    'Document Upload',
   ];
 
   @override
@@ -79,21 +79,26 @@ class _VerificationPageState extends State<VerificationPage> {
         final parsedUserId = int.parse(userId.toString());
         debugPrint('VerificationPage: Parsed user_id: $parsedUserId');
 
-        final result =
-            await ApiService.getTaskerVerificationStatus(parsedUserId);
+        final result = await ApiService.getTaskerVerificationStatus(
+          parsedUserId,
+        );
 
         debugPrint(
-            'Verification status check result: ${jsonEncode(result['verification'])}');
+          'Verification status check result: ${jsonEncode(result['verification'])}',
+        );
 
         if (result['success'] == true && result['exists'] == true) {
           // User has existing verification data
           if (result['verification'] != null) {
-            final verificationData =
-                VerificationModel.fromJson(result['verification']);
+            final verificationData = VerificationModel.fromJson(
+              result['verification'],
+            );
             debugPrint(
-                'VerificationPage: Existing verification data status: ${verificationData.status}');
+              'VerificationPage: Existing verification data status: ${verificationData.status}',
+            );
             debugPrint(
-                'VerificationPage: Raw verification result: ${jsonEncode(result['verification'])}');
+              'VerificationPage: Raw verification result: ${jsonEncode(result['verification'])}',
+            );
 
             setState(() {
               _existingVerification = verificationData;
@@ -101,7 +106,8 @@ class _VerificationPageState extends State<VerificationPage> {
               _isUpdateMode = true;
 
               debugPrint(
-                  'VerificationPage: Set _verificationStatus to: $_verificationStatus');
+                'VerificationPage: Set _verificationStatus to: $_verificationStatus',
+              );
 
               // Pre-populate data
               if (verificationData.idImageUrl != null) {
@@ -141,7 +147,8 @@ class _VerificationPageState extends State<VerificationPage> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                          'Your account is already verified. You can update your information.'),
+                        'Your account is already verified. You can update your information.',
+                      ),
                       backgroundColor: Colors.green,
                       duration: const Duration(seconds: 5),
                     ),
@@ -166,8 +173,10 @@ class _VerificationPageState extends State<VerificationPage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(5),
                       ),
-                      margin:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      margin: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                       duration: Duration(seconds: 3),
                     ),
                   );
@@ -191,8 +200,37 @@ class _VerificationPageState extends State<VerificationPage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(5),
                       ),
-                      margin:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      margin: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      duration: Duration(seconds: 3),
+                    ),
+                  );
+                }
+              });
+            } else {
+              Future.delayed(Duration.zero, () {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        "You must be verified to access this page. Please submit your verification.",
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
+                      backgroundColor: Colors.red,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      margin: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                       duration: Duration(seconds: 3),
                     ),
                   );
@@ -218,18 +256,19 @@ class _VerificationPageState extends State<VerificationPage> {
       // If we already have user info from verification data, skip this step
       if (_isGeneralInfoCompleted && _userInfo.isNotEmpty) {
         debugPrint(
-            'VerificationPage: Skipping user data load - already have verification data');
+          'VerificationPage: Skipping user data load - already have verification data',
+        );
         return;
       }
 
-      _userRole = await storage.read('role');
+      _userRole = storage.read('role');
       debugPrint("Role from session: ${storage.read('role')}");
 
       final userIdFromStorage = storage.read('user_id');
 
       int userId = int.parse(userIdFromStorage.toString());
 
-      final user = await _controller.getAuthenticatedUser(userId);
+      final user = await _controller.getAuthenticatedUser(context, userId);
       debugPrint('VerificationPage: _loadUserData - received user: $user');
 
       if (user != null) {
@@ -279,12 +318,14 @@ class _VerificationPageState extends State<VerificationPage> {
       if (_userInfo.containsKey('socialMediaJson')) {
         final String socialMediaJson = _userInfo['socialMediaJson'] as String;
         debugPrint(
-            'VerificationPage: Social Media Links JSON: $socialMediaJson');
+          'VerificationPage: Social Media Links JSON: $socialMediaJson',
+        );
 
         // Parse the JSON to show individual links for debugging
         try {
-          final Map<String, dynamic> socialMediaLinks =
-              jsonDecode(socialMediaJson);
+          final Map<String, dynamic> socialMediaLinks = jsonDecode(
+            socialMediaJson,
+          );
           debugPrint('VerificationPage: Social Media Links (parsed):');
           socialMediaLinks.forEach((platform, url) {
             debugPrint('  - $platform: $url');
@@ -513,28 +554,17 @@ class _VerificationPageState extends State<VerificationPage> {
         "email": _userInfo['email'] ?? '',
         "phone": _userInfo['phone'] ?? '',
         "gender": _userInfo['gender'] ?? '',
-        "birthdate": _userInfo['birthdate'] ?? '',
-        "bio": _userInfo['bio'] ?? '',
-        "socialMediaJson": _userInfo['socialMediaJson'] ?? '{}',
       };
 
       debugPrint(
-          'VerificationPage: Submitting verification for role: $_userRole');
+        'VerificationPage: Submitting verification for role: $_userRole',
+      );
       debugPrint('VerificationPage: Verification data: $verificationData');
 
       Map<String, dynamic> result;
 
       // Submit based on user role to appropriate table
       if (_userRole?.toLowerCase() == 'tasker') {
-        // Add tasker-specific fields
-        verificationData.addAll({
-          "specializationId": _userInfo['specializationId'],
-          "skills": _userInfo['skills'] ?? '',
-          "wagePerHour": _userInfo['wage'],
-          "payPeriod": _userInfo['payPeriod'] ?? 'Hourly',
-          "availability": _userInfo['availability'] ?? true,
-        });
-
         // Submit to tasker table
         result = await ApiService.submitTaskerVerificationNew(
           userId,
@@ -562,7 +592,6 @@ class _VerificationPageState extends State<VerificationPage> {
         throw Exception('Unknown user role: $_userRole');
       }
 
-      // Hide loading indicator
       setState(() {
         _isLoading = false;
       });

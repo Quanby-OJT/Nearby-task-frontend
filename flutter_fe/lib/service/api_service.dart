@@ -45,7 +45,7 @@ class ApiService {
         Uri.parse('$url$formattedEndpoint'),
         headers: {
           "Authorization": "Bearer $token",
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
       );
       debugPrint("API Response Status: ${response.statusCode}");
@@ -62,7 +62,9 @@ class ApiService {
     try {
       debugPrint("Email: $email");
       return await _postRequest(
-          endpoint: "/forgot-password", body: {"email": email});
+        endpoint: "/forgot-password",
+        body: {"email": email},
+      );
     } catch (error, stackTrace) {
       debugPrint(error.toString());
       debugPrintStack(stackTrace: stackTrace);
@@ -71,11 +73,14 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> resetPassword(
-      String email, String password) async {
+    String email,
+    String password,
+  ) async {
     try {
       return await _postRequest(
-          endpoint: "/reset-password",
-          body: {"email": email, "password": password});
+        endpoint: "/reset-password",
+        body: {"email": email, "password": password},
+      );
     } catch (error, stackTrace) {
       debugPrint(error.toString());
       debugPrintStack(stackTrace: stackTrace);
@@ -83,10 +88,15 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> _postRequest(
-      {required String endpoint, required Map<String, dynamic> body}) async {
-    final response = await http.post(Uri.parse("$url$endpoint"),
-        headers: {"Content-Type": "application/json"}, body: jsonEncode(body));
+  static Future<Map<String, dynamic>> _postRequest({
+    required String endpoint,
+    required Map<String, dynamic> body,
+  }) async {
+    final response = await http.post(
+      Uri.parse("$url$endpoint"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(body),
+    );
 
     return _handleResponse(response);
   }
@@ -238,14 +248,16 @@ class ApiService {
   // }
 
   static Future<Map<String, dynamic>> checkTaskAssignment(
-      int taskId, int taskerId) async {
+    int taskId,
+    int taskerId,
+  ) async {
     try {
       String token = await AuthService.getSessionToken();
       final response = await http.get(
         Uri.parse("$apiUrl/check-task-assignment/$taskId/$taskerId"),
         headers: {
           "Authorization": "Bearer $token",
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
       );
 
@@ -254,25 +266,28 @@ class ApiService {
       if (response.statusCode == 200) {
         return {
           "isAssigned": responseData["isAssigned"] ?? false,
-          "message": responseData["message"] ?? "Task assignment status checked"
+          "message":
+              responseData["message"] ?? "Task assignment status checked",
         };
       } else {
         return {
           "error": responseData["error"] ?? "Failed to check task assignment",
-          "isAssigned": false
+          "isAssigned": false,
         };
       }
     } catch (e) {
       debugPrint("Error checking task assignment: $e");
       return {
         "error": "Failed to check task assignment status",
-        "isAssigned": false
+        "isAssigned": false,
       };
     }
   }
 
   static Future<Map<String, dynamic>> assignTask(
-      int taskId, int taskerId) async {
+    int taskId,
+    int taskerId,
+  ) async {
     try {
       // First check if task is already assigned
       final checkResult = await checkTaskAssignment(taskId, taskerId);
@@ -280,7 +295,7 @@ class ApiService {
       if (checkResult["isAssigned"] == true) {
         return {
           "success": false,
-          "message": "This task is already assigned to this tasker"
+          "message": "This task is already assigned to this tasker",
         };
       }
 
@@ -310,13 +325,14 @@ class ApiService {
       // }
 
       return await _postRequest(
-          endpoint: '/assign-task',
-          body: {"task_id": taskId, "tasker_id": taskerId});
+        endpoint: '/assign-task',
+        body: {"task_id": taskId, "tasker_id": taskerId},
+      );
     } catch (e) {
       debugPrint("Error assigning task: $e");
       return {
         "success": false,
-        "message": "An error occurred while assigning the task"
+        "message": "An error occurred while assigning the task",
       };
     }
   }
@@ -809,7 +825,8 @@ class ApiService {
       // Debug logs
       debugPrint('Register User - Request Body: ${json.encode(requestBody)}');
       debugPrint(
-          'Register User - Password included: ${requestBody.containsKey("password")}');
+        'Register User - Password included: ${requestBody.containsKey("password")}',
+      );
 
       final response = await _client.post(
         Uri.parse("$apiUrl/create-new-account"),
@@ -829,7 +846,7 @@ class ApiService {
         return {
           "message": responseData["message"] ??
               "Registration successful! This email will be used to get your login code.",
-          "user": responseData["user"]
+          "user": responseData["user"],
         };
       } else if (response.statusCode == 400) {
         if (responseData['errors'] is String) {
@@ -844,7 +861,7 @@ class ApiService {
       } else {
         return {
           "errors": responseData["error"] ??
-              "An error occurred during registration. Please try again."
+              "An error occurred during registration. Please try again.",
         };
       }
     } catch (e) {
@@ -854,11 +871,15 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> verifyEmail(
-      String token, String email) async {
+    String token,
+    String email,
+  ) async {
     try {
-      final response = await _client.post(Uri.parse("$apiUrl/verify"),
-          headers: _getHeaders(),
-          body: json.encode({"token": token, "email": email}));
+      final response = await _client.post(
+        Uri.parse("$apiUrl/verify"),
+        headers: _getHeaders(),
+        body: json.encode({"token": token, "email": email}),
+      );
 
       debugPrint('Verify Response: ${response.statusCode} - ${response.body}');
       final responseData = jsonDecode(response.body);
@@ -868,12 +889,12 @@ class ApiService {
         return {
           "message": responseData["message"] ?? "Email verified successfully",
           "user_id": responseData["user_id"],
-          "session": responseData["session"]
+          "session": responseData["session"],
         };
       } else {
         return {
           "error": responseData["error"] ??
-              "Email verification failed. Please try again."
+              "Email verification failed. Please try again.",
         };
       }
     } catch (e) {
@@ -893,7 +914,8 @@ class ApiService {
     try {
       String token = await AuthService.getSessionToken();
       debugPrint(
-          "ApiService: Submitting user verification to user_verify table");
+        "ApiService: Submitting user verification to user_verify table",
+      );
       debugPrint("ApiService: Verification data: $verificationData");
 
       // Check if this is an update to existing verification
@@ -932,7 +954,6 @@ class ApiService {
         "birthdate": verificationData['birthdate'] ?? '',
         "user_role":
             verificationData['userRole'] ?? 'tasker', // Support both roles
-
         // Add a flag to indicate if this is an update
         "is_update": isUpdate.toString(),
       });
@@ -965,10 +986,7 @@ class ApiService {
       if (documentFile != null) {
         debugPrint("ApiService: Adding documents to request");
         request.files.add(
-          await http.MultipartFile.fromPath(
-            "documents",
-            documentFile.path,
-          ),
+          await http.MultipartFile.fromPath("documents", documentFile.path),
         );
       }
 
@@ -996,18 +1014,19 @@ class ApiService {
         return {
           "success": true,
           "message": responseData["message"] ??
-              "Verification submitted successfully! Your information will be reviewed shortly."
+              "Verification submitted successfully! Your information will be reviewed shortly.",
         };
       } else {
         // Error
         debugPrint(
-            "ApiService: Verification submission failed with status: ${response.statusCode}");
+          "ApiService: Verification submission failed with status: ${response.statusCode}",
+        );
         debugPrint("ApiService: Error response: $responseData");
         return {
           "success": false,
           "error": responseData["error"] ??
               responseData["errors"] ??
-              "Failed to submit verification. Status: ${response.statusCode}"
+              "Failed to submit verification. Status: ${response.statusCode}",
         };
       }
     } catch (e, stackTrace) {
@@ -1015,7 +1034,7 @@ class ApiService {
       debugPrintStack(stackTrace: stackTrace);
       return {
         "success": false,
-        "error": "An error occurred while submitting verification: $e"
+        "error": "An error occurred while submitting verification: $e",
       };
     }
   }
@@ -1030,11 +1049,10 @@ class ApiService {
   ) async {
     try {
       String token = await AuthService.getSessionToken();
-      debugPrint("ApiService: Submitting client verification to client table");
+      debugPrint("ApiService: Submitting client verification");
       debugPrint("ApiService: Verification data: $verificationData");
 
       final String endpoint = "$apiUrl/submit-client-verification/$userId";
-
       var request = http.MultipartRequest("POST", Uri.parse(endpoint));
 
       request.headers.addAll({
@@ -1054,28 +1072,25 @@ class ApiService {
         "birthdate": verificationData['birthdate'] ?? '',
       });
 
-      // Add files only if they exist and are readable
+      // Add files
       if (idImage != null && await idImage.exists()) {
-        debugPrint("ApiService: Adding ID image to request");
+        debugPrint("ApiService: Adding ID image");
         request.files.add(
           await http.MultipartFile.fromPath('idImage', idImage.path),
         );
       }
 
       if (selfieImage != null && await selfieImage.exists()) {
-        debugPrint("ApiService: Adding selfie image to request");
+        debugPrint("ApiService: Adding selfie image");
         request.files.add(
           await http.MultipartFile.fromPath('selfieImage', selfieImage.path),
         );
       }
 
       if (documentFile != null && await documentFile.exists()) {
-        debugPrint("ApiService: Adding documents to request");
+        debugPrint("ApiService: Adding documents");
         request.files.add(
-          await http.MultipartFile.fromPath(
-            'documents',
-            documentFile.path,
-          ),
+          await http.MultipartFile.fromPath('documents', documentFile.path),
         );
       }
 
@@ -1083,28 +1098,27 @@ class ApiService {
       final responseBody = await response.stream.bytesToString();
       final responseData = jsonDecode(responseBody);
 
-      debugPrint("ApiService: Tasker verification response: $responseData");
+      debugPrint("ApiService: Client verification response: $responseData");
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
+      if (response.statusCode == 200 || response.statusCode == 207) {
         return {
-          "success": true,
-          "message": responseData["message"] ??
-              "Tasker verification submitted successfully!"
+          "success": responseData["success"] ?? false,
+          "message": responseData["message"] ?? "Client verification submitted",
+          "data": responseData["data"],
+          "failedTables": responseData["failedTables"],
+          "uploadErrors": responseData["uploadErrors"],
         };
       } else {
         return {
           "success": false,
           "error":
-              responseData["error"] ?? "Failed to submit tasker verification"
+              responseData["error"] ?? "Failed to submit client verification",
         };
       }
     } catch (e, stackTrace) {
-      debugPrint("ApiService: Error submitting tasker verification: $e");
+      debugPrint("ApiService: Error submitting client verification: $e");
       debugPrintStack(stackTrace: stackTrace);
-      return {
-        "success": false,
-        "error": "An error occurred while submitting tasker verification: $e"
-      };
+      return {"success": false, "error": "An error occurred: $e"};
     }
   }
 
@@ -1160,10 +1174,7 @@ class ApiService {
       if (documentFile != null && await documentFile.exists()) {
         debugPrint("ApiService: Adding documents to request");
         request.files.add(
-          await http.MultipartFile.fromPath(
-            'documents',
-            documentFile.path,
-          ),
+          await http.MultipartFile.fromPath('documents', documentFile.path),
         );
       }
 
@@ -1177,13 +1188,13 @@ class ApiService {
         return {
           "success": true,
           "message": responseData["message"] ??
-              "Tasker verification submitted successfully!"
+              "Tasker verification submitted successfully!",
         };
       } else {
         return {
           "success": false,
           "error":
-              responseData["error"] ?? "Failed to submit tasker verification"
+              responseData["error"] ?? "Failed to submit tasker verification",
         };
       }
     } catch (e, stackTrace) {
@@ -1191,13 +1202,16 @@ class ApiService {
       debugPrintStack(stackTrace: stackTrace);
       return {
         "success": false,
-        "error": "An error occurred while submitting tasker verification: $e"
+        "error": "An error occurred while submitting tasker verification: $e",
       };
     }
   }
 
   static Future<Map<String, dynamic>> createTasker(
-      TaskerModel tasker, File tesdaFile, File profileImage) async {
+    TaskerModel tasker,
+    File tesdaFile,
+    File profileImage,
+  ) async {
     try {
       //Code to store uploaded files to database, and retrieve its url link.
 
@@ -1241,17 +1255,17 @@ class ApiService {
       if (response.statusCode == 201) {
         return {
           "message": responseData["message"] ??
-              "Profile Created Successfully. Please Wait for Our Team to Verify Your Account"
+              "Profile Created Successfully. Please Wait for Our Team to Verify Your Account",
         };
       } else if (response.statusCode == 400) {
         return {
-          "error":
-              responseData["errors"] ?? "Please Check Your inputs and try again"
+          "error": responseData["errors"] ??
+              "Please Check Your inputs and try again",
         };
       } else {
         return {
           "error": responseData["error"] ??
-              "Something went wrong when creating your profile. Please try again."
+              "Something went wrong when creating your profile. Please try again.",
         };
       }
     } catch (e, stackTrace) {
@@ -1259,7 +1273,7 @@ class ApiService {
       debugPrintStack(stackTrace: stackTrace);
       return {
         "error":
-            "Something went wrong when creating your profile. Please try again."
+            "Something went wrong when creating your profile. Please try again.",
       };
     }
   }
@@ -1275,108 +1289,38 @@ class ApiService {
       }
 
       return {"error": "Invalid role"};
-      // return await _getRequest("/getUserData/$userId");
-      // debugPrint("API Service: Making request to: $apiUrl/getUserData/$userId");
-      // final response = await http.get(Uri.parse("$apiUrl/getUserData/$userId"),
-      //     headers: {
-      //       "Authorization": "Bearer $token",
-      //       "Content-Type": "application/json"
-      //     });
-      //
-      // debugPrint("API Response Status Code: ${response.statusCode}");
-      // debugPrint("API Response Body: ${response.body}");
-      //
-      // var responseData = jsonDecode(response.body);
-      // debugPrint("Parsed Response Data: $responseData");
-      //
-      // if (response.statusCode == 200) {
-      //   if (responseData.containsKey("user")) {
-      //     UserModel user = UserModel.fromJson(responseData["user"]);
-      //     debugPrint("Created user model: $user");
-      //
-      //     // Check if this is a client or tasker and merge additional data
-      //     if (responseData.containsKey("client")) {
-      //       debugPrint("Processing client user");
-      //       // For clients, the user object should already have all needed data
-      //       return {"user": user, "client": responseData["client"]};
-      //     } else if (responseData.containsKey("tasker")) {
-      //       debugPrint("Processing tasker user");
-      //       var taskerData = responseData["tasker"];
-      //
-      //       // Merge tasker-specific data into user if available
-      //       Map<String, String>? mergedSocialLinks = user.socialMediaLinks;
-      //       String? mergedBio = user.bio;
-      //
-      //       if (taskerData != null) {
-      //         // Merge bio if available in tasker data
-      //         if (taskerData['bio'] != null &&
-      //             taskerData['bio'].toString().isNotEmpty) {
-      //           mergedBio = taskerData['bio'].toString();
-      //         }
-      //
-      //         // Merge social media links if available in tasker data
-      //         if (taskerData['social_media_links'] != null) {
-      //           try {
-      //             if (taskerData['social_media_links'] is Map) {
-      //               mergedSocialLinks = Map<String, String>.from(
-      //                   taskerData['social_media_links']);
-      //             } else if (taskerData['social_media_links'] is String) {
-      //               final decoded =
-      //                   jsonDecode(taskerData['social_media_links']);
-      //               if (decoded is Map) {
-      //                 mergedSocialLinks = Map<String, String>.from(decoded);
-      //               }
-      //             }
-      //           } catch (e) {
-      //             debugPrint("Error parsing tasker social media links: $e");
-      //           }
-      //         }
-      //       }
-      //
-      //       // Create updated user with merged data
-      //       UserModel updatedUser = user.copyWith(
-      //         bio: mergedBio,
-      //         socialMediaLinks: mergedSocialLinks,
-      //       );
-      //
-      //       debugPrint("Updated user with tasker data: $updatedUser");
-      //       return {"user": updatedUser, "tasker": taskerData};
-      //     } else {
-      //       return {
-      //         "error": "User role not recognized or missing role-specific data"
-      //       };
-      //     }
-      //   } else {
-      //     return {
-      //       "error": responseData['error'] ??
-      //           "An Error Occurred while retrieving data"
-      //     };
-      //   }
-      // } else {
-      //   debugPrint(
-      //       "API Error Response: Status ${response.statusCode}, Body: ${response.body}");
-      //   return {"error": responseData['error'] ?? "Failed to fetch user data"};
-      // }
     } catch (e, stackTrace) {
       debugPrint("Exception in fetchAuthenticatedUser: $e");
       debugPrintStack(stackTrace: stackTrace);
       return {
         "error":
-            "An error occurred while retrieving your information. Please try again."
+            "An error occurred while retrieving your information. Please try again.",
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchAuthenticatedUserClient(int userId) async {
+    try {
+      return await _getRequest("/get-client-info/$userId");
+    } catch (e, stackTrace) {
+      debugPrint("Exception in fetchAuthenticatedUser: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {
+        "error":
+            "An error occurred while retrieving your information. Please try again.",
       };
     }
   }
 
   static Future<Map<String, dynamic>> authUser(
-      String email, String password) async {
+    String email,
+    String password,
+  ) async {
     try {
       final response = await _client.post(
         Uri.parse("$apiUrl/login-auth"),
         headers: {"Content-Type": "application/json"},
-        body: json.encode({
-          "email": email,
-          "password": password,
-        }),
+        body: json.encode({"email": email, "password": password}),
       );
 
       var responseData = json.decode(response.body);
@@ -1388,7 +1332,7 @@ class ApiService {
         return {
           "error": responseData['error'],
           "remainingTime": responseData['remainingTime'],
-          "isThrottled": true
+          "isThrottled": true,
         };
       } else if (response.statusCode == 400 &&
           responseData.containsKey('errors')) {
@@ -1414,9 +1358,7 @@ class ApiService {
       final response = await http.post(
         Uri.parse("$apiUrl/reset"),
         headers: {"Content-Type": "application/json"},
-        body: json.encode({
-          "user_id": userId,
-        }),
+        body: json.encode({"user_id": userId}),
       );
 
       var responseData = json.decode(response.body);
@@ -1443,10 +1385,7 @@ class ApiService {
       final response = await _client.post(
         Uri.parse("$apiUrl/otp-auth"),
         headers: _getHeaders(), // 🔥 Send stored cookies
-        body: json.encode({
-          "user_id": userId,
-          "otp": otp,
-        }),
+        body: json.encode({"user_id": userId, "otp": otp}),
       );
 
       //debugPrint('Sent Headers: ${_getHeaders()}'); // Debugging
@@ -1464,7 +1403,7 @@ class ApiService {
         return {
           "user_id": responseData['user_id'],
           "role": responseData['user_role'],
-          "session": responseData['session'] ?? sessionFromCookies ?? ""
+          "session": responseData['session'] ?? sessionFromCookies ?? "",
         };
       } else if (response.statusCode == 400 &&
           responseData.containsKey('errors')) {
@@ -1475,7 +1414,7 @@ class ApiService {
       } else {
         return {
           "error": responseData['error'] ??
-              "OTP Authentication Failed. Please Try again."
+              "OTP Authentication Failed. Please Try again.",
         };
       }
     } catch (e, stackTrace) {
@@ -1483,7 +1422,7 @@ class ApiService {
       debugPrintStack(stackTrace: stackTrace);
       return {
         "error":
-            "OTP Authentication Failed. Please Try again. If the Problem Persists, Contact Us."
+            "OTP Authentication Failed. Please Try again. If the Problem Persists, Contact Us.",
       };
     }
   }
@@ -1495,7 +1434,7 @@ class ApiService {
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer $session",
-          "Access-Control-Allow-Credentials": "true"
+          "Access-Control-Allow-Credentials": "true",
         },
         body: json.encode({"user_id": userId, "session": session}),
       );
@@ -1518,40 +1457,43 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> sendMessage(
-      Conversation conversation) async {
+    Conversation conversation,
+  ) async {
     try {
       String token = await AuthService.getSessionToken();
 
-      final response = await http.post(Uri.parse("$apiUrl/send-message"),
-          headers: {
-            "Authorization": "Bearer $token",
-            "Content-Type": "application/json"
-          },
-          body: jsonEncode(conversation.toJson()));
+      final response = await http.post(
+        Uri.parse("$apiUrl/send-message"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode(conversation.toJson()),
+      );
 
       var responseData = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
         return {
-          "message": responseData["message"] ?? "Successfully Sent the Message"
+          "message": responseData["message"] ?? "Successfully Sent the Message",
         };
       } else if (response.statusCode == 400) {
         return {
-          "error":
-              responseData["errors"] ?? "Please Check Your inputs and try again"
+          "error": responseData["errors"] ??
+              "Please Check Your inputs and try again",
         };
       } else {
         // Handle unexpected response statuses
         return {
           "error":
-              "Unexpected error occurred. Status code: ${response.statusCode}"
+              "Unexpected error occurred. Status code: ${response.statusCode}",
         };
       }
     } catch (e) {
       debugPrint(e.toString());
       debugPrintStack();
       return {
-        "error": "An Error Occured while Sending a Message. Please Try Again"
+        "error": "An Error Occured while Sending a Message. Please Try Again",
       };
     }
   }
@@ -1580,7 +1522,7 @@ class ApiService {
         }
       } else {
         return {
-          "error": responseData['error'] ?? "Failed to retrieve messages"
+          "error": responseData['error'] ?? "Failed to retrieve messages",
         };
       }
     } catch (e, st) {
@@ -1588,7 +1530,7 @@ class ApiService {
       debugPrint(st.toString());
       return {
         "error":
-            "An error occurred while retrieving your conversation. Please try again."
+            "An error occurred while retrieving your conversation. Please try again.",
       };
     }
   }
@@ -1601,7 +1543,7 @@ class ApiService {
         Uri.parse("$apiUrl/update-tasker/${tasker.id}"),
         headers: {
           "Authorization": "Bearer $token",
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: json.encode(tasker.toJson()),
       );
@@ -1615,7 +1557,7 @@ class ApiService {
         return {
           "message": responseData["message"] ??
               "Tasker information updated successfully!",
-          "tasker": responseData["tasker"]
+          "tasker": responseData["tasker"],
         };
       } else if (response.statusCode == 400) {
         String errorMessage = "";
@@ -1627,16 +1569,16 @@ class ApiService {
               .join('\n');
         }
         return {
-          "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed."
+          "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed.",
         };
       } else {
         return {
-          "errors": responseData["error"] ?? "An unexpected error occurred."
+          "errors": responseData["error"] ?? "An unexpected error occurred.",
         };
       }
     } catch (e) {
       return {
-        "errors": "An error occurred during updating tasker information: $e"
+        "errors": "An error occurred during updating tasker information: $e",
       };
     }
   }
@@ -1859,7 +1801,8 @@ class ApiService {
 
   // Get user verification status (unified for both Tasker and Client)
   static Future<Map<String, dynamic>> getUserVerificationStatus(
-      int userId) async {
+    int userId,
+  ) async {
     try {
       String token = await AuthService.getSessionToken();
 
@@ -1872,9 +1815,11 @@ class ApiService {
       );
 
       debugPrint(
-          "ApiService: User verification status response status: ${response.statusCode}");
+        "ApiService: User verification status response status for tasker: ${response.statusCode}",
+      );
       debugPrint(
-          "ApiService: User verification status response body: ${response.body}");
+        "ApiService: User verification status response body for tasker: ${response.body}",
+      );
 
       final responseData = jsonDecode(response.body);
 
@@ -1909,7 +1854,8 @@ class ApiService {
 
   // Get tasker verification status (kept for backward compatibility)
   static Future<Map<String, dynamic>> getTaskerVerificationStatus(
-      int userId) async {
+    int userId,
+  ) async {
     // Use the unified getUserVerificationStatus method
     return await getUserVerificationStatus(userId);
   }

@@ -15,6 +15,7 @@ import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/controller/tasker_controller.dart';
 import 'package:flutter_fe/view/address/set-up_address.dart';
 import 'package:flutter_fe/view/business_acc/notif_screen.dart';
+import 'package:flutter_fe/view/configuration/configuration_list.dart';
 import 'package:flutter_fe/view/profile/profile_screen.dart';
 import 'package:flutter_fe/view/service_acc/notif_screen.dart';
 import 'package:flutter_fe/view/setting/setting.dart';
@@ -46,7 +47,6 @@ class _ClientHomePageState extends State<ClientHomePage>
   final SettingController _settingController = SettingController();
   List<MapEntry<int, String>> categories = [];
   Map<String, bool> selectedCategories = {};
-  List<String> taskerImages = [];
   final TaskerController taskerController = TaskerController();
 
   SettingModel _userPreference = SettingModel();
@@ -63,7 +63,7 @@ class _ClientHomePageState extends State<ClientHomePage>
   String _image = "";
   String? _existingProfileImageUrl;
   String? _existingIDImageUrl;
-  bool _documentValid = false;
+  final bool _documentValid = false;
   bool _isLoading = true;
   bool _isUploadDialogShown = false;
   final GlobalKey _moreVertKey = GlobalKey();
@@ -76,12 +76,12 @@ class _ClientHomePageState extends State<ClientHomePage>
 
   VerificationModel? _existingVerification;
   String? _verificationStatus;
-  bool _isIdVerified = false;
-  bool _isSelfieVerified = false;
-  bool _isDocumentsUploaded = false;
-  bool _isGeneralInfoCompleted = false;
+  final bool _isIdVerified = false;
+  final bool _isSelfieVerified = false;
+  final bool _isDocumentsUploaded = false;
+  final bool _isGeneralInfoCompleted = false;
   String? _idType;
-  Map<String, dynamic> _userInfo = {};
+  final Map<String, dynamic> _userInfo = {};
 
   @override
   void initState() {
@@ -127,7 +127,6 @@ class _ClientHomePageState extends State<ClientHomePage>
       await Future.wait([
         _fetchUserData(),
         _fetchTaskers(),
-        getAllTaskerImages(),
         _checkVerificationStatus(),
       ]);
       setState(() {
@@ -174,45 +173,30 @@ class _ClientHomePageState extends State<ClientHomePage>
 
         final result =
             await ApiService.getTaskerVerificationStatus(parsedUserId);
-
         debugPrint(
-            'Verification status check result: ${jsonEncode(result['verification'])}');
+            'Verification status check result client: ${jsonEncode(result)}');
 
         if (result['success'] == true && result['exists'] == true) {
           // User has existing verification data
           if (result['verification'] != null) {
-            final verificationData =
-                VerificationModel.fromJson(result['verification']);
-            debugPrint(
-                'VerificationPage: Existing verification data status: ${verificationData.status}');
-
+            final verificationData = result['verification'];
             setState(() {
-              _existingVerification = verificationData;
-              _verificationStatus = verificationData.status;
-
+              _verificationStatus = verificationData['acc_status'];
               debugPrint(
                   'VerificationPage: Set _verificationStatus to: $_verificationStatus');
-
-              // Pre-populate data
-              if (verificationData.idImageUrl != null) {
-                _isIdVerified = true;
-                _idType = verificationData.idType;
-              }
-
-              if (verificationData.selfieImageUrl != null) {
-                _isSelfieVerified = true;
-              }
-
-              if (verificationData.documentUrl != null ||
-                  verificationData.clientDocumentUrl != null) {
-                _isDocumentsUploaded = true;
-              }
             });
           }
+        } else {
+          setState(() {
+            _verificationStatus = 'Pending';
+          });
         }
       }
     } catch (e) {
       debugPrint('Error checking verification status: $e');
+      setState(() {
+        _verificationStatus = 'Error';
+      });
     }
   }
 
@@ -230,7 +214,7 @@ class _ClientHomePageState extends State<ClientHomePage>
       }
 
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(userId);
+          await _profileController.getAuthenticatedUser(context, userId);
       debugPrint("Current User: $user");
 
       if (user == null) {
@@ -367,19 +351,6 @@ class _ClientHomePageState extends State<ClientHomePage>
     }
   }
 
-  Future<void> getAllTaskerImages() async {
-    List<int> taskerIds = fetchedTaskers.map((tasker) => tasker.id).toList();
-
-    for (int taskId in taskerIds) {
-      List<ImagesModel> images =
-          await taskerController.getAllTaskerImages(taskId) ?? [];
-      taskerImages.addAll(images.map((image) => image.image_url).toList());
-    }
-
-    // Example: Print all tasker IDs
-    debugPrint("All Tasker IDs: $taskerImages");
-  }
-
   Future<void> _saveLikedTasker(UserModel tasker) async {
     try {
       final result = await _clientServices.saveLikedTasker(tasker.id!);
@@ -402,39 +373,71 @@ class _ClientHomePageState extends State<ClientHomePage>
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text("Account Verification"),
-        content: const Text(
-            "Upload your Profile and ID images to complete your account. Verification will follow."),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(5),
+        ),
+        title: Text("Account Verification",
+            style:
+                GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold)),
+        content: Text(
+            "Upload your Profile and ID images to complete your account. Verification will follow.",
+            style:
+                GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w300)),
         actions: [
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const VerificationPage()),
-              );
-              if (result == true) {
-                setState(() {
-                  _isLoading = true;
-                });
-                await _loadAllFunction();
-              } else {
-                setState(() {
-                  _isUploadDialogShown = false;
-                });
-              }
-            },
-            child: const Text("Verify Account"),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() {
-                _isUploadDialogShown = false;
-              });
-            },
-            child: Text('Cancel'),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton(
+                child: Text('Cancel',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFFB71A4A),
+                    )),
+                onPressed: () {
+                  Navigator.pop(context);
+                  setState(() {
+                    _isUploadDialogShown = false;
+                  });
+                },
+              ),
+              const SizedBox(width: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                  color: const Color(0xFFB71A4A),
+                ),
+                child: TextButton(
+                  child: Text('Verify Now',
+                      style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white)),
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const VerificationPage()),
+                    ).then((value) async {
+                      await _loadAllFunction();
+                    });
+                    if (result == true) {
+                      setState(() {
+                        _isLoading = true;
+                      });
+                      await _loadAllFunction();
+                    } else {
+                      setState(() {
+                        _isUploadDialogShown = false;
+                      });
+                    }
+                  },
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -588,6 +591,30 @@ class _ClientHomePageState extends State<ClientHomePage>
                         ),
                       ),
                       onTap: () {
+                        overlayEntry.remove();
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(
+                        Icons.settings,
+                        color: const Color(0xFFB71A4A),
+                      ),
+                      title: Text(
+                        'Configuration',
+                        style: GoogleFonts.poppins(
+                          color: Colors.black,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w300,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ConfigurationList()),
+                        ).then((value) => setState(() {
+                              _fetchTaskers();
+                            }));
                         overlayEntry.remove();
                       },
                     ),
@@ -942,7 +969,6 @@ class _ClientHomePageState extends State<ClientHomePage>
                                       _cardCounter();
                                       return true;
                                     }
-
                                     // For other roles or problematic account statuses, show warning
                                     if (accountStatus == 'Ban' ||
                                         accountStatus == 'Suspended') {
@@ -956,9 +982,12 @@ class _ClientHomePageState extends State<ClientHomePage>
                                   }
                                   return true;
                                 },
+                                //Tasker Images
                                 cardBuilder: (context, index, percentThresholdX,
                                     percentThresholdY) {
                                   final tasker = taskers[index];
+                                  debugPrint(
+                                      "All Taskers in Card: ${tasker.tasker}");
                                   return Container(
                                     width: double.infinity,
                                     height: MediaQuery.of(context).size.height,
@@ -974,28 +1003,46 @@ class _ClientHomePageState extends State<ClientHomePage>
                                           ClipRRect(
                                             borderRadius:
                                                 BorderRadius.circular(20),
-                                            child: taskerImages.isEmpty
+                                            child: tasker
+                                                        .tasker?.taskerImages !=
+                                                    null
                                                 ? Center(
-                                                    // Center the icon
                                                     child: Icon(
-                                                    FontAwesomeIcons
-                                                        .screwdriverWrench,
-                                                    size:
-                                                        150, // Increase size for prominence
-                                                    color: Colors.grey[
-                                                        400], // Lighter grey for better visibility
-                                                  ))
+                                                      FontAwesomeIcons
+                                                          .screwdriverWrench,
+                                                      size: 150,
+                                                      color: Colors.grey[400],
+                                                    ),
+                                                  )
                                                 : PageView.builder(
-                                                    itemCount:
-                                                        taskerImages.length,
+                                                    itemCount: tasker
+                                                            .tasker
+                                                            ?.taskerImages
+                                                            ?.length ??
+                                                        0,
                                                     itemBuilder:
-                                                        (context, imageIndex) {
+                                                        (context, index) {
+                                                      List<String>
+                                                          taskerImages = tasker
+                                                                  .tasker
+                                                                  ?.taskerImages ??
+                                                              [];
                                                       return Image.network(
-                                                        taskerImages[
-                                                            imageIndex],
+                                                        taskerImages[index],
                                                         fit: BoxFit.cover,
                                                         width: double.infinity,
                                                         height: double.infinity,
+                                                        errorBuilder: (context,
+                                                                error,
+                                                                stackTrace) =>
+                                                            Center(
+                                                          child: Icon(
+                                                            Icons.broken_image,
+                                                            color: Colors
+                                                                .grey[400],
+                                                            size: 100,
+                                                          ),
+                                                        ),
                                                       );
                                                     },
                                                   ),

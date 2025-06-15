@@ -83,9 +83,9 @@ class _EditTaskPageState extends State<EditTaskPage>
   String? _existingProfileImageUrl;
   String? _existingIDImageUrl;
   String? _addressID;
-  bool _showButton = false;
-  bool _isUploadDialogShown = false;
-  bool _documentValid = false;
+
+  final bool _isUploadDialogShown = false;
+  final bool _documentValid = false;
   int _currentStep = 0;
   final bool _isVerifiedDocument = false;
   Map<String, bool> saveImages = {};
@@ -99,13 +99,18 @@ class _EditTaskPageState extends State<EditTaskPage>
   }
 
   Future<void> _loadMethod() async {
+    setState(() {
+      _isLoading = true;
+    });
     await Future.wait([
       _fetchTaskDetails(),
-      _fetchUserIDImage(),
       fetchSpecializations(),
       _fetchTaskImages(),
     ]);
     _initializeForm();
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   Future<void> _fetchTaskDetails() async {
@@ -216,116 +221,6 @@ class _EditTaskPageState extends State<EditTaskPage>
     }
   }
 
-  Future<void> _fetchUserIDImage() async {
-    try {
-      int userId = int.parse(storage.read('user_id').toString());
-      AuthenticatedUser? user =
-          await profileController.getAuthenticatedUser(userId);
-      final response = await clientServices.fetchUserIDImage(userId);
-
-      if (response['success']) {
-        setState(() {
-          _existingProfileImageUrl = user?.user.image;
-          _existingIDImageUrl = response['url'];
-          _documentValid = response['status'];
-          _isLoading = false;
-          _showButton = true;
-        });
-      } else {
-        debugPrint('Failed to fetch user ID image: ${response['message']}');
-        setState(() {
-          _existingProfileImageUrl = user?.user.image;
-          _existingIDImageUrl = null;
-          _documentValid = false;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      debugPrint("Error fetching ID image: $e");
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  void _showWarningDialog() {
-    if (_isUploadDialogShown) return;
-    setState(() {
-      _isUploadDialogShown = true;
-    });
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          'Complete Your Profile',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF0272B1),
-          ),
-        ),
-        content: Text(
-          'Please upload your profile and ID images to edit tasks.',
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            color: Colors.grey[600],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() {
-                _isUploadDialogShown = false;
-              });
-            },
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: Colors.red[400],
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const FillUpClient()),
-              );
-              if (result == true) {
-                setState(() {
-                  _isLoading = true;
-                });
-                await _fetchUserIDImage();
-              }
-              setState(() {
-                _isUploadDialogShown = false;
-              });
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF0272B1),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: Text(
-              'Verify Now',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   bool _validateStep(int step) {
     setState(() {
       _errors.clear();
@@ -387,6 +282,12 @@ class _EditTaskPageState extends State<EditTaskPage>
         }
         break;
       case 4:
+        int totalPhotos =
+            taskImages.length + _photos.length - imagesToDelete.length;
+        if (totalPhotos == 0) {
+          _errors['photos'] = 'Please upload at least one photo';
+          return false;
+        }
         return true;
     }
     return true;
@@ -593,9 +494,9 @@ class _EditTaskPageState extends State<EditTaskPage>
         Text(
           isRequired ? '$label *' : label,
           style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
           ),
         ),
         SizedBox(height: 8),
@@ -606,7 +507,7 @@ class _EditTaskPageState extends State<EditTaskPage>
           inputFormatters: inputFormatters,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
+            hintStyle: GoogleFonts.poppins(color: Colors.black),
             filled: true,
             fillColor: Colors.white,
             border: OutlineInputBorder(
@@ -615,11 +516,11 @@ class _EditTaskPageState extends State<EditTaskPage>
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[200]!),
+              borderSide: BorderSide(color: Colors.black),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Color(0xFFB71A4A), width: 2),
+              borderSide: BorderSide(color: Colors.black, width: 2),
             ),
             errorText: errorText,
             errorStyle: GoogleFonts.poppins(color: Colors.red[400]),
@@ -659,9 +560,9 @@ class _EditTaskPageState extends State<EditTaskPage>
         Text(
           isRequired ? '$hint *' : hint,
           style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
           ),
         ),
         SizedBox(height: 8),
@@ -669,7 +570,7 @@ class _EditTaskPageState extends State<EditTaskPage>
           value: effectiveValue,
           decoration: InputDecoration(
             hintText: effectiveItems.isEmpty ? 'No options available' : hint,
-            hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
+            hintStyle: GoogleFonts.poppins(color: Colors.black),
             filled: true,
             fillColor: Colors.white,
             border: OutlineInputBorder(
@@ -678,11 +579,11 @@ class _EditTaskPageState extends State<EditTaskPage>
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[200]!),
+              borderSide: BorderSide(color: Colors.black),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Color(0xFFB71A4A), width: 2),
+              borderSide: BorderSide(color: Colors.black, width: 2),
             ),
             errorText: errorText,
             errorStyle: GoogleFonts.poppins(color: Colors.red[400]),
@@ -747,7 +648,7 @@ class _EditTaskPageState extends State<EditTaskPage>
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(
-            color: errorText != null ? Colors.red : Colors.grey[300]!,
+            color: errorText != null ? Colors.red : Colors.black,
           ),
           borderRadius: BorderRadius.circular(8),
         ),
@@ -758,7 +659,7 @@ class _EditTaskPageState extends State<EditTaskPage>
               child: Text(
                 selectedItems.isEmpty ? hint : selectedItems.join(', '),
                 style: GoogleFonts.poppins(
-                  color: selectedItems.isEmpty ? Colors.grey : Colors.black,
+                  color: selectedItems.isEmpty ? Colors.black : Colors.black,
                   fontSize: 12,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -780,11 +681,11 @@ class _EditTaskPageState extends State<EditTaskPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Upload Photos (Optional, up to $maxPhotos)',
+          'Upload Photos (Required, up to $maxPhotos photos) *',
           style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
           ),
         ),
         SizedBox(height: 8),
@@ -819,148 +720,166 @@ class _EditTaskPageState extends State<EditTaskPage>
                   ),
                 ),
               )
-            : Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  // Display existing images
-                  ...taskImages.asMap().entries.where((entry) {
-                    return !imagesToDelete.contains(entry.value.id);
-                  }).map((entry) {
-                    int index = entry.key;
-                    ImagesModel image = entry.value;
-                    return Stack(
-                      children: [
-                        Container(
-                          width: 100,
-                          height: 100,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.grey[300]!),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.network(
-                              image.image_url,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Icon(
-                                Icons.broken_image,
-                                color: Colors.grey,
+            : SizedBox(
+                height: 220, // Fixed height to prevent overflow
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      // Display existing images
+                      ...taskImages.asMap().entries.where((entry) {
+                        return !imagesToDelete.contains(entry.value.id);
+                      }).map((entry) {
+                        int index = entry.key;
+                        ImagesModel image = entry.value;
+                        return Stack(
+                          children: [
+                            Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey[300]!),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.network(
+                                  image.image_url,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Icon(
+                                    Icons.broken_image,
+                                    color: Colors.grey,
+                                    size: 40,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              top: 4,
+                              right: 4,
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    imagesToDelete.add(image.id!);
+                                  });
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.all(2),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.red,
+                                  ),
+                                  child: Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      }),
+                      // Display new images
+                      ..._photos.asMap().entries.map((entry) {
+                        int index = entry.key;
+                        File photo = entry.value;
+                        return Stack(
+                          children: [
+                            Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey[300]!),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.file(
+                                  photo,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              top: 4,
+                              right: 4,
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _photos.removeAt(index);
+                                  });
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.all(2),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.red,
+                                  ),
+                                  child: Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      }),
+                      // Add new image button
+                      if (totalPhotos < maxPhotos)
+                        GestureDetector(
+                          onTap: () async {
+                            final List<XFile> images =
+                                await _picker.pickMultiImage(
+                              maxWidth: 1024,
+                              maxHeight: 1024,
+                              imageQuality: 80,
+                            );
+                            setState(() {
+                              _photos.addAll(
+                                images
+                                    .map((image) => File(image.path))
+                                    .take(maxPhotos - totalPhotos),
+                              );
+                            });
+                          },
+                          child: Container(
+                            width: 100,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey[300]!),
+                            ),
+                            child: Center(
+                              child: Icon(
+                                Icons.add,
+                                color: Colors.grey[600],
                                 size: 40,
                               ),
                             ),
                           ),
                         ),
-                        Positioned(
-                          top: 4,
-                          right: 4,
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                imagesToDelete.add(image.id!);
-                              });
-                            },
-                            child: Container(
-                              padding: EdgeInsets.all(2),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.red,
-                              ),
-                              child: Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  }),
-                  // Display new images
-                  ..._photos.asMap().entries.map((entry) {
-                    int index = entry.key;
-                    File photo = entry.value;
-                    return Stack(
-                      children: [
-                        Container(
-                          width: 100,
-                          height: 100,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.grey[300]!),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.file(
-                              photo,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: 4,
-                          right: 4,
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _photos.removeAt(index);
-                              });
-                            },
-                            child: Container(
-                              padding: EdgeInsets.all(2),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.red,
-                              ),
-                              child: Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  }),
-                  // Add new image button
-                  if (totalPhotos < maxPhotos)
-                    GestureDetector(
-                      onTap: () async {
-                        final List<XFile> images = await _picker.pickMultiImage(
-                          maxWidth: 1024,
-                          maxHeight: 1024,
-                          imageQuality: 80,
-                        );
-                        setState(() {
-                          _photos.addAll(
-                            images
-                                .map((image) => File(image.path))
-                                .take(maxPhotos - totalPhotos),
-                          );
-                        });
-                      },
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey[300]!),
-                        ),
-                        child: Center(
-                          child: Icon(
-                            Icons.add,
-                            color: Colors.grey[600],
-                            size: 40,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
+                    ],
+                  ),
+                ),
               ),
+        if (_errors['photos'] != null)
+          Padding(
+            padding: EdgeInsets.only(top: 8, left: 16),
+            child: Text(
+              _errors['photos']!,
+              style: GoogleFonts.poppins(
+                color: Colors.red,
+                fontSize: 12,
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -1000,12 +919,11 @@ class _EditTaskPageState extends State<EditTaskPage>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            '${_currentStep + 1} / ${steps.length}\n${steps[_currentStep]['name']}',
+            '${_currentStep + 1} / ${steps.length}',
             style: GoogleFonts.poppins(
-              fontSize: 10,
-              color: Color(0xFFB71A4A),
-              fontWeight: FontWeight.w600,
-              height: 1.5,
+              fontSize: 16,
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
           ),
@@ -1013,8 +931,9 @@ class _EditTaskPageState extends State<EditTaskPage>
             Text(
               '(Optional)',
               style: GoogleFonts.poppins(
-                fontSize: 8,
-                color: Colors.grey,
+                fontSize: 12,
+                color: Colors.black,
+                fontWeight: FontWeight.w300,
               ),
               textAlign: TextAlign.center,
             ),
@@ -1025,7 +944,7 @@ class _EditTaskPageState extends State<EditTaskPage>
 
   Widget _buildTitleInstruction(String title, String subtitle) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
           title,
@@ -1035,14 +954,17 @@ class _EditTaskPageState extends State<EditTaskPage>
             color: Colors.black87,
           ),
         ),
-        Text(
-          subtitle,
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            color: Colors.grey[600],
+        Center(
+          child: Text(
+            subtitle,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              color: Colors.black,
+              fontWeight: FontWeight.w300,
+            ),
           ),
         ),
-        SizedBox(height: 16),
+        SizedBox(height: 24),
       ],
     );
   }
@@ -1069,7 +991,7 @@ class _EditTaskPageState extends State<EditTaskPage>
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(
-            color: errorText != null ? Colors.red : Colors.grey[300]!,
+            color: errorText != null ? Colors.red : Colors.black,
           ),
           borderRadius: BorderRadius.circular(8),
         ),
@@ -1080,7 +1002,7 @@ class _EditTaskPageState extends State<EditTaskPage>
               child: Text(
                 value ?? hint,
                 style: GoogleFonts.poppins(
-                  color: value != null ? Colors.black : Colors.grey,
+                  color: value != null ? Colors.black : Colors.black,
                   fontSize: 12,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -1129,9 +1051,9 @@ class _EditTaskPageState extends State<EditTaskPage>
         Text(
           isRequired ? '$label *' : label,
           style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
           ),
         ),
         SizedBox(height: 8),
@@ -1146,7 +1068,7 @@ class _EditTaskPageState extends State<EditTaskPage>
               maxLength: maxLength,
               decoration: InputDecoration(
                 hintText: hint,
-                hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
+                hintStyle: GoogleFonts.poppins(color: Colors.black),
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
@@ -1155,11 +1077,11 @@ class _EditTaskPageState extends State<EditTaskPage>
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[200]!),
+                  borderSide: BorderSide(color: Colors.black),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Color(0xFFB71A4A), width: 2),
+                  borderSide: BorderSide(color: Colors.black, width: 2),
                 ),
                 errorText: error,
                 errorStyle: GoogleFonts.poppins(color: Colors.red[400]),
@@ -1261,7 +1183,7 @@ class _EditTaskPageState extends State<EditTaskPage>
                         height: MediaQuery.of(context).size.height -
                             MediaQuery.of(context).padding.top -
                             kToolbarHeight -
-                            100,
+                            100, // Adjust for appbar and progress bar
                         child: PageView(
                           controller: _pageController,
                           physics: NeverScrollableScrollPhysics(),
@@ -1276,6 +1198,7 @@ class _EditTaskPageState extends State<EditTaskPage>
                               padding: EdgeInsets.all(16),
                               child: Card(
                                 elevation: 2,
+                                color: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -1302,9 +1225,9 @@ class _EditTaskPageState extends State<EditTaskPage>
                                       Text(
                                         'Location *',
                                         style: GoogleFonts.poppins(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.black87,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.black,
                                         ),
                                       ),
                                       SizedBox(height: 4),
@@ -1319,7 +1242,9 @@ class _EditTaskPageState extends State<EditTaskPage>
                                             side: _errors['location'] != null
                                                 ? BorderSide(
                                                     color: Colors.red, width: 1)
-                                                : BorderSide.none,
+                                                : BorderSide(
+                                                    color: Colors.black,
+                                                    width: 1),
                                           ),
                                           child: Padding(
                                             padding: EdgeInsets.all(16),
@@ -1394,6 +1319,7 @@ class _EditTaskPageState extends State<EditTaskPage>
                               padding: EdgeInsets.all(16),
                               child: Card(
                                 elevation: 2,
+                                color: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -1407,6 +1333,16 @@ class _EditTaskPageState extends State<EditTaskPage>
                                         'Details',
                                         'Specify the skills and work type needed',
                                       ),
+                                      SizedBox(height: 16),
+                                      Text(
+                                        'Specialization *',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                      SizedBox(height: 4),
                                       _buildSelectSpecialization(
                                         value: selectedSpecialization,
                                         hint: 'Select Specialization',
@@ -1420,6 +1356,15 @@ class _EditTaskPageState extends State<EditTaskPage>
                                         isRequired: true,
                                       ),
                                       SizedBox(height: 16),
+                                      Text(
+                                        'Related Specializations *',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                      SizedBox(height: 4),
                                       _buildMultiSelectField(
                                         selectedItems: relatedSpecializations,
                                         items: selectedSpecializations.keys
@@ -1457,6 +1402,7 @@ class _EditTaskPageState extends State<EditTaskPage>
                               padding: EdgeInsets.all(16),
                               child: Card(
                                 elevation: 2,
+                                color: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -1470,6 +1416,7 @@ class _EditTaskPageState extends State<EditTaskPage>
                                         'Timeline',
                                         'Define the duration and start date',
                                       ),
+                                      SizedBox(height: 4),
                                       _buildDropdownField(
                                         value: selectedScope,
                                         items: scopes,
@@ -1503,6 +1450,7 @@ class _EditTaskPageState extends State<EditTaskPage>
                               padding: EdgeInsets.all(16),
                               child: Card(
                                 elevation: 2,
+                                color: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -1548,6 +1496,7 @@ class _EditTaskPageState extends State<EditTaskPage>
                               padding: EdgeInsets.all(16),
                               child: Card(
                                 elevation: 2,
+                                color: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -1640,10 +1589,6 @@ class _EditTaskPageState extends State<EditTaskPage>
                         Expanded(
                           child: ElevatedButton(
                             onPressed: () {
-                              if (!_showButton) {
-                                _showWarningDialog();
-                                return;
-                              }
                               if (_currentStep < 4) {
                                 if (_validateStep(_currentStep)) {
                                   _pageController.nextPage(
@@ -1668,6 +1613,8 @@ class _EditTaskPageState extends State<EditTaskPage>
                                         photos: _photos,
                                         onSubmit: _updateJob,
                                         method: 'edit_task',
+                                        taskImages: taskImages,
+                                        imagesToDelete: imagesToDelete,
                                       ),
                                     ),
                                   );

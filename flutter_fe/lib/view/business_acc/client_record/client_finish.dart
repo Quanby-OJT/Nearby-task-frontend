@@ -86,7 +86,7 @@ class _FinishTaskState extends State<FinishTask> {
         return;
       }
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(userId);
+          await _profileController.getAuthenticatedUser(context, userId);
       debugPrint("User data: $user");
       setState(() {
         _role = user?.user.role;
@@ -124,7 +124,8 @@ class _FinishTaskState extends State<FinishTask> {
         // Fetch task and tasker/client details
         await Future.wait([
           _fetchTaskDetails(),
-          if (_requestInformation != null) // Ensure _requestInformation is not null before accessing its properties
+          if (_requestInformation !=
+              null) // Ensure _requestInformation is not null before accessing its properties
             _fetchTaskerDetails(
               widget.role == "Client"
                   ? _requestInformation!.taskerId ?? 0
@@ -171,7 +172,7 @@ class _FinishTaskState extends State<FinishTask> {
         return;
       }
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(userId);
+          await _profileController.getAuthenticatedUser(context, userId);
       debugPrint("Tasker/Client data: $user");
       setState(() {
         tasker = user;
@@ -441,18 +442,18 @@ class _FinishTaskState extends State<FinishTask> {
                         color: Colors.grey[600],
                       ),
                     ),
-                    if(rating > 0)
-                    Row(
-                      children: List.generate(5, (index) {
-                        return Icon(
-                          index < rating
-                              ? FontAwesomeIcons.solidStar
-                              : FontAwesomeIcons.star,
-                          color: Colors.amber,
-                          size: 16,
-                        );
-                      }),
-                    ),
+                    if (rating > 0)
+                      Row(
+                        children: List.generate(5, (index) {
+                          return Icon(
+                            index < rating
+                                ? FontAwesomeIcons.solidStar
+                                : FontAwesomeIcons.star,
+                            color: Colors.amber,
+                            size: 16,
+                          );
+                        }),
+                      ),
                   ],
                 ),
               ],
@@ -472,23 +473,20 @@ class _FinishTaskState extends State<FinishTask> {
 //                   color: Colors.grey[600],
 //                 ))
 // =======
-            if(feedback.isNotEmpty)...[
+            if (feedback.isNotEmpty) ...[
               SizedBox(height: 8),
-              Text(
-                  "Your Feedback",
+              Text("Your Feedback",
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF03045E),
-                  )
-              ),
+                  )),
               SizedBox(height: 8),
-              Text(
-                  feedback,
+              Text(feedback,
                   style: GoogleFonts.poppins(
                     fontSize: 12,
-                    color: Colors.grey[600],)
-              )
+                    color: Colors.grey[600],
+                  ))
             ],
           ],
         ),

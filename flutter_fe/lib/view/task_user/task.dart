@@ -10,6 +10,7 @@ import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/view/task/task_archive.dart';
 import 'package:flutter_fe/view/task/task_cancelled.dart';
 import 'package:flutter_fe/view/task/task_confirmed.dart';
 import 'package:flutter_fe/view/task/task_declined.dart';
@@ -22,7 +23,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../model/client_model.dart';
 
 class TaskPage extends StatefulWidget {
@@ -32,7 +32,8 @@ class TaskPage extends StatefulWidget {
   State<TaskPage> createState() => _TaskPageState();
 }
 
-class _TaskPageState extends State<TaskPage> with SingleTickerProviderStateMixin {
+class _TaskPageState extends State<TaskPage>
+    with SingleTickerProviderStateMixin {
   final TaskController controller = TaskController();
   final JobPostService jobPostService = JobPostService();
   final ClientServices _clientServices = ClientServices();
@@ -41,6 +42,8 @@ class _TaskPageState extends State<TaskPage> with SingleTickerProviderStateMixin
       EscrowManagementController();
   final GetStorage storage = GetStorage();
   final TextEditingController _searchController = TextEditingController();
+  final GlobalKey<PopupMenuButtonState> _moreVertKey =
+      GlobalKey<PopupMenuButtonState>();
   ClientModel? clientModel;
   String? _message;
   final bool _isSuccess = false;
@@ -114,7 +117,8 @@ class _TaskPageState extends State<TaskPage> with SingleTickerProviderStateMixin
       await _loadSkills();
       await _fetchUserIDImage();
       await fetchCreatedTasks();
-      if (mounted) { // Ensure widget is still mounted before adding listener
+      if (mounted) {
+        // Ensure widget is still mounted before adding listener
         _searchController.addListener(_filterTasks);
       }
     });
@@ -180,10 +184,12 @@ class _TaskPageState extends State<TaskPage> with SingleTickerProviderStateMixin
     } catch (e, stackTrace) {
       debugPrint("Error fetching created tasks: $e");
       debugPrintStack(stackTrace: stackTrace);
-      if (mounted) { // Check if the widget is still mounted before showing SnackBar
+      if (mounted) {
+        // Check if the widget is still mounted before showing SnackBar
         // Ensure context is still valid
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar( //
+        ScaffoldMessenger.of(context).showSnackBar(
+          //
           SnackBar(
             content: Text("Failed to load tasks. Please try again."),
             backgroundColor: Colors.red,
@@ -218,11 +224,12 @@ class _TaskPageState extends State<TaskPage> with SingleTickerProviderStateMixin
       });
     }
   }
+
   Future<void> _fetchUserIDImage() async {
     try {
       int userId = int.parse(storage.read('user_id').toString());
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(userId);
+          await _profileController.getAuthenticatedUser(context, userId);
       final response = await _clientServices.fetchUserIDImage(userId);
 
       if (response['success']) {
@@ -307,12 +314,108 @@ class _TaskPageState extends State<TaskPage> with SingleTickerProviderStateMixin
     );
   }
 
+  void _showAnimatedMenu(BuildContext context) {
+    final RenderBox renderBox =
+        _moreVertKey.currentContext!.findRenderObject() as RenderBox;
+    final position = renderBox.localToGlobal(Offset.zero);
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    final double menuWidth = screenWidth / 1.5;
+    final double leftPosition =
+        position.dx + renderBox.size.width - menuWidth - 10;
+    final double topPosition = position.dy + renderBox.size.height;
+
+    final double adjustedLeft = leftPosition < 0
+        ? 0
+        : leftPosition + menuWidth > screenWidth
+            ? screenWidth - menuWidth
+            : leftPosition;
+
+    OverlayState overlayState = Overlay.of(context);
+    late OverlayEntry overlayEntry;
+
+    overlayEntry = OverlayEntry(
+      builder: (context) => Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () {
+                overlayEntry.remove();
+              },
+              child: Container(
+                color: Colors.transparent,
+              ),
+            ),
+          ),
+          Positioned(
+            left: adjustedLeft,
+            top: topPosition,
+            width: menuWidth,
+            child: Material(
+              elevation: 4,
+              borderRadius: BorderRadius.circular(8),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    buildListTile(
+                      Icons.archive_outlined,
+                      "Task Archive",
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  TaskArchivePage(role: 'Tasker')),
+                        );
+                        overlayEntry.remove();
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    overlayState.insert(overlayEntry);
+  }
+
+  Widget buildListTile(
+    IconData icon,
+    String title,
+    VoidCallback onTap,
+  ) {
+    return ListTile(
+        leading: Icon(
+          icon,
+          color: const Color(0xFFB71A4A),
+        ),
+        title: Text(
+          title,
+          style: GoogleFonts.poppins(
+            color: Colors.black87,
+            fontSize: 14,
+            fontWeight: FontWeight.w300,
+          ),
+        ),
+        onTap: onTap);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        centerTitle: true,
+        centerTitle: false,
         title: Text(
           'Task',
           style: GoogleFonts.poppins(
@@ -321,6 +424,18 @@ class _TaskPageState extends State<TaskPage> with SingleTickerProviderStateMixin
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          IconButton(
+            key: _moreVertKey,
+            icon: Icon(
+              Icons.more_vert,
+              color: Color(0xFFB71A4A),
+            ),
+            onPressed: () {
+              _showAnimatedMenu(context);
+            },
+          ),
+        ],
         backgroundColor: Colors.grey[100],
         elevation: 0,
       ),
@@ -331,28 +446,25 @@ class _TaskPageState extends State<TaskPage> with SingleTickerProviderStateMixin
           : clientTasks.isEmpty
               ? Center(
                   child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          FontAwesomeIcons.screwdriverWrench,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'You don\'t have any tasks yet. You can apply for a task by clicking on the "Apply" button, after you saved your desired task.',
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            color: Colors.grey[600],
-                          ),
-                          textAlign: TextAlign.center,
-                        )
-                      ]
-                    )
-                  )
-                )
+                      padding: EdgeInsets.all(20),
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              FontAwesomeIcons.screwdriverWrench,
+                              size: 64,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No tasks yet. Click "Apply" after saving your desired task.',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                color: Colors.grey[600],
+                              ),
+                              textAlign: TextAlign.center,
+                            )
+                          ])))
               : Column(
                   children: [
                     Padding(
@@ -554,9 +666,217 @@ class _TaskPageState extends State<TaskPage> with SingleTickerProviderStateMixin
     }
   }
 
-  Widget _buildTaskCard(TaskFetch task) {
-    String priceDisplay = "${task.taskDetails} Credits";
+  void _showSelectorModal(BuildContext context, TaskFetch task) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          elevation: 8.0,
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Task Options',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildModalOption(
+                  context,
+                  icon: Icons.archive_outlined,
+                  title: 'Archive Task',
+                  color: Colors.blueAccent,
+                  onTap: () async {
+                    try {
+                      await controller.updateTaskStatus(
+                          context, task.id, 'Archived');
+                      setState(() {
+                        final index = clientTasks.indexOf(task);
+                        if (index != -1) {
+                          final updatedTask = TaskFetch(
+                            id: task.id,
+                            taskStatus: 'Archived',
+                            taskDetails: task.taskDetails,
+                            taskTakenId: task.taskTakenId,
+                            createdAt: task.createdAt,
+                            updatedAt: DateTime.now(),
+                          );
+                          clientTasks[index] = updatedTask;
+                          _filterTasks();
+                        }
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Task archived successfully',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                          backgroundColor: Colors.green,
+                          behavior: SnackBarBehavior.floating,
+                          margin: EdgeInsets.all(10),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      Navigator.pop(context);
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Failed to archive task',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                          margin: EdgeInsets.all(10),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      debugPrint('Error archiving task: $e');
+                    }
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildModalOption(
+                  context,
+                  icon: Icons.delete_outline,
+                  title: 'Delete Task',
+                  color: Colors.redAccent,
+                  onTap: () async {
+                    try {
+                      await controller.updateTaskStatus(
+                          context, task.id, 'Deleted');
+                      setState(() {
+                        final index = clientTasks.indexOf(task);
+                        if (index != -1) {
+                          final updatedTask = TaskFetch(
+                            id: task.id,
+                            taskStatus: 'Deleted',
+                            taskDetails: task.taskDetails,
+                            taskTakenId: task.taskTakenId,
+                            createdAt: task.createdAt,
+                            updatedAt: DateTime.now(),
+                          );
+                          clientTasks[index] = updatedTask;
+                          _filterTasks();
+                        }
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Task deleted successfully',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                          backgroundColor: Colors.green,
+                          behavior: SnackBarBehavior.floating,
+                          margin: EdgeInsets.all(10),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      Navigator.pop(context);
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Failed to delete task',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                          ),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                          margin: EdgeInsets.all(10),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      debugPrint('Error deleting task: $e');
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.center,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      'Cancel',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w300,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
+  Widget _buildModalOption(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.grey[100], // Light background for contrast
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: color,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w300,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTaskCard(TaskFetch task) {
     return Card(
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -566,6 +886,9 @@ class _TaskPageState extends State<TaskPage> with SingleTickerProviderStateMixin
         borderRadius: BorderRadius.circular(12),
         onTap: () {
           _navigateToTaskStatusPage(task);
+        },
+        onLongPress: () {
+          _showSelectorModal(context, task);
         },
         child: Padding(
           padding: EdgeInsets.all(16),

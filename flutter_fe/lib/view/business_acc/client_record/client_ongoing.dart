@@ -60,7 +60,7 @@ class _ClientOngoingState extends State<ClientOngoing> {
   Future<void> _fetchTaskerDetails(int userId) async {
     try {
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(userId);
+          await _profileController.getAuthenticatedUser(context, userId);
       setState(() {
         tasker = user;
       });

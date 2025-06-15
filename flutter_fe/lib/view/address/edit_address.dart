@@ -306,6 +306,32 @@ class _EditAddressState extends State<EditAddress> {
       return;
     }
 
+    // Validate required fields
+    if (_streetAddressController.text.trim().isEmpty) {
+      _showError('Street address is required');
+      return;
+    }
+
+    if (_postalCodeController.text.trim().isEmpty) {
+      _showError('Postal code is required');
+      return;
+    }
+
+    if (_selectedBarangay == null) {
+      _showError('Barangay is required');
+      return;
+    }
+
+    if (_selectedCity == null) {
+      _showError('City is required');
+      return;
+    }
+
+    if (_selectedProvince == null) {
+      _showError('Province is required');
+      return;
+    }
+
     try {
       setState(() => _isLoadingMap = true);
 
@@ -376,8 +402,21 @@ class _EditAddressState extends State<EditAddress> {
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Text(
+          message,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+          ),
+        ),
         backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(5),
+        ),
+        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        duration: Duration(seconds: 3),
       ),
     );
   }
@@ -396,7 +435,7 @@ class _EditAddressState extends State<EditAddress> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            label,
+            '$label *',
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
@@ -524,7 +563,7 @@ class _EditAddressState extends State<EditAddress> {
                         TextFormField(
                           controller: _streetAddressController,
                           decoration: InputDecoration(
-                            labelText: 'Street Address',
+                            labelText: 'Street Address *',
                             hintText: 'Enter your street address',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -538,7 +577,7 @@ class _EditAddressState extends State<EditAddress> {
                         TextFormField(
                           controller: _postalCodeController,
                           decoration: InputDecoration(
-                            labelText: 'Postal Code',
+                            labelText: 'Postal Code *',
                             hintText: 'Enter postal code',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),

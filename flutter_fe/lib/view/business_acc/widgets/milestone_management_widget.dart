@@ -41,7 +41,7 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
 
     try {
       final milestones =
-          await _milestoneService.getTaskMilestones(widget.task.id);
+      await _milestoneService.getTaskMilestones(widget.task.id);
       setState(() {
         _milestones = milestones..sort((a, b) => a.order.compareTo(b.order));
         _isLoading = false;
@@ -218,7 +218,7 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
   Future<void> _updateMilestoneStatus(
       MilestoneModel milestone, String newStatus) async {
     final response =
-        await _milestoneService.updateMilestoneStatus(milestone.id!, newStatus);
+    await _milestoneService.updateMilestoneStatus(milestone.id!, newStatus);
 
     if (response['success']) {
       _showSuccessSnackBar('Milestone status updated');
@@ -321,14 +321,14 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
                 onPressed: _isAdding ? null : _showAddMilestoneDialog,
                 icon: _isAdding
                     ? SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor:
+                    AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
                     : Icon(Icons.add, color: Colors.white),
                 label: Text(
                   _isAdding ? 'Adding...' : 'Add Milestone',
@@ -354,7 +354,7 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
                   padding: EdgeInsets.all(20),
                   child: CircularProgressIndicator(
                     valueColor:
-                        AlwaysStoppedAnimation<Color>(Color(0xFFE23670)),
+                    AlwaysStoppedAnimation<Color>(Color(0xFFE23670)),
                   ),
                 ),
               )
@@ -398,7 +398,7 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
                           padding:
-                              EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(6),
                           ),
@@ -476,7 +476,7 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
                             fontSize: 11,
                             color: isOverdue ? Colors.red : Colors.grey[600],
                             fontWeight:
-                                isOverdue ? FontWeight.w500 : FontWeight.normal,
+                            isOverdue ? FontWeight.w500 : FontWeight.normal,
                           ),
                         ),
                     ],
@@ -788,7 +788,7 @@ class _MilestoneDialogState extends State<_MilestoneDialog> {
                     borderSide: BorderSide(color: Color(0xFFE23670)),
                   ),
                   helperText:
-                      'Available: ₱${NumberFormat("#,##0.00").format(remainingAmount)}',
+                  'Available: ₱${NumberFormat("#,##0.00").format(remainingAmount)}',
                   helperStyle: GoogleFonts.poppins(
                       fontSize: 11, color: Colors.grey[600]),
                 ),
@@ -860,7 +860,7 @@ class _MilestoneDialogState extends State<_MilestoneDialog> {
                     ),
                   ),
                   style:
-                      GoogleFonts.poppins(fontSize: 14, color: Colors.black87),
+                  GoogleFonts.poppins(fontSize: 14, color: Colors.black87),
                   items: _statusOptions.map((status) {
                     return DropdownMenuItem(
                       value: status,

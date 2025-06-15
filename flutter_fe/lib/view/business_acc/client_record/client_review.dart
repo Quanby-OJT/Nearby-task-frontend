@@ -296,7 +296,7 @@ class _ClientReviewState extends State<ClientReview> {
   Future<void> _fetchTaskerDetails(int userId) async {
     try {
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(userId);
+          await _profileController.getAuthenticatedUser(context, userId);
       setState(() {
         client = user;
       });
@@ -785,7 +785,7 @@ class _ClientReviewState extends State<ClientReview> {
 
   Widget _showActionBottomSheet() {
     return Column(children: [
-      if(_requestStatus != 'Disputed')...[
+      if (_requestStatus != 'Disputed') ...[
         ElevatedButton(
           onPressed: _handleFinishTask,
           style: ElevatedButton.styleFrom(
@@ -797,7 +797,8 @@ class _ClientReviewState extends State<ClientReview> {
             ),
             elevation: 2,
           ),
-          child: Text('Mark Task as Finished',
+          child: Text(
+            'Mark Task as Finished',
             style: GoogleFonts.montserrat(
               fontSize: 16,
               fontWeight: FontWeight.w600,

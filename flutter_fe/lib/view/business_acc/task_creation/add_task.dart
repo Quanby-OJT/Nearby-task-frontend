@@ -13,6 +13,9 @@ import 'package:flutter_fe/view/address/address_list.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/preview_task.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/select_related_spec.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/select_spec.dart';
+import 'package:flutter_fe/view/business_acc/transaction_history.dart';
+import 'package:flutter_fe/view/custom_loading/custom_loading.dart';
+import 'package:flutter_fe/view/custom_loading/file_indicators.dart';
 import 'package:flutter_fe/view/verification/verification_page.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -31,8 +34,6 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
   final JobPostService jobPostService = JobPostService();
   final ClientServices _clientServices = ClientServices();
   final ProfileController _profileController = ProfileController();
-  final EscrowManagementController _escrowManagementController =
-      EscrowManagementController();
   final GetStorage storage = GetStorage();
   final PageController _pageController = PageController();
   final ImagePicker _picker = ImagePicker();
@@ -68,8 +69,9 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
 
   bool _isLoading = true;
   bool _showButton = false;
-  bool _isUploadDialogShown = false;
+  final bool _isUploadDialogShown = false;
   bool _documentValid = false;
+  bool isUploading = false;
   int _currentStep = 0;
   final bool _isVerifiedDocument = false;
   static const int _maxCharactersTitle = 50;
@@ -120,7 +122,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
     try {
       int userId = int.parse(storage.read('user_id').toString());
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(userId);
+          await _profileController.getAuthenticatedUser(context, userId);
       final response = await _clientServices.fetchUserIDImage(userId);
       debugPrint('add task verification: $response');
 
@@ -154,85 +156,6 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
         _isLoading = false;
       });
     }
-  }
-
-  void _showWarningDialog() {
-    if (_isUploadDialogShown) return;
-    setState(() {
-      _isUploadDialogShown = true;
-    });
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          'Complete Your Profile',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF0272B1),
-          ),
-        ),
-        content: Text(
-          'Please upload your profile and ID images to post tasks.',
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            color: Colors.grey[600],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() {
-                _isUploadDialogShown = false;
-              });
-            },
-            child: Text(
-              'Cancel',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: Colors.red[400],
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const VerificationPage()),
-              );
-              if (result == true) {
-                setState(() {
-                  _isLoading = true;
-                });
-                await _fetchUserIDImage();
-              }
-              setState(() {
-                _isUploadDialogShown = false;
-              });
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF0272B1),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: Text(
-              'Verify Now',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   bool _validateStep(int step) {
@@ -297,6 +220,10 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
         }
         break;
       case 4:
+        if (_photos.isEmpty) {
+          _errors['photos'] = 'Please upload at least one photo';
+          return false;
+        }
         return true;
     }
     return true;
@@ -395,6 +322,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
     }
 
     try {
+      showUploadDialog(context);
       final result = await controller.postJob(
         selectedSpecialization ?? "",
         selectedUrgency ?? "",
@@ -407,13 +335,16 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
         addressId: _addressID,
       );
 
+      if(mounted) Navigator.pop(context);
+
       if (result['success']) {
         if (mounted) {
           Navigator.pop(context);
         }
 
         setState(() {
-          _message = result['message'] ?? "Successfully Posted Task.";
+          //_message = result['message'] ?? "Successfully Posted Task.";
+          _message = "Your Task has been successfully uploaded to the Cloud Server. Taskers can now download your task upon application.";
         });
 
         controller.clearControllers();
@@ -448,41 +379,59 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
             duration: Duration(seconds: 3),
           ),
         );
-        Navigator.pop(context);
+        if (mounted) Navigator.pop(context);
       } else {
         setState(() {
-          if (result.containsKey('errors') && result['errors'] is List) {
-            for (var error in result['errors']) {
-              if (error is Map<String, dynamic> &&
-                  error.containsKey('path') &&
-                  error.containsKey('msg')) {
-                _errors[error['path']] = error['msg'];
-              }
-            }
-          }
           _message = result['error'] ?? 'Failed to post task';
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _message ?? "Failed to post task.",
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5),
               ),
-            ),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(5),
-            ),
-            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            duration: Duration(seconds: 3),
-          ),
+              title: const Text(
+                'Cannot Post Task',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              content: Text(
+                _message ?? "Please try again.",
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w300,
+                ),
+              ),
+              actions: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                    color: const Color(0xFFB71A4A),
+                  ),
+                  child: TextButton(
+                    child: Text('OK',
+                        style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white)),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
         );
-        Navigator.pop(context);
       }
     } catch (error) {
       debugPrint("Error submitting job: $error");
@@ -509,9 +458,28 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
     } finally {
       setState(() {
         _isLoading = false;
+        isUploading = false;
       });
     }
   }
+
+  //For PCIC Presentation Only
+  void showUploadDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext childContext) {
+        return PopScope(
+          canPop: false,
+          child: AlertDialog(
+            content: UploadFileIndicator(),
+            contentPadding: const EdgeInsets.all(24),
+          ),
+        );
+      },
+    );
+  }
+
 
   Widget _buildTextField({
     required TextEditingController controller,
@@ -529,9 +497,9 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
         Text(
           isRequired ? '$label *' : label,
           style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
           ),
         ),
         SizedBox(height: 8),
@@ -542,7 +510,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
           inputFormatters: inputFormatters,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
+            hintStyle: GoogleFonts.poppins(color: Colors.black),
             filled: true,
             fillColor: Colors.white,
             border: OutlineInputBorder(
@@ -551,11 +519,11 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[200]!),
+              borderSide: BorderSide(color: Colors.black),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Color(0xFFB71A4A), width: 2),
+              borderSide: BorderSide(color: Colors.black, width: 2),
             ),
             errorText: errorText,
             errorStyle: GoogleFonts.poppins(color: Colors.red[400]),
@@ -610,9 +578,9 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
         Text(
           isRequired ? '$label *' : label,
           style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
           ),
         ),
         SizedBox(height: 8),
@@ -636,11 +604,11 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[200]!),
+                  borderSide: BorderSide(color: Colors.black),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Color(0xFFB71A4A), width: 2),
+                  borderSide: BorderSide(color: Colors.black, width: 2),
                 ),
                 errorText: error,
                 errorStyle: GoogleFonts.poppins(color: Colors.red[400]),
@@ -702,9 +670,9 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
         Text(
           isRequired ? '$hint *' : hint,
           style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
           ),
         ),
         SizedBox(height: 8),
@@ -721,11 +689,11 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[200]!),
+              borderSide: BorderSide(color: Colors.black),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Color(0xFFB71A4A), width: 2),
+              borderSide: BorderSide(color: Colors.black, width: 2),
             ),
             errorText: errorText,
             errorStyle: GoogleFonts.poppins(color: Colors.red[400]),
@@ -790,7 +758,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(
-            color: errorText != null ? Colors.red : Colors.grey[300]!,
+            color: errorText != null ? Colors.red : Colors.black,
           ),
           borderRadius: BorderRadius.circular(8),
         ),
@@ -801,7 +769,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
               child: Text(
                 selectedItems.isEmpty ? hint : selectedItems.join(', '),
                 style: GoogleFonts.poppins(
-                  color: selectedItems.isEmpty ? Colors.grey : Colors.black,
+                  color: selectedItems.isEmpty ? Colors.black : Colors.black,
                   fontSize: 12,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -820,11 +788,11 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Upload Photos (Optional, up to $maxPhotos)',
+          'Upload Photos (Screenshots, Actual Work, etc. (Max. $maxPhotos photos)) *',
           style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
           ),
         ),
         SizedBox(height: 8),
@@ -944,6 +912,17 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
                     ),
                 ],
               ),
+        if (_errors['photos'] != null)
+          Padding(
+            padding: EdgeInsets.only(top: 8, left: 16),
+            child: Text(
+              _errors['photos']!,
+              style: GoogleFonts.poppins(
+                color: Colors.red,
+                fontSize: 12,
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -972,24 +951,23 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
       },
       {
         'name': 'Additional Info',
-        'tooltip': 'Add remarks and photos (optional)',
+        'tooltip': 'Add remarks and photos',
         'isOptional': true
       },
     ];
 
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      padding: EdgeInsets.symmetric(vertical: 0, horizontal: 16),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(height: 8),
           Text(
-            '${_currentStep + 1} / ${steps.length}\n${steps[_currentStep]['name']}',
+            '${_currentStep + 1} / ${steps.length}',
             style: GoogleFonts.poppins(
-              fontSize: 10,
-              color: Color(0xFFB71A4A),
-              fontWeight: FontWeight.w600,
-              height: 1.5,
+              fontSize: 16,
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
           ),
@@ -997,8 +975,9 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
             Text(
               '(Optional)',
               style: GoogleFonts.poppins(
-                fontSize: 8,
-                color: Colors.grey,
+                fontSize: 12,
+                color: Colors.black,
+                fontWeight: FontWeight.w300,
               ),
               textAlign: TextAlign.center,
             ),
@@ -1009,7 +988,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
 
   Widget _buildTitleInstruction(String title, String subtitle) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
           title,
@@ -1019,14 +998,17 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
             color: Colors.black87,
           ),
         ),
-        Text(
-          subtitle,
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            color: Colors.grey[600],
+        Center(
+          child: Text(
+            subtitle,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              color: Colors.black,
+              fontWeight: FontWeight.w300,
+            ),
           ),
         ),
-        SizedBox(height: 16),
+        SizedBox(height: 24),
       ],
     );
   }
@@ -1053,7 +1035,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(
-            color: errorText != null ? Colors.red : Colors.grey[300]!,
+            color: errorText != null ? Colors.red : Colors.black,
           ),
           borderRadius: BorderRadius.circular(8),
         ),
@@ -1064,8 +1046,9 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
               child: Text(
                 value ?? hint,
                 style: GoogleFonts.poppins(
-                  color: value != null ? Colors.black : Colors.grey,
+                  color: value != null ? Colors.black : Colors.black,
                   fontSize: 12,
+                  fontWeight: FontWeight.w300,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -1124,7 +1107,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
       ),
       body: SafeArea(
         child: _isLoading
-            ? Center(child: CircularProgressIndicator())
+            ? Center(child: CustomLoading())
             : Column(
                 children: [
                   _buildProgressBar(),
@@ -1154,6 +1137,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
                               child: SingleChildScrollView(
                                 child: Card(
                                   elevation: 2,
+                                  color: Colors.white,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -1180,9 +1164,9 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
                                         Text(
                                           'Location *',
                                           style: GoogleFonts.poppins(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.black87,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.black,
                                           ),
                                         ),
                                         SizedBox(height: 4),
@@ -1198,7 +1182,9 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
                                                   ? BorderSide(
                                                       color: Colors.red,
                                                       width: 1)
-                                                  : BorderSide.none,
+                                                  : BorderSide(
+                                                      color: Colors.black,
+                                                      width: 1),
                                             ),
                                             child: Padding(
                                               padding: EdgeInsets.all(16),
@@ -1277,6 +1263,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
                               child: SingleChildScrollView(
                                 child: Card(
                                   elevation: 2,
+                                  color: Colors.white,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -1290,6 +1277,15 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
                                           'Details',
                                           'Specify the skills and work type needed',
                                         ),
+                                        Text(
+                                          'Specialization *',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                        SizedBox(height: 4),
                                         _buildSelectSpecialization(
                                           value: selectedSpecialization,
                                           hint: 'Select Specialization',
@@ -1304,6 +1300,15 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
                                           isRequired: true,
                                         ),
                                         SizedBox(height: 16),
+                                        Text(
+                                          'Related Specializations *',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                        SizedBox(height: 4),
                                         _buildMultiSelectField(
                                           selectedItems: relatedSpecializations,
                                           items: selectedSpecializations.keys
@@ -1344,6 +1349,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
                               child: SingleChildScrollView(
                                 child: Card(
                                   elevation: 2,
+                                  color: Colors.white,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -1393,6 +1399,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
                               child: SingleChildScrollView(
                                 child: Card(
                                   elevation: 2,
+                                  color: Colors.white,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -1441,6 +1448,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
                               child: SingleChildScrollView(
                                 child: Card(
                                   elevation: 2,
+                                  color: Colors.white,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -1551,10 +1559,6 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
                         Expanded(
                           child: ElevatedButton(
                             onPressed: () {
-                              if (!_showButton) {
-                                _showWarningDialog();
-                                return;
-                              }
                               if (_currentStep < 4) {
                                 if (_validateStep(_currentStep)) {
                                   _pageController.nextPage(

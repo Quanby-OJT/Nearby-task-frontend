@@ -172,7 +172,7 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       int userId = int.parse(storage.read('user_id').toString());
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(userId);
+          await _profileController.getAuthenticatedUser(context, userId);
       final response = await _clientServices.fetchUserIDImage(userId);
 
       if (response['success']) {
@@ -967,6 +967,15 @@ class _ChatScreenState extends State<ChatScreen> {
               MaterialPageRoute(
                 builder: (context) => IndividualChatScreen(
                   taskAssignment: taskTaken,
+                  user: user ??
+                      UserModel(
+                        firstName: '',
+                        middleName: '',
+                        lastName: '',
+                        email: '',
+                        role: '',
+                        accStatus: '',
+                      ),
                 ),
               ),
             ).then((_) {
