@@ -118,6 +118,11 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenWidth < 600;
+    final horizontalPadding = screenWidth * 0.1;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -132,202 +137,224 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
                 ],
               ),
             ),
-            child: Center(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SlideTransition(
-                      position: _topSlideAnimation,
-                      child: FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: Column(
-                          children: [
-                            SvgPicture.asset(
-                              'assets/svg/logo.svg',
-                              width: 150,
-                              height: 150,
-                            ),
-                            Text(
-                              textAlign: TextAlign.center,
-                              'Find Tasks Near You with QTask!',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                color: Colors.black87,
-                                fontWeight: FontWeight.w300,
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                          ],
-                        ),
-                      ),
+            child: SafeArea(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: horizontalPadding.clamp(20.0, 40.0),
+                    vertical: isSmallScreen ? 20 : 40,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: isSmallScreen ? double.infinity : 400,
                     ),
-                    SlideTransition(
-                      position: _bottomSlideAnimation,
-                      child: FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding:
-                                  const EdgeInsets.only(left: 40, right: 40),
-                              child: TextField(
-                                controller: _controller.emailController,
-                                cursorColor: const Color(0xFFB71A4A),
-                                decoration: _getInputDecoration('Email'),
-                              ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SlideTransition(
+                          position: _topSlideAnimation,
+                          child: FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: Column(
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/svg/logo.svg',
+                                  width: isSmallScreen ? 120 : 150,
+                                  height: isSmallScreen ? 120 : 150,
+                                ),
+                                SizedBox(height: isSmallScreen ? 12 : 16),
+                                Text(
+                                  textAlign: TextAlign.center,
+                                  'Find Tasks Near You with QTask!',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: isSmallScreen ? 11 : 12,
+                                    color: Colors.black87,
+                                    fontWeight: FontWeight.w300,
+                                  ),
+                                ),
+                                SizedBox(height: isSmallScreen ? 16 : 20),
+                              ],
                             ),
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                  left: 40, right: 40, top: 20),
-                              child: TextField(
-                                obscureText: _obsecureText,
-                                controller: _controller.passwordController,
-                                cursorColor: const Color(0xFFB71A4A),
-                                decoration:
-                                    _getInputDecoration('Password').copyWith(
-                                  suffixIcon: Padding(
-                                    padding: const EdgeInsets.only(right: 10),
-                                    child: IconButton(
-                                      icon: Icon(
-                                        _obsecureText
-                                            ? Icons.visibility_off
-                                            : Icons.visibility,
-                                        color: Colors.black87,
+                          ),
+                        ),
+                        SlideTransition(
+                          position: _bottomSlideAnimation,
+                          child: FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: Column(
+                              children: [
+                                TextField(
+                                  controller: _controller.emailController,
+                                  cursorColor: const Color(0xFFB71A4A),
+                                  style: GoogleFonts.poppins(
+                                    fontSize: isSmallScreen ? 14 : 16,
+                                  ),
+                                  decoration: _getInputDecoration(
+                                      'Email', isSmallScreen),
+                                ),
+                                SizedBox(height: isSmallScreen ? 16 : 20),
+                                TextField(
+                                  obscureText: _obsecureText,
+                                  controller: _controller.passwordController,
+                                  cursorColor: const Color(0xFFB71A4A),
+                                  style: GoogleFonts.poppins(
+                                    fontSize: isSmallScreen ? 14 : 16,
+                                  ),
+                                  decoration: _getInputDecoration(
+                                          'Password', isSmallScreen)
+                                      .copyWith(
+                                    suffixIcon: Padding(
+                                      padding: EdgeInsets.only(
+                                          right: isSmallScreen ? 8 : 10),
+                                      child: IconButton(
+                                        icon: Icon(
+                                          _obsecureText
+                                              ? Icons.visibility_off
+                                              : Icons.visibility,
+                                          color: Colors.black87,
+                                          size: isSmallScreen ? 20 : 24,
+                                        ),
+                                        onPressed: _toggleObscureText,
                                       ),
-                                      onPressed: _toggleObscureText,
                                     ),
                                   ),
                                 ),
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                            if (_isLocked)
-                              Container(
-                                margin:
-                                    const EdgeInsets.symmetric(vertical: 10),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 20, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.shade50,
-                                  borderRadius: BorderRadius.circular(10),
-                                  border:
-                                      Border.all(color: Colors.red.shade200),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.timer,
-                                        color: Colors.red.shade400),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Try again in ${_formatTime(_remainingSeconds)}',
-                                      style: GoogleFonts.poppins(
-                                        color: Colors.red.shade700,
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                                SizedBox(height: isSmallScreen ? 16 : 20),
+                                if (_isLocked)
+                                  Container(
+                                    margin: EdgeInsets.symmetric(
+                                      vertical: isSmallScreen ? 8 : 10,
                                     ),
-                                  ],
-                                ),
-                              ),
-                            if (!_isLocked)
-                              Container(
-                                height: 50,
-                                width: double.infinity,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 40),
-                                child: ElevatedButton(
-                                  onPressed: (_isLoading || _isLocked)
-                                      ? null
-                                      : _handleLogin,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFFB71A4A),
-                                    disabledBackgroundColor: Colors.grey,
-                                    shape: RoundedRectangleBorder(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: isSmallScreen ? 16 : 20,
+                                      vertical: isSmallScreen ? 8 : 10,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.shade50,
                                       borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                          color: Colors.red.shade200),
                                     ),
-                                    elevation: 5,
-                                    shadowColor: Colors.black26,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.timer,
+                                          color: Colors.red.shade400,
+                                          size: isSmallScreen ? 18 : 20,
+                                        ),
+                                        SizedBox(width: isSmallScreen ? 6 : 8),
+                                        Flexible(
+                                          child: Text(
+                                            'Try again in ${_formatTime(_remainingSeconds)}',
+                                            style: GoogleFonts.poppins(
+                                              color: Colors.red.shade700,
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: isSmallScreen ? 12 : 14,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  child: Text(
-                                    _isLocked ? 'Login Locked' : 'Sign in',
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
+                                if (!_isLocked)
+                                  SizedBox(
+                                    height: isSmallScreen ? 45 : 50,
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      onPressed: (_isLoading || _isLocked)
+                                          ? null
+                                          : _handleLogin,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            const Color(0xFFB71A4A),
+                                        disabledBackgroundColor: Colors.grey,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        elevation: 5,
+                                        shadowColor: Colors.black26,
+                                      ),
+                                      child: Text(
+                                        _isLocked ? 'Login Locked' : 'Sign in',
+                                        style: GoogleFonts.poppins(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: isSmallScreen ? 14 : 16,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: isSmallScreen ? 8 : 10,
+                                    ),
+                                    child: TextButton(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const ForgotPassword(),
+                                          ),
+                                        );
+                                      },
+                                      child: Text(
+                                        'Forgot your password?',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: isSmallScreen ? 11 : 12,
+                                          color: Colors.black87,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            Center(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 10, horizontal: 40),
-                                child: TextButton(
+                                TextButton(
                                   onPressed: () {
+                                    Navigator.pop(context);
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) =>
-                                            const ForgotPassword(),
+                                        builder: (context) => const PreSignUp(),
                                       ),
                                     );
                                   },
-                                  child: Text(
-                                    'Forgot your password?',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      color: Colors.black87,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  child: Wrap(
+                                    alignment: WrapAlignment.center,
+                                    crossAxisAlignment:
+                                        WrapCrossAlignment.center,
+                                    children: [
+                                      Text(
+                                        'Don\'t have an account?',
+                                        style: GoogleFonts.poppins(
+                                          color: Color(0xFF03045E),
+                                          fontWeight: FontWeight.w300,
+                                          fontSize: isSmallScreen ? 11 : 12,
+                                        ),
+                                      ),
+                                      SizedBox(width: 5),
+                                      Text(
+                                        'Sign Up',
+                                        style: GoogleFonts.poppins(
+                                          color: Color(0xFFB71A4A),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: isSmallScreen ? 11 : 12,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ),
+                              ],
                             ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 40,
-                              ),
-                              child: TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const PreSignUp(),
-                                    ),
-                                  );
-                                },
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      'Don\'t have an account?',
-                                      style: GoogleFonts.poppins(
-                                        color: Color(0xFF03045E),
-                                        fontWeight: FontWeight.w300,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 5),
-                                    Text(
-                                      'Sign Up',
-                                      style: GoogleFonts.poppins(
-                                        color: Color(0xFFB71A4A),
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -339,12 +366,23 @@ class _SignInState extends State<SignIn> with SingleTickerProviderStateMixin {
   }
 }
 
-InputDecoration _getInputDecoration(String label) {
+InputDecoration _getInputDecoration(String label, bool isSmallScreen) {
   return InputDecoration(
     filled: true,
     fillColor: const Color(0xFFF1F4FF),
     labelText: label,
-    hintStyle: const TextStyle(color: Colors.grey),
+    labelStyle: GoogleFonts.poppins(
+      fontSize: isSmallScreen ? 12 : 14,
+      color: Colors.grey[600],
+    ),
+    hintStyle: TextStyle(
+      color: Colors.grey,
+      fontSize: isSmallScreen ? 12 : 14,
+    ),
+    contentPadding: EdgeInsets.symmetric(
+      horizontal: isSmallScreen ? 12 : 16,
+      vertical: isSmallScreen ? 12 : 16,
+    ),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(10),
       borderSide: BorderSide.none,

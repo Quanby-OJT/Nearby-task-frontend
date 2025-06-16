@@ -105,7 +105,11 @@ class _NotifScreenState extends State<NotifScreen> {
         return Container(
           color: Colors.blue[50],
           child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(
+                  child: CircularProgressIndicator(
+                    color: Color(0xFFB71A4A),
+                  ),
+                )
               : requestData.isEmpty
                   ? _buildEmptyState("No requests available!")
                   : ListView.builder(

@@ -82,7 +82,12 @@ class _EscrowPaymentScreenState extends State<EscrowPaymentScreen> {
       body: Stack(
         children: [
           WebViewWidget(controller: _controller),
-          if (_isLoading) const Center(child: CircularProgressIndicator()),
+          if (_isLoading)
+            const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFFB71A4A),
+              ),
+            ),
         ],
       ),
     );

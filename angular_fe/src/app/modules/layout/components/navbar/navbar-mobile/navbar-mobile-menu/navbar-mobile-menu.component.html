@@ -11,7 +11,7 @@
       <div (click)="toggleMenu(item)" class="text-muted-foreground hover:text-foreground group relative">
         <!-- Icon -->
         <div
-          [ngClass]="item.active && !menuService.showSideBar ? 'text-primary' : 'text-muted-foreground/50'"
+          [ngClass]="item.active && !menuService.showSideBar ? 'text-[#3C28CC]' : 'text-muted-foreground/50'"
           class="pointer-events-none absolute m-2">
           <svg-icon src="{{ item.icon }}" [svgClass]="'h-5 w-5'"> </svg-icon>
         </div>
@@ -28,7 +28,7 @@
             routerLink="{{ item.route }}"
             class="hover:bg-card flex h-9 cursor-pointer items-center justify-start rounded-sm">
             <a
-              routerLinkActive="text-primary"
+              routerLinkActive="text-[#3C28CC]"
               (click)="closeMenu()"
               class="ml-10 truncate text-xs font-semibold tracking-wide focus:outline-hidden">
               {{ item.label }}

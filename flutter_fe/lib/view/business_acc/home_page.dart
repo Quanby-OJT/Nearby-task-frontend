@@ -1024,391 +1024,386 @@ class _ClientHomePageState extends State<ClientHomePage>
                   ),
                 ),
               Expanded(
-                child: RefreshIndicator(
-                  onRefresh: () async {
-                    await _checkInternetConnection();
-                  },
-                  color: Color(0xFFB71A4A),
-                  child: _isLoading
-                      ? Center(child: CircularProgressIndicator())
-                      : _errorMessage != null
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.error_outline,
-                                      size: 60, color: Colors.grey[400]),
-                                  SizedBox(height: 16),
-                                  Text(
-                                    _errorMessage!,
-                                    style: TextStyle(
-                                        fontSize: 16, color: Colors.grey[600]),
-                                    textAlign: TextAlign.center,
+                child: _isLoading
+                    ? Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFFB71A4A),
+                        ),
+                      )
+                    : _errorMessage != null
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.error_outline,
+                                    size: 60, color: Colors.grey[400]),
+                                SizedBox(height: 16),
+                                Text(
+                                  _errorMessage!,
+                                  style: TextStyle(
+                                      fontSize: 16, color: Colors.grey[600]),
+                                  textAlign: TextAlign.center,
+                                ),
+                                SizedBox(height: 16),
+                                ElevatedButton(
+                                  onPressed: _fetchTaskers,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Color(0xFF0272B1),
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 24, vertical: 12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
                                   ),
-                                  SizedBox(height: 16),
-                                  ElevatedButton(
-                                    onPressed: _fetchTaskers,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Color(0xFF0272B1),
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: 24, vertical: 12),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                  child: Text('Retry',
+                                      style: TextStyle(
+                                          fontSize: 16, color: Colors.white)),
+                                ),
+                              ],
+                            ),
+                          )
+                        : taskers.isEmpty
+                            ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.person_search,
+                                        size: 80, color: Colors.grey[300]),
+                                    SizedBox(height: 16),
+                                    Text(
+                                      _isOfflineMode
+                                          ? "No Taskers Available"
+                                          : "No Taskers Available",
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey[800],
                                       ),
                                     ),
-                                    child: Text('Retry',
-                                        style: TextStyle(
-                                            fontSize: 16, color: Colors.white)),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : taskers.isEmpty
-                              ? Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.person_search,
-                                          size: 80, color: Colors.grey[300]),
-                                      SizedBox(height: 16),
-                                      Text(
-                                        _isOfflineMode
-                                            ? "No Taskers Available"
-                                            : "No Taskers Available",
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey[800],
+                                    SizedBox(height: 8),
+                                    Text(
+                                      _isOfflineMode
+                                          ? "Please connect to the internet to fetch new data."
+                                          : "Try adjusting your filters or check back later.",
+                                      style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey[600]),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    SizedBox(height: 16),
+                                    OutlinedButton(
+                                      onPressed: _isOfflineMode
+                                          ? _checkInternetConnection
+                                          : _fetchTaskers,
+                                      style: OutlinedButton.styleFrom(
+                                        side: BorderSide(
+                                            color: Color(0xFF0272B1)),
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 24, vertical: 12),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                       ),
-                                      SizedBox(height: 8),
-                                      Text(
-                                        _isOfflineMode
-                                            ? "Please connect to the internet to fetch new data."
-                                            : "Try adjusting your filters or check back later.",
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.grey[600]),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      SizedBox(height: 16),
-                                      OutlinedButton(
-                                        onPressed: _isOfflineMode
-                                            ? _checkInternetConnection
-                                            : _fetchTaskers,
-                                        style: OutlinedButton.styleFrom(
-                                          side: BorderSide(
-                                              color: Color(0xFF0272B1)),
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 24, vertical: 12),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                          ),
-                                        ),
-                                        child: Text(
-                                            _isOfflineMode
-                                                ? 'Check Connection'
-                                                : 'Refresh',
-                                            style: TextStyle(
-                                                color: Color(0xFF0272B1))),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              : CardSwiper(
-                                  numberOfCardsDisplayed: taskers.length,
-                                  allowedSwipeDirection:
-                                      AllowedSwipeDirection.only(
-                                    left: true,
-                                    right: true,
-                                  ),
-                                  controller: controller,
-                                  cardsCount: taskers.length,
-                                  onSwipe: (previousIndex, targetIndex,
-                                      swipeDirection) {
-                                    if (swipeDirection ==
-                                        CardSwiperDirection.left) {
-                                      setState(() {
-                                        _showDislikeAnimation = true;
-                                      });
-                                      _dislikeAnimationController?.forward();
-                                      _cardCounter();
-                                    } else if (swipeDirection ==
-                                        CardSwiperDirection.right) {
-                                      if (_user?.user.accStatus
-                                              ?.toLowerCase() ==
-                                          'review') {
-                                        _saveLikedTasker(
-                                            taskers[previousIndex].user);
-                                        _cardCounter();
-                                        return true;
-                                      }
+                                      child: Text(
+                                          _isOfflineMode
+                                              ? 'Check Connection'
+                                              : 'Refresh',
+                                          style: TextStyle(
+                                              color: Color(0xFF0272B1))),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : CardSwiper(
+                                numberOfCardsDisplayed: taskers.length,
+                                allowedSwipeDirection:
+                                    AllowedSwipeDirection.only(
+                                  left: true,
+                                  right: true,
+                                ),
+                                controller: controller,
+                                cardsCount: taskers.length,
+                                onSwipe: (previousIndex, targetIndex,
+                                    swipeDirection) {
+                                  if (swipeDirection ==
+                                      CardSwiperDirection.left) {
+                                    setState(() {
+                                      _showDislikeAnimation = true;
+                                    });
+                                    _dislikeAnimationController?.forward();
+                                    _cardCounter();
+                                  } else if (swipeDirection ==
+                                      CardSwiperDirection.right) {
+                                    // Check if account status allows interaction without verification warning
+                                    final accountStatus = _user?.user.accStatus;
+                                    final userRole = _user?.user.role;
 
-                                      if (_verificationStatus != "Active" &&
-                                          _verificationStatus != "Review") {
-                                        _showWarningDialog();
-                                        return false;
-                                      }
-
+                                    // For Client users, allow interaction if:
+                                    // 1. Account status is Review/Active, OR
+                                    // 2. Account status is empty/null (default client state), OR
+                                    // 3. Verification status is Approved/Review
+                                    if (userRole == 'Client' &&
+                                        (accountStatus == 'Review' ||
+                                            accountStatus == 'Active' ||
+                                            accountStatus == null ||
+                                            accountStatus == '' ||
+                                            _verificationStatus == "Approved" ||
+                                            _verificationStatus == "Review")) {
                                       _saveLikedTasker(
                                           taskers[previousIndex].user);
                                       _cardCounter();
+                                    } else if (accountStatus == 'Ban' ||
+                                        accountStatus == 'Suspended') {
+                                      _showWarningDialog();
+                                      return false;
                                     }
-                                    return true;
-                                  },
-                                  cardBuilder: (context, index,
-                                      percentThresholdX, percentThresholdY) {
-                                    final tasker = taskers[index];
-                                    return Container(
-                                      width: double.infinity,
-                                      height:
-                                          MediaQuery.of(context).size.height,
-                                      padding:
-                                          EdgeInsets.only(top: 0, bottom: 8),
-                                      child: Card(
-                                        elevation: 8,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                        ),
-                                        margin: EdgeInsets.zero,
-                                        child: Stack(
-                                          children: [
-                                            ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(20),
-                                              child: tasker.tasker
-                                                          ?.taskerImages !=
-                                                      null
-                                                  ? Center(
-                                                      child: Icon(
-                                                        FontAwesomeIcons
-                                                            .screwdriverWrench,
-                                                        size: 150,
-                                                        color: Colors.grey[400],
-                                                      ),
-                                                    )
-                                                  : PageView.builder(
-                                                      itemCount: tasker
-                                                              .tasker
-                                                              ?.taskerImages
-                                                              ?.length ??
-                                                          0,
-                                                      itemBuilder:
-                                                          (context, index) {
-                                                        List<String>
-                                                            taskerImages =
-                                                            tasker.tasker
-                                                                    ?.taskerImages ??
-                                                                [];
-                                                        return Image.network(
-                                                          taskerImages[index],
-                                                          fit: BoxFit.cover,
-                                                          width:
-                                                              double.infinity,
-                                                          height:
-                                                              double.infinity,
-                                                          errorBuilder: (context,
-                                                                  error,
-                                                                  stackTrace) =>
-                                                              Center(
-                                                            child: Icon(
-                                                              Icons
-                                                                  .broken_image,
-                                                              color: Colors
-                                                                  .grey[400],
-                                                              size: 100,
-                                                            ),
-                                                          ),
-                                                        );
-                                                      },
+                                  }
+                                  return true;
+                                },
+                                cardBuilder: (context, index, percentThresholdX,
+                                    percentThresholdY) {
+                                  final tasker = taskers[index];
+                                  debugPrint(
+                                      "All Taskers in Card: ${tasker.tasker}");
+                                  return Container(
+                                    width: double.infinity,
+                                    height: MediaQuery.of(context).size.height,
+                                    padding: EdgeInsets.only(top: 0, bottom: 8),
+                                    child: Card(
+                                      elevation: 8,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      margin: EdgeInsets.zero,
+                                      child: Stack(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                            child: tasker.tasker
+                                                            ?.taskerImages ==
+                                                        null ||
+                                                    tasker.tasker!.taskerImages!
+                                                        .isEmpty
+                                                ? Center(
+                                                    child: Icon(
+                                                      FontAwesomeIcons
+                                                          .screwdriverWrench,
+                                                      size: 150,
+                                                      color: Colors.grey[400],
                                                     ),
-                                            ),
-                                            Positioned.fill(
-                                              child: Container(
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(20),
-                                                  gradient: LinearGradient(
-                                                    begin: Alignment.topCenter,
-                                                    end: Alignment.bottomCenter,
-                                                    colors: [
-                                                      Colors.black
-                                                          .withOpacity(0.2),
-                                                      Colors.black
-                                                          .withOpacity(0.5),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            Positioned(
-                                              bottom: 0,
-                                              left: 0,
-                                              right: 0,
-                                              child: Container(
-                                                padding: EdgeInsets.all(16),
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.vertical(
-                                                          bottom:
-                                                              Radius.circular(
-                                                                  20)),
-                                                  gradient: LinearGradient(
-                                                    begin:
-                                                        Alignment.bottomCenter,
-                                                    end: Alignment.topCenter,
-                                                    colors: [
-                                                      Colors.black
-                                                          .withOpacity(0.7),
-                                                      Colors.transparent,
-                                                    ],
-                                                  ),
-                                                ),
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    Text(
-                                                      "${tasker.user.firstName} ${tasker.user.lastName}",
-                                                      style: TextStyle(
-                                                        fontSize: 26,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        color: Colors.white,
-                                                      ),
-                                                    ),
-                                                    SizedBox(height: 8),
-                                                    Row(
-                                                      children: [
-                                                        ...List.generate(5,
-                                                            (index) {
-                                                          double rating = tasker
-                                                                  .tasker
-                                                                  ?.rating ??
-                                                              4.5;
-                                                          return Icon(
-                                                            index <
-                                                                    rating
-                                                                        .floor()
-                                                                ? Icons.star
-                                                                : index < rating
-                                                                    ? Icons
-                                                                        .star_half
-                                                                    : Icons
-                                                                        .star_border,
-                                                            color: Colors.amber,
-                                                            size: 18,
-                                                          );
-                                                        }),
-                                                        SizedBox(width: 8),
-                                                        Text(
-                                                          "${tasker.tasker?.rating ?? 4.5}",
-                                                          style: TextStyle(
-                                                            color: Colors.white,
-                                                            fontSize: 14,
+                                                  )
+                                                : PageView.builder(
+                                                    itemCount: tasker.tasker!
+                                                        .taskerImages!.length,
+                                                    itemBuilder:
+                                                        (context, imageIndex) {
+                                                      return Image.network(
+                                                        tasker
+                                                            .tasker!
+                                                            .taskerImages![
+                                                                imageIndex]
+                                                            .toString(),
+                                                        fit: BoxFit.cover,
+                                                        width: double.infinity,
+                                                        height: double.infinity,
+                                                        errorBuilder: (context,
+                                                                error,
+                                                                stackTrace) =>
+                                                            Center(
+                                                          child: Icon(
+                                                            Icons.broken_image,
+                                                            color: Colors
+                                                                .grey[400],
+                                                            size: 100,
                                                           ),
                                                         ),
-                                                      ],
-                                                    ),
-                                                    SizedBox(height: 4),
-                                                    Text(
-                                                      tasker
-                                                              .tasker
-                                                              ?.taskerSpecialization
-                                                              ?.specialization ??
-                                                          "No specialization",
-                                                      style: TextStyle(
-                                                        fontSize: 14,
-                                                        color: Colors.white70,
-                                                      ),
-                                                    ),
+                                                      );
+                                                    },
+                                                  ),
+                                          ),
+                                          Positioned(
+                                            left: 0,
+                                            right: 0,
+                                            top: 0,
+                                            bottom: 0,
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                                gradient: LinearGradient(
+                                                  begin: Alignment.topCenter,
+                                                  end: Alignment.bottomCenter,
+                                                  colors: [
+                                                    Colors.black
+                                                        .withOpacity(0.2),
+                                                    Colors.black
+                                                        .withOpacity(0.5),
                                                   ],
                                                 ),
                                               ),
                                             ),
-                                            Positioned(
-                                              top: 16,
-                                              right: 16,
-                                              child: IconButton(
-                                                icon: Icon(Icons.info_outline,
-                                                    color: Colors.white),
-                                                onPressed: () {
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          TaskerProfilePage(
-                                                        tasker: tasker.tasker!,
-                                                        isSaved: false,
-                                                        taskerId:
-                                                            tasker.tasker?.id,
-                                                      ),
-                                                    ),
-                                                  );
-                                                },
+                                          ),
+                                          Positioned(
+                                            bottom: 0,
+                                            left: 0,
+                                            right: 0,
+                                            child: Container(
+                                              padding: EdgeInsets.all(16),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.vertical(
+                                                        bottom: Radius.circular(
+                                                            20)),
+                                                gradient: LinearGradient(
+                                                  begin: Alignment.bottomCenter,
+                                                  end: Alignment.topCenter,
+                                                  colors: [
+                                                    Colors.black
+                                                        .withOpacity(0.7),
+                                                    Colors.transparent,
+                                                  ],
+                                                ),
                                               ),
-                                            ),
-                                            Positioned(
-                                              bottom: 16,
-                                              right: 16,
                                               child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                mainAxisSize: MainAxisSize.min,
                                                 children: [
-                                                  ElevatedButton(
-                                                    onPressed: () {
-                                                      controller.swipe(
-                                                          CardSwiperDirection
-                                                              .left);
-                                                    },
-                                                    style: ElevatedButton
-                                                        .styleFrom(
-                                                      backgroundColor:
-                                                          Colors.transparent,
-                                                      shape: CircleBorder(),
-                                                      fixedSize: Size(50, 50),
-                                                      padding: EdgeInsets.zero,
-                                                    ),
-                                                    child: Icon(
-                                                      Icons.close,
+                                                  Text(
+                                                    "${tasker.user.firstName} ${tasker.user.lastName}",
+                                                    style: TextStyle(
+                                                      fontSize: 26,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                       color: Colors.white,
-                                                      size: 24,
                                                     ),
                                                   ),
-                                                  SizedBox(height: 10),
-                                                  ElevatedButton(
-                                                    onPressed: () {
-                                                      controller.swipe(
-                                                          CardSwiperDirection
-                                                              .right);
-                                                    },
-                                                    style: ElevatedButton
-                                                        .styleFrom(
-                                                      backgroundColor:
-                                                          const Color(
-                                                              0xFFB71A4A),
-                                                      shape: CircleBorder(),
-                                                      fixedSize: Size(50, 50),
-                                                      padding: EdgeInsets.zero,
-                                                    ),
-                                                    child: Icon(
-                                                      Icons.favorite,
-                                                      color: Colors.white,
-                                                      size: 24,
+                                                  SizedBox(height: 8),
+                                                  Row(
+                                                    children: [
+                                                      ...List.generate(5,
+                                                          (index) {
+                                                        double rating = tasker
+                                                                .tasker
+                                                                ?.rating ??
+                                                            4.5;
+                                                        return Icon(
+                                                          index < rating.floor()
+                                                              ? Icons.star
+                                                              : index < rating
+                                                                  ? Icons
+                                                                      .star_half
+                                                                  : Icons
+                                                                      .star_border,
+                                                          color: Colors.amber,
+                                                          size: 18,
+                                                        );
+                                                      }),
+                                                      SizedBox(width: 8),
+                                                      Text(
+                                                        "${tasker.tasker?.rating ?? 4.5}",
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 14,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  SizedBox(height: 4),
+                                                  Text(
+                                                    tasker
+                                                            .tasker
+                                                            ?.taskerSpecialization
+                                                            ?.specialization ??
+                                                        "No specialization",
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      color: Colors.white70,
                                                     ),
                                                   ),
                                                 ],
                                               ),
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                          Positioned(
+                                            top: 16,
+                                            right: 16,
+                                            child: IconButton(
+                                              icon: Icon(Icons.info_outline,
+                                                  color: Colors.white),
+                                              onPressed: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        TaskerProfilePage(
+                                                      tasker: tasker.tasker!,
+                                                      isSaved: false,
+                                                      taskerId:
+                                                          tasker.tasker?.id,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                          Positioned(
+                                            bottom: 16,
+                                            right: 16,
+                                            child: Column(
+                                              children: [
+                                                ElevatedButton(
+                                                  onPressed: () {
+                                                    controller.swipe(
+                                                        CardSwiperDirection
+                                                            .left);
+                                                  },
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor:
+                                                        Colors.transparent,
+                                                    shape: CircleBorder(),
+                                                    fixedSize: Size(50, 50),
+                                                    padding: EdgeInsets.zero,
+                                                  ),
+                                                  child: Icon(
+                                                    Icons.close,
+                                                    color: Colors.white,
+                                                    size: 24,
+                                                  ),
+                                                ),
+                                                SizedBox(height: 10),
+                                                ElevatedButton(
+                                                  onPressed: () {
+                                                    controller.swipe(
+                                                        CardSwiperDirection
+                                                            .right);
+                                                  },
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor:
+                                                        const Color(0xFFB71A4A),
+                                                    shape: CircleBorder(),
+                                                    fixedSize: Size(50, 50),
+                                                    padding: EdgeInsets.zero,
+                                                  ),
+                                                  child: Icon(
+                                                    Icons.favorite,
+                                                    color: Colors.white,
+                                                    size: 24,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    );
-                                  },
-                                ),
-                ),
+                                    ),
+                                  );
+                                },
+                              ),
               )
             ],
           ),

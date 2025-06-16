@@ -683,6 +683,7 @@ class _LikesScreenState extends State<LikesScreen> {
                                     fit: BoxFit.cover,
                                     placeholder: (context, url) => const Center(
                                       child: CircularProgressIndicator(
+                                          color: Color(0xFFB71A4A),
                                           strokeWidth: 2),
                                     ),
                                     errorWidget: (context, url, error) =>

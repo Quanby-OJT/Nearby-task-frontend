@@ -176,6 +176,7 @@ export class ReviewComponent {
 
           console.log('Form value after patching (ReviewComponent):', this.Form.value);
           this.profileImage = this.userData.image_link; // Set profileImage from image_link
+          console.log('Profile Image URL:', this.profileImage);
 
           this.userAccountService.getUserDocuments(userId).subscribe({
             next: (docResponse: any) => {
@@ -184,16 +185,12 @@ export class ReviewComponent {
               // Process user documents with the new structure
               let userDocuments: { url: string, name: string, type: string }[] = [];
 
-              // Process user_documents array
-              if (docResponse.user?.user?.user_documents) {
-                docResponse.user.user.user_documents.forEach((doc: any) => {
-                  if (doc.user_document_link) {
-                    userDocuments.push({
-                      url: doc.user_document_link,
-                      name: 'User_Document',
-                      type: doc.document_type || 'No Type'
-                    });
-                  }
+              // Process user_documents object (not an array)
+              if (docResponse.user?.user?.user_documents && docResponse.user.user.user_documents.user_document_link) {
+                userDocuments.push({
+                  url: docResponse.user.user.user_documents.user_document_link,
+                  name: 'User_Document',
+                  type: docResponse.user.user.user_documents.document_type || 'No Type'
                 });
               }
 
@@ -202,9 +199,11 @@ export class ReviewComponent {
                 this.idImage = docResponse.user.user.user_id.id_image;
                 const idExtension = this.idImage?.split('.').pop()?.toLowerCase() || '';
                 this.isIdImage = ['jpg', 'jpeg', 'png', 'gif'].includes(idExtension);
+                console.log('ID Image URL:', this.idImage, 'isIdImage:', this.isIdImage);
               } else {
                 this.idImage = null;
                 this.isIdImage = false;
+                console.log('ID Image URL: null');
               }
 
               // Process Selfie image
@@ -212,9 +211,11 @@ export class ReviewComponent {
                 this.faceImage = docResponse.user.user.user_face_identity.face_image;
                 const faceExtension = this.faceImage?.split('.').pop()?.toLowerCase() || '';
                 this.isFaceImage = ['jpg', 'jpeg', 'png', 'gif'].includes(faceExtension);
+                console.log('Face Image URL:', this.faceImage, 'isFaceImage:', this.isFaceImage);
               } else {
                 this.faceImage = null;
                 this.isFaceImage = false;
+                console.log('Face Image URL: null');
               }
 
               // Store all user documents
@@ -408,10 +409,10 @@ export class ReviewComponent {
 
     // Check if the document is an image. If so, use the previewImage logic.
     const extension = documentUrl.split('.').pop()?.toLowerCase();
-    const isImageUrl = ['jpg', 'jpeg', 'png', 'gif'].includes(extension || '');
+    const isImageUrl = ['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(extension || '');
 
     if (isImageUrl) {
-      this.previewImage(documentUrl); // Call previewImage with the image URL
+      this.previewImage(documentUrl);
       return;
     }
 
@@ -427,6 +428,7 @@ export class ReviewComponent {
       });
       return;
     }
+
     const afterMarker = documentUrl.substring(markerIndex + marker.length);
     const firstSlash = afterMarker.indexOf('/');
     if (firstSlash === -1) {
@@ -437,31 +439,15 @@ export class ReviewComponent {
       });
       return;
     }
+
     const bucketName = afterMarker.substring(0, firstSlash);
     const filePath = afterMarker.substring(firstSlash + 1);
 
-    const url = `${this.userAccountService['apiUrl']}/viewDocument/${encodeURIComponent(bucketName)}/${encodeURIComponent(filePath)}`;
-    const token = this.sessionStorage.getSessionToken();
-    if (!token) {
-      console.error('No session token found. Please log in.');
-      Swal.fire({
-        icon: 'error',
-        title: 'Authentication Error',
-        text: 'Please log in to view the document.',
-      });
-      this.router.navigate(['login']);
-      return;
-    }
+    console.log('Fetching document:', { bucketName, filePath });
 
-    this.http.get(url, {
-      headers: new HttpHeaders({
-        'Authorization': `Bearer ${token}`
-      }),
-      responseType: 'blob',
-      withCredentials: true
-    }).subscribe({
+    this.userAccountService.viewDocument(bucketName, filePath).subscribe({
       next: (blob) => {
-        console.log('Document (PDF) fetched successfully, creating blob URL');
+        console.log('Document fetched successfully, creating blob URL');
         const blobUrl = window.URL.createObjectURL(blob);
         const newWindow = window.open(blobUrl, '_blank');
         if (!newWindow) {
@@ -473,7 +459,7 @@ export class ReviewComponent {
         }
       },
       error: (err) => {
-        console.error('Error fetching document (PDF):', err);
+        console.error('Error fetching document:', err);
         let message = 'Failed to fetch the document. Please try again.';
         if (err.status === 401) {
           message = 'Unauthorized. Please log in again.';
@@ -514,6 +500,10 @@ export class ReviewComponent {
   }
 
   compareImages(): void {
+    console.log('Comparing images:');
+    console.log('ID Image URL for comparison:', this.idImage, 'Is ID Image:', this.isIdImage);
+    console.log('Face Image URL for comparison:', this.faceImage, 'Is Face Image:', this.isFaceImage);
+
     let idImageHtml = '';
     if (this.idImage && this.isIdImage) {
       idImageHtml = `

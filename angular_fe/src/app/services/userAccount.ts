@@ -190,4 +190,12 @@ export class UserAccountService {
       })
     );
   }
+
+  viewDocument(bucketName: string, filePath: string): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/viewDocument/${encodeURIComponent(bucketName)}/${encodeURIComponent(filePath)}`, {
+      headers: this.getHeaders(),
+      withCredentials: true,
+      responseType: 'blob'
+    });
+  }
 }

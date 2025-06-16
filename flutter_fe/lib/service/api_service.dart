@@ -13,7 +13,7 @@ import '../model/tasker_model.dart';
 import 'package:flutter_fe/config/url_strategy.dart';
 
 class ApiService {
-  static String url = apiUrl ?? "https://localhost:5000";
+  static String url = apiUrl ?? "https://localhost:3000";
   static final storage = GetStorage();
   static final http.Client _client = http.Client();
   static final Map<String, String> _cookies = {};
@@ -1491,6 +1491,11 @@ class ApiService {
           "success": true,
           "exists": responseData["exists"] ?? false,
           "verification": responseData["verification"],
+          "user": responseData["user"],
+          "idImage": responseData["idImage"],
+          "faceImage": responseData["faceImage"],
+          "userDocuments": responseData["userDocuments"],
+          "clientDocuments": responseData["clientDocuments"],
           "message": responseData["message"],
         };
       } else {
