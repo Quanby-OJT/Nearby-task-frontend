@@ -48,7 +48,6 @@ class _TaskArchivePageState extends State<TaskArchivePage> {
         archivedTasks = tasks
             .where((task) =>
                 task != null &&
-                task.taskStatus != null &&
                 ['Completed', 'Cancelled', 'Rejected', 'Declined', 'Archived']
                     .contains(task.taskStatus))
             .cast<TaskFetch>()

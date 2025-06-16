@@ -19,6 +19,9 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import '../../controller/conversation_controller.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -49,11 +52,15 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _documentValid = false;
   bool _isModalOpen = false;
   String? _selectedReportCategory;
+  bool _isOfflineMode = false;
+  late SharedPreferences _prefs;
+  final Connectivity _connectivity = Connectivity();
 
   @override
   void initState() {
     super.initState();
-    loadAll();
+    _initializeSharedPreferences();
+
     conversationController.searchConversation.addListener(filterMessages);
 
     socket = IO.io('http://192.168.1.12:5000', <String, dynamic>{
@@ -70,6 +77,11 @@ class _ChatScreenState extends State<ChatScreen> {
     socket?.on('message_read', (data) {
       _fetchTaskAssignments();
     });
+  }
+
+  Future<void> _initializeSharedPreferences() async {
+    _prefs = await SharedPreferences.getInstance();
+    await _checkInternetConnection();
   }
 
   void loadAll() async {
@@ -95,6 +107,123 @@ class _ChatScreenState extends State<ChatScreen> {
     _selectedReportCategory = null;
     socket?.disconnect();
     super.dispose();
+  }
+
+  Future<void> _checkInternetConnection() async {
+    setState(() {
+      _isLoading = true;
+    });
+    final result = await _connectivity.checkConnectivity();
+
+    if (result.contains(ConnectivityResult.mobile) == true ||
+        result.contains(ConnectivityResult.wifi) == true) {
+      setState(() {
+        _isLoading = false;
+        _isOfflineMode = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Internet connection is available",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      loadAll();
+    } else {
+      setState(() {
+        _isOfflineMode = true;
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Center(
+            child: Text(
+              "Using offline mode",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          backgroundColor: Color(0xFFB71A4A),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      _loadCachedData();
+    }
+  }
+
+  Future<void> _saveDataToCache() async {
+    try {
+      if (taskAssignments.isNotEmpty) {
+        final taskAssignmentsJson =
+            taskAssignments.map((task) => task.toJson()).toList();
+        await _prefs.setString(
+            'cached_task_assignments', json.encode(taskAssignmentsJson));
+        debugPrint("Saved ${taskAssignments.length} task assignments to cache");
+      }
+
+      if (conversation.isNotEmpty) {
+        final conversationsJson =
+            conversation.map((conv) => conv.toJson()).toList();
+        await _prefs.setString(
+            'cached_conversations', json.encode(conversationsJson));
+        debugPrint("Saved ${conversation.length} conversations to cache");
+      }
+    } catch (e) {
+      debugPrint("Error saving data to cache: $e");
+    }
+  }
+
+  Future<void> _loadCachedData() async {
+    try {
+      final cachedTaskAssignments = _prefs.getString('cached_task_assignments');
+      final cachedConversations = _prefs.getString('cached_conversations');
+
+      if (cachedTaskAssignments != null) {
+        final List<dynamic> decodedTaskAssignments =
+            json.decode(cachedTaskAssignments);
+        setState(() {
+          taskAssignments = decodedTaskAssignments
+              .map((json) => TaskAssignment.fromJson(json))
+              .toList();
+          filteredTaskAssignments = taskAssignments;
+        });
+        debugPrint(
+            "Loaded ${taskAssignments.length} task assignments from cache");
+      }
+
+      if (cachedConversations != null) {
+        final List<dynamic> decodedConversations =
+            json.decode(cachedConversations);
+        setState(() {
+          conversation = decodedConversations
+              .map((json) => Conversation.fromJson(json))
+              .toList();
+        });
+        debugPrint("Loaded ${conversation.length} conversations from cache");
+      }
+    } catch (e) {
+      debugPrint("Error loading cached data: $e");
+    }
   }
 
   void filterMessages() {
@@ -142,6 +271,9 @@ class _ChatScreenState extends State<ChatScreen> {
         filteredTaskAssignments = tasks;
         _isLoading = false;
       });
+
+      // Save data to cache after successful fetch
+      await _saveDataToCache();
     } catch (e, st) {
       debugPrint("Error fetching task assignments: $e");
       debugPrint(st.toString());
@@ -751,6 +883,20 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: Column(
         children: [
+          if (_isOfflineMode)
+            Container(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              color: Color(0xFFB71A4A),
+              child: Center(
+                child: Text(
+                  "Offline Mode",
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Container(
@@ -808,7 +954,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   )
                 : taskAssignments.isEmpty
                     ? RefreshIndicator(
-                        onRefresh: _fetchTaskAssignments,
+                        onRefresh: _initializeSharedPreferences,
                         color: Color(0xFFB71A4A),
                         child: SingleChildScrollView(
                           physics: AlwaysScrollableScrollPhysics(),
@@ -844,7 +990,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                       )
                     : RefreshIndicator(
-                        onRefresh: _fetchTaskAssignments,
+                        onRefresh: _initializeSharedPreferences,
                         color: Color(0xFFB71A4A),
                         child: ListView.builder(
                           padding:

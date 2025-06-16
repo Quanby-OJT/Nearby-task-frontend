@@ -20,6 +20,7 @@ class UserModel {
   final List<UserPreferenceModel>? userPreferences;
   final String? bio;
   final Map<String, String>? socialMediaLinks;
+  final String? fcmToken;
 
   UserModel({
     this.id,
@@ -39,6 +40,7 @@ class UserModel {
     this.userPreferences,
     this.bio,
     this.socialMediaLinks,
+    this.fcmToken,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -84,6 +86,7 @@ class UserModel {
           : null,
       bio: json['bio'] as String?,
       socialMediaLinks: socialLinks,
+      fcmToken: json['fcm_token'] ?? '',
     );
   }
 
@@ -105,6 +108,7 @@ class UserModel {
       "user_preference": userPreferences?.map((pref) => pref.toJson()).toList(),
       "bio": bio,
       "social_media_links": socialMediaLinks,
+      "fcm_token": fcmToken,
     };
   }
 
@@ -151,6 +155,7 @@ class UserModel {
       userPreferences: userPreferences ?? this.userPreferences,
       bio: bio ?? this.bio,
       socialMediaLinks: socialMediaLinks ?? this.socialMediaLinks,
+      fcmToken: fcmToken ?? fcmToken,
     );
   }
 }
