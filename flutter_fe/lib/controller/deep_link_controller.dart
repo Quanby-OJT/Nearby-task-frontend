@@ -30,6 +30,7 @@ class DeepLinkController extends GetxController {
 
   void _routeToDestination(Uri uri) {
     debugPrint("📥 Routing deep link: $uri");
+    debugPrint(uri.host);
 
     switch (uri.host) {
       case 'verify':

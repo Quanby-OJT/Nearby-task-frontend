@@ -370,8 +370,7 @@ class ProfileController {
     }
   }
 
-  Future<String> updateUser(List<File>? images, List<File>? documents,
-      List<int>? taskerImageUrl, List<String>? taskerDocuments) async {
+  Future<String> updateUser(List<File>? images, List<File>? documents, File? profileImage, List<int>? taskerImageUrl) async {
     try {
       String role = storage.read("role");
 
@@ -379,7 +378,7 @@ class ProfileController {
         ClientModel client = ClientModel(
             clientId: storage.read("user_id"), bio: bioController.text);
 
-        final updateClientResult = await clientService.updateClient(client);
+        final updateClientResult = await clientService.updateClient(client, profileImage);
 
         if (updateClientResult.containsKey("message")) {
           return updateClientResult["message"];
@@ -422,7 +421,7 @@ class ProfileController {
         }
 
         final updateTaskerResult = await taskerService.updateTasker(
-            taskerImages, taskerDocuments, tasker);
+            taskerImages, taskerDocuments, profileImage, tasker);
 
         if (updateTaskerResult.containsKey("message")) {
           return updateTaskerResult["message"];
