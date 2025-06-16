@@ -111,7 +111,7 @@ class _TaskConfirmedState extends State<TaskConfirmed> {
         _role = user?.user.role;
       });
     } catch (e) {
-      throw Exception('Failed to fetch user data GG: $e');
+      throw Exception('Failed to fetch user data: $e');
     }
   }
 
