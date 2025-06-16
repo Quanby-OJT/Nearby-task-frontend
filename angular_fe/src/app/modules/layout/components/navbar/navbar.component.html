@@ -2,7 +2,7 @@
   <div class="mx-auto px-5">
     <div class="flex items-center justify-between py-3.5 md:justify-start">
       <!-- Mobile Navigation Menu Button-->
-      <div class="sm:order-1 md:hidden">
+      <div class="sm:order-1 lg:hidden">
         <button
           (click)="toggleMobileMenu()"
           type="button"
@@ -18,24 +18,30 @@
         <!-- <a class="bg-primary flex items-center justify-center rounded-sm p-2 focus:outline-hidden focus:ring-1">
           <svg-icon src="assets/icons/logo.svg"></svg-icon>
         </a> -->
-        <p class="text-foreground hidden pl-3 text-sm font-bold sm:block"> NearByTask </p>
+        <p class="text-[#3C28CC] hidden pl-3 text-sm sm:block">QTask</p>
       </div>
+      
       <!-- Desktop Menu -->
-      <div class="hidden space-x-10 sm:order-3 md:flex">
+      <div class="hidden space-x-10 sm:order-3 lg:flex">
         <app-navbar-menu></app-navbar-menu>
+      </div>
+   
+      <!-- date and time for small device -->
+      <div class="text-[0.800rem] text-[#3C28CC] text-left block sm:block md:hidden">
+        {{ currentDateTime }}
       </div>
 
       <!-- Navbar Profile Image -->
-      <div class="items-center justify-end sm:order-4 md:flex md:flex-1 lg:w-0">
-      <!-- Centered Date and Time -->
-      <div class="flex-1 flex justify-center items-center">
-        <div class="text-sm text-[#3C28CC]">
-          {{ currentDateTime }}
+      <div class="flex flex-row items-center justify-end sm:order-4 md:flex-1 lg:w-0">
+        <!-- Centered Date and Time -->
+        <div class="flex-1 flex justify-center">
+          <div class="text-[0.900rem] text-[#3C28CC] text-left hidden sm:hidden md:block">
+            {{ currentDateTime }}
+          </div>
         </div>
-      </div>
-        <div class="ml-3 text-sm text-[#3C28CC]">
-          <p class="font-medium text-right">{{ user.first_name + ' ' + (user.middle_name || '') + ' ' + user.last_name }}</p>
-          <p class="">{{ user.email }}</p>
+        <div class="ml-3 text-[0.600rem] sm:text-xs md:text-sm text-[#3C28CC] text-right sm:text-right md:text-right">
+          <p class="font-medium hidden sm:block">{{ user.first_name + ' ' + (user.middle_name || '') + ' ' + user.last_name }}</p>
+          <p class="hidden sm:block">{{ user.email }}</p>
         </div>
         <app-profile-menu></app-profile-menu>
       </div>
