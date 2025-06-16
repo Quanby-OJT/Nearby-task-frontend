@@ -363,7 +363,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(false),
                     child: Text('Cancel',
-                        style: GoogleFonts.poppins(color: Color(0xFF0272B1))),
+                        style: GoogleFonts.poppins(color: Color(0xFFE23670))),
                   ),
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(true),
@@ -379,7 +379,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
         appBar: AppBar(
           backgroundColor: Colors.white,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Color(0xFF0272B1)),
+            icon: Icon(Icons.arrow_back, color: Color(0xFFE23670)),
             onPressed: () async {
               if (_signatureController.isEmpty) {
                 Navigator.of(context).pop();
@@ -398,7 +398,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(false),
                       child: Text('Cancel',
-                          style: GoogleFonts.poppins(color: Color(0xFF0272B1))),
+                          style: GoogleFonts.poppins(color: Color(0xFFE23670))),
                     ),
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(true),
@@ -416,7 +416,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
           title: Text(
             'QTask Escrow',
             style: GoogleFonts.montserrat(
-              color: Color(0xFF0272B1),
+              color: Color(0xFFE23670),
               fontWeight: FontWeight.bold,
               fontSize: 20,
             ),
@@ -438,7 +438,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                           : "How much would you want to deposit?",
                       style: GoogleFonts.poppins(
                           fontSize: 18,
-                          color: Color(0xFF0272B1),
+                          color: Color(0xFFE23670),
                           fontWeight: FontWeight.bold)),
                   SizedBox(
                     height: 10,
@@ -510,7 +510,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                         : "Select Your Method of Deposit",
                     style: GoogleFonts.poppins(
                       fontSize: 20,
-                      color: Color(0xFF0272B1),
+                      color: Color(0xFFE23670),
                       fontWeight: FontWeight.bold,
                     ),
                     textAlign: TextAlign.center,
@@ -574,7 +574,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                   Container(
                     padding: EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Color(0xFF0272B1)),
+                      border: Border.all(color: Color(0xFFE23670)),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Column(
@@ -596,7 +596,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
-                            color: Color(0xFF0272B1),
+                            color: Color(0xFFE23670),
                           ),
                         ),
                         SizedBox(height: 10),
@@ -696,11 +696,11 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                                       TextButton.icon(
                                         onPressed: _pickSignatureImage,
                                         icon: Icon(Icons.upload_file,
-                                            color: Color(0xFF0272B1)),
+                                            color: Color(0xFFE23670)),
                                         label: Text(
                                           'Upload Signature',
                                           style: GoogleFonts.poppins(
-                                            color: Color(0xFF0272B1),
+                                            color: Color(0xFFE23670),
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
@@ -728,7 +728,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                                               child: Text(
                                                 'Clear',
                                                 style: GoogleFonts.poppins(
-                                                  color: Color(0xFF0272B1),
+                                                  color: Color(0xFFE23670),
                                                   fontWeight: FontWeight.w500,
                                                 ),
                                               ),
@@ -759,11 +759,11 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                     children: [
                       Theme(
                         data: ThemeData(
-                          unselectedWidgetColor: Color(0XFF3C28CC),
+                          unselectedWidgetColor: const Color(0xFFE23670),
                         ),
                         child: Checkbox(
                           value: _isConfirmed,
-                          activeColor: Color(0XFF3C28CC),
+                          activeColor: const Color(0xFFE23670),
                           onChanged: (bool? newValue) {
                             setState(() {
                               _isConfirmed = newValue!;
@@ -774,7 +774,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                       Text(
                         "I confirm that my details above are correct.",
                         style: GoogleFonts.poppins(
-                          color: Color(0xFF0272B1),
+                          color: const Color(0xFFE23670),
                           fontSize: 14,
                         ),
                       ),
@@ -810,14 +810,14 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                                     "Please Select Your Desired Payment Method",
                                     Icon(
                                       FontAwesomeIcons.circleExclamation,
-                                      color: Color(0XFFE23670),
+                                      color: const Color(0xFFE23670),
                                       size: 50,
                                     ));
                                 return;
                               }
                               if (_formKey.currentState!.validate()) {
                                 _showConfirmationDialog(
-                                    context, Color(0XFFE23670));
+                                    context, const Color(0xFFE23670));
                               }
                             }
                           : null, // Button is disabled if _isConfirmed is false or isLoading is true
@@ -827,7 +827,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                           if (states.contains(WidgetState.disabled)) {
                             return const Color(0xFFD3D3D3); // Disabled color
                           }
-                          return const Color(0xFF3C28CC);
+                          return const Color(0xFFE23670);
                         }),
                       ),
                       child: Text(
@@ -854,13 +854,11 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
     final isSelected = _selectedPaymentMethod == title;
     return Card(
         elevation: 2,
-        color: isSelected ? Color(0xFFF1F4FF) : Colors.white,
+        color: isSelected ? const Color(0xFFF1F4FF) : Colors.white,
         child: InkWell(
             onTap: () {
               if (!isSelected) {
                 onMethodSelected(title);
-              } else {
-                onMethodSelected('');
               }
             },
             child: Padding(
@@ -914,7 +912,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFF0272B1), width: 2),
+              borderSide: const BorderSide(color: Color(0xFFE23670), width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
@@ -959,7 +957,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0XFF3C28CC),
+                      color: const Color(0xFFE23670),
                     ),
                     textAlign: TextAlign.center,
                   )
@@ -971,14 +969,14 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                   _processPayment(context, _selectedPaymentMethod);
                 },
                 child: Text("Proceed",
-                    style: GoogleFonts.poppins(color: Color(0XFFE23670))),
+                    style: GoogleFonts.poppins(color: const Color(0xFFE23670))),
               ),
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
                 child: Text("Cancel",
-                    style: GoogleFonts.poppins(color: Color(0XFFE23670))),
+                    style: GoogleFonts.poppins(color: const Color(0xFFE23670))),
               )
             ],
           );

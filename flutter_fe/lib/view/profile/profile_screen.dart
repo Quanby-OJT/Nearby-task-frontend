@@ -1003,7 +1003,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ? OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide:
-                        const BorderSide(color: Color(0xFF0272B1), width: 2),
+                        const BorderSide(color: Color(0xFFE23670), width: 2),
                   )
                 : InputBorder.none,
             errorBorder: willEdit
@@ -1086,7 +1086,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ? OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide:
-                        const BorderSide(color: Color(0xFF0272B1), width: 2),
+                        const BorderSide(color: Color(0xFFE23670), width: 2),
                   )
                 : InputBorder.none,
             errorBorder: willEdit

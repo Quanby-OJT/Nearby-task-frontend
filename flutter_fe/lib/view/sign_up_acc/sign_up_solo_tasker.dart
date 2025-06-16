@@ -10,6 +10,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_fe/widgets/privacy_policy_popup.dart';
 
 class SignUpSoloTaskerAcc extends StatefulWidget {
   final String role;
@@ -58,6 +59,17 @@ class _SignUpSoloTaskerAccState extends State<SignUpSoloTaskerAcc> {
       penColor: Colors.black,
       exportBackgroundColor: Colors.white,
     );
+
+    // Show privacy policy popup after the widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return PrivacyPolicyPopup();
+        },
+      );
+    });
   }
 
   Future<void> _initDeepLinkListener() async {

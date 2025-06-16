@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'dart:async';
 import 'package:app_links/app_links.dart';
+import 'package:flutter_fe/widgets/privacy_policy_popup.dart';
 
 class SignUpGroupTaskerAcc extends StatefulWidget {
   final String role;
@@ -26,6 +27,17 @@ class _SignUpGroupTaskerAccState extends State<SignUpGroupTaskerAcc> {
     super.initState();
     _initDeepLinkListener();
     _controller.roleController.text = widget.role;
+
+    // Show privacy policy popup after the widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return PrivacyPolicyPopup();
+        },
+      );
+    });
   }
 
   Future<void> _initDeepLinkListener() async {
