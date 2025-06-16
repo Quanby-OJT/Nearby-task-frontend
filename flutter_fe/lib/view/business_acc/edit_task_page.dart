@@ -1169,7 +1169,11 @@ class _EditTaskPageState extends State<EditTaskPage>
       ),
       body: SafeArea(
         child: _isLoading
-            ? Center(child: CircularProgressIndicator())
+            ? Center(
+                child: CircularProgressIndicator(
+                  color: Color(0xFFB71A4A),
+                ),
+              )
             : Column(
                 children: [
                   _buildProgressBar(),

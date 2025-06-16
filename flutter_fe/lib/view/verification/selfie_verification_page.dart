@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/service/api_service.dart';
 import 'package:flutter_fe/model/verification_model.dart';
+import 'package:flutter_fe/view/verification/face_detection_page.dart';
 
 class SelfieVerificationPage extends StatefulWidget {
   final Function(File selfieImage) onSelfieVerified;
@@ -44,38 +45,69 @@ class _SelfieVerificationPageState extends State<SelfieVerificationPage> {
 
         debugPrint('Verification API response: ${jsonEncode(result)}');
 
-        if (result['success'] == true && result['exists'] == true) {
+        if (result['success'] == true) {
+          String? selfieImageUrl;
+          VerificationModel? verificationData;
+          String? verificationStatus;
+          bool isVerified = false;
+
           // Check if verification data exists
-          if (result['verification'] != null) {
+          if (result['exists'] == true && result['verification'] != null) {
             debugPrint(
                 'Raw verification data: ${jsonEncode(result['verification'])}');
-            final verificationData =
+            verificationData =
                 VerificationModel.fromJson(result['verification']);
 
-            // Check for selfieImageUrl directly in verification data
-            String? selfieImageUrl = verificationData.selfieImageUrl;
+            // The backend now includes all image URLs directly in the verification data
+            selfieImageUrl = verificationData.selfieImageUrl;
             debugPrint(
                 'Selfie image URL from verification model: $selfieImageUrl');
 
-            // If not found in the verification model, check if it's in the faceImage field
-            if ((selfieImageUrl == null || selfieImageUrl.isEmpty) &&
-                result['faceImage'] != null &&
+            verificationStatus = verificationData.status;
+            isVerified = verificationData.status == 'approved';
+          }
+
+          // Always check for images in additional data fields (whether verification exists or not)
+          debugPrint('=== CHECKING FOR SELFIE IMAGES IN ADDITIONAL FIELDS ===');
+          debugPrint('Current selfieImageUrl: $selfieImageUrl');
+          debugPrint('result[\'faceImage\']: ${result['faceImage']}');
+
+          if ((selfieImageUrl == null || selfieImageUrl.isEmpty)) {
+            if (result['faceImage'] != null &&
                 result['faceImage']['face_image'] != null) {
               selfieImageUrl = result['faceImage']['face_image'];
               debugPrint(
-                  'Selfie image URL from faceImage field: $selfieImageUrl');
+                  '✅ Selfie image URL extracted from additional faceImage field: $selfieImageUrl');
+            } else {
+              debugPrint('❌ No faceImage data found in additional fields');
             }
-
-            setState(() {
-              _verificationData = verificationData;
-              _selfieImageUrl = selfieImageUrl;
-              _verificationStatus = verificationData.status;
-              _isVerified = verificationData.status == 'approved';
-            });
-
-            debugPrint('Final Selfie Image URL: $_selfieImageUrl');
-            debugPrint('Verification Status: $_verificationStatus');
+          } else {
+            debugPrint('✅ selfieImageUrl already set from verification data');
           }
+
+          // If no verification record exists but we have user data, use that for status
+          if (verificationStatus == null && result['user'] != null) {
+            verificationStatus = result['user']['acc_status'] ?? 'pending';
+            debugPrint(
+                'Using user acc_status as verification status: $verificationStatus');
+          }
+
+          setState(() {
+            _verificationData = verificationData;
+            _selfieImageUrl = selfieImageUrl;
+            _verificationStatus = verificationStatus;
+            _isVerified = isVerified;
+          });
+
+          debugPrint('=== FINAL SELFIE STATE AFTER UPDATE ===');
+          debugPrint('Final Selfie Image URL: $_selfieImageUrl');
+          debugPrint('Verification Status: $_verificationStatus');
+          debugPrint(
+              'Has Selfie Check: ${_selfieImage != null || _selfieImageUrl != null}');
+          debugPrint('Can Proceed: ${_canProceed}');
+          debugPrint('_selfieImageUrl is null: ${_selfieImageUrl == null}');
+          debugPrint('_selfieImageUrl is empty: ${_selfieImageUrl?.isEmpty}');
+          debugPrint('=======================================');
         }
       }
     } catch (e) {
@@ -475,7 +507,7 @@ class _SelfieVerificationPageState extends State<SelfieVerificationPage> {
                     ),
                     const SizedBox(height: 48),
 
-                    // Two buttons side by side: Capture and Next
+                    // Three buttons: Capture, Liveness Detection, and Next
                     Row(
                       children: [
                         // Capture Button
@@ -491,7 +523,7 @@ class _SelfieVerificationPageState extends State<SelfieVerificationPage> {
                                     ? "Take Selfie"
                                     : "Retake Selfie",
                                 style: GoogleFonts.poppins(
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -508,7 +540,69 @@ class _SelfieVerificationPageState extends State<SelfieVerificationPage> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 8),
+                        // Liveness Detection Button
+                        Expanded(
+                          child: SizedBox(
+                            height: 50,
+                            child: ElevatedButton.icon(
+                              onPressed: _isVerified
+                                  ? null
+                                  : () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              FaceDetectionPage(
+                                            onDetectionComplete:
+                                                (File? capturedImage,
+                                                    bool success) {
+                                              if (success &&
+                                                  capturedImage != null) {
+                                                setState(() {
+                                                  _selfieImage = capturedImage;
+                                                  _selfieImageName =
+                                                      capturedImage.path
+                                                          .split('/')
+                                                          .last;
+                                                });
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text(
+                                                        'Liveness verification completed!'),
+                                                    backgroundColor:
+                                                        Colors.green,
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                          ),
+                                        ),
+                                      );
+                                    },
+                              icon: const Icon(Icons.face, color: Colors.white),
+                              label: Text(
+                                "Liveness",
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue[600],
+                                foregroundColor: Colors.white,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                disabledBackgroundColor: Colors.grey[400],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
                         // Next Button - Only enabled when there's an image
                         Expanded(
                           child: SizedBox(
@@ -520,7 +614,7 @@ class _SelfieVerificationPageState extends State<SelfieVerificationPage> {
                               label: Text(
                                 "Next",
                                 style: GoogleFonts.poppins(
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),

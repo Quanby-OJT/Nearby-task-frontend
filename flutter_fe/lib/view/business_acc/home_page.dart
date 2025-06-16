@@ -854,7 +854,11 @@ class _ClientHomePageState extends State<ClientHomePage>
             children: [
               Expanded(
                 child: _isLoading
-                    ? Center(child: CircularProgressIndicator())
+                    ? Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFFB71A4A),
+                        ),
+                      )
                     : _errorMessage != null
                         ? Center(
                             child: Column(
@@ -951,16 +955,29 @@ class _ClientHomePageState extends State<ClientHomePage>
                                     _cardCounter();
                                   } else if (swipeDirection ==
                                       CardSwiperDirection.right) {
-                                    if (_user?.user.accStatus?.toLowerCase() ==
-                                        'review') {
+                                    // Check if account status allows interaction without verification warning
+                                    final accountStatus = _user?.user.accStatus;
+                                    final userRole = _user?.user.role;
+
+                                    // For Client users, allow interaction if:
+                                    // 1. Account status is Review/Active, OR
+                                    // 2. Account status is empty/null (default client state), OR
+                                    // 3. Verification status is Approved/Review
+                                    if (userRole == 'Client' &&
+                                        (accountStatus == 'Review' ||
+                                            accountStatus == 'Active' ||
+                                            accountStatus == null ||
+                                            accountStatus == '' ||
+                                            _verificationStatus == "Approved" ||
+                                            _verificationStatus == "Review")) {
                                       _saveLikedTasker(
                                           taskers[previousIndex].user);
                                       _cardCounter();
                                       return true;
                                     }
-
-                                    if (_verificationStatus != "Active" &&
-                                        _verificationStatus != "Review") {
+                                    // For other roles or problematic account statuses, show warning
+                                    if (accountStatus == 'Ban' ||
+                                        accountStatus == 'Suspended') {
                                       _showWarningDialog();
                                       return false;
                                     }

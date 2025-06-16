@@ -223,7 +223,9 @@ class _LikeScreenState extends State<LikeScreen> {
   Widget _buildBody() {
     if (_isLoading) {
       return const Center(
-        child: CircularProgressIndicator(),
+        child: CircularProgressIndicator(
+          color: Color(0xFFB71A4A),
+        ),
       );
     }
 
@@ -447,7 +449,7 @@ class _LikeScreenState extends State<LikeScreen> {
                   children: [
                     Text(
                       '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice.roundToDouble())}',
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.montserrat(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,

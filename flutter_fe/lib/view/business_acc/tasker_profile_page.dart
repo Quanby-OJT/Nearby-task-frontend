@@ -195,7 +195,11 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFFB71A4A),
+              ),
+            )
           : _errorMessage != null
               ? Center(
                   child: Column(

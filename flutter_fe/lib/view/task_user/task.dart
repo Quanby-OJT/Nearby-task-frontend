@@ -441,7 +441,9 @@ class _TaskPageState extends State<TaskPage>
       ),
       body: isLoading
           ? Center(
-              child: CircularProgressIndicator(),
+              child: CircularProgressIndicator(
+                color: Color(0xFFB71A4A),
+              ),
             )
           : clientTasks.isEmpty
               ? Center(
@@ -592,7 +594,7 @@ class _TaskPageState extends State<TaskPage>
                       child: isLoading
                           ? Center(
                               child: CircularProgressIndicator(
-                                  color: Color(0xFF0272B1)))
+                                  color: Color(0xFFB71A4A)))
                           : filteredTasks.isEmpty
                               ? Center(
                                   child: Column(
@@ -947,7 +949,10 @@ class _TaskPageState extends State<TaskPage>
                     imageUrl: imageUrl,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Color(0xFFB71A4A),
+                      ),
                     ),
                     errorWidget: (context, url, error) => const Icon(
                       Icons.person,
