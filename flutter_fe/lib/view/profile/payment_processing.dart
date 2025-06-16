@@ -12,6 +12,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:signature/signature.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PaymentProcessingPage extends StatefulWidget {
   final String? transferMethod;
@@ -36,6 +38,8 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
   late SignatureController _signatureController;
   File? _signatureImage;
   final ImagePicker _picker = ImagePicker();
+  String? _storedSignatureData;
+  bool _isLoadingSignature = true;
 
   @override
   void initState() {
@@ -46,6 +50,10 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
       penColor: Colors.black,
       exportBackgroundColor: Colors.white,
     );
+    // Ensure email is loaded before loading signature
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadStoredSignature();
+    });
   }
 
   @override
@@ -272,6 +280,69 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
     }
   }
 
+  Future<void> _loadStoredSignature() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String? email = storage.read("email")?.toString().toLowerCase();
+
+      if (email == null || email.isEmpty) {
+        debugPrint(
+            'Email not found in storage. Attempting to retrieve from controller...');
+        // Try to get email from the controller if available
+        final controllerEmail =
+            profileController.emailController.text.toLowerCase();
+        if (controllerEmail.isNotEmpty) {
+          email = controllerEmail;
+          await storage.write('email', email);
+          debugPrint('Email retrieved from controller and stored: $email');
+        } else {
+          // Try to get email from the API response
+          final userId = storage.read("user_id");
+          if (userId != null) {
+            try {
+              final userData =
+                  await profileController.getAuthenticatedUser(context, userId);
+              if (userData?.user.email != null) {
+                email = userData!.user.email.toLowerCase();
+                await storage.write('email', email);
+                debugPrint('Email retrieved from API and stored: $email');
+              }
+            } catch (e) {
+              debugPrint('Error fetching user data: $e');
+            }
+          }
+        }
+      }
+
+      if (email == null || email.isEmpty) {
+        debugPrint('No email available from any source');
+        setState(() {
+          _isLoadingSignature = false;
+        });
+        return;
+      }
+
+      final signatureData = prefs.getString('user_signature_$email');
+      if (signatureData != null) {
+        setState(() {
+          _storedSignatureData = signatureData;
+          _isLoadingSignature = false;
+        });
+        debugPrint('Signature loaded successfully for email: $email');
+      } else {
+        debugPrint('No signature found for email: $email');
+        setState(() {
+          _isLoadingSignature = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading signature: $e');
+      setState(() {
+        _isLoadingSignature = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -407,22 +478,26 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                       ]),
                   SizedBox(height: 10),
                   if (widget.transferMethod == "withdraw")
-                    Text(
-                      "NOTE: The minimum amount that you can withdraw is P100.00, while the maximum amount that you can withdraw is PHP 20,000.00.",
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: Colors.red,
+                    Center(
+                      child: Text(
+                        "NOTE: The minimum amount that you can withdraw is P100.00, while the maximum amount that you can withdraw is PHP 20,000.00.",
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: Colors.red,
+                        ),
+                        textAlign: TextAlign.justify,
                       ),
-                      textAlign: TextAlign.justify,
                     ),
                   if (widget.transferMethod == "deposit")
-                    Text(
-                      "NOTE: The minimum amount that you can deposit is PHP 500.00 and the maximum is PHP 30,000.00.",
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: Colors.red,
+                    Center(
+                      child: Text(
+                        "NOTE: The minimum amount that you can deposit is PHP 500.00 and the maximum is PHP 30,000.00.",
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: Colors.red,
+                        ),
+                        textAlign: TextAlign.justify,
                       ),
-                      textAlign: TextAlign.justify,
                     ),
                   SizedBox(
                     height: 20,
@@ -517,7 +592,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                         ),
                         SizedBox(height: 5),
                         Text(
-                          'Signature',
+                          'Signature Comparison',
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -526,84 +601,145 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                         ),
                         SizedBox(height: 10),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            TextButton.icon(
-                              onPressed: _pickSignatureImage,
-                              icon: Icon(Icons.upload_file,
-                                  color: Color(0xFF0272B1)),
-                              label: Text(
-                                'Upload Signature',
-                                style: GoogleFonts.poppins(
-                                  color: Color(0xFF0272B1),
-                                  fontWeight: FontWeight.w500,
-                                ),
+                            // Left side - Stored signature
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Registration Signature',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  SizedBox(height: 5),
+                                  Container(
+                                    height: 200,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: Colors.grey),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: _isLoadingSignature
+                                        ? Center(
+                                            child: CircularProgressIndicator())
+                                        : _storedSignatureData != null
+                                            ? ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                child: Container(
+                                                  width: double.infinity,
+                                                  height: double.infinity,
+                                                  color: Colors.white,
+                                                  child: Image.memory(
+                                                    base64Decode(
+                                                        _storedSignatureData!),
+                                                    fit: BoxFit.contain,
+                                                  ),
+                                                ),
+                                              )
+                                            : Center(
+                                                child: Text(
+                                                  'No signature found',
+                                                  style: GoogleFonts.poppins(
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
+                                              ),
+                                  ),
+                                  SizedBox(height: 40),
+                                ],
                               ),
                             ),
-                            if (_signatureImage != null)
-                              TextButton.icon(
-                                onPressed: () {
-                                  setState(() {
-                                    _signatureImage = null;
-                                  });
-                                },
-                                icon: Icon(Icons.delete, color: Colors.red),
-                                label: Text(
-                                  'Remove',
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.red,
-                                    fontWeight: FontWeight.w500,
+                            SizedBox(width: 10),
+                            // Right side - Current signature
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Current Signature',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
-                                ),
+                                  SizedBox(height: 5),
+                                  Container(
+                                    height: 200,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: Colors.grey),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: _signatureImage != null
+                                          ? Container(
+                                              width: double.infinity,
+                                              height: double.infinity,
+                                              color: Colors.white,
+                                              child: Image.file(
+                                                _signatureImage!,
+                                                fit: BoxFit.cover,
+                                              ),
+                                            )
+                                          : Signature(
+                                              controller: _signatureController,
+                                              backgroundColor: Colors.white,
+                                            ),
+                                    ),
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      TextButton.icon(
+                                        onPressed: _pickSignatureImage,
+                                        icon: Icon(Icons.upload_file,
+                                            color: Color(0xFF0272B1)),
+                                        label: Text(
+                                          'Upload Signature',
+                                          style: GoogleFonts.poppins(
+                                            color: Color(0xFF0272B1),
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      _signatureImage != null
+                                          ? TextButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  _signatureImage = null;
+                                                });
+                                              },
+                                              child: Text(
+                                                'Remove',
+                                                style: GoogleFonts.poppins(
+                                                  color: Colors.red,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            )
+                                          : TextButton(
+                                              onPressed: () {
+                                                _signatureController.clear();
+                                              },
+                                              child: Text(
+                                                'Clear',
+                                                style: GoogleFonts.poppins(
+                                                  color: Color(0xFF0272B1),
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                    ],
+                                  ),
+                                ],
                               ),
+                            ),
                           ],
                         ),
-                        SizedBox(height: 10),
-                        Container(
-                          height: 200,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: _signatureImage != null
-                                ? Container(
-                                    width: double.infinity,
-                                    height: double.infinity,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.white,
-                                    ),
-                                    child: Image.file(
-                                      _signatureImage!,
-                                      fit: BoxFit.contain,
-                                    ),
-                                  )
-                                : Signature(
-                                    controller: _signatureController,
-                                    backgroundColor: Colors.white,
-                                  ),
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        if (_signatureImage == null)
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              TextButton(
-                                onPressed: () {
-                                  _signatureController.clear();
-                                },
-                                child: Text(
-                                  'Clear',
-                                  style: GoogleFonts.poppins(
-                                    color: Color(0xFF0272B1),
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
                       ],
                     ),
                   ),
@@ -663,44 +799,46 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                       ),
                     ],
                   ),
-                  ElevatedButton(
-                    onPressed: (_isConfirmed && !isLoading)
-                        ? () async {
-                            // Button is enabled only if _isConfirmed is true and isLoading is false
-                            if (_selectedPaymentMethod.isEmpty) {
-                              _showStatusModal(
-                                  context,
-                                  "Please Select Your Desired Payment Method",
-                                  Icon(
-                                    FontAwesomeIcons.circleExclamation,
-                                    color: Color(0XFFE23670),
-                                    size: 50,
-                                  ));
-                              return;
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: (_isConfirmed && !isLoading)
+                          ? () async {
+                              // Button is enabled only if _isConfirmed is true and isLoading is false
+                              if (_selectedPaymentMethod.isEmpty) {
+                                _showStatusModal(
+                                    context,
+                                    "Please Select Your Desired Payment Method",
+                                    Icon(
+                                      FontAwesomeIcons.circleExclamation,
+                                      color: Color(0XFFE23670),
+                                      size: 50,
+                                    ));
+                                return;
+                              }
+                              if (_formKey.currentState!.validate()) {
+                                _showConfirmationDialog(
+                                    context, Color(0XFFE23670));
+                              }
                             }
-                            if (_formKey.currentState!.validate()) {
-                              _showConfirmationDialog(
-                                  context, Color(0XFFE23670));
-                            }
+                          : null, // Button is disabled if _isConfirmed is false or isLoading is true
+                      style: ButtonStyle(
+                        backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                            (Set<WidgetState> states) {
+                          if (states.contains(WidgetState.disabled)) {
+                            return const Color(0xFFD3D3D3); // Disabled color
                           }
-                        : null, // Button is disabled if _isConfirmed is false or isLoading is true
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                          (Set<WidgetState> states) {
-                        if (states.contains(WidgetState.disabled)) {
-                          return const Color(0xFFD3D3D3); // Disabled color
-                        }
-                        return const Color(0xFF3C28CC);
-                      }),
+                          return const Color(0xFF3C28CC);
+                        }),
+                      ),
+                      child: Text(
+                          widget.transferMethod == "withdraw"
+                              ? "Withdraw Amount"
+                              : "Deposit Amount",
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            color: Colors.white,
+                          )),
                     ),
-                    child: Text(
-                        widget.transferMethod == "withdraw"
-                            ? "Withdraw Amount"
-                            : "Deposit Amount",
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: Colors.white,
-                        )),
                   ),
                 ],
               ),

@@ -78,13 +78,21 @@ class ProfileController {
         firstName: firstNameController.text,
         middleName: middleNameController.text,
         lastName: lastNameController.text,
-        email: emailController.text,
+        email: emailController.text.toLowerCase(),
         password: passwordController.text,
         role: roleController.text,
         accStatus: 'Pending',
       );
 
       Map<String, dynamic> resultData = await ApiService.registerUser(user);
+
+      if (resultData.containsKey("user") &&
+          resultData["user"]["email"] != null) {
+        await storage.write(
+            'email', resultData["user"]["email"].toString().toLowerCase());
+        debugPrint(
+            'Email stored during registration: ${resultData["user"]["email"]}');
+      }
 
       Navigator.pop(context);
 
@@ -439,6 +447,24 @@ class ProfileController {
       debugPrint("Error updating user data: $e");
       debugPrintStack(stackTrace: stackTrace);
       return "An Error Occurred while Updating your information. Please Try Again.";
+    }
+  }
+
+  Future<void> loginUser(String email, String password) async {
+    try {
+      // This is a placeholder for your actual login API call.
+      // Replace this with your existing API service call for user login.
+      // Example: final result = await ApiService.loginUser(email, password);
+
+      // For demonstration, let's assume login is successful and you get user data.
+      // You should replace this with actual login validation.
+
+      // If login is successful, store the email in GetStorage
+      await storage.write("email", email);
+      debugPrint('Email $email stored in GetStorage after login.');
+    } catch (e) {
+      debugPrint('Error during login: $e');
+      // Handle login errors (e.g., show a snackbar or alert)
     }
   }
 
