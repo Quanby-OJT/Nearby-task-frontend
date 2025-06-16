@@ -745,13 +745,15 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                   ),
                   SizedBox(height: 8),
                   if (widget.transferMethod == "withdraw")
-                    Text(
-                      "NOTE: You will receive your amount to your wallet within 1-2 business days.",
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: Colors.red,
+                    Center(
+                      child: Text(
+                        "NOTE: You will receive your amount to your wallet within 1-2 business days.",
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: Colors.red,
+                        ),
+                        textAlign: TextAlign.justify,
                       ),
-                      textAlign: TextAlign.justify,
                     ),
                   //Confirmation Button
                   Row(
