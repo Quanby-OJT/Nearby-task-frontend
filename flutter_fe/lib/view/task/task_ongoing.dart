@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/view/task/task_disputed.dart';
 import 'package:flutter_fe/view/task/task_review.dart';
 import 'package:flutter_fe/view/task_user/user_feedback.dart';
+import 'package:flutter_fe/view/service_acc/tasker_milestone_customization.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
@@ -499,6 +500,14 @@ class _TaskOngoingState extends State<TaskOngoing> {
                               _buildStatusSection(),
                             SizedBox(height: 10),
                             _buildTaskCard(constraints),
+                            SizedBox(height: 10),
+                            // Add milestone customization for taskers
+                            if (widget.taskInformation?.tasker?.user == null &&
+                                tasker?.user.role == 'Tasker')
+                              _buildMilestoneManagementCard(),
+                            if (widget.taskInformation?.tasker?.user == null &&
+                                tasker?.user.role == 'Tasker')
+                              SizedBox(height: 10),
                             if (widget.taskInformation?.tasker?.user == null)
                               _buildClientProfileCard(),
                             SizedBox(height: 10),
@@ -896,6 +905,105 @@ class _TaskOngoingState extends State<TaskOngoing> {
         ),
       );
     }
+  }
+
+  Widget _buildMilestoneManagementCard() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.orange[50],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: FaIcon(
+                    FontAwesomeIcons.listCheck,
+                    color: Colors.orange[600],
+                    size: 24,
+                  ),
+                ),
+                SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Milestone Management',
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF03045E),
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Customize and track your task milestones',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: Colors.grey[400],
+                  size: 18,
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  if (_taskInformation != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TaskerMilestoneCustomizationPage(
+                          task: _taskInformation!,
+                        ),
+                      ),
+                    );
+                  }
+                },
+                icon: FaIcon(
+                  FontAwesomeIcons.sliders,
+                  size: 16,
+                  color: Colors.white,
+                ),
+                label: Text(
+                  'Customize Milestones',
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF03045E),
+                  padding: EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 2,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildtaskerActionButton() {
