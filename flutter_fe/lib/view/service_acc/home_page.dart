@@ -1541,7 +1541,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                                 child: Text(
                                   '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice.roundToDouble() ?? 0)}' ??
                                       'No price available for this task.',
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.montserrat(
                                     fontSize: 12,
                                     color: Colors.grey[700],
                                   ),
