@@ -852,7 +852,11 @@ class _ClientHomePageState extends State<ClientHomePage>
             children: [
               Expanded(
                 child: _isLoading
-                    ? Center(child: CircularProgressIndicator())
+                    ? Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFFB71A4A),
+                        ),
+                      )
                     : _errorMessage != null
                         ? Center(
                             child: Column(

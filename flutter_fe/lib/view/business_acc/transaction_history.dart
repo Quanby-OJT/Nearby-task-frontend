@@ -291,7 +291,10 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
                     imageUrl: imageUrl,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Color(0xFFB71A4A),
+                      ),
                     ),
                     errorWidget: (context, url, error) => const Icon(
                       Icons.person,

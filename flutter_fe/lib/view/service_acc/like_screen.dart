@@ -223,7 +223,9 @@ class _LikeScreenState extends State<LikeScreen> {
   Widget _buildBody() {
     if (_isLoading) {
       return const Center(
-        child: CircularProgressIndicator(),
+        child: CircularProgressIndicator(
+          color: Color(0xFFB71A4A),
+        ),
       );
     }
 

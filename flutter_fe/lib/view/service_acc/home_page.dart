@@ -637,6 +637,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                           }));
                       overlayEntry.remove();
                     }),
+
                     buildListTile(FontAwesomeIcons.gears, "Settings", () {
                       Navigator.push(
                         context,
@@ -854,7 +855,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
       body: Stack(
         children: [
           if (_isLoading || _isCategoriesLoading)
-            Center(child: CircularProgressIndicator())
+            Center(child: CircularProgressIndicator(color: Color(0xFFB71A4A)))
           else if (tasks.isEmpty)
             Center(
               child: Column(
@@ -884,7 +885,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                   OutlinedButton(
                     onPressed: _fetchTasks,
                     style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Color(0xFF0272B1)),
+                      side: BorderSide(color: Color(0xFFB71A4A)),
                       padding:
                           EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       shape: RoundedRectangleBorder(
@@ -893,7 +894,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                     ),
                     child: Text(
                       'Refresh',
-                      style: GoogleFonts.openSans(color: Color(0xFF0272B1)),
+                      style: GoogleFonts.openSans(color: Color(0xFFB71A4A)),
                     ),
                   ),
                 ],
@@ -1078,6 +1079,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                                       if (progress == null) return child;
                                       return Center(
                                         child: CircularProgressIndicator(
+                                          color: Color(0xFFB71A4A),
                                           value: progress.expectedTotalBytes !=
                                                   null
                                               ? progress.cumulativeBytesLoaded /
