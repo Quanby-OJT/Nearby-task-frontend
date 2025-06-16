@@ -1154,6 +1154,8 @@ class ApiService {
         "phone": verificationData['phone'] ?? '',
         "gender": verificationData['gender'] ?? '',
         "birthdate": verificationData['birthdate'] ?? '',
+        "profileImageUrl": verificationData['profileImageUrl'] ??
+            '', // Include profile image URL
       });
 
       // Add files only if they exist and are readable
@@ -1858,5 +1860,67 @@ class ApiService {
   ) async {
     // Use the unified getUserVerificationStatus method
     return await getUserVerificationStatus(userId);
+  }
+
+  // Upload profile image to tasker_images table
+  static Future<Map<String, dynamic>> uploadTaskerProfileImage(
+    int userId,
+    File profileImage,
+  ) async {
+    try {
+      String token = await AuthService.getSessionToken();
+      debugPrint("ApiService: Uploading profile image for user: $userId");
+
+      final String endpoint = "$apiUrl/upload-tasker-profile-image/$userId";
+
+      var request = http.MultipartRequest("POST", Uri.parse(endpoint));
+
+      request.headers.addAll({
+        "Authorization": "Bearer $token",
+        "Content-Type": "multipart/form-data",
+      });
+
+      // Add user ID
+      request.fields['user_id'] = userId.toString();
+
+      // Add profile image file
+      if (await profileImage.exists()) {
+        debugPrint("ApiService: Adding profile image to request");
+        request.files.add(
+          await http.MultipartFile.fromPath('tasker_images', profileImage.path),
+        );
+      } else {
+        return {
+          "success": false,
+          "error": "Profile image file does not exist",
+        };
+      }
+
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+      final responseData = jsonDecode(responseBody);
+
+      debugPrint("ApiService: Profile image upload response: $responseData");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          "success": true,
+          "message":
+              responseData["message"] ?? "Profile image uploaded successfully",
+          "data": responseData["data"],
+        };
+      } else {
+        return {
+          "success": false,
+          "error": responseData["error"] ?? "Failed to upload profile image",
+        };
+      }
+    } catch (e) {
+      debugPrint("ApiService: Error uploading profile image: $e");
+      return {
+        "success": false,
+        "error": "Error uploading profile image: $e",
+      };
+    }
   }
 }
