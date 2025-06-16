@@ -365,7 +365,8 @@ class _DocumentUploadPageState extends State<DocumentUploadPage> {
     if (_documentFile != null) {
       // Only pass the file if it exists
       if (_documentFile!.existsSync()) {
-        debugPrint("Document file exists, proceeding with upload");
+        debugPrint(
+            "Document file exists, proceeding with upload: ${_documentFile!.path}");
         widget.onDocumentUploaded(_documentFile);
       } else {
         debugPrint("Document file doesn't exist, proceeding without document");
@@ -380,8 +381,9 @@ class _DocumentUploadPageState extends State<DocumentUploadPage> {
         );
       }
     } else if (_documentUrl != null) {
-      // If there's an existing document URL, proceed with that
-      debugPrint("Existing document found, proceeding with existing document");
+      // If there's an existing document URL, proceed with that (no new upload needed)
+      debugPrint(
+          "Existing document found, proceeding with existing document: $_documentUrl");
       widget.onDocumentUploaded(null); // Pass null as no new file to upload
     } else {
       // If no document was selected, proceed without it
@@ -936,6 +938,32 @@ class _DocumentUploadPageState extends State<DocumentUploadPage> {
                         ],
                       ),
                     const SizedBox(height: 40),
+
+                    // Continue Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _completeVerification,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFB71A4A),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          _documentFile != null || _documentUrl != null
+                              ? 'Continue with Document'
+                              : 'Continue without Document',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
