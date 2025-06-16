@@ -116,137 +116,6 @@ class ApiService {
     }
   }
 
-  // Update tasker profile with PDF file
-  // static Future<Map<String, dynamic>> updateTaskerWithFile(UserModel user, File file) async {
-  //   try {
-  //     String token = await AuthService.getSessionToken();
-  //
-  //     var request = http.MultipartRequest(
-  //       "PUT",
-  //       Uri.parse("$apiUrl/update-tasker-with-file/${user.id}"),
-  //     );
-  //
-  //     request.headers.addAll({
-  //       "Authorization": "Bearer $token",
-  //       "Content-Type": "multipart/form-data",
-  //     });
-  //
-  //     request.fields.addAll({
-  //       "first_name": user.firstName,
-  //       "middle_name": user.middleName ?? '',
-  //       "last_name": user.lastName,
-  //       "email": user.email,
-  //       "user_role": user.role,
-  //       "acc_status": user.accStatus ?? '',
-  //       "birthday": user.birthdate ?? '',
-  //       "contact": user.contact ?? '',
-  //       "gender": user.gender ?? '',
-  //     });
-  //
-  //     // Add the ID image to the request
-  //     request.files.add(
-  //       http.MultipartFile.fromBytes(
-  //         "file",
-  //         await file.readAsBytes(),
-  //         filename: "file.jpg",
-  //       ),
-  //     );
-  //
-  //     var response = await request.send();
-  //     var responseBody = await response.stream.bytesToString();
-  //
-  //     debugPrint('Response Status: ${response.statusCode}');
-  //     debugPrint('Response Body update id image: $responseBody');
-  //
-  //     final responseData = jsonDecode(responseBody);
-  //
-  //     if (response.statusCode == 200) {
-  //       return {
-  //         "message": responseData["message"] ??
-  //             "User information with ID image updated successfully!",
-  //         "user": responseData["user"]
-  //       };
-  //     } else if (response.statusCode == 400) {
-  //       String errorMessage = "";
-  //       if (responseData['errors'] is String) {
-  //         errorMessage = responseData['errors'];
-  //       } else if (responseData['errors'] is List) {
-  //         errorMessage = (responseData['errors'] as List)
-  //             .map((e) => e['msg'] ?? e.toString())
-  //             .join('\n');
-  //       }
-  //       return {
-  //         "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed."
-  //       };
-  //     } else {
-  //       return {
-  //         "errors": responseData["error"] ?? "An unexpected error occurred."
-  //       };
-  //     }
-  //   } catch (e) {
-  //     return {
-  //       "errors":
-  //           "An error occurred during updating user information with ID image: $e"
-  //     };
-  //   }
-  // }
-
-  // static Future<Map<String, dynamic>> updateUser(UserModel user) async {
-  //   try {
-  //     final response = await _client.put(
-  //       Uri.parse("$apiUrl/update-client-user/${user.id}"),
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         "Accept": "application/json",
-  //       },
-  //       body: json.encode({
-  //         "id": user.id,
-  //         "first_name": user.firstName,
-  //         "middle_name": user.middleName,
-  //         "last_name": user.lastName,
-  //         "email": user.email,
-  //         "user_role": user.role,
-  //         "contact": user.contact,
-  //         "gender": user.gender,
-  //         "birthdate": user.birthdate,
-  //       }),
-  //     );
-  //
-  //     debugPrint('Response Status: ${response.statusCode}');
-  //     debugPrint('Response Body: ${response.body}');
-  //
-  //     final responseData = jsonDecode(response.body);
-  //
-  //     if (response.statusCode == 200) {
-  //       return {
-  //         "message": responseData["message"] ??
-  //             "User information updated successfully!",
-  //         "user": responseData["user"]
-  //       };
-  //     } else if (response.statusCode == 400) {
-  //       String errorMessage = "";
-  //       if (responseData['errors'] is String) {
-  //         errorMessage = responseData['errors'];
-  //       } else if (responseData['errors'] is List) {
-  //         errorMessage = (responseData['errors'] as List)
-  //             .map((e) => e['msg'] ?? e.toString())
-  //             .join('\n');
-  //       }
-  //       return {
-  //         "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed."
-  //       };
-  //     } else {
-  //       return {
-  //         "errors": responseData["error"] ?? "An unexpected error occurred."
-  //       };
-  //     }
-  //   } catch (e) {
-  //     return {
-  //       "errors": "An error occurred during updating user information: $e"
-  //     };
-  //   }
-  // }
-
   static Future<Map<String, dynamic>> checkTaskAssignment(
     int taskId,
     int taskerId,
@@ -1583,212 +1452,6 @@ class ApiService {
     }
   }
 
-  // static Future<Map<String, dynamic>> updateTaskerWithProfileImage(TaskerModel tasker, File profileImage) async {
-  //   try {
-  //     String token = await AuthService.getSessionToken();
-  //
-  //     var request = http.MultipartRequest(
-  //       "PUT",
-  //       Uri.parse("$apiUrl/update-tasker-with-profile-image/${tasker.id}"),
-  //     );
-  //
-  //     request.headers.addAll({
-  //       "Authorization": "Bearer $token",
-  //       "Content-Type": "multipart/form-data",
-  //     });
-  //
-  //     // Add all tasker fields
-  //     request.fields.addAll({
-  //       ...tasker.toJson().map((key, value) => MapEntry(key, value.toString())),
-  //     });
-  //
-  //     // Add the profile image to the request
-  //     request.files.add(
-  //       http.MultipartFile.fromBytes(
-  //         "image",
-  //         await profileImage.readAsBytes(),
-  //         filename: "profile_image.jpg",
-  //       ),
-  //     );
-  //
-  //     var response = await request.send();
-  //     var responseBody = await response.stream.bytesToString();
-  //
-  //     debugPrint('Response Status: ${response.statusCode}');
-  //     debugPrint('Response Body: $responseBody');
-  //
-  //     final responseData = jsonDecode(responseBody);
-  //
-  //     if (response.statusCode == 200) {
-  //       return {
-  //         "message": responseData["message"] ??
-  //             "Tasker information with profile image updated successfully!",
-  //         "tasker": responseData["tasker"]
-  //       };
-  //     } else if (response.statusCode == 400) {
-  //       String errorMessage = "";
-  //       if (responseData['errors'] is String) {
-  //         errorMessage = responseData['errors'];
-  //       } else if (responseData['errors'] is List) {
-  //         errorMessage = (responseData['errors'] as List)
-  //             .map((e) => e['msg'] ?? e.toString())
-  //             .join('\n');
-  //       }
-  //       return {
-  //         "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed."
-  //       };
-  //     } else {
-  //       return {
-  //         "errors": responseData["error"] ?? "An unexpected error occurred."
-  //       };
-  //     }
-  //   } catch (e) {
-  //     return {
-  //       "errors":
-  //           "An error occurred during updating tasker information with profile image: $e"
-  //     };
-  //   }
-  // }
-  //
-  // static Future<Map<String, dynamic>> updateTaskerWithDocument(TaskerModel tasker, File documentFile) async {
-  //   try {
-  //     String token = await AuthService.getSessionToken();
-  //
-  //     var request = http.MultipartRequest(
-  //       "PUT",
-  //       Uri.parse("$apiUrl/update-tasker-with-document/${tasker.id}"),
-  //     );
-  //
-  //     request.headers.addAll({
-  //       "Authorization": "Bearer $token",
-  //       "Content-Type": "multipart/form-data",
-  //     });
-  //
-  //     // Add all tasker fields
-  //     request.fields.addAll({
-  //       ...tasker.toJson().map((key, value) => MapEntry(key, value.toString())),
-  //     });
-  //
-  //     // Add the document file to the request
-  //     request.files.add(
-  //       http.MultipartFile.fromBytes(
-  //         "document",
-  //         await documentFile.readAsBytes(),
-  //         filename: "document.pdf",
-  //       ),
-  //     );
-  //
-  //     var response = await request.send();
-  //     var responseBody = await response.stream.bytesToString();
-  //
-  //     debugPrint('Response Status: ${response.statusCode}');
-  //     debugPrint('Response Body: $responseBody');
-  //
-  //     final responseData = jsonDecode(responseBody);
-  //
-  //     if (response.statusCode == 200) {
-  //       return {
-  //         "message": responseData["message"] ??
-  //             "Tasker information with document updated successfully!",
-  //         "tasker": responseData["tasker"]
-  //       };
-  //     } else if (response.statusCode == 400) {
-  //       String errorMessage = "";
-  //       if (responseData['errors'] is String) {
-  //         errorMessage = responseData['errors'];
-  //       } else if (responseData['errors'] is List) {
-  //         errorMessage = (responseData['errors'] as List)
-  //             .map((e) => e['msg'] ?? e.toString())
-  //             .join('\n');
-  //       }
-  //       return {
-  //         "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed."
-  //       };
-  //     } else {
-  //       return {
-  //         "errors": responseData["error"] ?? "An unexpected error occurred."
-  //       };
-  //     }
-  //   } catch (e) {
-  //     return {
-  //       "errors":
-  //           "An error occurred during updating tasker information with document: $e"
-  //     };
-  //   }
-  // }
-
-  // static Future<Map<String, dynamic>> updateTaskerWithBothFiles(TaskerModel tasker, File profileImage, File documentFile) async {
-  //   try {
-  //     String token = await AuthService.getSessionToken();
-  //
-  //     var request = http.MultipartRequest(
-  //       "PUT",
-  //       Uri.parse("$apiUrl/update-tasker-with-files/${tasker.id}"),
-  //     );
-  //
-  //     request.headers.addAll({
-  //       "Authorization": "Bearer $token",
-  //       "Content-Type": "multipart/form-data",
-  //     });
-  //
-  //     // Add all tasker fields
-  //     request.fields.addAll({
-  //       ...tasker.toJson().map((key, value) => MapEntry(key, value.toString())),
-  //     });
-  //
-  //     // Add both files to the request
-  //     request.files.addAll([
-  //       http.MultipartFile.fromBytes(
-  //         "image",
-  //         await profileImage.readAsBytes(),
-  //         filename: "profile_image.jpg",
-  //       ),
-  //       http.MultipartFile.fromBytes(
-  //         "document",
-  //         await documentFile.readAsBytes(),
-  //         filename: "document.pdf",
-  //       ),
-  //     ]);
-  //
-  //     var response = await request.send();
-  //     var responseBody = await response.stream.bytesToString();
-  //
-  //     debugPrint('Response Status: ${response.statusCode}');
-  //     debugPrint('Response Body: $responseBody');
-  //
-  //     final responseData = jsonDecode(responseBody);
-  //
-  //     if (response.statusCode == 200) {
-  //       return {
-  //         "message": responseData["message"] ??
-  //             "Tasker information with files updated successfully!",
-  //         "tasker": responseData["tasker"]
-  //       };
-  //     } else if (response.statusCode == 400) {
-  //       String errorMessage = "";
-  //       if (responseData['errors'] is String) {
-  //         errorMessage = responseData['errors'];
-  //       } else if (responseData['errors'] is List) {
-  //         errorMessage = (responseData['errors'] as List)
-  //             .map((e) => e['msg'] ?? e.toString())
-  //             .join('\n');
-  //       }
-  //       return {
-  //         "errors": errorMessage.isNotEmpty ? errorMessage : "Update failed."
-  //       };
-  //     } else {
-  //       return {
-  //         "errors": responseData["error"] ?? "An unexpected error occurred."
-  //       };
-  //     }
-  //   } catch (e) {
-  //     return {
-  //       "errors":
-  //           "An error occurred during updating tasker information with files: $e"
-  //     };
-  //   }
-  // }
-
   static Map<String, String> _getHeaders() {
     String cookieHeader =
         _cookies.entries.map((e) => '${e.key}=${e.value}').join('; ');
@@ -1858,5 +1521,87 @@ class ApiService {
   ) async {
     // Use the unified getUserVerificationStatus method
     return await getUserVerificationStatus(userId);
+  }
+
+  static Future<Map<String, dynamic>> updateFcmToken(
+      String fcmToken, int userId) async {
+    try {
+      final token = await AuthService.getSessionToken();
+      debugPrint("Updating FCM token for user $userId: $fcmToken");
+
+      final response = await _client.put(
+        Uri.parse("$apiUrl/update-fcm-token/$userId"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode({"fcm_token": fcmToken}),
+      );
+
+      debugPrint("FCM Token Update Status Code: ${response.statusCode}");
+      debugPrint("FCM Token Update Response: ${response.body}");
+
+      final responseData = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {
+          "success": true,
+          "message": responseData["message"] ?? "FCM token updated successfully"
+        };
+      } else {
+        return {
+          "success": false,
+          "error": responseData["error"] ?? "Failed to update FCM token"
+        };
+      }
+    } catch (e, stackTrace) {
+      debugPrint("Error updating FCM token: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {"success": false, "error": "Failed to update FCM token: $e"};
+    }
+  }
+
+  static Future<void> sendNotification(
+      String fcmToken, String title, String body, int userId) async {
+    try {
+      final url = Uri.parse(
+          'https://tzdthgosmoqepbypqbbu/functions/v1/notification_testing');
+
+      final requestBody = {
+        'fcm_token': fcmToken,
+        'title': title,
+        'body': body,
+        'user_id': userId,
+        'type': 'insert'
+      };
+
+      debugPrint("Sending notification with data:");
+      debugPrint("URL: $url");
+      debugPrint("Request Body: ${jsonEncode(requestBody)}");
+
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      debugPrint("Notification Response Status: ${response.statusCode}");
+      debugPrint("Notification Response Body: ${response.body}");
+
+      if (response.statusCode != 200) {
+        debugPrint(
+            "Error: Notification request failed with status ${response.statusCode}");
+      }
+    } catch (e, stackTrace) {
+      debugPrint("Error sending notification: $e");
+      debugPrint("Stack trace: $stackTrace");
+    }
+  }
+
+  // Add this method to test notifications
+  static Future<void> testNotification(String fcmToken, int userId) async {
+    await sendNotification(fcmToken, "Test Notification",
+        "This is a test notification from QTask", userId);
   }
 }

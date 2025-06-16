@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/milestone_model.dart';
-import 'package:flutter_fe/service/milestone_service.dart';
 import 'package:flutter_fe/service/milestone_service_mock.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';

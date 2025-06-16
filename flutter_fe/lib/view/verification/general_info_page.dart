@@ -7,7 +7,6 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
-import 'dart:convert';
 
 class GeneralInfoPage extends StatefulWidget {
   final Function(Map<String, dynamic> userInfo) onInfoCompleted;

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/user_model.dart';
@@ -11,7 +10,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../model/tasker_model.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:intl/intl.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class LikesScreen extends StatefulWidget {
   const LikesScreen({super.key});
@@ -27,6 +28,7 @@ class _LikesScreenState extends State<LikesScreen> {
   final ProfileController _profileController = ProfileController();
   final GetStorage storage = GetStorage();
   bool _isLoading = true;
+  bool _isOfflineMode = false;
   List<TaskerModel> _likedTasks = [];
   List<TaskerModel> _filteredTasks = [];
   String? _errorMessage;
@@ -35,11 +37,14 @@ class _LikesScreenState extends State<LikesScreen> {
   String? _existingIDImageUrl;
   AuthenticatedUser? _user;
   String _role = '';
+  String? _fcmToken;
+  late SharedPreferences _prefs;
+  final Connectivity _connectivity = Connectivity();
 
   @override
   void initState() {
     super.initState();
-    _initializeData();
+    _initializeSharedPreferences();
     _searchController.addListener(_filterTaskFunction);
   }
 
@@ -49,6 +54,107 @@ class _LikesScreenState extends State<LikesScreen> {
     super.dispose();
   }
 
+  Future<void> _initializeSharedPreferences() async {
+    _prefs = await SharedPreferences.getInstance();
+    await _checkInternetConnection();
+  }
+
+  Future<void> _checkInternetConnection() async {
+    setState(() {
+      _isLoading = true;
+    });
+    final result = await _connectivity.checkConnectivity();
+
+    if (result.contains(ConnectivityResult.mobile) == true ||
+        result.contains(ConnectivityResult.wifi) == true) {
+      setState(() {
+        _isLoading = false;
+        _isOfflineMode = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Internet connection is available",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      _initializeData();
+    } else {
+      setState(() {
+        _isOfflineMode = true;
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Center(
+            child: Text(
+              "Using offline mode",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          backgroundColor: Color(0xFFB71A4A),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      _loadCachedData();
+    }
+  }
+
+  Future<void> _saveDataToCache() async {
+    try {
+      if (_likedTasks.isNotEmpty) {
+        final likedTasksJson =
+            _likedTasks.map((task) => task.toJson()).toList();
+        await _prefs.setString(
+            'cached_liked_tasks', json.encode(likedTasksJson));
+        debugPrint("Saved ${_likedTasks.length} liked tasks to cache");
+      }
+    } catch (e) {
+      debugPrint("Error saving data to cache: $e");
+    }
+  }
+
+  Future<void> _loadCachedData() async {
+    try {
+      final cachedLikedTasks = _prefs.getString('cached_liked_tasks');
+
+      if (cachedLikedTasks != null) {
+        final List<dynamic> decodedLikedTasks = json.decode(cachedLikedTasks);
+        setState(() {
+          _likedTasks = decodedLikedTasks
+              .map((json) => TaskerModel.fromJson(json))
+              .toList();
+          _filteredTasks = List.from(_likedTasks);
+          savedTasksCount = _filteredTasks.length;
+        });
+        debugPrint("Loaded ${_likedTasks.length} liked tasks from cache");
+      }
+    } catch (e) {
+      debugPrint("Error loading cached data: $e");
+    }
+  }
+
   Future<void> _initializeData() async {
     try {
       setState(() {
@@ -56,7 +162,6 @@ class _LikesScreenState extends State<LikesScreen> {
         _errorMessage = null;
       });
 
-      // Wait for both data fetching operations to complete
       await Future.wait([
         _loadLikedTasks(),
         _fetchUserIDImage(),
@@ -103,6 +208,9 @@ class _LikesScreenState extends State<LikesScreen> {
         _filteredTasks = List.from(_likedTasks);
         savedTasksCount = _filteredTasks.length;
       });
+
+      // Save data to cache after successful fetch
+      await _saveDataToCache();
     } catch (e, st) {
       setState(() {
         _errorMessage = 'Error loading liked tasks. Please try again.';
@@ -120,6 +228,7 @@ class _LikesScreenState extends State<LikesScreen> {
 
       debugPrint("Fetched User accStatus: ${user?.user.accStatus}");
       debugPrint("Fetched User role: ${user?.user.role}");
+      debugPrint("Fetched User fcmToken: ${user?.user.fcmToken}");
 
       final response = await _clientServices.fetchUserIDImage(userId);
       debugPrint("Document response: $response");
@@ -130,6 +239,7 @@ class _LikesScreenState extends State<LikesScreen> {
         _existingIDImageUrl = response['success'] ? response['url'] : null;
         _role = user?.user.role ?? '';
 
+        _fcmToken = user?.user.fcmToken;
         debugPrint("ID Image URL set to: $_existingIDImageUrl");
         debugPrint("Updated User accStatus in state: ${_user?.user.accStatus}");
 
@@ -312,6 +422,21 @@ class _LikesScreenState extends State<LikesScreen> {
       ),
       body: Column(
         children: [
+          if (_isOfflineMode)
+            Container(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              color: Color(0xFFB71A4A),
+              child: Center(
+                child: Text(
+                  "Offline Mode",
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+          // buildButtonNotification(),
           // Search Bar
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -478,6 +603,25 @@ class _LikesScreenState extends State<LikesScreen> {
           return _buildTaskerCard(tasker);
         },
       ),
+    );
+  }
+
+  Widget buildButtonNotification() {
+    return ElevatedButton(
+      onPressed: () async {
+        final result = await _clientServices.sendNotification(_fcmToken);
+
+        if (result['success']) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Notification sent successfully')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to send notification')),
+          );
+        }
+      },
+      child: Text('Button Notification'),
     );
   }
 

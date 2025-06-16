@@ -1,6 +1,6 @@
 import 'package:flutter_fe/model/task_assignment.dart';
 
-class Transactions{
+class Transactions {
   final TaskAssignment taskAssignment;
   final String recordStatus;
   final String date;
@@ -13,9 +13,17 @@ class Transactions{
 
   factory Transactions.fromJson(Map<String, dynamic> json) {
     return Transactions(
-      taskAssignment: json['task_taken'] != null ? TaskAssignment.fromJson(json['task_taken']) : TaskAssignment(taskTakenId: 0, taskStatus: ""),
+      taskAssignment: TaskAssignment.fromJson(json['task_taken']),
       recordStatus: json['task_status'],
       date: json['created_at'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'task_taken': taskAssignment.toJson(),
+      'task_status': recordStatus,
+      'created_at': date,
+    };
   }
 }
