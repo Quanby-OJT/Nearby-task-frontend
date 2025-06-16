@@ -27,6 +27,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'dart:convert';
 import 'package:flutter_fe/service/api_service.dart';
+import 'package:flutter_fe/service/tasker_service.dart';
 
 class ClientHomePage extends StatefulWidget {
   const ClientHomePage({super.key});
@@ -57,6 +58,8 @@ class _ClientHomePageState extends State<ClientHomePage>
   String? _errorMessage;
   int? cardNumber = 0;
   final Map<int, List<TaskerFeedback>> _taskerFeedbacks = {};
+  final Map<int, String?> _taskerProfileImages =
+      {}; // Cache for profile images from tasker_images
 
   AuthenticatedUser? _user;
   String _fullName = "Loading...";
@@ -340,6 +343,10 @@ class _ClientHomePageState extends State<ClientHomePage>
                 AuthenticatedUser(tasker: tasker, user: tasker.user!))
             .toList();
       });
+
+      // Fetch profile images for all taskers
+      await _fetchTaskerProfileImages();
+
       setState(() {
         _isLoading = false;
       });
@@ -349,6 +356,58 @@ class _ClientHomePageState extends State<ClientHomePage>
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> _fetchTaskerProfileImages() async {
+    debugPrint(
+        "Starting to fetch profile images for ${taskers.length} taskers");
+    for (final tasker in taskers) {
+      if (tasker.user.id != null) {
+        try {
+          debugPrint("Fetching images for tasker ID: ${tasker.user.id}");
+          final taskerService = TaskerService();
+          final result = await taskerService.getTaskerImages(tasker.user.id!);
+          debugPrint("Raw result for tasker ${tasker.user.id}: $result");
+
+          if (result.containsKey('images') && result['images'] is List) {
+            final List<dynamic> images = result['images'];
+            debugPrint(
+                "Found ${images.length} images for tasker ${tasker.user.id}");
+
+            if (images.isNotEmpty) {
+              // Get the first image as profile picture
+              final firstImage = images.first;
+              debugPrint("First image data: $firstImage");
+
+              if (firstImage is Map && firstImage['image_link'] != null) {
+                final imageUrl = firstImage['image_link'];
+                setState(() {
+                  _taskerProfileImages[tasker.user.id!] = imageUrl;
+                });
+                debugPrint(
+                    "✅ Successfully set profile image for tasker ${tasker.user.id}: $imageUrl");
+              } else {
+                debugPrint(
+                    "❌ First image is not a Map or image_link is null for tasker ${tasker.user.id}");
+              }
+            } else {
+              debugPrint("❌ No images found for tasker ${tasker.user.id}");
+            }
+          } else {
+            debugPrint(
+                "❌ Result doesn't contain 'images' key or it's not a List for tasker ${tasker.user.id}");
+          }
+        } catch (e) {
+          debugPrint(
+              "❌ Error fetching profile image for tasker ${tasker.user.id}: $e");
+        }
+      } else {
+        debugPrint("❌ Tasker user ID is null");
+      }
+    }
+    debugPrint(
+        "Finished fetching profile images. Total cached: ${_taskerProfileImages.length}");
+    debugPrint("Cached images: $_taskerProfileImages");
   }
 
   Future<void> _saveLikedTasker(UserModel tasker) async {
@@ -990,8 +1049,13 @@ class _ClientHomePageState extends State<ClientHomePage>
                                 cardBuilder: (context, index, percentThresholdX,
                                     percentThresholdY) {
                                   final tasker = taskers[index];
+                                  final profileImageUrl =
+                                      _taskerProfileImages[tasker.user.id];
                                   debugPrint(
                                       "All Taskers in Card: ${tasker.tasker}");
+                                  debugPrint(
+                                      "Profile image URL for tasker ${tasker.user.id}: $profileImageUrl");
+
                                   return Container(
                                     width: double.infinity,
                                     height: MediaQuery.of(context).size.height,
@@ -1004,52 +1068,163 @@ class _ClientHomePageState extends State<ClientHomePage>
                                       margin: EdgeInsets.zero,
                                       child: Stack(
                                         children: [
-                                          ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                            child: tasker
-                                                        .tasker?.taskerImages !=
-                                                    null
-                                                ? Center(
-                                                    child: Icon(
-                                                      FontAwesomeIcons
-                                                          .screwdriverWrench,
-                                                      size: 150,
-                                                      color: Colors.grey[400],
-                                                    ),
-                                                  )
-                                                : PageView.builder(
-                                                    itemCount: tasker
-                                                            .tasker
-                                                            ?.taskerImages
-                                                            ?.length ??
-                                                        0,
-                                                    itemBuilder:
-                                                        (context, index) {
-                                                      List<String>
-                                                          taskerImages = tasker
-                                                                  .tasker
-                                                                  ?.taskerImages ??
-                                                              [];
-                                                      return Image.network(
-                                                        taskerImages[index],
-                                                        fit: BoxFit.cover,
-                                                        width: double.infinity,
-                                                        height: double.infinity,
-                                                        errorBuilder: (context,
-                                                                error,
-                                                                stackTrace) =>
-                                                            Center(
-                                                          child: Icon(
-                                                            Icons.broken_image,
-                                                            color: Colors
-                                                                .grey[400],
-                                                            size: 100,
+                                          // Background image container
+                                          Container(
+                                            width: double.infinity,
+                                            height: double.infinity,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                              color: Colors.grey[300],
+                                            ),
+                                            child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                              child: profileImageUrl != null &&
+                                                      profileImageUrl.isNotEmpty
+                                                  ? Image.network(
+                                                      profileImageUrl,
+                                                      fit: BoxFit.cover,
+                                                      width: double.infinity,
+                                                      height: double.infinity,
+                                                      headers: {
+                                                        'User-Agent':
+                                                            'Mozilla/5.0 (compatible; Flutter app)',
+                                                      },
+                                                      loadingBuilder: (context,
+                                                          child,
+                                                          loadingProgress) {
+                                                        if (loadingProgress ==
+                                                            null) {
+                                                          debugPrint(
+                                                              "Image loaded successfully for tasker ${tasker.user.id}");
+                                                          return child;
+                                                        }
+                                                        debugPrint(
+                                                            "Loading image for tasker ${tasker.user.id}: ${loadingProgress.cumulativeBytesLoaded}/${loadingProgress.expectedTotalBytes}");
+                                                        return Container(
+                                                          color:
+                                                              Colors.grey[200],
+                                                          child: Center(
+                                                            child: Column(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .center,
+                                                              children: [
+                                                                CircularProgressIndicator(
+                                                                  color: Color(
+                                                                      0xFFB71A4A),
+                                                                  value: loadingProgress
+                                                                              .expectedTotalBytes !=
+                                                                          null
+                                                                      ? loadingProgress
+                                                                              .cumulativeBytesLoaded /
+                                                                          loadingProgress
+                                                                              .expectedTotalBytes!
+                                                                      : null,
+                                                                ),
+                                                                SizedBox(
+                                                                    height: 8),
+                                                                Text(
+                                                                  'Loading image...',
+                                                                  style:
+                                                                      TextStyle(
+                                                                    color: Colors
+                                                                            .grey[
+                                                                        600],
+                                                                    fontSize:
+                                                                        12,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
                                                           ),
-                                                        ),
-                                                      );
-                                                    },
-                                                  ),
+                                                        );
+                                                      },
+                                                      errorBuilder: (context,
+                                                          error, stackTrace) {
+                                                        debugPrint(
+                                                            "Error loading profile image for tasker ${tasker.user.id}: $error");
+                                                        debugPrint(
+                                                            "Image URL: $profileImageUrl");
+                                                        debugPrint(
+                                                            "Stack trace: $stackTrace");
+                                                        return Container(
+                                                          color:
+                                                              Colors.grey[300],
+                                                          child: Column(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .center,
+                                                            children: [
+                                                              Icon(
+                                                                Icons
+                                                                    .broken_image,
+                                                                color: Colors
+                                                                    .grey[600],
+                                                                size: 60,
+                                                              ),
+                                                              SizedBox(
+                                                                  height: 8),
+                                                              Text(
+                                                                'Image failed to load',
+                                                                style:
+                                                                    TextStyle(
+                                                                  color: Colors
+                                                                          .grey[
+                                                                      600],
+                                                                  fontSize: 12,
+                                                                ),
+                                                                textAlign:
+                                                                    TextAlign
+                                                                        .center,
+                                                              ),
+                                                              SizedBox(
+                                                                  height: 4),
+                                                              Text(
+                                                                'URL: ${profileImageUrl?.substring(0, 50)}...',
+                                                                style:
+                                                                    TextStyle(
+                                                                  color: Colors
+                                                                          .grey[
+                                                                      500],
+                                                                  fontSize: 10,
+                                                                ),
+                                                                textAlign:
+                                                                    TextAlign
+                                                                        .center,
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        );
+                                                      },
+                                                    )
+                                                  : Container(
+                                                      color: Colors.grey[300],
+                                                      child: Column(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          Icon(
+                                                            Icons.person,
+                                                            color: Colors
+                                                                .grey[600],
+                                                            size: 80,
+                                                          ),
+                                                          SizedBox(height: 8),
+                                                          Text(
+                                                            'No profile image',
+                                                            style: TextStyle(
+                                                              color: Colors
+                                                                  .grey[600],
+                                                              fontSize: 14,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                            ),
                                           ),
                                           // Darker overlay on the entire image
                                           Positioned.fill(
@@ -1294,6 +1469,16 @@ class _ClientHomePageState extends State<ClientHomePage>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFallbackImage() {
+    return Center(
+      child: Icon(
+        Icons.broken_image,
+        color: Colors.grey[400],
+        size: 100,
       ),
     );
   }
