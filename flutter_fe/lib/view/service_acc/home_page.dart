@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/controller/job_post_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
@@ -47,7 +48,6 @@ class _TaskerHomePageState extends State<TaskerHomePage>
   final JobPostController jobPostController = JobPostController();
   final SettingController _settingController = SettingController();
 
-  final Map<int, CardSwiperController> _imageSwiperControllers = {};
   final Map<int, int> _imageSwiperIndex = {};
 
   AuthenticatedUser? _user;
@@ -407,7 +407,6 @@ class _TaskerHomePageState extends State<TaskerHomePage>
         // Initialize flip controllers and reset image swiper indices
         for (int i = 0; i < tasks.length; i++) {
           _initializeFlipController(i);
-          _initializeImageSwiperController(i);
           _imageSwiperIndex[i] = 0; // Reset index for each task
         }
         _isLoading = false;
@@ -934,9 +933,8 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                   final task = tasks[index];
                   _initializeFlipController(index);
 
-                  // Initialize image swiper controller if not exists
-                  if (!_imageSwiperControllers.containsKey(index)) {
-                    _imageSwiperControllers[index] = CardSwiperController();
+                  // Initialize image swiper index if not exists
+                  if (!_imageSwiperIndex.containsKey(index)) {
                     _imageSwiperIndex[index] = 0;
                   }
 
@@ -1022,13 +1020,6 @@ class _TaskerHomePageState extends State<TaskerHomePage>
     }
   }
 
-  void _initializeImageSwiperController(int index) {
-    if (!_imageSwiperControllers.containsKey(index)) {
-      _imageSwiperControllers[index] = CardSwiperController();
-      _imageSwiperIndex[index] = 0;
-    }
-  }
-
   Widget _buildFrontCard(TaskModel task, int index) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -1067,48 +1058,52 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                   child: Stack(
                     children: [
                       task.imageUrls != null && task.imageUrls!.isNotEmpty
-                          ? CardSwiper(
-                              controller: _imageSwiperControllers[index]!,
-                              cardsCount: task.imageUrls!.length,
-                              numberOfCardsDisplayed: 1,
-                              allowedSwipeDirection: AllowedSwipeDirection.only(
-                                  left: true, right: true),
-                              onSwipe: (prevIndex, currIndex, direction) {
-                                setState(() {
-                                  _imageSwiperIndex[index] = currIndex ?? 0;
-                                });
-                                return true;
-                              },
-                              cardBuilder: (context, imageIndex, _, __) {
+                          ? CarouselSlider.builder(
+                              itemCount: task.imageUrls!.length,
+                              itemBuilder: (context, imageIndex, realIndex) {
                                 if (imageIndex >= task.imageUrls!.length) {
                                   return _buildNoImagePlaceholder(imageHeight);
                                 }
                                 final image = task.imageUrls![imageIndex];
-                                return Image.network(
-                                  image.image_url.isNotEmpty
-                                      ? image.image_url
-                                      : 'https://via.placeholder.com/150',
-                                  fit: BoxFit.cover,
+                                return Container(
                                   width: double.infinity,
-                                  height: imageHeight,
-                                  loadingBuilder: (context, child, progress) {
-                                    if (progress == null) return child;
-                                    return Center(
-                                      child: CircularProgressIndicator(
-                                        value: progress.expectedTotalBytes !=
-                                                null
-                                            ? progress.cumulativeBytesLoaded /
-                                                progress.expectedTotalBytes!
-                                            : null,
-                                      ),
-                                    );
-                                  },
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return _buildNoImagePlaceholder(
-                                        imageHeight);
-                                  },
+                                  child: Image.network(
+                                    image.image_url.isNotEmpty
+                                        ? image.image_url
+                                        : 'https://via.placeholder.com/150',
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    height: imageHeight,
+                                    loadingBuilder: (context, child, progress) {
+                                      if (progress == null) return child;
+                                      return Center(
+                                        child: CircularProgressIndicator(
+                                          value: progress.expectedTotalBytes !=
+                                                  null
+                                              ? progress.cumulativeBytesLoaded /
+                                                  progress.expectedTotalBytes!
+                                              : null,
+                                        ),
+                                      );
+                                    },
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return _buildNoImagePlaceholder(
+                                          imageHeight);
+                                    },
+                                  ),
                                 );
                               },
+                              options: CarouselOptions(
+                                height: imageHeight,
+                                viewportFraction: 1.0,
+                                enableInfiniteScroll: false,
+                                autoPlay: false,
+                                onPageChanged: (imageIndex, reason) {
+                                  setState(() {
+                                    _imageSwiperIndex[index] = imageIndex;
+                                  });
+                                },
+                              ),
                             )
                           : _buildNoImagePlaceholder(imageHeight),
                       // Flip indicator
@@ -1163,106 +1158,111 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                   ),
                 ),
                 // Content section
-                Container(
-                  padding: EdgeInsets.all(20),
-                  color: Colors.white,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Color(0xFFB71A4A),
-                          borderRadius: BorderRadius.circular(5),
-                          border: Border.all(
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.all(20),
+                    color: Colors.white,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
                             color: Color(0xFFB71A4A),
-                            width: 1,
-                          ),
-                        ),
-                        child: Text(
-                          task.taskerSpecialization?.specialization ?? 'All',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 12),
-                      Text(
-                        task.title ?? 'No Title',
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          color: Colors.black,
-                          height: 1.2,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice.roundToDouble() ?? 0)}',
-                            style: GoogleFonts.poppins(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                            borderRadius: BorderRadius.circular(5),
+                            border: Border.all(
+                              color: Color(0xFFB71A4A),
+                              width: 1,
                             ),
                           ),
-                          Row(
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[100],
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.grey[300]!,
-                                    width: 1,
-                                  ),
-                                ),
-                                child: IconButton(
-                                  onPressed: () {
-                                    controller.swipe(CardSwiperDirection.left);
-                                  },
-                                  icon: Icon(
-                                    Icons.close,
-                                    color: Colors.red[600],
-                                    size: 24,
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 12),
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: Color(0xFFB71A4A),
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Color(0xFFB71A4A).withOpacity(0.3),
-                                      blurRadius: 8,
-                                      offset: Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: IconButton(
-                                  onPressed: () {
-                                    controller.swipe(CardSwiperDirection.right);
-                                  },
-                                  icon: Icon(
-                                    Icons.favorite,
-                                    color: Colors.white,
-                                    size: 24,
-                                  ),
-                                ),
-                              ),
-                            ],
+                          child: Text(
+                            task.taskerSpecialization?.specialization ?? 'All',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ],
-                      ),
-                    ],
+                        ),
+                        Spacer(),
+                        Text(
+                          task.title ?? 'No Title',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            color: Colors.black,
+                            height: 1.2,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice.roundToDouble() ?? 0)}',
+                              style: GoogleFonts.montserrat(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[100],
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.grey[300]!,
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: IconButton(
+                                    onPressed: () {
+                                      controller
+                                          .swipe(CardSwiperDirection.left);
+                                    },
+                                    icon: Icon(
+                                      Icons.close,
+                                      color: Colors.red[600],
+                                      size: 24,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: 12),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Color(0xFFB71A4A),
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color:
+                                            Color(0xFFB71A4A).withOpacity(0.3),
+                                        blurRadius: 8,
+                                        offset: Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: IconButton(
+                                    onPressed: () {
+                                      controller
+                                          .swipe(CardSwiperDirection.right);
+                                    },
+                                    icon: Icon(
+                                      Icons.favorite,
+                                      color: Colors.white,
+                                      size: 24,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -1541,7 +1541,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                                 child: Text(
                                   '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice.roundToDouble() ?? 0)}' ??
                                       'No price available for this task.',
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.montserrat(
                                     fontSize: 12,
                                     color: Colors.grey[700],
                                   ),

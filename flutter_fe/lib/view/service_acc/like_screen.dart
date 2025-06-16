@@ -447,7 +447,7 @@ class _LikeScreenState extends State<LikeScreen> {
                   children: [
                     Text(
                       '₱${NumberFormat("#,##0.00", "en_US").format(task.contactPrice.roundToDouble())}',
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.montserrat(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
