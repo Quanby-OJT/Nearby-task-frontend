@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:app_links/app_links.dart';
+import 'package:flutter_fe/view/profile/legal_terms_and_conditions.dart';
 import 'package:flutter_fe/view/sign_in/sign_in.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:signature/signature.dart';
@@ -500,7 +501,10 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                                 TextSpan(
                                   text: 'Terms of Service.',
                                   style: const TextStyle(color: Color(0xFFB71A4A), decoration: TextDecoration.underline),
-                                  recognizer: TapGestureRecognizer()..onTap = () => _launchURL('https://docs.google.com/document/d/1qyalYPikgRV9vYPJNv0IdR-0Be4vTeoY-HYejUZdGyY/edit?tab=t.0'),
+                                  recognizer: TapGestureRecognizer()..onTap = () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const LegalTermsAndConditionsScreen())
+                                  ),
                                 ),
                                 // const TextSpan(text: ' and '),
                                 // TextSpan(

@@ -131,6 +131,7 @@ flutter:
     - assets/images/card-logos/Mastercard-logo.svg
     - assets/images/card-logos/visa-logo-svg-vector.svg
     - assets/images/app_icon.png
+    - assets/svg/company-logo.svg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 
