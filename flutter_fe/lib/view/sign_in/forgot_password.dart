@@ -36,7 +36,7 @@ class _ForgotPasswordState extends State<ForgotPassword>
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     );
-    _initDeepLinkListener();
+    _handleDeepLink(widget.uri);
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
@@ -68,7 +68,8 @@ class _ForgotPasswordState extends State<ForgotPassword>
     _animationController.forward();
   }
 
-  Future<void> _handleDeepLink(Uri uri) async {
+  Future<void> _handleDeepLink(Uri? uri) async {
+    if(uri == null) return;
     final token = uri.queryParameters['token'];
     final email = uri.queryParameters['email'];
 
@@ -97,32 +98,6 @@ class _ForgotPasswordState extends State<ForgotPassword>
     } else {
       setState(() => _status = "Invalid verification link");
     }
-  }
-
-  Future<void> _initDeepLinkListener() async {
-    final appLinks = AppLinks();
-    debugPrint("Handling Forgot Password Deeplink...");
-    try {
-      final Uri? initialUri = await appLinks.getInitialLink();
-      if (initialUri != null) {
-        _handleDeepLink(initialUri);
-      }
-    } catch (e, stackTrace) {
-      debugPrint(e.toString());
-      debugPrint(stackTrace.toString());
-      setState(() => _status = "An error occurred");
-    }
-
-    _linkSubscription = appLinks.uriLinkStream.listen(
-      (Uri? uri) {
-        if (uri != null) {
-          _handleDeepLink(uri);
-        }
-      },
-      onError: (err) {
-        setState(() => _status = "Error: $err");
-      },
-    );
   }
 
   @override

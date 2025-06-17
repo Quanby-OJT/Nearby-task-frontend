@@ -18,19 +18,19 @@ class ApiService {
   static final http.Client _client = http.Client();
   static final Map<String, String> _cookies = {};
 
-  static void _updateCookies(http.Response response) {
-    String? rawCookie = response.headers['set-cookie'];
-    debugPrint('Raw Cookie: $rawCookie');
-
-    List<String> cookieParts = rawCookie!.split(',');
-    for (String part in cookieParts) {
-      List<String> keyValue = part.split(';')[0].split('=');
-      if (keyValue.length == 2) {
-        _cookies[keyValue[0].trim()] = keyValue[1].trim();
-      }
-    }
-    print('Updated Cookies: $_cookies'); // Debugging
-  }
+  // static void _updateCookies(http.Response response) {
+  //   String? rawCookie = response.headers['set-cookie'];
+  //   debugPrint('Raw Cookie: $rawCookie');
+  //
+  //   List<String> cookieParts = rawCookie!.split(',');
+  //   for (String part in cookieParts) {
+  //     List<String> keyValue = part.split(';')[0].split('=');
+  //     if (keyValue.length == 2) {
+  //       _cookies[keyValue[0].trim()] = keyValue[1].trim();
+  //     }
+  //   }
+  //   print('Updated Cookies: $_cookies'); // Debugging
+  // }
 
   Future<Map<String, dynamic>> _getRequest(String endpoint) async {
     final token = await AuthService.getSessionToken();
@@ -108,11 +108,12 @@ class ApiService {
         return responseBody;
       } else {
         debugPrint("API Error Response: $responseBody");
-        return {"error": responseBody["error"] ?? "Unknown error"};
+        return {"error": responseBody ?? "Unknown error"};
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint("Error parsing response: $e");
-      return {"error": "Failed to parse response: $e"};
+      debugPrintStack(stackTrace: stackTrace);
+      return {"error": "Failed to parse response. Please try again."};
     }
   }
 
@@ -754,9 +755,9 @@ class ApiService {
       final responseData = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        _updateCookies(response);
+        // _updateCookies(response);
         return {
-          "message": responseData["message"] ?? "Email verified successfully",
+          "message": "Email verified successfully",
           "user_id": responseData["user_id"],
           "session": responseData["session"],
         };
@@ -766,9 +767,10 @@ class ApiService {
               "Email verification failed. Please try again.",
         };
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('Verification Error: $e');
-      return {"error": "An error occurred during email verification: $e"};
+      debugPrintStack(stackTrace: stackTrace);
+      return {"error": "An error occurred during email verification. Please Try Again. If the Problem Persists, please contact us."};
     }
   }
 

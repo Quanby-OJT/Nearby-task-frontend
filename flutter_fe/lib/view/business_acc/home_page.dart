@@ -396,6 +396,8 @@ class _ClientHomePageState extends State<ClientHomePage>
         showBanUser();
       }
 
+      debugPrint("User Image: ${user.user.image}");
+
       setState(() {
         _user = user;
         _fullName = [

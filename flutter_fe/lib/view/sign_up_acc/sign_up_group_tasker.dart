@@ -25,6 +25,7 @@ class _SignUpGroupTaskerAccState extends State<SignUpGroupTaskerAcc> {
   @override
   void initState() {
     super.initState();
+    _status = "Please fill out the form to register";
     _initDeepLinkListener();
     _controller.roleController.text = widget.role;
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/task_request_controller.dart';
 import 'package:flutter_fe/model/disputes.dart';
 import 'package:flutter_fe/model/task_fetch.dart';
+import 'package:flutter_fe/view/task_user/user_feedback.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
@@ -161,7 +162,21 @@ class _TaskFinishedState extends State<TaskFinished> {
                             if (_role == "Tasker") _buildClientProfileCard(),
                             if (_role == "Client") _buildTaskerProfileCard(),
                             const SizedBox(height: 16),
-                            _buildActionButton(),
+                            _buildActionButton(
+                              'Back to Tasks',
+                              Color(0XFFE23670),
+                              () {
+                                Navigator.pop(context);
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            _buildActionButton(
+                                "Rate Tasker (Optional)",
+                                Color(0XFF4DBF66),
+                                () {
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => UserFeedback()));
+                                }
+                            ),
                           ],
                         ),
                       );
@@ -598,15 +613,13 @@ class _TaskFinishedState extends State<TaskFinished> {
     );
   }
 
-  Widget _buildActionButton() {
+  Widget _buildActionButton(String label, Color color, Function() function) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () {
-          Navigator.pop(context);
-        },
+        onPressed: function,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFB71A4A),
+          backgroundColor: color,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -614,7 +627,7 @@ class _TaskFinishedState extends State<TaskFinished> {
           elevation: 2,
         ),
         child: Text(
-          'Back to Tasks',
+          label,
           style: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w600,

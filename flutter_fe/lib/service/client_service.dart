@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_fe/model/client_model.dart';
 import 'package:flutter_fe/model/images_model.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
@@ -660,11 +662,30 @@ class ClientServices {
     return [];
   }
 
-  Future<Map<String, dynamic>> updateClient(ClientModel client) async {
+  Future<Map<String, dynamic>> updateClient(ClientModel client, File? profileImage, {String? profileImagePath}) async {
     try {
-      return await _putRequest(
-          endpoint: "/update-client-profile/${client.id}",
-          body: client.toJson());
+      final token = await AuthService.getSessionToken();
+      var formData = FormData.fromMap(client.toJson());
+
+      if (profileImage != null) {
+        formData.files.add(MapEntry(
+          'profile_image',
+          await MultipartFile.fromFile(profileImage.path, filename: profileImage.path.split('/').last),
+        ));
+        debugPrint("Profile Image to be updated: ${profileImage.path}");
+      }
+
+      final response = await dio.put(
+        "$url/update-client-profile/${client.id}",
+        data: formData,
+        options: Options(
+          headers: {
+            "Authorization": "Bearer $token",
+            // Content-Type will be set automatically by Dio for FormData
+          },
+        ),
+      );
+      return response.data; // Assuming Dio returns the decoded JSON
     } catch (e, stackTrace) {
       debugPrint("Error updating client: $e");
       debugPrint(stackTrace.toString());

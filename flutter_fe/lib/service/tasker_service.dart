@@ -105,11 +105,12 @@ class TaskerService {
     }
   }
 
-  Future<Map<String, dynamic>> updateTasker(List<File>? taskerImages, List<File>? taskerDocuments, TaskerModel tasker) async {
+  Future<Map<String, dynamic>> updateTasker(List<File>? taskerImages, List<File>? taskerDocuments, File? profileImage, TaskerModel tasker) async {
     final token = await AuthService.getSessionToken();
     final id = await storage.read("user_id");
     final role = await storage.read("role");
     final uri = Uri.parse('$url/update-tasker/$id');
+    debugPrint("Profile Image to be updated: $profileImage");
 
     if (taskerImages != null || taskerDocuments != null) {
       // Multipart request
@@ -129,10 +130,17 @@ class TaskerService {
       if (taskerDocuments != null) {
         for (var file in taskerDocuments) {
           request.files.add(await http.MultipartFile.fromPath(
-            'tasker_documents', // This should match the backend's expected field name
+            'user_documents', // This should match the backend's expected field name
             file.path,
           ));
         }
+      }
+
+      if (profileImage != null) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'profile_image', // This should match the backend's expected field name
+          profileImage.path,
+        ));
       }
 
       try {

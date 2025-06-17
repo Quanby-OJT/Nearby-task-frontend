@@ -127,7 +127,7 @@ class AuthenticationController {
         isSuccess: true,
         message: messageReset,
       );
-    } else {
+    } else if(response.containsKey('error')) {
       String errorMessage = response['error'] ?? "Unknown error occurred";
       _showStatusModal(
         context: context,

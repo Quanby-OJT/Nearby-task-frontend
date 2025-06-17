@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:app_links/app_links.dart';
+import 'package:flutter_fe/view/profile/legal_terms_and_conditions.dart';
 import 'package:flutter_fe/view/sign_in/sign_in.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:signature/signature.dart';
@@ -10,6 +12,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_fe/widgets/privacy_policy_popup.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SignUpClientAcc extends StatefulWidget {
   final String role;
@@ -27,6 +30,7 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
   bool _isLoading = false;
   bool _obsecureTextPassword = true;
   bool _obsecureTextConfirmPassword = true;
+  bool _agreeToTerms = false;
   final _formKey = GlobalKey<FormState>();
   StreamSubscription<Uri>? _linkSubscription;
   File? _signatureImage;
@@ -181,6 +185,15 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
     _linkSubscription?.cancel();
     super.dispose();
   }
+
+  void _launchURL(String url) async {
+  final Uri uri = Uri.parse(url);
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  } else {
+    throw 'Could not launch $url';
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -507,11 +520,55 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                       ),
                     ),
                     SizedBox(height: 20),
+                    //Privacy Policy and Terms of Service
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Checkbox(
+                          value: _agreeToTerms,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              _agreeToTerms = value ?? false;
+                            });
+                          },
+                          activeColor: const Color(0xFFB71A4A),
+                        ),
+                        Expanded(
+                          child: RichText(
+                            text: TextSpan(
+                              style: GoogleFonts.poppins(
+                                color: Colors.black,
+                                fontWeight: FontWeight.w300,
+                                fontSize: 12,
+                              ),
+                              children: [
+                                const TextSpan(text: 'By signing up, you agree to our '),
+
+                                TextSpan(
+                                  text: 'Terms of Service.',
+                                  style: const TextStyle(color: Color(0xFFB71A4A), decoration: TextDecoration.underline),
+                                  recognizer: TapGestureRecognizer()..onTap = () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const LegalTermsAndConditionsScreen())
+                                  ),
+                                ),
+                                // const TextSpan(text: ' and '),
+                                // TextSpan(
+                                //   text: 'Privacy Policy',
+                                //   style: const TextStyle(color: Color(0xFFB71A4A), decoration: TextDecoration.underline),
+                                //   // recognizer: TapGestureRecognizer()..onTap = () => _launchURL('YOUR_PRIVACY_POLICY_URL'),
+                                // ),
+                              ],
+                            ),
+                          )
+                        )
+                      ]
+                    ),
                     SizedBox(
                       height: 50,
                       width: double.infinity,
                       child: ElevatedButton(
-                          onPressed: _isLoading
+                          onPressed: _isLoading || !_agreeToTerms
                               ? null
                               : () async {
                                   if (_formKey.currentState!.validate()) {
