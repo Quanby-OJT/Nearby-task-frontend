@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_fe/controller/escrow_management_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/address.dart';
@@ -13,10 +12,8 @@ import 'package:flutter_fe/view/address/address_list.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/preview_task.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/select_related_spec.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/select_spec.dart';
-import 'package:flutter_fe/view/business_acc/transaction_history.dart';
 import 'package:flutter_fe/view/custom_loading/custom_loading.dart';
 import 'package:flutter_fe/view/custom_loading/file_indicators.dart';
-import 'package:flutter_fe/view/verification/verification_page.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -335,7 +332,7 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
         addressId: _addressID,
       );
 
-      if(mounted) Navigator.pop(context);
+      if (mounted) Navigator.pop(context);
 
       if (result['success']) {
         if (mounted) {
@@ -344,7 +341,8 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
 
         setState(() {
           //_message = result['message'] ?? "Successfully Posted Task.";
-          _message = "Your Task has been successfully uploaded to the Cloud Server. Taskers can now download your task upon application.";
+          _message =
+              "Your Task has been successfully uploaded to the Cloud Server. Taskers can now download your task upon application.";
         });
 
         controller.clearControllers();
@@ -479,7 +477,6 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
       },
     );
   }
-
 
   Widget _buildTextField({
     required TextEditingController controller,

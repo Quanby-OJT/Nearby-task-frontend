@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/milestone_model.dart';
 import 'package:flutter_fe/model/task_model.dart';
-import 'package:flutter_fe/service/milestone_service.dart';
 import 'package:flutter_fe/service/milestone_service_mock.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -41,7 +40,7 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
 
     try {
       final milestones =
-      await _milestoneService.getTaskMilestones(widget.task.id);
+          await _milestoneService.getTaskMilestones(widget.task.id);
       setState(() {
         _milestones = milestones..sort((a, b) => a.order.compareTo(b.order));
         _isLoading = false;
@@ -55,12 +54,15 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
   }
 
   void _showErrorSnackBar(String message) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           message,
           style: GoogleFonts.poppins(
-            fontSize: 14,
+            fontSize: isSmallScreen ? 12 : 14,
             fontWeight: FontWeight.w500,
             color: Colors.white,
           ),
@@ -68,21 +70,25 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
         backgroundColor: Colors.red,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(5),
+          borderRadius: BorderRadius.circular(8),
         ),
-        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        margin:
+            EdgeInsets.symmetric(horizontal: screenWidth * 0.04, vertical: 10),
         duration: Duration(seconds: 3),
       ),
     );
   }
 
   void _showSuccessSnackBar(String message) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           message,
           style: GoogleFonts.poppins(
-            fontSize: 14,
+            fontSize: isSmallScreen ? 12 : 14,
             fontWeight: FontWeight.w500,
             color: Colors.white,
           ),
@@ -90,9 +96,10 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
         backgroundColor: Colors.green,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(5),
+          borderRadius: BorderRadius.circular(8),
         ),
-        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        margin:
+            EdgeInsets.symmetric(horizontal: screenWidth * 0.04, vertical: 10),
         duration: Duration(seconds: 3),
       ),
     );
@@ -158,6 +165,9 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
   }
 
   Future<void> _deleteMilestone(MilestoneModel milestone) async {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -165,14 +175,15 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
         title: Text(
           'Delete Milestone',
           style: GoogleFonts.poppins(
-            fontSize: 18,
+            fontSize: isSmallScreen ? 16 : 18,
             fontWeight: FontWeight.w600,
             color: const Color(0xFFB71A4A),
           ),
         ),
         content: Text(
           'Are you sure you want to delete "${milestone.title}"?',
-          style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
+          style: GoogleFonts.poppins(
+              fontSize: isSmallScreen ? 12 : 14, color: Colors.grey[600]),
         ),
         actions: [
           TextButton(
@@ -180,7 +191,7 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
             child: Text(
               'Cancel',
               style: GoogleFonts.poppins(
-                fontSize: 14,
+                fontSize: isSmallScreen ? 12 : 14,
                 color: const Color(0xFFB71A4A),
               ),
             ),
@@ -192,10 +203,15 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
+              padding: EdgeInsets.symmetric(
+                horizontal: isSmallScreen ? 12 : 16,
+                vertical: isSmallScreen ? 8 : 12,
+              ),
             ),
             child: Text(
               'Delete',
-              style: GoogleFonts.poppins(fontSize: 14, color: Colors.white),
+              style: GoogleFonts.poppins(
+                  fontSize: isSmallScreen ? 12 : 14, color: Colors.white),
             ),
           ),
         ],
@@ -218,7 +234,7 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
   Future<void> _updateMilestoneStatus(
       MilestoneModel milestone, String newStatus) async {
     final response =
-    await _milestoneService.updateMilestoneStatus(milestone.id!, newStatus);
+        await _milestoneService.updateMilestoneStatus(milestone.id!, newStatus);
 
     if (response['success']) {
       _showSuccessSnackBar('Milestone status updated');
@@ -258,30 +274,38 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenWidth < 600;
+
     return Card(
       elevation: 3,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Task Milestones',
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFFE23670),
+                Flexible(
+                  child: Text(
+                    'Task Milestones',
+                    style: GoogleFonts.poppins(
+                      fontSize: isSmallScreen ? 16 : 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFFE23670),
+                    ),
                   ),
                 ),
                 if (_milestones.isNotEmpty)
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: isSmallScreen ? 8 : 12,
+                        vertical: isSmallScreen ? 4 : 6),
                     decoration: BoxDecoration(
                       color: Color(0xFFE23670).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
@@ -289,7 +313,7 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
                     child: Text(
                       '${(_milestones.where((m) => m.isCompleted).length / _milestones.length * 100).round()}% Complete',
                       style: GoogleFonts.poppins(
-                        fontSize: 12,
+                        fontSize: isSmallScreen ? 10 : 12,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFFE23670),
                       ),
@@ -298,82 +322,85 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
               ],
             ),
             if (_milestones.isNotEmpty) ...[
-              SizedBox(height: 12),
+              SizedBox(height: isSmallScreen ? 8 : 12),
               LinearProgressIndicator(
                 value: (_milestones.where((m) => m.isCompleted).length /
                     _milestones.length),
                 backgroundColor: Colors.grey[300],
                 valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE23670)),
+                minHeight: isSmallScreen ? 4 : 6,
               ),
-              SizedBox(height: 8),
+              SizedBox(height: isSmallScreen ? 6 : 8),
               Text(
                 '₱${NumberFormat("#,##0.00").format(_milestones.where((m) => m.isCompleted).fold(0.0, (sum, m) => sum + (m.amount ?? 0.0)))} of ₱${NumberFormat("#,##0.00").format(_milestones.fold(0.0, (sum, m) => sum + (m.amount ?? 0.0)))} completed',
                 style: GoogleFonts.poppins(
-                  fontSize: 12,
+                  fontSize: isSmallScreen ? 10 : 12,
                   color: Colors.grey[600],
                 ),
               ),
             ],
-            SizedBox(height: 16),
+            SizedBox(height: isSmallScreen ? 12 : 16),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: _isAdding ? null : _showAddMilestoneDialog,
                 icon: _isAdding
                     ? SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor:
-                    AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                )
-                    : Icon(Icons.add, color: Colors.white),
+                        width: isSmallScreen ? 14 : 16,
+                        height: isSmallScreen ? 14 : 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : Icon(Icons.add,
+                        color: Colors.white, size: isSmallScreen ? 18 : 20),
                 label: Text(
                   _isAdding ? 'Adding...' : 'Add Milestone',
                   style: GoogleFonts.poppins(
-                    fontSize: 14,
+                    fontSize: isSmallScreen ? 12 : 14,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFFE23670),
-                  padding: EdgeInsets.symmetric(vertical: 12),
+                  padding:
+                      EdgeInsets.symmetric(vertical: isSmallScreen ? 10 : 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: isSmallScreen ? 12 : 16),
             if (_isLoading)
               Center(
                 child: Padding(
-                  padding: EdgeInsets.all(20),
+                  padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
                   child: CircularProgressIndicator(
                     valueColor:
-                    AlwaysStoppedAnimation<Color>(Color(0xFFE23670)),
+                        AlwaysStoppedAnimation<Color>(Color(0xFFE23670)),
                   ),
                 ),
               )
             else if (_milestones.isEmpty)
               Center(
                 child: Padding(
-                  padding: EdgeInsets.all(20),
+                  padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
                   child: Column(
                     children: [
                       Icon(
                         Icons.timeline,
-                        size: 48,
+                        size: isSmallScreen ? 36 : 48,
                         color: Colors.grey[400],
                       ),
-                      SizedBox(height: 8),
+                      SizedBox(height: isSmallScreen ? 6 : 8),
                       Text(
                         'No milestones defined',
                         style: GoogleFonts.poppins(
-                          fontSize: 16,
+                          fontSize: isSmallScreen ? 14 : 16,
                           color: Colors.grey[600],
                         ),
                       ),
@@ -381,12 +408,12 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
                       Text(
                         'Break down your task into smaller milestones to track progress',
                         style: GoogleFonts.poppins(
-                          fontSize: 12,
+                          fontSize: isSmallScreen ? 10 : 12,
                           color: Colors.grey[500],
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: 12),
+                      SizedBox(height: isSmallScreen ? 8 : 12),
                       ElevatedButton(
                         onPressed: () async {
                           await _milestoneService.seedSampleData(
@@ -397,8 +424,9 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
-                          padding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: isSmallScreen ? 12 : 16,
+                              vertical: isSmallScreen ? 6 : 8),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(6),
                           ),
@@ -406,7 +434,7 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
                         child: Text(
                           'Add Sample Data',
                           style: GoogleFonts.poppins(
-                            fontSize: 12,
+                            fontSize: isSmallScreen ? 10 : 12,
                             fontWeight: FontWeight.w500,
                             color: Colors.white,
                           ),
@@ -429,12 +457,14 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
   }
 
   Widget _buildMilestoneCard(MilestoneModel milestone) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
     final isOverdue = milestone.isOverdue;
     final statusColor = _getStatusColor(milestone.status);
 
     return Card(
       elevation: 1,
-      margin: EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.only(bottom: isSmallScreen ? 8 : 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: BorderSide(
@@ -445,7 +475,7 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
         ),
       ),
       child: Padding(
-        padding: EdgeInsets.all(12),
+        padding: EdgeInsets.all(isSmallScreen ? 8 : 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -454,9 +484,9 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
                 Icon(
                   _getStatusIcon(milestone.status),
                   color: statusColor,
-                  size: 20,
+                  size: isSmallScreen ? 16 : 20,
                 ),
-                SizedBox(width: 8),
+                SizedBox(width: isSmallScreen ? 6 : 8),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -464,7 +494,7 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
                       Text(
                         milestone.title,
                         style: GoogleFonts.poppins(
-                          fontSize: 14,
+                          fontSize: isSmallScreen ? 12 : 14,
                           fontWeight: FontWeight.w600,
                           color: Colors.black87,
                         ),
@@ -473,17 +503,19 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
                         Text(
                           'Due: ${DateFormat('MMM d, yyyy').format(milestone.dueDate!)}',
                           style: GoogleFonts.poppins(
-                            fontSize: 11,
+                            fontSize: isSmallScreen ? 9 : 11,
                             color: isOverdue ? Colors.red : Colors.grey[600],
                             fontWeight:
-                            isOverdue ? FontWeight.w500 : FontWeight.normal,
+                                isOverdue ? FontWeight.w500 : FontWeight.normal,
                           ),
                         ),
                     ],
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: isSmallScreen ? 6 : 8,
+                      vertical: isSmallScreen ? 2 : 4),
                   decoration: BoxDecoration(
                     color: statusColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -491,14 +523,14 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
                   child: Text(
                     milestone.status.toUpperCase(),
                     style: GoogleFonts.poppins(
-                      fontSize: 10,
+                      fontSize: isSmallScreen ? 8 : 10,
                       fontWeight: FontWeight.w600,
                       color: statusColor,
                     ),
                   ),
                 ),
                 PopupMenuButton<String>(
-                  icon: Icon(Icons.more_vert, size: 16),
+                  icon: Icon(Icons.more_vert, size: isSmallScreen ? 14 : 16),
                   onSelected: (value) {
                     switch (value) {
                       case 'edit':
@@ -523,10 +555,11 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
                       value: 'edit',
                       child: Row(
                         children: [
-                          Icon(Icons.edit, size: 16),
+                          Icon(Icons.edit, size: isSmallScreen ? 14 : 16),
                           SizedBox(width: 8),
                           Text('Edit',
-                              style: GoogleFonts.poppins(fontSize: 12)),
+                              style: GoogleFonts.poppins(
+                                  fontSize: isSmallScreen ? 10 : 12)),
                         ],
                       ),
                     ),
@@ -535,10 +568,12 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
                         value: 'mark_progress',
                         child: Row(
                           children: [
-                            Icon(Icons.play_circle, size: 16),
+                            Icon(Icons.play_circle,
+                                size: isSmallScreen ? 14 : 16),
                             SizedBox(width: 8),
                             Text('Mark In Progress',
-                                style: GoogleFonts.poppins(fontSize: 12)),
+                                style: GoogleFonts.poppins(
+                                    fontSize: isSmallScreen ? 10 : 12)),
                           ],
                         ),
                       ),
@@ -547,10 +582,12 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
                         value: 'mark_complete',
                         child: Row(
                           children: [
-                            Icon(Icons.check_circle, size: 16),
+                            Icon(Icons.check_circle,
+                                size: isSmallScreen ? 14 : 16),
                             SizedBox(width: 8),
                             Text('Mark Complete',
-                                style: GoogleFonts.poppins(fontSize: 12)),
+                                style: GoogleFonts.poppins(
+                                    fontSize: isSmallScreen ? 10 : 12)),
                           ],
                         ),
                       ),
@@ -559,10 +596,11 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
                         value: 'mark_pending',
                         child: Row(
                           children: [
-                            Icon(Icons.pending, size: 16),
+                            Icon(Icons.pending, size: isSmallScreen ? 14 : 16),
                             SizedBox(width: 8),
                             Text('Mark Pending',
-                                style: GoogleFonts.poppins(fontSize: 12)),
+                                style: GoogleFonts.poppins(
+                                    fontSize: isSmallScreen ? 10 : 12)),
                           ],
                         ),
                       ),
@@ -570,11 +608,13 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
                       value: 'delete',
                       child: Row(
                         children: [
-                          Icon(Icons.delete, size: 16, color: Colors.red),
+                          Icon(Icons.delete,
+                              size: isSmallScreen ? 14 : 16, color: Colors.red),
                           SizedBox(width: 8),
                           Text('Delete',
                               style: GoogleFonts.poppins(
-                                  fontSize: 12, color: Colors.red)),
+                                  fontSize: isSmallScreen ? 10 : 12,
+                                  color: Colors.red)),
                         ],
                       ),
                     ),
@@ -583,34 +623,36 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
               ],
             ),
             if (milestone.description.isNotEmpty) ...[
-              SizedBox(height: 8),
+              SizedBox(height: isSmallScreen ? 6 : 8),
               Text(
                 milestone.description,
                 style: GoogleFonts.poppins(
-                  fontSize: 12,
+                  fontSize: isSmallScreen ? 10 : 12,
                   color: Colors.grey[600],
                 ),
               ),
             ],
-            SizedBox(height: 8),
+            SizedBox(height: isSmallScreen ? 6 : 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  milestone.amount != null
-                      ? 'Amount: ₱${NumberFormat("#,##0.00").format(milestone.amount!)}'
-                      : 'Amount: Not specified',
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFFE23670),
+                Flexible(
+                  child: Text(
+                    milestone.amount != null
+                        ? 'Amount: ₱${NumberFormat("#,##0.00").format(milestone.amount!)}'
+                        : 'Amount: Not specified',
+                    style: GoogleFonts.poppins(
+                      fontSize: isSmallScreen ? 10 : 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFFE23670),
+                    ),
                   ),
                 ),
                 if (milestone.completedAt != null)
                   Text(
                     'Completed: ${DateFormat('MMM d, yyyy').format(milestone.completedAt!)}',
                     style: GoogleFonts.poppins(
-                      fontSize: 10,
+                      fontSize: isSmallScreen ? 8 : 10,
                       color: Colors.green[600],
                     ),
                   ),
@@ -678,6 +720,19 @@ class _MilestoneDialogState extends State<_MilestoneDialog> {
       initialDate: _selectedDueDate ?? DateTime.now().add(Duration(days: 7)),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: const Color(0xFFE23670),
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (date != null) {
@@ -710,6 +765,8 @@ class _MilestoneDialogState extends State<_MilestoneDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
     final isEditing = widget.milestone != null;
     final remainingAmount = widget.totalTaskAmount - widget.usedAmount;
 
@@ -718,7 +775,7 @@ class _MilestoneDialogState extends State<_MilestoneDialog> {
       title: Text(
         isEditing ? 'Edit Milestone' : 'Add Milestone',
         style: GoogleFonts.poppins(
-          fontSize: 18,
+          fontSize: isSmallScreen ? 16 : 18,
           fontWeight: FontWeight.bold,
           color: Color(0xFFE23670),
         ),
@@ -734,7 +791,8 @@ class _MilestoneDialogState extends State<_MilestoneDialog> {
                 controller: _titleController,
                 decoration: InputDecoration(
                   labelText: 'Title',
-                  labelStyle: GoogleFonts.poppins(fontSize: 14),
+                  labelStyle:
+                      GoogleFonts.poppins(fontSize: isSmallScreen ? 12 : 14),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -742,8 +800,12 @@ class _MilestoneDialogState extends State<_MilestoneDialog> {
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(color: Color(0xFFE23670)),
                   ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: isSmallScreen ? 10 : 12,
+                  ),
                 ),
-                style: GoogleFonts.poppins(fontSize: 14),
+                style: GoogleFonts.poppins(fontSize: isSmallScreen ? 12 : 14),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter a title';
@@ -751,12 +813,13 @@ class _MilestoneDialogState extends State<_MilestoneDialog> {
                   return null;
                 },
               ),
-              SizedBox(height: 16),
+              SizedBox(height: isSmallScreen ? 12 : 16),
               TextFormField(
                 controller: _descriptionController,
                 decoration: InputDecoration(
                   labelText: 'Description',
-                  labelStyle: GoogleFonts.poppins(fontSize: 14),
+                  labelStyle:
+                      GoogleFonts.poppins(fontSize: isSmallScreen ? 12 : 14),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -764,8 +827,12 @@ class _MilestoneDialogState extends State<_MilestoneDialog> {
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(color: Color(0xFFE23670)),
                   ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: isSmallScreen ? 10 : 12,
+                  ),
                 ),
-                style: GoogleFonts.poppins(fontSize: 14),
+                style: GoogleFonts.poppins(fontSize: isSmallScreen ? 12 : 14),
                 maxLines: 3,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -774,12 +841,13 @@ class _MilestoneDialogState extends State<_MilestoneDialog> {
                   return null;
                 },
               ),
-              SizedBox(height: 16),
+              SizedBox(height: isSmallScreen ? 12 : 16),
               TextFormField(
                 controller: _amountController,
                 decoration: InputDecoration(
                   labelText: 'Amount (₱) - Optional',
-                  labelStyle: GoogleFonts.poppins(fontSize: 14),
+                  labelStyle:
+                      GoogleFonts.poppins(fontSize: isSmallScreen ? 12 : 14),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -788,11 +856,16 @@ class _MilestoneDialogState extends State<_MilestoneDialog> {
                     borderSide: BorderSide(color: Color(0xFFE23670)),
                   ),
                   helperText:
-                  'Available: ₱${NumberFormat("#,##0.00").format(remainingAmount)}',
+                      'Available: ₱${NumberFormat("#,##0.00").format(remainingAmount)}',
                   helperStyle: GoogleFonts.poppins(
-                      fontSize: 11, color: Colors.grey[600]),
+                      fontSize: isSmallScreen ? 9 : 11,
+                      color: Colors.grey[600]),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: isSmallScreen ? 10 : 12,
+                  ),
                 ),
-                style: GoogleFonts.poppins(fontSize: 14),
+                style: GoogleFonts.poppins(fontSize: isSmallScreen ? 12 : 14),
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
                 validator: (value) {
                   if (value != null && value.trim().isNotEmpty) {
@@ -807,11 +880,12 @@ class _MilestoneDialogState extends State<_MilestoneDialog> {
                   return null;
                 },
               ),
-              SizedBox(height: 16),
+              SizedBox(height: isSmallScreen ? 12 : 16),
               InkWell(
                 onTap: _selectDueDate,
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: 12, vertical: isSmallScreen ? 12 : 16),
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey[400]!),
                     borderRadius: BorderRadius.circular(8),
@@ -819,7 +893,8 @@ class _MilestoneDialogState extends State<_MilestoneDialog> {
                   child: Row(
                     children: [
                       Icon(Icons.calendar_today,
-                          size: 16, color: Colors.grey[600]),
+                          size: isSmallScreen ? 14 : 16,
+                          color: Colors.grey[600]),
                       SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -827,7 +902,7 @@ class _MilestoneDialogState extends State<_MilestoneDialog> {
                               ? 'Due: ${DateFormat('MMM d, yyyy').format(_selectedDueDate!)}'
                               : 'Select due date (optional)',
                           style: GoogleFonts.poppins(
-                            fontSize: 14,
+                            fontSize: isSmallScreen ? 12 : 14,
                             color: _selectedDueDate != null
                                 ? Colors.black87
                                 : Colors.grey[600],
@@ -838,19 +913,21 @@ class _MilestoneDialogState extends State<_MilestoneDialog> {
                         InkWell(
                           onTap: () => setState(() => _selectedDueDate = null),
                           child: Icon(Icons.clear,
-                              size: 16, color: Colors.grey[600]),
+                              size: isSmallScreen ? 14 : 16,
+                              color: Colors.grey[600]),
                         ),
                     ],
                   ),
                 ),
               ),
               if (isEditing) ...[
-                SizedBox(height: 16),
+                SizedBox(height: isSmallScreen ? 12 : 16),
                 DropdownButtonFormField<String>(
                   value: _selectedStatus,
                   decoration: InputDecoration(
                     labelText: 'Status',
-                    labelStyle: GoogleFonts.poppins(fontSize: 14),
+                    labelStyle:
+                        GoogleFonts.poppins(fontSize: isSmallScreen ? 12 : 14),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -858,15 +935,20 @@ class _MilestoneDialogState extends State<_MilestoneDialog> {
                       borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide(color: Color(0xFFE23670)),
                     ),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: isSmallScreen ? 10 : 12,
+                    ),
                   ),
-                  style:
-                  GoogleFonts.poppins(fontSize: 14, color: Colors.black87),
+                  style: GoogleFonts.poppins(
+                      fontSize: isSmallScreen ? 12 : 14, color: Colors.black87),
                   items: _statusOptions.map((status) {
                     return DropdownMenuItem(
                       value: status,
                       child: Text(
                         status.replaceAll('_', ' ').toUpperCase(),
-                        style: GoogleFonts.poppins(fontSize: 14),
+                        style: GoogleFonts.poppins(
+                            fontSize: isSmallScreen ? 12 : 14),
                       ),
                     );
                   }).toList(),
@@ -887,7 +969,7 @@ class _MilestoneDialogState extends State<_MilestoneDialog> {
           child: Text(
             'Cancel',
             style: GoogleFonts.poppins(
-              fontSize: 14,
+              fontSize: isSmallScreen ? 12 : 14,
               color: Colors.grey[600],
             ),
           ),
@@ -899,11 +981,15 @@ class _MilestoneDialogState extends State<_MilestoneDialog> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
+            padding: EdgeInsets.symmetric(
+              horizontal: isSmallScreen ? 12 : 16,
+              vertical: isSmallScreen ? 8 : 12,
+            ),
           ),
           child: Text(
             isEditing ? 'Update' : 'Add',
             style: GoogleFonts.poppins(
-              fontSize: 14,
+              fontSize: isSmallScreen ? 12 : 14,
               fontWeight: FontWeight.w600,
               color: Colors.white,
             ),

@@ -11,3 +11,5 @@ class MainActivity: FlutterActivity() {
         MapsInitializer.initialize(applicationContext)
     }
 }
+
+

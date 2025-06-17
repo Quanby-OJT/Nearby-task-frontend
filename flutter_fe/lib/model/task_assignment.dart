@@ -34,9 +34,14 @@ class TaskAssignment {
   factory TaskAssignment.fromJson(Map<String, dynamic> json) {
     debugPrint('Tasker JSON Data: ${json['tasker']}');
     return TaskAssignment(
-      client: json['clients'] != null ? ClientModel.fromJson(json['clients']) : null,
-      tasker: json['tasker'] != null ? TaskerModel.fromJson(json['tasker']) : null,
-      task: json['post_task'] != null ? TaskModel.fromJson(json['post_task']) : null,
+      client: json['clients'] != null
+          ? ClientModel.fromJson(json['clients'])
+          : null,
+      tasker:
+          json['tasker'] != null ? TaskerModel.fromJson(json['tasker']) : null,
+      task: json['post_task'] != null
+          ? TaskModel.fromJson(json['post_task'])
+          : null,
       taskStatus: json['task_status'],
       taskTakenId: json['task_taken_id'],
       taskStatusReason: json['reason_for_rejection_or_cancellation'],
@@ -44,5 +49,19 @@ class TaskAssignment {
       messageSentById: json['last_message_id'] ?? 0,
       rework: json['rework_count'] ?? 0,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'clients': client?.toJson(),
+      'tasker': tasker?.toJson(),
+      'post_task': task?.toJson(),
+      'task_status': taskStatus,
+      'task_taken_id': taskTakenId,
+      'reason_for_rejection_or_cancellation': taskStatusReason,
+      'unread_count': unreadCount,
+      'last_message_id': messageSentById,
+      'rework_count': rework,
+    };
   }
 }
