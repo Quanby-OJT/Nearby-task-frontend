@@ -139,6 +139,11 @@ class _ForgotPasswordState extends State<ForgotPassword>
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenWidth < 600;
+    final horizontalPadding = screenWidth * 0.1;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -153,93 +158,110 @@ class _ForgotPasswordState extends State<ForgotPassword>
                 ],
               ),
             ),
-            child: Center(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SlideTransition(
-                      position: _topSlideAnimation,
-                      child: FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: Column(
-                          children: [
-                            SvgPicture.asset(
-                              'assets/svg/logo.svg',
-                              width: 150,
-                              height: 150,
-                            ),
-                            Text(
-                              "Forgot Password",
-                              style: GoogleFonts.poppins(
-                                fontSize: 24,
-                                color: Colors.black87,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                            Text(
-                              textAlign: TextAlign.center,
-                              'Have you forgot your password? Don\'t Worry! We have you covered. To start, please enter your email you used to sign in to this application.',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                color: Colors.black87,
-                                fontWeight: FontWeight.w300,
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                          ],
-                        ),
-                      ),
+            child: SafeArea(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: horizontalPadding.clamp(20.0, 40.0),
+                    vertical: isSmallScreen ? 20 : 40,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: isSmallScreen ? double.infinity : 400,
                     ),
-                    SlideTransition(
-                      position: _bottomSlideAnimation,
-                      child: FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding:
-                                  const EdgeInsets.only(left: 40, right: 40),
-                              child: TextField(
-                                controller: _controller.emailController,
-                                cursorColor: const Color(0xFFB71A4A),
-                                decoration: _getInputDecoration('Email'),
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                            Container(
-                              height: 50,
-                              width: double.infinity,
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 40),
-                              child: ElevatedButton(
-                                onPressed:
-                                    _isLoading ? null : handlePasswordReset,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color(0xFFB71A4A),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  elevation: 5,
-                                  shadowColor: Colors.black26,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SlideTransition(
+                          position: _topSlideAnimation,
+                          child: FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: Column(
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/svg/logo.svg',
+                                  width: isSmallScreen ? 120 : 150,
+                                  height: isSmallScreen ? 120 : 150,
                                 ),
-                                child: Text(
-                                  'Send Verification Link',
+                                SizedBox(height: isSmallScreen ? 12 : 16),
+                                Text(
+                                  "Forgot Password",
                                   style: GoogleFonts.poppins(
-                                    color: Colors.white,
+                                    fontSize: isSmallScreen ? 20 : 24,
+                                    color: Colors.black87,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 16,
                                   ),
                                 ),
-                              ),
+                                SizedBox(height: isSmallScreen ? 16 : 20),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: isSmallScreen ? 8 : 16,
+                                  ),
+                                  child: Text(
+                                    textAlign: TextAlign.center,
+                                    'Have you forgot your password? Don\'t Worry! We have you covered. To start, please enter your email you used to sign in to this application.',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: isSmallScreen ? 11 : 12,
+                                      color: Colors.black87,
+                                      fontWeight: FontWeight.w300,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: isSmallScreen ? 16 : 20),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
-                      ),
+                        SlideTransition(
+                          position: _bottomSlideAnimation,
+                          child: FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: Column(
+                              children: [
+                                TextField(
+                                  controller: _controller.emailController,
+                                  cursorColor: const Color(0xFFB71A4A),
+                                  style: GoogleFonts.poppins(
+                                    fontSize: isSmallScreen ? 14 : 16,
+                                  ),
+                                  decoration: _getInputDecoration(
+                                      'Email', isSmallScreen),
+                                ),
+                                SizedBox(height: isSmallScreen ? 16 : 20),
+                                SizedBox(
+                                  height: isSmallScreen ? 45 : 50,
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    onPressed:
+                                        _isLoading ? null : handlePasswordReset,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Color(0xFFB71A4A),
+                                      disabledBackgroundColor: Colors.grey,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      elevation: 5,
+                                      shadowColor: Colors.black26,
+                                    ),
+                                    child: Text(
+                                      'Send Verification Link',
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: isSmallScreen ? 14 : 16,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -250,12 +272,23 @@ class _ForgotPasswordState extends State<ForgotPassword>
     );
   }
 
-  InputDecoration _getInputDecoration(String label) {
+  InputDecoration _getInputDecoration(String label, bool isSmallScreen) {
     return InputDecoration(
       filled: true,
       fillColor: const Color(0xFFF1F4FF),
       labelText: label,
-      hintStyle: const TextStyle(color: Colors.grey),
+      labelStyle: GoogleFonts.poppins(
+        fontSize: isSmallScreen ? 12 : 14,
+        color: Colors.grey[600],
+      ),
+      hintStyle: TextStyle(
+        color: Colors.grey,
+        fontSize: isSmallScreen ? 12 : 14,
+      ),
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: isSmallScreen ? 12 : 16,
+        vertical: isSmallScreen ? 12 : 16,
+      ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide.none,

@@ -96,51 +96,44 @@ class TaskerModel {
       }
     }
 
-    debugPrint("Tasker Model: ${json}");
+    debugPrint("Tasker Model: $json");
 
     return TaskerModel(
-      taskerId: json['tasker_id'] as int? ?? json['id'] as int?,
-      userId: json['user_id'] != null ? json['user_id'] as int : 0,
-      bio: json['bio'] as String? ?? '',
-      specializationId: json['specialization_id'] as int? ?? 0,
-      specialization:
-          json['tasker_specialization']?['specialization'] as String? ?? '',
-      skills: json['skills'] as String? ?? '',
-      availability: (json['availability'] is int
-              ? json['availability'] == 1
-              : json['availability'] as bool?) ??
-          false,
-      wagePerHour: (json['wage_per_hour'] is int
-              ? (json['wage_per_hour'] as int).toDouble()
-              : json['wage_per_hour'] as double?) ??
-          0.0,
-      payPeriod: json['pay_period'] as String? ?? '',
-      socialMediaLinks: socialLinks,
-      rating: (json['rating'] is int
-              ? (json['rating'] as int).toDouble()
-              : json['rating'] as double?) ??
-          0.0,
-      createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'])
-          : null,
-      updatedAt: json['updated_at'] != null
-          ? DateTime.parse(json['updated_at'])
-          : null,
-      user: json['user'] != null
-          ? UserModel.fromJson(json['user'] as Map<String, dynamic>)
-          : null,
-      taskerSpecialization: json['tasker_specialization'] != null
-          ? TaskerSpecialization.fromJson(
-              json['tasker_specialization'] as Map<String, dynamic>)
-          : null,
-      taskerImagesId:
-          json['profile_images'] != null && json['profile_images'] is List
-              ? List<int>.from((json['profile_images'] as List<dynamic>)
-                  .map((e) => e is int ? e : int.tryParse(e.toString()) ?? 0))
-              : [],
-      group: json['group'] as bool? ?? false,
-      taskerImages: json['images_url'] ?? []
-    );
+        taskerId: json['tasker_id'] as int? ?? json['id'] as int?,
+        userId: json['user_id'] != null ? json['user_id'] as int : 0,
+        bio: json['bio'] as String? ?? '',
+        specializationId: json['specialization_id'] as int? ?? 0,
+        specialization:
+            json['tasker_specialization']?['specialization'] as String? ?? '',
+        skills: json['skills'] as String? ?? '',
+        availability: (json['availability'] is int ? json['availability'] == 1 : json['availability'] as bool?) ??
+            false,
+        wagePerHour: (json['wage_per_hour'] is int
+                ? (json['wage_per_hour'] as int).toDouble()
+                : json['wage_per_hour'] as double?) ??
+            0.0,
+        payPeriod: json['pay_period'] as String? ?? '',
+        socialMediaLinks: socialLinks,
+        rating: (json['rating'] is int ? (json['rating'] as int).toDouble() : json['rating'] as double?) ??
+            0.0,
+        createdAt: json['created_at'] != null
+            ? DateTime.parse(json['created_at'])
+            : null,
+        updatedAt: json['updated_at'] != null
+            ? DateTime.parse(json['updated_at'])
+            : null,
+        user: json['user'] != null
+            ? UserModel.fromJson(json['user'] as Map<String, dynamic>)
+            : null,
+        taskerSpecialization: json['tasker_specialization'] != null
+            ? TaskerSpecialization.fromJson(
+                json['tasker_specialization'] as Map<String, dynamic>)
+            : null,
+        taskerImagesId: json['profile_images'] != null && json['profile_images'] is List
+            ? List<int>.from((json['profile_images'] as List<dynamic>).map((e) => e is int ? e : int.tryParse(e.toString()) ?? 0))
+            : [],
+        group: json['group'] as bool? ?? false,
+        taskerImages: json['images_url'] ?? []);
   }
 
   // Create a copy with updated fields

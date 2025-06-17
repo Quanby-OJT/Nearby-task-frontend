@@ -5,7 +5,6 @@ import 'package:flutter_fe/controller/escrow_management_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/address.dart';
-import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/images_model.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/model/task_model.dart';
@@ -15,7 +14,6 @@ import 'package:flutter_fe/view/address/address_list.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/preview_task.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/select_related_spec.dart';
 import 'package:flutter_fe/view/business_acc/task_creation/select_spec.dart';
-import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -1169,7 +1167,11 @@ class _EditTaskPageState extends State<EditTaskPage>
       ),
       body: SafeArea(
         child: _isLoading
-            ? Center(child: CircularProgressIndicator())
+            ? Center(
+                child: CircularProgressIndicator(
+                  color: Color(0xFFB71A4A),
+                ),
+              )
             : Column(
                 children: [
                   _buildProgressBar(),

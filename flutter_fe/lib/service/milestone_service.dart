@@ -9,7 +9,7 @@ class MilestoneService {
   final GetStorage storage = GetStorage();
 
   String get baseUrl {
-    return dotenv.env['API_BASE_URL'] ?? 'http://localhost:8000';
+    return dotenv.env['API_BASE_URL'] ?? 'https://localhost:8000';
   }
 
   Map<String, String> get headers {

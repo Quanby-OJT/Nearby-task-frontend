@@ -29,6 +29,7 @@ import 'package:flutter_fe/view/verification/verification_page.dart';
 import 'package:dots_indicator/dots_indicator.dart';
 import 'dart:convert';
 import 'package:flutter_fe/service/api_service.dart';
+import 'package:flutter_fe/service/tasker_service.dart';
 
 class TaskerHomePage extends StatefulWidget {
   const TaskerHomePage({super.key});
@@ -56,6 +57,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
   String _image = "";
   String? _existingProfileImageUrl;
   String? _existingIDImageUrl;
+  String? _taskerProfileImageUrl; // For profile image from tasker_images table
   final bool _documentValid = false;
   int? cardNumber;
   bool _isUploadDialogShown = false;
@@ -176,6 +178,8 @@ class _TaskerHomePageState extends State<TaskerHomePage>
   Future<void> _fetchUserData() async {
     try {
       final dynamic userId = storage.read("user_id");
+      debugPrint(
+          'TaskerHomePage: Retrieved user_id from storage: $userId (type: ${userId.runtimeType})');
 
       if (userId == null) {
         setState(() {
@@ -186,9 +190,12 @@ class _TaskerHomePageState extends State<TaskerHomePage>
         return;
       }
 
+      final parsedUserId = int.parse(userId.toString());
+      debugPrint('TaskerHomePage: Parsed user_id: $parsedUserId');
+
       AuthenticatedUser? user =
-          await _profileController.getAuthenticatedUser(context, userId);
-      debugPrint("Current User: $user");
+          await _profileController.getAuthenticatedUser(context, parsedUserId);
+      debugPrint("TaskerHomePage: Current User: $user");
 
       if (user == null) {
         setState(() {
@@ -225,13 +232,52 @@ class _TaskerHomePageState extends State<TaskerHomePage>
         _profileController.roleController.text = _role;
         _profileController.imageController.text = _image;
       });
+
+      // Fetch profile image from tasker_images table if user is a tasker
+      if (user.user.role?.toLowerCase() == 'tasker') {
+        // Use user.user.id if it's valid, otherwise use the original userId from storage
+        final userIdToUse = (user.user.id != null && user.user.id! > 0)
+            ? user.user.id!
+            : parsedUserId;
+        debugPrint(
+            'TaskerHomePage: Using user ID for profile image fetch: $userIdToUse (user.user.id: ${user.user.id}, storage userId: $parsedUserId)');
+        await _fetchTaskerProfileImage(userIdToUse);
+      }
     } catch (e) {
-      debugPrint("Error fetching user data: $e");
+      debugPrint("TaskerHomePage: Error fetching user data: $e");
       setState(() {
         _fullName = "User not found";
         _role = "Error fetching user data";
         _image = "Error fetching user image";
       });
+    }
+  }
+
+  Future<void> _fetchTaskerProfileImage(int userId) async {
+    try {
+      debugPrint('TaskerHomePage: Fetching profile image for user ID: $userId');
+      final taskerService = TaskerService();
+      final result = await taskerService.getTaskerImages(userId);
+
+      debugPrint('TaskerHomePage: Profile image fetch result: $result');
+
+      if (result.containsKey('images') && result['images'] is List) {
+        final List<dynamic> images = result['images'];
+        if (images.isNotEmpty) {
+          final firstImage = images.first;
+          if (firstImage is Map && firstImage['image_link'] != null) {
+            setState(() {
+              _taskerProfileImageUrl = firstImage['image_link'];
+            });
+            debugPrint(
+                'TaskerHomePage: ✅ Found profile image: $_taskerProfileImageUrl');
+          }
+        } else {
+          debugPrint('TaskerHomePage: No profile images found');
+        }
+      }
+    } catch (e) {
+      debugPrint('TaskerHomePage: Error fetching profile image: $e');
     }
   }
 
@@ -637,6 +683,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                           }));
                       overlayEntry.remove();
                     }),
+
                     buildListTile(FontAwesomeIcons.gears, "Settings", () {
                       Navigator.push(
                         context,
@@ -759,19 +806,9 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                     width: 40,
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      image: _image != "Unknown" && _image.isNotEmpty
-                          ? DecorationImage(
-                              image: NetworkImage(_image),
-                              fit: BoxFit.cover,
-                              onError: (exception, stackTrace) {
-                                setState(() {
-                                  _image = "Unknown";
-                                });
-                              },
-                            )
-                          : null,
+                      image: _getProfileImageDecoration(),
                     ),
-                    child: _image == "Unknown" || _image.isEmpty
+                    child: _shouldShowPersonIcon()
                         ? Icon(Icons.person, color: Colors.grey)
                         : null,
                   ),
@@ -854,7 +891,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
       body: Stack(
         children: [
           if (_isLoading || _isCategoriesLoading)
-            Center(child: CircularProgressIndicator())
+            Center(child: CircularProgressIndicator(color: Color(0xFFB71A4A)))
           else if (tasks.isEmpty)
             Center(
               child: Column(
@@ -884,7 +921,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                   OutlinedButton(
                     onPressed: _fetchTasks,
                     style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Color(0xFF0272B1)),
+                      side: BorderSide(color: Color(0xFFB71A4A)),
                       padding:
                           EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       shape: RoundedRectangleBorder(
@@ -893,7 +930,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                     ),
                     child: Text(
                       'Refresh',
-                      style: GoogleFonts.openSans(color: Color(0xFF0272B1)),
+                      style: GoogleFonts.openSans(color: Color(0xFFB71A4A)),
                     ),
                   ),
                 ],
@@ -1078,6 +1115,7 @@ class _TaskerHomePageState extends State<TaskerHomePage>
                                       if (progress == null) return child;
                                       return Center(
                                         child: CircularProgressIndicator(
+                                          color: Color(0xFFB71A4A),
                                           value: progress.expectedTotalBytes !=
                                                   null
                                               ? progress.cumulativeBytesLoaded /
@@ -1618,5 +1656,40 @@ class _TaskerHomePageState extends State<TaskerHomePage>
         ),
       ),
     );
+  }
+
+  DecorationImage? _getProfileImageDecoration() {
+    if (_taskerProfileImageUrl != null && _taskerProfileImageUrl!.isNotEmpty) {
+      return DecorationImage(
+        image: NetworkImage(_taskerProfileImageUrl!),
+        fit: BoxFit.cover,
+        onError: (exception, stackTrace) {
+          debugPrint(
+              'TaskerHomePage: Error loading tasker profile image: $exception');
+          setState(() {
+            _taskerProfileImageUrl = null; // Clear the failed URL
+          });
+        },
+      );
+    } else if (_image != "Unknown" && _image.isNotEmpty) {
+      return DecorationImage(
+        image: NetworkImage(_image),
+        fit: BoxFit.cover,
+        onError: (exception, stackTrace) {
+          debugPrint(
+              'TaskerHomePage: Error loading default user image: $exception');
+          setState(() {
+            _image = "Unknown";
+          });
+        },
+      );
+    }
+    return null;
+  }
+
+  bool _shouldShowPersonIcon() {
+    return (_taskerProfileImageUrl == null ||
+            _taskerProfileImageUrl!.isEmpty) &&
+        (_image == "Unknown" || _image.isEmpty);
   }
 }

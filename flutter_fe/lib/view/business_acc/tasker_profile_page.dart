@@ -4,13 +4,14 @@ import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/task_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
+import 'package:flutter_fe/service/tasker_service.dart';
 import 'package:flutter_fe/view/business_acc/assignment/task_assignment.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
 import '../../model/tasker_feedback.dart';
 import '../../model/tasker_model.dart';
-import '../../service/tasker_service.dart';
 
 // In-memory cache for tasks
 class TaskCache {
@@ -53,7 +54,8 @@ class TaskerProfilePage extends StatefulWidget {
   State<TaskerProfilePage> createState() => _TaskerProfilePageState();
 }
 
-class _TaskerProfilePageState extends State<TaskerProfilePage> {
+class _TaskerProfilePageState extends State<TaskerProfilePage>
+    with TickerProviderStateMixin {
   final TaskController taskController = TaskController();
   final ProfileController _profileController = ProfileController();
   final storage = GetStorage();
@@ -66,11 +68,35 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
   List<TaskModel>? _preloadedTasks;
   List<TaskerFeedback>? taskerFeedback;
   List<String> skills = [];
+  String? _taskerProfileImageUrl;
+
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+        parent: _animationController, curve: Curves.easeOutCubic));
+
     _initializeData();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   Future<void> _initializeData() async {
@@ -80,18 +106,25 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
         _errorMessage = null;
       });
 
-      skills = widget.tasker.skills?.split(',') ?? [];
+      skills = widget.tasker.skills
+              ?.split(',')
+              .map((skill) => skill.trim())
+              .toList() ??
+          [];
 
       await Future.wait([
         _loadTaskerDetails(),
         _fetchUserData(),
         _preloadClientTasks(),
         getAllTaskerReviews(),
+        _fetchTaskerProfileImage(),
       ]);
 
       setState(() {
         _isLoading = false;
       });
+
+      _animationController.forward();
     } catch (e, stackTrace) {
       setState(() {
         _isLoading = false;
@@ -99,6 +132,30 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
         debugPrint("Initialization error: $e");
         debugPrintStack(stackTrace: stackTrace);
       });
+    }
+  }
+
+  Future<void> _fetchTaskerProfileImage() async {
+    try {
+      if (widget.tasker.user?.id != null) {
+        final taskerService = TaskerService();
+        final result =
+            await taskerService.getTaskerImages(widget.tasker.user!.id!);
+
+        if (result.containsKey('images') && result['images'] is List) {
+          final List<dynamic> images = result['images'];
+          if (images.isNotEmpty) {
+            final firstImage = images.first;
+            if (firstImage is Map && firstImage['image_link'] != null) {
+              setState(() {
+                _taskerProfileImageUrl = firstImage['image_link'];
+              });
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching tasker profile image: $e');
     }
   }
 
@@ -194,324 +251,379 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    color: Color(0xFFB71A4A),
+                    strokeWidth: 3,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'Loading profile...',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            )
           : _errorMessage != null
               ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _errorMessage!,
-                        style: const TextStyle(color: Colors.red),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _initializeData,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0272B1),
-                          foregroundColor: Colors.white,
+                  child: Container(
+                    margin: EdgeInsets.all(24),
+                    padding: EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: Offset(0, 4),
                         ),
-                        child: const Text('Retry'),
-                      ),
-                    ],
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.red[400],
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'Oops! Something went wrong',
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          _errorMessage!,
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          onPressed: _initializeData,
+                          icon: Icon(Icons.refresh),
+                          label: Text('Try Again'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFFB71A4A),
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 )
-              : CustomScrollView(
-                  slivers: [
-                    SliverAppBar(
-                      expandedHeight: 300,
-                      floating: false,
-                      pinned: true,
-                      flexibleSpace: FlexibleSpaceBar(
-                        background: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            Container(
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    Color(0xFFB71A4A),
-                                    Color(0xFFE3F2FD),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              bottom: 20,
-                              left: 20,
-                              right: 20,
-                              child: Column(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 60,
-                                    backgroundImage:
-                                        widget.tasker.user?.image != null &&
-                                                widget.tasker.user!.image
-                                                    .toString()
-                                                    .isNotEmpty
-                                            ? NetworkImage(widget
-                                                .tasker.user!.image
-                                                .toString())
-                                            : null,
-                                    backgroundColor: Colors.white,
-                                    child: widget.tasker.user?.image == null ||
-                                            widget.tasker.user!.image
-                                                .toString()
-                                                .isEmpty
-                                        ? Text(
-                                            "${widget.tasker.user?.firstName[0]}${widget.tasker.user?.lastName[0]}",
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 36,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF0272B1),
-                                            ),
-                                          )
-                                        : null,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    "${widget.tasker.user?.firstName} ${widget.tasker.user?.lastName}",
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(20),
-                                      boxShadow: const [
-                                        BoxShadow(
-                                          color: Colors.black12,
-                                          blurRadius: 4,
-                                          offset: Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Text(
-                                      widget.tasker.user!.role,
-                                      style: GoogleFonts.poppins(
-                                        color: const Color(0xFFB71A4A),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      leading: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
+              : FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: CustomScrollView(
+                      slivers: [
+                        _buildModernAppBar(),
+                        _buildStatsSection(),
+                        _buildAboutSection(),
+                        // _buildSkillsSection(),
+                        // _buildBasicInfoSection(),
+                        _buildActionButtons(),
+                        _buildReviewsSection(),
+                        SliverToBoxAdapter(child: SizedBox(height: 32)),
+                      ],
+                    ),
+                  ),
+                ),
+    );
+  }
+
+  Widget _buildModernAppBar() {
+    return SliverAppBar(
+      expandedHeight: 320,
+      floating: false,
+      pinned: true,
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      flexibleSpace: FlexibleSpaceBar(
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFFB71A4A),
+                Color(0xFFE91E63),
+                Color(0xFF9C27B0),
+              ],
+            ),
+          ),
+          child: Stack(
+            children: [
+              // Background pattern
+              Positioned.fill(
+                child: Opacity(
+                  opacity: 0.1,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage('assets/images/pattern.png'),
+                        fit: BoxFit.cover,
                       ),
                     ),
-                    SliverToBoxAdapter(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        color: Colors.white,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            _buildStatItem(widget.tasker.rating.toString(),
-                                "Rating", Icons.star),
-                            _buildStatItem(taskerFeedback!.length.toString(),
-                                "Jobs", Icons.work),
-                            _buildStatItem("2 yrs", "Experience", Icons.timer),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: _buildSectionCard(
-                        "About",
-                        [
-                          Text(
-                            widget.tasker.bio ?? "Not Available",
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
+                  ),
+                ),
+              ),
+              // Profile content
+              Positioned(
+                bottom: 40,
+                left: 24,
+                right: 24,
+                child: Column(
+                  children: [
+                    // Profile image with border and shadow
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 20,
+                            offset: Offset(0, 10),
                           ),
                         ],
                       ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: _buildSectionCard(
-                        "Basic Information",
-                        [
-                          _buildInfoRow(
-                              Icons.work,
-                              "Specialization",
-                              widget.tasker.taskerSpecialization
-                                      ?.specialization ??
-                                  "N/A"),
-                        ],
-                      ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            if (!widget.isSaved)
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: _isAssigning
-                                      ? null
-                                      : () {
-                                          _likeTasker();
-                                        },
-                                  icon: const Icon(Icons.favorite_border,
-                                      color: Colors.white),
-                                  label: const Text('Like'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 16),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
+                      child: CircleAvatar(
+                        radius: 65,
+                        backgroundColor: Colors.white,
+                        child: CircleAvatar(
+                          radius: 60,
+                          backgroundImage: _taskerProfileImageUrl != null
+                              ? NetworkImage(_taskerProfileImageUrl!)
+                              : (widget.tasker.user?.image != null &&
+                                      widget.tasker.user!.image
+                                          .toString()
+                                          .isNotEmpty
+                                  ? NetworkImage(
+                                      widget.tasker.user!.image.toString())
+                                  : null),
+                          backgroundColor: Colors.grey[100],
+                          child: (_taskerProfileImageUrl == null &&
+                                  (widget.tasker.user?.image == null ||
+                                      widget.tasker.user!.image
+                                          .toString()
+                                          .isEmpty))
+                              ? Text(
+                                  "${widget.tasker.user?.firstName?[0] ?? ''}${widget.tasker.user?.lastName?[0] ?? ''}",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFFB71A4A),
                                   ),
-                                ),
-                              ),
-                            if (widget.isSaved && _user != null)
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: _isAssigning
-                                      ? null
-                                      : () => _assignTask(widget.tasker),
-                                  icon: const Icon(Icons.assignment_turned_in,
-                                      color: Colors.white),
-                                  label: const Text('Assign Task'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF0272B1),
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 16),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
+                                )
+                              : null,
                         ),
                       ),
                     ),
-                    SliverToBoxAdapter(
-                      child: taskerFeedback != null &&
-                              taskerFeedback!.isNotEmpty
-                          ? _buildSectionCard(
-                              "Reviews from Other Clients",
-                              taskerFeedback!
-                                  .map((feedback) => _buildReviewItem(
-                                      "${feedback.client.user!.firstName} ${feedback.client.user!.lastName}",
-                                      feedback.comment,
-                                      feedback.rating.toInt()))
-                                  .toList())
-                          : _buildSectionCard(
-                              "Reviews", [const Text("No reviews yet.")]),
+                    SizedBox(height: 16),
+                    // Name with better typography
+                    Text(
+                      "${widget.tasker.user?.firstName ?? ''} ${widget.tasker.user?.lastName ?? ''}",
+                      style: GoogleFonts.poppins(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                    SizedBox(height: 8),
+                    // Role badge with modern design
+                    Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(25),
+                        border:
+                            Border.all(color: Colors.white.withOpacity(0.3)),
+                      ),
+                      child: Text(
+                        widget.tasker.user?.role ?? 'Tasker',
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    // Specialization
+                    if (widget.tasker.taskerSpecialization?.specialization !=
+                        null)
+                      Container(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          widget.tasker.taskerSpecialization!.specialization,
+                          style: GoogleFonts.poppins(
+                            color: Color(0xFFB71A4A),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
-    );
-  }
-
-  Widget _buildStatItem(String value, String label, IconData icon) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Icon(icon, color: const Color(0xFFB71A4A), size: 20),
-            const SizedBox(width: 4),
-            Text(
-              value,
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFFB71A4A),
               ),
-            ),
-          ],
-        ),
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            color: Colors.grey[600],
+            ],
           ),
         ),
-      ],
+      ),
+      leading: Container(
+        margin: EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
     );
   }
 
-  Widget _buildSectionCard(String title, List<Widget> children) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFFB71A4A),
-              ),
+  Widget _buildStatsSection() {
+    return SliverToBoxAdapter(
+      child: Container(
+        margin: EdgeInsets.all(16),
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 15,
+              offset: Offset(0, 5),
             ),
-            const SizedBox(height: 12),
-            ...children,
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildModernStatItem(
+              widget.tasker.rating?.toStringAsFixed(1) ?? "4.5",
+              "Rating",
+              Icons.star_rounded,
+              Color(0xFFFFB300),
+            ),
+            _buildDivider(),
+            _buildModernStatItem(
+              taskerFeedback?.length.toString() ?? "0",
+              "Reviews",
+              Icons.rate_review_rounded,
+              Color(0xFF4CAF50),
+            ),
+            _buildDivider(),
+            _buildModernStatItem(
+              widget.tasker.wage != null
+                  ? "₱${NumberFormat("#,##0", "en_US").format(widget.tasker.wage)}"
+                  : "₱500",
+              widget.tasker.payPeriod ?? "Per Hour",
+              Icons.payments_rounded,
+              Color(0xFFB71A4A),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
+  Widget _buildModernStatItem(
+      String value, String label, IconData icon, Color color) {
+    return Expanded(
+      child: Column(
         children: [
-          Icon(icon, color: const Color(0xFFB71A4A), size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                Text(
-                  value,
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
+          Container(
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          SizedBox(height: 8),
+          Text(
+            value,
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[800],
+            ),
+          ),
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: Colors.grey[600],
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Container(
+      height: 40,
+      width: 1,
+      color: Colors.grey[200],
+      margin: EdgeInsets.symmetric(horizontal: 8),
+    );
+  }
+
+  Widget _buildAboutSection() {
+    return SliverToBoxAdapter(
+      child: _buildModernSectionCard(
+        "Bio",
+        Icons.person_outline,
+        [
+          Text(
+            widget.tasker.bio ?? "This tasker hasn't added a bio yet.",
+            style: GoogleFonts.poppins(
+              fontSize: 15,
+              color: Colors.grey[700],
+              height: 1.6,
             ),
           ),
         ],
@@ -519,55 +631,315 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
     );
   }
 
-  Widget _buildSkillChip(String skill) {
-    return Chip(
-      label: Text(skill),
-      backgroundColor: const Color(0xFFE3F2FD),
-      labelStyle: GoogleFonts.poppins(
-        color: const Color(0xFF0272B1),
-        fontWeight: FontWeight.w500,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+  Widget _buildActionButtons() {
+    return SliverToBoxAdapter(
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          children: [
+            if (!widget.isSaved) ...[
+              Expanded(
+                child: _buildModernActionButton(
+                  onPressed: _likeTasker,
+                  icon: Icons.favorite_rounded,
+                  label: 'Like Tasker',
+                  color: Color(0xFFE91E63),
+                  isSecondary: true,
+                ),
+              ),
+            ],
+            if (widget.isSaved && _user != null) ...[
+              Expanded(
+                child: _buildModernActionButton(
+                  onPressed: () => _assignTask(widget.tasker),
+                  icon: Icons.assignment_turned_in_rounded,
+                  label: 'Assign Task',
+                  color: Color(0xFFB71A4A),
+                  isSecondary: false,
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildReviewItem(String reviewer, String comment, int rating) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+  Widget _buildModernActionButton({
+    required VoidCallback onPressed,
+    required IconData icon,
+    required String label,
+    required Color color,
+    required bool isSecondary,
+  }) {
+    return Container(
+      height: 56,
+      decoration: BoxDecoration(
+        gradient: isSecondary
+            ? null
+            : LinearGradient(
+                colors: [color, color.withOpacity(0.8)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+        color: isSecondary ? Colors.white : null,
+        borderRadius: BorderRadius.circular(16),
+        border: isSecondary ? Border.all(color: color, width: 2) : null,
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.3),
+            blurRadius: 12,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ElevatedButton.icon(
+        onPressed: _isAssigning ? null : onPressed,
+        icon: Icon(icon, size: 20),
+        label: Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          foregroundColor: isSecondary ? color : Colors.white,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReviewsSection() {
+    return SliverToBoxAdapter(
+      child: _buildModernSectionCard(
+        "Client Reviews",
+        Icons.rate_review_rounded,
+        taskerFeedback != null && taskerFeedback!.isNotEmpty
+            ? taskerFeedback!
+                .map((feedback) => _buildModernReviewItem(
+                    "${feedback.client.user?.firstName ?? ''} ${feedback.client.user?.lastName ?? ''}",
+                    feedback.comment,
+                    feedback.rating.toInt()))
+                .toList()
+            : [
+                Container(
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.rate_review_outlined,
+                        size: 48,
+                        color: Colors.grey[400],
+                      ),
+                      SizedBox(height: 12),
+                      Text(
+                        "No reviews yet",
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      Text(
+                        "This tasker is new to the platform",
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+      ),
+    );
+  }
+
+  Widget _buildModernSectionCard(
+      String title, IconData icon, List<Widget> children) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 15,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Text(
-                reviewer,
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
+              Container(
+                padding: EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Color(0xFFB71A4A).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
                 ),
+                child: Icon(icon, color: Color(0xFFB71A4A), size: 20),
               ),
-              const Spacer(),
-              Row(
-                children: List.generate(
-                  5,
-                  (index) => Icon(
-                    index < rating ? Icons.star : Icons.star_border,
-                    color: Colors.amber,
-                    size: 16,
-                  ),
+              SizedBox(width: 12),
+              Text(
+                title,
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 16),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModernInfoRow(
+      IconData icon, String label, String value, Color color) {
+    return Row(
+      children: [
+        Container(
+          padding: EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: color, size: 18),
+        ),
+        SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              SizedBox(height: 2),
+              Text(
+                value,
+                style: GoogleFonts.poppins(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[800],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModernSkillChip(String skill) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color(0xFFB71A4A).withOpacity(0.1),
+            Color(0xFFE91E63).withOpacity(0.1)
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Color(0xFFB71A4A).withOpacity(0.3)),
+      ),
+      child: Text(
+        skill,
+        style: GoogleFonts.poppins(
+          color: Color(0xFFB71A4A),
+          fontWeight: FontWeight.w600,
+          fontSize: 13,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModernReviewItem(String reviewer, String comment, int rating) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 16),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: Color(0xFFB71A4A),
+                child: Text(
+                  reviewer.isNotEmpty ? reviewer[0].toUpperCase() : 'U',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      reviewer.isNotEmpty ? reviewer : 'Anonymous',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[800],
+                      ),
+                    ),
+                    Row(
+                      children: List.generate(
+                        5,
+                        (index) => Icon(
+                          index < rating
+                              ? Icons.star_rounded
+                              : Icons.star_outline_rounded,
+                          color: Color(0xFFFFB300),
+                          size: 16,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12),
           Text(
             comment,
             style: GoogleFonts.poppins(
               fontSize: 14,
-              color: Colors.grey[600],
+              color: Colors.grey[700],
+              height: 1.5,
             ),
           ),
         ],
@@ -583,52 +955,67 @@ class _TaskerProfilePageState extends State<TaskerProfilePage> {
       if (result.containsKey('message')) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              "Successfully Liked Tasker.",
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
+            content: Row(
+              children: [
+                Icon(Icons.favorite, color: Colors.white),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    "Successfully liked tasker!",
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: Color(0xFFE91E63),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(5),
+              borderRadius: BorderRadius.circular(12),
             ),
-            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            margin: EdgeInsets.all(16),
             duration: Duration(seconds: 3),
           ),
         );
         Navigator.of(context).pop();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              "Failed to like tasker.",
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
-            ),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(5),
-            ),
-            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            duration: Duration(seconds: 3),
-          ),
-        );
+        _showErrorSnackBar("Failed to like tasker. Please try again.");
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Failed to like tasker: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showErrorSnackBar("An error occurred: $e");
     }
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.error_outline, color: Colors.white),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.red[600],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        margin: EdgeInsets.all(16),
+        duration: Duration(seconds: 3),
+      ),
+    );
   }
 }

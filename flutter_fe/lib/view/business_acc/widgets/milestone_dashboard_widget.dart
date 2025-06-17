@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_fe/model/milestone_model.dart';
-import 'package:flutter_fe/service/milestone_service.dart';
 import 'package:flutter_fe/service/milestone_service_mock.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -51,14 +50,18 @@ class _MilestoneDashboardWidgetState extends State<MilestoneDashboardWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenWidth < 600;
+
     if (_isLoading) {
       return Container(
-        height: 80,
-        padding: EdgeInsets.all(16),
+        height: isSmallScreen ? 60 : 80,
+        padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
         child: Center(
           child: SizedBox(
-            width: 20,
-            height: 20,
+            width: isSmallScreen ? 16 : 20,
+            height: isSmallScreen ? 16 : 20,
             child: CircularProgressIndicator(
               strokeWidth: 2,
               valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE23670)),
@@ -72,7 +75,7 @@ class _MilestoneDashboardWidgetState extends State<MilestoneDashboardWidget> {
       return GestureDetector(
         onTap: widget.onTap,
         child: Container(
-          padding: EdgeInsets.all(16),
+          padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
           decoration: BoxDecoration(
             color: Colors.grey[50],
             borderRadius: BorderRadius.circular(8),
@@ -80,8 +83,9 @@ class _MilestoneDashboardWidgetState extends State<MilestoneDashboardWidget> {
           ),
           child: Row(
             children: [
-              Icon(Icons.timeline, color: Colors.grey[400], size: 24),
-              SizedBox(width: 12),
+              Icon(Icons.timeline,
+                  color: Colors.grey[400], size: isSmallScreen ? 20 : 24),
+              SizedBox(width: isSmallScreen ? 8 : 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,7 +93,7 @@ class _MilestoneDashboardWidgetState extends State<MilestoneDashboardWidget> {
                     Text(
                       'Milestones',
                       style: GoogleFonts.poppins(
-                        fontSize: 14,
+                        fontSize: isSmallScreen ? 12 : 14,
                         fontWeight: FontWeight.w600,
                         color: Colors.grey[700],
                       ),
@@ -97,14 +101,15 @@ class _MilestoneDashboardWidgetState extends State<MilestoneDashboardWidget> {
                     Text(
                       'No milestones defined - Tap to add',
                       style: GoogleFonts.poppins(
-                        fontSize: 12,
+                        fontSize: isSmallScreen ? 10 : 12,
                         color: Colors.grey[500],
                       ),
                     ),
                   ],
                 ),
               ),
-              Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
+              Icon(Icons.arrow_forward_ios,
+                  size: isSmallScreen ? 14 : 16, color: Colors.grey[400]),
             ],
           ),
         ),
@@ -124,7 +129,7 @@ class _MilestoneDashboardWidgetState extends State<MilestoneDashboardWidget> {
     return GestureDetector(
       onTap: widget.onTap,
       child: Container(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(8),
@@ -143,85 +148,100 @@ class _MilestoneDashboardWidgetState extends State<MilestoneDashboardWidget> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Icon(Icons.timeline, color: Color(0xFFE23670), size: 20),
-                    SizedBox(width: 8),
-                    Text(
-                      'Milestones',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    if (overdueCount > 0) ...[
-                      Container(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                Flexible(
+                  child: Row(
+                    children: [
+                      Icon(Icons.timeline,
+                          color: Color(0xFFE23670),
+                          size: isSmallScreen ? 16 : 20),
+                      SizedBox(width: isSmallScreen ? 6 : 8),
+                      Flexible(
                         child: Text(
-                          '$overdueCount overdue',
+                          'Milestones',
                           style: GoogleFonts.poppins(
-                            fontSize: 10,
+                            fontSize: isSmallScreen ? 12 : 14,
                             fontWeight: FontWeight.w600,
-                            color: Colors.red,
+                            color: Colors.black87,
                           ),
                         ),
                       ),
-                      SizedBox(width: 4),
                     ],
-                    Text(
-                      '$completedCount/$totalCount',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFFE23670),
+                  ),
+                ),
+                Flexible(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (overdueCount > 0) ...[
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: isSmallScreen ? 4 : 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '$overdueCount overdue',
+                            style: GoogleFonts.poppins(
+                              fontSize: isSmallScreen ? 8 : 10,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 4),
+                      ],
+                      Text(
+                        '$completedCount/$totalCount',
+                        style: GoogleFonts.poppins(
+                          fontSize: isSmallScreen ? 10 : 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFFE23670),
+                        ),
                       ),
-                    ),
-                    SizedBox(width: 4),
-                    Icon(Icons.arrow_forward_ios,
-                        size: 16, color: Colors.grey[400]),
-                  ],
+                      SizedBox(width: 4),
+                      Icon(Icons.arrow_forward_ios,
+                          size: isSmallScreen ? 12 : 16,
+                          color: Colors.grey[400]),
+                    ],
+                  ),
                 ),
               ],
             ),
 
-            SizedBox(height: 8),
+            SizedBox(height: isSmallScreen ? 6 : 8),
 
             // Progress bar
             LinearProgressIndicator(
               value: completedCount / totalCount,
               backgroundColor: Colors.grey[300],
               valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE23670)),
-              minHeight: 4,
+              minHeight: isSmallScreen ? 3 : 4,
             ),
 
-            SizedBox(height: 8),
+            SizedBox(height: isSmallScreen ? 6 : 8),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  '$progressPercentage% Complete',
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    color: Colors.grey[600],
+                Flexible(
+                  child: Text(
+                    '$progressPercentage% Complete',
+                    style: GoogleFonts.poppins(
+                      fontSize: isSmallScreen ? 9 : 11,
+                      color: Colors.grey[600],
+                    ),
                   ),
                 ),
-                Text(
-                  '₱${NumberFormat("#,##0.00").format(completedAmount)} / ₱${NumberFormat("#,##0.00").format(totalAmount)}',
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey[600],
+                Flexible(
+                  child: Text(
+                    '₱${NumberFormat("#,##0.00").format(completedAmount)} / ₱${NumberFormat("#,##0.00").format(totalAmount)}',
+                    style: GoogleFonts.poppins(
+                      fontSize: isSmallScreen ? 9 : 11,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[600],
+                    ),
+                    textAlign: TextAlign.end,
                   ),
                 ),
               ],

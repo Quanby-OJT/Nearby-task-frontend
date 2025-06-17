@@ -8,6 +8,8 @@ import 'package:flutter_fe/view/sign_in/otp_screen.dart';
 import 'package:flutter_fe/view/sign_in/sign_in.dart';
 import 'package:get_storage/get_storage.dart';
 import '../view/custom_loading/statusModal.dart';
+import 'package:get/get.dart';
+import 'package:flutter_fe/controller/firebase_controller.dart';
 
 class AuthenticationController {
   static final navigatorKey = GlobalKey<NavigatorState>();
@@ -198,6 +200,18 @@ class AuthenticationController {
       final email = emailController.text.toLowerCase();
       await storage.write('email', email);
       debugPrint('Email stored in storage: $email');
+
+      // Update FCM token after successful login
+      debugPrint("User logged in successfully, updating FCM token");
+      try {
+        final firebaseController = Get.put(FirebaseController());
+        // First initialize Firebase messaging if not already done
+        await firebaseController.initFirebaseMessaging();
+      } catch (e, stackTrace) {
+        debugPrint("Error updating FCM token after login: $e");
+        debugPrintStack(stackTrace: stackTrace);
+        // Continue with navigation even if FCM update fails
+      }
 
       if (response['role'] == "Client") {
         userId = response['user_id'];

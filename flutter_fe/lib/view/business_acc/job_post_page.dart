@@ -27,6 +27,9 @@ import 'package:flutter_fe/view/business_acc/task_creation/add_task.dart';
 import 'package:flutter_fe/view/task/task_disputed.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_fe/service/api_service.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class JobPostPage extends StatefulWidget {
   const JobPostPage({super.key});
@@ -44,11 +47,14 @@ class _JobPostPageState extends State<JobPostPage>
   final ProfileController _profileController = ProfileController();
   final GlobalKey<PopupMenuButtonState> _moreVertKey =
       GlobalKey<PopupMenuButtonState>();
+  final Connectivity _connectivity = Connectivity();
 
   final GetStorage _storage = GetStorage();
   final TextEditingController _searchController = TextEditingController();
   late final PageController _pageController;
   late final TabController _tabController;
+  late SharedPreferences _prefs;
+  bool _isOfflineMode = false;
 
   // Data
   List<TaskModel> _clientTasks = [];
@@ -106,7 +112,12 @@ class _JobPostPageState extends State<JobPostPage>
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_handleTabChange);
     _searchController.addListener(_filterTasks);
-    _initializeData();
+    loadInitialData();
+  }
+
+  Future<void> loadInitialData() async {
+    await _initializeSharedPreferences();
+    await _checkInternetConnection();
   }
 
   @override
@@ -160,13 +171,159 @@ class _JobPostPageState extends State<JobPostPage>
     }
   }
 
+  Future<void> _initializeSharedPreferences() async {
+    _prefs = await SharedPreferences.getInstance();
+  }
+
+  Future<void> _checkInternetConnection() async {
+    setState(() {
+      _isLoading = true;
+    });
+    final result = await _connectivity.checkConnectivity();
+
+    if (result.contains(ConnectivityResult.mobile) == true ||
+        result.contains(ConnectivityResult.wifi) == true) {
+      setState(() {
+        _isLoading = false;
+        _isOfflineMode = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Internet connection is available",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      _initializeData();
+    } else {
+      setState(() {
+        _isOfflineMode = true;
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Center(
+            child: Text(
+              "Using offline mode",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          backgroundColor: Color(0xFFB71A4A),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      _loadCachedData();
+    }
+  }
+
+  Future<void> _loadCachedData() async {
+    try {
+      // Load cached tasks for management view
+      final cachedManagementTasks = _prefs.getString('cached_management_tasks');
+      if (cachedManagementTasks != null) {
+        final List<dynamic> tasksData = json.decode(cachedManagementTasks);
+        setState(() {
+          _clientTasks =
+              tasksData.map((data) => TaskModel.fromJson(data)).toList();
+          _filteredTasksManagement = List.from(_clientTasks);
+          debugPrint(
+              "Loaded ${_clientTasks.length} management tasks from cache");
+        });
+      }
+
+      // Load cached tasks for status view
+      final cachedStatusTasks = _prefs.getString('cached_status_tasks');
+      if (cachedStatusTasks != null) {
+        final List<dynamic> tasksData = json.decode(cachedStatusTasks);
+        setState(() {
+          _clientTasksTasker =
+              tasksData.map((data) => TaskFetch.fromJson(data)).toList();
+          _filteredTasksStatus = List.from(_clientTasksTasker);
+          debugPrint(
+              "Loaded ${_clientTasksTasker.length} status tasks from cache");
+        });
+      }
+
+      // Load cached specializations
+      final cachedSpecializations =
+          _prefs.getStringList('cached_specializations');
+      if (cachedSpecializations != null) {
+        setState(() {
+          _specializations = cachedSpecializations;
+          debugPrint(
+              "Loaded ${_specializations.length} specializations from cache");
+        });
+      }
+
+      // Load cached verification status
+      _verificationStatus = _prefs.getString('cached_verification_status');
+    } catch (e) {
+      debugPrint("Error loading cached data: $e");
+    }
+  }
+
+  Future<void> _saveDataToCache() async {
+    try {
+      if (_clientTasks.isNotEmpty) {
+        await _prefs.setString('cached_management_tasks',
+            json.encode(_clientTasks.map((t) => t.toJson()).toList()));
+        debugPrint("Saved ${_clientTasks.length} management tasks to cache");
+      }
+
+      if (_clientTasksTasker.isNotEmpty) {
+        await _prefs.setString('cached_status_tasks',
+            json.encode(_clientTasksTasker.map((t) => t.toJson()).toList()));
+        debugPrint("Saved ${_clientTasksTasker.length} status tasks to cache");
+      }
+
+      if (_specializations.isNotEmpty) {
+        await _prefs.setStringList('cached_specializations', _specializations);
+        debugPrint("Saved ${_specializations.length} specializations to cache");
+      }
+
+      if (_verificationStatus != null) {
+        await _prefs.setString(
+            'cached_verification_status', _verificationStatus!);
+        debugPrint("Saved verification status to cache");
+      }
+    } catch (e) {
+      debugPrint("Error saving data to cache: $e");
+    }
+  }
+
   Future<void> _all() async {
-    await Future.wait([
-      _fetchSpecializations(),
-      _fetchTasksManagement(),
-      _fetchTasksStatus(),
-      _checkVerificationStatus(),
-    ]);
+    if (!_isOfflineMode) {
+      await Future.wait([
+        _fetchSpecializations(),
+        _fetchTasksManagement(),
+        _fetchTasksStatus(),
+        _checkVerificationStatus(),
+      ]);
+      await _saveDataToCache();
+    } else {
+      await _loadCachedData();
+    }
   }
 
   // Fetch specializations
@@ -355,6 +512,53 @@ class _JobPostPageState extends State<JobPostPage>
     );
   }
 
+  void _showWarningDialogOffline() {
+    if (_isUploadDialogShown) return;
+    setState(() => _isUploadDialogShown = true);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+        title: Text(
+          'Offline Mode',
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        content: Text(
+          'Cannot add new tasks while offline.',
+          style: GoogleFonts.poppins(
+              fontSize: 14, color: Colors.black, fontWeight: FontWeight.w300),
+        ),
+        actions: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(5),
+              color: const Color(0xFFB71A4A),
+            ),
+            child: TextButton(
+              child: Text('OK',
+                  style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white)),
+              onPressed: () async {
+                Navigator.pop(context);
+                setState(() => _isUploadDialogShown = false);
+                setState(() => _isUploadDialogShown = false);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showFilterModalManagement() {
     _showFilterModal(
       title: 'Filter Tasks',
@@ -502,7 +706,7 @@ class _JobPostPageState extends State<JobPostPage>
           child: _buildTaskList(
             isLoading: _isLoading,
             tasks: _filteredTasksManagement,
-            onRefresh: _fetchTasksManagement,
+            onRefresh: loadInitialData,
             buildTaskCard: _buildTaskManagementViewCard,
           ),
         ),
@@ -524,7 +728,7 @@ class _JobPostPageState extends State<JobPostPage>
           child: _buildTaskList(
             isLoading: _isLoading,
             tasks: _filteredTasksStatus,
-            onRefresh: _fetchTasksStatus,
+            onRefresh: loadInitialData,
             buildTaskCard: (task) => _buildTaskStatusViewCard(task),
           ),
         ),
@@ -1089,7 +1293,10 @@ class _JobPostPageState extends State<JobPostPage>
                     imageUrl: imageUrl,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Color(0xFFB71A4A),
+                      ),
                     ),
                     errorWidget: (context, url, error) => const Icon(
                       Icons.person,
@@ -1471,19 +1678,40 @@ class _JobPostPageState extends State<JobPostPage>
         centerTitle: false,
         backgroundColor: Colors.grey[100],
         elevation: 0,
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: const Color(0xFFE23670),
-          indicatorWeight: 3,
-          labelColor: const Color(0xFFB71A4A),
-          unselectedLabelColor: Colors.grey[600],
-          labelStyle:
-              GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600),
-          unselectedLabelStyle: GoogleFonts.poppins(fontSize: 14),
-          tabs: const [
-            Tab(text: 'Manage Tasks'),
-            Tab(text: 'Task Status'),
-          ],
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(_isOfflineMode ? 80 : 48),
+          child: Column(
+            children: [
+              if (_isOfflineMode)
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  color: Color(0xFFB71A4A),
+                  child: Center(
+                    child: Text(
+                      "Offline Mode",
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+              TabBar(
+                controller: _tabController,
+                indicatorColor: const Color(0xFFE23670),
+                indicatorWeight: 3,
+                labelColor: const Color(0xFFB71A4A),
+                unselectedLabelColor: Colors.grey[600],
+                labelStyle: GoogleFonts.poppins(
+                    fontSize: 14, fontWeight: FontWeight.w600),
+                unselectedLabelStyle: GoogleFonts.poppins(fontSize: 14),
+                tabs: const [
+                  Tab(text: 'Manage Tasks'),
+                  Tab(text: 'Task Status'),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
       body: PageView(
@@ -1496,13 +1724,16 @@ class _JobPostPageState extends State<JobPostPage>
       ),
       floatingActionButton: _tabController.index == 0
           ? FloatingActionButton(
-              onPressed: _verificationStatus == 'Review' ||
-                      _verificationStatus == 'Active'
-                  ? () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => AddTask()),
-                      ).then((value) => _fetchTasksManagement())
-                  : _showWarningDialog,
+              onPressed: _isOfflineMode == true
+                  ? () => _showWarningDialogOffline()
+                  : _isOfflineMode == false &&
+                          (_verificationStatus == 'Review' ||
+                              _verificationStatus == 'Active')
+                      ? () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => AddTask()),
+                          ).then((value) => _fetchTasksManagement())
+                      : _showWarningDialog,
               backgroundColor: const Color(0xFFE23670),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),

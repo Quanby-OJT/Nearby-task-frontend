@@ -129,7 +129,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
     }
     Map<String, dynamic> result;
     _showStatusModal(context, "Please wait while we process your payment...",
-        CircularProgressIndicator());
+        CircularProgressIndicator(color: Color(0xFFB71A4A)));
 
     setState(() {
       isLoading = true;
@@ -345,6 +345,10 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenWidth < 600;
+
     return WillPopScope(
       onWillPop: () async {
         if (_signatureController.isEmpty) {
@@ -377,6 +381,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
       },
       child: Scaffold(
         appBar: AppBar(
+          iconTheme: IconThemeData(color: Color(0xFFB71A4A)),
           backgroundColor: Colors.white,
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: Color(0xFFE23670)),
@@ -418,7 +423,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
             style: GoogleFonts.montserrat(
               color: Color(0xFFE23670),
               fontWeight: FontWeight.bold,
-              fontSize: 20,
+              fontSize: isSmallScreen ? 18 : 20,
             ),
           ),
         ),
@@ -852,6 +857,10 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
   Widget buildPaymentCard(String title, String? imageLink, IconData? icon,
       Function(String) onMethodSelected) {
     final isSelected = _selectedPaymentMethod == title;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
+    final cardWidth = isSmallScreen ? screenWidth * 0.4 : screenWidth * 0.35;
+
     return Card(
         elevation: 2,
         color: isSelected ? const Color(0xFFF1F4FF) : Colors.white,
@@ -862,18 +871,26 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
               }
             },
             child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
                 child: SizedBox(
-                    height: 100,
-                    width: MediaQuery.of(context).size.width * 0.38,
-                    child: Column(children: [
-                      if (imageLink != null)
-                        Image.asset(imageLink, height: 60, width: 60),
-                      if (icon != null)
-                        Icon(icon, size: 70, color: Colors.black38),
-                      const SizedBox(height: 10),
-                      Text(title, style: GoogleFonts.poppins(fontSize: 18)),
-                    ])))));
+                    height: isSmallScreen ? 80 : 100,
+                    width: cardWidth,
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (imageLink != null)
+                            Image.asset(imageLink,
+                                height: isSmallScreen ? 40 : 60,
+                                width: isSmallScreen ? 40 : 60),
+                          if (icon != null)
+                            Icon(icon,
+                                size: isSmallScreen ? 50 : 70,
+                                color: Colors.black38),
+                          SizedBox(height: isSmallScreen ? 5 : 10),
+                          Text(title,
+                              style: GoogleFonts.poppins(
+                                  fontSize: isSmallScreen ? 14 : 18)),
+                        ])))));
   }
 
   Widget _buildTextField({
@@ -888,18 +905,21 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
     String? Function(String?)? validator,
     String? hintText,
   }) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
           style: GoogleFonts.poppins(
-            fontSize: 14,
+            fontSize: isSmallScreen ? 13 : 14,
             fontWeight: FontWeight.w500,
             color: Colors.grey[700],
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: isSmallScreen ? 6 : 8),
         TextFormField(
           controller: controller,
           decoration: InputDecoration(
@@ -922,8 +942,8 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(color: Colors.red[600]!, width: 2),
             ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            contentPadding: EdgeInsets.symmetric(
+                horizontal: 16, vertical: isSmallScreen ? 12 : 16),
             hintText: hintText,
           ),
           keyboardType: keyboardType,
@@ -932,13 +952,16 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
           inputFormatters: inputFormatters,
           maxLines: maxLines,
           validator: validator,
-          style: GoogleFonts.poppins(fontSize: 14),
+          style: GoogleFonts.poppins(fontSize: isSmallScreen ? 13 : 14),
         ),
       ],
     );
   }
 
   void _showConfirmationDialog(BuildContext parentContext, Color iconColor) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
+
     showDialog(
         context: parentContext,
         builder: (BuildContext context) {
@@ -948,14 +971,14 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                 child: Column(children: [
                   Icon(
                     FontAwesomeIcons.circleExclamation,
-                    size: 50,
+                    size: isSmallScreen ? 40 : 50,
                     color: iconColor,
                   ),
                   SizedBox(height: 12),
                   Text(
                     "You will be redirected to your $_selectedPaymentMethod Application to complete the payment process.",
                     style: GoogleFonts.poppins(
-                      fontSize: 18,
+                      fontSize: isSmallScreen ? 14 : 18,
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFFE23670),
                     ),
