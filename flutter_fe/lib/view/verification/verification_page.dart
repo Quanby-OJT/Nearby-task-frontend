@@ -43,6 +43,7 @@ class _VerificationPageState extends State<VerificationPage> {
   String? _idType;
   File? _selfieImage;
   File? _documentFile;
+  File? _profileImage;
 
   // Page controller
   final PageController _pageController = PageController(initialPage: 0);
@@ -209,33 +210,6 @@ class _VerificationPageState extends State<VerificationPage> {
                   );
                 }
               });
-            } else {
-              Future.delayed(Duration.zero, () {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        "You must be verified to access this page. Please submit your verification.",
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
-                      ),
-                      backgroundColor: Colors.red,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      margin: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 10,
-                      ),
-                      duration: Duration(seconds: 3),
-                    ),
-                  );
-                }
-              });
             }
           }
         }
@@ -305,6 +279,14 @@ class _VerificationPageState extends State<VerificationPage> {
     setState(() {
       _userInfo = userInfo;
       _isGeneralInfoCompleted = true;
+
+      // Extract profile image file if provided
+      if (userInfo['profileImage'] != null &&
+          userInfo['profileImage'] is File) {
+        _profileImage = userInfo['profileImage'] as File;
+        debugPrint(
+            'VerificationPage: Profile image file extracted: ${_profileImage?.path}');
+      }
 
       // Log the user info for debugging
       debugPrint('VerificationPage: General info completed');
@@ -545,6 +527,26 @@ class _VerificationPageState extends State<VerificationPage> {
       final userId = int.parse(storage.read('user_id').toString());
       _userRole = storage.read('role');
 
+      // Upload profile image first if provided
+      String? profileImageUrl;
+      if (_profileImage != null) {
+        debugPrint('VerificationPage: Uploading profile image...');
+        try {
+          final uploadResult =
+              await ApiService.uploadTaskerProfileImage(userId, _profileImage!);
+          if (uploadResult['success'] == true) {
+            profileImageUrl = uploadResult['data']['imageUrl'];
+            debugPrint(
+                'VerificationPage: Profile image uploaded successfully: $profileImageUrl');
+          } else {
+            debugPrint(
+                'VerificationPage: Failed to upload profile image: ${uploadResult['error']}');
+          }
+        } catch (e) {
+          debugPrint('VerificationPage: Error uploading profile image: $e');
+        }
+      }
+
       // Prepare the complete verification data
       final verificationData = {
         // User basic information
@@ -554,12 +556,15 @@ class _VerificationPageState extends State<VerificationPage> {
         "email": _userInfo['email'] ?? '',
         "phone": _userInfo['phone'] ?? '',
         "gender": _userInfo['gender'] ?? '',
+        "profileImageUrl":
+            profileImageUrl ?? '', // Include uploaded profile image URL
       };
 
       debugPrint(
         'VerificationPage: Submitting verification for role: $_userRole',
       );
       debugPrint('VerificationPage: Verification data: $verificationData');
+      debugPrint('VerificationPage: Profile image URL: $profileImageUrl');
 
       Map<String, dynamic> result;
 

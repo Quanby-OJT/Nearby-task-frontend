@@ -1023,6 +1023,8 @@ class ApiService {
         "phone": verificationData['phone'] ?? '',
         "gender": verificationData['gender'] ?? '',
         "birthdate": verificationData['birthdate'] ?? '',
+        "profileImageUrl": verificationData['profileImageUrl'] ??
+            '', // Include profile image URL
       });
 
       // Add files only if they exist and are readable
@@ -1523,6 +1525,69 @@ class ApiService {
     return await getUserVerificationStatus(userId);
   }
 
+    // Upload profile image to tasker_images table
+  static Future<Map<String, dynamic>> uploadTaskerProfileImage(
+    int userId,
+    File profileImage,
+  ) async {
+    try {
+      String token = await AuthService.getSessionToken();
+      debugPrint("ApiService: Uploading profile image for user: $userId");
+
+      final String endpoint = "$apiUrl/upload-tasker-profile-image/$userId";
+
+      var request = http.MultipartRequest("POST", Uri.parse(endpoint));
+
+      request.headers.addAll({
+        "Authorization": "Bearer $token",
+        "Content-Type": "multipart/form-data",
+      });
+
+      // Add user ID
+      request.fields['user_id'] = userId.toString();
+
+      // Add profile image file
+      if (await profileImage.exists()) {
+        debugPrint("ApiService: Adding profile image to request");
+        request.files.add(
+          await http.MultipartFile.fromPath('tasker_images', profileImage.path),
+        );
+      } else {
+        return {
+          "success": false,
+          "error": "Profile image file does not exist",
+        };
+      }
+
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+      final responseData = jsonDecode(responseBody);
+
+      debugPrint("ApiService: Profile image upload response: $responseData");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          "success": true,
+          "message":
+              responseData["message"] ?? "Profile image uploaded successfully",
+          "data": responseData["data"],
+        };
+      } else {
+        return {
+          "success": false,
+          "error": responseData["error"] ?? "Failed to upload profile image",
+        };
+      }
+    } catch (e) {
+      debugPrint("ApiService: Error uploading profile image: $e");
+      return {
+        "success": false,
+        "error": "Error uploading profile image: $e",
+      };
+    }
+  }
+
+  // Update FCM token for push notifications
   static Future<Map<String, dynamic>> updateFcmToken(
       String fcmToken, int userId) async {
     try {
@@ -1560,6 +1625,7 @@ class ApiService {
     }
   }
 
+  // Send push notification
   static Future<void> sendNotification(
       String fcmToken, String title, String body, int userId) async {
     try {
@@ -1599,9 +1665,153 @@ class ApiService {
     }
   }
 
-  // Add this method to test notifications
+  // Test notification functionality
   static Future<void> testNotification(String fcmToken, int userId) async {
     await sendNotification(fcmToken, "Test Notification",
         "This is a test notification from QTask", userId);
   }
+// <<<<<<< add-upload-photo-in-verification-flow
+//   // Upload profile image to tasker_images table
+//   static Future<Map<String, dynamic>> uploadTaskerProfileImage(
+//     int userId,
+//     File profileImage,
+//   ) async {
+//     try {
+//       String token = await AuthService.getSessionToken();
+//       debugPrint("ApiService: Uploading profile image for user: $userId");
+
+//       final String endpoint = "$apiUrl/upload-tasker-profile-image/$userId";
+
+//       var request = http.MultipartRequest("POST", Uri.parse(endpoint));
+
+//       request.headers.addAll({
+//         "Authorization": "Bearer $token",
+//         "Content-Type": "multipart/form-data",
+//       });
+
+//       // Add user ID
+//       request.fields['user_id'] = userId.toString();
+
+//       // Add profile image file
+//       if (await profileImage.exists()) {
+//         debugPrint("ApiService: Adding profile image to request");
+//         request.files.add(
+//           await http.MultipartFile.fromPath('tasker_images', profileImage.path),
+//         );
+//       } else {
+//         return {
+//           "success": false,
+//           "error": "Profile image file does not exist",
+//         };
+//       }
+
+//       final response = await request.send();
+//       final responseBody = await response.stream.bytesToString();
+//       final responseData = jsonDecode(responseBody);
+
+//       debugPrint("ApiService: Profile image upload response: $responseData");
+
+//       if (response.statusCode == 200 || response.statusCode == 201) {
+//         return {
+//           "success": true,
+//           "message":
+//               responseData["message"] ?? "Profile image uploaded successfully",
+//           "data": responseData["data"],
+// =======
+//   static Future<Map<String, dynamic>> updateFcmToken(
+//       String fcmToken, int userId) async {
+//     try {
+//       final token = await AuthService.getSessionToken();
+//       debugPrint("Updating FCM token for user $userId: $fcmToken");
+
+//       final response = await _client.put(
+//         Uri.parse("$apiUrl/update-fcm-token/$userId"),
+//         headers: {
+//           "Content-Type": "application/json",
+//           "Authorization": "Bearer $token",
+//         },
+//         body: jsonEncode({"fcm_token": fcmToken}),
+//       );
+
+//       debugPrint("FCM Token Update Status Code: ${response.statusCode}");
+//       debugPrint("FCM Token Update Response: ${response.body}");
+
+//       final responseData = jsonDecode(response.body);
+//       if (response.statusCode == 200) {
+//         return {
+//           "success": true,
+//           "message": responseData["message"] ?? "FCM token updated successfully"
+// >>>>>>> qtask-presentation
+//         };
+//       } else {
+//         return {
+//           "success": false,
+// <<<<<<< add-upload-photo-in-verification-flow
+//           "error": responseData["error"] ?? "Failed to upload profile image",
+//         };
+//       }
+//     } catch (e) {
+//       debugPrint("ApiService: Error uploading profile image: $e");
+//       return {
+//         "success": false,
+//         "error": "Error uploading profile image: $e",
+//       };
+//     }
+//   }
+// =======
+//           "error": responseData["error"] ?? "Failed to update FCM token"
+//         };
+//       }
+//     } catch (e, stackTrace) {
+//       debugPrint("Error updating FCM token: $e");
+//       debugPrintStack(stackTrace: stackTrace);
+//       return {"success": false, "error": "Failed to update FCM token: $e"};
+//     }
+//   }
+
+//   static Future<void> sendNotification(
+//       String fcmToken, String title, String body, int userId) async {
+//     try {
+//       final url = Uri.parse(
+//           'https://tzdthgosmoqepbypqbbu/functions/v1/notification_testing');
+
+//       final requestBody = {
+//         'fcm_token': fcmToken,
+//         'title': title,
+//         'body': body,
+//         'user_id': userId,
+//         'type': 'insert'
+//       };
+
+//       debugPrint("Sending notification with data:");
+//       debugPrint("URL: $url");
+//       debugPrint("Request Body: ${jsonEncode(requestBody)}");
+
+//       final response = await http.post(
+//         url,
+//         headers: {
+//           'Content-Type': 'application/json',
+//         },
+//         body: jsonEncode(requestBody),
+//       );
+
+//       debugPrint("Notification Response Status: ${response.statusCode}");
+//       debugPrint("Notification Response Body: ${response.body}");
+
+//       if (response.statusCode != 200) {
+//         debugPrint(
+//             "Error: Notification request failed with status ${response.statusCode}");
+//       }
+//     } catch (e, stackTrace) {
+//       debugPrint("Error sending notification: $e");
+//       debugPrint("Stack trace: $stackTrace");
+//     }
+//   }
+
+//   // Add this method to test notifications
+//   static Future<void> testNotification(String fcmToken, int userId) async {
+//     await sendNotification(fcmToken, "Test Notification",
+//         "This is a test notification from QTask", userId);
+//   }
+// >>>>>>> qtask-presentation
 }
