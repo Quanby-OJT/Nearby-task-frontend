@@ -196,6 +196,11 @@ class AuthenticationController {
       await storage.write('role', response['role']);
       await storage.write('session', response['session']);
 
+      // Store email in lowercase for consistency
+      final email = emailController.text.toLowerCase();
+      await storage.write('email', email);
+      debugPrint('Email stored in storage: $email');
+
       // Update FCM token after successful login
       debugPrint("User logged in successfully, updating FCM token");
       try {

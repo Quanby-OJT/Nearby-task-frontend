@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:cunning_document_scanner/cunning_document_scanner.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/service/api_service.dart';
@@ -155,82 +155,30 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
     }
   }
 
-  // Enhanced ID capture with Cunning Document Scanner
-  Future<void> _captureIdImage() async {
+  Future<void> _scanDocument() async {
     try {
-      setState(() => _isLoading = true);
-
-      // Use cunning_document_scanner to capture ID document with automatic cropping
-      final List<String>? scannedDocuments =
-          await CunningDocumentScanner.getPictures(
-        noOfPages: 1, // Limit to 1 page for ID documents
-        isGalleryImportAllowed: true, // Allow gallery import on Android
+      // Temporarily use image_picker instead of document scanner
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
       );
 
-      if (scannedDocuments != null && scannedDocuments.isNotEmpty) {
-        final String documentPath = scannedDocuments.first;
-        final File capturedId = File(documentPath);
-
+      if (image != null) {
         setState(() {
-          _idImage = capturedId;
-          _idImageName = capturedId.path.split('/').last;
-          _isProcessingImage = true;
+          // Handle the picked image
+          // Add your image handling logic here
         });
-
-        // Process image with ML Kit text recognition
-        await _processImageWithMLKit(capturedId);
-
-        // Show success message with detected information
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('ID document scanned successfully!'),
-                  const Text('✨ Auto-cropped with AI precision',
-                      style:
-                          TextStyle(fontSize: 12, fontStyle: FontStyle.italic)),
-                  if (_detectedIdType != null)
-                    Text('🤖 AI Detected: $_detectedIdType',
-                        style: const TextStyle(fontSize: 12)),
-                ],
-              ),
-              backgroundColor: Colors.green,
-              duration: const Duration(seconds: 4),
-            ),
-          );
-        }
-      } else {
-        // User cancelled the scan
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Document scan was cancelled'),
-              backgroundColor: Colors.amber,
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
       }
     } catch (e) {
-      debugPrint('Error scanning ID document: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error scanning document: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _isProcessingImage = false;
-        });
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error scanning document: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -666,7 +614,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                     ),
                     const SizedBox(height: 8),
                     GestureDetector(
-                      onTap: _isVerified ? null : _captureIdImage,
+                      onTap: _isVerified ? null : _scanDocument,
                       child: Container(
                         width: double.infinity,
                         height: 220,
@@ -787,14 +735,6 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                                                 style: GoogleFonts.poppins(
                                                   fontSize: 14,
                                                   color: Colors.red[700],
-                                                ),
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                'URL: ${_idImageUrl?.substring(0, 50)}...',
-                                                style: GoogleFonts.poppins(
-                                                  fontSize: 10,
-                                                  color: Colors.grey[600],
                                                 ),
                                               ),
                                               const SizedBox(height: 4),
@@ -932,7 +872,7 @@ class _IdVerificationPageState extends State<IdVerificationPage> {
                           child: SizedBox(
                             height: 50,
                             child: ElevatedButton.icon(
-                              onPressed: _isVerified ? null : _captureIdImage,
+                              onPressed: _isVerified ? null : _scanDocument,
                               icon: const Icon(Icons.document_scanner,
                                   color: Colors.white),
                               label: Text(
