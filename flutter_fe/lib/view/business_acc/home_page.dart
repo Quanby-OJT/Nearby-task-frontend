@@ -4,7 +4,6 @@ import 'package:flutter_fe/controller/authentication_controller.dart';
 import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/controller/setting_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
-import 'package:flutter_fe/model/images_model.dart';
 import 'package:flutter_fe/model/setting.dart';
 import 'package:flutter_fe/model/tasker_model.dart';
 import 'package:flutter_fe/model/user_model.dart';
@@ -27,6 +26,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'dart:convert';
 import 'package:flutter_fe/service/api_service.dart';
+import 'package:flutter_fe/service/tasker_service.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ClientHomePage extends StatefulWidget {
   const ClientHomePage({super.key});
@@ -39,6 +42,7 @@ class _ClientHomePageState extends State<ClientHomePage>
     with TickerProviderStateMixin {
   final ProfileController _profileController = ProfileController();
   final AuthenticationController _authController = AuthenticationController();
+  final Connectivity _connectivity = Connectivity();
   final GetStorage storage = GetStorage();
   final CardSwiperController controller = CardSwiperController();
   final JobPostService jobPostService = JobPostService();
@@ -57,6 +61,8 @@ class _ClientHomePageState extends State<ClientHomePage>
   String? _errorMessage;
   int? cardNumber = 0;
   final Map<int, List<TaskerFeedback>> _taskerFeedbacks = {};
+  final Map<int, String?> _taskerProfileImages =
+      {}; // Cache for profile images from tasker_images
 
   AuthenticatedUser? _user;
   String _fullName = "Loading...";
@@ -83,10 +89,14 @@ class _ClientHomePageState extends State<ClientHomePage>
   String? _idType;
   final Map<String, dynamic> _userInfo = {};
 
+  bool _isOfflineMode = false;
+  late SharedPreferences _prefs;
+
   @override
   void initState() {
     super.initState();
-    _loadAllFunction();
+    _initializeSharedPreferences();
+    _checkInternetConnection();
 
     _likeAnimationController = AnimationController(
       vsync: this,
@@ -122,13 +132,166 @@ class _ClientHomePageState extends State<ClientHomePage>
     super.dispose();
   }
 
+  Future<void> _initializeSharedPreferences() async {
+    _prefs = await SharedPreferences.getInstance();
+  }
+
+  Future<void> _checkInternetConnection() async {
+    setState(() {
+      _isLoading = true;
+    });
+    final result = await _connectivity.checkConnectivity();
+
+    if (result.contains(ConnectivityResult.mobile) == true ||
+        result.contains(ConnectivityResult.wifi) == true) {
+      setState(() {
+        _isLoading = false;
+        _isOfflineMode = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Internet connection is available",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      _loadAllFunction();
+    } else {
+      setState(() {
+        _isOfflineMode = true;
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Center(
+            child: Text(
+              "Using offline mode",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          backgroundColor: Color(0xFFB71A4A),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+          ),
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      _loadCachedData();
+    }
+  }
+
+  Future<void> _loadCachedData() async {
+    try {
+      // Load cached user data
+      final cachedUserData = _prefs.getString('cached_user_data');
+      if (cachedUserData != null) {
+        final userData = json.decode(cachedUserData);
+        setState(() {
+          _user = AuthenticatedUser.fromJson(userData);
+          _fullName = [
+            _user?.user.firstName ?? '',
+            _user?.user.middleName ?? '',
+            _user?.user.lastName ?? '',
+          ].where((name) => name.isNotEmpty).join(' ');
+          _role = _user?.user.role ?? "Unknown";
+          _image = _user?.user.image ?? "Unknown";
+        });
+      }
+
+      // Load cached taskers
+      final cachedTaskers = _prefs.getString('cached_taskers');
+      if (cachedTaskers != null) {
+        final List<dynamic> taskersData = json.decode(cachedTaskers);
+        setState(() {
+          taskers = taskersData.map((data) {
+            final userData = data['user'];
+            final taskerData = data['tasker'];
+
+            return AuthenticatedUser(
+              user: UserModel.fromJson(userData),
+              isClient: data['is_client'] ?? false,
+              isTasker: data['is_tasker'] ?? true,
+              tasker:
+                  taskerData != null ? TaskerModel.fromJson(taskerData) : null,
+              client: null,
+            );
+          }).toList();
+          debugPrint("Loaded ${taskers.length} taskers from cache");
+        });
+      }
+
+      // Load cached verification status
+      _verificationStatus = _prefs.getString('cached_verification_status');
+    } catch (e) {
+      debugPrint("Error loading cached data: $e");
+    }
+  }
+
+  Future<void> _saveDataToCache() async {
+    try {
+      if (_user != null) {
+        await _prefs.setString(
+            'cached_user_data', json.encode(_user!.toJson()));
+        debugPrint("Saved user data to cache");
+      }
+
+      if (taskers.isNotEmpty) {
+        final taskersData = taskers
+            .map((t) => {
+                  'user': t.user.toJson(),
+                  'is_client': t.isClient,
+                  'is_tasker': t.isTasker,
+                  'tasker': t.tasker?.toJson(),
+                  'client': t.client?.toJson(),
+                })
+            .toList();
+
+        await _prefs.setString('cached_taskers', json.encode(taskersData));
+        debugPrint("Saved ${taskers.length} taskers to cache");
+      }
+
+      if (_verificationStatus != null) {
+        await _prefs.setString(
+            'cached_verification_status', _verificationStatus!);
+        debugPrint("Saved verification status to cache");
+      }
+    } catch (e) {
+      debugPrint("Error saving data to cache: $e");
+    }
+  }
+
   Future<void> _loadAllFunction() async {
     try {
-      await Future.wait([
-        _fetchUserData(),
-        _fetchTaskers(),
-        _checkVerificationStatus(),
-      ]);
+      if (!_isOfflineMode) {
+        await Future.wait([
+          _fetchUserData(),
+          _fetchTaskers(),
+          _checkVerificationStatus(),
+        ]);
+
+        await _saveDataToCache();
+      } else {
+        await _loadCachedData();
+      }
+
       setState(() {
         _isLoading = false;
       });
@@ -137,8 +300,6 @@ class _ClientHomePageState extends State<ClientHomePage>
       setState(() {
         _userPreference = response;
       });
-
-      debugPrint("User preference: ${_userPreference.id}");
 
       if (_userPreference.id == null) {
         setState(() {
@@ -177,7 +338,6 @@ class _ClientHomePageState extends State<ClientHomePage>
             'Verification status check result client: ${jsonEncode(result)}');
 
         if (result['success'] == true && result['exists'] == true) {
-          // User has existing verification data
           if (result['verification'] != null) {
             final verificationData = result['verification'];
             setState(() {
@@ -250,6 +410,8 @@ class _ClientHomePageState extends State<ClientHomePage>
         _profileController.firstNameController.text = _fullName;
         _profileController.roleController.text = _role;
         _profileController.imageController.text = _image;
+
+        debugPrint("FCM Token: ${_user?.user.fcmToken}");
       });
     } catch (e) {
       debugPrint("Error fetching user data: $e");
@@ -342,6 +504,10 @@ class _ClientHomePageState extends State<ClientHomePage>
                 AuthenticatedUser(tasker: tasker, user: tasker.user!))
             .toList();
       });
+
+      // Fetch profile images for all taskers
+      await _fetchTaskerProfileImages();
+
       setState(() {
         _isLoading = false;
       });
@@ -351,6 +517,58 @@ class _ClientHomePageState extends State<ClientHomePage>
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> _fetchTaskerProfileImages() async {
+    debugPrint(
+        "Starting to fetch profile images for ${taskers.length} taskers");
+    for (final tasker in taskers) {
+      if (tasker.user.id != null) {
+        try {
+          debugPrint("Fetching images for tasker ID: ${tasker.user.id}");
+          final taskerService = TaskerService();
+          final result = await taskerService.getTaskerImages(tasker.user.id!);
+          debugPrint("Raw result for tasker ${tasker.user.id}: $result");
+
+          if (result.containsKey('images') && result['images'] is List) {
+            final List<dynamic> images = result['images'];
+            debugPrint(
+                "Found ${images.length} images for tasker ${tasker.user.id}");
+
+            if (images.isNotEmpty) {
+              // Get the first image as profile picture
+              final firstImage = images.first;
+              debugPrint("First image data: $firstImage");
+
+              if (firstImage is Map && firstImage['image_link'] != null) {
+                final imageUrl = firstImage['image_link'];
+                setState(() {
+                  _taskerProfileImages[tasker.user.id!] = imageUrl;
+                });
+                debugPrint(
+                    "✅ Successfully set profile image for tasker ${tasker.user.id}: $imageUrl");
+              } else {
+                debugPrint(
+                    "❌ First image is not a Map or image_link is null for tasker ${tasker.user.id}");
+              }
+            } else {
+              debugPrint("❌ No images found for tasker ${tasker.user.id}");
+            }
+          } else {
+            debugPrint(
+                "❌ Result doesn't contain 'images' key or it's not a List for tasker ${tasker.user.id}");
+          }
+        } catch (e) {
+          debugPrint(
+              "❌ Error fetching profile image for tasker ${tasker.user.id}: $e");
+        }
+      } else {
+        debugPrint("❌ Tasker user ID is null");
+      }
+    }
+    debugPrint(
+        "Finished fetching profile images. Total cached: ${_taskerProfileImages.length}");
+    debugPrint("Cached images: $_taskerProfileImages");
   }
 
   Future<void> _saveLikedTasker(UserModel tasker) async {
@@ -852,6 +1070,20 @@ class _ClientHomePageState extends State<ClientHomePage>
         children: [
           Column(
             children: [
+              if (_isOfflineMode)
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  color: Color(0xFFB71A4A),
+                  child: Center(
+                    child: Text(
+                      "Offline Mode",
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
               Expanded(
                 child: _isLoading
                     ? Center(
@@ -900,7 +1132,9 @@ class _ClientHomePageState extends State<ClientHomePage>
                                         size: 80, color: Colors.grey[300]),
                                     SizedBox(height: 16),
                                     Text(
-                                      "No Taskers Available",
+                                      _isOfflineMode
+                                          ? "No Taskers Available"
+                                          : "No Taskers Available",
                                       style: TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
@@ -909,7 +1143,9 @@ class _ClientHomePageState extends State<ClientHomePage>
                                     ),
                                     SizedBox(height: 8),
                                     Text(
-                                      "Try adjusting your filters or check back later.",
+                                      _isOfflineMode
+                                          ? "Please connect to the internet to fetch new data."
+                                          : "Try adjusting your filters or check back later.",
                                       style: TextStyle(
                                           fontSize: 14,
                                           color: Colors.grey[600]),
@@ -917,7 +1153,9 @@ class _ClientHomePageState extends State<ClientHomePage>
                                     ),
                                     SizedBox(height: 16),
                                     OutlinedButton(
-                                      onPressed: _fetchTaskers,
+                                      onPressed: _isOfflineMode
+                                          ? _checkInternetConnection
+                                          : _fetchTaskers,
                                       style: OutlinedButton.styleFrom(
                                         side: BorderSide(
                                             color: Color(0xFF0272B1)),
@@ -928,7 +1166,10 @@ class _ClientHomePageState extends State<ClientHomePage>
                                               BorderRadius.circular(12),
                                         ),
                                       ),
-                                      child: Text('Refresh',
+                                      child: Text(
+                                          _isOfflineMode
+                                              ? 'Check Connection'
+                                              : 'Refresh',
                                           style: TextStyle(
                                               color: Color(0xFF0272B1))),
                                     ),
@@ -973,27 +1214,24 @@ class _ClientHomePageState extends State<ClientHomePage>
                                       _saveLikedTasker(
                                           taskers[previousIndex].user);
                                       _cardCounter();
-                                      return true;
-                                    }
-                                    // For other roles or problematic account statuses, show warning
-                                    if (accountStatus == 'Ban' ||
+                                    } else if (accountStatus == 'Ban' ||
                                         accountStatus == 'Suspended') {
                                       _showWarningDialog();
                                       return false;
                                     }
-
-                                    _saveLikedTasker(
-                                        taskers[previousIndex].user);
-                                    _cardCounter();
                                   }
                                   return true;
                                 },
-                                //Tasker Images
                                 cardBuilder: (context, index, percentThresholdX,
                                     percentThresholdY) {
                                   final tasker = taskers[index];
+                                  final profileImageUrl =
+                                      _taskerProfileImages[tasker.user.id];
                                   debugPrint(
                                       "All Taskers in Card: ${tasker.tasker}");
+                                  debugPrint(
+                                      "Profile image URL for tasker ${tasker.user.id}: $profileImageUrl");
+
                                   return Container(
                                     width: double.infinity,
                                     height: MediaQuery.of(context).size.height,
@@ -1006,55 +1244,208 @@ class _ClientHomePageState extends State<ClientHomePage>
                                       margin: EdgeInsets.zero,
                                       child: Stack(
                                         children: [
-                                          ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                            child: tasker
-                                                        .tasker?.taskerImages !=
-                                                    null
-                                                ? Center(
-                                                    child: Icon(
-                                                      FontAwesomeIcons
-                                                          .screwdriverWrench,
-                                                      size: 150,
-                                                      color: Colors.grey[400],
-                                                    ),
-                                                  )
-                                                : PageView.builder(
-                                                    itemCount: tasker
-                                                            .tasker
-                                                            ?.taskerImages
-                                                            ?.length ??
-                                                        0,
-                                                    itemBuilder:
-                                                        (context, index) {
-                                                      List<String>
-                                                          taskerImages = tasker
-                                                                  .tasker
-                                                                  ?.taskerImages ??
-                                                              [];
-                                                      return Image.network(
-                                                        taskerImages[index],
-                                                        fit: BoxFit.cover,
-                                                        width: double.infinity,
-                                                        height: double.infinity,
-                                                        errorBuilder: (context,
-                                                                error,
-                                                                stackTrace) =>
-                                                            Center(
-                                                          child: Icon(
-                                                            Icons.broken_image,
-                                                            color: Colors
-                                                                .grey[400],
-                                                            size: 100,
+                                          
+                                          // Background image container
+                                          Container(
+                                            width: double.infinity,
+                                            height: double.infinity,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                              color: Colors.grey[300],
+                                            ),
+                                            child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                              child: profileImageUrl != null &&
+                                                      profileImageUrl.isNotEmpty
+                                                  ? Image.network(
+                                                      profileImageUrl,
+                                                      fit: BoxFit.cover,
+                                                      width: double.infinity,
+                                                      height: double.infinity,
+                                                      headers: {
+                                                        'User-Agent':
+                                                            'Mozilla/5.0 (compatible; Flutter app)',
+                                                      },
+                                                      loadingBuilder: (context,
+                                                          child,
+                                                          loadingProgress) {
+                                                        if (loadingProgress ==
+                                                            null) {
+                                                          debugPrint(
+                                                              "Image loaded successfully for tasker ${tasker.user.id}");
+                                                          return child;
+                                                        }
+                                                        debugPrint(
+                                                            "Loading image for tasker ${tasker.user.id}: ${loadingProgress.cumulativeBytesLoaded}/${loadingProgress.expectedTotalBytes}");
+                                                        return Container(
+                                                          color:
+                                                              Colors.grey[200],
+                                                          child: Center(
+                                                            child: Column(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .center,
+                                                              children: [
+                                                                CircularProgressIndicator(
+                                                                  color: Color(
+                                                                      0xFFB71A4A),
+                                                                  value: loadingProgress
+                                                                              .expectedTotalBytes !=
+                                                                          null
+                                                                      ? loadingProgress
+                                                                              .cumulativeBytesLoaded /
+                                                                          loadingProgress
+                                                                              .expectedTotalBytes!
+                                                                      : null,
+                                                                ),
+                                                                SizedBox(
+                                                                    height: 8),
+                                                                Text(
+                                                                  'Loading image...',
+                                                                  style:
+                                                                      TextStyle(
+                                                                    color: Colors
+                                                                            .grey[
+                                                                        600],
+                                                                    fontSize:
+                                                                        12,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
                                                           ),
-                                                        ),
-                                                      );
-                                                    },
-                                                  ),
+                                                        );
+                                                      },
+                                                      errorBuilder: (context,
+                                                          error, stackTrace) {
+                                                        debugPrint(
+                                                            "Error loading profile image for tasker ${tasker.user.id}: $error");
+                                                        debugPrint(
+                                                            "Image URL: $profileImageUrl");
+                                                        debugPrint(
+                                                            "Stack trace: $stackTrace");
+                                                        return Container(
+                                                          color:
+                                                              Colors.grey[300],
+                                                          child: Column(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .center,
+                                                            children: [
+                                                              Icon(
+                                                                Icons
+                                                                    .broken_image,
+                                                                color: Colors
+                                                                    .grey[600],
+                                                                size: 60,
+                                                              ),
+                                                              SizedBox(
+                                                                  height: 8),
+                                                              Text(
+                                                                'Image failed to load',
+                                                                style:
+                                                                    TextStyle(
+                                                                  color: Colors
+                                                                          .grey[
+                                                                      600],
+                                                                  fontSize: 12,
+                                                                ),
+                                                                textAlign:
+                                                                    TextAlign
+                                                                        .center,
+                                                              ),
+                                                              SizedBox(
+                                                                  height: 4),
+                                                              Text(
+                                                                'URL: ${profileImageUrl?.substring(0, 50)}...',
+                                                                style:
+                                                                    TextStyle(
+                                                                  color: Colors
+                                                                          .grey[
+                                                                      500],
+                                                                  fontSize: 10,
+                                                                ),
+                                                                textAlign:
+                                                                    TextAlign
+                                                                        .center,
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        );
+                                                      },
+                                                    )
+                                                  : Container(
+                                                      color: Colors.grey[300],
+                                                      child: Column(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          Icon(
+                                                            Icons.person,
+// =======
+//                                           ClipRRect(
+//                                             borderRadius:
+//                                                 BorderRadius.circular(20),
+//                                             child: tasker.tasker
+//                                                             ?.taskerImages ==
+//                                                         null ||
+//                                                     tasker.tasker!.taskerImages!
+//                                                         .isEmpty
+//                                                 ? Center(
+//                                                     child: Icon(
+//                                                       FontAwesomeIcons
+//                                                           .screwdriverWrench,
+//                                                       size: 150,
+//                                                       color: Colors.grey[400],
+//                                                     ),
+//                                                   )
+//                                                 : PageView.builder(
+//                                                     itemCount: tasker.tasker!
+//                                                         .taskerImages!.length,
+//                                                     itemBuilder:
+//                                                         (context, imageIndex) {
+//                                                       return Image.network(
+//                                                         tasker
+//                                                             .tasker!
+//                                                             .taskerImages![
+//                                                                 imageIndex]
+//                                                             .toString(),
+//                                                         fit: BoxFit.cover,
+//                                                         width: double.infinity,
+//                                                         height: double.infinity,
+//                                                         errorBuilder: (context,
+//                                                                 error,
+//                                                                 stackTrace) =>
+//                                                             Center(
+//                                                           child: Icon(
+//                                                             Icons.broken_image,
+// >>>>>>> qtask-presentation
+                                                            color: Colors
+                                                                .grey[600],
+                                                            size: 80,
+                                                          ),
+                                                          SizedBox(height: 8),
+                                                          Text(
+                                                            'No profile image',
+                                                            style: TextStyle(
+                                                              color: Colors
+                                                                  .grey[600],
+                                                              fontSize: 14,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                            ),
                                           ),
-                                          // Darker overlay on the entire image
-                                          Positioned.fill(
+                                          Positioned(
+                                            left: 0,
+                                            right: 0,
+                                            top: 0,
+                                            bottom: 0,
                                             child: Container(
                                               decoration: BoxDecoration(
                                                 borderRadius:
@@ -1296,6 +1687,16 @@ class _ClientHomePageState extends State<ClientHomePage>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFallbackImage() {
+    return Center(
+      child: Icon(
+        Icons.broken_image,
+        color: Colors.grey[400],
+        size: 100,
       ),
     );
   }

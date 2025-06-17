@@ -9,6 +9,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:signature/signature.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_fe/widgets/privacy_policy_popup.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SignUpClientAcc extends StatefulWidget {
@@ -55,6 +58,17 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
       penColor: Colors.black,
       exportBackgroundColor: Colors.white,
     );
+
+    // Show privacy policy popup after the widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return PrivacyPolicyPopup();
+        },
+      );
+    });
   }
 
   Future<void> _initDeepLinkListener() async {
@@ -130,6 +144,38 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
           backgroundColor: Colors.red,
         ),
       );
+    }
+  }
+
+  Future<void> _saveSignature() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String? signatureData;
+      final email = _controller.emailController.text.toLowerCase();
+
+      if (email.isEmpty) {
+        debugPrint('Cannot save signature: Email is empty');
+        return;
+      }
+
+      if (_signatureImage != null) {
+        final bytes = await _signatureImage!.readAsBytes();
+        signatureData = base64Encode(bytes);
+      } else if (!_signatureController.isEmpty) {
+        final bytes = await _signatureController.toPngBytes();
+        if (bytes != null) {
+          signatureData = base64Encode(bytes);
+        }
+      }
+
+      if (signatureData != null) {
+        await prefs.setString('user_signature_$email', signatureData);
+        debugPrint('Signature saved successfully for: $email');
+      } else {
+        debugPrint('No signature data to save for: $email');
+      }
+    } catch (e) {
+      debugPrint('Error saving signature: $e');
     }
   }
 
@@ -530,6 +576,9 @@ class _SignUpClientAccState extends State<SignUpClientAcc> {
                                       _isLoading = true;
                                       _status = "Creating your account...";
                                     });
+
+                                    // Save signature before registering
+                                    await _saveSignature();
 
                                     await _controller.registerUser(context);
 

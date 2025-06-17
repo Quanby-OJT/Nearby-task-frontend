@@ -280,6 +280,16 @@ class _AddressState extends State<Address> {
       return;
     }
 
+    if (_streetAddressController.text.trim().isEmpty) {
+      _showError('Street address is required');
+      return;
+    }
+
+    if (_postalCodeController.text.trim().isEmpty) {
+      _showError('Postal code is required');
+      return;
+    }
+
     try {
       setState(() => _isLoading = true);
 
@@ -554,7 +564,7 @@ class _AddressState extends State<Address> {
                         TextFormField(
                           controller: _streetAddressController,
                           decoration: InputDecoration(
-                            labelText: 'Street Address',
+                            labelText: 'Street Address *',
                             hintText: 'Enter your street address',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -568,14 +578,8 @@ class _AddressState extends State<Address> {
                         TextFormField(
                           controller: _postalCodeController,
                           decoration: InputDecoration(
-                            labelText: 'Postal Code',
-                            labelStyle: GoogleFonts.poppins(
-                              fontSize: 14,
-                            ),
+                            labelText: 'Postal Code *',
                             hintText: 'Enter postal code',
-                            hintStyle: GoogleFonts.poppins(
-                              fontSize: 14,
-                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),

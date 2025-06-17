@@ -66,120 +66,106 @@ class _BusinessAccMainState extends State<BusinessAccMain>
     final List<String> labels = ['Home', 'Task', 'Wallet', 'Chat', 'Saved'];
 
     return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, dynamic) async {
-        if (didPop) return;
+        canPop: false,
+        onPopInvokedWithResult: (didPop, dynamic) async {
+          if (didPop) return;
 
-        final shouldExit = await showDialog<bool>(
-            context: context,
-            builder: (context) => AlertDialog(
-              content: Row(
-                children: [
-                  Icon(
-                    FontAwesomeIcons.exclamation,
-                    size: 50,
-                    color: Colors.amber,
-                  ),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      "Are You Sure you're going to quit finding your desired taskers?",
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: Colors.black
-                      ),
-                    )
-                  )
-                ],
-              ),
-              actions: [
-                TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: Text(
-                        "Swipe More Taskers",
-                        style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            color: Colors.blueAccent
-                        )
-                    )
-                ),
-                TextButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: Text(
-                        "Quit",
-                        style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            color: Colors.blueAccent
-                        )
-                    )
-                ),
-              ],
-            )
-        );
-
-        if (shouldExit == true) {
-          SystemNavigator.pop();
-        }
-      },
-      child: Scaffold(
-        body: PageView(
-          physics: const NeverScrollableScrollPhysics(),
-          controller: _pageController,
-          onPageChanged: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          children: [
-            ClientHomePage(),
-            JobPostPage(),
-            TransactionHistoryPage(),
-            ChatScreen(),
-            LikesScreen(),
-          ],
-        ),
-        bottomNavigationBar: AnimatedBottomNavigationBar.builder(
-          itemCount: icons.length,
-          tabBuilder: (int index, bool isActive) {
-            return ScaleTransition(
-              scale: _currentIndex == index
-                  ? _scaleAnimation
-                  : const AlwaysStoppedAnimation(1.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    icons[index],
-                    size: 24,
-                    color: isActive ? Colors.white : Colors.white70,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    labels[index],
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isActive ? Colors.white : Colors.white70,
-                      fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+          final shouldExit = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                    content: Row(
+                      children: [
+                        Icon(
+                          FontAwesomeIcons.exclamation,
+                          size: 50,
+                          color: Colors.amber,
+                        ),
+                        SizedBox(width: 8),
+                        Expanded(
+                            child: Text(
+                          "Are You Sure you're going to quit finding your desired taskers?",
+                          style: GoogleFonts.poppins(
+                              fontSize: 14, color: Colors.black),
+                        ))
+                      ],
                     ),
-                  ),
-                ],
-              ),
-            );
-          },
-          activeIndex: _currentIndex,
-          gapLocation: GapLocation.none,
-          notchSmoothness: NotchSmoothness.softEdge,
-          onTap: _onItemTapped,
-          backgroundColor: const Color(0xFFB71A4A),
-          splashColor: Colors.white24,
-          height: 70,
-          elevation: 8,
-          leftCornerRadius: 32,
-          rightCornerRadius: 32,
-          splashSpeedInMilliseconds: 300,
-          splashRadius: 24,
-        ),
-      )
-    );
+                    actions: [
+                      TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: Text("Swipe More Taskers",
+                              style: GoogleFonts.poppins(
+                                  fontSize: 14, color: Colors.blueAccent))),
+                      TextButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          child: Text("Quit",
+                              style: GoogleFonts.poppins(
+                                  fontSize: 14, color: Colors.blueAccent))),
+                    ],
+                  ));
+
+          if (shouldExit == true) {
+            SystemNavigator.pop();
+          }
+        },
+        child: Scaffold(
+          body: PageView(
+            physics: const NeverScrollableScrollPhysics(),
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            children: [
+              ClientHomePage(),
+              JobPostPage(),
+              TransactionHistoryPage(),
+              ChatScreen(),
+              LikesScreen(),
+            ],
+          ),
+          bottomNavigationBar: AnimatedBottomNavigationBar.builder(
+            itemCount: icons.length,
+            tabBuilder: (int index, bool isActive) {
+              return ScaleTransition(
+                scale: _currentIndex == index
+                    ? _scaleAnimation
+                    : const AlwaysStoppedAnimation(1.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      icons[index],
+                      size: 24,
+                      color: isActive ? Colors.white : Colors.white70,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      labels[index],
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isActive ? Colors.white : Colors.white70,
+                        fontWeight:
+                            isActive ? FontWeight.w600 : FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+            activeIndex: _currentIndex,
+            gapLocation: GapLocation.none,
+            notchSmoothness: NotchSmoothness.softEdge,
+            onTap: _onItemTapped,
+            backgroundColor: const Color(0xFFB71A4A),
+            splashColor: Colors.white24,
+            height: 70,
+            elevation: 8,
+            leftCornerRadius: 32,
+            rightCornerRadius: 32,
+            splashSpeedInMilliseconds: 300,
+            splashRadius: 24,
+          ),
+        ));
   }
 }

@@ -7,7 +7,11 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/service/api_service.dart';
+import 'package:flutter_fe/service/tasker_service.dart';
+import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
+import 'dart:io';
 
 class GeneralInfoPage extends StatefulWidget {
   final Function(Map<String, dynamic> userInfo) onInfoCompleted;
@@ -23,6 +27,7 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
   final GetStorage storage = GetStorage();
   final ProfileController _profileController = ProfileController();
   final JobPostService _jobPostService = JobPostService();
+  final ImagePicker _imagePicker = ImagePicker();
 
   // Text controllers
   final TextEditingController _firstNameController = TextEditingController();
@@ -36,7 +41,11 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
   String? _gender;
   DateTime? _birthdate;
   bool _isLoading = false;
+  bool _isUploadingImage = false;
   String? _userRole;
+  File? _profileImage;
+  String? _uploadedImageUrl;
+  String? _existingImageUrl; // For displaying existing image from tasker_images
 
   // Specialization data
   final List<SpecializationModel> _specializations = [];
@@ -79,12 +88,21 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
     try {
       // Get user ID from storage
       final userId = storage.read('user_id');
+      debugPrint(
+          'Retrieved user_id from storage: $userId (type: ${userId.runtimeType})');
+
       if (userId != null) {
+        final parsedUserId = int.parse(userId.toString());
+        debugPrint('Parsed user_id: $parsedUserId');
+
         // Fetch authenticated user data from API
         final AuthenticatedUser? authUser = await _profileController
-            .getAuthenticatedUser(context, int.parse(userId.toString()));
+            .getAuthenticatedUser(context, parsedUserId);
 
         if (authUser != null && mounted) {
+          debugPrint(
+              'AuthUser data: ${authUser.user.id}, role: ${authUser.user.role}');
+
           // Populate form fields with user data
           setState(() {
             // Store user role for conditional UI
@@ -125,6 +143,18 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
               }
             }
           });
+
+          // Fetch existing profile image if user is a tasker
+          if (authUser.user.role?.toLowerCase() == 'tasker') {
+            // Use authUser.user.id if it's valid, otherwise use the original userId from storage
+            final userIdToUse =
+                (authUser.user.id != null && authUser.user.id! > 0)
+                    ? authUser.user.id!
+                    : parsedUserId;
+            debugPrint(
+                'Using user ID for image fetch: $userIdToUse (authUser.user.id: ${authUser.user.id}, storage userId: $parsedUserId)');
+            await _fetchExistingProfileImage(userIdToUse);
+          }
         }
       }
     } catch (e) {
@@ -136,6 +166,33 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  Future<void> _fetchExistingProfileImage(int userId) async {
+    try {
+      debugPrint('Fetching existing profile image for user ID: $userId');
+      final taskerService = TaskerService();
+      final result = await taskerService.getTaskerImages(userId);
+
+      debugPrint('Profile image fetch result: $result');
+
+      if (result.containsKey('images') && result['images'] is List) {
+        final List<dynamic> images = result['images'];
+        if (images.isNotEmpty) {
+          final firstImage = images.first;
+          if (firstImage is Map && firstImage['image_link'] != null) {
+            setState(() {
+              _existingImageUrl = firstImage['image_link'];
+            });
+            debugPrint('✅ Found existing profile image: $_existingImageUrl');
+          }
+        } else {
+          debugPrint('No existing profile images found');
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching existing profile image: $e');
     }
   }
 
@@ -168,6 +225,50 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
     }
   }
 
+  Future<void> _pickProfileImage() async {
+    try {
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _profileImage = File(pickedFile.path);
+          // Clear any previously uploaded URL since we have a new image
+          _uploadedImageUrl = null;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Profile picture selected. It will be uploaded when you submit verification.',
+                style: GoogleFonts.poppins(fontSize: 14, color: Colors.white),
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error selecting image. Please try again.',
+              style: GoogleFonts.poppins(fontSize: 14, color: Colors.white),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   void _submitInfo() {
     if (_formKey.currentState!.validate()) {
       Map<String, dynamic> userInfo = {
@@ -180,6 +281,7 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
         'birthdate': _birthdate != null
             ? DateFormat('yyyy-MM-dd').format(_birthdate!)
             : null,
+        'profileImage': _profileImage, // Pass the image file instead of URL
       };
 
       widget.onInfoCompleted(userInfo);
@@ -223,6 +325,144 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
                       ),
                     ),
                     const SizedBox(height: 24),
+
+                    // Profile Picture Section
+                    if (_userRole?.toLowerCase() == 'tasker') ...[
+                      Center(
+                        child: Column(
+                          children: [
+                            Text(
+                              'Profile Picture',
+                              style: GoogleFonts.poppins(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[800],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            GestureDetector(
+                              onTap: _pickProfileImage,
+                              child: Container(
+                                width: 120,
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[100],
+                                  borderRadius: BorderRadius.circular(60),
+                                  border: Border.all(
+                                    color: const Color(0xFFB71A4A),
+                                    width: 2,
+                                  ),
+                                ),
+                                child: _profileImage != null
+                                    ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(58),
+                                        child: Image.file(
+                                          _profileImage!,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      )
+                                    : _existingImageUrl != null
+                                        ? ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(58),
+                                            child: Image.network(
+                                              _existingImageUrl!,
+                                              fit: BoxFit.cover,
+                                              loadingBuilder: (context, child,
+                                                  loadingProgress) {
+                                                if (loadingProgress == null)
+                                                  return child;
+                                                return Center(
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                    color: Color(0xFFB71A4A),
+                                                    value: loadingProgress
+                                                                .expectedTotalBytes !=
+                                                            null
+                                                        ? loadingProgress
+                                                                .cumulativeBytesLoaded /
+                                                            loadingProgress
+                                                                .expectedTotalBytes!
+                                                        : null,
+                                                  ),
+                                                );
+                                              },
+                                              errorBuilder:
+                                                  (context, error, stackTrace) {
+                                                debugPrint(
+                                                    'Error loading existing profile image: $error');
+                                                return const Icon(
+                                                  Icons.add_a_photo,
+                                                  size: 50,
+                                                  color: Color(0xFFB71A4A),
+                                                );
+                                              },
+                                            ),
+                                          )
+                                        : const Icon(
+                                            Icons.add_a_photo,
+                                            size: 50,
+                                            color: Color(0xFFB71A4A),
+                                          ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _profileImage != null
+                                  ? 'Tap to change profile picture'
+                                  : _existingImageUrl != null
+                                      ? 'Tap to change profile picture'
+                                      : 'Tap to add profile picture',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            if (_profileImage != null)
+                              Container(
+                                margin: const EdgeInsets.only(top: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue[100],
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  'New Image Selected ✓',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    color: Colors.blue[700],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              )
+                            else if (_existingImageUrl != null)
+                              Container(
+                                margin: const EdgeInsets.only(top: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.green[100],
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  'Current Profile Image',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    color: Colors.green[700],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
 
                     // Note box
                     Container(

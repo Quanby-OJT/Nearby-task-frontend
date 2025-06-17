@@ -100,7 +100,8 @@ class ClientServices {
           return [];
         }
 
-        final allTaskers = allTaskersResponse["taskers"] as List<dynamic>? ?? [];
+        final allTaskers =
+            allTaskersResponse["taskers"] as List<dynamic>? ?? [];
         debugPrint("All Taskers Count: ${allTaskers.length}");
 
         if (allTaskers.isEmpty) {
@@ -114,28 +115,30 @@ class ClientServices {
                 .toSet();
         debugPrint("Liked Tasker IDs: $likedTaskerIds");
         for (var tasker in allTaskers) {
-          final taskerImages = await TaskerService().getTaskerImages(tasker['tasker_id']);
+          final taskerImages =
+              await TaskerService().getTaskerImages(tasker['tasker_id']);
 
           if (taskerImages.containsKey('images')) {
-            final List<ImagesModel> images = (taskerImages['images'] as List<dynamic>)
-                .map<ImagesModel>((image) => ImagesModel.fromJson(image))
-                .toList();
+            final List<ImagesModel> images =
+                (taskerImages['images'] as List<dynamic>)
+                    .map<ImagesModel>((image) => ImagesModel.fromJson(image))
+                    .toList();
 
             // Inject the list of image URLs into the JSON
             tasker['images_url'] = images.map((img) => img.image_url).toList();
-            debugPrint("Tasker Images after adding to tasker: ${tasker['images_url']}");
+            debugPrint(
+                "Tasker Images after adding to tasker: ${tasker['images_url']}");
           } else {
             tasker['images_url'] = [];
           }
         }
 
-        final taskerFutures = allTaskers
-            .where((tasker) {
+        final taskerFutures = allTaskers.where((tasker) {
           final taskerId = tasker["user_id"] ?? tasker["tasker_id"];
-          final isNotLiked = taskerId is int && !likedTaskerIds.contains(taskerId);
+          final isNotLiked =
+              taskerId is int && !likedTaskerIds.contains(taskerId);
           return isNotLiked;
-        })
-            .map<Future<TaskerModel?>>((tasker) async {
+        }).map<Future<TaskerModel?>>((tasker) async {
           try {
             return TaskerModel.fromJson(tasker);
           } catch (e) {
@@ -148,7 +151,6 @@ class ClientServices {
 
 // Filter out nulls
         final taskerList = resolvedTaskers.whereType<TaskerModel>().toList();
-
 
         debugPrint("Filtered Taskers Count: ${taskerList.length}");
         return taskerList;
@@ -690,6 +692,55 @@ class ClientServices {
       return {
         "error":
             "An Error Occurred while Updating your information. Please Try Again."
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> sendNotification(String? fcmToken) async {
+    try {
+      final userId = await getUserId();
+      if (userId == null) {
+        return {
+          'success': false,
+          'message': 'User not logged in',
+        };
+      }
+
+      final response = await http.post(
+        Uri.parse('${ApiService.url}/send-notification'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${storage.read('session')}',
+        },
+        body: jsonEncode({
+          'fcm_token': fcmToken,
+          'title': 'Test Notification',
+          'body': 'This is a test notification',
+          'user_id': userId,
+        }),
+      );
+      return _handleResponse(response);
+    } catch (e) {
+      debugPrint("Error sending notification: $e");
+      return {
+        'success': false,
+        'message': 'Failed to send notification',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> insertNotificationTesting(
+      Map<String, dynamic> notificationData) async {
+    try {
+      return await _postRequest(
+        endpoint: '/notification-testing',
+        body: notificationData,
+      );
+    } catch (e) {
+      debugPrint("Error inserting notification: $e");
+      return {
+        'success': false,
+        'message': 'Failed to insert notification: $e',
       };
     }
   }
