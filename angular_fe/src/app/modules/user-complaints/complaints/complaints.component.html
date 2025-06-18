@@ -42,11 +42,18 @@
             <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" placeholder="Moderator Search Users" type="text" (input)="searchReports($event)" />
           </label>
         </div>
-        <select name="status" class="text-muted-foreground w-28! p-2 border rounded-md" (change)="filterReports($event)">
-          <option value="">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="processed">Processed</option>
-        </select>
+        <div class="relative">
+          <select name="status" class="text-muted-foreground w-28! p-2 border rounded-md" (change)="filterReports($event)">
+            <option value="">All Status</option>
+            <option value="pending">Pending <span *ngIf="filterService.pendingCount() > 0" class="ml-1 text-red-500 font-medium">({{ filterService.pendingCount() }})</span></option>
+            <option value="processed">Processed</option>
+          </select>
+          <!-- Notification badge for the select element -->
+          <div *ngIf="filterService.pendingCount() > 0" 
+              class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+            {{ filterService.pendingCount() }}
+          </div>
+        </div>
       </div>
     </div>
 
@@ -190,11 +197,18 @@
             <input name="search" class="w-full py-2 pl-8 pr-2 border rounded-md" placeholder="Admin Search Users" type="text" (input)="searchReports($event)" />
           </label>
         </div>
-        <select name="status" class="text-muted-foreground w-28! p-2 border rounded-md" (change)="filterReports($event)">
-          <option value="">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="processed">Processed</option>
-        </select>
+        <div class="relative">
+          <select name="status" class="text-muted-foreground w-28! p-2 border rounded-md" (change)="filterReports($event)">
+            <option value="">All Status</option>
+            <option value="pending">Pending <span *ngIf="filterService.pendingCount() > 0" class="ml-1 text-red-500 font-medium">({{ filterService.pendingCount() }})</span></option>
+            <option value="processed">Processed</option>
+          </select>
+          <!-- Notification badge for the select element -->
+          <div *ngIf="filterService.pendingCount() > 0" 
+              class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+            {{ filterService.pendingCount() }}
+          </div>
+        </div>
       </div>
     </div>
 

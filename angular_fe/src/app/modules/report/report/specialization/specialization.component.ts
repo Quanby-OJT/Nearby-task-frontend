@@ -24,14 +24,17 @@ export class SpecializationComponent implements OnInit {
   selectedMonth: string | null = null;
   months: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   isDropdownOpen: boolean = false;
+  isLoading: boolean = false;
 
   constructor(private reportService: ReportService) {}
 
   ngOnInit(): void {
+    this.isLoading = true;
     this.fetchSpecializations();
   }
 
   fetchSpecializations(): void {
+    this.isLoading = true;
     this.reportService.getSpecialization('applied', this.selectedMonth || undefined).subscribe({
       next: (response) => {
         if (response.success) {
@@ -56,9 +59,11 @@ export class SpecializationComponent implements OnInit {
           this.monthlyTrends = response.monthlyTrends;
           this.updateChart();
         }
+        this.isLoading = false;
       },
       error: (error) => {
         console.error('Error fetching specialization data:', error);
+        this.isLoading = false;
       }
     });
   }

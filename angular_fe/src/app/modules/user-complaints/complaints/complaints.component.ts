@@ -16,6 +16,7 @@ import { AngularSvgIconModule } from 'angular-svg-icon';
 import { ReportCardComponent } from './report-card/report-card.component';
 import { LoadingService } from 'src/app/services/loading.service';
 import { firstValueFrom } from 'rxjs';
+import { ComplaintsFilterService } from 'src/services/complaints-filter.service';
 
 @Component({
   selector: 'app-complaints',
@@ -63,7 +64,8 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
     private reportService: ReportService,
     private sessionStorage: SessionLocalStorage,
     private authService: AuthService,
-    private loadingService: LoadingService
+    private loadingService: LoadingService,
+    public filterService: ComplaintsFilterService
   ) {}
 
   ngOnInit(): void {
@@ -74,6 +76,8 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
         if (response.success) {
           this.reports = response.reports;
           this.filteredReports = [...this.reports];
+          // Update the filter service with complaints data
+          this.filterService.setComplaints(this.reports);
           this.updatePage();
           this.isLoading = false;
           this.loadingService.hide();
@@ -405,7 +409,15 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
               confirmButtonText: 'OK',
               confirmButtonColor: '#3C28CC'
             });
-            this.reportService.getReport().subscribe();
+            // Refresh reports and update filter service
+            this.reportService.getReport().subscribe((response: { success: boolean; reports: Report[] }) => {
+              if (response.success) {
+                this.reports = response.reports;
+                this.filteredReports = [...this.reports];
+                this.filterService.setComplaints(this.reports);
+                this.updatePage();
+              }
+            });
           },
           error: (error) => {
             this.loadingService.hide();
@@ -504,6 +516,7 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
                   if (response.success) {
                     this.reports = response.reports;
                     this.filteredReports = [...this.reports];
+                    this.filterService.setComplaints(this.reports);
                     this.updatePage();
                   }
                 });
