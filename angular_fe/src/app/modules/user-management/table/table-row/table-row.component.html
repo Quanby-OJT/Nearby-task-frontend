@@ -21,7 +21,7 @@
     {{ user.email | slice:0:20 }}...
   </td>
   
- <td class="px-4 py-3 pl-10 text-start font-normal">
+ <td class="px-4 py-3 text-start font-normal">
     <div class="flex items-center gap-2.5 font-['Arial']">
       <div class="h-2.5 w-2.5 rounded-full" [ngClass]="{
         'bg-black': user.acc_status === 'not-odd:ull',
@@ -40,15 +40,15 @@
     </div>
 </td>
   
-  <td class="px-4 py-3 pl-10 text-start font-normal">
+  <td class="px-4 py-3 text-start font-normal">
     <div class="flex items-center gap-2.5 font-['Arial']">
       <div class="h-2.5 w-2.5 rounded-full" [ngClass]="user.status ? 'bg-green-500' : 'bg-red-500'"></div>
       <span class="text-sm text-black">{{ user.status ? 'Online' : 'Offline' }}</span>
     </div>
   </td>
   
-  <td class="border-b border-muted/20 px-6 py-4 text-[0.875rem] align-middle">
-    <div class="flex items-center justify-start gap-3">
+  <td class="border-b border-muted/20 py-4 text-[0.875rem] align-middle">
+    <div class="flex items-start justify-start gap-3">
       <button
         class="text-muted-foreground hover:text-foreground flex h-8 w-8 items-center justify-center rounded-md transition-transform duration-200 hover:scale-150"
         (click)="updateUser(user.user_id)"

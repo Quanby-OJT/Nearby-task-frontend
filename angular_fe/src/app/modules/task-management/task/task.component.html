@@ -20,16 +20,12 @@
       <svg-icon src="./assets/icons/heroicons/outline/pdfDL.svg" [svgClass]="'h-5 w-5'"></svg-icon>
       <span>Export PDF</span>
     </button>
-    <button *ngIf="userRole === 'Admin'" class="bg-[#5F50E7] text-[#F9F9F9] hover:bg-[#8174ED] cursor-pointer rounded-md px-4 py-2.5 text-xs font-semibold hover:scale-110 transition-transform duration-500 flex items-center space-x-2" (click)="createSpecialization()">
-      <svg-icon src="./assets/icons/heroicons/outline/addDL.svg" [svgClass]="'h-5 w-5'"></svg-icon>
-      <span>Create Specialization</span>
-    </button>
   </div>
 </div>
 <div class="py-2"></div>
 
 <!-- Main container with search, filter, table, and pagination -->
-<div *ngIf="!isLoading" class="border-muted-200 bg-white flex w-full max-w-[1440px] mx-auto flex-col rounded-xl border p-4">
+<div *ngIf="!isLoading" class="border-muted-200 bg-white min-w-full mx-auto flex-col rounded-xl border p-4">
   <!-- Search and Filter Section -->
   <div class="flex flex-wrap items-center justify-between gap-2 py-3 px-5">
     <div class="text-muted-foreground text-sm font-medium"></div>

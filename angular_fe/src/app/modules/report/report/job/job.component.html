@@ -12,12 +12,12 @@
 
  <!-- Chart section -->
 <div class="w-full mb-6">
-  <div class="bg-white rounded-xl shadow-lg p-6">
+  <div class="bg-transparent rounded-xl p-6">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-lg font-poppins">Top Requested Job</h2>
       <div class="relative">
         <img src="https://img.icons8.com/?size=100&id=aVXFISfYjkDv&format=png&color=7950F2" (click)="toggleDropdown()" class="w-8 h-8 cursor-pointer active:scale-110">
-        <div *ngIf="isDropdownOpen" class="absolute right-0 mt-2 w-48 bg-white border rounded-md shadow-lg z-10">
+        <div *ngIf="isDropdownOpen" class="absolute right-0 mt-2 w-48 bg-transparent border rounded-md z-10">
           <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" (click)="exportCSV()">Download CSV</button>
           <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" (click)="exportPDF()">Download PDF</button>
           <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" (click)="exportPNG()">Download PNG</button>
@@ -62,11 +62,11 @@
 </div>
 
   <!-- Table section -->
-  <div class="bg-white rounded-xl shadow-lg p-6">
+  <div class="bg-transparent rounded-xl p-6">
     <div class="relative" style="height: 20rem; overflow-y: auto;">
       <table class="w-full border-collapse text-left text-sm">
         <thead class="border-b">
-          <tr class="bg-gray-100">
+          <tr>
             <th class="px-2 py-2 w-[40px]">No</th>
             <th class="px-2 py-2 text-start min-w-[100px]">Specialization</th>
             <th class="px-2 py-2 text-start min-w-[100px]">Total Requested</th>
