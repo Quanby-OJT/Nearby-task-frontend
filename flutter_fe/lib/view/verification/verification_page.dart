@@ -532,8 +532,20 @@ class _VerificationPageState extends State<VerificationPage> {
       if (_profileImage != null) {
         debugPrint('VerificationPage: Uploading profile image...');
         try {
-          final uploadResult =
-              await ApiService.uploadTaskerProfileImage(userId, _profileImage!);
+          Map<String, dynamic> uploadResult;
+
+          if (_userRole?.toLowerCase() == 'tasker') {
+            uploadResult = await ApiService.uploadTaskerProfileImage(
+                userId, _profileImage!);
+          } else if (_userRole?.toLowerCase() == 'client') {
+            uploadResult = await ApiService.uploadClientProfileImage(
+                userId, _profileImage!);
+          } else {
+            debugPrint(
+                'VerificationPage: Unknown user role for profile image upload: $_userRole');
+            uploadResult = {'success': false, 'error': 'Unknown user role'};
+          }
+
           if (uploadResult['success'] == true) {
             profileImageUrl = uploadResult['data']['imageUrl'];
             debugPrint(

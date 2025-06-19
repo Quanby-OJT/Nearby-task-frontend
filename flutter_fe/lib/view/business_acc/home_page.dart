@@ -67,6 +67,7 @@ class _ClientHomePageState extends State<ClientHomePage>
   AuthenticatedUser? _user;
   String _fullName = "Loading...";
   String _image = "";
+  String? _clientProfileImageUrl; // Store client profile image URL
   String? _existingProfileImageUrl;
   String? _existingIDImageUrl;
   final bool _documentValid = false;
@@ -214,6 +215,16 @@ class _ClientHomePageState extends State<ClientHomePage>
           _role = _user?.user.role ?? "Unknown";
           _image = _user?.user.image ?? "Unknown";
         });
+
+        // Load cached client profile image if available
+        final cachedClientProfileImage =
+            _prefs.getString('cached_client_profile_image');
+        if (cachedClientProfileImage != null &&
+            cachedClientProfileImage.isNotEmpty) {
+          setState(() {
+            _clientProfileImageUrl = cachedClientProfileImage;
+          });
+        }
       }
 
       // Load cached taskers
@@ -272,6 +283,14 @@ class _ClientHomePageState extends State<ClientHomePage>
         await _prefs.setString(
             'cached_verification_status', _verificationStatus!);
         debugPrint("Saved verification status to cache");
+      }
+
+      // Save client profile image to cache
+      if (_clientProfileImageUrl != null &&
+          _clientProfileImageUrl!.isNotEmpty) {
+        await _prefs.setString(
+            'cached_client_profile_image', _clientProfileImageUrl!);
+        debugPrint("Saved client profile image to cache");
       }
     } catch (e) {
       debugPrint("Error saving data to cache: $e");
@@ -413,6 +432,9 @@ class _ClientHomePageState extends State<ClientHomePage>
 
         debugPrint("FCM Token: ${_user?.user.fcmToken}");
       });
+
+      // Fetch client profile image if user is a client
+      await _fetchClientProfileImage();
     } catch (e) {
       debugPrint("Error fetching user data: $e");
       setState(() {
@@ -569,6 +591,77 @@ class _ClientHomePageState extends State<ClientHomePage>
     debugPrint(
         "Finished fetching profile images. Total cached: ${_taskerProfileImages.length}");
     debugPrint("Cached images: $_taskerProfileImages");
+  }
+
+  Future<void> _fetchClientProfileImage() async {
+    try {
+      final userId = storage.read('user_id');
+      if (userId != null && _user?.user.role?.toLowerCase() == 'client') {
+        debugPrint("Fetching client profile image for user ID: $userId");
+        final clientService = ClientServices();
+        final result =
+            await clientService.getClientImages(int.parse(userId.toString()));
+
+        debugPrint("Client profile image fetch result: $result");
+
+        if (result.containsKey('images') && result['images'] is List) {
+          final List<dynamic> images = result['images'];
+          if (images.isNotEmpty) {
+            final firstImage = images.first;
+            if (firstImage is Map && firstImage['image_link'] != null) {
+              setState(() {
+                _clientProfileImageUrl = firstImage['image_link'];
+              });
+              debugPrint(
+                  '✅ Found client profile image: $_clientProfileImageUrl');
+
+              // Save to cache
+              _prefs.setString(
+                  'cached_client_profile_image', _clientProfileImageUrl!);
+            }
+          } else {
+            debugPrint('No client profile images found');
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching client profile image: $e');
+    }
+  }
+
+  DecorationImage? _getProfileImageDecoration() {
+    // Prioritize client profile image from client_images table
+    if (_clientProfileImageUrl != null && _clientProfileImageUrl!.isNotEmpty) {
+      return DecorationImage(
+        image: NetworkImage(_clientProfileImageUrl!),
+        fit: BoxFit.cover,
+        onError: (exception, stackTrace) {
+          debugPrint('Error loading client profile image: $exception');
+          setState(() {
+            _clientProfileImageUrl = null; // Clear the failed URL
+          });
+        },
+      );
+    }
+    // Fallback to default user image
+    else if (_image != "Unknown" && _image.isNotEmpty) {
+      return DecorationImage(
+        image: NetworkImage(_image),
+        fit: BoxFit.cover,
+        onError: (exception, stackTrace) {
+          setState(() {
+            _image = "Unknown";
+          });
+        },
+      );
+    }
+    return null;
+  }
+
+  bool _shouldShowPersonIcon() {
+    return (_clientProfileImageUrl == null ||
+            _clientProfileImageUrl!.isEmpty) &&
+        (_image == "Unknown" || _image.isEmpty);
   }
 
   Future<void> _saveLikedTasker(UserModel tasker) async {
@@ -974,19 +1067,9 @@ class _ClientHomePageState extends State<ClientHomePage>
                     width: 40,
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      image: _image != "Unknown" && _image.isNotEmpty
-                          ? DecorationImage(
-                              image: NetworkImage(_image),
-                              fit: BoxFit.cover,
-                              onError: (exception, stackTrace) {
-                                setState(() {
-                                  _image = "Unknown";
-                                });
-                              },
-                            )
-                          : null,
+                      image: _getProfileImageDecoration(),
                     ),
-                    child: _image == "Unknown" || _image.isEmpty
+                    child: _shouldShowPersonIcon()
                         ? Icon(Icons.person, color: Colors.grey)
                         : null,
                   ),
@@ -1244,7 +1327,6 @@ class _ClientHomePageState extends State<ClientHomePage>
                                       margin: EdgeInsets.zero,
                                       child: Stack(
                                         children: [
-                                          
                                           // Background image container
                                           Container(
                                             width: double.infinity,

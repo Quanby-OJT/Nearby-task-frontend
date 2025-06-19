@@ -33,6 +33,16 @@ class ClientServices {
     return _handleResponse(response);
   }
 
+  Future<Map<String, dynamic>> getClientImages(int clientId) async {
+    try {
+      return await _getRequest('/get-client-images/$clientId');
+    } catch (e, stackTrace) {
+      debugPrint("Error getting client images: $e");
+      debugPrintStack(stackTrace: stackTrace);
+      return {"error": "Failed to get client images"};
+    }
+  }
+
   Future<ClientModel?> fetchMyData(int userId) async {
     try {
       final response = await _getRequest("/client/getMyDataClient/$userId");

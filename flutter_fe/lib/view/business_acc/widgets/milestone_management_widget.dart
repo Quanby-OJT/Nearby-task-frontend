@@ -413,33 +413,6 @@ class _MilestoneManagementWidgetState extends State<MilestoneManagementWidget> {
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: isSmallScreen ? 8 : 12),
-                      ElevatedButton(
-                        onPressed: () async {
-                          await _milestoneService.seedSampleData(
-                            widget.task.id,
-                            widget.task.contactPrice.toDouble(),
-                          );
-                          _loadMilestones();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          padding: EdgeInsets.symmetric(
-                              horizontal: isSmallScreen ? 12 : 16,
-                              vertical: isSmallScreen ? 6 : 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                        ),
-                        child: Text(
-                          'Add Sample Data',
-                          style: GoogleFonts.poppins(
-                            fontSize: isSmallScreen ? 10 : 12,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),
