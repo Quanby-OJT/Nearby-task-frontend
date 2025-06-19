@@ -9,6 +9,7 @@ import 'package:flutter_fe/model/specialization.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/service/api_service.dart';
 import 'package:flutter_fe/service/tasker_service.dart';
+import 'package:flutter_fe/service/client_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 import 'dart:io';
@@ -144,8 +145,9 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
             }
           });
 
-          // Fetch existing profile image if user is a tasker
-          if (authUser.user.role?.toLowerCase() == 'tasker') {
+          // Fetch existing profile image for both taskers and clients
+          if (authUser.user.role?.toLowerCase() == 'tasker' ||
+              authUser.user.role?.toLowerCase() == 'client') {
             // Use authUser.user.id if it's valid, otherwise use the original userId from storage
             final userIdToUse =
                 (authUser.user.id != null && authUser.user.id! > 0)
@@ -172,8 +174,20 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
   Future<void> _fetchExistingProfileImage(int userId) async {
     try {
       debugPrint('Fetching existing profile image for user ID: $userId');
-      final taskerService = TaskerService();
-      final result = await taskerService.getTaskerImages(userId);
+      debugPrint('User role: $_userRole');
+
+      Map<String, dynamic> result;
+
+      if (_userRole?.toLowerCase() == 'tasker') {
+        final taskerService = TaskerService();
+        result = await taskerService.getTaskerImages(userId);
+      } else if (_userRole?.toLowerCase() == 'client') {
+        final clientService = ClientServices();
+        result = await clientService.getClientImages(userId);
+      } else {
+        debugPrint('Unknown user role for fetching profile image: $_userRole');
+        return;
+      }
 
       debugPrint('Profile image fetch result: $result');
 
@@ -327,7 +341,8 @@ class _GeneralInfoPageState extends State<GeneralInfoPage> {
                     const SizedBox(height: 24),
 
                     // Profile Picture Section
-                    if (_userRole?.toLowerCase() == 'tasker') ...[
+                    if (_userRole?.toLowerCase() == 'tasker' ||
+                        _userRole?.toLowerCase() == 'client') ...[
                       Center(
                         child: Column(
                           children: [
