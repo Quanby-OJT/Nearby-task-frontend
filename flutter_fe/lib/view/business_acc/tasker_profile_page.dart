@@ -475,31 +475,30 @@ class _TaskerProfilePageState extends State<TaskerProfilePage>
                     ),
                     SizedBox(height: 8),
                     // Specialization
-                    if (widget.tasker.taskerSpecialization?.specialization !=
-                        null)
-                      Container(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 8,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          widget.tasker.taskerSpecialization!.specialization,
-                          style: GoogleFonts.poppins(
-                            color: Color(0xFFB71A4A),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                    Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: Offset(0, 2),
                           ),
+                        ],
+                      ),
+                      child: Text(
+                        widget.tasker.taskerSpecialization?.specialization ??
+                            'No specialization',
+                        style: GoogleFonts.poppins(
+                          color: Color(0xFFB71A4A),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
                         ),
                       ),
+                    ),
                   ],
                 ),
               ),
@@ -950,7 +949,11 @@ class _TaskerProfilePageState extends State<TaskerProfilePage>
   void _likeTasker() async {
     try {
       final clientServices = ClientServices();
-      final result = await clientServices.saveLikedTasker(widget.tasker.id);
+      final userId = widget.tasker.user?.id ?? widget.tasker.userId;
+      debugPrint(
+          "Tasker details - taskerId: ${widget.tasker.id}, userId: ${widget.tasker.userId}, user.id: ${widget.tasker.user?.id}");
+      debugPrint("Sending userId to saveLikedTasker: $userId");
+      final result = await clientServices.saveLikedTasker(userId);
 
       if (result.containsKey('message')) {
         ScaffoldMessenger.of(context).showSnackBar(
