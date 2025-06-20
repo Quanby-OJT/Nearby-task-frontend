@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_fe/controller/profile_controller.dart';
+import 'package:flutter_fe/model/auth_user.dart';
+import 'package:flutter_fe/view/components/modals/modal.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
@@ -14,6 +18,8 @@ import 'package:flutter_fe/controller/task_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
+import '../verification/verification_page.dart';
+
 class TransactionHistoryPage extends StatefulWidget {
   const TransactionHistoryPage({super.key});
 
@@ -25,6 +31,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
     with TickerProviderStateMixin {
   final _escrowManagementController = EscrowManagementController();
   final TaskController taskController = TaskController();
+  final ProfileController _profileController = ProfileController();
   late AnimationController loadingController;
   List<Transactions> _transactionHistory = [];
   List<Transactions> _filteredTransactions = [];
@@ -33,6 +40,9 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
   final TextEditingController _searchController = TextEditingController();
   String? _selectedStatus;
   int _displayLimit = 5;
+  AuthenticatedUser? user;
+  final storage = GetStorage();
+  bool _isUploadDialogShown = false;
   late SharedPreferences _prefs;
   final Connectivity _connectivity = Connectivity();
 
@@ -168,9 +178,12 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
     loadingController.repeat(reverse: true);
 
     try {
-      await _escrowManagementController.fetchTokenBalance();
-      await getTransactionHistory();
-      await _saveDataToCache();
+      Future.wait({
+        _escrowManagementController.fetchTokenBalance(),
+        getTransactionHistory(),
+        _fetchUserData(),
+        _saveDataToCache(),
+      });
     } finally {
       if (mounted) {
         loadingController.stop();
@@ -186,6 +199,25 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
       _transactionHistory = transactionData;
       _filteredTransactions = transactionData;
     });
+  }
+
+  Future<void> _fetchUserData() async {
+    try {
+      final dynamic userId = storage.read("user_id");
+
+      if (userId == null) return;
+
+      AuthenticatedUser? user = await _profileController.getAuthenticatedUser(context, userId);
+
+      debugPrint("Current User Status: ${user?.user.accStatus}");
+
+      setState(() {
+        this.user = user;
+      });
+    } catch (e, stackTrace) {
+      debugPrint("Error fetching user data: $e");
+      debugPrintStack(stackTrace: stackTrace);
+    }
   }
 
   void _filterTransactions() {
@@ -566,20 +598,62 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
                 ),
               ),
 
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  children: [
-                    // Income Card changed to Deposit Card
-                    Expanded(
-                      child: Card(
-                        elevation: 1,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: InkWell(
-                          onTap: () {
-                            // Show deposit dialog
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                children: [
+                  // Income Card changed to Deposit Card
+                  Expanded(
+                    child: Card(
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: InkWell(
+                        onTap: () {
+                          if(user?.user.accStatus == "Pending"){
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) => Modal(
+                                modalTitle: "Account Verification",
+                                description: "You Haven't fully verified your Account yet. Please Verify first in order to deposit.",
+                                buttonText: "Verify Now",
+                                onPressed: () async {
+                                  Navigator.pop(context);
+                                  final result = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => const VerificationPage()),
+                                  ).then((value) async {
+                                    await _loadData();
+                                  });
+                                  if (result == true) {
+                                    setState(() {
+                                      _isLoading = true;
+                                    });
+                                    await _loadData();
+                                  } else {
+                                    setState(() {
+                                      _isUploadDialogShown = false;
+                                    });
+                                  }
+                                },
+                              ),
+                            );
+                          }else if(user?.user.accStatus == null){
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) => Modal(
+                                modalTitle: "No Internet Connection",
+                                description: "Please Check Your Connection and Try Again.",
+                                buttonText: "Okay",
+                                onPressed: () {
+                                  _loadData();
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            );
+                          }else{
                             Navigator.push(context, MaterialPageRoute(
                               builder: (context) {
                                 return PaymentProcessingPage(
@@ -587,111 +661,159 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage>
                                 );
                               },
                             ));
-                          },
-                          borderRadius: BorderRadius.circular(16),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 16,
-                                      backgroundColor: Colors.green[50],
-                                      child: Icon(
-                                        Icons.arrow_downward,
-                                        color: Colors.green,
-                                        size: 16,
-                                      ),
+                          }
+                          // Show deposit dialog
+                        },
+                        borderRadius: BorderRadius.circular(16),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 16,
+                                    backgroundColor: Colors.green[50],
+                                    child: Icon(
+                                      Icons.arrow_downward,
+                                      color: Colors.green,
+                                      size: 16,
                                     ),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      'Deposit',
-                                      style: GoogleFonts.poppins(
-                                        color: Colors.grey,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  'Tap to deposit',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green[400],
                                   ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Deposit',
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.grey,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Tap to deposit',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green[400],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
                     ),
-                    SizedBox(width: 16),
-                    // Withdraw Button
-                    Expanded(
-                      child: Card(
-                        elevation: 1,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: InkWell(
-                          onTap: () {
-                            // Show withdraw dialog
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => PaymentProcessingPage(
-                                        transferMethod: "withdraw")));
-                          },
-                          borderRadius: BorderRadius.circular(16),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 16,
-                                      backgroundColor: Colors.red[50],
-                                      child: Icon(
-                                        Icons.arrow_upward,
-                                        color: Colors.red,
-                                        size: 16,
-                                      ),
+                  ),
+                  SizedBox(width: 16),
+                  // Withdraw Button
+                  Expanded(
+                    child: Card(
+                      elevation: 1,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: InkWell(
+                        onTap: () {
+                          if(user?.user.accStatus == "Pending"){
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) => Modal(
+                                modalTitle: "Account Verification",
+                                description: "You Haven't fully verified your Account yet. Please Verify first in order to deposit.",
+                                buttonText: "Verify Now",
+                                onPressed: () async {
+                                  Navigator.pop(context);
+                                  final result = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => const VerificationPage()),
+                                  ).then((value) async {
+                                    await _loadData();
+                                  });
+                                  if (result == true) {
+                                    setState(() {
+                                      _isLoading = true;
+                                    });
+                                    await _loadData();
+                                  } else {
+                                    setState(() {
+                                      _isUploadDialogShown = false;
+                                    });
+                                  }
+                                },
+                              ),
+                            );
+                            return;
+                          }else if(user?.user.accStatus == null){
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) => Modal(
+                                modalTitle: "No Internet Connection",
+                                description: "Please Check Your Connection and Try Again.",
+                                buttonText: "Okay",
+                                onPressed: () {
+                                  _loadData();
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            );
+                            return;
+                          }
+
+                          // Show withdraw dialog
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => PaymentProcessingPage(
+                                      transferMethod: "withdraw")));
+                        },
+                        borderRadius: BorderRadius.circular(16),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 16,
+                                    backgroundColor: Colors.red[50],
+                                    child: Icon(
+                                      Icons.arrow_upward,
+                                      color: Colors.red,
+                                      size: 16,
                                     ),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      'Withdraw',
-                                      style: GoogleFonts.poppins(
-                                        color: Colors.grey,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  'Tap to withdraw',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.red[400],
                                   ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Withdraw',
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.grey,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Tap to withdraw',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.red[400],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+            ),
 
               // Transaction History
               Padding(

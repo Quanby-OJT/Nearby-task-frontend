@@ -14,6 +14,7 @@ import 'package:flutter_fe/view/business_acc/task_creation/select_related_spec.d
 import 'package:flutter_fe/view/business_acc/task_creation/select_spec.dart';
 import 'package:flutter_fe/view/custom_loading/custom_loading.dart';
 import 'package:flutter_fe/view/custom_loading/file_indicators.dart';
+import 'package:flutter_fe/widgets/privacy_policy_popup.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -84,6 +85,17 @@ class _AddTaskState extends State<AddTask> with SingleTickerProviderStateMixin {
         selectedScope = scopes[0];
       });
     }
+
+    // Show privacy policy popup after the widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return PrivacyPolicyPopup(context: 'task_creation');
+        },
+      );
+    });
   }
 
   @override

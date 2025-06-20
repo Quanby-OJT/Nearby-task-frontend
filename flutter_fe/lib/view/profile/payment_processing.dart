@@ -12,6 +12,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:signature/signature.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PaymentProcessingPage extends StatefulWidget {
   final String? transferMethod;
@@ -36,6 +38,8 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
   late SignatureController _signatureController;
   File? _signatureImage;
   final ImagePicker _picker = ImagePicker();
+  String? _storedSignatureData;
+  bool _isLoadingSignature = true;
 
   @override
   void initState() {
@@ -46,6 +50,10 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
       penColor: Colors.black,
       exportBackgroundColor: Colors.white,
     );
+    // Ensure email is loaded before loading signature
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadStoredSignature();
+    });
   }
 
   @override
@@ -272,6 +280,69 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
     }
   }
 
+  Future<void> _loadStoredSignature() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String? email = storage.read("email")?.toString().toLowerCase();
+
+      if (email == null || email.isEmpty) {
+        debugPrint(
+            'Email not found in storage. Attempting to retrieve from controller...');
+        // Try to get email from the controller if available
+        final controllerEmail =
+            profileController.emailController.text.toLowerCase();
+        if (controllerEmail.isNotEmpty) {
+          email = controllerEmail;
+          await storage.write('email', email);
+          debugPrint('Email retrieved from controller and stored: $email');
+        } else {
+          // Try to get email from the API response
+          final userId = storage.read("user_id");
+          if (userId != null) {
+            try {
+              final userData =
+                  await profileController.getAuthenticatedUser(context, userId);
+              if (userData?.user.email != null) {
+                email = userData!.user.email.toLowerCase();
+                await storage.write('email', email);
+                debugPrint('Email retrieved from API and stored: $email');
+              }
+            } catch (e) {
+              debugPrint('Error fetching user data: $e');
+            }
+          }
+        }
+      }
+
+      if (email == null || email.isEmpty) {
+        debugPrint('No email available from any source');
+        setState(() {
+          _isLoadingSignature = false;
+        });
+        return;
+      }
+
+      final signatureData = prefs.getString('user_signature_$email');
+      if (signatureData != null) {
+        setState(() {
+          _storedSignatureData = signatureData;
+          _isLoadingSignature = false;
+        });
+        debugPrint('Signature loaded successfully for email: $email');
+      } else {
+        debugPrint('No signature found for email: $email');
+        setState(() {
+          _isLoadingSignature = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading signature: $e');
+      setState(() {
+        _isLoadingSignature = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -296,7 +367,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(false),
                     child: Text('Cancel',
-                        style: GoogleFonts.poppins(color: Color(0xFF0272B1))),
+                        style: GoogleFonts.poppins(color: Color(0xFFE23670))),
                   ),
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(true),
@@ -313,7 +384,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
           iconTheme: IconThemeData(color: Color(0xFFB71A4A)),
           backgroundColor: Colors.white,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Color(0xFFB71A4A)),
+            icon: Icon(Icons.arrow_back, color: Color(0xFFE23670)),
             onPressed: () async {
               if (_signatureController.isEmpty) {
                 Navigator.of(context).pop();
@@ -332,7 +403,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(false),
                       child: Text('Cancel',
-                          style: GoogleFonts.poppins(color: Color(0xFF0272B1))),
+                          style: GoogleFonts.poppins(color: Color(0xFFE23670))),
                     ),
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(true),
@@ -350,402 +421,431 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
           title: Text(
             'QTask Escrow',
             style: GoogleFonts.montserrat(
-              color: Color(0xFFB71A4A),
+              color: Color(0xFFE23670),
               fontWeight: FontWeight.bold,
               fontSize: isSmallScreen ? 18 : 20,
             ),
           ),
         ),
-        body: SafeArea(
-          child: SingleChildScrollView(
-            primary: false,
-            child: Form(
-              key: _formKey,
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: screenWidth * 0.04,
-                  vertical: 16.0,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                        widget.transferMethod == "withdraw"
-                            ? "How much would you like to withdraw?"
-                            : "How much would you want to deposit?",
-                        style: GoogleFonts.poppins(
-                            fontSize: isSmallScreen ? 16 : 18,
-                            color: Color(0xFFB71A4A),
-                            fontWeight: FontWeight.bold)),
-                    SizedBox(height: screenHeight * 0.015),
-
-                    //Amount to Deposit/Withdraw
-                    _buildTextField(
-                        controller: _escrowController.amountController,
-                        label: "Enter Your Desired Amount",
-                        icon: FontAwesomeIcons.pesoSign,
-                        keyboardType: TextInputType.number,
-                        validator: (value) {
-                          switch (widget.transferMethod) {
-                            case "withdraw":
-                              if (value == null || value.isEmpty) {
-                                return "Please enter an amount to withdraw.";
-                              } else if (double.parse(value) > 20000) {
-                                return "The Maximum Amount that you can withdraw is PHP 20,000.00.";
-                              } else {
-                                return null;
-                              }
-                            case "deposit":
-                              if (value == null || value.isEmpty) {
-                                return "Please enter an amount to deposit.";
-                              } else if (double.parse(value) < 500) {
-                                return "The Minimum Amount that you can deposit is P 500.00.";
-                              } else if (double.parse(value) > 30000) {
-                                return "The Maximum Amount that you can deposit is P 30,000.00.";
-                              } else {
-                                return null;
-                              }
-                            default:
-                              return "Please Login Again.";
-                          }
-                        },
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                        ]),
-                    SizedBox(height: screenHeight * 0.015),
-
-                    if (widget.transferMethod == "withdraw")
-                      Text(
-                        "NOTE: The minimum amount that you can withdraw is P100.00, while the maximum amount that you can withdraw is PHP 20,000.00.",
-                        style: GoogleFonts.poppins(
-                          fontSize: isSmallScreen ? 11 : 12,
-                          color: Colors.black,
-                        ),
-                        textAlign: TextAlign.justify,
-                      ),
-                    if (widget.transferMethod == "deposit")
-                      Text(
-                        "NOTE: The minimum amount that you can deposit is PHP 500.00 and the maximum is PHP 30,000.00.",
-                        style: GoogleFonts.poppins(
-                          fontSize: isSmallScreen ? 11 : 12,
-                          color: Colors.black,
-                        ),
-                        textAlign: TextAlign.justify,
-                      ),
-                    SizedBox(height: screenHeight * 0.025),
-
-                    //Select Payment/Withdraw Method
-                    Center(
-                        child: Text(
+        body: SingleChildScrollView(
+          primary: false,
+          child: Form(
+            key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
                       widget.transferMethod == "withdraw"
-                          ? "Select Your Payment Withdrawal Method"
-                          : "Select Your Method of Deposit",
+                          ? "How much would you like to withdraw?"
+                          : "How much would you want to deposit?",
                       style: GoogleFonts.poppins(
-                        fontSize: isSmallScreen ? 16 : 20,
-                        color: Color(0xFFB71A4A),
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    )),
-                    SizedBox(height: screenHeight * 0.015),
-
-                    // Payment method cards with responsive layout
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        return Wrap(
-                          alignment: WrapAlignment.center,
-                          spacing: screenWidth * 0.02,
-                          runSpacing: 10,
-                          children: [
-                            //This will be expanded as the user wants more payment methods.
-                            //NextPay does not accept gcash as a payment method for withdrawal.
-                            if (widget.transferMethod == "deposit") ...[
-                              buildPaymentCard(
-                                  "GCash",
-                                  "assets/images/gcash-logo-png_seeklogo-522261.png",
-                                  null,
-                                  _selectPaymentMethod),
-                            ],
-                            buildPaymentCard(
-                                "PayMaya",
-                                "assets/images/maya-logo_brandlogos.net_y6kkp-512x512.png",
-                                null,
-                                _selectPaymentMethod),
-                          ],
-                        );
-                      },
-                    ),
-                    SizedBox(height: screenHeight * 0.015),
-
-                    if (_selectedPaymentMethod.isNotEmpty) ...[
-                      Text.rich(TextSpan(children: [
-                        TextSpan(
-                          text: "You have Chosen: ",
-                          style: GoogleFonts.poppins(
-                            fontSize: isSmallScreen ? 16 : 20,
-                            color: Colors.black,
-                          ),
-                        ),
-                        TextSpan(
-                          text: _selectedPaymentMethod,
-                          style: GoogleFonts.poppins(
-                            fontSize: isSmallScreen ? 16 : 18,
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )
-                      ])),
-                      SizedBox(height: screenHeight * 0.015),
-                    ],
-
-                    if (widget.transferMethod == "withdraw") ...[
-                      _buildTextField(
-                          controller: _escrowController.acctNumberController,
-                          label:
-                              "Enter Your Account Number based On Your Selected Withdrawal Method",
-                          icon: FontAwesomeIcons.buildingColumns,
-                          validator: (value) {
+                          fontSize: 18,
+                          color: Color(0xFFE23670),
+                          fontWeight: FontWeight.bold)),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  //Amount to Deposit/Withdraw
+                  _buildTextField(
+                      controller: _escrowController.amountController,
+                      label: "Enter Your Desired Amount",
+                      icon: FontAwesomeIcons.pesoSign,
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        switch (widget.transferMethod) {
+                          case "withdraw":
                             if (value == null || value.isEmpty) {
-                              return "Please enter your account number.";
+                              return "Please enter an amount to withdraw.";
+                            } else if (double.parse(value) > 20000) {
+                              return "The Maximum Amount that you can withdraw is PHP 20,000.00.";
                             } else {
                               return null;
                             }
-                          }),
-                      SizedBox(height: screenHeight * 0.015),
-                    ],
-
-                    // Add signature pad for both deposit and withdraw
-                    Container(
-                      padding: EdgeInsets.all(screenWidth * 0.025),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Color(0xFF0272B1)),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Center(
-                            child: Text(
-                              "NOTE: Your signature will be compared with the one you provided during registration for verification purposes.",
-                              style: GoogleFonts.poppins(
-                                fontSize: isSmallScreen ? 11 : 12,
-                                color: Colors.black,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          SizedBox(height: 5),
-                          Text(
-                            'Signature',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFFB71A4A),
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Flexible(
-                                child: TextButton.icon(
-                                  onPressed: _pickSignatureImage,
-                                  icon: Icon(Icons.upload_file,
-                                      color: Color(0xFFB71A4A)),
-                                  label: Text(
-                                    'Upload Signature',
-                                    style: GoogleFonts.poppins(
-                                      color: Color(0xFFB71A4A),
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: isSmallScreen ? 12 : 14,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              if (_signatureImage != null)
-                                Flexible(
-                                  child: TextButton.icon(
-                                    onPressed: () {
-                                      setState(() {
-                                        _signatureImage = null;
-                                      });
-                                    },
-                                    icon: Icon(Icons.delete, color: Colors.red),
-                                    label: Text(
-                                      'Remove',
-                                      style: GoogleFonts.poppins(
-                                        color: Colors.red,
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: isSmallScreen ? 12 : 14,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                          SizedBox(height: 10),
-                          Container(
-                            height: isSmallScreen ? 150 : 200,
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: _signatureImage != null
-                                  ? Container(
-                                      width: double.infinity,
-                                      height: double.infinity,
-                                      decoration: const BoxDecoration(
-                                        color: Colors.white,
-                                      ),
-                                      child: Image.file(
-                                        _signatureImage!,
-                                        fit: BoxFit.contain,
-                                      ),
-                                    )
-                                  : Signature(
-                                      controller: _signatureController,
-                                      backgroundColor: Colors.white,
-                                    ),
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                          if (_signatureImage == null)
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                TextButton(
-                                  onPressed: () {
-                                    _signatureController.clear();
-                                  },
-                                  child: Text(
-                                    'Clear',
-                                    style: GoogleFonts.poppins(
-                                      color: Color(0xFF0272B1),
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: screenHeight * 0.015),
-
-                    if (widget.transferMethod == "withdraw")
-                      Text(
-                        "NOTE: You will receive your amount to your wallet within 1-2 business days.",
+                          case "deposit":
+                            if (value == null || value.isEmpty) {
+                              return "Please enter an amount to deposit.";
+                            } else if (double.parse(value) < 500) {
+                              return "The Minimum Amount that you can deposit is P 500.00.";
+                            } else if (double.parse(value) > 30000) {
+                              return "The Maximum Amount that you can deposit is P 30,000.00.";
+                            } else {
+                              return null;
+                            }
+                          default:
+                            return "Please Login Again.";
+                        }
+                      },
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                      ]),
+                  SizedBox(height: 10),
+                  if (widget.transferMethod == "withdraw")
+                    Center(
+                      child: Text(
+                        "NOTE: The minimum amount that you can withdraw is P100.00, while the maximum amount that you can withdraw is PHP 20,000.00.",
                         style: GoogleFonts.poppins(
-                          fontSize: isSmallScreen ? 11 : 12,
-                          color: Colors.black,
+                          fontSize: 12,
+                          color: Colors.red,
                         ),
                         textAlign: TextAlign.justify,
                       ),
-                    SizedBox(height: screenHeight * 0.02),
-
-                    //Confirmation Button
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Theme(
-                          data: ThemeData(
-                            unselectedWidgetColor: Color(0XFFB71A4A),
-                          ),
-                          child: Checkbox(
-                            value: _isConfirmed,
-                            activeColor: Color(0XFFB71A4A),
-                            onChanged: (bool? newValue) {
-                              setState(() {
-                                _isConfirmed = newValue!;
-                              });
-                            },
-                          ),
-                        ),
-                        Flexible(
-                          child: Text(
-                            "I confirm that my details above are correct.",
-                            style: GoogleFonts.poppins(
-                              color: Color(0xFFB71A4A),
-                              fontSize: isSmallScreen ? 12 : 14,
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
-                    SizedBox(height: screenHeight * 0.01),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          FontAwesomeIcons.shield,
-                          color: Colors.green.shade600,
+                  if (widget.transferMethod == "deposit")
+                    Center(
+                      child: Text(
+                        "NOTE: The minimum amount that you can deposit is PHP 500.00 and the maximum is PHP 30,000.00.",
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: Colors.red,
                         ),
-                        SizedBox(width: 8),
-                        Text(
-                          "Powered by PayMongo and NextPay.",
-                          style: GoogleFonts.poppins(
-                            color: Colors.grey,
-                            fontSize: isSmallScreen ? 9 : 10,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: screenHeight * 0.02),
-
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: (_isConfirmed && !isLoading)
-                            ? () async {
-                                // Button is enabled only if _isConfirmed is true and isLoading is false
-                                if (_selectedPaymentMethod.isEmpty) {
-                                  _showStatusModal(
-                                      context,
-                                      "Please Select Your Desired Payment Method",
-                                      Icon(
-                                        FontAwesomeIcons.circleExclamation,
-                                        color: Color(0XFFE23670),
-                                        size: 50,
-                                      ));
-                                  return;
-                                }
-                                if (_formKey.currentState!.validate()) {
-                                  _showConfirmationDialog(
-                                      context, Color(0XFFE23670));
-                                }
-                              }
-                            : null, // Button is disabled if _isConfirmed is false or isLoading is true
-                        style: ButtonStyle(
-                          backgroundColor:
-                              WidgetStateProperty.resolveWith<Color>(
-                                  (Set<WidgetState> states) {
-                            if (states.contains(WidgetState.disabled)) {
-                              return const Color(0xFFD3D3D3); // Disabled color
-                            }
-                            return Color(0xFFB71A4A);
-                          }),
-                          padding: WidgetStateProperty.all(
-                            EdgeInsets.symmetric(
-                                vertical: isSmallScreen ? 12 : 16),
-                          ),
-                        ),
-                        child: Text(
-                            widget.transferMethod == "withdraw"
-                                ? "Withdraw Amount"
-                                : "Deposit Amount",
-                            style: GoogleFonts.poppins(
-                              fontSize: isSmallScreen ? 13 : 14,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            )),
+                        textAlign: TextAlign.justify,
                       ),
                     ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  //Select Payment/Withdraw Method
+                  Center(
+                      child: Text(
+                    widget.transferMethod == "withdraw"
+                        ? "Select Your Payment Withdrawal Method"
+                        : "Select Your Method of Deposit",
+                    style: GoogleFonts.poppins(
+                      fontSize: 20,
+                      color: Color(0xFFE23670),
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  )),
+                  SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      //This will be expanded as the user wants more payment methods.
+                      //NextPay does not accept gcash as a payment method for withdrawal.
+                      if (widget.transferMethod == "deposit") ...[
+                        buildPaymentCard(
+                            "GCash",
+                            "assets/images/gcash-logo-png_seeklogo-522261.png",
+                            null,
+                            _selectPaymentMethod),
+                      ],
+                      buildPaymentCard(
+                          "PayMaya",
+                          "assets/images/maya-logo_brandlogos.net_y6kkp-512x512.png",
+                          null,
+                          _selectPaymentMethod),
+                    ],
+                  ),
+                  SizedBox(height: 10),
+                  if (_selectedPaymentMethod.isNotEmpty) ...[
+                    Text.rich(TextSpan(children: [
+                      TextSpan(
+                        text: "You have Chosen: ",
+                        style: GoogleFonts.poppins(
+                          fontSize: 20,
+                          color: Colors.black,
+                        ),
+                      ),
+                      TextSpan(
+                        text: _selectedPaymentMethod,
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    ])),
                   ],
-                ),
+                  if (widget.transferMethod == "withdraw") ...[
+                    _buildTextField(
+                        controller: _escrowController.acctNumberController,
+                        label:
+                            "Enter Your Account Number based On Your Selected Withdrawal Method",
+                        icon: FontAwesomeIcons.buildingColumns,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Please enter your account number.";
+                          } else {
+                            return null;
+                          }
+                        }),
+                    SizedBox(height: 8),
+                  ],
+                  // Add signature pad for both deposit and withdraw
+                  Container(
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Color(0xFFE23670)),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: Text(
+                            "NOTE: Your signature will be compared with the one you provided during registration for verification purposes.",
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              color: Colors.red,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        SizedBox(height: 5),
+                        Text(
+                          'Signature Comparison',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFFE23670),
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Row(
+                          children: [
+                            // Left side - Stored signature
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Registration Signature',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  SizedBox(height: 5),
+                                  Container(
+                                    height: 200,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: Colors.grey),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: _isLoadingSignature
+                                        ? Center(
+                                            child: CircularProgressIndicator())
+                                        : _storedSignatureData != null
+                                            ? ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                child: Container(
+                                                  width: double.infinity,
+                                                  height: double.infinity,
+                                                  color: Colors.white,
+                                                  child: Image.memory(
+                                                    base64Decode(
+                                                        _storedSignatureData!),
+                                                    fit: BoxFit.contain,
+                                                  ),
+                                                ),
+                                              )
+                                            : Center(
+                                                child: Text(
+                                                  'No signature found',
+                                                  style: GoogleFonts.poppins(
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
+                                              ),
+                                  ),
+                                  SizedBox(height: 40),
+                                ],
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            // Right side - Current signature
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Current Signature',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  SizedBox(height: 5),
+                                  Container(
+                                    height: 200,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: Colors.grey),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: _signatureImage != null
+                                          ? Container(
+                                              width: double.infinity,
+                                              height: double.infinity,
+                                              color: Colors.white,
+                                              child: Image.file(
+                                                _signatureImage!,
+                                                fit: BoxFit.cover,
+                                              ),
+                                            )
+                                          : Signature(
+                                              controller: _signatureController,
+                                              backgroundColor: Colors.white,
+                                            ),
+                                    ),
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      TextButton.icon(
+                                        onPressed: _pickSignatureImage,
+                                        icon: Icon(Icons.upload_file,
+                                            color: Color(0xFFE23670)),
+                                        label: Text(
+                                          'Upload Signature',
+                                          style: GoogleFonts.poppins(
+                                            color: Color(0xFFE23670),
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      _signatureImage != null
+                                          ? TextButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  _signatureImage = null;
+                                                });
+                                              },
+                                              child: Text(
+                                                'Remove',
+                                                style: GoogleFonts.poppins(
+                                                  color: Colors.red,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            )
+                                          : TextButton(
+                                              onPressed: () {
+                                                _signatureController.clear();
+                                              },
+                                              child: Text(
+                                                'Clear',
+                                                style: GoogleFonts.poppins(
+                                                  color: Color(0xFFE23670),
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  if (widget.transferMethod == "withdraw")
+                    Text(
+                      "NOTE: You will receive your amount to your wallet within 1-2 business days.",
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Colors.red,
+                      ),
+                      textAlign: TextAlign.justify,
+                    ),
+                  //Confirmation Button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Theme(
+                        data: ThemeData(
+                          unselectedWidgetColor: const Color(0xFFE23670),
+                        ),
+                        child: Checkbox(
+                          value: _isConfirmed,
+                          activeColor: const Color(0xFFE23670),
+                          onChanged: (bool? newValue) {
+                            setState(() {
+                              _isConfirmed = newValue!;
+                            });
+                          },
+                        ),
+                      ),
+                      Text(
+                        "I confirm that my details above are correct.",
+                        style: GoogleFonts.poppins(
+                          color: const Color(0xFFE23670),
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        FontAwesomeIcons.shield,
+                        color: Colors.green.shade600,
+                      ),
+                      SizedBox(
+                        width: 8,
+                      ),
+                      Text(
+                        "Powered by PayMongo and NextPay.",
+                        style: GoogleFonts.poppins(
+                          color: Colors.grey,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: (_isConfirmed && !isLoading)
+                          ? () async {
+                              // Button is enabled only if _isConfirmed is true and isLoading is false
+                              if (_selectedPaymentMethod.isEmpty) {
+                                _showStatusModal(
+                                    context,
+                                    "Please Select Your Desired Payment Method",
+                                    Icon(
+                                      FontAwesomeIcons.circleExclamation,
+                                      color: const Color(0xFFE23670),
+                                      size: 50,
+                                    ));
+                                return;
+                              }
+                              if (_formKey.currentState!.validate()) {
+                                _showConfirmationDialog(
+                                    context, const Color(0xFFE23670));
+                              }
+                            }
+                          : null, // Button is disabled if _isConfirmed is false or isLoading is true
+                      style: ButtonStyle(
+                        backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                            (Set<WidgetState> states) {
+                          if (states.contains(WidgetState.disabled)) {
+                            return const Color(0xFFD3D3D3); // Disabled color
+                          }
+                          return const Color(0xFFE23670);
+                        }),
+                      ),
+                      child: Text(
+                          widget.transferMethod == "withdraw"
+                              ? "Withdraw Amount"
+                              : "Deposit Amount",
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            color: Colors.white,
+                          )),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -763,13 +863,11 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
 
     return Card(
         elevation: 2,
-        color: isSelected ? Color(0xFFF1F4FF) : Colors.white,
+        color: isSelected ? const Color(0xFFF1F4FF) : Colors.white,
         child: InkWell(
             onTap: () {
               if (!isSelected) {
                 onMethodSelected(title);
-              } else {
-                onMethodSelected('');
               }
             },
             child: Padding(
@@ -834,7 +932,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFFB71A4A), width: 2),
+              borderSide: const BorderSide(color: Color(0xFFE23670), width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
@@ -882,7 +980,7 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                     style: GoogleFonts.poppins(
                       fontSize: isSmallScreen ? 14 : 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0XFF3C28CC),
+                      color: const Color(0xFFE23670),
                     ),
                     textAlign: TextAlign.center,
                   )
@@ -894,14 +992,14 @@ class _PaymentProcessingPageState extends State<PaymentProcessingPage> {
                   _processPayment(context, _selectedPaymentMethod);
                 },
                 child: Text("Proceed",
-                    style: GoogleFonts.poppins(color: Color(0XFFE23670))),
+                    style: GoogleFonts.poppins(color: const Color(0xFFE23670))),
               ),
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
                 child: Text("Cancel",
-                    style: GoogleFonts.poppins(color: Color(0XFFE23670))),
+                    style: GoogleFonts.poppins(color: const Color(0xFFE23670))),
               )
             ],
           );

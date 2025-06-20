@@ -7,6 +7,7 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/service/client_service.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
 import 'package:flutter_fe/view/business_acc/tasker_profile_page.dart';
+import 'package:flutter_fe/widgets/privacy_policy_popup.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -37,6 +38,17 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
     super.initState();
     _initializeData();
     _searchController.addListener(_filterTasks);
+
+    // Show privacy policy popup after the widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return PrivacyPolicyPopup(context: 'task_assignment');
+        },
+      );
+    });
   }
 
   @override
@@ -259,6 +271,15 @@ class _TaskAssignmentScreenState extends State<TaskAssignmentScreen> {
 
   Future<void> _assignTask(TaskModel selectedTask) async {
     if (_isAssigning) return;
+
+    // Show privacy policy first
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return PrivacyPolicyPopup(context: 'task_assignment');
+      },
+    );
 
     final assignmentDetails = await _showAssignmentDialog(selectedTask);
     if (assignmentDetails == null) return;

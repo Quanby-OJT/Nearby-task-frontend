@@ -194,33 +194,7 @@ class _AddressListState extends State<AddressList> {
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : _addresses.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.location_off,
-                        size: 64,
-                        color: Colors.grey,
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'No addresses found',
-                        style: TextStyle(fontSize: 18),
-                      ),
-                      SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: _addNewAddress,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFB71A4A),
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 12),
-                        ),
-                        child: Text('Add New Address'),
-                      ),
-                    ],
-                  ),
-                )
+              ? Center()
               : Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: ListView.builder(

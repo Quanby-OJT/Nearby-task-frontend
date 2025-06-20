@@ -127,7 +127,7 @@ class AuthenticationController {
         isSuccess: true,
         message: messageReset,
       );
-    } else {
+    } else if(response.containsKey('error')) {
       String errorMessage = response['error'] ?? "Unknown error occurred";
       _showStatusModal(
         context: context,
@@ -195,6 +195,11 @@ class AuthenticationController {
       await storage.write('user_id', response['user_id']);
       await storage.write('role', response['role']);
       await storage.write('session', response['session']);
+
+      // Store email in lowercase for consistency
+      final email = emailController.text.toLowerCase();
+      await storage.write('email', email);
+      debugPrint('Email stored in storage: $email');
 
       // Update FCM token after successful login
       debugPrint("User logged in successfully, updating FCM token");
