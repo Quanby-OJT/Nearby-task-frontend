@@ -12,6 +12,8 @@ import 'package:flutter_fe/controller/profile_controller.dart';
 import 'package:flutter_fe/model/auth_user.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:flutter_fe/service/job_post_service.dart';
+import 'package:flutter_fe/service/client_service.dart';
+import 'package:flutter_fe/service/tasker_service.dart';
 import 'package:flutter_fe/model/specialization.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
@@ -54,6 +56,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String saveText = "Save";
   List<String> _selectedSkills = [];
   final updateTasker = GlobalKey<FormState>();
+  String?
+      _userProfileImageUrl; // Store profile image from client_images or tasker_images
 
   @override
   void initState() {
@@ -69,7 +73,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await Future.wait([
       _fetchUserData(),
       if (role == "Tasker") fetchSpecialization(),
-      if (role == "Tasker") getAllTaskerImages()
+      if (role == "Tasker") getAllTaskerImages(),
+      _fetchUserProfileImage(), // Fetch profile image from appropriate table
     ]);
 
     setState(() {
@@ -179,6 +184,71 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {
       this.taskerImages = taskerImages ?? [];
     });
+  }
+
+  Future<void> _fetchUserProfileImage() async {
+    try {
+      final userId = storage.read('user_id');
+      final role = storage.read('role');
+
+      if (userId != null) {
+        debugPrint("Fetching profile image for user ID: $userId, role: $role");
+
+        Map<String, dynamic> result;
+
+        if (role?.toLowerCase() == 'tasker') {
+          final taskerService = TaskerService();
+          result =
+              await taskerService.getTaskerImages(int.parse(userId.toString()));
+        } else if (role?.toLowerCase() == 'client') {
+          final clientService = ClientServices();
+          result =
+              await clientService.getClientImages(int.parse(userId.toString()));
+        } else {
+          debugPrint('Unknown user role for fetching profile image: $role');
+          return;
+        }
+
+        debugPrint("Profile image fetch result: $result");
+
+        if (result.containsKey('images') && result['images'] is List) {
+          final List<dynamic> images = result['images'];
+          if (images.isNotEmpty) {
+            final firstImage = images.first;
+            if (firstImage is Map && firstImage['image_link'] != null) {
+              setState(() {
+                _userProfileImageUrl = firstImage['image_link'];
+              });
+              debugPrint('✅ Found user profile image: $_userProfileImageUrl');
+            }
+          } else {
+            debugPrint('No profile images found for user');
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching user profile image: $e');
+    }
+  }
+
+  ImageProvider<Object>? _getProfileImageProvider() {
+    // Priority 1: Newly uploaded images (for editing)
+    if (profileImages.isNotEmpty) {
+      return FileImage(profileImages.first);
+    }
+    // Priority 2: Profile image from client_images/tasker_images table
+    else if (_userProfileImageUrl != null && _userProfileImageUrl!.isNotEmpty) {
+      return NetworkImage(_userProfileImageUrl!);
+    }
+    // Priority 3: Default user image from user table
+    else if (_user?.user.imageName != null &&
+        _user!.user.imageName!.isNotEmpty) {
+      return NetworkImage(_user!.user.imageName!);
+    }
+    // Fallback: Default asset image
+    else {
+      return const AssetImage('assets/images/default-profile.jpg');
+    }
   }
 
   Future<void> updateUser() async {
@@ -410,6 +480,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 key: updateTasker,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: Column(children: [
+                  GestureDetector(
+                    onTap: willEdit ? pickProfilePicture : null,
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundColor: Colors.grey[200],
+                      backgroundImage: _getProfileImageProvider(),
+                      child: willEdit
+                          ? Align(
+                              alignment: Alignment.bottomRight,
+                              child: CircleAvatar(
+                                radius: 18,
+                                backgroundColor: Colors.white,
+                                child: Icon(
+                                  Icons.camera_alt,
+                                  color: Color(0xFFE23670),
+                                  size: 20,
+                                ),
+                              ),
+                            )
+                          : null,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                      "${_user?.user.firstName} ${_user?.user.middleName?.isNotEmpty == true ? "${_user!.user.middleName?[0]}." : ""} ${_user?.user.lastName}",
+                      style: GoogleFonts.poppins(
+                          color: const Color(0xFFE23670),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold)),
+                  Text(_user?.user.email ?? '',
+                      style: GoogleFonts.poppins(
+                          fontSize: 14, color: Colors.grey)),
+                  const SizedBox(height: 20),
                   if (role == "Tasker")
                     _buildSection(
                         title: "Media",
