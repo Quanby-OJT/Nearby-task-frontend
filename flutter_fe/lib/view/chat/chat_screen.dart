@@ -8,6 +8,7 @@ import 'package:flutter_fe/model/conversation.dart';
 import 'package:flutter_fe/model/task_assignment.dart';
 import 'package:flutter_fe/model/user_model.dart';
 import 'package:flutter_fe/service/client_service.dart';
+import 'package:flutter_fe/service/tasker_service.dart';
 import 'package:flutter_fe/view/chat/ind_chat_screen.dart';
 import 'package:flutter_fe/view/fill_up/fill_up_client.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -41,6 +42,7 @@ class _ChatScreenState extends State<ChatScreen> {
       ConversationController();
   final ProfileController _profileController = ProfileController();
   final ClientServices _clientServices = ClientServices();
+  final TaskerService _taskerService = TaskerService();
   List<UserModel> tasker = [];
   int? cardNumber = 0;
   bool _isUploadDialogShown = false;
@@ -55,6 +57,10 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isOfflineMode = false;
   late SharedPreferences _prefs;
   final Connectivity _connectivity = Connectivity();
+
+  // Profile image caching
+  Map<int, String> _taskerProfileImages = {};
+  Map<int, String> _clientProfileImages = {};
 
   @override
   void initState() {
@@ -85,6 +91,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void loadAll() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
     });
@@ -95,6 +102,11 @@ class _ChatScreenState extends State<ChatScreen> {
       _fetchUserIDImage(),
       _fetchReportHistory(),
     ]);
+
+    // Fetch all profile images after task assignments are loaded
+    await _fetchAllProfileImages();
+
+    if (!mounted) return;
     setState(() {
       _isLoading = false;
     });
@@ -110,6 +122,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _checkInternetConnection() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
     });
@@ -117,6 +130,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     if (result.contains(ConnectivityResult.mobile) == true ||
         result.contains(ConnectivityResult.wifi) == true) {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
         _isOfflineMode = false;
@@ -142,6 +156,7 @@ class _ChatScreenState extends State<ChatScreen> {
       );
       loadAll();
     } else {
+      if (!mounted) return;
       setState(() {
         _isOfflineMode = true;
         _isLoading = false;
@@ -197,10 +212,15 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       final cachedTaskAssignments = _prefs.getString('cached_task_assignments');
       final cachedConversations = _prefs.getString('cached_conversations');
+      final cachedTaskerImages =
+          _prefs.getString('cached_tasker_profile_images');
+      final cachedClientImages =
+          _prefs.getString('cached_client_profile_images');
 
       if (cachedTaskAssignments != null) {
         final List<dynamic> decodedTaskAssignments =
             json.decode(cachedTaskAssignments);
+        if (!mounted) return;
         setState(() {
           taskAssignments = decodedTaskAssignments
               .map((json) => TaskAssignment.fromJson(json))
@@ -214,12 +234,32 @@ class _ChatScreenState extends State<ChatScreen> {
       if (cachedConversations != null) {
         final List<dynamic> decodedConversations =
             json.decode(cachedConversations);
+        if (!mounted) return;
         setState(() {
           conversation = decodedConversations
               .map((json) => Conversation.fromJson(json))
               .toList();
         });
         debugPrint("Loaded ${conversation.length} conversations from cache");
+      }
+
+      // Load cached profile images
+      if (cachedTaskerImages != null) {
+        final Map<String, dynamic> decodedTaskerImages =
+            json.decode(cachedTaskerImages);
+        _taskerProfileImages = decodedTaskerImages
+            .map((key, value) => MapEntry(int.parse(key), value.toString()));
+        debugPrint(
+            "Loaded ${_taskerProfileImages.length} tasker profile images from cache");
+      }
+
+      if (cachedClientImages != null) {
+        final Map<String, dynamic> decodedClientImages =
+            json.decode(cachedClientImages);
+        _clientProfileImages = decodedClientImages
+            .map((key, value) => MapEntry(int.parse(key), value.toString()));
+        debugPrint(
+            "Loaded ${_clientProfileImages.length} client profile images from cache");
       }
     } catch (e) {
       debugPrint("Error loading cached data: $e");
@@ -228,6 +268,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void filterMessages() {
     String query = conversationController.searchConversation.text.toLowerCase();
+    if (!mounted) return;
     setState(() {
       filteredTaskAssignments = taskAssignments.where((taskTaken) {
         return (taskTaken.task?.title.toLowerCase().contains(query) ?? false) ||
@@ -250,6 +291,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _fetchTaskAssignments() async {
     try {
+      if (!mounted) return;
       setState(() {
         taskAssignments = [];
         filteredTaskAssignments = [];
@@ -265,6 +307,7 @@ class _ChatScreenState extends State<ChatScreen> {
       debugPrint("Raw Conversations: $convs");
       debugPrint("Task Assignments: $tasks");
 
+      if (!mounted) return;
       setState(() {
         taskAssignments = tasks;
         conversation = convs;
@@ -277,6 +320,7 @@ class _ChatScreenState extends State<ChatScreen> {
     } catch (e, st) {
       debugPrint("Error fetching task assignments: $e");
       debugPrint(st.toString());
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
@@ -291,12 +335,14 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _fetchTaskers() async {
     await reportController.fetchTaskers();
     debugPrint("Taskers loaded in ChatScreen: ${reportController.taskers}");
+    if (!mounted) return;
     setState(() {});
   }
 
   Future<void> _fetchReportHistory() async {
     int userId = storage.read('user_id');
     await reportController.fetchReportHistory(userId);
+    if (!mounted) return;
     setState(() {});
   }
 
@@ -308,6 +354,7 @@ class _ChatScreenState extends State<ChatScreen> {
       final response = await _clientServices.fetchUserIDImage(userId);
 
       if (response['success']) {
+        if (!mounted) return;
         setState(() {
           _user = user;
           _existingProfileImageUrl = user?.user.image;
@@ -318,6 +365,136 @@ class _ChatScreenState extends State<ChatScreen> {
     } catch (e) {
       debugPrint("Error fetching ID image: $e");
     }
+  }
+
+  Future<void> _fetchAllProfileImages() async {
+    try {
+      // Get unique tasker and client IDs from task assignments
+      Set<int> taskerIds = {};
+      Set<int> clientIds = {};
+
+      for (var taskAssignment in taskAssignments) {
+        if (taskAssignment.tasker?.user?.id != null) {
+          taskerIds.add(taskAssignment.tasker!.user!.id!);
+        }
+        if (taskAssignment.client?.user?.id != null) {
+          clientIds.add(taskAssignment.client!.user!.id!);
+        }
+      }
+
+      debugPrint(
+          "Fetching profile images for ${taskerIds.length} taskers and ${clientIds.length} clients");
+
+      // Fetch tasker profile images
+      await Future.wait(taskerIds.map((id) => _fetchTaskerProfileImage(id)));
+
+      // Fetch client profile images
+      await Future.wait(clientIds.map((id) => _fetchClientProfileImage(id)));
+
+      // Save profile images to cache
+      await _saveProfileImagesToCache();
+
+      debugPrint(
+          "Profile images fetched: ${_taskerProfileImages.length} tasker images, ${_clientProfileImages.length} client images");
+    } catch (e) {
+      debugPrint("Error fetching profile images: $e");
+    }
+  }
+
+  Future<void> _fetchTaskerProfileImage(int userId) async {
+    try {
+      final result = await _taskerService.getTaskerImages(userId);
+      if (result.containsKey('images') && result['images'] is List) {
+        final List<dynamic> images = result['images'];
+        if (images.isNotEmpty) {
+          final firstImage = images.first;
+          if (firstImage is Map && firstImage['image_link'] != null) {
+            _taskerProfileImages[userId] = firstImage['image_link'];
+            debugPrint(
+                "Fetched tasker profile image for user $userId: ${firstImage['image_link']}");
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint("Error fetching tasker profile image for user $userId: $e");
+      // Clear any failed URLs
+      _taskerProfileImages.remove(userId);
+    }
+  }
+
+  Future<void> _fetchClientProfileImage(int userId) async {
+    try {
+      final result = await _clientServices.getClientImages(userId);
+      if (result.containsKey('images') && result['images'] is List) {
+        final List<dynamic> images = result['images'];
+        if (images.isNotEmpty) {
+          final firstImage = images.first;
+          if (firstImage is Map && firstImage['image_link'] != null) {
+            _clientProfileImages[userId] = firstImage['image_link'];
+            debugPrint(
+                "Fetched client profile image for user $userId: ${firstImage['image_link']}");
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint("Error fetching client profile image for user $userId: $e");
+      // Clear any failed URLs
+      _clientProfileImages.remove(userId);
+    }
+  }
+
+  Future<void> _saveProfileImagesToCache() async {
+    try {
+      // Save tasker profile images to cache
+      final taskerImagesJson = _taskerProfileImages
+          .map((key, value) => MapEntry(key.toString(), value));
+      await _prefs.setString(
+          'cached_tasker_profile_images', json.encode(taskerImagesJson));
+
+      // Save client profile images to cache
+      final clientImagesJson = _clientProfileImages
+          .map((key, value) => MapEntry(key.toString(), value));
+      await _prefs.setString(
+          'cached_client_profile_images', json.encode(clientImagesJson));
+
+      debugPrint(
+          "Saved profile images to cache: ${_taskerProfileImages.length} tasker images, ${_clientProfileImages.length} client images");
+    } catch (e) {
+      debugPrint("Error saving profile images to cache: $e");
+    }
+  }
+
+  DecorationImage? _getProfileImageDecoration(
+      UserModel? user, String userRole) {
+    try {
+      String? profileImageUrl;
+
+      // Priority 1: Profile image from database table
+      if (user?.id != null) {
+        if (userRole.toLowerCase() == 'tasker') {
+          profileImageUrl = _taskerProfileImages[user!.id!];
+        } else if (userRole.toLowerCase() == 'client') {
+          profileImageUrl = _clientProfileImages[user!.id!];
+        }
+      }
+
+      // Priority 2: Default user image
+      profileImageUrl ??= user?.imageName ?? user?.image;
+
+      if (profileImageUrl != null && profileImageUrl.isNotEmpty) {
+        return DecorationImage(
+          image: CachedNetworkImageProvider(profileImageUrl),
+          fit: BoxFit.cover,
+          onError: (exception, stackTrace) {
+            debugPrint("Error loading profile image: $exception");
+          },
+        );
+      }
+    } catch (e) {
+      debugPrint("Error getting profile image decoration: $e");
+    }
+
+    return null;
   }
 
   void _showReportModal() {
@@ -1070,6 +1247,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final bool isUnread = taskTaken.unreadCount > 0;
     final user =
         role == 'Tasker' ? taskTaken.client?.user : taskTaken.tasker?.user;
+    final userRole = role == 'Tasker' ? 'client' : 'tasker';
     final timestamp = conversation?.createdAt != null
         ? DateFormat('h:mm a').format(conversation!.createdAt!)
         : '';
@@ -1150,21 +1328,21 @@ class _ChatScreenState extends State<ChatScreen> {
                       child: CircleAvatar(
                         radius: 30,
                         backgroundColor: Color(0xFF0272B1),
-                        backgroundImage: user?.imageName != null
-                            ? CachedNetworkImageProvider(user!.imageName!)
-                            : null,
-                        child: user?.imageName == null
-                            ? Text(
-                                user?.firstName.isNotEmpty == true
-                                    ? user!.firstName[0].toUpperCase()
-                                    : 'U',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 18,
-                                ),
-                              )
-                            : null,
+                        backgroundImage:
+                            _getProfileImageDecoration(user, userRole)?.image,
+                        child:
+                            _getProfileImageDecoration(user, userRole) == null
+                                ? Text(
+                                    user?.firstName.isNotEmpty == true
+                                        ? user!.firstName[0].toUpperCase()
+                                        : 'U',
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 18,
+                                    ),
+                                  )
+                                : null,
                       ),
                     ),
                     if (isUnread && isReceiver)
